@@ -40,5 +40,11 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
+        <method name="hashCode">
+            <Borrowed>this</Borrowed>
+        </method>
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+        </method>
     </class>
 </package>

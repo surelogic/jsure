@@ -7,5 +7,20 @@
         <constructor>
             <RegionEffects>none</RegionEffects>
         </constructor>
+        <method name="isEmpty">
+        	<Borrowed>this</Borrowed>
+        </method>
+        <method name="iterator">
+            <!-- Not quite right -->        
+            <Borrowed>this</Borrowed>
+        </method>
+        <method name="listIterator">
+            <!-- Not quite right -->        
+        	<Borrowed>this</Borrowed>
+        </method>
+        <method name="listIterator" params="int">
+            <!-- Not quite right -->
+        	<Borrowed>this</Borrowed>
+        </method>        
     </class>
 </package>

@@ -47,5 +47,13 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
+
+        <method name="containsKey" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>
+        
+        <method name="remove" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>
     </class>
 </package>

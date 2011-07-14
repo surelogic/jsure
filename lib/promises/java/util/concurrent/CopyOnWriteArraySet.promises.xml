@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent">
+    <class name="CopyOnWriteArraySet">
+        <Promise>@Unique(return) for new(**)</Promise>
+        <Promise>@RegionEffects(writes arg0:Instance) for new(*)</Promise>
+        <method name="isEmpty">
+        	<Borrowed>this</Borrowed>
+        </method>
+        <method name="iterator">
+            <!-- Not quite right -->        
+            <Borrowed>this</Borrowed>
+        </method>    
+    </class>
+</package>
