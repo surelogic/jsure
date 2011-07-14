@@ -345,7 +345,7 @@ public class TestXMLParser extends DefaultHandler implements
 		if (next != null)
 			nodeStack.push(new NodeElement(name, NodeKind.TYPE, next));
 		else
-			reportError("Could not find class node " + name);
+			reportWarn("Could not find class node " + name);
 	}
 
 	@Override
