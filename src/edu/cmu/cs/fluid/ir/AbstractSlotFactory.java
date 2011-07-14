@@ -3,6 +3,8 @@
  */
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.Borrowed;
+
 import edu.cmu.cs.fluid.util.*;
 
 
@@ -161,6 +163,7 @@ public abstract class AbstractSlotFactory implements SlotFactory {
       @Override
       public SlotStorage<IntS,Integer> getIntSlotStorage() { return ints; }
       @Override
+      @Borrowed("this")
       public SlotStorage<S,T> getSlotStorage() { return storage; }
       @Override
       public SlotStorage<ES,IRLocation> getElemStorage() { return ls; }

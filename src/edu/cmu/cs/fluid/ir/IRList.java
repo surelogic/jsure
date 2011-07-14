@@ -755,6 +755,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
    * The header for a list that has no nodes and never has.
    * @author boyland
    */
+  @Promise("@Borrowed(this) for public *(**)")
   static class EmptyHeader<IntS,S,ES,T> implements Header<IntS,S,ES,T> {
     static final EmptyHeader prototype = new EmptyHeader();
     
@@ -844,6 +845,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
    * This is permitted if nothing interesting happens to next/prev links.
    * @author boyland
    */
+  @Promise("@Borrowed(this) for public *(**)")
   abstract class SimpleHeader extends CountInstances implements Header<IntS,S,ES,T> {
     protected final SlotList elemSlots;
     
@@ -1030,6 +1032,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
    * Used when the list only has things appended to it.
    * @author boyland
    */
+  @Promise("@Borrowed(this) for public *(**)")
   class AppendHeader extends SimpleHeader {
     public AppendHeader(SlotList es) {
       super(es);
@@ -1105,6 +1108,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     
   }
 
+  @Promise("@Borrowed(this) for public *(**)")
   class InsertHeader extends SimpleHeader {
     public InsertHeader(SlotList es) {
       super(es);
@@ -1217,6 +1221,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
    * We assume that the number of elements never goes below the initial size.
    * @author boyland
    */
+  @Promise("@Borrowed(this) for public *(**)")
   class FullHeader extends CountInstances implements Header<IntS,S,ES,T> {
     protected ES head, tail; // valid only if size() > 0
     private ES free;			// "infinite" list of new cells.

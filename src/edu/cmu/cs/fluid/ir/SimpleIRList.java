@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.Borrowed;
+
 /** Variable size sequences with locations that stay valid under reshaping
  * Specialized from IRList to save space for SimpleSlots
  */
@@ -19,6 +21,7 @@ public class SimpleIRList<T> extends IRList<Integer,T,IRLocation,T> {
   }
   
   @Override
+  @Borrowed("this")
   protected SlotStorage<T, T> getSlotStorage() {
     return SimpleSlotFactory.prototype.<T>getStorage();
   }
