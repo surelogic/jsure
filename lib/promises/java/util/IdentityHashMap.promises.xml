@@ -46,5 +46,32 @@
         <method name="clear">
             <Borrowed>this</Borrowed>
         </method>
+
+        <class name="EntrySet">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="KeySet">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="Values">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>

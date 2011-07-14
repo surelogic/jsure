@@ -55,5 +55,81 @@
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
         </method>
+
+        <class name="EntrySet">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="KeySet">
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
+            
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="clear">
+                <Borrowed>this</Borrowed>
+            </method>            
+        </class>
+
+        <class name="Values">
+            <method name="iterator">
+                <Borrowed>this</Borrowed>
+           </method>
+        </class>        
+        
+        <class name="NavigableSubMap">
+        	<method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+            </method>
+
+        	<method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+            </method>
+            
+        	<method name="keySet">
+                <Borrowed>this</Borrowed>
+            </method>    
+
+        	<method name="remove" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+            </method>    
+
+        	<method name="size">
+                <Borrowed>this</Borrowed>
+            </method>       
+        
+        	<class name="EntrySetView">
+            	<method name="isEmpty">
+                	<Borrowed>this</Borrowed>
+           		</method>   
+        	</class>
+        </class>        
+        
+        <class name="AscendingSubMap">
+        	<class name="AscendingEntrySetView">
+            	<method name="iterator">
+                	<Borrowed>this</Borrowed>
+           		</method>   
+        	</class>
+        </class>      
+        
+        <class name="DescendingSubMap">
+        	<class name="DescendingEntrySetView">
+            	<method name="iterator">
+                	<Borrowed>this</Borrowed>
+           		</method>        	
+        	</class>
+        </class>              
     </class>
 </package>
