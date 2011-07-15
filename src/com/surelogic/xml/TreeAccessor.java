@@ -44,7 +44,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	 */
 	public static IRNode findNestedClass(String name, IRNode type) {
 		//LOG.info("Looking for class " + name);
-
+		if (type == null) {
+			return null;
+		}
 		IRNode body = VisitUtil.getClassBody(type);
 		for(IRNode m : ClassBody.getDeclIterator(body)) {
 			Operator op = tree.getOperator(m);
@@ -69,7 +71,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	 */
 	public static IRNode findConstructor(final String params, IRNode top,
 			ITypeEnvironment tEnv) {
-
+		if (top == null) {
+			return null;
+		}
 		Iterator<IRNode> e = VisitUtil.getClassBodyMembers(top);
 		LOG.finer("Looking for constructor w/ params: " + params);
 		while (e.hasNext()) {
@@ -103,7 +107,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	 * @return
 	 */
 	public static IRNode findField(final String name, IRNode top) {
-
+		if (top == null) {
+			return null;
+		}
 		LOG.info("Looking for field " + name + " starting at node "
 				+ DebugUnparser.toString(top));
 
@@ -148,7 +154,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	 * @return IRNode
 	 */
 	public static IRNode findParameter(String index, String name, IRNode top) {
-
+		if (top == null) {
+			return null;
+		}
 		Operator op = tree.getOperator(top);
 		IRNode params = (op instanceof MethodDeclaration) ? MethodDeclaration
 				.getParams(top) : ConstructorDeclaration.getParams(top);
@@ -176,7 +184,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 
 	public static IRNode findMethod(IRNode root, String name, String params,
 			ITypeEnvironment tEnv) {
-
+		if (root == null) {
+			return null;
+		}
 		final boolean debug = LOG.isLoggable(Level.FINER);
 
 		// XXX Problem is here

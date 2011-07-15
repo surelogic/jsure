@@ -223,9 +223,9 @@ public class TestXMLParser extends DefaultHandler implements
 
 				String params = e.getAttribute(PARAMS_ATTRB);
 
-				IRNode con = TreeAccessor.findConstructor(params, nodeStack
-						.peek().getNode(), tEnv);
-				if (con != null) {
+				final IRNode here = nodeStack.peek().getNode();
+				IRNode con = TreeAccessor.findConstructor(params, here, tEnv);
+				if (con != null || here == null) {
 					if (params == null) {
 						/*
 							if (noParamConstructor_bool)
@@ -256,9 +256,9 @@ public class TestXMLParser extends DefaultHandler implements
 				if (name == null)
 					malformedXML("Field element requires a name attribute");
 
-				IRNode f = TreeAccessor.findField(name, nodeStack.peek()
-						.getNode());
-				if (f != null) {
+				final IRNode here = nodeStack.peek().getNode();
+				IRNode f = TreeAccessor.findField(name, here);
+				if (f != null || here == null) {
 					nodeStack.push(new NodeElement(name, NodeKind.FIELD, f));
 				} else {
 					malformedStartElement("Could not find field node "
@@ -277,7 +277,7 @@ public class TestXMLParser extends DefaultHandler implements
 				IRNode m = TreeAccessor.findMethod(here, name, 
 						e.getAttribute(PARAMS_ATTRB),
 						tEnv);
-				if (m != null) {
+				if (m != null || here == null) {
 					nodeStack.push(new NodeElement(name, NodeKind.METHOD, m));
 				} else {
 					TreeAccessor.findMethod(here, name, 
@@ -297,9 +297,9 @@ public class TestXMLParser extends DefaultHandler implements
 					malformedXML("Parameter element requires an index or "
 							+ "name attribute");
 
-				IRNode p = TreeAccessor.findParameter(index, name,
-						nodeStack.peek().getNode());
-				if (p != null)
+				final IRNode here = nodeStack.peek().getNode();
+				IRNode p = TreeAccessor.findParameter(index, name, here);
+				if (p != null || here == null)
 					nodeStack.push(new NodeElement((index != null) ? index
 							: name, NodeKind.PARAM, p));
 				else {
@@ -342,10 +342,10 @@ public class TestXMLParser extends DefaultHandler implements
 			next = TreeAccessor.findNestedClass(name, nodeStack.peek().getNode());
 		}
 
-		if (next != null)
-			nodeStack.push(new NodeElement(name, NodeKind.TYPE, next));
-		else
+		if (next == null) {
 			reportWarn("Could not find class node " + name);
+		}
+		nodeStack.push(new NodeElement(name, NodeKind.TYPE, next));
 	}
 
 	@Override
@@ -433,33 +433,34 @@ public class TestXMLParser extends DefaultHandler implements
 			// contents = new String(e.getCdata());
 			final String contents = e.getCdata();
 			IRNode annotatedNode = nodeStack.peek().getNode();
-			if (CompilationUnit.prototype.includes(annotatedNode)) {
-				// Hack to annotate the package declaration, instead of the comp unit
-				annotatedNode = CompilationUnit.getPkg(annotatedNode);
-			}
-			if (LOG.isLoggable(Level.FINER)) {
-				LOG
-						.finer("Got promise "
-								+ eName
-								+ (!"".equals(contents) ? (" content " + contents)
-										: "")
-								+ " at "
-								+ DebugUnparser.toString(annotatedNode));
-			}
+			if (annotatedNode != null) {
+				if (CompilationUnit.prototype.includes(annotatedNode)) {
+					// Hack to annotate the package declaration, instead of the comp unit
+					annotatedNode = CompilationUnit.getPkg(annotatedNode);
+				}
+				if (LOG.isLoggable(Level.FINER)) {
+					LOG
+					.finer("Got promise "
+							+ eName
+							+ (!"".equals(contents) ? (" content " + contents)
+									: "")
+									+ " at "
+									+ DebugUnparser.toString(annotatedNode));
+				}
 
-			/** Add this promise to the AAST */
-			final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
-			final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
-			final boolean verify   = rawVerify == null || "true".equals(rawVerify);
-			final boolean allowReturn = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_RETURN));
-			final boolean allowRead = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_READ));
-						
-			boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
-			                                         AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead));
-			if (added) {
-				numAnnotationsAdded++;
-			}
+				/** Add this promise to the AAST */
+				final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
+				final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
+				final boolean verify   = rawVerify == null || "true".equals(rawVerify);
+				final boolean allowReturn = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_RETURN));
+				final boolean allowRead = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_READ));
 
+				boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
+						AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead));
+				if (added) {
+					numAnnotationsAdded++;
+				}
+			}
 			// } else {
 			/** Log unknown element which is not inside a promise */
 			// reportWarn("Unknown Element: " + eName);
