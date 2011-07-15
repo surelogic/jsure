@@ -437,8 +437,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 									}
 								}
 								if (sp != null) {
-									context.reportError(sp.getMessage()+" from "+JavaNames.getFullName(sp.getNode())+
-											"overridden by explicit annotation", a2);
+									context.reportError(sp.getMessage()+" ("+JavaNames.getFullName(sp.getNode())+
+											") overridden by explicit annotation", a2);
 								} else {
 									context.reportError("@Promise overridden by explicit annotation", a2);
 								}
