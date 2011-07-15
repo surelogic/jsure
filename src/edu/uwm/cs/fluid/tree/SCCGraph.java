@@ -10,8 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Stack;
 
-import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.tree.SymmetricDigraphInterface;
 
 /**
@@ -143,9 +144,24 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     public Creator(SymmetricDigraphInterface dig, Collection<? extends IRNode> roots, boolean rev) {
       graph = dig;
       reverse = rev;
-      for (IRNode root : roots) {
-        visit(root);
+      for (IRNode root : roots) {    	
+    	  try {
+    		  visit(root);
+          } catch(StackOverflowError e) {
+        	  /*
+        	  IRNode last = null;
+        	  IRNode here = null;
+        	  int i=0;
+        	  do {
+        		  here = stack.get(i);
+        		  i++;
+        	  } while (last != here);
+        	  */
+        	  System.out.println("Died with a stack of "+stack.size());
+        	  throw e;
+          }
       }
+
       for (ListIterator<IRNode> rit = finished.listIterator(finished.size()); rit.hasPrevious();) {
         visit2(rit.previous());
         if (scc != null) {
@@ -155,15 +171,56 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
       }
     }
     
+    final Stack<IRNode> stack = new Stack<IRNode>();
+    /*
     private void visit(IRNode n) {
       if (visited.contains(n)) return;
       visited.add(n);
+      stack.push(n);
       for (IRNode ch : (reverse ? graph.parents(n) : graph.children(n))) {
         visit(ch);
       }
+      stack.pop();
       finished.add(n);
     }
+    */
+    private void visit(IRNode n) {
+    	stack.clear();
+    	stack.push(n);
+    	dfs();
+    }
     
+    private void dfs() {
+    	while (!stack.isEmpty()) {
+    		final IRNode n = stack.pop();
+    		if (n instanceof FinishedNode) {
+    			FinishedNode f = (FinishedNode) n;
+    			finished.add(f.getIRNode());
+    			continue;
+    		}
+    		if (visited.contains(n)) {
+    			continue;
+    		}
+    		visited.add(n);
+        
+    		stack.push(new FinishedNode(n));
+    		for (IRNode ch : (reverse ? graph.parents(n) : graph.children(n))) {
+    			stack.push(ch);
+    		}        
+    	}
+    }
+    
+    static class FinishedNode extends ProxyNode {
+    	FinishedNode(IRNode n) {
+    		super(n);
+    	}
+    	@Override
+    	public IRNode getIRNode() {
+    		return super.getIRNode();
+    	}
+    }
+    
+    /*
     private void visit2(IRNode n) {
       if (visited.contains(n)) {
         // otherwise, unreachable from roots
@@ -175,6 +232,38 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
         }
         scc.add(n);
       }
+    }
+    */
+    private void visit2(IRNode n) {
+       	stack.clear();
+    	stack.push(n);
+    	dfs2();
+    }
+    
+    private void dfs2() {
+      	while (!stack.isEmpty()) {
+    		final IRNode n = stack.pop();
+    		if (!visited.contains(n)) {
+    			continue;
+    		}
+    		if (n instanceof FinishedNode) {
+    			FinishedNode f = (FinishedNode) n;
+    			if (scc == null) {
+    				scc = new ArrayList<IRNode>();
+    			}
+    			scc.add(f.getIRNode());
+    			continue;
+    		}
+    		if (visited2.contains(n)) {
+    			continue;
+    		}
+    		visited2.add(n);
+        
+    		stack.push(new FinishedNode(n));
+    		for (IRNode ch : (reverse ? graph.parents(n) : graph.children(n))) {
+    			stack.push(ch);
+    		}        
+    	}
     }
     
     public List<List<IRNode>> getSCCs() {
