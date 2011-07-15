@@ -462,6 +462,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		}
 		members.add(result);
 		
+		final IRNode parameters = params;
 		// Used to get the first line number
 		return new EmptyVisitor() {
 			int line = Integer.MAX_VALUE;
@@ -479,7 +480,11 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 				if (line == Integer.MAX_VALUE) {
 					line = 0;
 				}
-				JavaNode.setSrcRef(result, new ClassRef(resource, line));				
+				final ISrcRef ref = new ClassRef(resource, line);
+				JavaNode.setSrcRef(result, ref);				
+				for(IRNode p : Parameters.getFormalIterator(parameters)) {
+					JavaNode.setSrcRef(p, ref);
+				}
 			}
 		}; // FIX for annos/line numbers
 	}
