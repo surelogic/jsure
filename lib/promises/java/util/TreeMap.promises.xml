@@ -88,6 +88,26 @@
            </method>
         </class>        
         
+        <class name="SubMap">
+        	<method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+            </method>
+
+        	<method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+            </method>
+
+        	<class name="EntrySetView">
+            	<method name="isEmpty">
+                	<Borrowed>this</Borrowed>
+           		</method>          	
+
+            	<method name="iterator">
+                	<Borrowed>this</Borrowed>
+           		</method>  
+        	</class>
+        </class>
+        
         <class name="NavigableSubMap">
         	<method name="containsKey" params="java.lang.Object">
                 <Borrowed>this</Borrowed>

@@ -5,5 +5,13 @@
         <constructor>
             <Borrowed>this</Borrowed>
         </constructor>
+        
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+        </method>
+
+        <method name="get" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>
     </class>
 </package>
