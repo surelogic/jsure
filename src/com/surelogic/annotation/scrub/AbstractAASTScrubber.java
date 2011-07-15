@@ -426,8 +426,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 					if (success) {
 						for(A a2 : l) {
 							if (a2 != a) {
-								if ("Starts nothing".equals(a.toString())) {
-									PromiseDrop<?> sp = AASTStore.getPromiseSource(a);
+								PromiseDrop<?> sp = AASTStore.getPromiseSource(a2);
+								if ("Starts nothing".equals(a.toString())) {					
 									PromiseDrop<?> sp2 = AASTStore.getPromiseSource(a2);
 									if (sp != null) {
 										System.out.println("Got Starts nothing: "+DebugUnparser.toString(sp.getNode()));
@@ -436,7 +436,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 										System.out.println("Got Starts nothing: "+DebugUnparser.toString(sp2.getNode()));
 									}
 								}
-								context.reportError("@Promise overridden by explicit annotation", a2);
+								if (sp != null) {
+									context.reportError(sp.getMessage()+" from "+JavaNames.getFullName(sp.getNode())+
+											"overridden by explicit annotation", a2);
+								} else {
+									context.reportError("@Promise overridden by explicit annotation", a2);
+								}
 							}
 						}
 						return;					
