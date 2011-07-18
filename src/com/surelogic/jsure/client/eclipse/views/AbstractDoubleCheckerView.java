@@ -1,7 +1,13 @@
 package com.surelogic.jsure.client.eclipse.views;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +37,7 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -95,18 +101,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	private Action doubleClickAction;
 
 	private final boolean f_useTable;
-	
-	private final int f_extraStyle;
 
-	/**
-	 * The view title from the XML, or {@code null} if we couldn't get it.
-	 */
-	private String f_viewTitle;
+	private final int f_extraStyle;
 
 	protected AbstractDoubleCheckerView() {
 		this(false);
 	}
-	
+
 	protected AbstractDoubleCheckerView(boolean useTable) {
 		this(useTable, SWT.NONE);
 	}
@@ -141,8 +142,6 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 		subscribe();
 
-		f_viewTitle = getPartName();
-		updateViewTitle();
 		finishCreatePartControl();
 	}
 
@@ -151,11 +150,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		NotificationHub.addAnalysisListener(this);
 		Sea.getDefault().addSeaObserver(this);
 	}
-	
+
 	protected void finishCreatePartControl() {
 		// Nothing to do right now
 	}
-	
+
 	/**
 	 * Creates the content/label provider and sorter, as well as any other
 	 * viewer state
@@ -210,15 +209,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 							f_noResultsToShowLabel.setImage(f_fancyWait);
 						}
 					} catch (Exception e) {
-						SLLogger
-								.getLogger()
-								.log(
-										Level.SEVERE,
+						SLLogger.getLogger()
+								.log(Level.SEVERE,
 										"Failure to create gray Verification Status image to show while analysis is running",
 										e);
 					}
 				}
-			} 
+			}
 			if (projects == null) {
 				viewer.setInput(null);
 			}
@@ -306,7 +303,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					}
 					s = JSureHistoricalSourceView.tryToMapPath(s);
 					file = EclipseUtility.resolveIFile(s);
-					
+
 					if (file == null) {
 						s = srcRef.getRelativePath();
 						file = EclipseUtility.resolveIFile(s);
@@ -314,14 +311,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				} else {
 					return;
 				}
-                JSureHistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
-                        srcRef.getCUName(), srcRef.getLineNumber());
-				
+				JSureHistoricalSourceView.tryToOpenInEditor(
+						srcRef.getPackage(), srcRef.getCUName(),
+						srcRef.getLineNumber());
+
 				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);
-					if (elt != null) {					    
-						IEditorPart ep = JavaUI.openInEditor(elt);						
-						
+					if (elt != null) {
+						IEditorPart ep = JavaUI.openInEditor(elt);
+
 						IMarker location = null;
 						try {
 							location = ResourcesPlugin.getWorkspace().getRoot()
@@ -331,9 +329,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 									&& srcRef.getLength() >= 0) {
 								location.setAttribute(IMarker.CHAR_START,
 										srcRef.getOffset());
-								location.setAttribute(IMarker.CHAR_END, srcRef
-										.getOffset()
-										+ srcRef.getLength());
+								location.setAttribute(IMarker.CHAR_END,
+										srcRef.getOffset() + srcRef.getLength());
 							}
 							if (srcRef.getLineNumber() > 0) {
 								location.setAttribute(IMarker.LINE_NUMBER,
@@ -404,7 +401,6 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					}
 				});
 				viewer.refresh();
-				updateViewTitle();
 			} catch (Exception e) {
 				// @ignore since this SHOULD only happen on shutdown
 			}
@@ -427,7 +423,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		final BufferedReader br = new BufferedReader(new FileReader(location));
 		try {
 			loadStrings(br, f_selectionPath);
-			
+
 			f_stringPaths.clear();
 			LinkedList<String> path = null;
 			do {
@@ -442,11 +438,12 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		}
 		restoreViewState();
 	}
-	
+
 	/**
 	 * Create a list if there's something to add
 	 */
-	private static LinkedList<String> loadStrings(BufferedReader br, LinkedList<String> strings) throws IOException {		
+	private static LinkedList<String> loadStrings(BufferedReader br,
+			LinkedList<String> strings) throws IOException {
 		String line;
 		if (strings != null) {
 			strings.clear();
@@ -459,18 +456,18 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				strings = new LinkedList<String>();
 			}
 			strings.add(line);
-			//System.out.println("Loaded: "+line);
+			// System.out.println("Loaded: "+line);
 		}
 		return strings;
 	}
-	
-	protected final void saveViewState(File location) throws IOException {		
+
+	protected final void saveViewState(File location) throws IOException {
 		saveViewState();
 		if (location != null) {
 			final PrintWriter pw = new PrintWriter(location);
 			try {
 				saveStrings(pw, f_selectionPath);
-				for(LinkedList<String> ll : f_stringPaths) {
+				for (LinkedList<String> ll : f_stringPaths) {
 					saveStrings(pw, ll);
 				}
 			} finally {
@@ -478,15 +475,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			}
 		}
 	}
-	
+
 	private static void saveStrings(PrintWriter pw, LinkedList<String> strings) {
-		for(String s : strings) {
-			//System.out.println("Saving: "+s);
+		for (String s : strings) {
+			// System.out.println("Saving: "+s);
 			pw.println(s); // TODO what if there are newlines?
 		}
 		pw.println(); // Marker for the end of the list
 	}
-	
+
 	protected final void saveViewState() {
 		if (treeViewer != null) {
 			f_stringPaths.clear();
@@ -515,7 +512,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			}
 		}
 	}
-	
+
 	protected final void restoreViewState() {
 		final IContentProvider cp = viewer.getContentProvider();
 		if (cp instanceof ITreeContentProvider) {
@@ -534,7 +531,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			if (!f_selectionPath.isEmpty())
 				restoreSavedSelection(tcp, f_selectionPath, null, null);
 		} else {
-			//System.out.println("Not a tree: "+cp);
+			// System.out.println("Not a tree: "+cp);
 		}
 	}
 
@@ -555,10 +552,9 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (message == null)
 			return;
 		/*
-		if (elements.length == 0) {
-			System.out.println("No elts to restore to");
-		}
-		*/
+		 * if (elements.length == 0) {
+		 * System.out.println("No elts to restore to"); }
+		 */
 		for (Object element : elements) {
 			if (message.equals(element.toString())) {
 				/*
@@ -571,13 +567,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				 * are marked as expanded but are under a collapsed ancestor.
 				 */
 				if (path.isEmpty()) {
-					//System.out.println("Expanded: "+message);
+					// System.out.println("Expanded: "+message);
 					treeViewer.setExpandedState(element, true);
 				} else {
 					restoreSavedPath(tcp, path, element);
 				}
 			} else {
-				//System.out.println("Couldn't find: "+message);
+				// System.out.println("Couldn't find: "+message);
 			}
 		}
 	}
@@ -600,10 +596,9 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (message == null)
 			return;
 		/*
-		if (elements.length == 0) {
-			System.out.println("No elts to restore to");
-		}
-		*/
+		 * if (elements.length == 0) {
+		 * System.out.println("No elts to restore to"); }
+		 */
 		boolean found = false;
 		for (Object element : elements) {
 			if (message.equals(element.toString())) {
@@ -615,13 +610,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					 */
 					ISelection selection = new TreeSelection(new TreePath(
 							treePath.toArray()));
-					//System.out.println("Selected: "+message);
+					// System.out.println("Selected: "+message);
 					viewer.setSelection(selection);
 				} else {
 					restoreSavedSelection(tcp, path, element, treePath);
 				}
 			} else {
-				//System.out.println("Couldn't find: "+message);
+				// System.out.println("Couldn't find: "+message);
 			}
 		}
 		/*
@@ -630,8 +625,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		 * remaining root of the same path.
 		 */
 		if (!found && !treePath.isEmpty()) {
-			ISelection selection = new TreeSelection(new TreePath(treePath
-					.toArray()));
+			ISelection selection = new TreeSelection(new TreePath(
+					treePath.toArray()));
 			viewer.setSelection(selection);
 		}
 	}
@@ -683,55 +678,17 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					if (false) { //!Nature.hasNatureAnyProject()) {
-						f_noResultsToShowLabel.setText(NO_RESULTS);
-						setViewerVisibility(false);
-					} else {				
-						refreshView(); 
-					}
+					refreshView();
 				}
 			});
-		}		
-	}
-
-	/**
-	 * Used to set the view title. We use this method to add the project of
-	 * focus to JSure to the view title.
-	 */
-	private void updateViewTitle() {
-		/*
-		 * Set a default if we got a null for the view title from the plug-in
-		 * XML.
-		 */
-		if (f_viewTitle == null) {
-			f_viewTitle = "Verification Status";
-			SLLogger.getLogger().log(
-					Level.WARNING,
-					"Didn't get a view title from XML using \"" + f_viewTitle
-							+ "\"");
-		}
-
-		final String label = getViewLabel();
-		if (label != null) {
-			setPartName(f_viewTitle + " (" + label + ")");
-		} else {
-			setPartName(f_viewTitle);
 		}
 	}
 
-	protected String getViewLabel() {
-		/*
-		 * Try to get a project name from drop-sea and add it.
-		 */
-		final IIRProjects projects = ProjectsDrop.getProjects();
-		return projects != null ? projects.getLabel() : null;
-	}
-	
 	/*
 	 * For use by view contribution actions in other plug-ins so that they can
 	 * get a pointer to the TreeViewer
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Object getAdapter(final Class adapter) {
 		if (adapter == TreeViewer.class) {

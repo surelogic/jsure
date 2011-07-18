@@ -40,6 +40,11 @@
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScansView">
 		</view>
 		
+		<view name="Verification Scan Management"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
+			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
+		</view>
+		
 		<view name="JSure Scan Summaries"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">

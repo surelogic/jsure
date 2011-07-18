@@ -7,7 +7,6 @@ import java.util.Collections;
 
 import org.eclipse.ui.IMemento;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
@@ -16,39 +15,29 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentResultsView extends ResultsView implements
 		JSureScansHub.Listener {
 	private static final String VIEW_STATE = "view.state";
-	private static final boolean useXML = SeaSnapshot.useFullType
-			|| AbstractWholeIRAnalysis.useDependencies;
 
-	/**
-	 * TODO Mainly used to store ProposedPromiseDrops? (can this really operate
-	 * w/o the IRNodes?)
-	 */
-	final Sea sea = Sea.getDefault();// new Sea();
-
-	final File viewState;
+	final File f_viewState;
 
 	public PersistentResultsView() {
 		File viewState = null;
-		if (useXML)
-			try {
-				final File jsureData = JSurePreferencesUtility
-						.getJSureDataDirectory();
-				if (jsureData != null) {
-					viewState = new File(jsureData, VIEW_STATE + ".xml");
-				} else {
-					viewState = File.createTempFile(VIEW_STATE, ".xml");
-				}
-				// System.out.println("Using location: "+location);
-			} catch (IOException e) {
-				// Nothing to do
+		try {
+			final File jsureData = JSurePreferencesUtility
+					.getJSureDataDirectory();
+			if (jsureData != null) {
+				viewState = new File(jsureData, VIEW_STATE + ".xml");
+			} else {
+				viewState = File.createTempFile(VIEW_STATE, ".xml");
 			}
-		this.viewState = viewState;
+			// System.out.println("Using location: "+location);
+		} catch (IOException e) {
+			// Nothing to do
+		}
+		f_viewState = viewState;
 	}
 
 	@Override
@@ -56,29 +45,15 @@ public class PersistentResultsView extends ResultsView implements
 		seaChanged();
 	}
 
-	/*
-	 * @Override protected void subscribe() {
-	 * PersistentDropInfo.getInstance().addListener(this); }
-	 */
-
 	@Override
 	public void analysisStarting() {
-		/*
-		 * if (location == null || !location.exists()) {
-		 * super.analysisStarting(); }
-		 */
 		// Ignore this, so we can continue to look at the old results
 	}
 
 	@Override
 	public void seaChanged() {
-		/*
-		 * if (location == null || !location.exists()) { super.seaChanged(); }
-		 * else {
-		 */
 		// load it up
 		finishCreatePartControl();
-		// }
 	}
 
 	@Override
@@ -88,19 +63,19 @@ public class PersistentResultsView extends ResultsView implements
 		if (scan != null) {
 			// TODO restore viewer state?
 			final long start = System.currentTimeMillis();
-			provider.buildModelOfDropSea_internal();
+			f_provider.buildModelOfDropSea_internal();
 			final long end = System.currentTimeMillis();
 			setViewerVisibility(true);
 			System.out.println("Loaded snapshot for " + this + ": "
 					+ (end - start) + " ms");
 
 			// Running too early?
-			if (viewState != null && viewState.exists()) {
+			if (f_viewState != null && f_viewState.exists()) {
 				f_viewerbook.getDisplay().asyncExec(new Runnable() {
 					public void run() {
 						try {
 							// viewer.refresh();
-							loadViewState(viewState);
+							loadViewState(f_viewState);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -113,44 +88,38 @@ public class PersistentResultsView extends ResultsView implements
 	@Override
 	public void saveState(IMemento memento) {
 		try {
-			saveViewState(viewState);
+			saveViewState(f_viewState);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	GenericResultsViewContentProvider<Info, Content> provider;
+	private GenericResultsViewContentProvider<Info, Content> f_provider;
 
 	@Override
 	protected IResultsViewContentProvider makeContentProvider() {
-		if (!useXML) {
-			return new ResultsViewContentProvider();
-		}
-		return new GenericResultsViewContentProvider<Info, Content>(sea) {
+		return new GenericResultsViewContentProvider<Info, Content>(
+				Sea.getDefault()) {
 			{
-				provider = this;
+				f_provider = this;
 			}
 
 			@Override
 			public IResultsViewContentProvider buildModelOfDropSea() {
-				if (useXML) {
-					try {
-						saveViewState(viewState);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				try {
+					saveViewState(f_viewState);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 
-					try {
-						return super.buildModelOfDropSea_internal();
-					} finally {
-						f_viewerbook.getDisplay().asyncExec(new Runnable() {
-							public void run() {
-								restoreViewState();
-							}
-						});
-					}
-				} else {
-					return super.buildModelOfDropSea();
+				try {
+					return super.buildModelOfDropSea_internal();
+				} finally {
+					f_viewerbook.getDisplay().asyncExec(new Runnable() {
+						public void run() {
+							restoreViewState();
+						}
+					});
 				}
 			}
 
@@ -206,12 +175,5 @@ public class PersistentResultsView extends ResultsView implements
 		Content(String msg, ISrcRef ref) {
 			super(msg, ref);
 		}
-	}
-
-	@Override
-	protected String getViewLabel() {
-		final JSureScanInfo scan = JSureScansHub.getInstance()
-				.getCurrentScanInfo();
-		return scan != null ? scan.getLabel() : null;
 	}
 }

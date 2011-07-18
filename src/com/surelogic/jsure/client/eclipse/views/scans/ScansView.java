@@ -34,7 +34,9 @@ import com.surelogic.jsure.core.scans.JSureScansHub;
  * baseline/current scan
  */
 public class ScansView extends AbstractScanManagerView {
+
 	final ContentProvider f_content = new ContentProvider();
+
 	TableViewer tableViewer;
 	private Action f_deleteScanAction, f_setAsBaselineAction,
 			f_setAsCurrentAction;
@@ -65,7 +67,7 @@ public class ScansView extends AbstractScanManagerView {
 	@Override
 	protected Control buildViewer(Composite parent) {
 		tableViewer = new TableViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.FULL_SELECTION);
+				| SWT.FULL_SELECTION | SWT.MULTI | SWT.CHECK);
 		// Setup columns
 		int i = 0;
 		for (final String label : f_content.getColumnLabels()) {
