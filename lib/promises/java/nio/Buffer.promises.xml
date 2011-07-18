@@ -50,7 +50,6 @@
         </method>
 
         <method name="isReadOnly">
-            <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <!--starts>nothing</starts-->
         </method>

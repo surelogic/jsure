@@ -16,7 +16,6 @@
         
         <method name="isReadOnly">
         	<RegionEffects>reads Instance</RegionEffects>
-        	<Borrowed>this</Borrowed>
         </method>
     </class>
 </package>
