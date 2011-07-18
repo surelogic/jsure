@@ -58,6 +58,7 @@ public final class Messages  {
   public static final int BY_UNIQUE_PARAMETER = 338;
   public static final int BY_UNIQUE_LOAD = 339;
   public static final int BY_SIDE_EFFECT = 340;
+  public static final int INVARIANTS_RESPECTED = 341;
   
   
   
@@ -97,6 +98,7 @@ public final class Messages  {
     code2name.put(BY_UNIQUE_PARAMETER, "?");
     code2name.put(BY_UNIQUE_LOAD, "?");
     code2name.put(BY_SIDE_EFFECT, "?");
+    code2name.put(INVARIANTS_RESPECTED, "?");
   }
   
   public static String toString(int code) {

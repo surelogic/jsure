@@ -143,7 +143,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     
-    final StoreLattice lattice = new StoreLattice(analysis, binder, locals);
+    final StoreLattice lattice = new StoreLattice(flowUnit, analysis, binder, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
         new UniquenessTransfer(cargo, binder, mayAlias, lattice, 0, flowUnit, timeOut),
@@ -263,10 +263,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     public void performAnalysis() {
-      if (root) {
-        flag.set(false);
-        lattice.setSideEffects(false);
-      }
+      // Root analysis always starts with side effects turned off.
       realPerformAnalysis();
       if (root) {
         flag.set(true);
@@ -274,7 +271,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       if (flag.get()) {
         reworkAll();
-        lattice.makeResultDrops();
+        if (root) {
+          lattice.makeResultDrops();
+          flag.set(false);
+          lattice.setSideEffects(false);
+        }
       }
     }
   }

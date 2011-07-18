@@ -31,14 +31,10 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
-import edu.cmu.cs.fluid.java.util.PromiseUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
@@ -211,8 +207,9 @@ extends TripleLattice<Element<Integer>,
    * Method control flow drops.  Map from method/constructor declaration
    * nodes to drops.
    */
-  final Map<IRNode, UniquenessControlFlowDrop> controlFlowDrops =
-    new HashMap<IRNode, UniquenessControlFlowDrop>();
+  final UniquenessControlFlowDrop controlFlowDrop;
+  
+  boolean hasErrors = false;
   
   
   
@@ -220,7 +217,7 @@ extends TripleLattice<Element<Integer>,
   // === Constructor 
   // ==================================================================
   
-  public StoreLattice(
+  public StoreLattice(final IRNode flowUnit,
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
       final IBinder binder,
       final IRNode[] locals) {
@@ -230,6 +227,7 @@ extends TripleLattice<Element<Integer>,
     this.locals = locals;
     this.binder = binder;
     this.analysis = analysis;
+    this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
   }
   
   public int getNumLocals() {
@@ -834,20 +832,20 @@ extends TripleLattice<Element<Integer>,
     final Integer n = getStackTop(s);
     if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, borrowedDrop, n);
-      reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
+//      reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
 //      return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s, srcOp);
   }
   
-  private void reportError(final IRNode srcOp, final String label, final String message) {
-    if (shouldRecordResult()) {
-      final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
-      final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, WarningDrop.factory);
-      infoDrop.setMessage(newMsg);
-      infoDrop.setNode(srcOp);
-    }
-  }
+//  private void reportError(final IRNode srcOp, final String label, final String message) {
+//    if (shouldRecordResult()) {
+//      final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
+//      final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, WarningDrop.factory);
+//      infoDrop.setMessage(newMsg);
+//      infoDrop.setNode(srcOp);
+//    }
+//  }
   
   /**
    * Compromise the value on the top of the stack.
@@ -862,17 +860,10 @@ extends TripleLattice<Element<Integer>,
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       
       if (shouldRecordResult()) {
-        final IRNode mdecl = PromiseUtil.getEnclosingMethod(srcOp);
-        UniquenessControlFlowDrop cfDrop = controlFlowDrops.get(mdecl);
-        if (cfDrop == null) {
-          cfDrop = new UniquenessControlFlowDrop(mdecl);
-          controlFlowDrops.put(mdecl, cfDrop);
-        }
-        
-        recordUndefinedNotX(srcOp, cfDrop, n);
+        recordUndefinedNotX(srcOp, controlFlowDrop, n);
       }
       
-      reportError(srcOp, "X1", "(opCompromiseNoRelease) Use of undefined value");
+//      reportError(srcOp, "X1", "(opCompromiseNoRelease) Use of undefined value");
 //      return errorStore("Undefined value on stack shared");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotShared(srcOp, n, s.getObjects());
@@ -905,7 +896,7 @@ extends TripleLattice<Element<Integer>,
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, uDrop, n);
-      reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
+//      reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
 //      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotUnique(srcOp, uDrop, msg, n, s.getObjects());
@@ -1309,15 +1300,10 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
-//  private void recordUndefined(
-//      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> pd,
-//      final int msg) {
-//    xNotY.add(new XNotY(pd, srcOp, abruptDrops, msg));
-//  }
-
   private void recordBadUnique(final IRNode srcOp,
       final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg,
       final InfoAdder infoAdder) {
+    System.out.println("recordBadUnqiue: srcOp = " + srcOp + " -- msg = " + msg);
     xNotY.add(new XNotY(uDrop, srcOp, abruptDrops, msg, infoAdder));
   }
   
@@ -1456,19 +1442,12 @@ extends TripleLattice<Element<Integer>,
           null);
     }
   }
-//  
-//  private void recordUndefinedNotBorrowed(
-//      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> pd) {
-//    if (shouldRecordResult()) {
-//      recordUndefined(srcOp, pd, Messages.UNDEFINED_NOT_BORROWABLE);
-//    }
-//  }
 
   // ------------------------------------------------------------------
   // -- Make result drops
   // ------------------------------------------------------------------
   
-  private static ResultDropBuilder createResultDrop(
+  private ResultDropBuilder createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
       final boolean abruptDrops,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
@@ -1482,8 +1461,13 @@ extends TripleLattice<Element<Integer>,
       ResultDropBuilder.create(analysis, Messages.toString(msg));
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
+    if (promiseDrop != controlFlowDrop) {
+      result.addCheckedPromise(controlFlowDrop);
+    }
     result.setConsistent(isConsistent);
     result.setResultMessage(msg, newArgs);
+    
+    if (!isConsistent) hasErrors = true;
     return result;
   }
 
@@ -1544,6 +1528,14 @@ extends TripleLattice<Element<Integer>,
     for (final XNotY err: xNotY) {
       err.createDrop(analysis, binder);
     }
+    
+    /* If the method implementation assures, there will be no result drops
+     * created above.  In this case, we create a single positive result.
+     */
+    if (!hasErrors) {
+      createResultDrop(analysis, false, controlFlowDrop,
+          controlFlowDrop.getNode(), true, Messages.INVARIANTS_RESPECTED);
+    }
   }
 
 
@@ -1565,12 +1557,16 @@ extends TripleLattice<Element<Integer>,
    * Record an error where the reference is expected to be "Y" but is actually
    * "X". For example, the reference is shared, but expected to be unique.
    */
-  private static final class XNotY {
+  private final class XNotY {
     private final PromiseDrop<? extends IAASTRootNode> promiseDrop;
     private final IRNode srcOp;
     private final boolean isAbrupt;
     private final int msg;
     private final InfoAdder adder;
+    
+    // Every XNotY object will be put into a HashSet, so we know the hashCode
+    // will be needed at least once.
+    private final int hashCode;
     
     public XNotY(final PromiseDrop<? extends IAASTRootNode> pd,
         final IRNode srcOp, final boolean isAbrupt,
@@ -1580,12 +1576,39 @@ extends TripleLattice<Element<Integer>,
       this.isAbrupt = isAbrupt;
       this.msg = msg;
       this.adder = adder;
+      
+      int hc = 17;
+      hc = 31 * hc + pd.hashCode();
+      hc = 31 * hc + srcOp.hashCode();
+      hc = 31 * hc + (isAbrupt ? 1 : 0);
+      hc = 31 * hc + msg;
+      this.hashCode = hc;
+    }
+    
+    @Override
+    public boolean equals(final Object other) {
+      if (other instanceof XNotY) {
+        /* The behavior of the InfoAdder is determined by msg, so it is sufficent
+         * to check for equality of the msg..
+         */
+        final XNotY o2 = (XNotY) other;
+        return promiseDrop.equals(o2.promiseDrop)
+            && srcOp.equals(o2.srcOp)
+            && isAbrupt == o2.isAbrupt
+            && msg == o2.msg;
+      }
+      return false;
+    }
+    
+    @Override
+    public int hashCode() {
+      return hashCode;
     }
     
     public final ResultDropBuilder createDrop(
         final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
         final IBinder binder) {
-      final ResultDropBuilder result = StoreLattice.createResultDrop(
+      final ResultDropBuilder result = createResultDrop(
           analysis, isAbrupt, promiseDrop, srcOp, false, msg);
       if (adder != null) {
         adder.addSupportingInformation(analysis, binder, result);
