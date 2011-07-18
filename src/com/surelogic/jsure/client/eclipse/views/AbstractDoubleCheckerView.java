@@ -91,7 +91,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected static final String NO_RESULTS = "No results...please use JSure to scan one or more projects";
+	protected static final String NO_RESULTS = "No results...please use JSure to verify one or more projects";
 
 	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
