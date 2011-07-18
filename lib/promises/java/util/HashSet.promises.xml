@@ -6,6 +6,10 @@
             <Borrowed>this</Borrowed>
         </constructor>
 
+		<method name="add" params="java.lang.Object">
+			<Borrowed>this</Borrowed>
+		</method>
+
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>

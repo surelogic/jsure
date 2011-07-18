@@ -25,6 +25,10 @@
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
         </method>  
+        
+        <method name="put" params="java.lang.Object,java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>          
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>

@@ -7,6 +7,10 @@
             <RegionEffects>none</RegionEffects>
         </constructor>
 
+		<method name="add" params="java.lang.Object">
+			<Borrowed>this</Borrowed>
+		</method>
+
         <method name="iterator">
             <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
