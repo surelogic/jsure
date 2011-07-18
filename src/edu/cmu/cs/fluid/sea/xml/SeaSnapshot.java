@@ -16,6 +16,7 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
 import com.surelogic.common.jsure.xml.JSureXMLReader;
+import com.surelogic.common.logging.SLLogger;
 
 import static com.surelogic.common.jsure.xml.JSureXMLReader.*;
 
@@ -116,7 +117,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				}
 			}
 			if (thisType == null) {
-				throw new IllegalStateException("Unknown type: "+type);
+				SLLogger.getLogger().warning("Unknown class type: "+type);				
 			} else {
 				ensureClassMapping((Class<? extends Drop>) thisType);
 			}
