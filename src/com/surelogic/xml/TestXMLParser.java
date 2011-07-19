@@ -225,27 +225,29 @@ public class TestXMLParser extends DefaultHandler implements
 
 				final IRNode here = nodeStack.peek().getNode();
 				IRNode con = TreeAccessor.findConstructor(params, here, tEnv);
-				if (con != null || here == null) {
-					if (params == null) {
-						/*
-							if (noParamConstructor_bool)
-								malformedXML("Declared more than one constructor"
-										+ " with no parameters");
-						 */
+				if (params == null) {
+					/*
+						if (noParamConstructor_bool)
+							malformedXML("Declared more than one constructor"
+									+ " with no parameters");
+					 */
 
-						/**
-						 * No way to identify this node, so call it
-						 * 'constructor'.
-						 */
-						params = "constructor";
-						//noParamConstructor_bool = true;
-					}
+					/**
+					 * No way to identify this node, so call it
+					 * 'constructor'.
+					 */
+					params = "constructor";
+					//noParamConstructor_bool = true;
+				}
+				if (con != null || here == null) {
 					nodeStack.push(new NodeElement(params, NodeKind.CONSTRUCTOR, con));
 				} else {
-					malformedStartElement(
+					reportWarn(
 							"XML declared but could not find constructor"
-							+ " node " + e.getAttribute(NAME_ATTRB),
-							"constructor", nodeStack.peek().getNode());
+							+ " node " + e.getAttribute(NAME_ATTRB)/*,
+							"constructor", nodeStack.peek().getNode()*/);
+					
+					nodeStack.push(new NodeElement(params, NodeKind.CONSTRUCTOR, null));
 				}
 
 			} else if (eName.equalsIgnoreCase(FIELD)) {
@@ -280,11 +282,14 @@ public class TestXMLParser extends DefaultHandler implements
 				if (m != null || here == null) {
 					nodeStack.push(new NodeElement(name, NodeKind.METHOD, m));
 				} else {
+					/*
 					TreeAccessor.findMethod(here, name, 
 							e.getAttribute(PARAMS_ATTRB), tEnv);
-					malformedStartElement("Could not find method node "
-							+ name, name, here);
-					}
+							*/
+					reportWarn("Could not find method node "
+							+ name/*, name, here*/);
+					nodeStack.push(new NodeElement(name, NodeKind.METHOD, null));
+				}
 			}
 		} else if (isStackTop(NodeKind.METHOD) || isStackTop(NodeKind.CONSTRUCTOR)) {
 			if (eName.equalsIgnoreCase(PARAMETER)) {
