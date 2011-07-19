@@ -249,15 +249,15 @@ public interface IJavaScope {
       return scope.lookup(name,useSite,isReturnValue);
     }
     
-    public static final Selector isntCallable = new AbstractSelector("Not callable") {
+    public static final Selector couldBeName = new AbstractSelector("Could bind to a name") {
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
-        return !(op instanceof MethodDeclaration) && !(op instanceof ConstructorDeclaration) &&
+        return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
                !(op instanceof LabeledStatement);
       }      
     };
-    public static IBinding lookupNonCallable(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isntCallable);
+    public static IBinding lookupName(IJavaScope scope, String name, IRNode useSite) {
+      return scope.lookup(name,useSite,couldBeName);
     }
     
     public static final Selector isntType = new AbstractSelector("Not type decl") {

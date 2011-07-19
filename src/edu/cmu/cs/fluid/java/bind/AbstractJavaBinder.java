@@ -2118,7 +2118,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }
       boolean isType  = isNameType(node); // or Expression
-      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.isntCallable;
+      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.couldBeName;
       boolean success = bind(node,scope,select);
       if (!success) {
     	  bind(node,scope,select);
@@ -2340,9 +2340,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
-    public Void visitSimpleName(IRNode node) {
+    public Void visitSimpleName(IRNode node) { 
+      /*
+      final String name = JJNode.getInfoOrNull(node);
+      if ("implCount".equals(name)) {
+    	  System.out.println("Binding implCount");
+      }
+      */
       boolean isType  = isNameType(node); // or Expression
-      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.isntCallable;
+      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.couldBeName;
       boolean success = bind(node, select);
       /*
       String unparse = DebugUnparser.toString(node);
