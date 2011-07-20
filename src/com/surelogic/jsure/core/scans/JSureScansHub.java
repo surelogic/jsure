@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.jobs.EclipseJob;
+import com.surelogic.common.jobs.*;
+import com.surelogic.jsure.core.scans.JSureDataDirHub.Status;
 
 /**
  * Manages information about a baseline and a current scan.
@@ -62,6 +65,31 @@ public final class JSureScansHub {
 	}
 
 	private static final JSureScansHub INSTANCE = new JSureScansHub();
+	static {
+		JSureDataDirHub.getInstance().addListener(new JSureDataDirHub.Listener() {			
+			@Override
+			public void updateScans(Status event, File directory) {
+				switch(event) {
+				case UNCHANGED:
+					return;								
+				case ADDED:
+					// Nothing to do, since the baseline/current scans should be reset elsewhere
+					break;
+				case CHANGED:
+					// Assume everything changed
+					final SLJob job = new AbstractSLJob("Updating baseline/current scans") {						
+						@Override
+						public SLStatus run(SLProgressMonitor monitor) {							
+							getInstance().notifyListeners(ScanStatus.BOTH_CHANGED);
+							return SLStatus.OK_STATUS;
+						}
+					};
+					EclipseJob.getInstance().schedule(job);
+					break;
+				}
+			}
+		});
+	}
 
 	private static final File USE_PREV = new File(
 			"A dummy for the current scan");
@@ -84,6 +112,12 @@ public final class JSureScansHub {
 		f_listeners.remove(l);
 	}
 
+	void notifyListeners(ScanStatus status) {
+		for (Listener l : f_listeners) {
+			l.scansChanged(status);
+		}
+	}
+	
 	/**
 	 * Requires synchronization to be done by the caller
 	 * 
@@ -167,9 +201,7 @@ public final class JSureScansHub {
 			}
 		}
 		if (status.changed()) {
-			for (Listener l : f_listeners) {
-				l.scansChanged(status);
-			}
+			notifyListeners(status);
 		}
 	}
 
