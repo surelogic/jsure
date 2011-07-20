@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
@@ -20,6 +21,7 @@ import com.surelogic.analysis.uniqueness.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.StoreLattice;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.StoreLattice.MessageChooser;
+import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
@@ -67,10 +69,14 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.Pair;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -356,6 +362,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     private Store considerDeclaredEffects(final IRNode rcvr,
         final int numFormals, final IRNode formals, final IRNode actuals,
+        final RegionEffectsPromiseDrop fxDrop,
         final Set<Effect> declEffects, Store s, final IRNode srcOp) {
       for (final Effect f : declEffects) {
         if (f.isEmpty()) {
@@ -435,7 +442,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (r.isAbstract()) {
           // it could refer to almost anything
           // everything reachable from this pointer is alias buried:
-          s = lattice.opLoadReachable(s, srcOp);
+          s = lattice.opLoadReachable(s, srcOp, fxDrop);
         } else {
           // it's a field, load and discard.
           s = lattice.pop(lattice.opLoad(s, srcOp, r.getNode()), srcOp);
@@ -476,7 +483,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (uDrop != null) { // used to also check if formal != null
           s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL);
         } else if (/*formal == null ||*/ bDrop != null) {
-          s  = lattice.opBorrow(s, actual, bDrop);
+          s  = lattice.opBorrow(s, actual);
         } else {
           s = lattice.opCompromise(s, actual);
         }
@@ -500,14 +507,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode recDecl = JavaPromise.getReceiverNode(decl);
         final IRNode retDecl = JavaPromise.getReturnNode(decl);
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(recDecl);
-        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(recDecl);
-        final UniquePromiseDrop uDrop2 = UniquenessRules.getUnique(retDecl);
         if (uDrop != null) {
           return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL);
-        } else if (bDrop != null) {
-          return lattice.opBorrow(s, srcOp, bDrop);
-        } else if (isConstructor && uDrop2 != null) {
-          return lattice.opBorrow(s, srcOp, uDrop2);
+        } else if (UniquenessRules.getBorrowed(recDecl) != null) {
+          return lattice.opBorrow(s, srcOp);
+        } else if (isConstructor && UniquenessRules.getUnique(retDecl) != null) {
+          return lattice.opBorrow(s, srcOp);
         } else {
           if (isConstructor) {
             if (LOG.isLoggable(Level.FINE)) {
@@ -706,6 +711,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (mdecl != null) {
           s = considerDeclaredEffects(
               receiverNode, numActuals, formals, actuals,
+              MethodEffectsRules.getRegionEffectsDrop(mdecl),
               effects.getMethodEffects(mdecl, node), s, node);
         }
         // We have to possibly compromise arguments
@@ -1062,6 +1068,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     return new RawQuery(getAnalysisThunk(flowUnit));
   }
   
+  public UsedUniqueQuery getUsedUnique(final IRNode flowUnit) {
+    return new UsedUniqueQuery(getAnalysisThunk(flowUnit));
+  }
+  
   
   
   public static class IsInvalidQuery extends AbstractJavaFlowAnalysisQuery<IsInvalidQuery, Boolean, Store, StoreLattice> {
@@ -1263,6 +1273,42 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected RawQuery newSubAnalysisQuery(
         final Delegate<RawQuery, Store, Store, StoreLattice> delegate) {
       return new RawQuery(delegate);
+    }
+  }
+  
+  
+  
+  public static class UsedUniqueQuery extends AbstractJavaFlowAnalysisQuery<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> {
+    protected UsedUniqueQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected UsedUniqueQuery(
+        final Delegate<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> getBottomReturningResult(
+        final StoreLattice lattice, final IRNode expr) {
+      /* getEvaluatedAnaysisResults() with BOTTOM substituted in for safter and 
+       * sabrupt.
+       */
+      return new Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>(lattice.getCFDrop(), lattice.getUniquePromises());
+    }
+
+    @Override
+    protected Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> getEvaluatedAnalysisResult(
+        final IJavaFlowAnalysis<Store, StoreLattice> analysis,
+        final StoreLattice lattice, final IRNode expr) {
+      return new Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>(lattice.getCFDrop(), lattice.getUniquePromises());
+    }
+
+    @Override
+    protected UsedUniqueQuery newSubAnalysisQuery(
+        edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery.Delegate<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> delegate) {
+      return new UsedUniqueQuery(delegate);
     }
   }
 }

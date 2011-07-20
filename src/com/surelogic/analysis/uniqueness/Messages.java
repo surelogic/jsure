@@ -59,6 +59,14 @@ public final class Messages  {
   public static final int BY_UNIQUE_LOAD = 339;
   public static final int BY_SIDE_EFFECT = 340;
   public static final int INVARIANTS_RESPECTED = 341;
+  public static final int BORROWED_SATISFIED = 342;
+  public static final int ACTUAL_IS_UNIQUE = 343;
+  public static final int RETURN_IS_UNIQUE = 344;
+  public static final int ASSIGN_IS_UNIQUE = 345;
+  public static final int ACTUAL_IS_NULL = 346;
+  public static final int RETURN_IS_NULL = 347;
+  public static final int ASSIGN_IS_NULL = 348;
+  public static final int CONTROL_FLOW_ROOT = 349;
   
   
   
@@ -99,6 +107,14 @@ public final class Messages  {
     code2name.put(BY_UNIQUE_LOAD, "?");
     code2name.put(BY_SIDE_EFFECT, "?");
     code2name.put(INVARIANTS_RESPECTED, "?");
+    code2name.put(BORROWED_SATISFIED, "?");
+    code2name.put(ACTUAL_IS_UNIQUE, "?");
+    code2name.put(RETURN_IS_UNIQUE, "?");
+    code2name.put(ASSIGN_IS_UNIQUE, "?");
+    code2name.put(ACTUAL_IS_NULL, "?");
+    code2name.put(RETURN_IS_NULL, "?");
+    code2name.put(ASSIGN_IS_NULL, "?");
+    code2name.put(CONTROL_FLOW_ROOT, "?");
   }
   
   public static String toString(int code) {

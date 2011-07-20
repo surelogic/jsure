@@ -32,22 +32,18 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
+import edu.cmu.cs.fluid.util.Pair;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
-  /**
-   * Map from promise drops to "intermediate result drops" that are used
-   * to allow promises to depend on other promises.  There should be only
-   * one intermediate result, so we cache it here.
-   */
-  private final Map<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder> intermediateResultDrops =
-    new HashMap<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder>();
-
   /**
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.
    */
   private final Set<ResultDropBuilder> controlFlowDrops = 
 	  Collections.synchronizedSet(new HashSet<ResultDropBuilder>());
+  
+  private final Map<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> uniqueDropsToUses = 
+    new HashMap<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>>();
   
   public UniquenessAnalysisModule() {
 		super(true && !singleThreaded, null, "UniqueAnalysis");
@@ -65,9 +61,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	
 	@Override
 	protected void clearCaches() {
-	  intermediateResultDrops.clear();
 	  cachedControlFlow.clear();
 	  controlFlowDrops.clear();
+	  uniqueDropsToUses.clear();
 	  
 	  if (runInParallel() != ConcurrencyType.INTERNALLY) {
 		getAnalysis().clearCaches();
@@ -91,6 +87,20 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       }
     }
 
+    // Link control flow PROMISE drops to unique fields
+    for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
+      final ResultDropBuilder middleDrop = ResultDropBuilder.create(
+          this, Messages.toString(Messages.CONTROL_FLOW_ROOT));
+      middleDrop.addCheckedPromise(entry.getKey());
+      middleDrop.setConsistent();
+      middleDrop.setNode(entry.getKey().getNode());
+      setResultDependUponDrop(middleDrop, entry.getKey().getNode());
+      middleDrop.setResultMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
+      for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
+        middleDrop.addTrustedPromise(cfDrop);
+      }
+    }
+    
     // Create the drops from the drop builders
     finishBuild();
 		
@@ -178,6 +188,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     if (isConstructorDecl || isMethodDecl) {
       analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+    }
+    
+    final Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> links =
+      getAnalysis().getUsedUnique(node.methodDecl).getResultFor(node.methodDecl);
+    for (final PromiseDrop<? extends IAASTRootNode> pd : links.second()) {
+      Set<UniquenessControlFlowDrop> value = uniqueDropsToUses.get(pd);
+      if (value == null) {
+        value = new HashSet<UniquenessControlFlowDrop>();
+        uniqueDropsToUses.put(pd, value);
+      }
+      value.add(links.first());
     }
 	}
 
@@ -571,14 +592,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		    (isConstructorDecl && !pr.myUniqueReturn.isEmpty())) {
 			final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
-			dependsOnResults.add(pr.controlFlow);
+//			dependsOnResults.add(pr.controlFlow);
       addDependencies(
-          pr.myBorrowedParams, intermediateResultDrops, dependsOnResults);
+          pr.myBorrowedParams, dependsOnResults);
       /* If we are a constructor, we treat unique("return") like @borrowed("this")
        */
       if (isConstructorDecl) {
         addDependencies(
-            pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
+            pr.myUniqueReturn, dependsOnResults);
       }
 		}
 
@@ -603,7 +624,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			dependsOnResults.addAll(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.addAll(pr.calledEffects);
-			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnResults);
+			addDependencies(pr.uniqueFields, dependsOnResults);
 		}
 
 		/*
@@ -618,24 +639,24 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       if (aggregatedUniqueParams != null) dependsOnResults.add(aggregatedUniqueParams);
       final ResultDropBuilder aggregatedUniqueFields = pr.getAggregatedUniqueFields();
       if (aggregatedUniqueFields != null) dependsOnResults.add(aggregatedUniqueFields);
-	    dependsOnResults.add(pr.controlFlow);
+//	    dependsOnResults.add(pr.controlFlow);
   		dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
       dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
       dependsOnResults.addAll(pr.calledUniqueConstructors.keySet());
       addDependencies(
-          pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
+          pr.myUniqueReturn, dependsOnResults);
 		}
 
-		/* Set up the dependencies for this method's unique parameters.  They can
-		 * be compromised and turned non-unique during the execution of the method.
-		 * Depends on the the control-flow of the method.
-		 */
-		if (!pr.myUniqueParams.isEmpty()) {
-      final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
-      dependsOnResults.add(pr.controlFlow);
-		  addDependencies(
-		      pr.myUniqueParams, intermediateResultDrops, dependsOnResults);
-		}
+//		/* Set up the dependencies for this method's unique parameters.  They can
+//		 * be compromised and turned non-unique during the execution of the method.
+//		 * Depends on the the control-flow of the method.
+//		 */
+//		if (!pr.myUniqueParams.isEmpty()) {
+//      final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
+//      dependsOnResults.add(pr.controlFlow);
+//		  addDependencies(
+//		      pr.myUniqueParams, dependsOnResults);
+//		}
 		
 		/*
 		 * Set up the dependencies for this method's called methods with unique
@@ -864,7 +885,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
 	private <PD1 extends PromiseDrop<? extends IAASTRootNode>>
 	void addDependencies(final Set<PD1> promises,
-      final Map<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder> intermediateDrops,
 			final Set<ResultDropBuilder> dependsOnResults) {
 		if (!dependsOnResults.isEmpty()) {
 			for (final PD1 promiseToCheck : promises) {
