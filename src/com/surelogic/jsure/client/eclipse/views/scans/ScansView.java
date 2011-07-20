@@ -216,7 +216,7 @@ public class ScansView extends AbstractScanManagerView {
 
 		private JSureRun findScan(JSureDataDir data, JSureScanInfo info) {
 			if (info != null) {
-				return data.findScan(info.getLocation());
+				return data.findScan(info.getDir());
 			}
 			return null;
 		}

@@ -3,7 +3,9 @@ package com.surelogic.jsure.client.eclipse.views.scans;
 import java.util.Date;
 import java.util.logging.Level;
 
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -22,11 +24,31 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 public final class ScanManagerMediator implements ILifecycle {
 
 	private final CheckboxTableViewer f_table;
 	private final Table f_swtTable;
+	private final ICheckStateListener f_checkStateListener = new ICheckStateListener() {
+
+		@Override
+		public void checkStateChanged(CheckStateChangedEvent event) {
+			final Object element = event.getElement();
+			if (element instanceof JSureRun) {
+				final JSureRun run = (JSureRun) element;
+				if (event.getChecked()) {
+					// Is this already the current?
+					JSureScanInfo info = JSureScansHub.getInstance()
+							.getCurrentScanInfo();
+					if (info != null) {
+					}
+				}
+				System.out.println(run + " getChecked()=" + event.getChecked());
+			}
+		}
+	};
 
 	ScanManagerMediator(CheckboxTableViewer table) {
 		f_table = table;
@@ -50,6 +72,8 @@ public final class ScanManagerMediator implements ILifecycle {
 		f_table.setContentProvider(new MyContentProvider());
 		f_table.setLabelProvider(new MyLabelProvider());
 		f_table.setInput(JSureDataDirHub.getInstance().getJSureDataDir());
+
+		f_table.addCheckStateListener(f_checkStateListener);
 	}
 
 	private void addColumn(String text, int alignment, int width) {
@@ -59,7 +83,7 @@ public final class ScanManagerMediator implements ILifecycle {
 	}
 
 	void setFocus() {
-
+		// TODO
 	}
 
 	void refreshScanContents() {
@@ -68,7 +92,7 @@ public final class ScanManagerMediator implements ILifecycle {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
+		f_table.removeCheckStateListener(f_checkStateListener);
 	}
 
 	Display getDisplay() {

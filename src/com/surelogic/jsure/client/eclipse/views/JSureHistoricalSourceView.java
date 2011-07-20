@@ -37,7 +37,7 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 				projects = info.getProjects();
 				zips = new ISourceZipFileHandles() {
 					public Iterable<File> getSourceZips() {
-						return Arrays.asList(new File(info.getLocation(), "zips")
+						return Arrays.asList(new File(info.getDir(), "zips")
 						.listFiles());
 					}
 				};
