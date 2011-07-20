@@ -3,6 +3,7 @@ package com.surelogic.jsure.core.scans;
 import java.io.File;
 import java.util.*;
 
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -14,45 +15,45 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 /**
- * Manages the project info, the loading of drop info and other 
- * statistics
- * 
- * @author Edwin
+ * Manages the project information, the loading of drop information and other
+ * statistics about a particular JSure scan on the disk.
  */
 public class JSureScanInfo {
+	/**
+	 * For testing of this class. Used to test how long the loading takes.
+	 */
 	private static final boolean skipLoading = false;
-	
-	private final File location;
-	private Collection<Info> dropInfo = null;
-	private final JSureRun scan;
-	
-	public JSureScanInfo(File dir) {
-		location = dir;		
-		JSureRun run = null;
-		try {
-			run = new JSureRun(dir);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		scan = run;
+
+	private Collection<Info> f_dropInfo = null;
+
+	private final JSureRun f_run; // non-null
+
+	public JSureScanInfo(JSureRun run) {
+		if (run == null)
+			throw new IllegalArgumentException(I18N.err(44, "run"));
+		f_run = run;
 	}
-	
+
+	public JSureRun getJSureRun() {
+		return f_run;
+	}
+
 	public Projects getProjects() {
 		try {
-			if (scan == null) {
+			if (f_run == null) {
 				return null;
 			}
-			return scan.getProjects();
+			return f_run.getProjects();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	private Collection<Info> loadInfo() {
-		if (dropInfo != null) {
-			return dropInfo;
+		if (f_dropInfo != null) {
+			return f_dropInfo;
 		}
 		final long start = System.currentTimeMillis();
 		System.out.println("Loading info at " + start);
@@ -60,25 +61,26 @@ public class JSureScanInfo {
 			if (skipLoading) {
 				throw new Exception("Skipping loading");
 			}
-			dropInfo = SeaSnapshot.loadSnapshot(new File(location, RemoteJSureRun.RESULTS_XML));
+			f_dropInfo = SeaSnapshot.loadSnapshot(new File(f_run.getDir(),
+					RemoteJSureRun.RESULTS_XML));
 			final long end = System.currentTimeMillis();
-			System.out.println("Finished loading info = "+(end-start)+" ms");
+			System.out.println("Finished loading info = " + (end - start)
+					+ " ms");
 		} catch (Exception e) {
 			e.printStackTrace(); // TODO
-			dropInfo = Collections.emptyList();
+			f_dropInfo = Collections.emptyList();
 		}
-		return dropInfo;
+		return f_dropInfo;
 	}
-	
-	public File getLocation() {
-		return location;
+
+	public File getDir() {
+		return f_run.getDir();
 	}
-	
+
 	public synchronized String getLabel() {
-		// TODO Auto-generated method stub
-		return location.getName();
+		return f_run.getDir().getName();
 	}
-	
+
 	public synchronized boolean isEmpty() {
 		return loadInfo().isEmpty();
 	}
@@ -86,7 +88,7 @@ public class JSureScanInfo {
 	public synchronized Collection<? extends IDropInfo> getRawInfo() {
 		return loadInfo();
 	}
-	
+
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
 		for (Info i : loadInfo()) {
 			if (i.isInstance(type)) {
@@ -111,9 +113,9 @@ public class JSureScanInfo {
 		}
 		return Collections.emptySet();
 	}
-	
+
 	public synchronized String findProjectsLabel() {
-		for(IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
+		for (IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
 			return info.getAttribute(AbstractXMLReader.PROJECTS);
 		}
 		return null;

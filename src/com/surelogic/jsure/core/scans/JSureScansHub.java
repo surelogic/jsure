@@ -7,10 +7,14 @@ import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.SCAN_
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.*;
+import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub.Status;
 
 /**
@@ -66,29 +70,33 @@ public final class JSureScansHub {
 
 	private static final JSureScansHub INSTANCE = new JSureScansHub();
 	static {
-		JSureDataDirHub.getInstance().addListener(new JSureDataDirHub.Listener() {			
-			@Override
-			public void updateScans(Status event, File directory) {
-				switch(event) {
-				case UNCHANGED:
-					return;								
-				case ADDED:
-					// Nothing to do, since the baseline/current scans should be reset elsewhere
-					break;
-				case CHANGED:
-					// Assume everything changed
-					final SLJob job = new AbstractSLJob("Updating baseline/current scans") {						
-						@Override
-						public SLStatus run(SLProgressMonitor monitor) {							
-							getInstance().notifyListeners(ScanStatus.BOTH_CHANGED);
-							return SLStatus.OK_STATUS;
+		JSureDataDirHub.getInstance().addListener(
+				new JSureDataDirHub.Listener() {
+					@Override
+					public void updateScans(Status event, File directory) {
+						switch (event) {
+						case UNCHANGED:
+							return;
+						case ADDED:
+							// Nothing to do, since the baseline/current scans
+							// should be reset elsewhere
+							break;
+						case CHANGED:
+							// Assume everything changed
+							final SLJob job = new AbstractSLJob(
+									"Updating baseline/current scans") {
+								@Override
+								public SLStatus run(SLProgressMonitor monitor) {
+									getInstance().notifyListeners(
+											ScanStatus.BOTH_CHANGED);
+									return SLStatus.OK_STATUS;
+								}
+							};
+							EclipseJob.getInstance().schedule(job);
+							break;
 						}
-					};
-					EclipseJob.getInstance().schedule(job);
-					break;
-				}
-			}
-		});
+					}
+				});
 	}
 
 	private static final File USE_PREV = new File(
@@ -117,7 +125,7 @@ public final class JSureScansHub {
 			l.scansChanged(status);
 		}
 	}
-	
+
 	/**
 	 * Requires synchronization to be done by the caller
 	 * 
@@ -187,7 +195,7 @@ public final class JSureScansHub {
 		synchronized (this) {
 			if (baseline == USE_PREV) {
 				baselinePath = currentInfo == null ? null : currentInfo
-						.getLocation().getAbsolutePath();
+						.getDir().getAbsolutePath();
 			} else {
 				baselinePath = checkIfValid(baseline);
 			}
@@ -212,15 +220,29 @@ public final class JSureScansHub {
 		if (info == null) {
 			File dir = getScanDir(current);
 			if (dir != null && dir.isDirectory()) {
-				if (current) {
-					info = currentInfo = new JSureScanInfo(dir);
-				} else {
-					info = baselineInfo = new JSureScanInfo(dir);
+				try {
+					final JSureRun run = new JSureRun(dir);
+					final JSureScanInfo runInfo = new JSureScanInfo(run);
+					if (current) {
+						info = currentInfo = runInfo;
+					} else {
+						info = baselineInfo = runInfo;
+					}
+				} catch (Exception e) {
+					/*
+					 * We failed to load up the information...log this problem
+					 * as a warning.
+					 */
+					info = null;
+					SLLogger.getLogger().log(Level.WARNING,
+							I18N.err(227, dir.getAbsolutePath()), e);
 				}
 			}
 		} else {
-			// Check if it's still good
-			File dir = info.getLocation();
+			/*
+			 * Check if the directory still exists on the disk.
+			 */
+			File dir = info.getDir();
 			if (dir == null || !dir.isDirectory()) {
 				return null;
 			}
