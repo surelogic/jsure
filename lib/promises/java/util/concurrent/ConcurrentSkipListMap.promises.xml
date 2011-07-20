@@ -33,5 +33,9 @@
         <method name="values">
             <Borrowed>this</Borrowed>
         </method>
+        
+        <class name="SubMap">
+        	<ThreadSafe/>
+        </class>
     </class>
 </package>
