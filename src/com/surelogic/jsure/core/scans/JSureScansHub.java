@@ -250,8 +250,24 @@ public final class JSureScansHub {
 		return info;
 	}
 
+	public final JSureRun getBaselineScan() {
+		final JSureScanInfo info = getBaselineScanInfo();
+		if (info != null)
+			return info.getJSureRun();
+		else
+			return null;
+	}
+
 	public final JSureScanInfo getBaselineScanInfo() {
 		return getScanInfo(false);
+	}
+
+	public final JSureRun getCurrentScan() {
+		final JSureScanInfo info = getCurrentScanInfo();
+		if (info != null)
+			return info.getJSureRun();
+		else
+			return null;
 	}
 
 	public final JSureScanInfo getCurrentScanInfo() {
