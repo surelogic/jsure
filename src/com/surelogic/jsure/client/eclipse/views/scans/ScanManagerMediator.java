@@ -24,7 +24,6 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
 
 public final class ScanManagerMediator implements ILifecycle {
@@ -40,15 +39,31 @@ public final class ScanManagerMediator implements ILifecycle {
 				final JSureRun run = (JSureRun) element;
 				if (event.getChecked()) {
 					// Is this already the current?
-					JSureScanInfo info = JSureScansHub.getInstance()
-							.getCurrentScanInfo();
-					if (info != null) {
+					JSureRun current = JSureScansHub.getInstance()
+							.getCurrentScan();
+					if (run.equals(current)) {
+						// They are the same, do nothing.
+					} else {
+						//
 					}
 				}
 				System.out.println(run + " getChecked()=" + event.getChecked());
 			}
 		}
 	};
+
+	private void showCurrentScanInUi() {
+		f_swtTable.getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				f_table.setAllChecked(false);
+				final JSureRun current = JSureScansHub.getInstance()
+						.getCurrentScan();
+				if (current != null)
+					f_table.setChecked(current, true);
+			}
+		});
+	}
 
 	ScanManagerMediator(CheckboxTableViewer table) {
 		f_table = table;
@@ -72,6 +87,7 @@ public final class ScanManagerMediator implements ILifecycle {
 		f_table.setContentProvider(new MyContentProvider());
 		f_table.setLabelProvider(new MyLabelProvider());
 		f_table.setInput(JSureDataDirHub.getInstance().getJSureDataDir());
+		showCurrentScanInUi();
 
 		f_table.addCheckStateListener(f_checkStateListener);
 	}
@@ -88,6 +104,7 @@ public final class ScanManagerMediator implements ILifecycle {
 
 	void refreshScanContents() {
 		f_table.setInput(JSureDataDirHub.getInstance().getJSureDataDir());
+		showCurrentScanInUi();
 	}
 
 	@Override
