@@ -3,6 +3,7 @@ package com.surelogic.jsure.client.eclipse.views;
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
@@ -25,13 +26,22 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 		if (status.currentChanged()) {
 			final JSureScanInfo info = JSureScansHub.getInstance()
 					.getCurrentScanInfo();
-			projects = info.getProjects();
-			zips = new ISourceZipFileHandles() {
-				public Iterable<File> getSourceZips() {
-					return Arrays.asList(new File(info.getLocation(), "zips")
-							.listFiles());
-				}
-			};
+			if (info == null) {
+				projects = null;
+				zips = new ISourceZipFileHandles() {
+					public Iterable<File> getSourceZips() {
+						return Collections.emptyList();
+					}
+				};
+			} else {
+				projects = info.getProjects();
+				zips = new ISourceZipFileHandles() {
+					public Iterable<File> getSourceZips() {
+						return Arrays.asList(new File(info.getLocation(), "zips")
+						.listFiles());
+					}
+				};
+			}
 		}
 	}
 
