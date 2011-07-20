@@ -33,5 +33,38 @@
         <method name="values">
             <Borrowed>this</Borrowed>
         </method>
+        
+        <class name="CheckedEntrySet">
+        	<method name="isEmpty">
+        		<Borrowed>this</Borrowed>
+        	</method>
+        	
+        	<method name="iterator">	
+        		<!-- not quite -->
+        		<Borrowed>this</Borrowed>
+        	</method>
+        </class>
+        
+        <class name="CheckedKeySet">
+        	<method name="isEmpty">
+        		<Borrowed>this</Borrowed>
+        	</method>
+        	
+        	<method name="iterator">	
+        		<!-- not quite -->
+        		<Borrowed>this</Borrowed>
+        	</method>        
+        </class>
+        
+        <class name="CheckedValues">
+        	<method name="isEmpty">
+        		<Borrowed>this</Borrowed>
+        	</method>
+        	
+        	<method name="iterator">	
+        		<!-- not quite -->
+        		<Borrowed>this</Borrowed>
+        	</method>
+        </class>
     </class>
 </package>
