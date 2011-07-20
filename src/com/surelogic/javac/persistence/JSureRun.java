@@ -11,103 +11,109 @@ import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 
 public class JSureRun implements Comparable<JSureRun> {
-	private final Date time;
-	private final File dir;
-	private Projects projs;
-	private JSureRun lastRun;
-	private final double sizeInMB;
-	
+
+	private final Date f_timeOfRun;
+	private final File f_runDir;
+	private Projects f_projectsScanned;
+	private JSureRun f_lastRun;
+	private final double f_sizeInMB;
+
 	public JSureRun(File runDir) throws Exception {
 		if (runDir == null || !runDir.isDirectory()) {
 			throw new IllegalArgumentException();
-		}	
-		dir = runDir;
-		
-		//time = null;		
+		}
+		f_runDir = runDir;
+
+		// time = null;
 		// There should be at least 3 segments: label date time
 		final String[] name = runDir.getName().split(" ");
-		if (name.length < 3) {						
+		if (name.length < 3) {
 			throw new IllegalArgumentException();
 		}
-		time = SLUtility.fromStringHMS(name[name.length-2]+' '+(name[name.length-1].replace('-', ':')));
-		sizeInMB = FileUtility.recursiveSizeInBytes(dir) / (1024*1024.0);
-		
+		f_timeOfRun = SLUtility.fromStringHMS(name[name.length - 2] + ' '
+				+ (name[name.length - 1].replace('-', ':')));
+		f_sizeInMB = FileUtility.recursiveSizeInBytes(f_runDir)
+				/ (1024 * 1024.0);
+
 		// check the various files
 		getProjects();
 	}
-	
+
 	public File getDir() {
-		return dir;
+		return f_runDir;
 	}
-	
+
 	public String getName() {
-		return dir.getName();
+		return f_runDir.getName();
 	}
 
 	public double getSizeInMB() {
-		return sizeInMB;
+		return f_sizeInMB;
 	}
-	
+
 	public Projects getProjects() throws Exception {
-		if (projs != null) {
-			return projs;
+		if (f_projectsScanned != null) {
+			return f_projectsScanned;
 		}
 		// Get info about projects
 		JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
-		reader.read(new File(dir, PersistenceConstants.PROJECTS_XML));
-		projs = reader.getProject();
-		projs.setMonitor(NullSLProgressMonitor.getFactory().createSLProgressMonitor(""));
-		return projs;
+		reader.read(new File(f_runDir, PersistenceConstants.PROJECTS_XML));
+		f_projectsScanned = reader.getProject();
+		f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory()
+				.createSLProgressMonitor(""));
+		return f_projectsScanned;
 	}
 
-	public void setLastRun(JSureRun last) {	
-		if (lastRun != null && lastRun != last || last == null) {
+	public void setLastRun(JSureRun last) {
+		if (f_lastRun != null && f_lastRun != last || last == null) {
 			throw new IllegalArgumentException();
 		}
-		lastRun = last;
+		f_lastRun = last;
 	}
-	
+
 	public JSureRun getLastRun() {
-		return lastRun;
+		return f_lastRun;
 	}
 
 	public int compareTo(JSureRun o) {
-		return time.compareTo(o.time);
+		return f_timeOfRun.compareTo(o.f_timeOfRun);
 	}
-	
+
 	public String toString() {
-		if (lastRun != null) {
-			return "JSureRun: "+dir.getName()+" ->\n\t"+lastRun;
+		if (f_lastRun != null) {
+			return "JSureRun: " + f_runDir.getName() + " ->\n\t" + f_lastRun;
 		}
-		return "JSureRun: "+dir.getName();
+		return "JSureRun: " + f_runDir.getName();
 	}
-	
-	public Map<String,JSureFileInfo> getLatestFilesForProject(String proj) throws IOException {
+
+	public Map<String, JSureFileInfo> getLatestFilesForProject(String proj)
+			throws IOException {
 		if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
 			return Collections.emptyMap();
 		}
-		final File srcZip = new File(dir, "zips/"+proj+".zip");
+		final File srcZip = new File(f_runDir, "zips/" + proj + ".zip");
 		if (!srcZip.exists()) {
-			//throw new IllegalStateException("No sources: "+srcZip);
-			System.err.println("No sources: "+srcZip);
+			// throw new IllegalStateException("No sources: "+srcZip);
+			System.err.println("No sources: " + srcZip);
 			return Collections.emptyMap();
 		}
-		
-		final Map<String,JSureFileInfo> info;
+
+		final Map<String, JSureFileInfo> info;
 		final File resultsZip;
-		if (lastRun != null) {
-			resultsZip = new File(dir, PersistenceConstants.PARTIAL_RESULTS_ZIP);
-			info = lastRun.getLatestFilesForProject(proj);
+		if (f_lastRun != null) {
+			resultsZip = new File(f_runDir,
+					PersistenceConstants.PARTIAL_RESULTS_ZIP);
+			info = f_lastRun.getLatestFilesForProject(proj);
 		} else {
-			resultsZip = new File(dir, PersistenceConstants.RESULTS_ZIP);
+			resultsZip = new File(f_runDir, PersistenceConstants.RESULTS_ZIP);
 			info = new HashMap<String, JSureFileInfo>();
 		}
 		if (!resultsZip.exists()) {
-			//System.out.println("No results: "+resultsZip);
+			// System.out.println("No results: "+resultsZip);
 			return Collections.emptyMap();
 		}
 		// Overwrite any changes from results
-		final JSureFileInfo thisInfo = new JSureFileInfo(srcZip, resultsZip);		
+		final JSureFileInfo thisInfo = new JSureFileInfo(srcZip, resultsZip);
 		ZipFile zip = new ZipFile(resultsZip);
 		try {
 			Enumeration<? extends ZipEntry> e = zip.entries();
@@ -115,12 +121,39 @@ public class JSureRun implements Comparable<JSureRun> {
 				ZipEntry ze = e.nextElement();
 				JSureFileInfo old = info.put(ze.getName(), thisInfo);
 				if (old != null) {
-					System.out.println("Replacing "+ze.getName()+" with entry from "+old);
+					System.out.println("Replacing " + ze.getName()
+							+ " with entry from " + old);
 				}
 			}
 		} finally {
 			zip.close();
 		}
 		return info;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((f_runDir == null) ? 0 : f_runDir.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		JSureRun other = (JSureRun) obj;
+		if (f_runDir == null) {
+			if (other.f_runDir != null)
+				return false;
+		} else if (!f_runDir.equals(other.f_runDir))
+			return false;
+		return true;
 	}
 }
