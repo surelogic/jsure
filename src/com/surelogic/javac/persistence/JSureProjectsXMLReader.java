@@ -40,18 +40,18 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 			String date = attributes.getValue(DATE);
 			if (date == null) {
 				// Get the latter half of the label
-				String path = attributes.getValue(PATH);				
+				String path = attributes.getValue(PATH);
 				date = path.substring(path.indexOf(" 201")).trim();
 
 				// Split so I can convert the dashes back to colons
 				final String[] split = date.split(" ");
-				if (split.length != 2) {						
+				if (split.length != 2) {
 					throw new IllegalArgumentException();
 				}
-				date = split[0]+' '+(split[1].replace('-', ':'));
+				date = split[0] + ' ' + (split[1].replace('-', ':'));
 			}
 			try {
-				projects = new Projects(loc, "true".equals(isAuto), 
+				projects = new Projects(loc, "true".equals(isAuto),
 						SLUtility.fromStringHMS(date),
 						Collections.<String, Object> emptyMap());
 			} catch (ParseException e) {
@@ -59,7 +59,7 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 			}
 			String last = attributes.getValue(LAST_RUN);
 			if (last != null) {
-				projects.setLastRun(last);
+				projects.setPreviousPartialScan(last);
 			}
 			return attributes.getValue("path");
 		}
@@ -71,7 +71,7 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 	}
 
 	public final void start(String uid, String project) {
-		//System.out.println("uid = " + uid);
+		// System.out.println("uid = " + uid);
 	}
 
 	public void notify(Entity e) {
@@ -101,7 +101,7 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 				String path = nested.getAttribute(PATH);
 				String file = nested.getAttribute(LOCATION);
 				String qname = nested.getAttribute(QNAME);
-				//System.out.println(proj + " has source: " + path);
+				// System.out.println(proj + " has source: " + path);
 				p.getConfig().addFile(
 						new JavaSourceFile(qname, new File(file), path));
 			} else if (JAR.equals(name)) {
@@ -109,13 +109,13 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 				String orig = nested.getAttribute(ORIG_PATH);
 				final boolean jarIsExported = "true".equals(nested
 						.getAttribute(IS_EXPORTED));
-				//System.out.println(proj + " has jar: " + path);
+				// System.out.println(proj + " has jar: " + path);
 				p.getConfig().addToClassPath(
 						new JarEntry(p.getConfig(), new File(path), new File(
 								orig), jarIsExported));
 			} else if (PROJECT.equals(name)) {
 				String pRefName = nested.getAttribute(NAME);
-				//System.out.println(proj + " has ref to project " + pRefName);
+				// System.out.println(proj + " has ref to project " + pRefName);
 				final JavacProject pRef = projects.get(pRefName);
 				p.getConfig().addToClassPath(pRef.getConfig());
 			} else if (PACKAGE.equals(name)) {

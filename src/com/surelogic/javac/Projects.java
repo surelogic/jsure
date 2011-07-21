@@ -1,20 +1,31 @@
 package com.surelogic.javac;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.IIRProjects;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jobs.*;
-import com.surelogic.javac.persistence.*;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
+import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-//import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.util.*;
+import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class Projects extends JavaProjects implements IIRProjects,
 		Iterable<JavacProject> {
@@ -27,12 +38,11 @@ public class Projects extends JavaProjects implements IIRProjects,
 			return;
 		}
 		/*
-		String name = JavaNames.genPrimaryTypeName(cu);
-		if (name != null) {
-			System.out.println("Marking as in "+p.getName()+": "+JavaNames.genPrimaryTypeName(cu));
-		}
-		*/
-		
+		 * String name = JavaNames.genPrimaryTypeName(cu); if (name != null) {
+		 * System.out.println("Marking as in "+p.getName()+": "+JavaNames.
+		 * genPrimaryTypeName(cu)); }
+		 */
+
 		// HACK until arrayType is cloned
 		JavacProject old = getProject(cu);
 		if (old == null || !old.isActive()) {
@@ -53,11 +63,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 	private final Hashtable2<String, File, CodeInfo> loadedClasses = new Hashtable2<String, File, CodeInfo>();
 	private final Date date;
 	private final File location;
-	private File runDir, resultsFile;
+	private File f_scanDir;
+	private File f_resultsFile;
 
 	private static final String UNINIT = "<uninitialized>";
-	private String run;
-	private String lastRun;
+	private String f_scan;
+	private String f_previousPartialScan;
 	private boolean delta = false;
 	private final boolean isAuto;
 	private final Map<String, Object> args;
@@ -65,12 +76,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 	public Projects(File loc, boolean isAuto, Map<String, Object> args) {
 		this(loc, isAuto, new Date(), args);
 	}
-	
+
 	public Projects(File loc, boolean isAuto, Date d, Map<String, Object> args) {
 		location = loc;
 		this.isAuto = isAuto;
 		this.args = args;
-		run = UNINIT;
+		f_scan = UNINIT;
 		date = d;
 	}
 
@@ -83,30 +94,31 @@ public class Projects extends JavaProjects implements IIRProjects,
 		location = cfg.getLocation();
 		isAuto = false;
 		args = new HashMap<String, Object>();
-		run = null;
+		f_scan = null;
 		date = new Date();
 	}
 
-	public void computeRun(File dataDir, Projects oldProjects) throws Exception {
-		if (run != UNINIT) {
-			throw new IllegalStateException("Run already set: " + run);
+	public void computeScan(File dataDir, Projects oldProjects)
+			throws Exception {
+		if (f_scan != UNINIT) {
+			throw new IllegalStateException("Run already set: " + f_scan);
 		}
 		if (oldProjects != null) {
-			setLastRun(oldProjects.run);
+			setPreviousPartialScan(oldProjects.f_scan);
 		}
 
 		final String time = SLUtility.toStringHMS(getDate());
 		final String name = getShortLabel() + ' ' + time.replace(':', '-');
-		run = name;
-		runDir = new File(dataDir, name);
-		runDir.mkdirs();
+		f_scan = name;
+		f_scanDir = new File(dataDir, name);
+		f_scanDir.mkdirs();
 
 		final String resultsName = oldProjects != null ? PersistenceConstants.PARTIAL_RESULTS_ZIP
 				: PersistenceConstants.RESULTS_ZIP;
-		resultsFile = new File(runDir, resultsName);
+		f_resultsFile = new File(f_scanDir, resultsName);
 
 		// System.out.println("Contents of projects: "+run);
-		final File xml = new File(runDir, PersistenceConstants.PROJECTS_XML);
+		final File xml = new File(f_scanDir, PersistenceConstants.PROJECTS_XML);
 		final PrintStream pw = new PrintStream(xml);
 		try {
 			JSureProjectsXMLCreator creator = new JSureProjectsXMLCreator(pw);
@@ -117,7 +129,6 @@ public class Projects extends JavaProjects implements IIRProjects,
 		} finally {
 			pw.close();
 		}
-		// PromiseMatcher.load(runDir);
 	}
 
 	public File getLocation() {
@@ -125,11 +136,11 @@ public class Projects extends JavaProjects implements IIRProjects,
 	}
 
 	public File getRunDir() {
-		return runDir;
+		return f_scanDir;
 	}
 
 	public String getRun() {
-		return run;
+		return f_scan;
 	}
 
 	public Date getDate() {
@@ -182,7 +193,7 @@ public class Projects extends JavaProjects implements IIRProjects,
 	}
 
 	public JavacProject add(Config cfg) {
-		if (run != UNINIT) {
+		if (f_scan != UNINIT) {
 			throw new IllegalStateException(
 					"Adding config after run already set");
 		}
@@ -309,12 +320,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 		if (oldProjects == null) {
 			return this;
 		}
-		if (lastRun == null) {
+		if (f_previousPartialScan == null) {
 			throw new MergeException("lastRun not already set to "
-					+ oldProjects.run);
-		} else if (!lastRun.equals(oldProjects.run)) {
-			throw new MergeException("lastRun doesn't match: " + lastRun
-					+ " -- " + oldProjects.run);
+					+ oldProjects.f_scan);
+		} else if (!f_previousPartialScan.equals(oldProjects.f_scan)) {
+			throw new MergeException("lastRun doesn't match: "
+					+ f_previousPartialScan + " -- " + oldProjects.f_scan);
 		}
 		/*
 		 * // TODO Merge options? for(Map.Entry<String,Object> e :
@@ -344,7 +355,6 @@ public class Projects extends JavaProjects implements IIRProjects,
 	 * options.get(key); return i != null ? i : 0; }
 	 */
 
-
 	public JavacProject getProject() {
 		for (JavacProject p : projects.values()) {
 			return p;
@@ -369,18 +379,19 @@ public class Projects extends JavaProjects implements IIRProjects,
 		return delta;
 	}
 
-	public String getLastRun() {
-		return lastRun;
+	public String getPreviousPartialScan() {
+		return f_previousPartialScan;
 	}
 
-	public void setLastRun(String last) {
+	public void setPreviousPartialScan(String last) {
 		if (last == null) {
-			throw new IllegalArgumentException("lastRun cannot be set to null");
+			throw new IllegalArgumentException(I18N.err(44, "last"));
 		}
-		if (lastRun != null) {
-			throw new IllegalStateException("lastRun already set to " + lastRun);
+		if (f_previousPartialScan != null) {
+			throw new IllegalStateException(
+					I18N.err(230, f_previousPartialScan));
 		}
-		lastRun = last;
+		f_previousPartialScan = last;
 		delta = last != null;
 	}
 
@@ -388,12 +399,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 	 * Reuse state from the last set of projects
 	 */
 	public void init(Projects oldProjects) throws MergeException {
-		if (lastRun == null) {
+		if (f_previousPartialScan == null) {
 			throw new MergeException("lastRun not already set to "
-					+ oldProjects.run);
-		} else if (!lastRun.equals(oldProjects.run)) {
-			throw new MergeException("lastRun doesn't match: " + lastRun
-					+ " -- " + oldProjects.run);
+					+ oldProjects.f_scan);
+		} else if (!f_previousPartialScan.equals(oldProjects.f_scan)) {
+			throw new MergeException("lastRun doesn't match: "
+					+ f_previousPartialScan + " -- " + oldProjects.f_scan);
 		}
 		for (JavacProject jp : projects.values()) {
 			JavacProject old = oldProjects.projects.get(jp.getName());
@@ -416,7 +427,7 @@ public class Projects extends JavaProjects implements IIRProjects,
 	}
 
 	public void addLoadedClass(String ref, File src, CodeInfo info) {
-		//loadedClasses.put(ref, src, info);
+		// loadedClasses.put(ref, src, info);
 	}
 
 	public Object getArg(String key) {
@@ -431,6 +442,6 @@ public class Projects extends JavaProjects implements IIRProjects,
 	}
 
 	public File getResultsFile() {
-		return resultsFile;
+		return f_resultsFile;
 	}
 }

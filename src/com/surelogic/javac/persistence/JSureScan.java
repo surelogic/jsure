@@ -6,6 +6,7 @@ import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
@@ -29,6 +30,25 @@ public class JSureScan implements Comparable<JSureScan> {
 		return null;
 	}
 
+	public static boolean doesDirNameFollowScanNamingConventions(String dirName) {
+		if (dirName == null)
+			return false;
+
+		// There should be at least 3 segments: label date time
+		final String[] name = dirName.split(" ");
+		if (name.length < 3)
+			return false;
+		try {
+			// try to parse the date and time (the last two segments)
+			SLUtility.fromStringHMS(name[name.length - 2] + ' '
+					+ (name[name.length - 1].replace('-', ':')));
+		} catch (Exception e) {
+			return false;
+		}
+		// looks okay
+		return true;
+	}
+
 	private final Date f_timeOfScan; // non-null
 	private final File f_scanDir; // non-null
 	private Projects f_projectsScanned;
@@ -44,7 +64,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		// There should be at least 3 segments: label date time
 		final String[] name = scanDir.getName().split(" ");
 		if (name.length < 3) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(I18N.err(229, scanDir.getName()));
 		}
 		f_timeOfScan = SLUtility.fromStringHMS(name[name.length - 2] + ' '
 				+ (name[name.length - 1].replace('-', ':')));

@@ -24,16 +24,19 @@ import com.surelogic.javac.Projects;
 public class JSureDataDirScanner {
 
 	public static JSureScan findRunDirectory(File f) {
-		try {
-			return new JSureScan(f);
-		} catch (Exception e) {
-			SLLogger.getLogger().log(Level.WARNING, I18N.err(228, f), e);
+		if (JSureScan.doesDirNameFollowScanNamingConventions(f.getName())) {
+			try {
+				return new JSureScan(f);
+			} catch (Exception e) {
+				SLLogger.getLogger().log(Level.WARNING, I18N.err(228, f), e);
+			}
 		}
 		return null;
 	}
 
 	public static JSureDataDir scan(JSureDataDir oldData) {
-		return organizeRuns(oldData.getDir(), oldData.getScansOnDiskRightNow());
+		return getDataDirWithRunsOrganized(oldData.getDir(),
+				oldData.getScansOnDiskRightNow());
 	}
 
 	public static JSureDataDir scan(File dataDir) {
@@ -46,10 +49,11 @@ public class JSureDataDirScanner {
 				runs.add(run);
 			}
 		}
-		return organizeRuns(dataDir, runs);
+		return getDataDirWithRunsOrganized(dataDir, runs);
 	}
 
-	private static JSureDataDir organizeRuns(File dataDir, List<JSureScan> scans) {
+	private static JSureDataDir getDataDirWithRunsOrganized(File dataDir,
+			List<JSureScan> scans) {
 		/*
 		 * Figure out which are the full scan, and which are the latest partial
 		 * scans.
@@ -60,7 +64,7 @@ public class JSureDataDirScanner {
 		for (JSureScan scan : scans) {
 			try {
 				final Projects p = scan.getProjects();
-				final String lastName = p.getLastRun();
+				final String lastName = p.getPreviousPartialScan();
 				if (lastName != null) {
 					// This one is a partial scan and depends on the last one
 					final JSureScan last = JSureScan.findByDirName(scans,

@@ -22,7 +22,7 @@ public class JSureProjectsXMLCreator extends AbstractSeaXmlCreator implements Pe
 			Entities.addAttribute("path", projs.getRun(), b);
 			Entities.addAttribute(LOCATION, projs.getLocation().getAbsolutePath(), b);
 			Entities.addAttribute(IS_AUTO, projs.isAutoBuild(), b);
-			Entities.addAttribute(LAST_RUN, projs.getLastRun(), b);
+			Entities.addAttribute(LAST_RUN, projs.getPreviousPartialScan(), b);
 			Entities.addAttribute(DATE, SLUtility.toStringHMS(projs.getDate()), b);
 			Entities.closeStart(b, false);
 			for(JavacProject p : projs) {
