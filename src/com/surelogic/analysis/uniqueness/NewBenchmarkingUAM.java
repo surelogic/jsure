@@ -25,11 +25,11 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
     public ConcurrencyType runInParallel() {
     	return ConcurrencyType.NEVER;
     }
-  
-	@Override
-	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
-		// Nothing to do
-	}
+
+    @Override
+    protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
+      super.startAnalyzeBegin(p, binder);
+    }
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {

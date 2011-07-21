@@ -11,7 +11,9 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.Messages;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysis;
@@ -22,12 +24,16 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
@@ -693,7 +699,9 @@ extends TripleLattice<Element<Integer>,
     return null; // Cause more errors!
   }
   
-  public Store opStore(final Store s, final IRNode srcOp, final IRNode fieldDecl) {
+  public Store opStore(
+      final Store s, final IRNode srcOp, final IRNode fieldDecl,
+      final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Store temp;
     final PromiseDrop<? extends IAASTRootNode> uDrop = 
@@ -734,7 +742,38 @@ extends TripleLattice<Element<Integer>,
 //        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //        return errorStore("Shared value on stack not unique");
       } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
-        recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_UNIQUE, null);
+        recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_UNIQUE,
+            new InfoAdder() {
+              public void addSupportingInformation(
+                  final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                  final IBinder binder, final ResultDropBuilder resultDrop) {
+                final IRNode rhs =
+                  AssignExpression.getOp2(JJNode.tree.getParent(srcOp));
+                for (final IRNode n : bcaQuery.getResultFor(rhs)) {
+                  PromiseDrop<? extends IAASTRootNode> uDrop = null;
+                  final Operator op = JJNode.tree.getOperator(n);
+                  if (FieldRef.prototype.includes(op)) {
+                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n));
+                  } else if (ParameterDeclaration.prototype.includes(op)) {
+                    uDrop = UniquenessRules.getUnique(n);
+                  } else if (NewExpression.prototype.includes(op)) {
+                    final IRNode cdecl = binder.getBinding(n);
+                    uDrop = UniquenessRules.getBorrowed(
+                        JavaPromise.getReceiverNode(cdecl));
+                    if (uDrop == null) {
+                      uDrop = UniquenessRules.getUnique(
+                          JavaPromise.getReturnNode(cdecl));
+                    }                    
+                  } else if (MethodCall.prototype.includes(op)) {
+                    uDrop = UniquenessRules.getUnique(
+                        JavaPromise.getReturnNode(binder.getBinding(n)));
+                  }
+                  if (uDrop != null) {
+                    resultDrop.addTrustedPromise(uDrop);
+                  }
+                }
+              }
+            });
       } else { // can be null
         recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_NULL, null);
       }     
@@ -919,7 +958,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opUndefine(
       final Store s, final IRNode srcOp, final UniquePromiseDrop uDrop,
-      final MessageChooser msg) {
+      final MessageChooser msg, final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
@@ -941,7 +980,57 @@ extends TripleLattice<Element<Integer>,
     } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
       recordGoodUnique(srcOp, uDrop,
           msg.chooseMsg(Messages.ACTUAL_IS_UNIQUE,
-              Messages.RETURN_IS_UNIQUE, Messages.ASSIGN_IS_UNIQUE), null);
+              Messages.RETURN_IS_UNIQUE, Messages.ASSIGN_IS_UNIQUE),
+              new InfoAdder() {
+                public void addSupportingInformation(
+                    final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                    final IBinder binder, final ResultDropBuilder resultDrop) {
+                  if (msg == MessageChooser.ACTUAL) {
+                    for (final IRNode n : bcaQuery.getResultFor(srcOp)) {
+                      addUniquePromiseFrom(n, binder, resultDrop);
+                    }
+                  } else { // return
+                    final Set<IRNode> srcs = new HashSet<IRNode>();
+                    new JavaSemanticsVisitor(false, JJNode.tree.getParent(srcOp)) {
+                      @Override
+                      public Void visitReturnStatement(final IRNode s) {
+                        srcs.addAll(bcaQuery.getResultFor(
+                            ReturnStatement.getValue(s)));
+                        return null;
+                      }
+                    }.doAccept(srcOp);
+                    
+                    for (final IRNode n : srcs) {
+                      addUniquePromiseFrom(n, binder, resultDrop);
+                    }
+                  }
+                }
+
+                private void addUniquePromiseFrom(final IRNode n,
+                    final IBinder binder, final ResultDropBuilder resultDrop) {
+                  PromiseDrop<? extends IAASTRootNode> uDrop = null;
+                  final Operator op = JJNode.tree.getOperator(n);
+                  if (FieldRef.prototype.includes(op)) {
+                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n));
+                  } else if (ParameterDeclaration.prototype.includes(op)) {
+                    uDrop = UniquenessRules.getUnique(n);
+                  } else if (NewExpression.prototype.includes(op)) {
+                    final IRNode cdecl = binder.getBinding(n);
+                    uDrop = UniquenessRules.getBorrowed(
+                        JavaPromise.getReceiverNode(cdecl));
+                    if (uDrop == null) {
+                      uDrop = UniquenessRules.getUnique(
+                          JavaPromise.getReturnNode(cdecl));
+                    }                    
+                  } else if (MethodCall.prototype.includes(op)) {
+                    uDrop = UniquenessRules.getUnique(
+                        JavaPromise.getReturnNode(binder.getBinding(n)));
+                  }
+                  if (uDrop != null) {
+                    resultDrop.addTrustedPromise(uDrop);
+                  }
+                }
+              });
     } else { // can be null
       recordGoodUnique(srcOp, uDrop,
           msg.chooseMsg(Messages.ACTUAL_IS_NULL,

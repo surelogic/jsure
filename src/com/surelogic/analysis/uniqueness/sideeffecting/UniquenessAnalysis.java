@@ -13,6 +13,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
@@ -91,6 +92,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   private final boolean timeOut;
   private final IMayAlias mayAlias;
 
+  private final BindingContextAnalysis bindingContext;
   
 
   // for creating drops
@@ -101,12 +103,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Constructor 
   // ==================================================================
   
-  public UniquenessAnalysis(final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> a,
-      final IBinder binder, final boolean to) {
+  public UniquenessAnalysis(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> a,
+      final IBinder binder, final boolean to,
+      final BindingContextAnalysis bca) {
     super(new FixBinder(binder)); // avoid crashes.
     mayAlias = new TypeBasedMayAlias(binder);
     analysis = a;
     timeOut = to;
+    bindingContext = bca;
   }
   
   
@@ -152,12 +157,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final StoreLattice lattice = new StoreLattice(flowUnit, analysis, binder, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
-        new UniquenessTransfer(cargo, binder, mayAlias, lattice, 0, flowUnit, timeOut),
+        new UniquenessTransfer(cargo, binder, mayAlias, lattice,
+            bindingContext.getExpressionObjectsQuery(flowUnit),
+            0, flowUnit, timeOut),
         timeOut);
-//    return new JavaForwardAnalysis<Store, StoreLattice>(
-//        "Uniqueness Analsys (UWM)", lattice,
-//        new UniquenessTransfer(binder, lattice, 0, flowUnit, effects, timeOut),
-//        DebugUnparser.viewer, timeOut);
   }
 
   
@@ -299,6 +302,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final IRNode flowUnit;
     private final IMayAlias mayAlias;
     private final Effects effects;
+    private final BindingContextAnalysis.Query bcaQuery;
+    
     
     
     // ==================================================================
@@ -307,11 +312,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     public UniquenessTransfer(final AtomicBoolean cargo, 
         final IBinder binder, final IMayAlias ma, final StoreLattice lattice,
+        final BindingContextAnalysis.Query query,
         final int floor, final IRNode fu, final boolean timeOut) {
-      super(binder, lattice, new SubAnalysisFactory(cargo, fu, ma, timeOut), floor);
+      super(binder, lattice,
+          new SubAnalysisFactory(cargo, fu, ma, timeOut, query), floor);
       mayAlias = ma;
       flowUnit = fu;
       effects = new Effects(binder);
+      bcaQuery = query;
     } 
 
     
@@ -481,7 +489,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(formal);
         final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(formal);
         if (uDrop != null) { // used to also check if formal != null
-          s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL);
+          s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL, bcaQuery);
         } else if (/*formal == null ||*/ bDrop != null) {
           s  = lattice.opBorrow(s, actual);
         } else {
@@ -508,7 +516,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode retDecl = JavaPromise.getReturnNode(decl);
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(recDecl);
         if (uDrop != null) {
-          return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL);
+          return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL, bcaQuery);
         } else if (UniquenessRules.getBorrowed(recDecl) != null) {
           return lattice.opBorrow(s, srcOp);
         } else if (isConstructor && UniquenessRules.getUnique(retDecl) != null) {
@@ -646,7 +654,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // first copy both onto stack
         s = lattice.opGet(lattice.opGet(s, node, object), node, field);
         // now perform assignment
-        s = lattice.opStore(s, node, fieldDecl);
+        s = lattice.opStore(s, node, fieldDecl, bcaQuery);
         // now pop extraneous object off stack
         return popSecond(s, node);
       }
@@ -842,7 +850,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         }
       }
       s = lattice.opDup(s, node, 1); // get value on top of stack
-      s = lattice.opStore(s, node, node); // perform store
+      s = lattice.opStore(s, node, node, bcaQuery); // perform store
       s = lattice.opRelease(s, node); // throw away the extra copy
       return s;
     }
@@ -887,7 +895,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             s = lattice.opGet(s, body, rnode);
             final UniquePromiseDrop uDrop = UniquenessRules.getUnique(rnode);
             if (uDrop != null) {
-              s = lattice.opUndefine(s, body, uDrop, MessageChooser.RETURN);
+              s = lattice.opUndefine(s, body, uDrop, MessageChooser.RETURN, bcaQuery);
             } else {
               s = lattice.opCompromise(s, body);
             }
@@ -1015,14 +1023,18 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final IRNode flowUnit;
     private final boolean timeOut;
     private final IMayAlias mayAlias;
+    private final BindingContextAnalysis.Query bcaQuery;
+    
 
     
     public SubAnalysisFactory(final AtomicBoolean c,
-        final IRNode fu, final IMayAlias ma, final boolean to) {
+        final IRNode fu, final IMayAlias ma, final boolean to,
+        BindingContextAnalysis.Query query) {
       cargo = c;
       flowUnit = fu;
       timeOut = to;
       mayAlias = ma;
+      bcaQuery = query;
     }
     
     @Override
@@ -1030,9 +1042,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(cargo, binder, mayAlias, lattice, floor, flowUnit, timeOut);
+      final UniquenessTransfer transfer = 
+        new UniquenessTransfer(cargo, binder, mayAlias, lattice,
+            bcaQuery.getSubAnalysisQuery(caller), floor, flowUnit, timeOut);
       return new Uniqueness(false, cargo, "Sub Analysis", lattice, transfer, timeOut);
-//      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer, timeOut);
     }
   }
   

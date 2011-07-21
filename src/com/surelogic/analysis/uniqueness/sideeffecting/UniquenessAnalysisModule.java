@@ -8,6 +8,7 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.Messages;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysis.AbruptErrorQuery;
@@ -34,7 +35,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.Pair;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
+public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis,Void> {
   /**
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.
@@ -46,17 +47,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     new HashMap<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>>();
   
   public UniquenessAnalysisModule() {
-		super(true && !singleThreaded, null, "UniqueAnalysis");
+		super(true && !singleThreaded, null, "UniqueAnalysis", BindingContextAnalysis.factory);
 	}
 
 	@Override
 	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
-		// Nothing to do
+	  super.startAnalyzeBegin(p, binder);
 	}
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-		return new UniquenessAnalysis(this, binder,	false);
+		return new UniquenessAnalysis(this, binder,	false, getSharedAnalysis());
 	}
 	
 	@Override

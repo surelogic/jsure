@@ -3,6 +3,7 @@ package com.surelogic.analysis.uniqueness.sideeffecting;
 import java.util.Collections;
 
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -16,26 +17,28 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
+public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis,Void> {
   public NewBenchmarkingUAM() {
-		super(false, null, "UniqueAnalysis (NEW)");
+		super(false, null, "Benchmark Side-effecting Uniqueness",
+		    BindingContextAnalysis.factory);
 	}
 
     @Override
     public ConcurrencyType runInParallel() {
 	    return ConcurrencyType.NEVER;
     }
-  
-	@Override
-	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
-		// Nothing to do
-	}
+
+    @Override
+    protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
+      super.startAnalyzeBegin(p, binder);
+    }
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
 	  final boolean shouldTimeOut = IDE.getInstance().getBooleanPreference(
 			  IDEPreferences.TIMEOUT_FLAG);
-	  return new UniquenessAnalysis(this, binder, shouldTimeOut);
+	  return new UniquenessAnalysis(
+	      this, binder, shouldTimeOut, getSharedAnalysis());
 	}
 	
 	@Override
