@@ -9,14 +9,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 
 /**
- * Scans and organizes the run directories in the JSure data directory.
+ * Scans and organizes the scan directories in the JSure data directory.
  */
 public class JSureDataDirScanner {
 
@@ -24,9 +27,9 @@ public class JSureDataDirScanner {
 		try {
 			return new JSureScan(f);
 		} catch (Exception e) {
-			// Bad date
-			return null;
+			SLLogger.getLogger().log(Level.WARNING, I18N.err(228, f), e);
 		}
+		return null;
 	}
 
 	public static JSureDataDir scan(JSureDataDir oldData) {
@@ -46,37 +49,38 @@ public class JSureDataDirScanner {
 		return organizeRuns(dataDir, runs);
 	}
 
-	private static JSureDataDir organizeRuns(File dataDir, List<JSureScan> runs) {
+	private static JSureDataDir organizeRuns(File dataDir, List<JSureScan> scans) {
 		/*
-		 * Figure out which are the full runs, and which are the latest partial
-		 * runs.
+		 * Figure out which are the full scan, and which are the latest partial
+		 * scans.
 		 */
 		final List<JSureScan> full = new ArrayList<JSureScan>();
 		// These should end up to be the last in a series
-		final Set<JSureScan> roots = new HashSet<JSureScan>(runs);
-		for (JSureScan run : runs) {
+		final Set<JSureScan> roots = new HashSet<JSureScan>(scans);
+		for (JSureScan scan : scans) {
 			try {
-				final Projects p = run.getProjects();
+				final Projects p = scan.getProjects();
 				final String lastName = p.getLastRun();
 				if (lastName != null) {
-					// This one is a partial run and depends on the last one
-					final JSureScan last = JSureScan.findByDirName(runs,
+					// This one is a partial scan and depends on the last one
+					final JSureScan last = JSureScan.findByDirName(scans,
 							lastName);
 					if (last == null) {
-						System.err.println("Couldn't find scan: " + last
-								+ " -> " + run.getDirName());
-						roots.remove(run);
+						System.err
+								.println("Couldn't find previous partial scan: "
+										+ last + " -> " + scan.getDirName());
+						roots.remove(scan);
 					} else {
-						// The last run is not a root
+						// The last scan is not a root
 						roots.remove(last);
 					}
-					run.setLastRun(last);
+					scan.setLastPartialScan(last);
 				} else {
-					full.add(run);
+					full.add(scan);
 				}
 			} catch (Exception e) {
 				// This should never happen
-				e.printStackTrace();
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(179), e);
 			}
 		}
 		List<JSureScan> partials = new ArrayList<JSureScan>(roots);
@@ -87,54 +91,55 @@ public class JSureDataDirScanner {
 		Map<JSureScan, JSureScan> fullToPartial = new HashMap<JSureScan, JSureScan>();
 		for (final JSureScan root : partials) {
 			// Find the corresponding full run
-			JSureScan run = root;
-			while (run.getLastRun() != null) {
-				run = run.getLastRun();
+			JSureScan scan = root;
+			while (scan.getLastPartialScan() != null) {
+				scan = scan.getLastPartialScan();
 			}
-			fullToPartial.put(run, root);
+			fullToPartial.put(scan, root);
 		}
-		checkFullRuns(full, fullToPartial);
+		checkFullScans(full, fullToPartial);
 
-		// Collect which projects map to which runs?
-		final Map<String, JSureScan> project2run = new HashMap<String, JSureScan>();
+		// Collect which projects map to which scans
+		final Map<String, JSureScan> projectToScan = new HashMap<String, JSureScan>();
 		for (Map.Entry<JSureScan, JSureScan> e : fullToPartial.entrySet()) {
 			try {
 				final Projects projs = e.getKey().getProjects();
 				for (JavacProject p : projs) {
-					project2run.put(p.getName(), e.getValue());
+					projectToScan.put(p.getName(), e.getValue());
 				}
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				// This should never happen
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(179), e);
 			}
 		}
 		try {
-			return new JSureDataDir(dataDir, runs, project2run);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
+			return new JSureDataDir(dataDir, scans, projectToScan);
+		} catch (Exception e) {
+			// This should never happen
+			SLLogger.getLogger().log(Level.SEVERE, I18N.err(179), e);
 		}
+		return null;
 	}
 
 	/**
 	 * Check if all of full has a mapping, and has results.
 	 */
-	private static void checkFullRuns(List<JSureScan> full,
+	private static void checkFullScans(List<JSureScan> full,
 			Map<JSureScan, JSureScan> fullToPartial) {
-		for (JSureScan run : full) {
-			if (!fullToPartial.containsKey(run)) {
-				System.out.println("No partials for " + run);
+		for (JSureScan scan : full) {
+			if (!fullToPartial.containsKey(scan)) {
+				System.out.println("No partials for " + scan);
 			}
 			try {
 				// Check for results
-				final File results = new File(run.getDir(),
+				final File results = new File(scan.getDir(),
 						PersistenceConstants.RESULTS_ZIP);
 				if (!results.exists()) {
-					// System.out.println("No results for full run "+run);
 					continue;
 				}
 				// Collect up all the sources
 				final Set<String> sources = new HashSet<String>();
-				for (File src : new File(run.getDir(), "zips").listFiles()) {
+				for (File src : new File(scan.getDir(), "zips").listFiles()) {
 					if (src.isFile() && src.getName().endsWith(".zip")) {
 						ZipFile zf = new ZipFile(src);
 						Enumeration<? extends ZipEntry> e = zf.entries();
@@ -156,7 +161,8 @@ public class JSureDataDirScanner {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// This should never happen
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(179), e);
 			}
 		}
 	}

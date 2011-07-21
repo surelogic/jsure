@@ -20,10 +20,10 @@ public class JSureScan implements Comparable<JSureScan> {
 		return null;
 	}
 
-	private final Date f_timeOfRun;
+	private final Date f_timeOfScan;
 	private final File f_scanDir; // non-null
 	private Projects f_projectsScanned;
-	private JSureScan f_lastRun;
+	private JSureScan f_lastPartialScan;
 	private final double f_sizeInMB;
 
 	public JSureScan(File scanDir) throws Exception {
@@ -38,7 +38,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		if (name.length < 3) {
 			throw new IllegalArgumentException();
 		}
-		f_timeOfRun = SLUtility.fromStringHMS(name[name.length - 2] + ' '
+		f_timeOfScan = SLUtility.fromStringHMS(name[name.length - 2] + ' '
 				+ (name[name.length - 1].replace('-', ':')));
 		f_sizeInMB = FileUtility.recursiveSizeInBytes(f_scanDir)
 				/ (1024 * 1024.0);
@@ -72,26 +72,28 @@ public class JSureScan implements Comparable<JSureScan> {
 		return f_projectsScanned;
 	}
 
-	public void setLastRun(JSureScan last) {
-		if (f_lastRun != null && f_lastRun != last || last == null) {
+	public void setLastPartialScan(JSureScan last) {
+		if (f_lastPartialScan != null && f_lastPartialScan != last
+				|| last == null) {
 			throw new IllegalArgumentException();
 		}
-		f_lastRun = last;
+		f_lastPartialScan = last;
 	}
 
-	public JSureScan getLastRun() {
-		return f_lastRun;
+	public JSureScan getLastPartialScan() {
+		return f_lastPartialScan;
 	}
 
 	public int compareTo(JSureScan o) {
-		return f_timeOfRun.compareTo(o.f_timeOfRun);
+		return f_timeOfScan.compareTo(o.f_timeOfScan);
 	}
 
 	public String toString() {
-		if (f_lastRun != null) {
-			return "JSureRun: " + f_scanDir.getName() + " ->\n\t" + f_lastRun;
+		if (f_lastPartialScan != null) {
+			return "JSureScan: " + f_scanDir.getName() + " ->\n\t"
+					+ f_lastPartialScan;
 		}
-		return "JSureRun: " + f_scanDir.getName();
+		return "JSureScan: " + f_scanDir.getName();
 	}
 
 	public Map<String, JSureFileInfo> getLatestFilesForProject(String proj)
@@ -108,10 +110,10 @@ public class JSureScan implements Comparable<JSureScan> {
 
 		final Map<String, JSureFileInfo> info;
 		final File resultsZip;
-		if (f_lastRun != null) {
+		if (f_lastPartialScan != null) {
 			resultsZip = new File(f_scanDir,
 					PersistenceConstants.PARTIAL_RESULTS_ZIP);
-			info = f_lastRun.getLatestFilesForProject(proj);
+			info = f_lastPartialScan.getLatestFilesForProject(proj);
 		} else {
 			resultsZip = new File(f_scanDir, PersistenceConstants.RESULTS_ZIP);
 			info = new HashMap<String, JSureFileInfo>();

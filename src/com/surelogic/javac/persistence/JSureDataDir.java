@@ -59,7 +59,7 @@ public class JSureDataDir {
 		for (JSureScan r : f_scans) {
 			do {
 				knownScans.put(r.getDir(), r);
-				r = r.getLastRun();
+				r = r.getLastPartialScan();
 			} while (r != null);
 		}
 		/*
