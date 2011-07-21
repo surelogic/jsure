@@ -10,15 +10,15 @@ import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 
-public class JSureRun implements Comparable<JSureRun> {
+public class JSureScan implements Comparable<JSureScan> {
 
 	private final Date f_timeOfRun;
 	private final File f_runDir;
 	private Projects f_projectsScanned;
-	private JSureRun f_lastRun;
+	private JSureScan f_lastRun;
 	private final double f_sizeInMB;
 
-	public JSureRun(File runDir) throws Exception {
+	public JSureScan(File runDir) throws Exception {
 		if (runDir == null || !runDir.isDirectory()) {
 			throw new IllegalArgumentException();
 		}
@@ -64,18 +64,18 @@ public class JSureRun implements Comparable<JSureRun> {
 		return f_projectsScanned;
 	}
 
-	public void setLastRun(JSureRun last) {
+	public void setLastRun(JSureScan last) {
 		if (f_lastRun != null && f_lastRun != last || last == null) {
 			throw new IllegalArgumentException();
 		}
 		f_lastRun = last;
 	}
 
-	public JSureRun getLastRun() {
+	public JSureScan getLastRun() {
 		return f_lastRun;
 	}
 
-	public int compareTo(JSureRun o) {
+	public int compareTo(JSureScan o) {
 		return f_timeOfRun.compareTo(o.f_timeOfRun);
 	}
 
@@ -148,7 +148,7 @@ public class JSureRun implements Comparable<JSureRun> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		JSureRun other = (JSureRun) obj;
+		JSureScan other = (JSureScan) obj;
 		if (f_runDir == null) {
 			if (other.f_runDir != null)
 				return false;

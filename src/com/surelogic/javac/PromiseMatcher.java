@@ -35,7 +35,7 @@ public class PromiseMatcher {
 	}
 	
 	public static boolean load(File runDir) throws Exception {
-		final JSureRun run = JSureDataDirScanner.findRunDirectory(runDir);
+		final JSureScan run = JSureDataDirScanner.findRunDirectory(runDir);
 		final Projects projs = run.getProjects();
 		
 		// Get source info

@@ -20,9 +20,9 @@ import com.surelogic.javac.Projects;
  */
 public class JSureDataDirScanner {
 
-	public static JSureRun findRunDirectory(File f) {
+	public static JSureScan findRunDirectory(File f) {
 		try {
-			return new JSureRun(f);
+			return new JSureScan(f);
 		} catch (Exception e) {
 			// Bad date
 			return null;
@@ -34,11 +34,11 @@ public class JSureDataDirScanner {
 	}
 
 	public static JSureDataDir scan(File dataDir) {
-		final Map<String, JSureRun> runs = new HashMap<String, JSureRun>();
+		final Map<String, JSureScan> runs = new HashMap<String, JSureScan>();
 
 		// Look for run directories
 		for (File f : dataDir.listFiles()) {
-			final JSureRun run = findRunDirectory(f);
+			final JSureScan run = findRunDirectory(f);
 			if (run != null) {
 				runs.put(run.getName(), run);
 			}
@@ -47,21 +47,21 @@ public class JSureDataDirScanner {
 	}
 
 	private static JSureDataDir organizeRuns(File dataDir,
-			Map<String, JSureRun> runs) {
+			Map<String, JSureScan> runs) {
 		/*
 		 * Figure out which are the full runs, and which are the last partial
 		 * runs.
 		 */
-		final List<JSureRun> full = new ArrayList<JSureRun>();
+		final List<JSureScan> full = new ArrayList<JSureScan>();
 		// These should end up to be the last in a series
-		final Set<JSureRun> roots = new HashSet<JSureRun>(runs.values());
-		for (JSureRun run : runs.values()) {
+		final Set<JSureScan> roots = new HashSet<JSureScan>(runs.values());
+		for (JSureScan run : runs.values()) {
 			try {
 				final Projects p = run.getProjects();
 				final String lastName = p.getLastRun();
 				if (lastName != null) {
 					// This one is a partial run and depends on the last one
-					final JSureRun last = runs.get(lastName);
+					final JSureScan last = runs.get(lastName);
 					if (last == null) {
 						System.err.println("Couldn't find run: " + last
 								+ " -> " + run.getName());
@@ -79,15 +79,15 @@ public class JSureDataDirScanner {
 				e.printStackTrace();
 			}
 		}
-		List<JSureRun> partials = new ArrayList<JSureRun>(roots);
+		List<JSureScan> partials = new ArrayList<JSureScan>(roots);
 		// Sorted: oldest first
 		Collections.sort(partials);
 		Collections.sort(full);
 
-		Map<JSureRun, JSureRun> fullToPartial = new HashMap<JSureRun, JSureRun>();
-		for (final JSureRun root : partials) {
+		Map<JSureScan, JSureScan> fullToPartial = new HashMap<JSureScan, JSureScan>();
+		for (final JSureScan root : partials) {
 			// Find the corresponding full run
-			JSureRun run = root;
+			JSureScan run = root;
 			while (run.getLastRun() != null) {
 				run = run.getLastRun();
 			}
@@ -96,8 +96,8 @@ public class JSureDataDirScanner {
 		checkFullRuns(full, fullToPartial);
 
 		// Collect which projects map to which runs?
-		final Map<String, JSureRun> project2run = new HashMap<String, JSureRun>();
-		for (Map.Entry<JSureRun, JSureRun> e : fullToPartial.entrySet()) {
+		final Map<String, JSureScan> project2run = new HashMap<String, JSureScan>();
+		for (Map.Entry<JSureScan, JSureScan> e : fullToPartial.entrySet()) {
 			try {
 				final Projects projs = e.getKey().getProjects();
 				for (JavacProject p : projs) {
@@ -118,9 +118,9 @@ public class JSureDataDirScanner {
 	/**
 	 * Check if all of full has a mapping, and has results.
 	 */
-	private static void checkFullRuns(List<JSureRun> full,
-			Map<JSureRun, JSureRun> fullToPartial) {
-		for (JSureRun run : full) {
+	private static void checkFullRuns(List<JSureScan> full,
+			Map<JSureScan, JSureScan> fullToPartial) {
+		for (JSureScan run : full) {
 			if (!fullToPartial.containsKey(run)) {
 				System.out.println("No partials for " + run);
 			}

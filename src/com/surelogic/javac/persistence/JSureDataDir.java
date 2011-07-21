@@ -8,30 +8,30 @@ import java.util.*;
  * directory.
  */
 public class JSureDataDir {
-	private final File dataDir;
-	private final Map<String, JSureRun> runs;
-	private final Map<String, JSureRun> project2run = new HashMap<String, JSureRun>();
+	private final File f_dir;
+	private final Map<String, JSureScan> f_scans;
+	private final Map<String, JSureScan> f_projectToScan = new HashMap<String, JSureScan>();
 
-	JSureDataDir(File dir, Map<String, JSureRun> runs, Map<String, JSureRun> p2r)
+	JSureDataDir(File dir, Map<String, JSureScan> runs, Map<String, JSureScan> p2r)
 			throws IOException {
-		dataDir = dir;
-		this.runs = runs;
-		project2run.putAll(p2r);
+		f_dir = dir;
+		this.f_scans = runs;
+		f_projectToScan.putAll(p2r);
 
-		for (Map.Entry<String, JSureRun> e : p2r.entrySet()) {
+		for (Map.Entry<String, JSureScan> e : p2r.entrySet()) {
 			e.getValue().getLatestFilesForProject(e.getKey());
 		}
 	}
 
 	public File getDir() {
-		return dataDir;
+		return f_dir;
 	}
 
-	public synchronized JSureRun findScan(File location) {
-		JSureRun rv = runs.get(location.getName());
+	public synchronized JSureScan findScan(File location) {
+		JSureScan rv = f_scans.get(location.getName());
 		if (rv == null) {
 			// Look at each one
-			for (JSureRun r : runs.values()) {
+			for (JSureScan r : f_scans.values()) {
 				if (r.getDir().equals(location)) {
 					return r;
 				}
@@ -40,23 +40,23 @@ public class JSureDataDir {
 		return rv;
 	}
 
-	public synchronized JSureRun[] getAllRuns() {
-		return runs.values().toArray(new JSureRun[runs.size()]);
+	public synchronized JSureScan[] getAllRuns() {
+		return f_scans.values().toArray(new JSureScan[f_scans.size()]);
 	}
 
-	synchronized Map<String, JSureRun> updateRuns() {
+	synchronized Map<String, JSureScan> updateRuns() {
 		// Collect together existing info about runs
-		final Map<File, JSureRun> oldInfo = new HashMap<File, JSureRun>();
-		for (JSureRun r : runs.values()) {
+		final Map<File, JSureScan> oldInfo = new HashMap<File, JSureScan>();
+		for (JSureScan r : f_scans.values()) {
 			do {
 				oldInfo.put(r.getDir(), r);
 				r = r.getLastRun();
 			} while (r != null);
 		}
 		// Look for run directories
-		final Map<String, JSureRun> runs = new HashMap<String, JSureRun>();
-		for (File f : dataDir.listFiles()) {
-			JSureRun run = oldInfo.get(f);
+		final Map<String, JSureScan> runs = new HashMap<String, JSureScan>();
+		for (File f : f_dir.listFiles()) {
+			JSureScan run = oldInfo.get(f);
 			if (run == null) {
 				// This is a new directory
 				run = JSureDataDirScanner.findRunDirectory(f);

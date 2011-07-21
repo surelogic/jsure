@@ -16,7 +16,7 @@ import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
-import com.surelogic.javac.persistence.JSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -59,7 +59,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 		*/
 		try {
 			out.println("Creating run");
-			final JSureRun run = new JSureRun(runDir);//JSureDataDirScanner.findRunDirectory(runDir);		
+			final JSureScan run = new JSureScan(runDir);//JSureDataDirScanner.findRunDirectory(runDir);		
 			out.println("run = "+run.getName());
 			/*
 			if (false) {				
