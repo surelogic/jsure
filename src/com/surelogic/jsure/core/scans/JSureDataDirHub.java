@@ -54,11 +54,11 @@ public final class JSureDataDirHub {
 
 	private final List<Listener> f_listeners = new CopyOnWriteArrayList<Listener>();
 
-	private JSureDataDir data;
+	private JSureDataDir f_dataDir;
 
 	private JSureDataDirHub() {
 		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
-		data = JSureDataDirScanner.scan(dataDir);
+		f_dataDir = JSureDataDirScanner.scan(dataDir);
 	}
 
 	public void addListener(Listener l) {
@@ -77,7 +77,7 @@ public final class JSureDataDirHub {
 
 	public JSureDataDir getJSureDataDir() {
 		synchronized (this) {
-			return data;
+			return f_dataDir;
 		}
 	}
 
@@ -86,17 +86,17 @@ public final class JSureDataDirHub {
 			throw new IllegalArgumentException("Bad scan directory: " + run);
 		}
 		synchronized (this) {
-			if (data == null) {
+			if (f_dataDir == null) {
 				throw new IllegalStateException("No scan data");
-			} else if (data.getDir() == null) {
+			} else if (f_dataDir.getDir() == null) {
 				throw new IllegalStateException("No data dir");
 			}
-			if (!data.getDir().equals(run.getParentFile())) {
+			if (!f_dataDir.getDir().equals(run.getParentFile())) {
 				throw new IllegalArgumentException(
 						"Scan directory is not under the JSure data dir: "
 								+ run);
 			}
-			data = JSureDataDirScanner.scan(data);
+			f_dataDir = JSureDataDirScanner.scan(f_dataDir);
 		}
 		notify(Status.ADDED, run);
 	}
@@ -104,8 +104,8 @@ public final class JSureDataDirHub {
 	public void notifyScanRemoved() {
 		final File dir;
 		synchronized (this) {
-			dir = data.getDir();
-			data = JSureDataDirScanner.scan(data);
+			dir = f_dataDir.getDir();
+			f_dataDir = JSureDataDirScanner.scan(f_dataDir);
 		}
 		notify(Status.CHANGED, dir);
 	}
@@ -127,14 +127,14 @@ public final class JSureDataDirHub {
 	public void setJSureDataDirectory(final File dir) {
 		if (dir != null && dir.isDirectory()) {
 			synchronized (this) {
-				if (dir.equals(data.getDir())) {
+				if (dir.equals(f_dataDir.getDir())) {
 					// Ignoring, since it's the same as the current data dir
 					return;
 				}
 				EclipseUtility.setStringPreference(
 						IDEPreferences.JSURE_DATA_DIRECTORY,
 						dir.getAbsolutePath());
-				data = JSureDataDirScanner.scan(dir);
+				f_dataDir = JSureDataDirScanner.scan(dir);
 			}
 			notify(Status.CHANGED, dir);
 		} else {

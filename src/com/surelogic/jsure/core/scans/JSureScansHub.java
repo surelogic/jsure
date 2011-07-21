@@ -14,7 +14,7 @@ import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.persistence.JSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub.Status;
 
 /**
@@ -221,7 +221,7 @@ public final class JSureScansHub {
 			File dir = getScanDir(current);
 			if (dir != null && dir.isDirectory()) {
 				try {
-					final JSureRun run = new JSureRun(dir);
+					final JSureScan run = new JSureScan(dir);
 					final JSureScanInfo runInfo = new JSureScanInfo(run);
 					if (current) {
 						info = currentInfo = runInfo;
@@ -250,7 +250,7 @@ public final class JSureScansHub {
 		return info;
 	}
 
-	public final JSureRun getBaselineScan() {
+	public final JSureScan getBaselineScan() {
 		final JSureScanInfo info = getBaselineScanInfo();
 		if (info != null)
 			return info.getJSureRun();
@@ -262,7 +262,7 @@ public final class JSureScansHub {
 		return getScanInfo(false);
 	}
 
-	public final JSureRun getCurrentScan() {
+	public final JSureScan getCurrentScan() {
 		final JSureScanInfo info = getCurrentScanInfo();
 		if (info != null)
 			return info.getJSureRun();

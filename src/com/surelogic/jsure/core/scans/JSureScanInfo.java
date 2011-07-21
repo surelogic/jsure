@@ -26,15 +26,15 @@ public class JSureScanInfo {
 
 	private Collection<Info> f_dropInfo = null;
 
-	private final JSureRun f_run; // non-null
+	private final JSureScan f_run; // non-null
 
-	public JSureScanInfo(JSureRun run) {
+	public JSureScanInfo(JSureScan run) {
 		if (run == null)
 			throw new IllegalArgumentException(I18N.err(44, "run"));
 		f_run = run;
 	}
 
-	public JSureRun getJSureRun() {
+	public JSureScan getJSureRun() {
 		return f_run;
 	}
 
