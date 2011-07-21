@@ -13,26 +13,26 @@ import com.surelogic.javac.Projects;
 public class JSureScan implements Comparable<JSureScan> {
 
 	private final Date f_timeOfRun;
-	private final File f_runDir;
+	private final File f_scanDir;
 	private Projects f_projectsScanned;
 	private JSureScan f_lastRun;
 	private final double f_sizeInMB;
 
-	public JSureScan(File runDir) throws Exception {
-		if (runDir == null || !runDir.isDirectory()) {
+	public JSureScan(File scanDir) throws Exception {
+		if (scanDir == null || !scanDir.isDirectory()) {
 			throw new IllegalArgumentException();
 		}
-		f_runDir = runDir;
+		f_scanDir = scanDir;
 
 		// time = null;
 		// There should be at least 3 segments: label date time
-		final String[] name = runDir.getName().split(" ");
+		final String[] name = scanDir.getName().split(" ");
 		if (name.length < 3) {
 			throw new IllegalArgumentException();
 		}
 		f_timeOfRun = SLUtility.fromStringHMS(name[name.length - 2] + ' '
 				+ (name[name.length - 1].replace('-', ':')));
-		f_sizeInMB = FileUtility.recursiveSizeInBytes(f_runDir)
+		f_sizeInMB = FileUtility.recursiveSizeInBytes(f_scanDir)
 				/ (1024 * 1024.0);
 
 		// check the various files
@@ -40,11 +40,11 @@ public class JSureScan implements Comparable<JSureScan> {
 	}
 
 	public File getDir() {
-		return f_runDir;
+		return f_scanDir;
 	}
 
-	public String getName() {
-		return f_runDir.getName();
+	public String getDirName() {
+		return f_scanDir.getName();
 	}
 
 	public double getSizeInMB() {
@@ -57,7 +57,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		}
 		// Get info about projects
 		JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
-		reader.read(new File(f_runDir, PersistenceConstants.PROJECTS_XML));
+		reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
 		f_projectsScanned = reader.getProject();
 		f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory()
 				.createSLProgressMonitor(""));
@@ -81,9 +81,9 @@ public class JSureScan implements Comparable<JSureScan> {
 
 	public String toString() {
 		if (f_lastRun != null) {
-			return "JSureRun: " + f_runDir.getName() + " ->\n\t" + f_lastRun;
+			return "JSureRun: " + f_scanDir.getName() + " ->\n\t" + f_lastRun;
 		}
-		return "JSureRun: " + f_runDir.getName();
+		return "JSureRun: " + f_scanDir.getName();
 	}
 
 	public Map<String, JSureFileInfo> getLatestFilesForProject(String proj)
@@ -91,7 +91,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
 			return Collections.emptyMap();
 		}
-		final File srcZip = new File(f_runDir, "zips/" + proj + ".zip");
+		final File srcZip = new File(f_scanDir, "zips/" + proj + ".zip");
 		if (!srcZip.exists()) {
 			// throw new IllegalStateException("No sources: "+srcZip);
 			System.err.println("No sources: " + srcZip);
@@ -101,11 +101,11 @@ public class JSureScan implements Comparable<JSureScan> {
 		final Map<String, JSureFileInfo> info;
 		final File resultsZip;
 		if (f_lastRun != null) {
-			resultsZip = new File(f_runDir,
+			resultsZip = new File(f_scanDir,
 					PersistenceConstants.PARTIAL_RESULTS_ZIP);
 			info = f_lastRun.getLatestFilesForProject(proj);
 		} else {
-			resultsZip = new File(f_runDir, PersistenceConstants.RESULTS_ZIP);
+			resultsZip = new File(f_scanDir, PersistenceConstants.RESULTS_ZIP);
 			info = new HashMap<String, JSureFileInfo>();
 		}
 		if (!resultsZip.exists()) {
@@ -136,7 +136,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((f_runDir == null) ? 0 : f_runDir.hashCode());
+				+ ((f_scanDir == null) ? 0 : f_scanDir.hashCode());
 		return result;
 	}
 
@@ -149,10 +149,10 @@ public class JSureScan implements Comparable<JSureScan> {
 		if (getClass() != obj.getClass())
 			return false;
 		JSureScan other = (JSureScan) obj;
-		if (f_runDir == null) {
-			if (other.f_runDir != null)
+		if (f_scanDir == null) {
+			if (other.f_scanDir != null)
 				return false;
-		} else if (!f_runDir.equals(other.f_runDir))
+		} else if (!f_scanDir.equals(other.f_scanDir))
 			return false;
 		return true;
 	}

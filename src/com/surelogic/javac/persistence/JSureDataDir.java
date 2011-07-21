@@ -62,7 +62,7 @@ public class JSureDataDir {
 				run = JSureDataDirScanner.findRunDirectory(f);
 			}
 			if (run != null) {
-				runs.put(run.getName(), run);
+				runs.put(run.getDirName(), run);
 			}
 		}
 		return runs;

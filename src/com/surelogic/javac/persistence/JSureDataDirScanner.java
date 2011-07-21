@@ -40,7 +40,7 @@ public class JSureDataDirScanner {
 		for (File f : dataDir.listFiles()) {
 			final JSureScan run = findRunDirectory(f);
 			if (run != null) {
-				runs.put(run.getName(), run);
+				runs.put(run.getDirName(), run);
 			}
 		}
 		return organizeRuns(dataDir, runs);
@@ -64,7 +64,7 @@ public class JSureDataDirScanner {
 					final JSureScan last = runs.get(lastName);
 					if (last == null) {
 						System.err.println("Couldn't find run: " + last
-								+ " -> " + run.getName());
+								+ " -> " + run.getDirName());
 						roots.remove(run);
 					} else {
 						// The last run is not a root

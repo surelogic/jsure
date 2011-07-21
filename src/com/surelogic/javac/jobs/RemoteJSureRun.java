@@ -60,7 +60,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 		try {
 			out.println("Creating run");
 			final JSureScan run = new JSureScan(runDir);//JSureDataDirScanner.findRunDirectory(runDir);		
-			out.println("run = "+run.getName());
+			out.println("run = "+run.getDirName());
 			/*
 			if (false) {				
 				out.println("Doing nothing");
