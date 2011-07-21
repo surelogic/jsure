@@ -30,6 +30,20 @@ public class JSureScan implements Comparable<JSureScan> {
 		return null;
 	}
 
+	/**
+	 * Checks if the passed directory name appears to follow the conventions for
+	 * scan directories. If so, the name should have at least three segments:
+	 * label, date, and time.
+	 * <p>
+	 * This check sees if there are at least three segments, then tries to parse
+	 * the date and time. If this all works {@code true} is returned.
+	 * 
+	 * @param dirName
+	 *            the directory name to check.
+	 * @return {@code true} if there are at least three segments in
+	 *         <tt>dirName</tt> and the date and time parse, {@code false}
+	 *         otherwise.
+	 */
 	public static boolean doesDirNameFollowScanNamingConventions(String dirName) {
 		if (dirName == null)
 			return false;
