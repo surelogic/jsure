@@ -203,7 +203,7 @@ public class ScansView extends AbstractScanManagerView {
 							.getCurrentScanInfo());
 				}
 			} else { // Enough changed
-				runs = data.getAllRuns();
+				runs = data.getScansAsArray();
 				Arrays.sort(runs, runsByDate);
 
 				baseline = findScan(data, JSureScansHub.getInstance()

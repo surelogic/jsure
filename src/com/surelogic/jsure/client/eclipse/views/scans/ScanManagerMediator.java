@@ -121,7 +121,7 @@ public final class ScanManagerMediator implements ILifecycle {
 			System.out.println("getElements() called");
 			if (inputElement instanceof JSureDataDir) {
 				final JSureDataDir dataDir = (JSureDataDir) inputElement;
-				return dataDir.getAllRuns();
+				return dataDir.getScansAsArray();
 			} else
 				return new Object[0];
 		}

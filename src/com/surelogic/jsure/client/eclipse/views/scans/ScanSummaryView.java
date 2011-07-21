@@ -326,7 +326,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			if (selectedProjectsChanged
 					|| dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 				// Enough changed
-				runs = data.getAllRuns();
+				runs = data.getScansAsArray();
 
 				// Get selected projects
 				final IStructuredSelection ss = (IStructuredSelection) projectList
@@ -499,7 +499,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			if (dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 				// Enough changed, so find all the relevant projects
 				final Set<String> names = new HashSet<String>();
-				for (JSureScan r : data.getAllRuns()) {
+				for (JSureScan r : data.getScansAsArray()) {
 					try {
 						for (String p : r.getProjects().getProjectNames()) {
 							if (!p.startsWith(JavacTypeEnvironment.JRE_NAME)) {
