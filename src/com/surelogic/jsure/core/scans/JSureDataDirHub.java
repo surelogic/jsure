@@ -4,12 +4,13 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.RegionLock;
+import com.surelogic.ThreadSafe;
+import com.surelogic.Unique;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 /**
  * Singleton that provides a notification hub about the scans or runs within the
@@ -19,6 +20,8 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
  * contents of the JSure data directory change due to a scan being added or
  * deleted.
  */
+@ThreadSafe
+@RegionLock("StateLock is f_lock protects f_dataDir")
 public final class JSureDataDirHub {
 
 	/**
@@ -54,13 +57,6 @@ public final class JSureDataDirHub {
 
 	private final List<Listener> f_listeners = new CopyOnWriteArrayList<Listener>();
 
-	private JSureDataDir f_dataDir;
-
-	private JSureDataDirHub() {
-		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
-		f_dataDir = JSureDataDirScanner.scan(dataDir);
-	}
-
 	public void addListener(Listener l) {
 		f_listeners.add(l);
 	}
@@ -75,71 +71,57 @@ public final class JSureDataDirHub {
 		}
 	}
 
+	/**
+	 * Protects mutable state.
+	 */
+	private final Object f_lock = new Object();
+
+	/*
+	 * Mutable state.
+	 */
+
+	private JSureDataDir f_dataDir;
+
+	@Unique
+	private JSureDataDirHub() {
+		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
+		f_dataDir = JSureDataDirScanner.scan(dataDir);
+	}
+
 	public JSureDataDir getJSureDataDir() {
-		synchronized (this) {
+		synchronized (f_lock) {
 			return f_dataDir;
 		}
 	}
 
-	public void notifyScanAdded(final File run) {
-		if (run == null || !run.isDirectory()) {
-			throw new IllegalArgumentException("Bad scan directory: " + run);
+	public void scanDirectoryAdded(final File newScanDir) {
+		if (newScanDir == null || !newScanDir.isDirectory()) {
+			throw new IllegalArgumentException("Bad scan directory: "
+					+ newScanDir);
 		}
-		synchronized (this) {
+		synchronized (f_lock) {
 			if (f_dataDir == null) {
 				throw new IllegalStateException("No scan data");
 			} else if (f_dataDir.getDir() == null) {
 				throw new IllegalStateException("No data dir");
 			}
-			if (!f_dataDir.getDir().equals(run.getParentFile())) {
+			if (!f_dataDir.getDir().equals(newScanDir.getParentFile())) {
 				throw new IllegalArgumentException(
 						"Scan directory is not under the JSure data dir: "
-								+ run);
+								+ newScanDir);
 			}
 			f_dataDir = JSureDataDirScanner.scan(f_dataDir);
+			final JSureScan scan = f_dataDir.findScan(newScanDir);
 		}
-		notify(Status.ADDED, run);
+		notify(Status.ADDED, newScanDir);
 	}
 
-	public void notifyScanRemoved() {
+	public void scanDirectoryOrDirectoriesDeleted() {
 		final File dir;
-		synchronized (this) {
+		synchronized (f_lock) {
 			dir = f_dataDir.getDir();
 			f_dataDir = JSureDataDirScanner.scan(f_dataDir);
 		}
 		notify(Status.CHANGED, dir);
-	}
-
-	/**
-	 * Sets the JSure data directory to an existing directory.
-	 * <p>
-	 * This method simply changes the preference it does not move data from the
-	 * old directory (or even delete the old directory).
-	 * 
-	 * @param dir
-	 *            the new JSure data directory (must exist and be a directory).
-	 * 
-	 * @throws IllegalArgumentException
-	 *             if the passed {@link File} is not a directory or doesn't
-	 *             exist.
-	 */
-	// TODO what about the changes via the preference page?
-	public void setJSureDataDirectory(final File dir) {
-		if (dir != null && dir.isDirectory()) {
-			synchronized (this) {
-				if (dir.equals(f_dataDir.getDir())) {
-					// Ignoring, since it's the same as the current data dir
-					return;
-				}
-				EclipseUtility.setStringPreference(
-						IDEPreferences.JSURE_DATA_DIRECTORY,
-						dir.getAbsolutePath());
-				f_dataDir = JSureDataDirScanner.scan(dir);
-			}
-			notify(Status.CHANGED, dir);
-		} else {
-			throw new IllegalArgumentException("Bad JSure data directory "
-					+ dir + " it doesn't exist on the disk");
-		}
 	}
 }

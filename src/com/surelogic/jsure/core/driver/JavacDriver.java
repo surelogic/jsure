@@ -1894,7 +1894,7 @@ public class JavacDriver implements IResourceChangeListener {
 					final File location = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
 					new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
 				}
-				JSureDataDirHub.getInstance().notifyScanAdded(projects.getRunDir());
+				JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
 				JSureScansHub.getInstance().gotNewScan(projects.getRunDir());				
 				/*
 				 * final File rootLoc =
