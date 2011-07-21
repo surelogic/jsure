@@ -12,6 +12,15 @@ import com.surelogic.javac.Projects;
 
 public class JSureScan implements Comparable<JSureScan> {
 
+	/**
+	 * Looks up a scan by its directory name in a list of scans.
+	 * 
+	 * @param in
+	 *            the collection of scans to search.
+	 * @param dirName
+	 *            the directory name of the desired scan.
+	 * @return the desired scan, or {@code null} if it cannot be found.
+	 */
 	public static JSureScan findByDirName(List<JSureScan> in, String dirName) {
 		for (JSureScan scan : in) {
 			if (scan.getDirName().equals(dirName))
@@ -20,11 +29,11 @@ public class JSureScan implements Comparable<JSureScan> {
 		return null;
 	}
 
-	private final Date f_timeOfScan;
+	private final Date f_timeOfScan; // non-null
 	private final File f_scanDir; // non-null
 	private Projects f_projectsScanned;
 	private JSureScan f_lastPartialScan;
-	private final double f_sizeInMB;
+	private final double f_sizeInMB; // non-null
 
 	public JSureScan(File scanDir) throws Exception {
 		if (scanDir == null || !scanDir.isDirectory()) {
@@ -32,7 +41,6 @@ public class JSureScan implements Comparable<JSureScan> {
 		}
 		f_scanDir = scanDir;
 
-		// time = null;
 		// There should be at least 3 segments: label date time
 		final String[] name = scanDir.getName().split(" ");
 		if (name.length < 3) {
@@ -59,14 +67,14 @@ public class JSureScan implements Comparable<JSureScan> {
 		return f_sizeInMB;
 	}
 
-	public Projects getProjects() throws Exception {
+	public final Projects getProjects() throws Exception {
 		if (f_projectsScanned != null) {
 			return f_projectsScanned;
 		}
 		// Get info about projects
 		JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
 		reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
-		f_projectsScanned = reader.getProject();
+		f_projectsScanned = reader.getProjects();
 		f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory()
 				.createSLProgressMonitor(""));
 		return f_projectsScanned;

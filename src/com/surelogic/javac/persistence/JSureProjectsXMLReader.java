@@ -138,7 +138,7 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 		// Nothing to do here?
 	}
 
-	public Projects getProject() {
+	public Projects getProjects() {
 		return projects;
 	}
 }
