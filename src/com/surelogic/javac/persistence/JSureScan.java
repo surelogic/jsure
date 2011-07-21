@@ -12,8 +12,16 @@ import com.surelogic.javac.Projects;
 
 public class JSureScan implements Comparable<JSureScan> {
 
+	public static JSureScan findByDirName(List<JSureScan> in, String dirName) {
+		for (JSureScan scan : in) {
+			if (scan.getDirName().equals(dirName))
+				return scan;
+		}
+		return null;
+	}
+
 	private final Date f_timeOfRun;
-	private final File f_scanDir;
+	private final File f_scanDir; // non-null
 	private Projects f_projectsScanned;
 	private JSureScan f_lastRun;
 	private final double f_sizeInMB;

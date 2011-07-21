@@ -30,40 +30,40 @@ public class JSureDataDirScanner {
 	}
 
 	public static JSureDataDir scan(JSureDataDir oldData) {
-		return organizeRuns(oldData.getDir(), oldData.updateRuns());
+		return organizeRuns(oldData.getDir(), oldData.getScansOnDiskRightNow());
 	}
 
 	public static JSureDataDir scan(File dataDir) {
-		final Map<String, JSureScan> runs = new HashMap<String, JSureScan>();
+		final List<JSureScan> runs = new ArrayList<JSureScan>();
 
 		// Look for run directories
 		for (File f : dataDir.listFiles()) {
 			final JSureScan run = findRunDirectory(f);
 			if (run != null) {
-				runs.put(run.getDirName(), run);
+				runs.add(run);
 			}
 		}
 		return organizeRuns(dataDir, runs);
 	}
 
-	private static JSureDataDir organizeRuns(File dataDir,
-			Map<String, JSureScan> runs) {
+	private static JSureDataDir organizeRuns(File dataDir, List<JSureScan> runs) {
 		/*
-		 * Figure out which are the full runs, and which are the last partial
+		 * Figure out which are the full runs, and which are the latest partial
 		 * runs.
 		 */
 		final List<JSureScan> full = new ArrayList<JSureScan>();
 		// These should end up to be the last in a series
-		final Set<JSureScan> roots = new HashSet<JSureScan>(runs.values());
-		for (JSureScan run : runs.values()) {
+		final Set<JSureScan> roots = new HashSet<JSureScan>(runs);
+		for (JSureScan run : runs) {
 			try {
 				final Projects p = run.getProjects();
 				final String lastName = p.getLastRun();
 				if (lastName != null) {
 					// This one is a partial run and depends on the last one
-					final JSureScan last = runs.get(lastName);
+					final JSureScan last = JSureScan.findByDirName(runs,
+							lastName);
 					if (last == null) {
-						System.err.println("Couldn't find run: " + last
+						System.err.println("Couldn't find scan: " + last
 								+ " -> " + run.getDirName());
 						roots.remove(run);
 					} else {

@@ -1,24 +1,30 @@
 package com.surelogic.javac.persistence;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Contains information about what scans or runs exist in a JSure data
- * directory.
+ * Contains information about what scans exist in a JSure data directory.
  */
 public class JSureDataDir {
+
 	private final File f_dir;
-	private final Map<String, JSureScan> f_scans;
+
+	private final List<JSureScan> f_scans;
+
 	private final Map<String, JSureScan> f_projectToScan = new HashMap<String, JSureScan>();
 
-	JSureDataDir(File dir, Map<String, JSureScan> runs, Map<String, JSureScan> p2r)
-			throws IOException {
+	JSureDataDir(File dir, List<JSureScan> scans,
+			Map<String, JSureScan> projectToScan) throws IOException {
 		f_dir = dir;
-		this.f_scans = runs;
-		f_projectToScan.putAll(p2r);
+		f_scans = scans;
+		f_projectToScan.putAll(projectToScan);
 
-		for (Map.Entry<String, JSureScan> e : p2r.entrySet()) {
+		for (Map.Entry<String, JSureScan> e : projectToScan.entrySet()) {
 			e.getValue().getLatestFilesForProject(e.getKey());
 		}
 	}
@@ -28,43 +34,48 @@ public class JSureDataDir {
 	}
 
 	public synchronized JSureScan findScan(File location) {
-		JSureScan rv = f_scans.get(location.getName());
-		if (rv == null) {
-			// Look at each one
-			for (JSureScan r : f_scans.values()) {
-				if (r.getDir().equals(location)) {
-					return r;
-				}
+		JSureScan rv = null;
+		for (JSureScan r : f_scans) {
+			if (r.getDir().equals(location)) {
+				return r;
 			}
 		}
 		return rv;
 	}
 
-	public synchronized JSureScan[] getAllRuns() {
-		return f_scans.values().toArray(new JSureScan[f_scans.size()]);
+	public synchronized List<JSureScan> getScans() {
+		return new ArrayList<JSureScan>(f_scans);
 	}
 
-	synchronized Map<String, JSureScan> updateRuns() {
-		// Collect together existing info about runs
-		final Map<File, JSureScan> oldInfo = new HashMap<File, JSureScan>();
-		for (JSureScan r : f_scans.values()) {
+	public synchronized JSureScan[] getScansAsArray() {
+		return f_scans.toArray(new JSureScan[f_scans.size()]);
+	}
+
+	synchronized List<JSureScan> getScansOnDiskRightNow() {
+		/*
+		 * Collect together existing information about scans
+		 */
+		final Map<File, JSureScan> knownScans = new HashMap<File, JSureScan>();
+		for (JSureScan r : f_scans) {
 			do {
-				oldInfo.put(r.getDir(), r);
+				knownScans.put(r.getDir(), r);
 				r = r.getLastRun();
 			} while (r != null);
 		}
-		// Look for run directories
-		final Map<String, JSureScan> runs = new HashMap<String, JSureScan>();
+		/*
+		 * Look for scan directories
+		 */
+		final List<JSureScan> scans = new ArrayList<JSureScan>();
 		for (File f : f_dir.listFiles()) {
-			JSureScan run = oldInfo.get(f);
+			JSureScan run = knownScans.get(f);
 			if (run == null) {
 				// This is a new directory
 				run = JSureDataDirScanner.findRunDirectory(f);
 			}
 			if (run != null) {
-				runs.put(run.getDirName(), run);
+				scans.add(run);
 			}
 		}
-		return runs;
+		return scans;
 	}
 }
