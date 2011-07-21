@@ -594,7 +594,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 				xLabels.add(format.format(d));
 			} catch (Exception e) {
 				e.printStackTrace();
-				xLabels.add(s.run.getName());
+				xLabels.add(s.run.getDirName());
 			}
 		}
 		final IAxisSet axisSet = summaryChart.getAxisSet();
