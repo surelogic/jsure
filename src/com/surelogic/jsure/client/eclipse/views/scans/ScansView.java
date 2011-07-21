@@ -24,7 +24,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
@@ -91,9 +91,9 @@ public class ScansView extends AbstractScanManagerView {
 	protected void setupSorter(final TableViewer tViewer,
 			final TableViewerColumn column, final int colIdx) {
 		final boolean intSort = f_content.isIntSortedColumn(colIdx); // "Line".equals(column.getColumn().getText());
-		new ColumnViewerSorter<JSureRun>(tViewer, column.getColumn()) {
+		new ColumnViewerSorter<JSureScan>(tViewer, column.getColumn()) {
 			@Override
-			protected int doCompare(Viewer viewer, JSureRun e1, JSureRun e2) {
+			protected int doCompare(Viewer viewer, JSureScan e1, JSureScan e2) {
 				ITableLabelProvider lp = ((ITableLabelProvider) tViewer
 						.getLabelProvider());
 				String t1 = lp.getColumnText(e1, colIdx);
@@ -116,7 +116,7 @@ public class ScansView extends AbstractScanManagerView {
 
 	@Override
 	protected void makeActions() {
-		f_deleteScanAction = new MultiSelectAction<JSureRun>("Delete scan(s)") {
+		f_deleteScanAction = new MultiSelectAction<JSureScan>("Delete scan(s)") {
 			@Override
 			public boolean run(IStructuredSelection s) {
 				// TODO popup confirm dialog
@@ -128,22 +128,22 @@ public class ScansView extends AbstractScanManagerView {
 			}
 
 			@Override
-			protected boolean run(JSureRun elt) {
+			protected boolean run(JSureScan elt) {
 				return FileUtility.recursiveDelete(elt.getDir());
 			}
 		};
-		f_setAsBaselineAction = new SingleSelectAction<JSureRun>(
+		f_setAsBaselineAction = new SingleSelectAction<JSureScan>(
 				"Set as baseline") {
 			@Override
-			protected boolean run(JSureRun elt) {
+			protected boolean run(JSureScan elt) {
 				JSureScansHub.getInstance().setBaselineScan(elt.getDir());
 				return true;
 			}
 		};
-		f_setAsCurrentAction = new SingleSelectAction<JSureRun>(
+		f_setAsCurrentAction = new SingleSelectAction<JSureScan>(
 				"Set as current") {
 			@Override
-			protected boolean run(JSureRun elt) {
+			protected boolean run(JSureScan elt) {
 				JSureScansHub.getInstance().setCurrentScan(elt.getDir());
 				return true;
 			}
@@ -171,9 +171,9 @@ public class ScansView extends AbstractScanManagerView {
 		// TODO Auto-generated method stub
 	}
 
-	static final Comparator<JSureRun> runsByDate = new Comparator<JSureRun>() {
+	static final Comparator<JSureScan> runsByDate = new Comparator<JSureScan>() {
 		@Override
-		public int compare(JSureRun r1, JSureRun r2) {
+		public int compare(JSureScan r1, JSureScan r2) {
 			try {
 				return r1.getProjects().getDate()
 						.compareTo(r2.getProjects().getDate());
@@ -185,8 +185,8 @@ public class ScansView extends AbstractScanManagerView {
 	};
 
 	static class ContentProvider implements ITableContentProvider {
-		JSureRun[] runs;
-		JSureRun baseline, current;
+		JSureScan[] runs;
+		JSureScan baseline, current;
 
 		public String build(JSureScansHub.ScanStatus status,
 				JSureDataDirHub.Status dirStatus) {
@@ -214,7 +214,7 @@ public class ScansView extends AbstractScanManagerView {
 			return "";
 		}
 
-		private JSureRun findScan(JSureDataDir data, JSureScanInfo info) {
+		private JSureScan findScan(JSureDataDir data, JSureScanInfo info) {
 			if (info != null) {
 				return data.findScan(info.getDir());
 			}
@@ -263,7 +263,7 @@ public class ScansView extends AbstractScanManagerView {
 
 		@Override
 		public String getColumnText(Object element, int columnIndex) {
-			final JSureRun r = (JSureRun) element;
+			final JSureScan r = (JSureScan) element;
 			try {
 				switch (columnIndex) {
 				case 0:

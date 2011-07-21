@@ -42,6 +42,7 @@
 		
 		<view name="Verification Scan Management"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
 		</view>
 		

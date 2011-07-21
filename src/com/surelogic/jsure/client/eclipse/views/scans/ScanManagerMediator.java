@@ -22,7 +22,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScansHub;
 
@@ -34,41 +34,33 @@ public final class ScanManagerMediator implements ILifecycle {
 
 		@Override
 		public void checkStateChanged(CheckStateChangedEvent event) {
-			final Object element = event.getElement();
-			if (element instanceof JSureRun) {
-				final JSureRun run = (JSureRun) element;
-				if (event.getChecked()) {
-					// Is this already the current?
-					JSureRun current = JSureScansHub.getInstance()
-							.getCurrentScan();
-					if (run.equals(current)) {
-						// They are the same, do nothing.
-					} else {
-						//
-					}
-				}
-				System.out.println(run + " getChecked()=" + event.getChecked());
-			}
+			reactToCheckStateChanged();
 		}
 	};
 
 	private void showCurrentScanInUi() {
-		f_swtTable.getDisplay().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				f_table.setAllChecked(false);
-				final JSureRun current = JSureScansHub.getInstance()
-						.getCurrentScan();
-				if (current != null)
-					f_table.setChecked(current, true);
+		f_table.setAllChecked(false);
+		final JSureScan current = JSureScansHub.getInstance().getCurrentScan();
+		if (current != null)
+			f_table.setChecked(current, true);
+	}
+
+	private void reactToCheckStateChanged() {
+		JSureScan selectedRun = null; // assume no run
+		final Object[] checkedElements = f_table.getCheckedElements();
+		if (checkedElements.length >= 1) {
+			if (checkedElements[0] instanceof JSureScan) {
+				selectedRun = (JSureScan) checkedElements[0];
+				JSureScansHub.getInstance()
+						.setCurrentScan(selectedRun.getDir());
 			}
-		});
+		}
+		JSureScansHub.getInstance().setCurrentScan(null);
 	}
 
 	ScanManagerMediator(CheckboxTableViewer table) {
 		f_table = table;
 		f_swtTable = f_table.getTable();
-
 	}
 
 	@Override
@@ -79,10 +71,10 @@ public final class ScanManagerMediator implements ILifecycle {
 		/*
 		 * Setup columns
 		 */
-		addColumn("", SWT.LEFT, 50);
-		addColumn("Date", SWT.LEFT, 150);
+		addColumn("Current", SWT.LEFT, 70);
+		addColumn("Date of Scan", SWT.LEFT, 150);
 		addColumn("Size", SWT.RIGHT, 70);
-		addColumn("Projects", SWT.LEFT, 300);
+		addColumn("Projects", SWT.LEFT, 500);
 
 		f_table.setContentProvider(new MyContentProvider());
 		f_table.setLabelProvider(new MyLabelProvider());
@@ -155,8 +147,8 @@ public final class ScanManagerMediator implements ILifecycle {
 		@Override
 		public String getColumnText(Object element, int columnIndex) {
 			try {
-				if (element instanceof JSureRun) {
-					final JSureRun run = (JSureRun) element;
+				if (element instanceof JSureScan) {
+					final JSureScan run = (JSureScan) element;
 					switch (columnIndex) {
 					case 0:
 						return "";

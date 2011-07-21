@@ -68,7 +68,7 @@ import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScansHub;
 
@@ -275,15 +275,15 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 
 	static class Summary {
-		private final JSureRun run;
+		private final JSureScan run;
 		final Properties props;
 
-		Summary(JSureRun r, InputStream in) throws IOException {
+		Summary(JSureScan r, InputStream in) throws IOException {
 			this(r, new Properties());
 			props.load(in);
 		}
 
-		Summary(JSureRun r, Properties totals) {
+		Summary(JSureScan r, Properties totals) {
 			run = r;
 			props = totals;
 		}
@@ -315,7 +315,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	};
 
 	class ContentProvider implements ITableContentProvider {
-		JSureRun[] runs;
+		JSureScan[] runs;
 		Summary[] summaries;
 
 		public String build(JSureScansHub.ScanStatus status,
@@ -335,7 +335,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 
 				// Look for summaries
 				final List<Summary> summaries = new ArrayList<Summary>();
-				runLoop: for (JSureRun r : runs) {
+				runLoop: for (JSureScan r : runs) {
 					if (selectedProjects.length > 0) {
 						// Check if the run includes all of the selected
 						// projects
@@ -499,7 +499,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			if (dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 				// Enough changed, so find all the relevant projects
 				final Set<String> names = new HashSet<String>();
-				for (JSureRun r : data.getAllRuns()) {
+				for (JSureScan r : data.getAllRuns()) {
 					try {
 						for (String p : r.getProjects().getProjectNames()) {
 							if (!p.startsWith(JavacTypeEnvironment.JRE_NAME)) {
