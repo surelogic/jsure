@@ -1343,7 +1343,7 @@ public class JavacDriver implements IResourceChangeListener {
 			if (oldProjects != null) {
 				System.out.println("Old projects = "+oldProjects.getLabel());
 			}
-			newProjects.computeRun(dataDir, oldProjects);
+			newProjects.computeScan(dataDir, oldProjects);
 
 			final File zips = new File(dataDir, newProjects.getRun() + "/zips");
 			final File target = new File(dataDir, newProjects.getRun()
