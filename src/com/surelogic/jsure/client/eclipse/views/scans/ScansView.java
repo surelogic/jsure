@@ -122,7 +122,7 @@ public class ScansView extends AbstractScanManagerView {
 				// TODO popup confirm dialog
 				boolean deleted = super.run(s);
 				if (deleted) {
-					JSureDataDirHub.getInstance().notifyScanRemoved();
+					JSureDataDirHub.getInstance().scanDirectoryOrDirectoriesDeleted();
 				}
 				return deleted;
 			}
