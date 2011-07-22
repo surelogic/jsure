@@ -759,12 +759,7 @@ extends TripleLattice<Element<Integer>,
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
                     final IRNode cdecl = binder.getBinding(n);
-                    uDrop = UniquenessRules.getBorrowed(
-                        JavaPromise.getReceiverNode(cdecl));
-                    if (uDrop == null) {
-                      uDrop = UniquenessRules.getUnique(
-                          JavaPromise.getReturnNode(cdecl));
-                    }                    
+                    uDrop = UniquenessRules.getBorrowedReceiver(cdecl);
                   } else if (MethodCall.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(
                         JavaPromise.getReturnNode(binder.getBinding(n)));
@@ -1019,13 +1014,7 @@ extends TripleLattice<Element<Integer>,
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
-                    final IRNode cdecl = binder.getBinding(n);
-                    uDrop = UniquenessRules.getBorrowed(
-                        JavaPromise.getReceiverNode(cdecl));
-                    if (uDrop == null) {
-                      uDrop = UniquenessRules.getUnique(
-                          JavaPromise.getReturnNode(cdecl));
-                    }                    
+                    uDrop = UniquenessRules.getBorrowedReceiver(binder.getBinding(n));
                   } else if (MethodCall.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(
                         JavaPromise.getReturnNode(binder.getBinding(n)));
