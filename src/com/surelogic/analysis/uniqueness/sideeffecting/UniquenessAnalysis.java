@@ -479,6 +479,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * how did the binder determine to call this method/constructor?).
      */
     private Store popArguments(
+        final IRNode calledMethod, final IRNode methodCall,
         final int numActuals, final IRNode formals, final IRNode actuals, Store s) {
       if (formals != null && numActuals != tree.numChildren(formals)) {
         throw new FluidError("#formals != #actuals");
@@ -491,7 +492,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (uDrop != null) { // used to also check if formal != null
           s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL, bcaQuery);
         } else if (/*formal == null ||*/ bDrop != null) {
-          s  = lattice.opBorrow(s, actual);
+          s  = lattice.opBorrow(s, actual, calledMethod, methodCall, bDrop, bcaQuery);
         } else {
           s = lattice.opCompromise(s, actual);
         }
@@ -504,7 +505,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * of the three methods for popping depending on the promises/demands about
      * the receiver.
      */
-    private Store popReceiver(final IRNode decl, final Store s, final IRNode srcOp) {
+    private Store popReceiver(final IRNode decl, final IRNode methodCall, final Store s, final IRNode srcOp) {
 //      if (decl == null) {
 //        return lattice.opBorrow(s, srcOp);
 //      }
@@ -515,12 +516,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode recDecl = JavaPromise.getReceiverNode(decl);
         final IRNode retDecl = JavaPromise.getReturnNode(decl);
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(recDecl);
+        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(recDecl);
+        final UniquePromiseDrop uRetDrop = UniquenessRules.getUnique(retDecl);
         if (uDrop != null) {
           return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL, bcaQuery);
-        } else if (UniquenessRules.getBorrowed(recDecl) != null) {
-          return lattice.opBorrow(s, srcOp);
-        } else if (isConstructor && UniquenessRules.getUnique(retDecl) != null) {
-          return lattice.opBorrow(s, srcOp);
+        } else if (bDrop != null) {
+          return lattice.opBorrow(s, srcOp, decl, methodCall, bDrop, bcaQuery);
+        } else if (isConstructor && uRetDrop != null) {
+          return lattice.opBorrow(s, srcOp, decl, methodCall, uRetDrop, bcaQuery);
         } else {
           if (isConstructor) {
             if (LOG.isLoggable(Level.FINE)) {
@@ -723,7 +726,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               effects.getMethodEffects(mdecl, node), s, node);
         }
         // We have to possibly compromise arguments
-        s = popArguments(numActuals, formals, actuals, s);
+        s = popArguments(mdecl, node, numActuals, formals, actuals, s);
         final IRNode outerObject = getOuterObject(node);
         if (outerObject != null) {
           if (LOG.isLoggable(Level.FINE)) {
@@ -750,7 +753,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // for new expressions (object already duplicated)
         // and for constructor calls (also already duplicated)
         // we pop the receiver.
-        s = popReceiver(mdecl, s, receiverNode);
+        s = popReceiver(mdecl, node, s, receiverNode);
       } finally {
         lattice.setSuppressDrops(false);
       }

@@ -37,6 +37,7 @@ public final class Messages  {
   public static final int TIMEOUT = 312;
   public static final int TOO_LONG = 313;
 
+  public static final int BORROWED_PASSED_TO_BORROWED = 319;
   public static final int COMPROMISED_READ = 320;
   public static final int COMPROMISED_INDIRECT_READ = 321;  
   public static final int LOST_COMPROMISED_FIELD = 322;
@@ -85,6 +86,8 @@ public final class Messages  {
     code2name.put(UNIQUE_RETURN_VALUE, "?");
     code2name.put(BORROWED_CONSTRUCTOR, "?");
     code2name.put(TIMEOUT, "?");
+
+    code2name.put(BORROWED_PASSED_TO_BORROWED, "?");
     code2name.put(COMPROMISED_READ, "?");
     code2name.put(COMPROMISED_INDIRECT_READ, "?");
     code2name.put(LOST_COMPROMISED_FIELD, "?");

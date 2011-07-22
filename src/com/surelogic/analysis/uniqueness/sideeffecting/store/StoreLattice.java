@@ -22,6 +22,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
@@ -902,26 +903,27 @@ extends TripleLattice<Element<Integer>,
   /**
    * Ensure the top of the stack is at least borrowed and then pop the stack.
    */
-  public Store opBorrow(final Store s, final IRNode srcOp) {
+  public Store opBorrow(final Store s, final IRNode srcOp,
+      final IRNode calledMethod, final IRNode methodCall,
+      final PromiseDrop<? extends IAASTRootNode> bDrop,
+      final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
-    if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
+    final State localStatus = localStatus(s, n);
+
+    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, controlFlowDrop, n);
 //      reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
 //      return errorStore("Undefined value on stack borrowed");
+    } else if (localStatus == State.BORROWED) { // is borrowed
+      if (shouldRecordResult()) {
+        recordBorrowedPassedToBorrowed(
+            srcOp, calledMethod, methodCall, bDrop, bcaQuery);
+      }
     }
     return opRelease(s, srcOp);
   }
-  
-//  private void reportError(final IRNode srcOp, final String label, final String message) {
-//    if (shouldRecordResult()) {
-//      final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
-//      final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, WarningDrop.factory);
-//      infoDrop.setMessage(newMsg);
-//      infoDrop.setNode(srcOp);
-//    }
-//  }
-  
+
   /**
    * Compromise the value on the top of the stack.
    */
@@ -1010,7 +1012,9 @@ extends TripleLattice<Element<Integer>,
                     final IBinder binder, final ResultDropBuilder resultDrop) {
                   PromiseDrop<? extends IAASTRootNode> uDrop = null;
                   final Operator op = JJNode.tree.getOperator(n);
-                  if (FieldRef.prototype.includes(op)) {
+                  if (ReceiverDeclaration.prototype.includes(op)) {
+                    uDrop = UniquenessRules.getUnique(n);
+                  } else if (FieldRef.prototype.includes(op)) {
                     uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n));
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
@@ -1504,6 +1508,50 @@ extends TripleLattice<Element<Integer>,
           }
         }
       }
+    }
+  }
+
+  private void recordBorrowedPassedToBorrowed(final IRNode srcOp,
+      final IRNode calledMethod, final IRNode methodCall,
+      final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop,
+      final BindingContextAnalysis.Query bcaQuery) {
+    if (srcOp == null) {
+      /* Special case: the called method is a a ConstructorCall---
+       * this(...) or super(...)---and top of stack is the receiver.
+       * The actual parameter in this case is the receiver of the method
+       * being analyzed.
+       */
+      createBorrowedPassedToBorrowedResult(
+          UniquenessRules.getBorrowedReceiver(controlFlowDrop.getNode()),
+          methodCall, "this", calledMethod, passedToBorrowedDrop);
+    } else {
+      for (final IRNode x : bcaQuery.getResultFor(srcOp)) {
+        if (ReceiverDeclaration.prototype.includes(x)) {
+          createBorrowedPassedToBorrowedResult(
+              UniquenessRules.getBorrowedReceiver(
+                  JavaPromise.getPromisedFor(x)), srcOp, "this",
+                  calledMethod, passedToBorrowedDrop);
+        } else if (ParameterDeclaration.prototype.includes(x)) {
+          createBorrowedPassedToBorrowedResult(
+              UniquenessRules.getBorrowed(x), srcOp,
+              ParameterDeclaration.getId(x), calledMethod, passedToBorrowedDrop);
+        }
+      }
+    }
+  }
+  
+  private void createBorrowedPassedToBorrowedResult(
+      final PromiseDrop<? extends IAASTRootNode> actualBorrowedDrop,
+      final IRNode srcOp, final String actualParameterName,
+      final IRNode calledMethod,
+      final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop) {
+    if (actualBorrowedDrop != null) {
+      final ResultDropBuilder result = 
+        createResultDrop(analysis, abruptDrops, actualBorrowedDrop, srcOp, true,
+            Messages.BORROWED_PASSED_TO_BORROWED,
+            actualParameterName,
+            JavaNames.genMethodConstructorName(calledMethod));
+      result.addTrustedPromise(passedToBorrowedDrop);
     }
   }
 

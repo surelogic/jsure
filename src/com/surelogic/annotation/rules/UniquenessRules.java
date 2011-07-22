@@ -101,6 +101,17 @@ public class UniquenessRules extends AnnotationRules {
 	  return getBooleanDrop(readonlyRule.getStorage(), vdecl);
   }
   
+  public static PromiseDrop<? extends IAASTRootNode> getBorrowedReceiver(
+      final IRNode mdecl) {
+    PromiseDrop<? extends IAASTRootNode> drop = 
+      UniquenessRules.getBorrowed(JavaPromise.getReceiverNode(mdecl));
+    if (drop == null && ConstructorDeclaration.prototype.includes(mdecl)) {
+      drop = UniquenessRules.getUnique(
+          JavaPromise.getReturnNode(mdecl));
+    }
+    return drop;
+  }
+  
   /**
    * Meant for testing
    */
