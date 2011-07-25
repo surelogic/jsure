@@ -93,23 +93,27 @@ public class UniquenessRules extends AnnotationRules {
     return getBooleanDrop(borrowedRule.getStorage(), vdecl);
   }
   
+  public static PromiseDrop<? extends IAASTRootNode> getBorrowedReceiver(
+      final IRNode mdecl) {
+    PromiseDrop<? extends IAASTRootNode> drop = 
+      UniquenessRules.getBorrowed(JavaPromise.getReceiverNodeOrNull(mdecl));
+    if (drop == null && ConstructorDeclaration.prototype.includes(mdecl)) {
+      drop = UniquenessRules.getUnique(
+          JavaPromise.getReturnNodeOrNull(mdecl));
+    }
+    return drop;
+  }
+
+  public static boolean isBorrowedReceiver(final IRNode mdecl) {
+    return getBorrowedReceiver(mdecl) != null;
+  }
+
   public static boolean isReadOnly(IRNode vdecl) {
 	  return getReadOnly(vdecl) != null;
   }
   
   public static ReadonlyPromiseDrop getReadOnly(IRNode vdecl) {
 	  return getBooleanDrop(readonlyRule.getStorage(), vdecl);
-  }
-  
-  public static PromiseDrop<? extends IAASTRootNode> getBorrowedReceiver(
-      final IRNode mdecl) {
-    PromiseDrop<? extends IAASTRootNode> drop = 
-      UniquenessRules.getBorrowed(JavaPromise.getReceiverNode(mdecl));
-    if (drop == null && ConstructorDeclaration.prototype.includes(mdecl)) {
-      drop = UniquenessRules.getUnique(
-          JavaPromise.getReturnNode(mdecl));
-    }
-    return drop;
   }
   
   /**
@@ -147,26 +151,6 @@ public class UniquenessRules extends AnnotationRules {
     registerParseRuleStorage(fw, notUniqueRule);
     registerScrubber(fw, conflictsRule);
     registerScrubber(fw, uniquenessDone);
-  }
-  
-  /**
-   * Constructors can be annoted with either "borrowed this" or 
-   * "returns unique" to indicate that the receiver is borrowed.  This
-   * method return true if either of those cases is met.
-   * @param conDecl A constructor declaration node
-   */
-  public static boolean constructorYieldsUnaliasedObject(final IRNode conDecl) {
-    /* Sanity checking already guarantees that at most one of the two case
-     * is met.
-     */
-    // Unique return is the preferred way of doing things, so check it first
-    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(conDecl);
-    if (isUnique(returnNode)) {
-      return true;
-    } else {
-      final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(conDecl);
-      return isBorrowed(rcvrNode);
-    }
   }
   
   private static interface DropGenerator<T extends IAASTRootNode, D extends PromiseDrop<T>> {

@@ -1017,7 +1017,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       // Case 3b: borrowed/unique parameter
       boolean hasBorrowedParam = false;
       boolean hasUniqueParam = false;
-      hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(cdecl);
+      hasBorrowedParam |= UniquenessRules.isBorrowedReceiver(cdecl);
       // Cannot have a unique receiver
 
       final IRNode formals = ConstructorDeclaration.getParams(cdecl);

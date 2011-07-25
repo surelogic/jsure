@@ -232,17 +232,20 @@ extends TripleLattice<Element<Integer>,
   private final UniquenessControlFlowDrop controlFlowDrop;
   
   /**
-   * Whether any errors were added to the control flow drop.
+   * Whether any results were added to the control flow drop.   Checked in
+   * {@link #makeResultDrops()}: any promise that doesn't have any results is
+   * given a generic "invariants respected" result.
    */
-  private boolean hasControlFlowErrors = false;
-  
+  private boolean hasControlFlowResults = false;
+
   /**
-   * Indexed by the borrowed annotation (or UniquePromiseDrop) in the case of
-   * return value of a constructor.  A value is present if an error result has 
-   * been placed on that drop.
+   * Set of borrowed annotations (or UniquePromiseDrop in the case of return
+   * value of a constructor) that have results. Checked in
+   * {@link #makeResultDrops()}: any promise that doesn't have any results is
+   * given a generic "invariants respected" result.
    */
-  private final Map<PromiseDrop<? extends IAASTRootNode>, Boolean> borrowedIsBad =
-    new HashMap<PromiseDrop<? extends IAASTRootNode>, Boolean>();
+  private final Set<PromiseDrop<? extends IAASTRootNode>> borrowedHasResults =
+    new HashSet<PromiseDrop<? extends IAASTRootNode>>();
   
   
   
@@ -1490,7 +1493,7 @@ extends TripleLattice<Element<Integer>,
           }
           
           if (promiseDrop != null) {
-            borrowedIsBad.put(promiseDrop, Boolean.TRUE);
+            borrowedHasResults.add(promiseDrop);
             xNotY.add(new XNotY(promiseDrop, srcOp, abruptDrops,
                 MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal,
                 infoAdder));
@@ -1535,6 +1538,7 @@ extends TripleLattice<Element<Integer>,
       final IRNode calledMethod,
       final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop) {
     if (actualBorrowedDrop != null) {
+      borrowedHasResults.add(actualBorrowedDrop);
       final ResultDropBuilder result = 
         createResultDrop(analysis, abruptDrops, actualBorrowedDrop, srcOp, true,
             Messages.BORROWED_PASSED_TO_BORROWED,
@@ -1647,28 +1651,42 @@ extends TripleLattice<Element<Integer>,
   
   private ResultDropBuilder createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-      final boolean abruptDrops,
+      final boolean abruptDrops, final boolean addToControlFlow,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
     final Object[] newArgs = new Object[args.length+1];
     System.arraycopy(args, 0, newArgs, 0, args.length);
-    newArgs[args.length] = abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
+    newArgs[args.length] =
+      abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
     final ResultDropBuilder result =
       ResultDropBuilder.create(analysis, Messages.toString(msg));
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     if (promiseDrop != controlFlowDrop) {
-      result.addCheckedPromise(controlFlowDrop);
+      if (addToControlFlow) {
+        result.addCheckedPromise(controlFlowDrop);
+        hasControlFlowResults = true;
+      }
+    } else {
+      hasControlFlowResults = true;
     }
     result.setConsistent(isConsistent);
     result.setResultMessage(msg, newArgs);
-    
-    if (!isConsistent) hasControlFlowErrors = true;
     return result;
   }
 
+  private ResultDropBuilder createResultDrop(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+      final boolean abruptDrops,
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final IRNode node, final boolean isConsistent, 
+      final int msg, final Object... args) {
+    return createResultDrop(analysis, abruptDrops, true,
+        promiseDrop, node, isConsistent, msg, args);
+  }
+  
   private void crossReferenceKilledFields(
       final int msg, final boolean isAbrupt,
       final Map<IRNode, Set<IRNode>> compromisedFields) {
@@ -1732,12 +1750,19 @@ extends TripleLattice<Element<Integer>,
     }
     
     
-    /* If the method implementation assures, there will be no result drops
-     * created above.  In this case, we create a single positive result.
+    /* If we haven't already added results to the control flow drop, then 
+     * we add a single "invariants respected" positive result.
      */
-    if (!hasControlFlowErrors) {
+    final boolean addBorrowedSatisfiedToControlFlow;
+    if (!hasControlFlowResults) {
       createResultDrop(analysis, false, controlFlowDrop,
           controlFlowDrop.getNode(), true, Messages.INVARIANTS_RESPECTED);
+      /* Don't add any BORROWED_SATISFIED drops in this case, because the
+       * message we just added covers this situation already.
+       */
+      addBorrowedSatisfiedToControlFlow = false;
+    } else {
+      addBorrowedSatisfiedToControlFlow = true;
     }
     
     final IRNode flowUnit = controlFlowDrop.getNode();
@@ -1746,33 +1771,32 @@ extends TripleLattice<Element<Integer>,
        * the receiver if it is annotated with @Borrowed.  If the flowUnit is a 
        * constructor, test the return value for uniqueness, and then test that.
        * 
-       * Any promise for which borrowedIsBad.get(x) == null gets the 
+       * Any promise for which borrowedHasResult.get(x) == null gets the 
        * BORROWED_SATISFIED message.
        */
       final IRNode formals = SomeFunctionDeclaration.getParams(flowUnit);
       for (final IRNode p : Parameters.getFormalIterator(formals)) {
         final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(p);
-        if (pd != null && borrowedIsBad.get(pd) == null) {
-          createResultDrop(analysis, false, pd, p, true, Messages.BORROWED_SATISFIED);
+        if (pd != null && !borrowedHasResults.contains(pd)) {
+          createResultDrop(analysis, false, addBorrowedSatisfiedToControlFlow, pd, p, true, Messages.BORROWED_SATISFIED);
         }
       }
       
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
       if (rcvr != null) {
         final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(rcvr);
-        if (pd != null && borrowedIsBad.get(pd) == null) {
-          createResultDrop(analysis, false, pd, rcvr, true, Messages.BORROWED_SATISFIED);
+        if (pd != null && !borrowedHasResults.contains(pd)) {
+          createResultDrop(analysis, false, addBorrowedSatisfiedToControlFlow, pd, rcvr, true, Messages.BORROWED_SATISFIED);
         }
-      }
-      
+      }      
       
       final IRNode ret = JavaPromise.getReturnNodeOrNull(flowUnit);
       if (ret != null) {
         final UniquePromiseDrop pd = UniquenessRules.getUnique(ret);
         if (ConstructorDeclaration.prototype.includes(flowUnit)) {
           // CONSTRUCTOR: Unique(return) == Borrowed(this)
-          if (pd != null && borrowedIsBad.get(pd) == null) {
-            createResultDrop(analysis, false, pd, ret, true, Messages.BORROWED_SATISFIED);
+          if (pd != null && !borrowedHasResults.contains(pd)) {
+            createResultDrop(analysis, false, addBorrowedSatisfiedToControlFlow, pd, ret, true, Messages.BORROWED_SATISFIED);
           }
         }
       }
