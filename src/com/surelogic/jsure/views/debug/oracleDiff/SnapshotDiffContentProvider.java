@@ -24,8 +24,10 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] noElements = ArrayUtil.empty;
+	private static final Object[] nothingToDiff = new Object[1];
 	private static final Object[] nothingToShow = new Object[1];
 	static {
+		nothingToDiff[0] = new Category(null, "Nothing to diff");
 		nothingToShow[0] = new Category(null, "No differences");
 	}	
 	private Diff diff;
@@ -34,6 +36,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	public String build(JSureScansHub.ScanStatus s) {
 		final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
 		if (scan == null) {
+			diff = null;
 			return null;
 		}
 		final Collection<? extends IDropInfo> info = scan.getRawInfo();
@@ -57,6 +60,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 			
 		} else {
 				System.out.println("No snapshot to diff against");
+				diff = null;
 		}
 		return null;
 	}
@@ -69,7 +73,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 			}
 			return rv;
 		}
-		return noElements;
+		return nothingToDiff;
 	}
 
 	public Object[] getChildren(Object parent) {
