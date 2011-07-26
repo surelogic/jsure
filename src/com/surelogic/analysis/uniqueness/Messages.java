@@ -86,6 +86,7 @@ public final class Messages  {
     code2name.put(UNIQUE_RETURN_VALUE, "?");
     code2name.put(BORROWED_CONSTRUCTOR, "?");
     code2name.put(TIMEOUT, "?");
+    code2name.put(TOO_LONG, "?");
 
     code2name.put(BORROWED_PASSED_TO_BORROWED, "?");
     code2name.put(COMPROMISED_READ, "?");

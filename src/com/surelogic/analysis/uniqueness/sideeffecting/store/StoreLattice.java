@@ -220,12 +220,6 @@ extends TripleLattice<Element<Integer>,
   private final Set<GoodResult> goodUnique = new HashSet<GoodResult>();  
   
   /**
-   * Track which unique fields are read or written.
-   */
-  private final Set<PromiseDrop<? extends IAASTRootNode>> uniquePromisesUsed =
-    new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-  
-  /**
    * Method control flow drops.  Map from method/constructor declaration
    * nodes to drops.
    */
@@ -246,6 +240,12 @@ extends TripleLattice<Element<Integer>,
    */
   private final Set<PromiseDrop<? extends IAASTRootNode>> borrowedHasResults =
     new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  
+  /**
+   * All the result drops we are going to have created.  Saved up here in case
+   * we need to cancel them if the analysis times out.
+   */
+  private final Set<ResultDropBuilder> drops = new HashSet<ResultDropBuilder>();
   
   
   
@@ -646,8 +646,6 @@ extends TripleLattice<Element<Integer>,
     final PromiseDrop<? extends IAASTRootNode> uDrop = 
       UniquenessUtils.getFieldUnique(fieldDecl);
     if (uDrop != null) {
-      recordUseOfUniqueField(uDrop);
-      
       final Integer n = getStackTop(s);
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
       ImmutableHashOrderSet<Object> affected = EMPTY;
@@ -711,8 +709,6 @@ extends TripleLattice<Element<Integer>,
     final PromiseDrop<? extends IAASTRootNode> uDrop = 
       UniquenessUtils.getFieldUnique(fieldDecl);
     if (uDrop != null) {
-      recordUseOfUniqueField(uDrop);
-
       final Integer undertop = getUnderTop(s);
       final Integer stacktop = getStackTop(s);
       // We used to undefined everything that aliased the value stored in the unique field.
@@ -1426,16 +1422,6 @@ extends TripleLattice<Element<Integer>,
   // ------------------------------------------------------------------
   // -- Good Values
   // ------------------------------------------------------------------
-
-  private void recordUseOfUniqueField(PromiseDrop<? extends IAASTRootNode> uDrop) {
-    if (shouldRecordResult()) {
-      uniquePromisesUsed.add(uDrop);
-    }
-  }
-  
-  public Set<PromiseDrop<? extends IAASTRootNode>> getUniquePromises() {
-    return uniquePromisesUsed;
-  }
   
   public UniquenessControlFlowDrop getCFDrop() {
     return controlFlowDrop;
@@ -1649,6 +1635,12 @@ extends TripleLattice<Element<Integer>,
   // -- Make result drops
   // ------------------------------------------------------------------
   
+  public void cancelResults() {
+    for (final ResultDropBuilder drop : drops) {
+      drop.invalidate();
+    }
+  }
+  
   private ResultDropBuilder createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
       final boolean abruptDrops, final boolean addToControlFlow,
@@ -1662,6 +1654,7 @@ extends TripleLattice<Element<Integer>,
     
     final ResultDropBuilder result =
       ResultDropBuilder.create(analysis, Messages.toString(msg));
+    drops.add(result);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     if (promiseDrop != controlFlowDrop) {

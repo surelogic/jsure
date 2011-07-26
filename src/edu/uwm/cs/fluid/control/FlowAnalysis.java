@@ -57,16 +57,21 @@ import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
  */
 @RegionLock("ComputeLock is this protects Instance")
 public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
+  @SuppressWarnings("rawtypes")
   public static final class AnalysisGaveUp extends RuntimeException {
+    /** The flow analysis object that was being initialized when we gave up. */
+    public final FlowAnalysis fa;
+    
     /** Timeout period in nanoseconds */
     public final long timeOut;
 
     /** Number of control flow nodes visited */
     public final int count;
     
-    public AnalysisGaveUp(final long time, final int c) {
-      timeOut = time;
-      count = c;
+    public AnalysisGaveUp(final FlowAnalysis fa, final long time, final int c) {
+      this.fa = fa;
+      this.timeOut = time;
+      this.count = c;
     }
   }
 
@@ -324,7 +329,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
         }
         
         if (shouldTimeOut && System.nanoTime() > deadline) {
-          throw new AnalysisGaveUp(timeOutDuration, globalCount);
+          throw new AnalysisGaveUp(this, timeOutDuration, globalCount);
         }
       }
       work(worklist.next());

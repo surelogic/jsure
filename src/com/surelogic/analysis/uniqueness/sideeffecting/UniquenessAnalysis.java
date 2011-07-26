@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
@@ -70,14 +69,11 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -258,7 +254,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Flow Analysis: Subclass to enable side effects
   // ==================================================================
 
-  private static final class Uniqueness extends JavaForwardAnalysis<Store, StoreLattice> {
+  public static final class Uniqueness extends JavaForwardAnalysis<Store, StoreLattice> {
     private final boolean root;
     private final AtomicBoolean flag;
     
@@ -1084,10 +1080,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     return new RawQuery(getAnalysisThunk(flowUnit));
   }
   
-  public UsedUniqueQuery getUsedUnique(final IRNode flowUnit) {
-    return new UsedUniqueQuery(getAnalysisThunk(flowUnit));
-  }
-  
   
   
   public static class IsInvalidQuery extends AbstractJavaFlowAnalysisQuery<IsInvalidQuery, Boolean, Store, StoreLattice> {
@@ -1289,42 +1281,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected RawQuery newSubAnalysisQuery(
         final Delegate<RawQuery, Store, Store, StoreLattice> delegate) {
       return new RawQuery(delegate);
-    }
-  }
-  
-  
-  
-  public static class UsedUniqueQuery extends AbstractJavaFlowAnalysisQuery<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> {
-    protected UsedUniqueQuery(
-        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
-      super(thunk);
-    }
-
-    protected UsedUniqueQuery(
-        final Delegate<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> d) {
-      super(d);
-    }
-
-    @Override
-    protected Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> getBottomReturningResult(
-        final StoreLattice lattice, final IRNode expr) {
-      /* getEvaluatedAnaysisResults() with BOTTOM substituted in for safter and 
-       * sabrupt.
-       */
-      return new Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>(lattice.getCFDrop(), lattice.getUniquePromises());
-    }
-
-    @Override
-    protected Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> getEvaluatedAnalysisResult(
-        final IJavaFlowAnalysis<Store, StoreLattice> analysis,
-        final StoreLattice lattice, final IRNode expr) {
-      return new Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>(lattice.getCFDrop(), lattice.getUniquePromises());
-    }
-
-    @Override
-    protected UsedUniqueQuery newSubAnalysisQuery(
-        edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery.Delegate<UsedUniqueQuery, Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>>, Store, StoreLattice> delegate) {
-      return new UsedUniqueQuery(delegate);
     }
   }
 }
