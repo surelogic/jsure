@@ -747,8 +747,12 @@ extends TripleLattice<Element<Integer>,
               public void addSupportingInformation(
                   final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
                   final IBinder binder, final ResultDropBuilder resultDrop) {
-                final IRNode rhs =
-                  AssignExpression.getOp2(JJNode.tree.getParent(srcOp));
+                final IRNode rhs;
+                if (VariableDeclarator.prototype.includes(srcOp)) {
+                  rhs = VariableDeclarator.getInit(srcOp);
+                } else { // assign expression
+                  rhs = AssignExpression.getOp2(JJNode.tree.getParent(srcOp));
+                }
                 for (final IRNode n : bcaQuery.getResultFor(rhs)) {
                   PromiseDrop<? extends IAASTRootNode> uDrop = null;
                   final Operator op = JJNode.tree.getOperator(n);
@@ -1432,6 +1436,7 @@ extends TripleLattice<Element<Integer>,
       final InfoAdder infoAdder) {
     if (shouldRecordResult()) {
       goodUnique.add(new GoodResult(uDrop, srcOp, abruptDrops, msg, infoAdder));
+      System.out.println();
     }
   }
   
