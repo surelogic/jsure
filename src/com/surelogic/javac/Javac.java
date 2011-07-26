@@ -54,7 +54,7 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", true, "Uniqueness");
 
 		init(com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysisModule.class,
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Side Effect)");
+				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness (Side Effect)");
 
 		init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
 		init(LocalVariablesModule.class,
