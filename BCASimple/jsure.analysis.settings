@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <preferences>
   <included-analysis-modules>
-    <id>com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM</id>
     <id>com.surelogic.jsure.client.eclipse.ConvertToIR</id>
     <id>com.surelogic.jsure.client.eclipse.EffectAssurance2</id>
     <id>com.surelogic.jsure.client.eclipse.LockAssurance3</id>
@@ -9,6 +8,7 @@
     <id>com.surelogic.jsure.client.eclipse.PromiseParser</id>
     <id>com.surelogic.jsure.client.eclipse.PromiseScrubber</id>
     <id>com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2</id>
+    <id>com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM</id>
     <id>com.surelogic.jsure.client.eclipse.UpdateSuperRootStorage</id>
   </included-analysis-modules>
   <excluded-analysis-modules>
@@ -32,5 +32,6 @@
     <id>com.surelogic.jsure.client.eclipse.UseTypeWherePossible</id>
     <id>com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1</id>
     <id>com.surelogic.jsure.client.eclipse.ModuleAnalysis2</id>
+    <id>com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE</id>
   </excluded-analysis-modules>
 </preferences>
