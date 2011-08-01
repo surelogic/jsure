@@ -10,10 +10,9 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 
 abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 		implements IResultsTableContentProvider {
@@ -100,13 +99,12 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 		return f_contents.toArray();
 	}
 
-	public String build(JSureScansHub.ScanStatus status) {
+	public String build() {
 		f_contents.clear();
-		return getAndSortResults(status, f_contents);
+		return getAndSortResults(f_contents);
 	}
 
-	protected abstract String getAndSortResults(
-			JSureScansHub.ScanStatus status, List<T> contents);
+	protected abstract String getAndSortResults(List<T> contents);
 
 	protected String getMainColumnText(T d) {
 		return d.getMessage();

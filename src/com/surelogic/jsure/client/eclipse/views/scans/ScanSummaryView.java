@@ -70,7 +70,6 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
 
@@ -94,24 +93,21 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 
 	@Override
-	protected String updateViewer(JSureScansHub.ScanStatus status,
-			JSureDataDirHub.Status dirStatus) {
-		return updateViewer(status, dirStatus, false);
+	protected String updateViewer() {
+		return updateViewer(false);
 	}
 
-	private String updateViewer(JSureScansHub.ScanStatus status,
-			JSureDataDirHub.Status dirStatus, boolean selectedProjsChanged) {
+	private String updateViewer(boolean selectedProjsChanged) {
 		try {
 			final IStructuredSelection sel = (IStructuredSelection) projectList
 					.getSelection();
-			boolean changed = f_projectsContent.build(dirStatus);
+			boolean changed = f_projectsContent.build();
 			if (changed) {
 				projectList.setInput(f_projectsContent);
 				projectList.setSelection(sel);
 			}
 
-			String rv = f_content.build(status, dirStatus, changed
-					|| selectedProjsChanged);
+			String rv = f_content.build(changed || selectedProjsChanged);
 			if (rv != null) {
 				tableViewer.setInput(f_content);
 				updateChart();
@@ -269,11 +265,6 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public void scansChanged(final JSureScansHub.ScanStatus status) {
-		// Ignore these updates
-	}
-
 	static class Summary {
 		private final JSureScan run;
 		final Properties props;
@@ -318,89 +309,80 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		JSureScan[] runs;
 		Summary[] summaries;
 
-		public String build(JSureScansHub.ScanStatus status,
-				JSureDataDirHub.Status dirStatus,
-				boolean selectedProjectsChanged) {
+		public String build(boolean selectedProjectsChanged) {
 			final JSureDataDir data = JSureDataDirHub.getInstance()
 					.getJSureDataDir();
-			if (selectedProjectsChanged
-					|| dirStatus != JSureDataDirHub.Status.UNCHANGED) {
-				// Enough changed
-				runs = data.getScansAsArray();
+			// Enough changed
+			runs = data.getScansAsArray();
 
-				// Get selected projects
-				final IStructuredSelection ss = (IStructuredSelection) projectList
-						.getSelection();
-				final Object[] selectedProjects = ss.toArray();
+			// Get selected projects
+			final IStructuredSelection ss = (IStructuredSelection) projectList
+					.getSelection();
+			final Object[] selectedProjects = ss.toArray();
 
-				// Look for summaries
-				final List<Summary> summaries = new ArrayList<Summary>();
-				runLoop: for (JSureScan r : runs) {
-					if (selectedProjects.length > 0) {
-						// Check if the run includes all of the selected
-						// projects
-						try {
-							final Projects runProjects = r.getProjects();
-							for (Object proj : selectedProjects) {
-								if (runProjects.get((String) proj) == null) {
-									continue runLoop;
-								}
+			// Look for summaries
+			final List<Summary> summaries = new ArrayList<Summary>();
+			runLoop: for (JSureScan r : runs) {
+				if (selectedProjects.length > 0) {
+					// Check if the run includes all of the selected
+					// projects
+					try {
+						final Projects runProjects = r.getProjects();
+						for (Object proj : selectedProjects) {
+							if (runProjects.get((String) proj) == null) {
+								continue runLoop;
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							continue runLoop;
 						}
-					}
-					File summary = new File(r.getDir(),
-							RemoteJSureRun.SUMMARIES_ZIP);
-					if (summary.exists()) {
-						try {
-							final ZipFile zf = new ZipFile(summary);
-							if (selectedProjects.length > 0) {
-								// Use selected projects to filter
-								// runs/summaries
-								final Properties totals = new Properties();
-								for (Object proj : selectedProjects) {
-									ZipEntry ze = zf.getEntry((String) proj);
-									if (ze == null) {
-										// No results (i.e. all zero)
-										break;
-									}
-									Properties props = new Properties();
-									props.load(zf.getInputStream(ze));
-									// Add to totals
-									for (Map.Entry<Object, Object> e : props
-											.entrySet()) {
-										final int i = Integer
-												.parseInt((String) e.getValue());
-										final int j = Integer
-												.parseInt((String) totals
-														.getProperty((String) e
-																.getKey(), "0"));
-										totals.put(e.getKey(),
-												Integer.toString(i + j));
-									}
-								}
-								Summary s = new Summary(r, totals);
-								summaries.add(s);
-							} else {
-								ZipEntry e = zf.getEntry(SeaStats.ALL_PROJECTS);
-								if (e != null) {
-									Summary s = new Summary(r,
-											zf.getInputStream(e));
-									summaries.add(s);
-								}
-							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue runLoop;
 					}
 				}
-				this.summaries = summaries.toArray(noSummaries);
-				Arrays.sort(this.summaries, summaryByDate);
-			} else {
-				this.summaries = noSummaries;
+				File summary = new File(r.getDir(),
+						RemoteJSureRun.SUMMARIES_ZIP);
+				if (summary.exists()) {
+					try {
+						final ZipFile zf = new ZipFile(summary);
+						if (selectedProjects.length > 0) {
+							// Use selected projects to filter
+							// runs/summaries
+							final Properties totals = new Properties();
+							for (Object proj : selectedProjects) {
+								ZipEntry ze = zf.getEntry((String) proj);
+								if (ze == null) {
+									// No results (i.e. all zero)
+									break;
+								}
+								Properties props = new Properties();
+								props.load(zf.getInputStream(ze));
+								// Add to totals
+								for (Map.Entry<Object, Object> e : props
+										.entrySet()) {
+									final int i = Integer.parseInt((String) e
+											.getValue());
+									final int j = Integer
+											.parseInt((String) totals.getProperty(
+													(String) e.getKey(), "0"));
+									totals.put(e.getKey(),
+											Integer.toString(i + j));
+								}
+							}
+							Summary s = new Summary(r, totals);
+							summaries.add(s);
+						} else {
+							ZipEntry e = zf.getEntry(SeaStats.ALL_PROJECTS);
+							if (e != null) {
+								Summary s = new Summary(r, zf.getInputStream(e));
+								summaries.add(s);
+							}
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
+			this.summaries = summaries.toArray(noSummaries);
+			Arrays.sort(this.summaries, summaryByDate);
 			return "";
 		}
 
@@ -493,28 +475,25 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		/**
 		 * @return true if changed
 		 */
-		public boolean build(JSureDataDirHub.Status dirStatus) {
+		public boolean build() {
 			final JSureDataDir data = JSureDataDirHub.getInstance()
 					.getJSureDataDir();
-			if (dirStatus != JSureDataDirHub.Status.UNCHANGED) {
-				// Enough changed, so find all the relevant projects
-				final Set<String> names = new HashSet<String>();
-				for (JSureScan r : data.getScansAsArray()) {
-					try {
-						for (String p : r.getProjects().getProjectNames()) {
-							if (!p.startsWith(JavacTypeEnvironment.JRE_NAME)) {
-								names.add(p);
-							}
+			// Enough changed, so find all the relevant projects
+			final Set<String> names = new HashSet<String>();
+			for (JSureScan r : data.getScansAsArray()) {
+				try {
+					for (String p : r.getProjects().getProjectNames()) {
+						if (!p.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+							names.add(p);
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				projectNames = names.toArray(projectNames);
-				Arrays.sort(projectNames);
-				return true;
 			}
-			return false;
+			projectNames = names.toArray(projectNames);
+			Arrays.sort(projectNames);
+			return true;
 		}
 
 		@Override
@@ -562,8 +541,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	class ProjectSelectionListener implements ISelectionChangedListener {
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
-			updateViewer(JSureScansHub.ScanStatus.NEITHER_CHANGED,
-					JSureDataDirHub.Status.UNCHANGED, true);
+			updateViewer(true);
 		}
 	}
 

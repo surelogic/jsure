@@ -1,8 +1,11 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -11,11 +14,12 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public class JSureProblemsView extends AbstractScanTableView<IProofDropInfo> {
 	private Action f_copy;
@@ -53,9 +57,8 @@ public class JSureProblemsView extends AbstractScanTableView<IProofDropInfo> {
 		}
 
 		@Override
-		protected String getAndSortResults(JSureScansHub.ScanStatus status,
-				List<IProofDropInfo> contents) {
-			final JSureScanInfo info = JSureScansHub.getInstance()
+		protected String getAndSortResults(List<IProofDropInfo> contents) {
+			final JSureScanInfo info = JSureDataDirHub.getInstance()
 					.getCurrentScanInfo();
 			if (info == null) {
 				return null;

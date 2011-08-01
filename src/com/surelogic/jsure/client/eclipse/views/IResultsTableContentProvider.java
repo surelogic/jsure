@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import com.surelogic.common.ui.views.ITableContentProvider;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 public interface IResultsTableContentProvider extends ITableContentProvider {
 	String[] getColumnLabels();
@@ -9,7 +8,7 @@ public interface IResultsTableContentProvider extends ITableContentProvider {
 	boolean isIntSortedColumn(int colIdx);
 
 	/**
-	 * @return A label used to update the title
+	 * @return a label used to update the title
 	 */
-	String build(JSureScansHub.ScanStatus status);
+	String build();
 }

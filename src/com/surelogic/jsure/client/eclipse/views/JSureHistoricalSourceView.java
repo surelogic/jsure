@@ -8,40 +8,52 @@ import java.util.Collections;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.*;
+import com.surelogic.javac.persistence.JSureDataDir;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+
+;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
-		implements JSureScansHub.Listener {
+		implements JSureDataDirHub.Listener {
 	private static Projects projects;
 	private static ISourceZipFileHandles zips;
 	private static boolean viewIsEnabled = true;
 
 	public JSureHistoricalSourceView() {
-		scansChanged(JSureScansHub.ScanStatus.CURRENT_CHANGED);
+		currentScanChanged();
 	}
 
 	@Override
-	public void scansChanged(JSureScansHub.ScanStatus status) {
-		if (status.currentChanged()) {
-			final JSureScanInfo info = JSureScansHub.getInstance()
-					.getCurrentScanInfo();
-			if (info == null) {
-				projects = null;
-				zips = new ISourceZipFileHandles() {
-					public Iterable<File> getSourceZips() {
-						return Collections.emptyList();
-					}
-				};
-			} else {
-				projects = info.getProjects();
-				zips = new ISourceZipFileHandles() {
-					public Iterable<File> getSourceZips() {
-						return Arrays.asList(new File(info.getDir(), "zips")
-						.listFiles());
-					}
-				};
-			}
+	public void scanContentsChanged(JSureDataDir dataDir) {
+		// Nothing to do
+
+	}
+
+	@Override
+	public void currentScanChanged(JSureScan scan) {
+		currentScanChanged();
+	}
+
+	public void currentScanChanged() {
+		final JSureScanInfo info = JSureDataDirHub.getInstance()
+				.getCurrentScanInfo();
+		if (info == null) {
+			projects = null;
+			zips = new ISourceZipFileHandles() {
+				public Iterable<File> getSourceZips() {
+					return Collections.emptyList();
+				}
+			};
+		} else {
+			projects = info.getProjects();
+			zips = new ISourceZipFileHandles() {
+				public Iterable<File> getSourceZips() {
+					return Arrays.asList(new File(info.getDir(), "zips")
+							.listFiles());
+				}
+			};
 		}
 	}
 

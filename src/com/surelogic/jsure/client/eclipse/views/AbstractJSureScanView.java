@@ -1,15 +1,19 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.logging.Level;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.*;
 
-import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.part.*;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.part.PageBook;
 
-import com.surelogic.common.i18n.*;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.javac.persistence.JSureDataDir;
+import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**
  * Handles whether there is any scan to show. diff?
@@ -17,7 +21,7 @@ import com.surelogic.jsure.core.scans.JSureScansHub;
  * @author Edwin
  */
 public abstract class AbstractJSureScanView extends AbstractJSureView implements
-		JSureScansHub.Listener {
+		JSureDataDirHub.Listener {
 	protected static final String NO_RESULTS = I18N
 			.msg("jsure.eclipse.view.no.scan.msg");
 	private static final boolean updateTitles = false;
@@ -32,12 +36,12 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	private String f_viewTitle;
 
 	protected AbstractJSureScanView() {
-		JSureScansHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureScansHub.getInstance().removeListener(this);
+		JSureDataDirHub.getInstance().removeListener(this);
 
 		super.dispose();
 	}
@@ -50,7 +54,7 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 		f_viewTitle = getPartName();
 
 		super.createPartControl(f_viewerbook);
-		updateViewState(JSureScansHub.ScanStatus.BOTH_CHANGED);
+		updateViewState();
 	}
 
 	/**
@@ -72,38 +76,41 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	}
 
 	@Override
-	public void scansChanged(JSureScansHub.ScanStatus status) {
-		updateViewState(status);
+	public void scanContentsChanged(JSureDataDir dataDir) {
+		updateViewState();
+	}
+
+	@Override
+	public void currentScanChanged(JSureScan scan) {
+		updateViewState();
 	}
 
 	/**
 	 * @return The label to be shown in the title
 	 */
-	protected abstract String updateViewer(JSureScansHub.ScanStatus status);
+	protected abstract String updateViewer();
 
 	/**
 	 * Update the internal state, presumably after a new scan
 	 */
-	private void updateViewState(JSureScansHub.ScanStatus status) {
-		if (status.changed()) {
-			final String label = updateViewer(status);
-			f_viewerControl.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					if (label != null) {
-						if (getViewer() != null) {
-							getViewer().setInput(getViewSite());
-						}
-						setViewerVisibility(true);
-						updateViewTitle(label);
-					} else {
-						setViewerVisibility(false);
-						updateViewTitle(null);
+	private void updateViewState() {
+		final String label = updateViewer();
+		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				if (label != null) {
+					if (getViewer() != null) {
+						getViewer().setInput(getViewSite());
 					}
-					// TODO is this right?
-					f_viewerControl.redraw();
+					setViewerVisibility(true);
+					updateViewTitle(label);
+				} else {
+					setViewerVisibility(false);
+					updateViewTitle(null);
 				}
-			});
-		}
+				// TODO is this right?
+				f_viewerControl.redraw();
+			}
+		});
 	}
 
 	private final void setViewerVisibility(boolean showResults) {

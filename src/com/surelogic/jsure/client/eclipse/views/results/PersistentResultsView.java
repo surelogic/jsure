@@ -7,18 +7,20 @@ import java.util.Collections;
 
 import org.eclipse.ui.IMemento;
 
+import com.surelogic.javac.persistence.JSureDataDir;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class PersistentResultsView extends ResultsView implements
-		JSureScansHub.Listener {
+		JSureDataDirHub.Listener {
 	private static final String VIEW_STATE = "view.state";
 
 	final File f_viewState;
@@ -41,7 +43,12 @@ public class PersistentResultsView extends ResultsView implements
 	}
 
 	@Override
-	public void scansChanged(JSureScansHub.ScanStatus status) {
+	public void scanContentsChanged(JSureDataDir dataDir) {
+		seaChanged();
+	}
+
+	@Override
+	public void currentScanChanged(JSureScan scan) {
 		seaChanged();
 	}
 
@@ -58,7 +65,7 @@ public class PersistentResultsView extends ResultsView implements
 
 	@Override
 	protected void finishCreatePartControl() {
-		final JSureScanInfo scan = JSureScansHub.getInstance()
+		final JSureScanInfo scan = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (scan != null) {
 			// TODO restore viewer state?
@@ -125,7 +132,7 @@ public class PersistentResultsView extends ResultsView implements
 
 			@Override
 			protected boolean dropsExist(Class<? extends Drop> type) {
-				final JSureScanInfo scan = JSureScansHub.getInstance()
+				final JSureScanInfo scan = JSureDataDirHub.getInstance()
 						.getCurrentScanInfo();
 				if (scan != null) {
 					return scan.dropsExist(type);
@@ -136,7 +143,7 @@ public class PersistentResultsView extends ResultsView implements
 			@Override
 			protected <R extends IDropInfo> Collection<R> getDropsOfType(
 					Class<? extends Drop> type, Class<R> rType) {
-				final JSureScanInfo scan = JSureScansHub.getInstance()
+				final JSureScanInfo scan = JSureDataDirHub.getInstance()
 						.getCurrentScanInfo();
 				if (scan != null) {
 					return scan.getDropsOfType(type);

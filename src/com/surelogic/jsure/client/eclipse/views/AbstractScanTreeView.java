@@ -6,26 +6,26 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.surelogic.jsure.core.scans.JSureScansHub;
-
 /**
  * Uses a TreeViewer
  * 
  * @author Edwin
  */
-public abstract class AbstractScanTreeView<T> extends AbstractScanStructuredView<T> {
+public abstract class AbstractScanTreeView<T> extends
+		AbstractScanStructuredView<T> {
 	final IJSureTreeContentProvider f_content;
-	
-	protected AbstractScanTreeView(int style, Class<T> c, IJSureTreeContentProvider content) {
+
+	protected AbstractScanTreeView(int style, Class<T> c,
+			IJSureTreeContentProvider content) {
 		super(style, c);
 		f_content = content;
 	}
-	
+
 	@Override
-	protected String updateViewer(JSureScansHub.ScanStatus status) {
-		return f_content.build(status);
+	protected String updateViewer() {
+		return f_content.build();
 	}
-	
+
 	@Override
 	protected StructuredViewer newViewer(Composite parent, int extraStyle) {
 		final TreeViewer treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL
@@ -37,15 +37,16 @@ public abstract class AbstractScanTreeView<T> extends AbstractScanStructuredView
 	}
 
 	/********************* Methods to handle selections ******************************/
-	
+
 	protected String getSelectedText() {
-		IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
+		IStructuredSelection selection = (IStructuredSelection) getViewer()
+				.getSelection();
 		StringBuilder sb = new StringBuilder();
 		for (Object elt : selection.toList()) {
 			if (sb.length() > 0) {
 				sb.append('\n');
 			}
-			sb.append(f_content.getText(elt));			
+			sb.append(f_content.getText(elt));
 		}
 		return sb.toString();
 	}

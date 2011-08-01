@@ -1,15 +1,18 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
 public final class ProblemsViewContentProvider extends
 		AbstractResultsTableContentProvider<IDropInfo> {
@@ -17,8 +20,8 @@ public final class ProblemsViewContentProvider extends
 		super("Description");
 	}
 
-	protected String getAndSortResults(JSureScansHub.ScanStatus s, List<IDropInfo> contents) {
-		final JSureScanInfo info = JSureScansHub.getInstance()
+	protected String getAndSortResults(List<IDropInfo> contents) {
+		final JSureScanInfo info = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (info == null) {
 			return null;

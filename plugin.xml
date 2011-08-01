@@ -34,22 +34,17 @@
 
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
-
-        <view name="JSure Scans"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScansView"
-			id="com.surelogic.jsure.client.eclipse.views.scans.ScansView">
-		</view>
 		
-		<view name="Verification Scan Management"
+		<view name="Verification Scans"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
 		</view>
 		
-		<view name="JSure Scan Summaries"
+		<!--<view name="JSure Scan Summaries"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
-		</view>
+		</view>-->
 
         <view name="JSure Historical Source"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView"
