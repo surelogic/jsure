@@ -9,7 +9,6 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.ide.IDE;
 

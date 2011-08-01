@@ -85,7 +85,6 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -1895,7 +1894,6 @@ public class JavacDriver implements IResourceChangeListener {
 					new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
 				}
 				JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
-				JSureScansHub.getInstance().gotNewScan(projects.getRunDir());				
 				/*
 				 * final File rootLoc =
 				 * EclipseUtility.getProject(config.getProject

@@ -9,7 +9,6 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
 import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.driver.DriverConstants;
-import com.surelogic.jsure.core.scans.ScanUpdateMode;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -89,9 +88,6 @@ public final class JSurePreferencesUtility {
 								+ a.getUniqueIdentifier(), a.isProduction());
 			}
 
-			EclipseUtility.setDefaultStringPreference(SCAN_UPDATE_MODE,
-					ScanUpdateMode.DIFF_WITH_PREV.toString());
-
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.TIMEOUT_WARNING_SEC, 30);
 			EclipseUtility.setDefaultBooleanPreference(
@@ -134,9 +130,7 @@ public final class JSurePreferencesUtility {
 	public static final String SAVE_DIRTY_EDITORS_BEFORE_VERIFY = PREFIX
 			+ "save.before.verify";
 
-	public static final String BASELINE_SCAN = PREFIX + "baseline.scan";
 	public static final String CURRENT_SCAN = PREFIX + "current.scan";
-	public static final String SCAN_UPDATE_MODE = PREFIX + "scan.update.mode";
 
 	/**
 	 * Gets the JSure data directory. This method ensures that the directory
