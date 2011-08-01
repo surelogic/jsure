@@ -43,6 +43,10 @@ public class JSureDataDir {
 		return rv;
 	}
 
+	public synchronized boolean contains(JSureScan scan) {
+		return f_scans.contains(scan);
+	}
+
 	public synchronized List<JSureScan> getScans() {
 		return new ArrayList<JSureScan>(f_scans);
 	}

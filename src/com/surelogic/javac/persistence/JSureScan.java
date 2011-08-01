@@ -88,6 +88,10 @@ public class JSureScan implements Comparable<JSureScan> {
 		// check the various files
 		getProjects();
 	}
+	
+	public Date getTimeOfScan() {
+		return f_timeOfScan;
+	}
 
 	public File getDir() {
 		return f_scanDir;
