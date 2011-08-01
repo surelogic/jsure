@@ -13,8 +13,8 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
@@ -33,8 +33,8 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private Diff diff;
 	
 	@Override
-	public String build(JSureScansHub.ScanStatus s) {
-		final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+	public String build() {
+		final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
 		if (scan == null) {
 			diff = null;
 			return null;
