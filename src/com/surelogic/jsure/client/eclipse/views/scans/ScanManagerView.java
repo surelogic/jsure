@@ -26,7 +26,6 @@ public final class ScanManagerView extends ViewPart implements
 
 	@Override
 	public void createPartControl(Composite parent) {
-
 		final CheckboxTableViewer table = CheckboxTableViewer.newCheckList(
 				parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION
 						| SWT.MULTI);

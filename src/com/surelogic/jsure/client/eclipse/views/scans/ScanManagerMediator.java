@@ -272,7 +272,7 @@ public final class ScanManagerMediator implements ILifecycle {
 	}
 
 	void setFocus() {
-		// TODO
+		f_swtTable.setFocus();
 	}
 
 	void refreshScanContents() {
@@ -319,6 +319,8 @@ public final class ScanManagerMediator implements ILifecycle {
 		public Image getColumnImage(Object element, int columnIndex) {
 			if (columnIndex == 0)
 				return SLImages.getImage(CommonImages.IMG_EMPTY);
+			if (columnIndex == 2)
+				return SLImages.getImage(CommonImages.IMG_DRUM);
 			if (columnIndex == 3)
 				return SLImages.getImage(CommonImages.IMG_PROJECT);
 			return null;
