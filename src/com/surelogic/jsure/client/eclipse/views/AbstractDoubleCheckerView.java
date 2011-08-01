@@ -60,6 +60,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
@@ -91,8 +92,6 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected static final String NO_RESULTS = "No results...please use JSure to verify one or more projects";
-
 	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
 	protected TableViewer tableViewer;
@@ -118,10 +117,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	@Override
-	public final void createPartControl(Composite parent) {
+	public void createPartControl(Composite parent) {
 		f_viewerbook = new PageBook(parent, SWT.NONE);
 		f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
-		f_noResultsToShowLabel.setText(NO_RESULTS);
+		f_noResultsToShowLabel.setText(I18N
+				.msg("jsure.eclipse.view.no.scan.msg"));
 		if (f_useTable) {
 			viewer = tableViewer = new TableViewer(f_viewerbook, SWT.H_SCROLL
 					| SWT.V_SCROLL | SWT.FULL_SELECTION | f_extraStyle);
@@ -149,6 +149,16 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		// subscribe to listen for analysis notifications
 		NotificationHub.addAnalysisListener(this);
 		Sea.getDefault().addSeaObserver(this);
+	}
+
+	@Override
+	public void dispose() {
+		try {
+			NotificationHub.unsubscribe(this);
+			Sea.getDefault().removeSeaObserver(this);
+		} finally {
+			super.dispose();
+		}
 	}
 
 	protected void finishCreatePartControl() {

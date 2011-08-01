@@ -71,13 +71,12 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 
 	@Override
 	public void setFocus() {
-		// TODO is this right with the pagebook?
-		f_viewerControl.setFocus();
+		f_viewerbook.setFocus();
 	}
 
 	@Override
 	public void scanContentsChanged(JSureDataDir dataDir) {
-		updateViewState();
+		// Ignore
 	}
 
 	@Override

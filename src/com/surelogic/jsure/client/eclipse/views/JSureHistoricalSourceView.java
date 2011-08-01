@@ -13,8 +13,6 @@ import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
-;
-
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 		implements JSureDataDirHub.Listener {
 	private static Projects projects;
@@ -27,8 +25,7 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 
 	@Override
 	public void scanContentsChanged(JSureDataDir dataDir) {
-		// Nothing to do
-
+		// Ignore
 	}
 
 	@Override

@@ -5,8 +5,14 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -43,13 +49,37 @@ public class PersistentResultsView extends ResultsView implements
 	}
 
 	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+
+		JSureDataDirHub.getInstance().addListener(this);
+	}
+
+	@Override
+	public void dispose() {
+		try {
+			JSureDataDirHub.getInstance().removeListener(this);
+		} finally {
+			super.dispose();
+		}
+	}
+
+	@Override
 	public void scanContentsChanged(JSureDataDir dataDir) {
-		seaChanged();
+		// Ignore
 	}
 
 	@Override
 	public void currentScanChanged(JSureScan scan) {
-		seaChanged();
+		final UIJob job = new SLUIJob() {
+
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				seaChanged();
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
 
 	@Override
@@ -65,9 +95,9 @@ public class PersistentResultsView extends ResultsView implements
 
 	@Override
 	protected void finishCreatePartControl() {
-		final JSureScanInfo scan = JSureDataDirHub.getInstance()
+		final JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
-		if (scan != null) {
+		if (scanInfo != null) {
 			// TODO restore viewer state?
 			final long start = System.currentTimeMillis();
 			f_provider.buildModelOfDropSea_internal();
@@ -89,6 +119,13 @@ public class PersistentResultsView extends ResultsView implements
 					}
 				});
 			}
+		} else {
+			// Show no results
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					setViewerVisibility(false);
+				}
+			});
 		}
 	}
 

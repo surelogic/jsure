@@ -35,10 +35,16 @@
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
 		
-		<view name="JSure Scans"
+		<view name="JSure Scans" allowMultiple="false"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
-			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/drum.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
+		</view>
+
+		<view name="Verification Status" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
+			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 		</view>
 		
 		<!--<view name="JSure Scan Summaries"
@@ -46,22 +52,17 @@
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
 		</view>-->
 
-        <view name="JSure Historical Source"
+        <view name="JSure Historical Source" allowMultiple="false"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/java_comp_unit.gif"
 			id="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView">
 		</view>
-
-		<view name="Verification Status"
-			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
-			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
-		</view>
 		
-		<view category="edu.cmu.cs.fluid.dcf"
+		<view name="Findings Quick Search" allowMultiple="false"
+		    category="edu.cmu.cs.fluid.dcf"
 			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
 			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
-			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif"
-			name="Findings Quick Search">
+			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif">
 		</view>
 
         <!--
@@ -89,19 +90,19 @@
 		</view>
         -->
         
-		<view name="JSure Problems"
+		<view name="JSure Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/red_x.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView">
 		</view>
 
-		<view name="Modeling Problems"
+		<view name="Modeling Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
 		</view>
 
-		<view name="Proposed Promises"
+		<view name="Proposed Promises" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
@@ -124,11 +125,9 @@
 			targetID="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
 			</perspectiveShortcut>
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
+			</viewShortcut>
 			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
-			</viewShortcut>
-			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
-			</viewShortcut>
-			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
 			</viewShortcut>
 		</perspectiveExtension>
 	</extension>
