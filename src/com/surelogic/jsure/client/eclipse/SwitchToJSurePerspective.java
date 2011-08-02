@@ -3,10 +3,9 @@ package com.surelogic.jsure.client.eclipse;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.ILifecycle;
-import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.jobs.SwitchToJSurePerspectiveJob;
-import com.surelogic.jsure.core.scans.*;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**
  * This class handles notifying the user when they perhaps should switch to the
@@ -20,7 +19,7 @@ import com.surelogic.jsure.core.scans.*;
  * 
  */
 public final class SwitchToJSurePerspective implements ILifecycle,
-		JSureDataDirHub.Listener {
+		JSureDataDirHub.NewScanListener {
 
 	private static final SwitchToJSurePerspective INSTANCE = new SwitchToJSurePerspective();
 
@@ -34,26 +33,22 @@ public final class SwitchToJSurePerspective implements ILifecycle,
 
 	@Override
 	public void init() {
-		JSureDataDirHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addNewScanListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureDataDirHub.getInstance().removeListener(this);
+		JSureDataDirHub.getInstance().removeNewScanListener(this);
 	}
 
 	@Override
-	public void scanContentsChanged(JSureDataDir dataDir) {
-		// Ignore
-	}
-
-	@Override
-	public void currentScanChanged(JSureScan scan) {
+	public void newScan(JSureScan scan) {
 		/*
 		 * A reasonable indication that we should be in the JSure perspective,
 		 * that is, if we are not already.
 		 */
 		final UIJob pjob = new SwitchToJSurePerspectiveJob();
 		pjob.schedule();
+
 	}
 }

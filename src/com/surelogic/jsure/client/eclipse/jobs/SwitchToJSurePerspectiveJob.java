@@ -5,9 +5,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 /**
  * Job to prompt the user to switch to the JSure perspective. It handles all
@@ -17,6 +20,17 @@ public final class SwitchToJSurePerspectiveJob extends SLUIJob {
 
 	@Override
 	public IStatus runInUIThread(IProgressMonitor monitor) {
+		/*
+		 * This is run when a scan completes so if we need to show a balloon
+		 * notification.
+		 */
+		if (EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
+			BalloonUtility.showMessage(
+					I18N.msg("jsure.balloon.scandone.title"),
+					I18N.msg("jsure.balloon.scandone.msg"));
+		}
+
 		/*
 		 * Ensure that we are not already in the JSure perspective.
 		 */

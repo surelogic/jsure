@@ -11,7 +11,6 @@ import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -21,7 +20,7 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
  * @author Edwin
  */
 public abstract class AbstractJSureScanView extends AbstractJSureView implements
-		JSureDataDirHub.Listener {
+		JSureDataDirHub.CurrentScanChangeListener {
 	protected static final String NO_RESULTS = I18N
 			.msg("jsure.eclipse.view.no.scan.msg");
 	private static final boolean updateTitles = false;
@@ -36,12 +35,12 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	private String f_viewTitle;
 
 	protected AbstractJSureScanView() {
-		JSureDataDirHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureDataDirHub.getInstance().removeListener(this);
+		JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 
 		super.dispose();
 	}
@@ -72,11 +71,6 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	@Override
 	public void setFocus() {
 		f_viewerbook.setFocus();
-	}
-
-	@Override
-	public void scanContentsChanged(JSureDataDir dataDir) {
-		// Ignore
 	}
 
 	@Override

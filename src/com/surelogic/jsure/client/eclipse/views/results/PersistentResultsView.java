@@ -13,9 +13,9 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -23,10 +23,9 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class PersistentResultsView extends ResultsView implements
-		JSureDataDirHub.Listener {
+		JSureDataDirHub.CurrentScanChangeListener {
 	private static final String VIEW_STATE = "view.state";
 
 	final File f_viewState;
@@ -52,21 +51,16 @@ public class PersistentResultsView extends ResultsView implements
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 
-		JSureDataDirHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
 	public void dispose() {
 		try {
-			JSureDataDirHub.getInstance().removeListener(this);
+			JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 		} finally {
 			super.dispose();
 		}
-	}
-
-	@Override
-	public void scanContentsChanged(JSureDataDir dataDir) {
-		// Ignore
 	}
 
 	@Override

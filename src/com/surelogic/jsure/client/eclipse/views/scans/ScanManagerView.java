@@ -20,7 +20,8 @@ import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class ScanManagerView extends ViewPart implements
-		JSureDataDirHub.Listener {
+		JSureDataDirHub.ContentsChangeListener,
+		JSureDataDirHub.CurrentScanChangeListener {
 
 	private ScanManagerMediator f_mediator = null;
 
@@ -77,18 +78,22 @@ public final class ScanManagerView extends ViewPart implements
 		table.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuMgr, table);
 
-		JSureDataDirHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addContentsChangeListener(this);
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureDataDirHub.getInstance().removeListener(this);
+		try {
+			JSureDataDirHub.getInstance().removeContentsChangeListener(this);
+			JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 
-		if (f_mediator != null)
-			f_mediator.dispose();
-		f_mediator = null;
-
-		super.dispose();
+			if (f_mediator != null)
+				f_mediator.dispose();
+			f_mediator = null;
+		} finally {
+			super.dispose();
+		}
 	}
 
 	@Override

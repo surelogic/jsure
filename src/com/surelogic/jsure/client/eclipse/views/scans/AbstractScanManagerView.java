@@ -12,16 +12,21 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
  * information.
  */
 public abstract class AbstractScanManagerView extends AbstractJSureView
-		implements JSureDataDirHub.Listener {
+		implements JSureDataDirHub.ContentsChangeListener,
+		JSureDataDirHub.CurrentScanChangeListener {
 	protected AbstractScanManagerView() {
-		JSureDataDirHub.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addContentsChangeListener(this);
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureDataDirHub.getInstance().removeListener(this);
-
-		super.dispose();
+		try {
+			JSureDataDirHub.getInstance().removeContentsChangeListener(this);
+			JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+		} finally {
+			super.dispose();
+		}
 	}
 
 	@Override

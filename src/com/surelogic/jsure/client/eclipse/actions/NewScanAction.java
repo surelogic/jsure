@@ -47,8 +47,11 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 			public SLStatus run(SLProgressMonitor monitor) {
 				JavacDriver.waitForBuild();
 
-				JavacBuild.analyze(selectedProjects,
+				final boolean okay = JavacBuild.analyze(selectedProjects,
 						BalloonUtility.errorListener);
+				if (okay) {
+					showStartBalloon();
+				}
 				return SLStatus.OK_STATUS;
 			}
 		};
@@ -92,5 +95,14 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 				selectedProjects,
 				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
 				JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_SCAN);
+	}
+
+	private void showStartBalloon() {
+		if (EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
+			BalloonUtility.showMessage(
+					I18N.msg("jsure.balloon.scanstart.title"),
+					I18N.msg("jsure.balloon.scanstart.msg"));
+		}
 	}
 }

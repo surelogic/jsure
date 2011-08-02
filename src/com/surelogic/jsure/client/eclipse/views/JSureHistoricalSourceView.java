@@ -1,31 +1,28 @@
 package com.surelogic.jsure.client.eclipse.views;
 
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
-import com.surelogic.javac.*;
-import com.surelogic.javac.persistence.JSureDataDir;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Projects;
 import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
-		implements JSureDataDirHub.Listener {
+		implements JSureDataDirHub.CurrentScanChangeListener {
 	private static Projects projects;
 	private static ISourceZipFileHandles zips;
 	private static boolean viewIsEnabled = true;
 
 	public JSureHistoricalSourceView() {
 		currentScanChanged();
-	}
-
-	@Override
-	public void scanContentsChanged(JSureDataDir dataDir) {
-		// Ignore
 	}
 
 	@Override
