@@ -69,11 +69,15 @@ public class Activator extends AbstractUIPlugin implements
 		EclipseUtility.getProductReleaseDateJob(SLLicenseProduct.JSURE, this)
 				.schedule();
 		monitor.worked(1);
+
+		SwitchToJSurePerspective.getInstance().init();
+		monitor.worked(1);
 	}
 
 	@Override
 	public void stop(final BundleContext context) throws Exception {
 		try {
+			SwitchToJSurePerspective.getInstance().dispose();
 			JavacDriver.getInstance().stopScripting();
 		} finally {
 			plugin = null;
