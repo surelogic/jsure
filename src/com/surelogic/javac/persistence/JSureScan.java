@@ -10,6 +10,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
 
@@ -30,6 +31,26 @@ public class JSureScan implements Comparable<JSureScan> {
 		return null;
 	}
 
+	private static String[] requiredFiles = {
+		RemoteJSureRun.SUMMARIES_ZIP,
+		RemoteJSureRun.RESULTS_XML,
+		RemoteJSureRun.LOG_TXT,
+		PersistenceConstants.PROJECTS_XML
+	};
+	
+	public static boolean isValidScan(final File dir) {
+		if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
+			return false;
+		}
+		for(String required : requiredFiles) {
+			final File r = new File(dir, required);
+			if (!r.isFile()) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Checks if the passed directory name appears to follow the conventions for
 	 * scan directories. If so, the name should have at least three segments:

@@ -24,7 +24,7 @@ import com.surelogic.javac.Projects;
 public class JSureDataDirScanner {
 
 	public static JSureScan findRunDirectory(File f) {
-		if (JSureScan.doesDirNameFollowScanNamingConventions(f.getName())) {
+		if (JSureScan.isValidScan(f)) {
 			try {
 				return new JSureScan(f);
 			} catch (Exception e) {
