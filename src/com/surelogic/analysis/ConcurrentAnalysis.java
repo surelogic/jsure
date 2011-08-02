@@ -6,7 +6,7 @@ import java.util.List;
 import jsr166y.forkjoin.*;
 import jsr166y.forkjoin.Ops.Procedure;
 
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import edu.cmu.cs.fluid.ide.*;
 

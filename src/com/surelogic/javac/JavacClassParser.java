@@ -13,7 +13,7 @@ import javax.tools.JavaFileObject.Kind;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import jsr166y.forkjoin.*;
 import jsr166y.forkjoin.Ops.Procedure;
