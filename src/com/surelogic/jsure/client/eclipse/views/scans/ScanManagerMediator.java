@@ -42,7 +42,7 @@ import com.surelogic.jsure.client.eclipse.dialogs.DeleteScanDialog;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class ScanManagerMediator implements ILifecycle {
-
+	
 	private final CheckboxTableViewer f_table;
 	private final Table f_swtTable;
 	private final ICheckStateListener f_checkStateListener = new ICheckStateListener() {
