@@ -32,10 +32,9 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 public final class JSureDataDirHub {
 
 	/**
-	 * Listens for changes to the set of scans or runs within a JSure data
-	 * directory.
+	 * Listens for changes to the set of scans within a JSure data directory.
 	 */
-	public static interface Listener {
+	public static interface ContentsChangeListener {
 		/**
 		 * Notification that the scan contents of the JSure data directory has
 		 * changed. This could be because a new scan completed or old scans were
@@ -45,7 +44,24 @@ public final class JSureDataDirHub {
 		 *            the JSure data directory.
 		 */
 		void scanContentsChanged(JSureDataDir dataDir);
+	}
 
+	private final List<ContentsChangeListener> f_contentsListeners = new CopyOnWriteArrayList<ContentsChangeListener>();
+
+	public void addContentsChangeListener(ContentsChangeListener l) {
+		f_contentsListeners.add(l);
+	}
+
+	public void removeContentsChangeListener(ContentsChangeListener l) {
+		f_contentsListeners.remove(l);
+	}
+
+	/**
+	 * Listens for changes to the current scan of focus. The current scan of
+	 * focus is selected in the user interface, but could also be changed
+	 * because a scan is added or deleted.
+	 */
+	public static interface CurrentScanChangeListener {
 		/**
 		 * Notification that the current scan of focus has changed.
 		 * <p>
@@ -60,20 +76,49 @@ public final class JSureDataDirHub {
 		void currentScanChanged(JSureScan scan);
 	}
 
+	private final List<CurrentScanChangeListener> f_currentScanListeners = new CopyOnWriteArrayList<CurrentScanChangeListener>();
+
+	public void addCurrentScanChangeListener(CurrentScanChangeListener l) {
+		f_currentScanListeners.add(l);
+	}
+
+	public void removeCurrentScanChangeListener(CurrentScanChangeListener l) {
+		f_currentScanListeners.remove(l);
+	}
+
+	/**
+	 * Listens for the addition of new scans to the JSure data directory. This
+	 * call only works for scans started within the Eclipse IDE (no
+	 * notifications for scans added by Ant).
+	 */
+	public static interface NewScanListener {
+		/**
+		 * Notification that a new scan exists in the JSure data directory.
+		 * 
+		 * @param scan
+		 *            the new scan.
+		 */
+		void newScan(JSureScan scan);
+	}
+
+	private final List<NewScanListener> f_newScanListeners = new CopyOnWriteArrayList<NewScanListener>();
+
+	public void addNewScanListener(NewScanListener l) {
+		f_newScanListeners.add(l);
+	}
+
+	public void removeNewScanListener(NewScanListener l) {
+		f_newScanListeners.remove(l);
+	}
+
+	/*
+	 * Singleton
+	 */
+
 	private static final JSureDataDirHub INSTANCE = new JSureDataDirHub();
 
 	public static JSureDataDirHub getInstance() {
 		return INSTANCE;
-	}
-
-	private final List<Listener> f_listeners = new CopyOnWriteArrayList<Listener>();
-
-	public void addListener(Listener l) {
-		f_listeners.add(l);
-	}
-
-	public void removeListener(Listener l) {
-		f_listeners.remove(l);
 	}
 
 	/**
@@ -137,6 +182,7 @@ public final class JSureDataDirHub {
 	private void scanDirectoryChangedHelper(final File optionalNewScanDir) {
 		JSureDataDir dataDir = null;
 		boolean currentScanChanged = false;
+		JSureScan newScan = null;
 		synchronized (f_lock) {
 			if (f_dataDir == null) {
 				throw new IllegalStateException(I18N.err(227));
@@ -160,7 +206,7 @@ public final class JSureDataDirHub {
 				}
 			}
 			if (optionalNewScanDir != null) {
-				final JSureScan newScan = dataDir.findScan(optionalNewScanDir);
+				newScan = dataDir.findScan(optionalNewScanDir);
 				if (newScan != null) {
 					/*
 					 * If we found the passed new scan so we set it as the
@@ -173,10 +219,15 @@ public final class JSureDataDirHub {
 			}
 		}
 		// notify registered listeners
-		for (Listener l : f_listeners) {
+		for (ContentsChangeListener l : f_contentsListeners)
 			l.scanContentsChanged(dataDir);
-			if (currentScanChanged)
-				l.currentScanChanged(null);
+		if (currentScanChanged) {
+			for (CurrentScanChangeListener l : f_currentScanListeners)
+				l.currentScanChanged(newScan);
+			if (newScan != null) {
+				for (NewScanListener l : f_newScanListeners)
+					l.newScan(newScan);
+			}
 		}
 	}
 
@@ -258,7 +309,7 @@ public final class JSureDataDirHub {
 		synchronized (f_lock) {
 			setCurrentScanHelper(value);
 		}
-		for (Listener l : f_listeners) {
+		for (CurrentScanChangeListener l : f_currentScanListeners) {
 			l.currentScanChanged(value);
 		}
 	}

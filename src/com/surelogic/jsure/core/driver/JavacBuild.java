@@ -36,14 +36,16 @@ public class JavacBuild {
 			DriverConstants.BUILD_KIND,
 			Integer.toString(IncrementalProjectBuilder.FULL_BUILD));
 
-	public static boolean analyze(List<IJavaProject> selectedProjects, IErrorListener l) {
+	public static boolean analyze(List<IJavaProject> selectedProjects,
+			IErrorListener l) {
 		if (selectedProjects == null || selectedProjects.isEmpty())
 			return false;
 		try {
 			JavacDriver.getInstance().clearProjectInfo();
 			for (IJavaProject p : selectedProjects) {
-				boolean noErrors = XUtil.testing ||
-				    JDTUtility.noCompilationErrors(p, new NullProgressMonitor());
+				boolean noErrors = XUtil.testing
+						|| JDTUtility.noCompilationErrors(p,
+								new NullProgressMonitor());
 				if (noErrors) {
 					// Collect resources and CUs for build
 					JavaProjectResources jpr = JDTUtility
@@ -55,10 +57,11 @@ public class JavacBuild {
 									pairUpResources(jpr.resources,
 											IResourceDelta.ADDED), jpr.cus);
 				} else {
-					l.reportError("Compile Errors in " + p.getElementName(),
-									"JSure is unable to analyze "
-											+ p.getElementName()
-											+ " due to some compilation errors.  Please fix (or do a clean build).");
+					l.reportError(
+							"Compile Errors in " + p.getElementName(),
+							"JSure is unable to analyze "
+									+ p.getElementName()
+									+ " due to some compilation errors.  Please fix (or do a clean build).");
 					return false;
 				}
 			}
