@@ -5,10 +5,12 @@
         <method name="iterator">
             <!-- Not quite right -->
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
         <method name="listIterator">
             <!-- Not quite right -->
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>

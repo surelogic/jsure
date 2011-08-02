@@ -50,10 +50,12 @@
 
         <method name="containsKey" params="java.lang.Object">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
         </method>
         
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
         </method>
 
         <class name="EntrySet">
@@ -68,6 +70,7 @@
         <class name="KeySet">
             <method name="isEmpty">
                 <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
             
             <method name="iterator">
@@ -79,12 +82,14 @@
 
             <method name="clear">
                 <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
             </method>            
         </class>
 
         <class name="Values">
             <method name="iterator">
                 <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
            </method>
         </class>        
         
@@ -115,27 +120,33 @@
         <class name="NavigableSubMap">
         	<method name="containsKey" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
-            </method>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+          </method>
 
         	<method name="get" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
-            </method>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+          </method>
             
         	<method name="keySet">
                 <Borrowed>this</Borrowed>
-            </method>    
+                <RegionEffects>reads Instance</RegionEffects>
+          </method>    
 
         	<method name="remove" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
-            </method>    
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+          </method>    
 
         	<method name="size">
                 <Borrowed>this</Borrowed>
-            </method>       
+                <RegionEffects>reads Instance</RegionEffects>
+          </method>       
         
         	<class name="EntrySetView">
             	<method name="isEmpty">
                 	<Borrowed>this</Borrowed>
+                  <RegionEffects>reads this:Instance</RegionEffects>
            		</method>   
         	</class>
         </class>        
@@ -144,6 +155,7 @@
         	<class name="AscendingEntrySetView">
             	<method name="iterator">
                 	<Borrowed>this</Borrowed>
+                  <RegionEffects>reads this:Instance</RegionEffects>
            		</method>   
         	</class>
         </class>      
@@ -152,6 +164,7 @@
         	<class name="DescendingEntrySetView">
             	<method name="iterator">
                 	<Borrowed>this</Borrowed>
+                  <RegionEffects>reads this:Instance</RegionEffects>
            		</method>        	
         	</class>
         </class>              

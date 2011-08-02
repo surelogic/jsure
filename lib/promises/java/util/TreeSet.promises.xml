@@ -35,6 +35,7 @@
 
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>

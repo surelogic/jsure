@@ -4,6 +4,12 @@
     <class name="HashMap">
         <constructor>
             <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <constructor params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
         </constructor>
 
         <method name="clear">
