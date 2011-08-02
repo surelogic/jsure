@@ -5,12 +5,14 @@ import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.internal.image.GIFFileFormat;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import com.surelogic.common.core.EclipseUtility;
@@ -29,8 +31,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	static private final String TIMEOUT_LABEL = "jsure.eclipse.preference.page.timeout";
 
 	private BooleanFieldEditor f_balloonFlag;
-	private BooleanFieldEditor f_autoOpenProposedPromiseView;
-	private BooleanFieldEditor f_autoOpenModelingProblemsView;
 	private BooleanFieldEditor f_selectProjectsToScan;
 	private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
 	private BooleanFieldEditor f_allowJavadocAnnos;
@@ -58,26 +58,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		final Group diGroup = createGroup(panel, "preference.page.group.app");
 
 		f_balloonFlag = new BooleanFieldEditor(
-				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS, I18N
-						.msg("jsure.eclipse.preference.page.balloonFlag"),
-				diGroup);
+				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS,
+				I18N.msg("jsure.eclipse.preference.page.balloonFlag"), diGroup);
 		setupEditor(diGroup, f_balloonFlag);
 
 		setupForPerspectiveSwitch(diGroup);
-
-		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
-				JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW,
-				I18N
-						.msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
-				diGroup);
-		setupEditor(diGroup, f_autoOpenProposedPromiseView);
-
-		f_autoOpenModelingProblemsView = new BooleanFieldEditor(
-				JSurePreferencesUtility.AUTO_OPEN_MODELING_PROBLEMS_VIEW,
-				I18N
-						.msg("jsure.eclipse.preference.page.autoOpenModelingProblemsView"),
-				diGroup);
-		setupEditor(diGroup, f_autoOpenModelingProblemsView);
 
 		f_selectProjectsToScan = new BooleanFieldEditor(
 				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
@@ -88,7 +73,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
 				I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"),
 				diGroup);
-		
+
 		final Group annoGroup = createGroup(panel,
 				"preference.page.group.annos");
 		f_allowJavadocAnnos = new BooleanFieldEditor(
@@ -99,6 +84,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 		final Group analysisSettingsGroup = createGroup(panel,
 				"preference.page.group.analysis");
+		final Label description = new Label(analysisSettingsGroup, SWT.NONE);
+		description.setText(I18N
+				.msg("jsure.eclipse.preference.page.analysis.desc"));
+		description.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
+				true, 2, 1));
 		setupThreadCount(analysisSettingsGroup);
 		setupMemorySize(analysisSettingsGroup);
 		setupTimeoutWarning(analysisSettingsGroup);
@@ -121,8 +111,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
 		f_regionModelCommonString = new BooleanFieldEditor(
 				JSurePreferencesUtility.REGION_MODEL_NAME_COMMON_STRING,
-				I18N
-						.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
+				I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
 				modelNamingGroup);
 		setupEditor(modelNamingGroup, f_regionModelCommonString);
 		f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
@@ -133,8 +122,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		setupEditor(modelNamingGroup, f_regionModelSuffix);
 		f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
 		f_lockModelCap = new BooleanFieldEditor(
-				JSurePreferencesUtility.LOCK_MODEL_NAME_CAP, I18N
-						.msg("jsure.eclipse.preference.page.lockModelNameCap"),
+				JSurePreferencesUtility.LOCK_MODEL_NAME_CAP,
+				I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
 				modelNamingGroup);
 		setupEditor(modelNamingGroup, f_lockModelCap);
 		f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
@@ -234,8 +223,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	@Override
 	protected void performDefaults() {
 		f_balloonFlag.loadDefault();
-		f_autoOpenProposedPromiseView.loadDefault();
-		f_autoOpenModelingProblemsView.loadDefault();
 		f_selectProjectsToScan.loadDefault();
 		f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
 		f_allowJavadocAnnos.loadDefault();
@@ -255,8 +242,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	@Override
 	public boolean performOk() {
 		f_balloonFlag.store();
-		f_autoOpenProposedPromiseView.store();
-		f_autoOpenModelingProblemsView.store();
 		f_selectProjectsToScan.store();
 		f_autoSaveDirtyEditorsBeforeVerify.store();
 		f_allowJavadocAnnos.store();

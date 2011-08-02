@@ -21,13 +21,11 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -54,7 +52,6 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -195,8 +192,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			return;
 		} else if (size == 1) {
 			ISupportingInformation si = supportingInformation.iterator().next();
-			C informationItem = makeContent("supporting information: "
-					+ si.getMessage(), si.getSrcRef());
+			C informationItem = makeContent(
+					"supporting information: " + si.getMessage(),
+					si.getSrcRef());
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			mutableContentSet.addChild(informationItem);
 			return;
@@ -245,8 +243,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			return;
 		} else if (size == 1) {
 			IProposedPromiseDropInfo pp = proposals.iterator().next();
-			final C proposalItem = makeContent("proposed promise: "
-					+ pp.getJavaAnnotation(), (T) pp);
+			final C proposalItem = makeContent(
+					"proposed promise: " + pp.getJavaAnnotation(), (T) pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			mutableContentSet.addChild(proposalItem);
 			return;
@@ -387,9 +385,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 	@SuppressWarnings("unchecked")
 	protected final C encloseDrop(T drop) {
 		if (drop == null) {
-			LOG
-					.log(Level.SEVERE,
-							"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
+			LOG.log(Level.SEVERE,
+					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 			throw new IllegalArgumentException(
 					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 		}
@@ -438,8 +435,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				promiseDrop.addMatchingDependentsTo(matching,
 						DropPredicateFactory.matchType(InfoDrop.class));
 				addDrops(result, (Collection<? extends T>) matching);
-				addDrops(result, (Collection<? extends T>) promiseDrop
-						.getCheckedBy());
+				addDrops(result,
+						(Collection<? extends T>) promiseDrop.getCheckedBy());
 
 			} else if (drop.isInstance(ResultDrop.class)) {
 
@@ -459,11 +456,10 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 							: CoE_Constants.INCONSISTENT);
 				}
 				result.setImageFlags(flags);
-				result
-						.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
-								: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
-										: resultDrop.isTimeout() ? CommonImages.IMG_TIMEOUT_X
-												: CommonImages.IMG_RED_X);
+				result.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
+						: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
+								: resultDrop.isTimeout() ? CommonImages.IMG_TIMEOUT_X
+										: CommonImages.IMG_RED_X);
 
 				// children
 				addSupportingInformation(result, resultDrop);
@@ -478,9 +474,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				 */
 
 				// image
-				result
-						.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
-								: CommonImages.IMG_INFO);
+				result.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
+						: CommonImages.IMG_INFO);
 
 				// children
 				addSupportingInformation(result, drop);
@@ -726,7 +721,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				if (drop != null
 						&& (drop.isInstance(ResultDrop.class)
 								|| drop.isInstance(InfoDrop.class) || drop
-								.isInstance(PleaseFolderize.class))) {
+									.isInstance(PleaseFolderize.class))) {
 					boolean resultHasACategory = drop
 							.isInstance(ResultDrop.class)
 							&& drop.getCategory() != null;
@@ -750,9 +745,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 								// create the class/type folder, save it in the
 								// map
 								folder = makeContent(typeKey);
-								folder
-										.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
-												: CommonImages.IMG_CLASS);
+								folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
+										: CommonImages.IMG_CLASS);
 								typeToFolder.put(typeKey, folder);
 							}
 							folder.addChild(item);
@@ -1177,37 +1171,15 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			 * We have modeling problems...make sure the view that shows them is
 			 * visible to the user.
 			 */
-			if (EclipseUtility
-					.getBooleanPreference(JSurePreferencesUtility.AUTO_OPEN_MODELING_PROBLEMS_VIEW)) {
-				final UIJob job = new SLUIJob() {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						EclipseUIUtility.showView(ProblemsView.class.getName(),
-								null, IWorkbenchPage.VIEW_VISIBLE);
-						return Status.OK_STATUS;
-					}
-				};
-				job.schedule();
-			}
-		}
-
-		if (dropsExist(ProposedPromiseDrop.class)) {
-			/*
-			 * We have modeling problems...make sure the view that shows them is
-			 * visible to the user.
-			 */
-			if (EclipseUtility
-					.getBooleanPreference(JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW)) {
-				final UIJob job = new SLUIJob() {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						EclipseUIUtility.showView(ProposedPromiseView.class
-								.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
-						return Status.OK_STATUS;
-					}
-				};
-				job.schedule();
-			}
+			final UIJob job = new SLUIJob() {
+				@Override
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					EclipseUIUtility.showView(ProblemsView.class.getName(),
+							null, IWorkbenchPage.VIEW_VISIBLE);
+					return Status.OK_STATUS;
+				}
+			};
+			job.schedule();
 		}
 
 		final Collection<IProofDropInfo> resultDrops = getDropsOfType(
