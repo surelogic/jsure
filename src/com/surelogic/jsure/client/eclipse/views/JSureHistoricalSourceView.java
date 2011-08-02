@@ -11,37 +11,23 @@ import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
-		implements JSureDataDirHub.CurrentScanChangeListener {
-	private static Projects projects;
-	private static ISourceZipFileHandles zips;
-	private static boolean viewIsEnabled = true;
-
-	public JSureHistoricalSourceView() {
-		currentScanChanged();
-	}
+public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
 
 	@Override
-	public void currentScanChanged(JSureScan scan) {
-		currentScanChanged();
-	}
-
-	public void currentScanChanged() {
+	protected ISourceZipFileHandles findSources(String run) {
 		final JSureScanInfo info = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
+		final ISourceZipFileHandles zips;
 		if (info == null) {
-			projects = null;
 			zips = new ISourceZipFileHandles() {
 				public Iterable<File> getSourceZips() {
 					return Collections.emptyList();
 				}
 			};
 		} else {
-			projects = info.getProjects();
 			zips = new ISourceZipFileHandles() {
 				public Iterable<File> getSourceZips() {
 					return Arrays.asList(new File(info.getDir(), "zips")
@@ -49,33 +35,25 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 				}
 			};
 		}
-	}
-
-	@Override
-	protected ISourceZipFileHandles findSources(String run) {
-		// if (config.getRun().equals(run)) {
 		return zips;
-		// }
-		// return null;
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			int lineNumber) {
-		if (viewIsEnabled) {
-			tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type,
-					lineNumber);
-		}
+		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type,
+				lineNumber);
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			final String field) {
-		if (viewIsEnabled) {
-			tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class,
-					null, pkg, type, field);
-		}
+		tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class, null,
+				pkg, type, field);
 	}
 
 	public static String tryToMapPath(String path) {
+		final JSureScanInfo info = JSureDataDirHub.getInstance()
+				.getCurrentScanInfo();
+		final Projects projects = info.getProjects();
 		if (projects == null) {
 			return path;
 		}
