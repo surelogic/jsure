@@ -57,10 +57,6 @@ public final class JSurePreferencesUtility {
 					.getAutoPerspectiveSwitchConstant(), true);
 			EclipseUtility.setDefaultBooleanPreference(
 					ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, true);
-			EclipseUtility.setDefaultBooleanPreference(
-					AUTO_OPEN_MODELING_PROBLEMS_VIEW, true);
-			EclipseUtility.setDefaultBooleanPreference(
-					AUTO_OPEN_PROPOSED_PROMISE_VIEW, true);
 
 			EclipseUtility.setDefaultStringPreference(REGION_MODEL_NAME_SUFFIX,
 					"State");
@@ -112,10 +108,6 @@ public final class JSurePreferencesUtility {
 			+ "last.time.projects.to.scan";
 	public static final String LAST_TIME_PROJECTS_TO_UPDATE_JAR = PREFIX
 			+ "last.time.projects.to.update.jar";
-	public static final String AUTO_OPEN_MODELING_PROBLEMS_VIEW = PREFIX
-			+ "open.modeling.problems.view";
-	public static final String AUTO_OPEN_PROPOSED_PROMISE_VIEW = PREFIX
-			+ "open.proposed.promise.view";
 
 	public static final String REGION_MODEL_NAME_SUFFIX = PREFIX
 			+ "regionModelNameSuffix";
