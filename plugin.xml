@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-	<!--extension point="org.eclipse.ui.editors">
+	<extension point="org.eclipse.ui.editors">
         <editor	
            name="Promises XML Editor"
            icon="feature.gif"
@@ -10,7 +10,7 @@
            default="true"
            extensions="xml"
            matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
-	</extension-->
+	</extension>
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
     
     <extension point="org.eclipse.ui.editors.templates">
@@ -71,12 +71,6 @@
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
-		</view>
-
-		<view name="JSure Verification Status Diffs"
-			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
-			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
         
 		<view name="JSure Verification Metrics"

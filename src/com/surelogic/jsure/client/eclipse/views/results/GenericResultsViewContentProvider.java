@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -64,7 +65,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>>
-		extends AbstractResultsViewContentProvider {
+		implements IResultsViewContentProvider {
 	private static final boolean allowDuplicateNodes = true;
 	protected static final Object[] noObjects = ArrayUtil.empty;
 
@@ -74,6 +75,26 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 	protected static long timeStamp = Sea.INVALIDATED;
 
 	private final Sea sea;
+	
+	protected static final Logger LOG = SLLogger
+	.getLogger("ResultsViewContentProvider");
+
+	private boolean m_showInferences = true;
+
+	/**
+	 * @return Returns the showInferences.
+	 */
+	public final boolean isShowInferences() {
+		return m_showInferences;
+	}
+
+	/**
+	 * @param showInferences
+	 *            The showInferences to set.
+	 */
+	public final void setShowInferences(boolean showInferences) {
+		this.m_showInferences = showInferences;
+	}
 
 	GenericResultsViewContentProvider(Sea sea) {
 		this.sea = sea;

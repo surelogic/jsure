@@ -113,7 +113,7 @@ public class XMLReport {
     final boolean includesSource;
     
     private OutState(PrintWriter out, TreeViewer viewer, boolean includesSource) {
-      this(out, (AbstractResultsViewContentProvider) viewer.getContentProvider(), 
+      this(out, (IResultsViewContentProvider) viewer.getContentProvider(), 
            (ResultsView.ContentNameSorter) viewer.getSorter(), includesSource); 
     }
     private OutState(PrintWriter pw, IResultsViewContentProvider contentProvider, 
