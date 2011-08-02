@@ -266,7 +266,7 @@ public final class ScanManagerMediator implements ILifecycle {
 		/*
 		 * Set the default sort to the date (newest on top)
 		 */
-		dateColumnSorter.setSorter(dateColumnSorter, MyColumnViewerSorter.DESC);
+		dateColumnSorter.setSorter(dateColumnSorter, ColumnViewerSorter.DESC);
 
 		/*
 		 * Setup content providers and input
