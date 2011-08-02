@@ -198,10 +198,18 @@ public final class ScanManagerMediator implements ILifecycle {
 
 	private void setToolbarState() {
 		final boolean oneOrMoreScansSelected = f_swtTable.getSelectionCount() > 0;
-		final boolean exactlyOneScanSelected = f_swtTable.getSelectionCount() == 1;
 
 		f_deleteScanAction.setEnabled(oneOrMoreScansSelected);
-		f_setAsCurrentAction.setEnabled(exactlyOneScanSelected);
+
+		boolean oneNonCheckedScanSelected = false;
+		List<JSureScan> selected = getSelectedScans();
+		if (selected.size() == 1) {
+			final JSureScan selectedScan = selected.get(0);
+			if (!selectedScan.equals(JSureDataDirHub.getInstance()
+					.getCurrentScan()))
+				oneNonCheckedScanSelected = true;
+		}
+		f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);
 	}
 
 	ScanManagerMediator(CheckboxTableViewer table) {
@@ -217,27 +225,26 @@ public final class ScanManagerMediator implements ILifecycle {
 		/*
 		 * Setup columns
 		 */
-		addColumn("jsure.scan.view.table.col.0", SWT.LEFT, 100);
-		TableColumn dateColumn = addColumn("jsure.scan.view.table.col.1",
+		TableColumn dateColumn = addColumn("jsure.scan.view.table.col.date",
 				SWT.LEFT, 150);
-		TableColumn sizeColumn = addColumn("jsure.scan.view.table.col.2",
+		TableColumn sizeColumn = addColumn("jsure.scan.view.table.col.size",
 				SWT.RIGHT, 70);
-		TableColumn projColumn = addColumn("jsure.scan.view.table.col.3",
+		TableColumn projColumn = addColumn("jsure.scan.view.table.col.proj",
 				SWT.LEFT, 600);
 
 		/*
 		 * Setup sorters
 		 */
 		final MyColumnViewerSorter dateColumnSorter = new MyColumnViewerSorter(
-				f_table, dateColumn, 1);
-		new MyColumnViewerSorter(f_table, sizeColumn, 2) {
+				f_table, dateColumn, 0);
+		new MyColumnViewerSorter(f_table, sizeColumn, 1) {
 			@Override
 			protected int doCompare(Viewer viewer, JSureScan e1, JSureScan e2) {
 				// we need to compare the scan sizes.
 				return (int) (e1.getSizeInMB() - e2.getSizeInMB());
 			}
 		};
-		new MyColumnViewerSorter(f_table, projColumn, 3);
+		new MyColumnViewerSorter(f_table, projColumn, 2);
 
 		/*
 		 * Set the default sort to the date (newest on top)
@@ -317,11 +324,9 @@ public final class ScanManagerMediator implements ILifecycle {
 
 		@Override
 		public Image getColumnImage(Object element, int columnIndex) {
-			if (columnIndex == 0)
-				return SLImages.getImage(CommonImages.IMG_EMPTY);
-			if (columnIndex == 2)
+			if (columnIndex == 1)
 				return SLImages.getImage(CommonImages.IMG_DRUM);
-			if (columnIndex == 3)
+			if (columnIndex == 2)
 				return SLImages.getImage(CommonImages.IMG_PROJECT);
 			return null;
 		}
@@ -333,13 +338,11 @@ public final class ScanManagerMediator implements ILifecycle {
 					final JSureScan run = (JSureScan) element;
 					switch (columnIndex) {
 					case 0:
-						return "";
-					case 1:
 						final Date d = run.getProjects().getDate();
 						return SLUtility.toStringHMS(d);
-					case 2:
+					case 1:
 						return String.format("%1$.1f MB", run.getSizeInMB());
-					case 3:
+					case 2:
 						return run.getProjects().getLabel();
 					}
 				}
