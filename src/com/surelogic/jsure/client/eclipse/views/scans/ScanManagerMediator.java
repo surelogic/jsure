@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -36,13 +37,25 @@ import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.TableUtility;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.dialogs.DeleteScanDialog;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class ScanManagerMediator implements ILifecycle {
-	
+
+	/*
+	 * SWT on Mac OS X creates a special column for the check box in the table.
+	 * This doesn't happen on Windows or Linux so we have to manually do it.
+	 * Otherwise the table looks strange.
+	 * 
+	 * The below constants help to implement this extra column.
+	 */
+	private static final boolean EXTRA_COLUMN = !SystemUtils.IS_OS_MAC_OSX;
+	private static final int EXTRA_COLUMN_WIDTH = 27;
+	private static final int FIRST_COLUMN_INDEX = EXTRA_COLUMN ? 1 : 0;
+
 	private final CheckboxTableViewer f_table;
 	private final Table f_swtTable;
 	private final ICheckStateListener f_checkStateListener = new ICheckStateListener() {
@@ -225,26 +238,30 @@ public final class ScanManagerMediator implements ILifecycle {
 		/*
 		 * Setup columns
 		 */
+		if (EXTRA_COLUMN) {
+			addColumn(null, SWT.LEFT);
+		}
 		TableColumn dateColumn = addColumn("jsure.scan.view.table.col.date",
-				SWT.LEFT, 150);
+				SWT.LEFT);
 		TableColumn sizeColumn = addColumn("jsure.scan.view.table.col.size",
-				SWT.RIGHT, 70);
+				SWT.RIGHT);
 		TableColumn projColumn = addColumn("jsure.scan.view.table.col.proj",
-				SWT.LEFT, 600);
+				SWT.LEFT);
 
 		/*
 		 * Setup sorters
 		 */
+		int columnIndex = FIRST_COLUMN_INDEX;
 		final MyColumnViewerSorter dateColumnSorter = new MyColumnViewerSorter(
-				f_table, dateColumn, 0);
-		new MyColumnViewerSorter(f_table, sizeColumn, 1) {
+				f_table, dateColumn, columnIndex++);
+		new MyColumnViewerSorter(f_table, sizeColumn, columnIndex++) {
 			@Override
 			protected int doCompare(Viewer viewer, JSureScan e1, JSureScan e2) {
 				// we need to compare the scan sizes.
 				return (int) (e1.getSizeInMB() - e2.getSizeInMB());
 			}
 		};
-		new MyColumnViewerSorter(f_table, projColumn, 2);
+		new MyColumnViewerSorter(f_table, projColumn, columnIndex++);
 
 		/*
 		 * Set the default sort to the date (newest on top)
@@ -268,13 +285,19 @@ public final class ScanManagerMediator implements ILifecycle {
 			}
 		});
 
-		f_swtTable.pack();
+		TableUtility.packColumns(f_table);
+		if (EXTRA_COLUMN)
+			f_swtTable.getColumn(0).setWidth(EXTRA_COLUMN_WIDTH);
 	}
 
-	private TableColumn addColumn(String text, int alignment, int width) {
+	private TableColumn addColumn(String text, int alignment) {
 		final TableColumn col = new TableColumn(f_swtTable, alignment);
-		col.setText(I18N.msg(text));
-		col.setWidth(width);
+		/*
+		 * If text is null we are creating the special column for the check box.
+		 */
+		if (text != null) {
+			col.setText(I18N.msg(text));
+		}
 		return col;
 	}
 
@@ -324,25 +347,28 @@ public final class ScanManagerMediator implements ILifecycle {
 
 		@Override
 		public Image getColumnImage(Object element, int columnIndex) {
-			if (columnIndex == 1)
+			if (columnIndex == FIRST_COLUMN_INDEX + 1)
 				return SLImages.getImage(CommonImages.IMG_DRUM);
-			if (columnIndex == 2)
+			if (columnIndex == FIRST_COLUMN_INDEX + 2)
 				return SLImages.getImage(CommonImages.IMG_PROJECT);
 			return null;
 		}
 
 		@Override
 		public String getColumnText(Object element, int columnIndex) {
+			if (EXTRA_COLUMN && columnIndex == 0)
+				return null;
 			try {
 				if (element instanceof JSureScan) {
 					final JSureScan run = (JSureScan) element;
-					switch (columnIndex) {
-					case 0:
+					if (columnIndex == FIRST_COLUMN_INDEX) {
 						final Date d = run.getProjects().getDate();
 						return SLUtility.toStringHMS(d);
-					case 1:
+					}
+					if (columnIndex == FIRST_COLUMN_INDEX + 1) {
 						return String.format("%1$.1f MB", run.getSizeInMB());
-					case 2:
+					}
+					if (columnIndex == FIRST_COLUMN_INDEX + 2) {
 						return run.getProjects().getLabel();
 					}
 				}
