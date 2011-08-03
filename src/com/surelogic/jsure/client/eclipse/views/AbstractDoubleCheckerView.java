@@ -62,6 +62,7 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
 import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 

@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views;
+package com.surelogic.jsure.client.eclipse.views.source;
 
 import java.io.File;
 import java.net.URI;

@@ -15,7 +15,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
-import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.PackageAccessor;

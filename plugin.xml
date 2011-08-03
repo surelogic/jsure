@@ -53,9 +53,9 @@
 		</view>-->
 
         <view name="JSure Historical Source" allowMultiple="false"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/java_comp_unit.gif"
-			id="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView">
+			id="com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView">
 		</view>
 		
 		<view name="Findings Quick Search" allowMultiple="false"
@@ -65,14 +65,7 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif">
 		</view>
 
-        <!--
-		<view name="Verification Status (Old)"
-			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
-			
-			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
-		</view>
-        
+        <!--  
 		<view name="JSure Verification Metrics"
 			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
