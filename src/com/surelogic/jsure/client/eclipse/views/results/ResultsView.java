@@ -63,20 +63,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
 
-	private final Action f_actionShowProposedPromiseView = new Action() {
-		@Override
-		public void run() {
-			EclipseUIUtility.showView(ProposedPromiseView.class.getName());
-		}
-	};
-
-	private final Action f_actionShowProblemsView = new Action() {
-		@Override
-		public void run() {
-			EclipseUIUtility.showView(ProblemsView.class.getName());
-		}
-	};
-
 	private final Action f_actionShowInferences = new Action() {
 		@Override
 		public void run() {
@@ -380,8 +366,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		manager.add(new Separator());
 		manager.add(f_showQuickRef);
 		manager.add(f_actionShowInferences);
-		manager.add(f_actionShowProposedPromiseView);
-		manager.add(f_actionShowProblemsView);
 		if (XUtil.useExperimental()) {
 			manager.add(new Separator());
 			manager.add(f_actionExportZIPForStandAloneResultsViewer);
@@ -448,14 +432,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void makeActions() {
-		f_actionShowProposedPromiseView.setText("Show Proposed Promises");
-		f_actionShowProposedPromiseView.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_ANNOTATION));
-
-		f_actionShowProblemsView.setText("Show Modeling Problems");
-		f_actionShowProblemsView.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
-
 		f_actionShowInferences.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
 

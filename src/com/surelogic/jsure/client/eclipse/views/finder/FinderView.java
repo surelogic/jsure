@@ -20,8 +20,8 @@ public final class FinderView extends ViewPart {
 			@Override
 			public Composite createContents(Composite panel) {
 				RadioArrowMenu menu = new RadioArrowMenu(panel);
-				menu.addChoice("Analysis",
-						SLImages.getImage(CommonImages.IMG_EMPTY_DOT));
+				menu.addChoice("Analysis Results",
+						SLImages.getImage(CommonImages.IMG_ANALYSIS_RESULT));
 				menu.addChoice("Annotation",
 						SLImages.getImage(CommonImages.IMG_ANNOTATION));
 				menu.addChoice("Java Class",
@@ -30,8 +30,8 @@ public final class FinderView extends ViewPart {
 						SLImages.getImage(CommonImages.IMG_PACKAGE));
 				menu.addChoice("Project",
 						SLImages.getImage(CommonImages.IMG_PROJECT));
-				menu.addChoice("Verification",
-						SLImages.getImage(CommonImages.IMG_EMPTY_DOT));
+				menu.addChoice("Verification Results",
+						SLImages.getImage(CommonImages.IMG_VERIFICATION_RESULT));
 				return menu.getPanel();
 			}
 		}, false);
