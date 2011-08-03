@@ -260,7 +260,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				if (it.hasNext()) {
 					for (IRNode v : it) {
 						num += translate(handleJava5Promise(node, v, promise,
-								StringLiteral.getToken(v)));
+								removeQuotes(StringLiteral.getToken(v))));
 					}
 				} else {
 					num += translate(handleJava5Promise(node, value, promise,
@@ -268,7 +268,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				}
 			} else if (StringLiteral.prototype.includes(op)) {
 				num += translate(handleJava5Promise(node, value, promise,
-						StringLiteral.getToken(value)));
+						removeQuotes(StringLiteral.getToken(value))));
 			} else
 				throw new IllegalArgumentException("Unexpected value: "
 						+ op.name());
@@ -337,10 +337,18 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return 0;
 	}
 
-	private String extractString(IRNode valuePair) {
+	private static String removeQuotes(String c) {
+		if (c.startsWith("\"") && c.endsWith("\"")) {
+			c = c.substring(1, c.length() - 1);
+		}
+		return c;
+	}
+	
+	private static String extractString(IRNode valuePair) {
 		IRNode value = ElementValuePair.getValue(valuePair);
 		if (StringLiteral.prototype.includes(value)) {
-			return StringLiteral.getToken(value);
+			String c = StringLiteral.getToken(value);
+			return removeQuotes(c);
 		}
 		return "";
 	}
@@ -362,7 +370,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
         return modifiers;
 	}
 	
-	private boolean extractBoolean(IRNode valuePair, boolean defValue) {
+	private static boolean extractBoolean(IRNode valuePair, boolean defValue) {
 		IRNode value = ElementValuePair.getValue(valuePair);
 		if (TrueExpression.prototype.includes(value)) {
 			return true;
@@ -505,9 +513,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
 		ISrcRef src = JavaNode.getSrcRef(here);
 		int offset = src == null ? 0 : src.getOffset();
-		if (c.startsWith("\"") && c.endsWith("\"")) {
-			c = c.substring(1, c.length() - 1);
-		}
 		/*
 		 * if (src != null) {
 		 * System.out.println("Handling promise: "+promise+' '+c); }
