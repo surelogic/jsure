@@ -5,9 +5,10 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.analysis.locks.FieldKind;
 
-public class VouchFieldIsNode extends AASTRootNode { 
+public final class VouchFieldIsNode extends AASTRootNode { 
   // Fields
   private final FieldKind kind;
+  private final String reason;
 
   // Constructors
   /**
@@ -17,6 +18,9 @@ public class VouchFieldIsNode extends AASTRootNode {
 		                   FieldKind kind) {
     super(offset);
     this.kind = kind;
+    
+    // TODO: Initialized this from a parameter
+    reason = "";
   }
   
   /**
@@ -24,6 +28,10 @@ public class VouchFieldIsNode extends AASTRootNode {
    */
   public FieldKind getKind() {
     return kind;
+  }
+  
+  public String getReason() {
+    return reason;
   }
 
   @Override
@@ -42,12 +50,23 @@ public class VouchFieldIsNode extends AASTRootNode {
 		if (debug) {
 			indent(sb, indent);
 			sb.append("VouchFieldIsNode\n");
-			indent(sb, indent + 2);
-			sb.append("id=").append(getKind());
+      indent(sb, indent + 2);
+      sb.append("value=").append(getKind());
+      indent(sb, indent + 2);
+      sb.append("reason=").append(getReason());
 		} else {
+		  final String reason = getReason();
 			sb.append("Vouch(\"");
-			sb.append(getKind());
-			sb.append("\")");
+			if (reason.length() == 0) {
+  			sb.append(getKind());
+  			sb.append("\")");
+			} else {
+			  sb.append("Vouch(value=\"");
+			  sb.append(getKind().toString());
+			  sb.append("\", reason=\"");
+			  sb.append(reason);
+			  sb.append("\")");
+			}
 		}
 		return sb.toString();
   }

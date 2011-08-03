@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode> {
+public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode> {
 	public VouchFieldIsPromiseDrop(final VouchFieldIsNode n) {
 		super(n);
 	    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
@@ -34,5 +34,9 @@ public class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode> {
   
   public boolean isThreadSafe() {
     return getAST().getKind() == FieldKind.ThreadSafe;
+  }
+  
+  public String getReason() {
+    return getAST().getReason();
   }
 }
