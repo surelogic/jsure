@@ -165,6 +165,9 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 
 		boolean isDirty() {
+			if (pkg == null) {
+				return false;
+			}
 			return pkg.isDirty();
 		}
 
@@ -373,14 +376,15 @@ public class PromisesXMLEditor extends EditorPart {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final List<String> annos;
-			if (makeScopedPromise) {
+			if (!makeScopedPromise) {
 				annos = findMissingAnnos(j);
 			} else {
 				annos = sortSet(remove(findApplicableAnnos(target.op), ScopedPromiseRules.PROMISE));
 			}
 			ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), annos.toArray(), 
 		    		annoProvider, annoProvider, 
-		    		makeScopedPromise ? "Select scoped promise(s) to add" : "Select annotation(s) to add");
+		    		makeScopedPromise ? "Select scoped promise(s) to add for "+target.label : 
+		    			                "Select annotation(s) to add");
 			if (d.open() == Window.OK) {
 				for(Object o : d.getResult()) {
 					final String tag = (String) o;
