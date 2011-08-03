@@ -47,6 +47,13 @@
 			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 		</view>
 		
+		<view name="JSure Quick Search" allowMultiple="false"
+		    category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
+		</view>
+
 		<!--<view name="JSure Scan Summaries"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
@@ -56,13 +63,6 @@
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/java_comp_unit.gif"
 			id="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView">
-		</view>
-		
-		<view name="Findings Quick Search" allowMultiple="false"
-		    category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
-			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
-			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif">
 		</view>
 
         <!--  
