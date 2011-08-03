@@ -69,6 +69,7 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
@@ -77,7 +78,8 @@ import edu.cmu.cs.fluid.sea.SeaStats;
  * A simple view to show what scans are available to be selected as the
  * baseline/current scan
  */
-public class ScanSummaryView extends AbstractScanManagerView {
+public class ScanSummaryView extends AbstractJSureView implements
+		JSureDataDirHub.CurrentScanChangeListener {
 	final ContentProvider f_content = new ContentProvider();
 	final ProjectContentProvider f_projectsContent = new ProjectContentProvider();
 	SashForm f_form;
@@ -88,13 +90,53 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	MenuDetectListener f_chartMenuListener;
 
 	@Override
-	protected StructuredViewer getViewer() {
-		return tableViewer;
+	public void dispose() {
+		try {
+			JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+		} finally {
+			super.dispose();
+		}
 	}
 
 	@Override
-	protected String updateViewer() {
-		return updateViewer(false);
+	public final void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+		updateViewState();
+	}
+
+	@Override
+	public void currentScanChanged(JSureScan scan) {
+		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				updateViewState();
+			}
+		});
+	}
+
+	/**
+	 * Update the internal state, presumably after a new scan
+	 */
+	private void updateViewState() {
+		final String label = updateViewer(true);
+		if (label != null) {
+			f_viewerControl.getDisplay().asyncExec(new Runnable() {
+				public void run() {
+
+					if (getViewer() != null) {
+						getViewer().setInput(getViewSite());
+					}
+					// TODO what else is there to do with the label?
+					f_viewerControl.redraw();
+				}
+			});
+		}
+	}
+
+	@Override
+	protected StructuredViewer getViewer() {
+		return tableViewer;
 	}
 
 	private String updateViewer(boolean selectedProjsChanged) {

@@ -54,22 +54,23 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
 		</view>
 
-		<!--<view name="JSure Scan Summaries"
+		<view name="Scan Summary" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_graph.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
-		</view>-->
+		</view>
 
         <view name="JSure Historical Source" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
-			icon="platform:/plugin/com.surelogic.common/lib/images/java_comp_unit.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_comp_unit.gif"
 			id="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView">
 		</view>
 
         <!--  
-		<view name="FAST Viewer" category="com.surelogic.jsure"
-			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer" id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
-		</view>
         -->
+		<view name="FAST Viewer" category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.ast.FastViewer" id="com.surelogic.jsure.client.eclipse.views.ast.FastViewer">
+		</view>
         
 		<view name="JSure Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/red_x.gif"
