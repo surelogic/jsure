@@ -104,7 +104,9 @@ public final class Messages extends AbstractMessages {
   public static final int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfinedAlternative = 256;
   public static final int LockAnalysis_ds_LockViz = 257;
   public static final int LockAnalysis_ds_UnsupportedModel = 258;
-
+  public static final int VOUCHED_FINAL = 259;
+  public static final int VOUCHED_FINAL_WITH_REASON = 260;
+  
   
   
   // For ThreadSafe assurance
@@ -118,6 +120,8 @@ public final class Messages extends AbstractMessages {
   public static final int VOUCHED_THREADSAFE = 407;
   public static final int TRIVIALLY_THREADSAFE = 408;
   public static final int THREAD_SAFE_IMPL = 409;
+  public static final int VOUCHED_THREADSAFE_WITH_REASON = 410;
+  
   
   
   // For Containable assurance
@@ -133,7 +137,8 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_NOT_UNIQUE = 459;
   public static final int FIELD_NOT_AGGREGATED = 460;
   public static final int FIELD_CONTAINED_VOUCHED = 461;
-
+  public static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 462;
+  
   
   
   // For Immutable assurance
@@ -144,7 +149,7 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE = 484;
   public static final int IMMUTABLE_VOUCHED = 485;
   public static final int TRIVIALLY_IMMUTABLE = 486;
-  
+  public static final int IMMUTABLE_VOUCHED_WITH_REASON = 487;
  
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 

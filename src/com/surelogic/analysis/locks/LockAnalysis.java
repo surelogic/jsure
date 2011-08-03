@@ -8,6 +8,7 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
@@ -359,8 +360,10 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       // Check for vouch
       final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
       if (vouchDrop != null && vouchDrop.isThreadSafe()) {
-        final ResultDropBuilder result =
-          createResult(varDecl, true, Messages.VOUCHED_THREADSAFE, id);
+        final String reason = vouchDrop.getReason();
+        final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? 
+            createResult(varDecl, true, Messages.VOUCHED_THREADSAFE, id) :
+            createResult(varDecl, true, Messages.VOUCHED_THREADSAFE_WITH_REASON, id, reason);
         result.addTrustedPromise(vouchDrop);
       } else {
         /* First check if the field is volatile, final, or lock-protected */
@@ -561,8 +564,10 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       } else {
         final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
         if (vouchDrop != null && vouchDrop.isContainable()) {
-          final ResultDropBuilder result =
-            createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id);
+          final String reason = vouchDrop.getReason();
+          final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? 
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id) :
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
           result.addTrustedPromise(vouchDrop);
         } else {
           final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
@@ -650,9 +655,11 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 
       final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
       if (vouchDrop != null && vouchDrop.isImmutable()) {
-        // VOUCHED OR
-        final ResultDropBuilder result =
-          createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id);
+        // VOUCHED
+        final String reason = vouchDrop.getReason();
+        final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? 
+            createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id) :
+            createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
         result.addTrustedPromise(vouchDrop);
       } else {
         final boolean isFinal = TypeUtil.isFinal(varDecl);

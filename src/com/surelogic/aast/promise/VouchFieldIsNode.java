@@ -6,6 +6,8 @@ import com.surelogic.aast.INodeVisitor;
 import com.surelogic.analysis.locks.FieldKind;
 
 public final class VouchFieldIsNode extends AASTRootNode { 
+  public static final String NO_REASON = "";
+  
   public static final String REASON = "reason";
 	
   // Fields
@@ -21,7 +23,7 @@ public final class VouchFieldIsNode extends AASTRootNode {
 		                   String reason) {
     super(offset);
     this.kind = kind;
-    this.reason = reason == null ? "" : reason;
+    this.reason = reason == null ? NO_REASON : reason;
   }
   
   /**

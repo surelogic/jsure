@@ -852,7 +852,27 @@ public class LockRules extends AnnotationRules {
         final VouchFieldIsPromiseDrop vouchFieldIs =
           LockRules.getVouchFieldIs(lockFieldNode);
         if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
-          lockModel.addDependent(vouchFieldIs);
+          final String reason = vouchFieldIs.getReason();
+          final ResultDrop rd = new ResultDrop(
+              com.surelogic.analysis.locks.Messages.toString(
+                  reason == VouchFieldIsNode.NO_REASON ?
+                      com.surelogic.analysis.locks.Messages.VOUCHED_FINAL :
+                      com.surelogic.analysis.locks.Messages.VOUCHED_FINAL_WITH_REASON));
+          rd.setNode(lockFieldNode);
+          rd.addCheckedPromise(lockModel);
+          rd.setConsistent(true);
+          rd.addTrustedPromise(vouchFieldIs);
+          final String id = VariableDeclarator.getId(lockFieldNode);
+          if (reason == VouchFieldIsNode.NO_REASON) {
+            rd.setResultMessage(
+                com.surelogic.analysis.locks.Messages.VOUCHED_FINAL, id);
+          } else {
+            rd.setResultMessage(
+                com.surelogic.analysis.locks.Messages.VOUCHED_FINAL_WITH_REASON,
+                id, reason);
+          }
+          
+//          lockModel.addDependent(vouchFieldIs);
         }
       }
     }
