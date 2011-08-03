@@ -1,7 +1,3 @@
-/*
- * Created on Dec 8, 2005
- *
- */
 package com.surelogic.jsure.client.eclipse.views.modules;
 
 import java.util.Set;
