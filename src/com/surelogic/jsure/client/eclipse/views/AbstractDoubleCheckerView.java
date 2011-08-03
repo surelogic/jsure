@@ -62,7 +62,7 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 
@@ -312,7 +312,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					if (s.indexOf('/') < 0) {
 						return; // probably not a file
 					}
-					s = JSureHistoricalSourceView.tryToMapPath(s);
+					s = HistoricalSourceView.tryToMapPath(s);
 					file = EclipseUtility.resolveIFile(s);
 
 					if (file == null) {
@@ -322,7 +322,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				} else {
 					return;
 				}
-				JSureHistoricalSourceView.tryToOpenInEditor(
+				HistoricalSourceView.tryToOpenInEditor(
 						srcRef.getPackage(), srcRef.getCUName(),
 						srcRef.getLineNumber());
 

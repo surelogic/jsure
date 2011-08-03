@@ -33,65 +33,59 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.views">
-		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
+		<category name="JSure" id="com.surelogic.jsure"></category>
 		
 		<view name="JSure Scans" allowMultiple="false"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/drum.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
 		</view>
 
 		<view name="Verification Status" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 		</view>
 		
 		<!--<view name="JSure Scan Summaries"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
 		</view>-->
 
         <view name="JSure Historical Source" allowMultiple="false"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/java_comp_unit.gif"
-			id="com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView">
+			id="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView">
 		</view>
 		
 		<view name="Findings Quick Search" allowMultiple="false"
-		    category="edu.cmu.cs.fluid.dcf"
+		    category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
 			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif">
 		</view>
 
         <!--  
-		<view name="JSure Verification Metrics"
-			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
-			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
-		</view>
-
-		<view name="FAST Viewer" category="edu.cmu.cs.fluid.dcf"
+		<view name="FAST Viewer" category="com.surelogic.jsure"
 			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer" id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
 		</view>
         -->
         
 		<view name="JSure Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/red_x.gif"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView">
 		</view>
 
 		<view name="Modeling Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
 		</view>
 
 		<view name="Proposed Promises" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
-			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
 		</view>
 		

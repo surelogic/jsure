@@ -19,7 +19,7 @@ import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
@@ -319,7 +319,7 @@ implements Cloneable, IDiffNode<T2> {
 			if (s.indexOf('/') < 0) {
 				return null; // probably not a file
 			}
-			s = JSureHistoricalSourceView.tryToMapPath(s);
+			s = HistoricalSourceView.tryToMapPath(s);
 			IFile file = EclipseUtility.resolveIFile(s);
 			if (file != null) {
 				updateAttrs(attrs, includeCVS, srcRef, file);

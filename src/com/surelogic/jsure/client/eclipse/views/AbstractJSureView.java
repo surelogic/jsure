@@ -15,7 +15,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
-import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.PackageAccessor;
@@ -53,7 +53,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 					if (s.indexOf('/') < 0) {
 						return; // probably not a file
 					}
-					s = JSureHistoricalSourceView.tryToMapPath(s);
+					s = HistoricalSourceView.tryToMapPath(s);
 					file = EclipseUtility.resolveIFile(s);
 					
 					if (file == null) {
@@ -63,7 +63,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 				} else {
 					return;
 				}
-				JSureHistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
+				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
 						srcRef.getCUName(), srcRef.getLineNumber());
 
 				if (file != null) {

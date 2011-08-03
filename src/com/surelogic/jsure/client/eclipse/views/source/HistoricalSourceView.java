@@ -14,7 +14,7 @@ import com.surelogic.javac.Projects;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
+public class HistoricalSourceView extends AbstractHistoricalSourceView {
 
 	@Override
 	protected ISourceZipFileHandles findSources(String run) {
@@ -40,13 +40,13 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			int lineNumber) {
-		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type,
+		tryToOpenInEditor(HistoricalSourceView.class, null, pkg, type,
 				lineNumber);
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			final String field) {
-		tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class, null,
+		tryToOpenInEditorUsingFieldName(HistoricalSourceView.class, null,
 				pkg, type, field);
 	}
 

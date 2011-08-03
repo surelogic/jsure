@@ -8,7 +8,7 @@ import com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
-import com.surelogic.jsure.client.eclipse.views.source.JSureHistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 
 /**
  * Defines the JSure perspective within the workbench.
@@ -20,7 +20,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 		final String statusView = PersistentResultsView.class.getName();
 		final String proposedPromiseView = ProposedPromiseView.class.getName();
 		final String problemsView = ProblemsView.class.getName();
-		final String histSrcView = JSureHistoricalSourceView.class.getName();
+		final String histSrcView = HistoricalSourceView.class.getName();
 		final String editorArea = layout.getEditorArea();
 
 		final IFolderLayout scanMgtArea = layout.createFolder("scanMgtArea",
