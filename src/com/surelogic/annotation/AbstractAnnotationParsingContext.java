@@ -32,6 +32,10 @@ ITestAnnotationParsingContext {
 	  return JavaNode.ALL_FALSE;
   }
   
+  public String getProperty(String key) {
+	  return null;
+  }
+  
   public final AnnotationSource getSourceType() {
     return srcType;
   }

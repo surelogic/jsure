@@ -2301,7 +2301,7 @@ public class LockRules extends AnnotationRules {
 			} else {				
 				kind = FieldKind.valueOf(id);				
 			}
-			return new VouchFieldIsNode(context.mapToSource(0), kind);
+			return new VouchFieldIsNode(context.mapToSource(0), kind, context.getProperty(VouchFieldIsNode.REASON));
 		}
 		
 		@Override

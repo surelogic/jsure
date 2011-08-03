@@ -2,6 +2,7 @@
 package com.surelogic.xml;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 import org.xml.sax.Attributes;
@@ -43,6 +44,10 @@ public class SAXElement
 	
 	public String getAttribute(String attrName) {
 		return attMap.get(attrName);
+	}
+	
+	public Map<String, String> getAttributes() {
+		return attMap;
 	}
 	
 	/**
