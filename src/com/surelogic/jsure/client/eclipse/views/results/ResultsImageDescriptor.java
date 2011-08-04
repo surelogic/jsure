@@ -22,6 +22,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 
 /**
@@ -81,8 +82,13 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 	 * @param baseImage
 	 *            an image descriptor used as the base image
 	 * @param flags
-	 *            flags indicating which adornments are to be rendered. See
-	 *            <code>setAdornments</code> for valid values.
+	 *            flags indicating which adornments are to be rendered from
+	 *            {@link CoE_Constants}. Valid values are:
+	 *            {@link CoE_Constants#CONSISTENT},
+	 *            {@link CoE_Constants#INCONSISTENT},
+	 *            {@link CoE_Constants#REDDOT}, {@link CoE_Constants#ASSUME},
+	 *            {@link CoE_Constants#TRUSTED}, {@link CoE_Constants#VIRTUAL}
+	 *            or any combination of those.
 	 * @param size
 	 *            the size of the resulting image
 	 * @see #setAdornments(int)
@@ -132,11 +138,13 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 
 	/**
 	 * Sets the descriptors adornments. Valid values are:
-	 * <code>CONSISTENT</code>, <code>INCONSISTENT</code>, <code>REDDOT</code>,
-	 * or any combination of those.
+	 * {@link CoE_Constants#CONSISTENT}, {@link CoE_Constants#INCONSISTENT},
+	 * {@link CoE_Constants#REDDOT}, {@link CoE_Constants#ASSUME},
+	 * {@link CoE_Constants#TRUSTED}, {@link CoE_Constants#VIRTUAL} or any
+	 * combination of those.
 	 * 
 	 * @param adornments
-	 *            the image descritpors adornments
+	 *            the image descriptors adornments
 	 */
 	public void setAdornments(int adornments) {
 		assert adornments >= 0;
