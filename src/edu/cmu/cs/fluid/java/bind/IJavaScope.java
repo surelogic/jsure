@@ -253,7 +253,7 @@ public interface IJavaScope {
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
-               !(op instanceof LabeledStatement);
+               !(op instanceof LabeledStatement) && !TypeDeclaration.prototype.includes(op);
       }      
     };
     public static IBinding lookupName(IJavaScope scope, String name, IRNode useSite) {
