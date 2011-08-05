@@ -22,14 +22,13 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
 	public static final boolean useInfo = true;
 
 	private long timestamp = Long.MIN_VALUE;
-	private Collection<Info> dropInfo = Collections.emptyList();
+	private List<IDropInfo> dropInfo = Collections.emptyList();
 	private final List<IPersistentDropInfoListener> listeners = new CopyOnWriteArrayList<IPersistentDropInfoListener>();
 	private final File location;
 
@@ -74,7 +73,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 						FileUtility.copy(results, location);
 						System.out.println("Copying results from " + results);
 					}
-				} else if (projects.getDate().after(new Date(timestamp))) {									
+				} else if (projects.getDate().after(new Date(timestamp))) {
 					// Persist the Sea, and then load the info
 					new SeaSnapshot(location).snapshot(projects.getLabel(),
 							Sea.getDefault());
@@ -88,7 +87,8 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 					dropInfo = SeaSnapshot.loadSnapshot(location);
 					timestamp = lastModified;
 					final long end = System.currentTimeMillis();
-					System.out.println("Finished loading info = "+(end-start)+" ms");
+					System.out.println("Finished loading info = "
+							+ (end - start) + " ms");
 				}
 				return true;
 			} else {
@@ -99,14 +99,14 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 		}
 		return false;
 	}
-	
+
 	public synchronized String findProjectsLabel() {
-		for(IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
+		for (IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
 			return info.getAttribute(AbstractXMLReader.PROJECTS);
 		}
 		return null;
 	}
-	
+
 	public synchronized boolean isEmpty() {
 		return dropInfo.isEmpty();
 	}
@@ -114,9 +114,9 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	public synchronized Collection<? extends IDropInfo> getRawInfo() {
 		return dropInfo;
 	}
-	
+
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
-		for (Info i : dropInfo) {
+		for (IDropInfo i : dropInfo) {
 			if (i.isInstance(type)) {
 				return true;
 			}
@@ -130,7 +130,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 		if (useInfo) {
 			if (!dropInfo.isEmpty()) {
 				final Set<T> result = new HashSet<T>();
-				for (Info i : dropInfo) {
+				for (IDropInfo i : dropInfo) {
 					if (i.isInstance(dropType)) {
 						result.add((T) i);
 					}

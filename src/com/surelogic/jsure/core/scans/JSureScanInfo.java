@@ -1,18 +1,21 @@
 package com.surelogic.jsure.core.scans;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
-import com.surelogic.javac.persistence.*;
+import com.surelogic.javac.persistence.JSureScan;
 
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 /**
  * Manages the project information, the loading of drop information and other
@@ -24,7 +27,7 @@ public class JSureScanInfo {
 	 */
 	private static final boolean skipLoading = false;
 
-	private Collection<Info> f_dropInfo = null;
+	private List<IDropInfo> f_dropInfo = null;
 
 	private final JSureScan f_run; // non-null
 
@@ -51,7 +54,7 @@ public class JSureScanInfo {
 		return null;
 	}
 
-	private Collection<Info> loadInfo() {
+	private List<IDropInfo> loadOrGetDropInfo() {
 		if (f_dropInfo != null) {
 			return f_dropInfo;
 		}
@@ -82,15 +85,15 @@ public class JSureScanInfo {
 	}
 
 	public synchronized boolean isEmpty() {
-		return loadInfo().isEmpty();
+		return loadOrGetDropInfo().isEmpty();
 	}
 
-	public synchronized Collection<? extends IDropInfo> getRawInfo() {
-		return loadInfo();
+	public synchronized List<IDropInfo> getDropInfo() {
+		return loadOrGetDropInfo();
 	}
 
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
-		for (Info i : loadInfo()) {
+		for (IDropInfo i : loadOrGetDropInfo()) {
 			if (i.isInstance(type)) {
 				return true;
 			}
@@ -101,10 +104,10 @@ public class JSureScanInfo {
 	@SuppressWarnings("unchecked")
 	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(
 			Class<T2> dropType) {
-		Collection<Info> info = loadInfo();
+		List<IDropInfo> info = loadOrGetDropInfo();
 		if (!info.isEmpty()) {
 			final Set<T> result = new HashSet<T>();
-			for (Info i : info) {
+			for (IDropInfo i : info) {
 				if (i.isInstance(dropType)) {
 					result.add((T) i);
 				}
