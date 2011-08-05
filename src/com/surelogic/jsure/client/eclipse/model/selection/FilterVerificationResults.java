@@ -77,8 +77,13 @@ public final class FilterVerificationResults extends Filter {
 	}
 
 	@Override
-	protected void refreshCountsAndPorousDrops(
-			List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
 		// TODO Auto-generated method stub
 
 	}

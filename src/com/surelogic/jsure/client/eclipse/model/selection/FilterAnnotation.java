@@ -8,6 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.Sea;
 
 public final class FilterAnnotation extends Filter {
 
@@ -42,8 +43,17 @@ public final class FilterAnnotation extends Filter {
 	}
 
 	@Override
-	protected void refreshCountsAndPorousDrops(
-			List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
+		for (IProofDropInfo d : incomingResults) {
+			String annotationName = Sea.getAnnotationName(d);
+			if (annotationName != null) {
+
+			}
+		}
+	}
+
+	@Override
+	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
 		// TODO Auto-generated method stub
 
 	}

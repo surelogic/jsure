@@ -370,6 +370,7 @@ public abstract class Filter {
 				f_porousValues.add(value);
 			else
 				f_porousValues.remove(value);
+			refreshPorousDrops(getPreviousPorusDrops());
 		}
 		notifyFilterChanged();
 		/*
@@ -395,6 +396,7 @@ public abstract class Filter {
 
 			f_porousValues.clear();
 			f_porousValues.addAll(f_allValues);
+			refreshPorousDrops(getPreviousPorusDrops());
 		}
 		notifyFilterChanged();
 		/*
@@ -417,6 +419,7 @@ public abstract class Filter {
 			if (f_porousValues.isEmpty())
 				return;
 			f_porousValues.clear();
+			refreshPorousDrops(getPreviousPorusDrops());
 		}
 		notifyFilterChanged();
 		/*
@@ -512,7 +515,7 @@ public abstract class Filter {
 	void refresh() {
 		final List<IProofDropInfo> incomingResults = getPreviousPorusDrops();
 		synchronized (this) {
-			refreshCountsAndPorousDrops(incomingResults);
+			refreshCounts(incomingResults);
 			deriveAllValues();
 			filterAllValues();
 			fixupPorousValues();
@@ -546,20 +549,17 @@ public abstract class Filter {
 
 	/**
 	 * This method must use the passed incoming scan results to refresh the
-	 * counts and the the list of results this filter allows through it.
+	 * counts.
 	 * <p>
 	 * The contents of {@link #f_counts} and {@link #f_countTotal} need to be
-	 * updated to refresh the counts. The contents of {@link #f_porousDrops}
-	 * needs to be updated to refresh the list of results that this filter
-	 * allows through it.
+	 * updated to refresh the counts.
 	 * <p>
 	 * Any caller must be holding a lock on <code>this</code>.
 	 * 
 	 * @param incomingResults
 	 *            the list of scan results coming through the previous filter.
 	 */
-	protected abstract void refreshCountsAndPorousDrops(
-			List<IProofDropInfo> incomingResults);
+	protected abstract void refreshCounts(List<IProofDropInfo> incomingResults);
 
 	/**
 	 * May need to be overridden if the set of values includes values not able
@@ -621,4 +621,19 @@ public abstract class Filter {
 		 * in a manner where we are not suspectable to deadlock.
 		 */
 	}
+
+	/**
+	 * This method must use the passed incoming scan results to refresh the list
+	 * of results that this filter allows through it.
+	 * <p>
+	 * The contents of {@link #f_porousDrops} needs to be updated to refresh the
+	 * list of results that this filter allows through it.
+	 * <p>
+	 * Any caller must be holding a lock on <code>this</code>.
+	 * 
+	 * @param incomingResults
+	 *            the list of scan results coming through the previous filter.
+	 */
+	protected abstract void refreshPorousDrops(
+			List<IProofDropInfo> incomingResults);
 }

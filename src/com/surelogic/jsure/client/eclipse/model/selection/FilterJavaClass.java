@@ -26,7 +26,8 @@ public final class FilterJavaClass extends Filter {
 		}
 	};
 
-	private FilterJavaClass(Selection selection, Filter previous, String filterLabel) {
+	private FilterJavaClass(Selection selection, Filter previous,
+			String filterLabel) {
 		super(selection, previous, filterLabel);
 	}
 
@@ -41,8 +42,14 @@ public final class FilterJavaClass extends Filter {
 	}
 
 	@Override
-	protected void refreshCountsAndPorousDrops(
-			List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
 		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
+		// TODO Auto-generated method stub
+
 	}
 }

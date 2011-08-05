@@ -402,18 +402,17 @@ public final class Selection implements
 				monitor.begin();
 				try {
 					/*
-					 * Refreshes the data in the changed filter and all the
-					 * filter after that one.
+					 * Refreshes the data in each filter after the changed one.
 					 */
 					boolean needsRefresh = false;
 					synchronized (Selection.this) {
 						for (Filter filter : f_filters) {
+							if (needsRefresh)
+								filter.refresh();
 							if (!needsRefresh) {
 								if (filter == changedFilter)
 									needsRefresh = true;
 							}
-							if (needsRefresh)
-								filter.refresh();
 						}
 					}
 					notifySelectionChanged();
