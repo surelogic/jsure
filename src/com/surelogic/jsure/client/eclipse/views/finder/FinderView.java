@@ -11,6 +11,8 @@ import com.surelogic.common.ui.SLImages;
 
 public final class FinderView extends ViewPart {
 
+	private FinderMediator f_mediator = null;
+
 	@Override
 	public void createPartControl(Composite parent) {
 
@@ -35,6 +37,21 @@ public final class FinderView extends ViewPart {
 				return menu.getPanel();
 			}
 		}, false);
+
+		f_mediator = new FinderMediator(finder);
+		f_mediator.init();
+	}
+
+	@Override
+	public void dispose() {
+		try {
+			if (f_mediator != null) {
+				f_mediator.dispose();
+				f_mediator = null;
+			}
+		} finally {
+			super.dispose();
+		}
 	}
 
 	@Override
