@@ -425,6 +425,30 @@ public final class Sea {
 	}
 
 	/**
+	 * Gets the annotation name for the passed promise drop information. Returns
+	 * {@code null} if the drop information passed is not about a promise drop
+	 * or the annotation name cannot be determined.
+	 * <p>
+	 * <i>Implementation Note:</i> This uses the type name so that
+	 * <tt>StartsPromiseDrop</tt> would return <tt>Starts</tt>.
+	 * 
+	 * @param promiseDropInfo
+	 *            the promise drop information.
+	 * @return the annotation name or {@code null}.
+	 */
+	public static String getAnnotationName(IProofDropInfo promiseDropInfo) {
+		final String suffix = "PromiseDrop";
+		if (!promiseDropInfo.isInstance(PromiseDrop.class))
+			return null;
+		final String result = promiseDropInfo.getType();
+		if (result == null)
+			return null;
+		if (!result.endsWith(suffix))
+			return null;
+		return result.substring(0, result.length() - suffix.length());
+	}
+
+	/**
 	 * Registers an observer interested in status changes to drops of a specific
 	 * type and any of its subtypes.
 	 * <p>
@@ -627,10 +651,8 @@ public final class Sea {
 				rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
 			} else {
-				LOG
-						.log(
-								Level.SEVERE,
-								"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+				LOG.log(Level.SEVERE,
+						"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
 			}
 			worklist.add(d);
 		}
@@ -656,8 +678,8 @@ public final class Sea {
 					// examine dependent analysis results and dependent promises
 					Set<? extends ResultDrop> tpd = pd.getCheckedBy();
 
-					Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(tpd
-							.size());
+					Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(
+							tpd.size());
 					for (ProofDrop t : tpd) {
 						proofDrops.add(t);
 					}
@@ -753,10 +775,8 @@ public final class Sea {
 						rd.or_proofUsesRedDot = overall_or_UsesRedDot;
 					}
 				} else {
-					LOG
-							.log(
-									Level.SEVERE,
-									"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+					LOG.log(Level.SEVERE,
+							"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
 				}
 
 				// only add to worklist if something changed about the result
