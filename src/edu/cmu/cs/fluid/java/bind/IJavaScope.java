@@ -249,11 +249,19 @@ public interface IJavaScope {
       return scope.lookup(name,useSite,isReturnValue);
     }
     
+    public static final Selector couldBeNonTypeName = new AbstractSelector("Could bind to a name (not a type)") {
+        public boolean select(IRNode node) {
+          Operator op = JJNode.tree.getOperator(node);
+          return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
+                 !(op instanceof LabeledStatement) && !TypeDeclaration.prototype.includes(op);
+        }      
+      };
+    
     public static final Selector couldBeName = new AbstractSelector("Could bind to a name") {
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
-               !(op instanceof LabeledStatement) && !TypeDeclaration.prototype.includes(op);
+               !(op instanceof LabeledStatement);
       }      
     };
     public static IBinding lookupName(IJavaScope scope, String name, IRNode useSite) {
