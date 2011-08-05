@@ -6,9 +6,9 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
-public final class ReadOnlyPromiseDrop extends BooleanPromiseDrop<ReadonlyNode> 
+public final class ReadOnlyPromiseDrop extends BooleanPromiseDrop<ReadnlyNode> 
 implements MaybeTopLevel {  
-  public ReadOnlyPromiseDrop(ReadonlyNode n) {
+  public ReadOnlyPromiseDrop(ReadnlyNode n) {
     super(n);
     setCategory(JavaGlobals.UNIQUENESS_CAT);
   }

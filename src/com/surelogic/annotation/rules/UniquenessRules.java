@@ -195,24 +195,24 @@ public class UniquenessRules extends AnnotationRules {
 	  }
   }
   
-  public static class Readonly_ParseRule extends AbstractParseRule<ReadonlyNode, ReadOnlyPromiseDrop> {
+  public static class Readonly_ParseRule extends AbstractParseRule<ReadnlyNode, ReadOnlyPromiseDrop> {
 	public Readonly_ParseRule() {
-		super(READONLY, fieldMethodParamDeclOps, ReadonlyNode.class);
+		super(READONLY, fieldMethodParamDeclOps, ReadnlyNode.class);
 	}
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ReadonlyNode(offset);
+      return new ReadnlyNode(offset);
     }
     @Override
     protected IPromiseDropStorage<ReadOnlyPromiseDrop> makeStorage() {
       return BooleanPromiseDropStorage.create(name(), ReadOnlyPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ReadonlyNode> makeScrubber() {
+    protected IAnnotationScrubber<ReadnlyNode> makeScrubber() {
     	// TODO scrub
-    	return new AbstractAASTScrubber<ReadonlyNode, ReadOnlyPromiseDrop>(this) {
+    	return new AbstractAASTScrubber<ReadnlyNode, ReadOnlyPromiseDrop>(this) {
 			@Override
-			protected ReadOnlyPromiseDrop makePromiseDrop(ReadonlyNode n) {
+			protected ReadOnlyPromiseDrop makePromiseDrop(ReadnlyNode n) {
 				return storeDropIfNotNull(n, new ReadOnlyPromiseDrop(n));
 			}    		
     	};

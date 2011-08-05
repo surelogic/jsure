@@ -145,5 +145,5 @@ public interface INodeVisitor<T> {
 	T visit(VouchFieldIsNode node);
 	T visit(UtilityNode utilityNode);
 	T visit(ImmutableRefNode immutableRefNode);
-	T visit(ReadonlyNode readonlyNode);
+	T visit(ReadnlyNode readonlyNode);
 }

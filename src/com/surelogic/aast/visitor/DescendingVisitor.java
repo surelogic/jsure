@@ -760,7 +760,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  public T visit(ReadonlyNode readonlyNode) {
+  public T visit(ReadnlyNode readonlyNode) {
 	  // TODO Auto-generated method stub
 	  return defaultValue;
   }
