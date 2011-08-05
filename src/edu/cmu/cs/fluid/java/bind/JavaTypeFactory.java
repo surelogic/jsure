@@ -456,46 +456,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
     		  bounds.add(bt);
     	  }
-    	  if (bounds.size() == 1) {
-    		  // No need to compare, since there's only one
-    		  result = bounds.get(0);
-    	  } else {
-    		  // Remove supertypes of other types in the set
-    		  final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds);
-    		  for (IJavaReferenceType bt : bounds) {
-    			  for(IJavaReferenceType possibleSub : reduced) {
-    				  if (!bt.equals(possibleSub) && possibleSub.isSubtype(binder.getTypeEnvironment(), bt)) {
-    					  // Since this is a greatest lower bound, possibleSub subsumes bt
-    					  reduced.remove(bt);
-    					  break;
-    				  }
-    			  }
-    		  }    		  
-    		  // order the bounds
-    		  final List<IJavaReferenceType> ordered = new ArrayList<IJavaReferenceType>(reduced);
-    		  Collections.sort(ordered, new Comparator<IJavaReferenceType>() {
-				public int compare(IJavaReferenceType t1, IJavaReferenceType t2) {
-					// TODO is there something better?
-					return t1.toString().compareTo(t2.toString());
-				}    			  
-    		  });
-    		  //System.out.println(bounds+" -> "+ordered);
-    		  for(IJavaReferenceType bt : ordered) {
-    			  if (result == null) {
-    				  result = bt;
-    				  /*
-    		  } else if (result.isSubtype(binder.getTypeEnvironment(), bt)) {
-    			  // Nothing to do, since result subsumes bt
-    		  } else if (bt.isSubtype(binder.getTypeEnvironment(), result)) {
-    			  // bt is more specific than result
-    			  result = bt;
-    				   */
-    			  } else {
-    				  // No relationship between result and bt already
-    				  result = JavaTypeFactory.getIntersectionType(result, bt);
-    			  }    	
-    		  }
-    	  }
+    	  return new TypeUtils(binder.getTypeEnvironment()).getGreatestLowerBound(bounds.toArray(new IJavaReferenceType[bounds.size()]));
       }
       if (result == null) {
         return binder.getTypeEnvironment().getObjectType();

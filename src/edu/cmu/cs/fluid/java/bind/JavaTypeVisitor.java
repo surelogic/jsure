@@ -249,6 +249,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IJavaType base    = doAccept( ClassExpression.getType(node) );
     IRNode nodeType   = binder.getTypeEnvironment().findNamedType("java.lang.Class");
     List<IJavaType> p = new ArrayList<IJavaType>(1);
+    /*
+    if (base instanceof IJavaPrimitiveType) {
+    	base = JavaTypeFactory.getCorrespondingDeclType(binder.getTypeEnvironment(), (IJavaPrimitiveType) base);
+    }
+    */
     p.add(base);
     return JavaTypeFactory.getDeclaredType(nodeType, p, null);
   }
@@ -825,7 +830,20 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
       return compareIJavaArrayType( type1, type2 );
     //}else if( ( type1 instanceof IJavaDeclaredType ) && ( type2 instanceof IJavaDeclaredType ) ) {
     }else {
-      return getLowestUpperBound(type1, type2);
+      final IJavaType lub1 = getLowestUpperBound(type1, type2);
+      TypeUtils helper = new TypeUtils(binder.getTypeEnvironment());
+      IJavaReferenceType lub2 = helper.getLowestUpperBound((IJavaReferenceType) type1, (IJavaReferenceType) type2);
+      if (!binder.getTypeEnvironment().isSubType(lub2, lub1)) {
+    	  String unparse = lub2.toString();
+    	  if (!"java.lang.Class<?>".equals(unparse)) {
+        	  try {
+        		  System.out.println("LUB not the same: "+lub2);
+        	  } catch(StackOverflowError e) {
+        		  System.out.println("LUB not the same as orig: "+lub1);
+        	  }  
+    	  }
+      } // otherwise it's ok, since lub2 subsumes lub1
+      return lub2;
     }
   } 
   
@@ -836,6 +854,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	    }
 	    return ty;
 	  }
+  
+
   
   private IJavaType getLowestUpperBound(IJavaType t1, IJavaType t2) {
     if (binder.getTypeEnvironment().isSubType(t2, t1)) {
