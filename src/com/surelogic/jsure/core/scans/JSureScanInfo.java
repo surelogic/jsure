@@ -1,6 +1,7 @@
 package com.surelogic.jsure.core.scans;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -115,6 +117,17 @@ public class JSureScanInfo {
 			return result;
 		}
 		return Collections.emptySet();
+	}
+
+	public synchronized List<IProofDropInfo> getProofDropInfo() {
+		final List<IProofDropInfo> result = new ArrayList<IProofDropInfo>();
+		for (IDropInfo i : loadOrGetDropInfo()) {
+			if (i instanceof IProofDropInfo) {
+				final IProofDropInfo ipd = (IProofDropInfo) i;
+				result.add(ipd);
+			}
+		}
+		return result;
 	}
 
 	public synchronized String findProjectsLabel() {
