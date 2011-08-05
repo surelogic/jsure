@@ -482,7 +482,7 @@ public abstract class Filter {
 		return getResultCountPorous() > 0;
 	}
 
-	private final List<IProofDropInfo> f_porousDrops = new ArrayList<IProofDropInfo>();
+	protected final List<IProofDropInfo> f_porousDrops = new ArrayList<IProofDropInfo>();
 
 	/**
 	 * Gets a copy of the list of results that this filter allows through it.

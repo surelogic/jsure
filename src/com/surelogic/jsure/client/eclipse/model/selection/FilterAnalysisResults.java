@@ -8,6 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class FilterAnalysisResults extends Filter {
 
@@ -69,13 +70,48 @@ public final class FilterAnalysisResults extends Filter {
 
 	@Override
 	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
-		// TODO Auto-generated method stub
-
+		f_counts.clear();
+		int runningTotal = 0;
+		for (IProofDropInfo d : incomingResults) {
+			final String value = getFilterValueOrNull(d);
+			if (value != null) {
+				Integer count = f_counts.get(value);
+				if (count == null) {
+					f_counts.put(value, 1);
+				} else {
+					f_counts.put(value, count + 1);
+				}
+				runningTotal++;
+			}
+		}
+		f_countTotal = runningTotal;
 	}
 
 	@Override
 	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
-		// TODO Auto-generated method stub
+		f_porousDrops.clear();
+		for (IProofDropInfo d : incomingResults) {
+			final String value = getFilterValueOrNull(d);
+			if (value != null) {
+				if (f_porousValues.contains(value))
+					f_porousDrops.add(d);
+			}
+		}
+	}
 
+	private String getFilterValueOrNull(IProofDropInfo d) {
+		if (d.isInstance(ResultDrop.class)) {
+			final String value;
+			if (d.isVouched())
+				value = VOUCHED;
+			else if (d.isTimeout())
+				value = TIMEOUT;
+			else if (d.isConsistent())
+				value = CONSISTENT;
+			else
+				value = INCONSISTENT;
+			return value;
+		}
+		return null;
 	}
 }
