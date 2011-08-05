@@ -24,15 +24,4 @@ public interface IFilterObserver {
 	 *            a filter.
 	 */
 	void filterDisposed(Filter filter);
-
-	/**
-	 * Indicates that the query of findings that enter the passed filter failed
-	 * due to a database problem.
-	 * 
-	 * @param filter
-	 *            a filter.
-	 * @param e
-	 *            details about what went wrong.
-	 */
-	void filterQueryFailure(Filter filter, Exception e);
 }

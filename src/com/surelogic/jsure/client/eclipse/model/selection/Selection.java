@@ -67,7 +67,7 @@ public final class Selection implements
 	public Selection(Selection source) {
 		synchronized (source) {
 			f_manager = source.f_manager;
-			f_showingFindings = source.f_showingFindings;
+			f_showingResults = source.f_showingResults;
 
 			Filter prev = null;
 			for (Filter f : source.f_filters) {
@@ -79,9 +79,10 @@ public final class Selection implements
 	}
 
 	/**
-	 * This just connects this filter to the database. Making it reflect changes
-	 * to the database. Ensure that {@link #dispose()} is called to disconnect
-	 * this selection from the database when the selection is no longer used.
+	 * This just connects this filter to the {@link JSureDataDirHub}. Making it
+	 * reflect changes to the current scan. Ensure that {@link #dispose()} is
+	 * called to disconnect this selection from the {@link JSureDataDirHub} when
+	 * the selection is no longer used.
 	 */
 	public void initAndSyncToSea() {
 		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
@@ -89,7 +90,37 @@ public final class Selection implements
 
 	@Override
 	public void currentScanChanged(JSureScan scan) {
-		seaChanged();
+		/*
+		 * The user has changed to a new JSure scan. Refresh this selection if
+		 * it has any filters.
+		 */
+		final SLJob job = new AbstractSLJob(
+				"Selection changing to a different JSure scan") {
+
+			@Override
+			public SLStatus run(SLProgressMonitor monitor) {
+				monitor.begin();
+				try {
+					/**
+					 * Refresh all the filters to the new scan's data.
+					 */
+					synchronized (Selection.this) {
+						for (Filter filter : f_filters) {
+							filter.refresh();
+						}
+					}
+					notifySelectionChanged();
+				} catch (Exception e) {
+					final int errNo = 234;
+					final String msg = I18N.err(errNo);
+					return SLStatus.createErrorStatus(errNo, msg, e);
+				} finally {
+					monitor.done();
+				}
+				return SLStatus.OK_STATUS;
+			}
+		};
+		EclipseJob.getInstance().schedule(job, false, true);
 	}
 
 	public void dispose() {
@@ -136,7 +167,9 @@ public final class Selection implements
 	 *         this selection, <code>false</code> otherwise.
 	 */
 	public boolean isFirstFilter(Filter filter) {
-		return f_filters.getFirst() == filter;
+		synchronized (this) {
+			return f_filters.getFirst() == filter;
+		}
 	}
 
 	/**
@@ -148,7 +181,9 @@ public final class Selection implements
 	 *         selection, <code>false</code> otherwise.
 	 */
 	public boolean isLastFilter(Filter filter) {
-		return f_filters.getLast() == filter;
+		synchronized (this) {
+			return f_filters.getLast() == filter;
+		}
 	}
 
 	/**
@@ -228,33 +263,33 @@ public final class Selection implements
 	}
 
 	/**
-	 * Indicates if this selection should show the list of findings selected.
+	 * Indicates if this selection should show the list of results selected.
 	 */
-	private boolean f_showingFindings = false;
+	private boolean f_showingResults = false;
 
 	/**
-	 * Indicates if this selection shows the list of findings in the UI.
+	 * Indicates if this selection shows the list of results in the UI.
 	 * 
 	 * @return <code>true</code> if this selection should show the list of
-	 *         findings, <code>false<code> if it should not.
+	 *         results, <code>false<code> if it should not.
 	 */
-	public boolean isShowingFindings() {
+	public boolean isShowingResults() {
 		synchronized (this) {
-			return f_showingFindings;
+			return f_showingResults;
 		}
 	}
 
 	/**
 	 * Sets the status of this selection with regard to showing the list of
-	 * findings.
+	 * results.
 	 * 
 	 * @param value
 	 *            <code>true</code> if this selection should show the list of
-	 *            findings, <code>false<code> if it should not.
+	 *            results, <code>false<code> if it should not.
 	 */
-	public void setShowingFindings(boolean value) {
+	public void setShowingResults(boolean value) {
 		synchronized (this) {
-			f_showingFindings = value;
+			f_showingResults = value;
 		}
 	}
 
@@ -308,16 +343,16 @@ public final class Selection implements
 	}
 
 	/**
-	 * The count of findings that this selection, based upon what its filters
+	 * The count of results that this selection, based upon what its filters
 	 * have set to be porous, will allow through.
 	 * 
-	 * @return count of findings that this selection, based upon what its
-	 *         filters have set to be porous, will allow through.
+	 * @return count of results that this selection, based upon what its filters
+	 *         have set to be porous, will allow through.
 	 */
-	public int getFindingCountPorous() {
+	public int getResultCountPorous() {
 		synchronized (this) {
 			if (!f_filters.isEmpty()) {
-				return f_filters.getLast().getFindingCountPorous();
+				return f_filters.getLast().getResultCountPorous();
 			} else {
 				return 0;
 			}
@@ -325,46 +360,13 @@ public final class Selection implements
 	}
 
 	/**
-	 * Adds the correct <code>from</code> and <code>where</code> clause to make
-	 * a query get the set of findings defined by this selection from the
-	 * <code>FINDINGS_OVERVIEW</code> table.
+	 * Indicates if this selection allows any possible results through it.
 	 * 
-	 * @param b
-	 *            the string to mutate.
-	 */
-	public String getWhereClause() {
-		final StringBuilder b = new StringBuilder();
-		synchronized (this) {
-			if (!f_filters.isEmpty()) {
-				final Filter last = f_filters.getLast();
-				synchronized (last) {
-					b.append(last.getWhereClause(true));
-				}
-			}
-		}
-		return b.toString();
-	}
-
-	public boolean usesJoin() {
-		synchronized (this) {
-			if (!f_filters.isEmpty()) {
-				final Filter last = f_filters.getLast();
-				synchronized (last) {
-					return last.usesJoin();
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Indicates if this selection allows any possible findings through it.
-	 * 
-	 * @return <code>true</code> if the selection allows findings through it,
+	 * @return <code>true</code> if the selection allows results through it,
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean isPorous() {
-		return getFindingCountPorous() > 0;
+		return getResultCountPorous() > 0;
 	}
 
 	private final Set<ISelectionObserver> f_observers = new CopyOnWriteArraySet<ISelectionObserver>();
@@ -372,16 +374,10 @@ public final class Selection implements
 	public void addObserver(ISelectionObserver o) {
 		if (o == null)
 			return;
-		/*
-		 * No lock needed because we are using a util.concurrent collection.
-		 */
 		f_observers.add(o);
 	}
 
 	public void removeObserver(ISelectionObserver o) {
-		/*
-		 * No lock needed because we are using a util.concurrent collection.
-		 */
 		f_observers.remove(o);
 	}
 
@@ -394,44 +390,9 @@ public final class Selection implements
 			o.selectionChanged(this);
 	}
 
-	public void seaChanged() {
-		/*
-		 * The Sea has changed to a new JSure scan. Refresh this selection if it
-		 * has any filters.
-		 */
-		final SLJob job = new AbstractSLJob(
-				"Selection chaing to a different JSure scan") {
-
-			@Override
-			public SLStatus run(SLProgressMonitor monitor) {
-				monitor.begin();
-				try {
-					refreshFiltersSeaJob();
-				} catch (Exception e) {
-					final int errNo = 234;
-					final String msg = I18N.err(errNo);
-					return SLStatus.createErrorStatus(errNo, msg, e);
-				} finally {
-					monitor.done();
-				}
-				return SLStatus.OK_STATUS;
-			}
-		};
-		EclipseJob.getInstance().schedule(job, false, true);
-	}
-
-	private void refreshFiltersSeaJob() {
-		synchronized (this) {
-			for (Filter filter : f_filters) {
-				filter.refresh();
-			}
-		}
-	}
-
 	/**
-	 * Invoked by a filter when the amount of findings allowed through the
-	 * filter changed. This would be a change that occurred in the user
-	 * interface.
+	 * Invoked by a filter when the amount of results allowed through the filter
+	 * changed. This would be a change that occurred in the user interface.
 	 * <p>
 	 * This method must never be called during a refresh or an infinite loop of
 	 * refreshes could occur.
@@ -446,7 +407,21 @@ public final class Selection implements
 			public SLStatus run(SLProgressMonitor monitor) {
 				monitor.begin();
 				try {
-					refreshFiltersAfter(changedFilter);
+					/*
+					 * Refreshes the data in the changed filter and all the
+					 * filter after that one.
+					 */
+					boolean needsRefresh = false;
+					synchronized (Selection.this) {
+						for (Filter filter : f_filters) {
+							if (!needsRefresh) {
+								if (filter == changedFilter)
+									needsRefresh = true;
+							}
+							if (needsRefresh)
+								filter.refresh();
+						}
+					}
 					notifySelectionChanged();
 				} catch (Exception e) {
 					final int errNo = 234;
@@ -459,38 +434,6 @@ public final class Selection implements
 			}
 		};
 		EclipseJob.getInstance().schedule(job, false, true);
-	}
-
-	/**
-	 * Refreshes the data within all the filters after the passed filter.
-	 * <p>
-	 * Queries the database.
-	 * <p>
-	 * Blocks until all the queries are completed.
-	 */
-	private void refreshFiltersAfter(Filter changedFilter) {
-		/*
-		 * Create a work list of all the filters in this selection after the one
-		 * that just changed.
-		 */
-		LinkedList<Filter> workList = new LinkedList<Filter>();
-		boolean add = false;
-		synchronized (this) {
-			for (Filter filter : f_filters) {
-				if (add) {
-					workList.addLast(filter);
-				} else {
-					if (filter == changedFilter)
-						add = true;
-				}
-			}
-			/*
-			 * Do an update if the work list is not empty.
-			 */
-			for (Filter filter : workList) {
-				filter.refresh();
-			}
-		}
 	}
 
 	@Override

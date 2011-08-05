@@ -1,7 +1,5 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
-import java.util.Set;
-
 public interface ISelectionFilterFactory extends
 		Comparable<ISelectionFilterFactory> {
 
@@ -25,12 +23,4 @@ public interface ISelectionFilterFactory extends
 	 * @return the user interface label for this filter.
 	 */
 	String getFilterLabel();
-	
-	/**
-	 * Add a where clause if the filter is unused
-	 * @param usesJoin 
-	 * @return an updated value of first
-	 */
-	boolean addWhereClauseIfUnusedFilter(Set<ISelectionFilterFactory> unused,
-			                             StringBuilder b, boolean first, boolean usesJoin);
 }
