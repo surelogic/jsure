@@ -5,17 +5,17 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class ReadnlyNode extends AbstractBooleanNode 
+public class ReadOnlyNode extends AbstractBooleanNode 
 { 
   public static final AbstractAASTNodeFactory factory = new Factory("ReadOnly") {   
     @Override
     public AASTNode create(int _start) {
-      return new ReadnlyNode (_start);
+      return new ReadOnlyNode (_start);
     }
   };
 
   // Constructors
-  public ReadnlyNode(int offset) {
+  public ReadOnlyNode(int offset) {
     super(offset);
   }
 
@@ -31,7 +31,7 @@ public class ReadnlyNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ReadnlyNode(offset);
+  	return new ReadOnlyNode(offset);
   }
 }
 
