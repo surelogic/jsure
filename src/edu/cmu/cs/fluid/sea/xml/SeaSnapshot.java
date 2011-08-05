@@ -223,7 +223,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		d.isFromSrc();
 	}
 	*/
-	public static Collection<Info> loadSnapshot(File location) throws Exception {
+	public static List<IDropInfo> loadSnapshot(File location) throws Exception {
 		XMLListener l = new XMLListener();
 		new JSureXMLReader(l).read(location);
 		return l.getEntities();
@@ -232,8 +232,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	static class XMLListener extends AbstractXMLResultListener {
 		private final List<Info> entities = new ArrayList<Info>();
 		
-		Collection<Info> getEntities() {
-			List<Info> rv = new ArrayList<Info>();
+		List<IDropInfo> getEntities() {
+			List<IDropInfo> rv = new ArrayList<IDropInfo>();
 			for(Info i : entities) {
 				if (i != null) {
 					rv.add(i);
