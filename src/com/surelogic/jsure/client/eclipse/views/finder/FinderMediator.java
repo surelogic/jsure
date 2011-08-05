@@ -1,29 +1,50 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
-import java.util.List;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ToolItem;
 
 import com.surelogic.common.ILifecycle;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
 
 public final class FinderMediator implements ILifecycle,
-		JSureDataDirHub.CurrentScanChangeListener {
+		JSureDataDirHub.CurrentScanChangeListener,
+		CascadingList.ICascadingListObserver {
 
+	private final Composite f_parent;
 	private final CascadingList f_finder;
+	private final Link f_breadcrumbs;
+	private final ToolItem f_clearSelectionItem;
 
-	FinderMediator(CascadingList finder) {
+	FinderMediator(Composite parent, CascadingList finder, Link breadcrumbs,
+			ToolItem clearSelectionItem) {
+		f_parent = parent;
 		f_finder = finder;
+		f_breadcrumbs = breadcrumbs;
+		f_clearSelectionItem = clearSelectionItem;
 	}
 
 	@Override
 	public void init() {
-		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+		f_clearSelectionItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				clearToNewWorkingSelection();
+			}
+		});
 
+		f_breadcrumbs.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				final int column = Integer.parseInt(event.text);
+				f_finder.show(column);
+			}
+		});
+
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
@@ -31,33 +52,27 @@ public final class FinderMediator implements ILifecycle,
 		JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 	}
 
+	void setFocus() {
+		f_finder.setFocus();
+	}
+
 	@Override
 	public void currentScanChanged(JSureScan scan) {
-		JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
-				.getCurrentScanInfo();
-
-		List<IProofDropInfo> proofDrops = scanInfo.getProofDropInfo();
-
-		System.out.println("- - - - - - - - - - - - - - - - - -- ");
-		for (IProofDropInfo d : proofDrops) {
-			System.out.println("DROP:");
-			System.out.println(" getEntityName()=" + d.getEntityName());
-			System.out.println(" getMessage()=: " + d.getMessage());
-			System.out.println(" getType()=" + d.getType());
-			ISrcRef sr = d.getSrcRef();
-			if (sr == null) {
-				System.out.println("  NO SOURCE REFERENCE");
-			} else {
-				System.out.println("  sr.getProject()=" + sr.getProject());
-				System.out.println("  sr.getPackage()=" + sr.getPackage());
-				System.out.println("  sr.getCUName()=" + sr.getCUName());
-			}
-			System.out
-					.println(" getprovedConsistent()=" + d.provedConsistent());
-			System.out.println(" proofUsesRedDot()=" + d.proofUsesRedDot());
-			System.out.println(" isTimeout()=" + d.isTimeout());
-
-		}
-		System.out.println("- - - - - - - - - - - - - - - - - -- ");
+		// TODO
 	}
+
+	@Override
+	public void notify(CascadingList cascadingList) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void clearToNewWorkingSelection() {
+		// TODO
+	}
+
+	private void updateBreadcrumbs() {
+		// TODO
+	}
+
 }
