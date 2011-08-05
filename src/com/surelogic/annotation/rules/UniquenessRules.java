@@ -112,7 +112,7 @@ public class UniquenessRules extends AnnotationRules {
 	  return getReadOnly(vdecl) != null;
   }
   
-  public static ReadnlyPromiseDrop getReadOnly(IRNode vdecl) {
+  public static ReadOnlyPromiseDrop getReadOnly(IRNode vdecl) {
 	  return getBooleanDrop(readonlyRule.getStorage(), vdecl);
   }
   
@@ -195,7 +195,7 @@ public class UniquenessRules extends AnnotationRules {
 	  }
   }
   
-  public static class Readonly_ParseRule extends AbstractParseRule<ReadonlyNode, ReadnlyPromiseDrop> {
+  public static class Readonly_ParseRule extends AbstractParseRule<ReadonlyNode, ReadOnlyPromiseDrop> {
 	public Readonly_ParseRule() {
 		super(READONLY, fieldMethodParamDeclOps, ReadonlyNode.class);
 	}
@@ -204,16 +204,16 @@ public class UniquenessRules extends AnnotationRules {
       return new ReadonlyNode(offset);
     }
     @Override
-    protected IPromiseDropStorage<ReadnlyPromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), ReadnlyPromiseDrop.class);
+    protected IPromiseDropStorage<ReadOnlyPromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), ReadOnlyPromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<ReadonlyNode> makeScrubber() {
     	// TODO scrub
-    	return new AbstractAASTScrubber<ReadonlyNode, ReadnlyPromiseDrop>(this) {
+    	return new AbstractAASTScrubber<ReadonlyNode, ReadOnlyPromiseDrop>(this) {
 			@Override
-			protected ReadnlyPromiseDrop makePromiseDrop(ReadonlyNode n) {
-				return storeDropIfNotNull(n, new ReadnlyPromiseDrop(n));
+			protected ReadOnlyPromiseDrop makePromiseDrop(ReadonlyNode n) {
+				return storeDropIfNotNull(n, new ReadOnlyPromiseDrop(n));
 			}    		
     	};
     }
