@@ -618,6 +618,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return JJNode.tree.numChildren(node);
   }
   
+  enum NameContext {
+	  TYPE(IJavaScope.Util.isPkgTypeDecl), 
+	  NOT_TYPE(IJavaScope.Util.couldBeNonTypeName), 
+	  EITHER(IJavaScope.Util.couldBeName);
+	  
+	  final Selector selector;
+	  
+	  NameContext(Selector s) {
+		  selector = s;
+	  }
+  }
+  
   /**
    * The actual work of binding and maintaining scopes.
    * This code has extra machinery in it too handle granules and incrementality.
@@ -2117,11 +2129,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.severe("scope is null for " + DebugUnparser.toString(node));
         return null;
       }
-      boolean isType  = isNameType(node); // or Expression
-      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.couldBeName;
-      boolean success = bind(node,scope,select);
+      NameContext context = computeNameContext(node);
+      boolean success = bind(node,scope,context.selector);
       if (!success) {
-    	  bind(node,scope,select);
+    	  bind(node,scope,context.selector);
       }
       return null;
     }
@@ -2320,16 +2331,36 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return null;
     }
 
-    private boolean isNameType(final IRNode node) {
+    /**
+     * Figure what this name could be
+     */
+    private NameContext computeNameContext(final IRNode node) {
     	IRNode here = node;
+    	boolean checkNext = false;
+    	boolean partOfQualifiedName = false;
+    	
     	while (here != null) {
     		IRNode parent = JJNode.tree.getParentOrNull(here);
     		Operator pop  = JJNode.tree.getOperator(parent);
+    		
+    		if (checkNext) {
+    			if (MethodCall.prototype.includes(pop) || FieldRef.prototype.includes(pop)) {
+    				return NameContext.EITHER;
+    			}    				
+    			return NameContext.NOT_TYPE;
+    		}
     		if (NameType.prototype.includes(pop)) {
-    			return true;
+    			return NameContext.TYPE;
+    		}
+    		else if (QualifiedName.prototype.includes(pop)) {
+    			// this only matters if it's ambiguous
+    			partOfQualifiedName = true;
     		}
     		else if (NameExpression.prototype.includes(pop)) {
-    			return false;
+    			if (partOfQualifiedName) {
+    				return NameContext.EITHER;
+    			}
+    			checkNext = true;
     		}
     		else if (!(pop instanceof IllegalCode)) {
     			throw new IllegalArgumentException("Bad parent: "+pop.name()+" for "+parent);
@@ -2347,9 +2378,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding implCount");
       }
       */
-      boolean isType  = isNameType(node); // or Expression
-      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.couldBeName;
-      boolean success = bind(node, select);
+      NameContext context = computeNameContext(node);
+      boolean success = bind(node, context.selector);
       /*
       String unparse = DebugUnparser.toString(node);
       if (unparse.contains("lattice")) {
@@ -2369,7 +2399,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       if (!success) {
-    	  bind(node, select);
+    	  bind(node, context.selector);
     	  /*
       } else if ("String".equals(SimpleName.getId(node))) {
     	  System.out.println("isFullPass("+this.isFullPass+") for "+node);
