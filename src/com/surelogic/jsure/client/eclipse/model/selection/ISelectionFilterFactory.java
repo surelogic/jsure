@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
+import org.eclipse.swt.graphics.Image;
+
 public interface ISelectionFilterFactory extends
 		Comparable<ISelectionFilterFactory> {
 
@@ -23,4 +25,11 @@ public interface ISelectionFilterFactory extends
 	 * @return the user interface label for this filter.
 	 */
 	String getFilterLabel();
+
+	/**
+	 * Gets the user interface image for this filter.
+	 * 
+	 * @return the user interface image for this filter.
+	 */
+	Image getFilterImage();
 }

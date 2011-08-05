@@ -34,18 +34,12 @@ public final class Selection implements
 		/*
 		 * Add in all the filter factories.
 		 */
-		// allFilters.add(FilterArtifactCount.FACTORY);
-		// allFilters.add(FilterAuditCount.FACTORY);
-		// allFilters.add(FilterAudited.FACTORY);
-		// allFilters.add(FilterAdHocFindingCategory.FACTORY);
-		// allFilters.add(FilterFindingCategory.FACTORY);
-		// allFilters.add(FilterFindingType.FACTORY);
-		// allFilters.add(FilterImportance.FACTORY);
-		// allFilters.add(FilterJavaClass.FACTORY);
-		// allFilters.add(FilterJavaPackage.FACTORY);
-		// allFilters.add(FilterProject.FACTORY);
-		// allFilters.add(FilterSelection.FACTORY);
-		// allFilters.add(FilterTool.FACTORY);
+		allFilters.add(FilterAnalysisResults.FACTORY);
+		allFilters.add(FilterAnnotation.FACTORY);
+		allFilters.add(FilterJavaClass.FACTORY);
+		allFilters.add(FilterJavaPackage.FACTORY);
+		allFilters.add(FilterProject.FACTORY);
+		allFilters.add(FilterVerificationResults.FACTORY);
 
 		f_allFilters = Collections.unmodifiableSet(allFilters);
 	}
