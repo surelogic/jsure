@@ -1996,7 +1996,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (isFullPass && pathToTarget == null) {
         //System.out.println(DebugUnparser.toString(node));
     	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(type);
-        bindAllocation(node,ty,targs, args);
+        boolean success = bindAllocation(node,ty,targs, args);
+        if (!success) {
+        	bindAllocation(node,ty,targs, args);
+        }
       }
       return null;
     } 
@@ -2100,26 +2103,31 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		IJavaScope qscope = typeScope(getJavaType(qual));
 		doAccept(type, new IJavaScope.ShadowingScope(qscope, scope));
 	}
+	
+	private IJavaType getType(IBinding b) {
+		IJavaType t = AbstractJavaBinder.this.getJavaType(b.getNode());
+		return b.convertType(t);		
+	}
     
     @Override
     public Void visitQualifiedName(IRNode node) {
       visit(node); // bind where we look from
-      IRNode baseBinding = getBinding(QualifiedName.getBase(node));
+      IBinding baseBinding = getIBinding(QualifiedName.getBase(node));
       if (baseBinding == null) {
         bind(node,(IRNode)null);
         return null;
       }
-      Operator bbop = JJNode.tree.getOperator(baseBinding);
+      Operator bbop = JJNode.tree.getOperator(baseBinding.getNode());
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
-        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding);
-        scope = typeScope(baseType);
+        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode());
+        scope = typeScope(baseBinding.convertType(baseType));
       } else if (bbop instanceof VariableDeclarator || bbop instanceof ParameterDeclaration) {
-        scope = typeScope(getJavaType(baseBinding));
+        scope = typeScope(getType(baseBinding));
       } else if (bbop instanceof NamedPackageDeclaration) {
-        scope = classTable.packageScope(baseBinding);
+        scope = classTable.packageScope(baseBinding.getNode());
       } else if (bbop instanceof EnumConstantDeclaration) {
-    	scope = typeScope(getJavaType(baseBinding));
+    	scope = typeScope(getType(baseBinding));
       } else {
         LOG.warning("Cannot process qualified name " + DebugUnparser.toString(node) +
             " base binding -> " + bbop);
