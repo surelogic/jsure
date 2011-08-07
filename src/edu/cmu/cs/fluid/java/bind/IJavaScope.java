@@ -253,7 +253,8 @@ public interface IJavaScope {
         public boolean select(IRNode node) {
           Operator op = JJNode.tree.getOperator(node);
           return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
-                 !(op instanceof LabeledStatement) && !TypeDeclaration.prototype.includes(op);
+                 !(op instanceof LabeledStatement) && 
+                 !(TypeDeclaration.prototype.includes(op) && !(op instanceof EnumConstantClassDeclaration));
         }      
       };
     
