@@ -258,10 +258,18 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     return JavaTypeFactory.getDeclaredType(nodeType, p, null);
   }
   
+  private IJavaPrimitiveType convertToPrim(IJavaType t) {
+	  if (t instanceof IJavaDeclaredType) {
+		  return JavaTypeFactory.getCorrespondingPrimType((IJavaDeclaredType) t);
+	  } else {
+		  return (IJavaPrimitiveType) t;
+	  }
+  }
+  
   @Override
   public IJavaType visitComplementExpression(IRNode node) {
     IRNode n = ComplementExpression.getOp( node );
-    IJavaPrimitiveType t = (IJavaPrimitiveType) doAccept( n );    
+    IJavaPrimitiveType t = convertToPrim(doAccept( n ));    
     return doUnaryNumericPromotion(t);
   }
 
@@ -451,7 +459,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitMinusExpression(IRNode node) {
     IRNode n             = MinusExpression.getOp( node );
-    IJavaPrimitiveType t = (IJavaPrimitiveType) doAccept( n );    
+    IJavaPrimitiveType t = convertToPrim(doAccept( n ));    
     return doUnaryNumericPromotion(t);
   }
 
@@ -529,7 +537,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitPlusExpression(IRNode node) {
     IRNode n = PlusExpression.getOp( node );
-    IJavaPrimitiveType t = (IJavaPrimitiveType) doAccept( n );    
+    IJavaPrimitiveType t = convertToPrim(doAccept( n ));    
     return doUnaryNumericPromotion(t);
   }
 
@@ -610,7 +618,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitShiftExpression(IRNode node) {
     IRNode lvalue        = BinopExpression.getOp1( node );
-    IJavaPrimitiveType t = (IJavaPrimitiveType) doAccept( lvalue );    
+    IJavaPrimitiveType t = convertToPrim(doAccept( lvalue ));    
     return doUnaryNumericPromotion(t);
   }
   
