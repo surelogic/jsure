@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -32,6 +31,7 @@ import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
+import com.surelogic.jsure.client.eclipse.views.results.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
@@ -126,12 +126,6 @@ public final class MListOfResultsColumn extends MColumn implements
 			if (e.character == 0x01 && f_table != null) {
 				f_table.selectAll();
 				e.doit = false; // Handled
-			} else if (e.keyCode == SWT.ARROW_LEFT) {
-				getPreviousColumn().forceFocus();
-				e.doit = false; // Handled
-			} else if (e.keyCode == SWT.ARROW_RIGHT || e.character == ' ') {
-				f_doubleClick.handleEvent(null);
-				e.doit = false; // Handled
 			}
 		}
 
@@ -140,29 +134,16 @@ public final class MListOfResultsColumn extends MColumn implements
 		}
 	};
 
-	private final AtomicReference<IProofDropInfo> lastSelected = new AtomicReference<IProofDropInfo>();
-
-	private final Listener f_doubleClick = new Listener() {
-		public void handleEvent(final Event event) {
-			final IProofDropInfo data = lastSelected.get();
-			if (data != null) {
-				// TODO
-				// JDTUIUtility.tryToOpenInEditor(data.f_projectName,
-				// data.f_packageName, data.f_typeName, data.f_lineNumber);
-			}
-		}
-	};
-
-	private final Listener f_singleClick = new Listener() {
+	private final Listener f_rowSelection = new Listener() {
 		public void handleEvent(final Event event) {
 			final TableItem item = (TableItem) event.item;
 			if (item != null) {
 				final IProofDropInfo data = (IProofDropInfo) item.getData();
 				if (data != null) {
-					lastSelected.set(data);
 					/*
-					 * TODO Something with click??
+					 * Highlight this drop in the Verification Status view.
 					 */
+					DropInfoUtility.showDrop(data);
 				} else {
 					LOG.severe("No data for " + item.getText(0));
 				}
@@ -172,10 +153,9 @@ public final class MListOfResultsColumn extends MColumn implements
 
 	private final IColumn f_iColumn = new IColumn() {
 		public Composite createContents(final Composite panel) {
-			f_table = new Table(panel, SWT.FULL_SELECTION | SWT.MULTI);
+			f_table = new Table(panel, SWT.FULL_SELECTION);
 			f_table.setLinesVisible(true);
-			f_table.addListener(SWT.MouseDoubleClick, f_doubleClick);
-			f_table.addListener(SWT.Selection, f_singleClick);
+			f_table.addListener(SWT.Selection, f_rowSelection);
 			f_table.addKeyListener(f_keyListener);
 			f_table.setItemCount(0);
 			// TODO createTableColumns();
@@ -205,7 +185,7 @@ public final class MListOfResultsColumn extends MColumn implements
 						break;
 					case SWT.TRAVERSE_RETURN:
 						setCustomTabTraversal(e);
-						f_doubleClick.handleEvent(null);
+						f_rowSelection.handleEvent(null);
 						break;
 					}
 				}
@@ -259,9 +239,6 @@ public final class MListOfResultsColumn extends MColumn implements
 				@Override
 				public IStatus runInUIThread(final IProgressMonitor monitor) {
 					f_table.showSelection();
-
-					// avoid scroll bar position being to the right
-					f_table.showColumn(f_table.getColumn(0));
 					return Status.OK_STATUS;
 				}
 			};
@@ -325,21 +302,21 @@ public final class MListOfResultsColumn extends MColumn implements
 				flags |= CoE_Constants.CONSISTENT;
 			else
 				flags |= CoE_Constants.INCONSISTENT;
+			if (data.proofUsesRedDot())
+				flags |= CoE_Constants.REDDOT;
+			if (data.isAssumed())
+				flags |= CoE_Constants.ASSUME;
+			if (data.isVirtual())
+				flags |= CoE_Constants.VIRTUAL;
+			if (!data.isCheckedByAnalysis())
+				flags |= CoE_Constants.TRUSTED;
 		}
-		if (data.proofUsesRedDot())
-			flags |= CoE_Constants.REDDOT;
-		if (data.isAssumed())
-			flags |= CoE_Constants.ASSUME;
-		if (data.isVirtual())
-			flags |= CoE_Constants.VIRTUAL;
-		if (!data.isCheckedByAnalysis())
-			flags |= CoE_Constants.TRUSTED;
-
 		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags,
 				new Point(22, 16));
 
 		item.setText(data.getMessage());
 		item.setImage(rid.getCachedImage());
+		item.setData(data);
 	}
 
 	@Override

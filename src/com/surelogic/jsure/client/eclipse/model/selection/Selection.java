@@ -20,6 +20,7 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 
 /**
  * Defines a selection of JSure analysis and verification results using a series
@@ -393,6 +394,18 @@ public final class Selection implements
 			result = Collections.emptyList();
 		} else {
 			result = scanInfo.getProofDropInfo();
+		}
+
+		/*
+		 * Filter out annotations that are not from source.
+		 */
+		for (Iterator<IProofDropInfo> i = result.iterator(); i.hasNext();) {
+			IProofDropInfo drop = i.next();
+			if (!drop.isInstance(ResultDrop.class)) {
+				if (!drop.isFromSrc()) {
+					i.remove();
+				}
+			}
 		}
 		return result;
 	}

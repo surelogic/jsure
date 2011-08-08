@@ -29,18 +29,24 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 				IPageLayout.TOP, 0.15f, editorArea);
 		scanMgtArea.addView(scanMgt);
 
-		final IFolderLayout resultsArea = layout.createFolder("resultsArea",
-				IPageLayout.TOP, 0.45f, editorArea);
-		resultsArea.addView(resultsView);
-		resultsArea.addView(finderView);
+		final IFolderLayout rightOfScanMgtArea = layout.createFolder(
+				"rightOfScanMgtArea", IPageLayout.RIGHT, 0.6f, "scanMgtArea");
+		rightOfScanMgtArea.addView(problemsView);
 
-		final IFolderLayout problemsArea = layout.createFolder("problemsArea",
-				IPageLayout.BOTTOM, 0.7f, editorArea);
-		problemsArea.addView(problemsView);
+		final IFolderLayout resultsArea = layout.createFolder("resultsArea",
+				IPageLayout.TOP, 0.4f, editorArea);
+		resultsArea.addView(resultsView);
+
+		final IFolderLayout rightOfResultsArea = layout.createFolder(
+				"rightOfResultsArea", IPageLayout.RIGHT, 0.6f, "resultsArea");
+		rightOfResultsArea.addView(proposedPromiseView);
+
+		final IFolderLayout finderArea = layout.createFolder("finderArea",
+				IPageLayout.TOP, 0.6f, editorArea);
+		finderArea.addView(finderView);
 
 		final IFolderLayout rightOfEditorArea = layout.createFolder(
-				"leftOfEditorArea", IPageLayout.RIGHT, 0.5f, editorArea);
-		rightOfEditorArea.addView(proposedPromiseView);
+				"rightOfEditorArea", IPageLayout.RIGHT, 0.5f, editorArea);
 		rightOfEditorArea.addView(histSrcView);
 	}
 }
