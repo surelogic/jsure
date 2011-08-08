@@ -39,11 +39,11 @@ public class JSureScanInfo {
 		f_run = run;
 	}
 
-	public JSureScan getJSureRun() {
+	public synchronized JSureScan getJSureRun() {
 		return f_run;
 	}
 
-	public Projects getProjects() {
+	public synchronized Projects getProjects() {
 		try {
 			if (f_run == null) {
 				return null;
@@ -56,7 +56,7 @@ public class JSureScanInfo {
 		return null;
 	}
 
-	private List<IDropInfo> loadOrGetDropInfo() {
+	private synchronized List<IDropInfo> loadOrGetDropInfo() {
 		if (f_dropInfo != null) {
 			return f_dropInfo;
 		}
@@ -78,7 +78,7 @@ public class JSureScanInfo {
 		return f_dropInfo;
 	}
 
-	public File getDir() {
+	public synchronized File getDir() {
 		return f_run.getDir();
 	}
 

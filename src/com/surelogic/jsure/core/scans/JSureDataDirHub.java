@@ -307,6 +307,13 @@ public final class JSureDataDirHub {
 	 */
 	public void setCurrentScan(final JSureScan value) {
 		synchronized (f_lock) {
+			/*
+			 * Bail if the scan is already set to this. Avoiding a whole lot of
+			 * double calls if UI code goes bad.
+			 */
+			if (value == f_currentScan)
+				return;
+
 			setCurrentScanHelper(value);
 		}
 		for (CurrentScanChangeListener l : f_currentScanListeners) {
