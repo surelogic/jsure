@@ -321,53 +321,59 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
         if (good) {
           createResult(constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
         }
-        
-        /* Constructor must be one of 
-         * 
-         *   private C() {
-         *     super();
-         *   }
-         * 
-         * or
-         * 
-         *   private C() {
-         *     super();
-         *     throw new AssertionError();
-         *   }
-         */
-        final Iteratable<IRNode> stmts = BlockStatement.getStmtIterator(
-            MethodBody.getBlock(
-                ConstructorDeclaration.getBody(constructorDecl)));
-        /* First statement must be "super(...)".  Cannot be "this(...)" because
-         * we know there is exactly one constructor.  Grab it and skip it.
-         */
-        @SuppressWarnings("unused")
-        final IRNode superCall = stmts.next(); // Eat the super call
-        if (stmts.hasNext()) {
-          final IRNode stmt = stmts.next();
-          if (stmts.hasNext()) {
-            // Has more than 2 statements, definitely bad
-            createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
-          } else {
-            boolean bad = true;
-            // Check for a Throws statement
-            if (ThrowStatement.prototype.includes(stmt)) {
-              final IRNode thrown = ThrowStatement.getValue(stmt);
-              if (NewExpression.prototype.includes(thrown)) {
-                final IRNode type = NewExpression.getType(thrown);
-                if (JavaNames.getFullTypeName(binder.getBinding(type)).equals("java.lang.AssertionError")) {
-                  bad = false;
-                }
-              }
-            }
-            if (bad) {
-              createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
-            } else {
-              createResult(constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
-            }
-          }
+            
+        final IRNode body = ConstructorDeclaration.getBody(constructorDecl);
+        if (!MethodBody.prototype.includes(body)) {
+            // TODO is this right?
+            // I don't really know what the constructor is doing
+        	createResult(constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
         } else {
-          createResult(constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
+            /* Constructor must be one of 
+             * 
+             *   private C() {
+             *     super();
+             *   }
+             * 
+             * or
+             * 
+             *   private C() {
+             *     super();
+             *     throw new AssertionError();
+             *   }
+             */    
+            final Iteratable<IRNode> stmts = BlockStatement.getStmtIterator(MethodBody.getBlock(body));
+
+            /* First statement must be "super(...)".  Cannot be "this(...)" because
+             * we know there is exactly one constructor.  Grab it and skip it.
+             */
+            @SuppressWarnings("unused")
+            final IRNode superCall = stmts.next(); // Eat the super call
+            if (stmts.hasNext()) {
+            	final IRNode stmt = stmts.next();
+            	if (stmts.hasNext()) {
+            		// Has more than 2 statements, definitely bad
+            		createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
+            	} else {
+            		boolean bad = true;
+            		// Check for a Throws statement
+            		if (ThrowStatement.prototype.includes(stmt)) {
+            			final IRNode thrown = ThrowStatement.getValue(stmt);
+            			if (NewExpression.prototype.includes(thrown)) {
+            				final IRNode type = NewExpression.getType(thrown);
+            				if (JavaNames.getFullTypeName(binder.getBinding(type)).equals("java.lang.AssertionError")) {
+            					bad = false;
+            				}
+            			}
+            		}
+            		if (bad) {
+            			createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
+            		} else {
+            			createResult(constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
+            		}
+            	}
+            } else {
+            	createResult(constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
+            }
         }
       }
       
