@@ -581,9 +581,18 @@ public class ScanSummaryView extends AbstractJSureView implements
 	}
 
 	class ProjectSelectionListener implements ISelectionChangedListener {
+		boolean alreadyCalled = false;
+		
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
+			// Added to prevent infinite loop,
+			// since the selection gets changed when the view gets updated
+			if (alreadyCalled) {
+				return;
+			}
+			alreadyCalled = true;
 			updateViewer(true);
+			alreadyCalled = false;
 		}
 	}
 
