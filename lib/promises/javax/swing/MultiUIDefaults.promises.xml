@@ -12,6 +12,11 @@
             <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
         </method>          
         
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>

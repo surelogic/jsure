@@ -50,6 +50,11 @@
                 <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
             </method>
 
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
             <method name="keySet">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
@@ -107,6 +112,11 @@
                 <Transparent/>
             </method>
 
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
             <method name="keySet">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
@@ -158,6 +168,11 @@
             <method name="get" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="keySet">
@@ -215,6 +230,11 @@
                 <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
             </method>
 
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
             <method name="keySet">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
@@ -269,6 +289,11 @@
             <method name="get" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="keySet">
