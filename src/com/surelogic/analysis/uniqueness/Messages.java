@@ -37,6 +37,7 @@ public final class Messages  {
   public static final int TIMEOUT = 312;
   public static final int TOO_LONG = 313;
 
+  public static final int ASSIGNED_UNDEFINED_BY = 318;
   public static final int BORROWED_PASSED_TO_BORROWED = 319;
   public static final int COMPROMISED_READ = 320;
   public static final int COMPROMISED_INDIRECT_READ = 321;  
@@ -88,6 +89,7 @@ public final class Messages  {
     code2name.put(TIMEOUT, "?");
     code2name.put(TOO_LONG, "?");
 
+    code2name.put(ASSIGNED_UNDEFINED_BY, "?");
     code2name.put(BORROWED_PASSED_TO_BORROWED, "?");
     code2name.put(COMPROMISED_READ, "?");
     code2name.put(COMPROMISED_INDIRECT_READ, "?");

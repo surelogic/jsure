@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -176,6 +177,16 @@ extends TripleLattice<Element<Integer>,
    */
   private final Set<BuriedRead> buriedReads = new HashSet<BuriedRead>();  
 
+  /**
+   * Records where an UNDEFINED value is assigned to a local variable.  Can
+   * happen when a variable is assigned a method return value, the 
+   * return value is the SHARED object, and the effects of the method call
+   * cause the SHARED object to be invalidated.  Map from
+   * local variable stack position to set of IRNodes representing invalidating
+   * assignments.
+   */
+  private final Map<Object, Set<IRNode>> badSets = new HashMap<Object, Set<IRNode>>();
+  
   /**
    * The places where a unique value is expected to be Y but is actually X. For
    * example, the reference is shared by extected to be unique. Built by
@@ -595,11 +606,16 @@ extends TripleLattice<Element<Integer>,
   public Store opSet(final Store s, final IRNode srcOp, final Object local) {
     if (!s.isValid()) return s;
     final ImmutableHashOrderSet<Object> lset = EMPTY.addElement(local);
+    final Integer n = getStackTop(s);
+    final State localStatus = localStatus(s, n);
+    if (localStatus == State.UNDEFINED) {
+      recordBadSet(local, srcOp);
+    }
+    
     return pop(
         apply(
             apply(s, srcOp, new Remove(lset)),
-            srcOp,
-            new Add(getStackTop(s), lset)),
+            srcOp, new Add(n, lset)),
         srcOp);
   }
 
@@ -1444,6 +1460,12 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
+  private void recordBadSet(final Object local, final IRNode op) {
+    if (shouldRecordResult()) {
+      addToMappedSet(badSets, local, op);
+    }
+  }
+  
   // XXX: Method is poorly named
   private void recordBadUnique(final IRNode srcOp,
       final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg,
@@ -1692,7 +1714,7 @@ extends TripleLattice<Element<Integer>,
       final IRNode fieldDecl = load.getKey();
       final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
-      final UniquePromiseDrop uniquePromise = UniquenessRules.getUnique(load.getKey());
+      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getFieldUnique(load.getKey());
       
       for (final IRNode readAt : load.getValue()) {
         final ResultDropBuilder r = createResultDrop(
@@ -1727,14 +1749,28 @@ extends TripleLattice<Element<Integer>,
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
-      for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
-        final ResultDropBuilder r =
-          createResultDrop(analysis, read.isAbrupt, 
-              UniquenessRules.getUnique(e.getKey()), read.srcOp,
+      if (loads != null) {
+        for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
+          final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+              UniquenessUtils.getFieldUnique(e.getKey()), read.srcOp,              
               false, Messages.READ_OF_BURIED);
-        for (final IRNode buriedAt : e.getValue()) {
-          r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
-              DebugUnparser.toString(buriedAt));
+          for (final IRNode buriedAt : e.getValue()) {
+            r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
+                DebugUnparser.toString(buriedAt));
+          }
+        }
+      }
+      
+      // Could be undefined because we were assigned an undefined value
+      final Set<IRNode> z = badSets.get(read.var);
+      if (z != null) {
+        final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+            controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
+        for (final IRNode setOp : z) {
+          r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
+              VariableUseExpression.prototype.includes(read.srcOp) ?
+                  VariableUseExpression.getId(read.srcOp) : "*UNKNOWN*",
+              DebugUnparser.toString(setOp));
         }
       }
     }
