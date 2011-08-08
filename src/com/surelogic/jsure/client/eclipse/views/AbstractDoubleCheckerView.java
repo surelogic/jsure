@@ -322,14 +322,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				} else {
 					return;
 				}
-				HistoricalSourceView.tryToOpenInEditor(
-						srcRef.getPackage(), srcRef.getCUName(),
-						srcRef.getLineNumber());
+				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
+						srcRef.getCUName(), srcRef.getLineNumber());
 
 				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);
 					if (elt != null) {
-						IEditorPart ep = JavaUI.openInEditor(elt);
+						IEditorPart ep = JavaUI.openInEditor(elt, false, true);
 
 						IMarker location = null;
 						try {
@@ -361,7 +360,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 							win = bench.getWorkbenchWindows()[0];
 						}
 						IWorkbenchPage page = win.getActivePage();
-						IDE.openEditor(page, file);
+						IDE.openEditor(page, file, false);
 					}
 				}
 			} catch (PartInitException e) {
