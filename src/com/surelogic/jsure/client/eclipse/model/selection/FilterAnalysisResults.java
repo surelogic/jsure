@@ -41,7 +41,7 @@ public final class FilterAnalysisResults extends Filter {
 	public static final String CONSISTENT = "Consistent";
 	public static final String VOUCHED = "Vouched";
 	public static final String INCONSISTENT = "Inconsistent";
-	public static final String TIMEOUT = "Analysis Timeout";
+	public static final String TIMEOUT = "Timeout";
 
 	@Override
 	protected void deriveAllValues() {

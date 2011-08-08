@@ -84,6 +84,13 @@ public final class Selection implements
 
 	@Override
 	public void currentScanChanged(JSureScan scan) {
+		refresh();
+	}
+
+	/**
+	 * Refreshes all the filters that comprise this selection.
+	 */
+	public void refresh() {
 		/*
 		 * The user has changed to a new JSure scan. Refresh this selection if
 		 * it has any filters.
@@ -153,6 +160,17 @@ public final class Selection implements
 	}
 
 	/**
+	 * Gets the first filter of this selection.
+	 * 
+	 * @return a filter within this selection.
+	 */
+	public Filter getFirstFilter() {
+		synchronized (this) {
+			return f_filters.getFirst();
+		}
+	}
+
+	/**
 	 * Indicates if the passed filter is the first filter of this selection.
 	 * 
 	 * @param filter
@@ -163,6 +181,17 @@ public final class Selection implements
 	public boolean isFirstFilter(Filter filter) {
 		synchronized (this) {
 			return f_filters.getFirst() == filter;
+		}
+	}
+
+	/**
+	 * Gets the last filter of this selection.
+	 * 
+	 * @return a filter within this selection.
+	 */
+	public Filter getLastFilter() {
+		synchronized (this) {
+			return f_filters.getLast();
 		}
 	}
 

@@ -47,26 +47,6 @@ public final class FinderView extends ViewPart {
 		clearSelectionItem.setToolTipText("Clear Current Search");
 
 		final CascadingList finder = new CascadingList(parent, SWT.None);
-
-		finder.addScrolledColumn(new CascadingList.IColumn() {
-			@Override
-			public Composite createContents(Composite panel) {
-				RadioArrowMenu menu = new RadioArrowMenu(panel);
-				menu.addChoice("Analysis Results",
-						SLImages.getImage(CommonImages.IMG_ANALYSIS_RESULT));
-				menu.addChoice("Annotation",
-						SLImages.getImage(CommonImages.IMG_ANNOTATION));
-				menu.addChoice("Java Class",
-						SLImages.getImage(CommonImages.IMG_CLASS));
-				menu.addChoice("Java Package",
-						SLImages.getImage(CommonImages.IMG_PACKAGE));
-				menu.addChoice("Project",
-						SLImages.getImage(CommonImages.IMG_PROJECT));
-				menu.addChoice("Verification Results",
-						SLImages.getImage(CommonImages.IMG_VERIFICATION_RESULT));
-				return menu.getPanel();
-			}
-		}, false);
 		finder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		f_mediator = new FinderMediator(parent, finder, breadcrumbs,
