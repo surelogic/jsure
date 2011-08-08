@@ -62,7 +62,6 @@ public final class FilterJavaPackage extends Filter {
 			}
 		}
 		f_countTotal = runningTotal;
-
 	}
 
 	@Override
