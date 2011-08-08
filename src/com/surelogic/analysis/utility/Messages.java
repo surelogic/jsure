@@ -27,10 +27,11 @@ public final class Messages extends AbstractMessages {
   public static final int CONSTRUCTOR_DOES_TOO_MUCH = 615;
   public static final int CONSTRUCTOR_OKAY = 616;
   public static final int CONSTRUCTOR_THROWS_ASSERTION_ERROR = 617;
-  public static final int INSTANCE_CREATED=618;
-  public static final int SUBCLASSED=619;
+  public static final int INSTANCE_CREATED = 618;
+  public static final int SUBCLASSED = 619;
+  public static final int CONSIDER_FINAL = 620;
+  public static final int CONSTRUCTOR_COMPILED = 621;
   
-  public static final int CONSIDER_FINAL=620;
   
   
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
