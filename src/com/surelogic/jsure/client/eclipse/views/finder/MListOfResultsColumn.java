@@ -113,7 +113,7 @@ public final class MListOfResultsColumn extends MColumn implements
 	}
 
 	public void selectionChanged(final Selection selecton) {
-		changed();
+		// TODO I THINK THIS IS WRONG changed();
 	}
 
 	private void changed() {

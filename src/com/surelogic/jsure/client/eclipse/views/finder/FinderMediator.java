@@ -9,15 +9,12 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.surelogic.common.ILifecycle;
 import com.surelogic.common.ui.CascadingList;
-import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionManagerObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class FinderMediator implements ILifecycle,
-		JSureDataDirHub.CurrentScanChangeListener,
 		CascadingList.ICascadingListObserver, ISelectionManagerObserver,
 		IFindingsObserver {
 
@@ -59,22 +56,14 @@ public final class FinderMediator implements ILifecycle,
 		f_manager.addObserver(this);
 
 		clearToNewWorkingSelection();
-
-		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 	}
 
 	@Override
 	public void dispose() {
-		JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 	}
 
 	void setFocus() {
 		f_finder.setFocus();
-	}
-
-	@Override
-	public void currentScanChanged(JSureScan scan) {
-		// TODO
 	}
 
 	private void disposeWorkingSelection() {
@@ -116,7 +105,7 @@ public final class FinderMediator implements ILifecycle,
 		f_workingSelection.initAndSyncToSea();
 		f_first = new MRadioMenuColumn(f_finder, f_workingSelection, null);
 		f_first.init();
-		f_workingSelection.refresh();
+		// f_workingSelection.refresh();
 
 		MRadioMenuColumn prevMenu = (MRadioMenuColumn) f_first;
 		for (Filter filter : f_workingSelection.getFilters()) {

@@ -556,6 +556,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 	 * Must be called from the UI thread.
 	 */
 	private void updateReport() {
+		System.out.println("updateReport() called on " + this);
 		if (f_panel.isDisposed())
 			return;
 
@@ -574,6 +575,9 @@ public final class MFilterSelectionColumn extends MColumn implements
 		final List<String> valueList = f_sortByCount ? f_filter
 				.getValuesOrderedBySummaryCount() : f_filter.getAllValues();
 		this.valueList = valueList;
+
+		for (String value : valueList)
+			System.out.println("      - " + value);
 
 		final int currentRows = f_reportContents.getItemCount();
 		if (currentRows != valueList.size()) {
@@ -682,6 +686,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 	}
 
 	public void filterChanged(Filter filter) {
+		System.out.println("filterChanged(" + filter + ") on " + this);
 		if (f_panel.isDisposed())
 			return;
 		final UIJob job = new SLUIJob() {

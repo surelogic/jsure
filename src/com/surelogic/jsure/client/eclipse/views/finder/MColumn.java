@@ -1,11 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
-import java.util.logging.Logger;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 
@@ -14,7 +11,6 @@ import com.surelogic.jsure.client.eclipse.model.selection.Selection;
  * {@link FindingsSelectionView}
  */
 public abstract class MColumn {
-	protected final Logger LOG = SLLogger.getLogger("sierra");
 
 	private final CascadingList f_cascadingList;
 

@@ -488,7 +488,7 @@ public final class Selection implements
 							}
 						}
 					}
-					notifySelectionChanged();
+					//notifySelectionChanged();
 				} catch (Exception e) {
 					final int errNo = 234;
 					final String msg = I18N.err(errNo);

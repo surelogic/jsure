@@ -510,6 +510,7 @@ public abstract class Filter {
 	 */
 
 	void refresh() {
+		System.out.println("REFRESH of " + this);
 		final List<IProofDropInfo> incomingResults = getPreviousPorusDrops();
 		synchronized (this) {
 			refreshCounts(incomingResults);
