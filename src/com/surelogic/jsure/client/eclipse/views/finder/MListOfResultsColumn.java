@@ -107,7 +107,11 @@ public final class MListOfResultsColumn extends MColumn implements
 				if (f_table != null && f_table.isDisposed()) {
 					getSelection().removeObserver(MListOfResultsColumn.this);
 				} else {
-					refreshDisplay();
+					try {
+						refreshDisplay();
+					} finally {
+						initOfNextColumnComplete();
+					}
 				}
 				return Status.OK_STATUS;
 			}
