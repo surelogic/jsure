@@ -17,6 +17,9 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+
+import edu.cmu.cs.fluid.sea.IProofDropInfo;
 
 /**
  * Defines a selection of JSure analysis and verification results using a series
@@ -367,17 +370,45 @@ public final class Selection implements
 
 	/**
 	 * The count of results that this selection, based upon what its filters
-	 * have set to be porous, will allow through.
+	 * have set to be porous, will allow through. A selection with no filters
+	 * allows everything through.
 	 * 
 	 * @return count of results that this selection, based upon what its filters
 	 *         have set to be porous, will allow through.
 	 */
 	public int getResultCountPorous() {
+		return getPorousDrops().size();
+	}
+
+	/**
+	 * Gets all the drop information from the scan that we care about.
+	 * 
+	 * @return a collection of all the proof drop information from the scan.
+	 */
+	List<IProofDropInfo> getDropsFromSea() {
+		final List<IProofDropInfo> result;
+		JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
+				.getCurrentScanInfo();
+		if (scanInfo == null) {
+			result = Collections.emptyList();
+		} else {
+			result = scanInfo.getProofDropInfo();
+		}
+		return result;
+	}
+
+	/**
+	 * Gets a copy of the list of results that this selection allows through it.
+	 * A selection with no filters allows everything through.
+	 * 
+	 * @return the list of results that this selection allows through it.
+	 */
+	public List<IProofDropInfo> getPorousDrops() {
 		synchronized (this) {
 			if (!f_filters.isEmpty()) {
-				return f_filters.getLast().getResultCountPorous();
+				return f_filters.getLast().getPorousDrops();
 			} else {
-				return 0;
+				return getDropsFromSea();
 			}
 		}
 	}
@@ -389,7 +420,7 @@ public final class Selection implements
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean isPorous() {
-		return getResultCountPorous() > 0;
+		return !getPorousDrops().isEmpty();
 	}
 
 	private final Set<ISelectionObserver> f_observers = new CopyOnWriteArraySet<ISelectionObserver>();

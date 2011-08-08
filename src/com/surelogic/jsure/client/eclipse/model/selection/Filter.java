@@ -13,9 +13,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
-
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 
 /**
@@ -487,7 +484,7 @@ public abstract class Filter {
 	/**
 	 * Gets a copy of the list of results that this filter allows through it.
 	 * 
-	 * @return
+	 * @return the list of results that this filter allows through it.
 	 */
 	public final List<IProofDropInfo> getPorousDrops() {
 		synchronized (this) {
@@ -534,13 +531,7 @@ public abstract class Filter {
 	private List<IProofDropInfo> getPreviousPorusDrops() {
 		final List<IProofDropInfo> result;
 		if (f_previous == null) {
-			JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
-					.getCurrentScanInfo();
-			if (scanInfo == null) {
-				result = Collections.emptyList();
-			} else {
-				result = scanInfo.getProofDropInfo();
-			}
+			result = f_selection.getDropsFromSea();
 		} else {
 			result = f_previous.getPorousDrops();
 		}

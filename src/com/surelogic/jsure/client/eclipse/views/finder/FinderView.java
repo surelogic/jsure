@@ -11,7 +11,6 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.CascadingList;
-import com.surelogic.common.ui.RadioArrowMenu;
 import com.surelogic.common.ui.SLImages;
 
 public final class FinderView extends ViewPart {

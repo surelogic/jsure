@@ -15,15 +15,16 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.progress.UIJob;
 
-import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.RadioArrowMenu;
 import com.surelogic.common.ui.RadioArrowMenu.IRadioMenuObserver;
-import com.surelogic.common.ui.dialogs.ErrorDialogUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterAnalysisResults;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterAnnotation;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterVerificationResults;
 import com.surelogic.jsure.client.eclipse.model.selection.IFilterObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionFilterFactory;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
@@ -32,6 +33,7 @@ public final class MRadioMenuColumn extends MColumn implements
 		IRadioMenuObserver {
 
 	private RadioArrowMenu f_menu = null;
+	private List<ISelectionFilterFactory> f_choices = null;
 
 	MRadioMenuColumn(CascadingList cascadingList, Selection selection,
 			MColumn previousColumn) {
@@ -49,7 +51,8 @@ public final class MRadioMenuColumn extends MColumn implements
 					f_menu.addChoice("Show", null);
 					f_menu.addSeparator();
 				}
-				for (ISelectionFilterFactory f : getFilterChoicesForThisMenu()) {
+				f_choices = getFilterChoicesForThisMenu();
+				for (ISelectionFilterFactory f : f_choices) {
 					f_menu.addChoice(f, f.getFilterImage());
 				}
 				f_menu.addObserver(MRadioMenuColumn.this);
@@ -176,24 +179,6 @@ public final class MRadioMenuColumn extends MColumn implements
 
 	class DrawFilterAndMenu implements IFilterObserver {
 
-		public void filterQueryFailure(final Filter filter, final Exception e) {
-			filter.removeObserver(this);
-			// beware the thread context this method call might be made in.
-			final UIJob job = new SLUIJob() {
-				@Override
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					final int errNo = 27;
-					final String msg = I18N.err(errNo, filter.getFactory()
-							.getFilterLabel());
-					final IStatus reason = SLEclipseStatusUtility
-							.createErrorStatus(errNo, msg, e);
-					ErrorDialogUtility.open(null, "Selection Error", reason);
-					return Status.OK_STATUS;
-				}
-			};
-			job.schedule();
-		}
-
 		public void filterChanged(final Filter filter) {
 			filter.removeObserver(this);
 			// beware the thread context this method call might be made in.
@@ -241,6 +226,18 @@ public final class MRadioMenuColumn extends MColumn implements
 			Filter f = getFilterFromColumn(column);
 			if (f != null) {
 				result.remove(f.getFactory());
+				/*
+				 * Special processing because JSure has two types of results:
+				 * analysis results and promises.
+				 */
+				if (f instanceof FilterAnalysisResults) {
+					result.remove(FilterAnnotation.FACTORY);
+					result.remove(FilterVerificationResults.FACTORY);
+				}
+				if (f instanceof FilterAnnotation
+						|| f instanceof FilterVerificationResults) {
+					result.remove(FilterAnalysisResults.FACTORY);
+				}
 			}
 		} while (column != null);
 		Collections.sort(result);

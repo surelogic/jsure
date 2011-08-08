@@ -10,6 +10,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -34,6 +35,7 @@ import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class MListOfResultsColumn extends MColumn implements
 		ISelectionObserver {
@@ -226,7 +228,7 @@ public final class MListOfResultsColumn extends MColumn implements
 
 		f_table.setRedraw(false);
 
-		final List<IProofDropInfo> rows = getData();
+		final List<IProofDropInfo> rows = getSelection().getPorousDrops();
 
 		final Set<IProofDropInfo> selected = getSelectedItems(f_table);
 		f_table.removeAll();
@@ -304,16 +306,26 @@ public final class MListOfResultsColumn extends MColumn implements
 		job.schedule();
 	}
 
-	private List<IProofDropInfo> getData() {
-		return getSelection().getLastFilter().getPorousDrops();
-	}
-
 	private void setTableItemInfo(TableItem item, IProofDropInfo data) {
 		int flags = 0;
-		if (data.isConsistent())
-			flags |= CoE_Constants.CONSISTENT;
-		else
-			flags |= CoE_Constants.INCONSISTENT;
+		final ImageDescriptor img;
+		if (data.isInstance(ResultDrop.class)) {
+			if (data.isVouched()) {
+				img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS_VOUCH);
+			} else if (data.isConsistent()) {
+				img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS);
+			} else if (data.isTimeout()) {
+				img = SLImages.getImageDescriptor(CommonImages.IMG_TIMEOUT_X);
+			} else {
+				img = SLImages.getImageDescriptor(CommonImages.IMG_RED_X);
+			}
+		} else {
+			img = SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION);
+			if (data.provedConsistent())
+				flags |= CoE_Constants.CONSISTENT;
+			else
+				flags |= CoE_Constants.INCONSISTENT;
+		}
 		if (data.proofUsesRedDot())
 			flags |= CoE_Constants.REDDOT;
 		if (data.isAssumed())
@@ -323,9 +335,8 @@ public final class MListOfResultsColumn extends MColumn implements
 		if (!data.isCheckedByAnalysis())
 			flags |= CoE_Constants.TRUSTED;
 
-		ResultsImageDescriptor rid = new ResultsImageDescriptor(
-				SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION),
-				flags, new Point(22, 16));
+		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags,
+				new Point(22, 16));
 
 		item.setText(data.getMessage());
 		item.setImage(rid.getCachedImage());
