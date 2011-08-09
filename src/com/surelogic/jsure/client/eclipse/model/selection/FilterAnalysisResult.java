@@ -10,16 +10,16 @@ import com.surelogic.common.ui.SLImages;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
-public final class FilterAnalysisResults extends Filter {
+public final class FilterAnalysisResult extends Filter {
 
 	public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
 		public Filter construct(Selection selection, Filter previous) {
-			return new FilterAnalysisResults(selection, previous,
+			return new FilterAnalysisResult(selection, previous,
 					getFilterLabel());
 		}
 
 		public String getFilterLabel() {
-			return "Analysis Results";
+			return "Analysis Result";
 		}
 
 		@Override
@@ -28,7 +28,7 @@ public final class FilterAnalysisResults extends Filter {
 		}
 	};
 
-	private FilterAnalysisResults(Selection selection, Filter previous,
+	private FilterAnalysisResult(Selection selection, Filter previous,
 			String filterLabel) {
 		super(selection, previous, filterLabel);
 	}

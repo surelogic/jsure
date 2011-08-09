@@ -66,12 +66,6 @@
 			id="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView">
 		</view>
 
-		<view name="JSure Problems" allowMultiple="false"
-			icon="platform:/plugin/com.surelogic.common/lib/images/red_x.gif"
-			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
-			id="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView">
-		</view>
-
 		<view name="Modeling Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"

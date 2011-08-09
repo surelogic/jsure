@@ -22,9 +22,9 @@ import com.surelogic.common.ui.RadioArrowMenu;
 import com.surelogic.common.ui.RadioArrowMenu.IRadioMenuObserver;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
-import com.surelogic.jsure.client.eclipse.model.selection.FilterAnalysisResults;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterAnalysisResult;
 import com.surelogic.jsure.client.eclipse.model.selection.FilterAnnotation;
-import com.surelogic.jsure.client.eclipse.model.selection.FilterVerificationResults;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterVerificationJudgement;
 import com.surelogic.jsure.client.eclipse.model.selection.IFilterObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionFilterFactory;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
@@ -228,13 +228,13 @@ public final class MRadioMenuColumn extends MColumn implements
 				 * Special processing because JSure has two types of results:
 				 * analysis results and promises.
 				 */
-				if (f instanceof FilterAnalysisResults) {
+				if (f instanceof FilterAnalysisResult) {
 					result.remove(FilterAnnotation.FACTORY);
-					result.remove(FilterVerificationResults.FACTORY);
+					result.remove(FilterVerificationJudgement.FACTORY);
 				}
 				if (f instanceof FilterAnnotation
-						|| f instanceof FilterVerificationResults) {
-					result.remove(FilterAnalysisResults.FACTORY);
+						|| f instanceof FilterVerificationJudgement) {
+					result.remove(FilterAnalysisResult.FACTORY);
 				}
 			}
 		} while (column != null);

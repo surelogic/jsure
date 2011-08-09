@@ -38,12 +38,12 @@ public final class Selection implements
 		/*
 		 * Add in all the filter factories.
 		 */
-		allFilters.add(FilterAnalysisResults.FACTORY);
+		allFilters.add(FilterAnalysisResult.FACTORY);
 		allFilters.add(FilterAnnotation.FACTORY);
 		allFilters.add(FilterJavaClass.FACTORY);
 		allFilters.add(FilterJavaPackage.FACTORY);
 		allFilters.add(FilterProject.FACTORY);
-		allFilters.add(FilterVerificationResults.FACTORY);
+		allFilters.add(FilterVerificationJudgement.FACTORY);
 
 		f_allFilters = Collections.unmodifiableSet(allFilters);
 	}
