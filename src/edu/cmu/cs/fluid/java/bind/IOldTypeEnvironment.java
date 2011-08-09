@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
@@ -179,6 +180,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
+      final IRNode init = InitDeclaration.getInitMethod(privateArrayType);
+      ReceiverDeclaration.makeReceiverNode(init);
       
       types.put(project, privateArrayType);
       return privateArrayType;
