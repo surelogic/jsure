@@ -177,11 +177,11 @@ public class TypeUtils {
 
 		// TODO is this right?
 		if (t1.getTypeParameters().size() == 0) {
-			System.out.println("Got raw type: "+t1);
+			//System.out.println("Got raw type: "+t1);
 			return t1;
 		}
 		if (t2.getTypeParameters().size() == 0) {
-			System.out.println("Got raw type: "+t2);
+			//System.out.println("Got raw type: "+t2);
 			return t2;
 		}
 		for(int i=0; i<t1.getTypeParameters().size();i++) {

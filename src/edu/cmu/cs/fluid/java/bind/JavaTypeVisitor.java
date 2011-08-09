@@ -838,9 +838,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
       return compareIJavaArrayType( type1, type2 );
     //}else if( ( type1 instanceof IJavaDeclaredType ) && ( type2 instanceof IJavaDeclaredType ) ) {
     }else {
-      final IJavaType lub1 = getLowestUpperBound(type1, type2);
+      //final IJavaType lub1 = getLowestUpperBound(type1, type2);
       TypeUtils helper = new TypeUtils(binder.getTypeEnvironment());
       IJavaReferenceType lub2 = helper.getLowestUpperBound((IJavaReferenceType) type1, (IJavaReferenceType) type2);
+      /*
       if (!binder.getTypeEnvironment().isSubType(lub2, lub1)) {
     	  String unparse = lub2.toString();
     	  if (!"java.lang.Class<?>".equals(unparse)) {
@@ -851,6 +852,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
         	  }  
     	  }
       } // otherwise it's ok, since lub2 subsumes lub1
+      */
       return lub2;
     }
   } 
