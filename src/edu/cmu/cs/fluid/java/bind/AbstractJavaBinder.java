@@ -2256,6 +2256,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	if (ConstructorDeclaration.prototype.includes(op)) {
         		// Check if it's inside a ConstructorCall        		        
         		if (insideConstructorCall(n)) {
+        			// Use the constructor's IPQR
         			return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);        			
         		//} else {
         		//	System.out.println("In constructor, but not call: "+DebugUnparser.toString(n));
@@ -2277,6 +2278,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       //decl = JavaPromise.getInitMethodOrNull(type);
       
       if (contextTypeB != null && contextTypeB != enclosingType) {
+    	// Use the type's IFQR
         rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
       } else {
         rv = JavaPromise.getReceiverNodeOrNull(enclosingType);
@@ -2380,13 +2382,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitSimpleName(IRNode node) { 
-      /*
+      final NameContext context = computeNameContext(node);
       final String name = JJNode.getInfoOrNull(node);
-      if ("implCount".equals(name)) {
-    	  System.out.println("Binding implCount");
+      if ("Property".equals(name)) {
+    	  System.out.println("Binding 'Property': "+context);
       }
-      */
-      NameContext context = computeNameContext(node);
       boolean success = bind(node, context.selector);
       /*
       String unparse = DebugUnparser.toString(node);
