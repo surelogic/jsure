@@ -48,8 +48,41 @@ public final class FinderView extends ViewPart {
 		final CascadingList finder = new CascadingList(parent, SWT.None);
 		finder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+		final Composite selectionPersistencePanel = new Composite(parent,
+				SWT.NONE);
+		selectionPersistencePanel.setLayoutData(new GridData(SWT.FILL,
+				SWT.DEFAULT, true, false));
+		gl = new GridLayout();
+		gl.marginHeight = 0;
+		gl.marginWidth = 0;
+		gl.numColumns = 2;
+		gl.verticalSpacing = 0;
+		selectionPersistencePanel.setLayout(gl);
+
+		final ToolBar searchBar = new ToolBar(selectionPersistencePanel,
+				SWT.HORIZONTAL | SWT.FLAT);
+		searchBar.setLayoutData(new GridData(SWT.DEFAULT, SWT.CENTER, false,
+				false));
+		final ToolItem openSearchItem = new ToolItem(searchBar, SWT.PUSH);
+		openSearchItem.setImage(SLImages
+				.getImage(CommonImages.IMG_SIERRA_INVESTIGATE_DOT));
+		openSearchItem.setToolTipText("Open Search");
+		final ToolItem saveSearchAsItem = new ToolItem(searchBar, SWT.PUSH);
+		saveSearchAsItem.setImage(SLImages
+				.getImage(CommonImages.IMG_SAVEAS_EDIT));
+		saveSearchAsItem.setToolTipText("Save Search As");
+		final ToolItem deleteSearchItem = new ToolItem(searchBar, SWT.PUSH);
+		deleteSearchItem.setImage(SLImages
+				.getImage(CommonImages.IMG_GRAY_X_DOT));
+		deleteSearchItem.setToolTipText("Delete Saved Search");
+		final Link savedSelections = new Link(selectionPersistencePanel,
+				SWT.WRAP);
+		savedSelections.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+				true));
+
 		f_mediator = new FinderMediator(parent, finder, breadcrumbs,
-				clearSelectionItem);
+				clearSelectionItem, openSearchItem, saveSearchAsItem,
+				deleteSearchItem, savedSelections);
 		f_mediator.init();
 	}
 

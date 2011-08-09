@@ -138,9 +138,7 @@ public final class MRadioMenuColumn extends MColumn implements
 		} else if ("Show".equals(choice)) {
 			final MListOfResultsColumn fsr = new MListOfResultsColumn(
 					getCascadingList(), getSelection(), this);
-			fsr.setObserver(observer);
 			fsr.init();
-
 		}
 	}
 

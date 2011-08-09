@@ -18,8 +18,6 @@ public abstract class MColumn {
 
 	protected final int index;
 
-	protected volatile IFindingsObserver observer;
-
 	MColumn(CascadingList cascadingList, Selection selection,
 			MColumn previousColumn) {
 		assert cascadingList != null;
@@ -31,10 +29,6 @@ public abstract class MColumn {
 			f_previousColumn.setNextColumn(this);
 
 		index = cascadingList.getNumColumns();
-	}
-
-	final void setObserver(final IFindingsObserver o) {
-		observer = o;
 	}
 
 	CascadingList getCascadingList() {

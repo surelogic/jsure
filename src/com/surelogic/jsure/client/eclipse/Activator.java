@@ -1,9 +1,11 @@
 package com.surelogic.jsure.client.eclipse;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -14,6 +16,7 @@ import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -70,6 +73,9 @@ public class Activator extends AbstractUIPlugin implements
 				.schedule();
 		monitor.worked(1);
 
+		SelectionManager.getInstance().load(getSelectionSaveFile());
+		monitor.worked(1);
+
 		SwitchToJSurePerspective.getInstance().init();
 		monitor.worked(1);
 	}
@@ -77,6 +83,7 @@ public class Activator extends AbstractUIPlugin implements
 	@Override
 	public void stop(final BundleContext context) throws Exception {
 		try {
+			SelectionManager.getInstance().save(getSelectionSaveFile());
 			SwitchToJSurePerspective.getInstance().dispose();
 			JavacDriver.getInstance().stopScripting();
 		} finally {
@@ -100,4 +107,11 @@ public class Activator extends AbstractUIPlugin implements
 	public static IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
 	}
+
+	public File getSelectionSaveFile() {
+		final IPath pluginState = Activator.getDefault().getStateLocation();
+		return new File(pluginState.toOSString() + File.separator
+				+ "selections.xml");
+	}
+
 }

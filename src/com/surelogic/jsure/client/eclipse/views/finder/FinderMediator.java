@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
+import java.util.logging.Level;
+
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -8,20 +11,27 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.surelogic.common.ILifecycle;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
+import com.surelogic.jsure.client.eclipse.dialogs.DeleteSearchDialog;
+import com.surelogic.jsure.client.eclipse.dialogs.OpenSearchDialog;
+import com.surelogic.jsure.client.eclipse.dialogs.SaveSearchAsDialog;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionManagerObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 
 public final class FinderMediator implements ILifecycle,
-		CascadingList.ICascadingListObserver, ISelectionManagerObserver,
-		IFindingsObserver {
+		CascadingList.ICascadingListObserver, ISelectionManagerObserver {
 
 	private final Composite f_parent;
 	private final CascadingList f_finder;
 	private final Link f_breadcrumbs;
 	private final ToolItem f_clearSelectionItem;
+	private final ToolItem f_openSearchItem;
+	private final ToolItem f_saveSearchAsItem;
+	private final ToolItem f_deleteSearchItem;
+	private final Link f_savedSelections;
 
 	private final SelectionManager f_manager = SelectionManager.getInstance();
 
@@ -30,11 +40,17 @@ public final class FinderMediator implements ILifecycle,
 	private MColumn f_first = null;
 
 	FinderMediator(Composite parent, CascadingList finder, Link breadcrumbs,
-			ToolItem clearSelectionItem) {
+			ToolItem clearSelectionItem, ToolItem openSearchItem,
+			ToolItem saveSearchAsItem, ToolItem deleteSearchItem,
+			Link savedSelections) {
 		f_parent = parent;
 		f_finder = finder;
 		f_breadcrumbs = breadcrumbs;
 		f_clearSelectionItem = clearSelectionItem;
+		f_openSearchItem = openSearchItem;
+		f_saveSearchAsItem = saveSearchAsItem;
+		f_deleteSearchItem = deleteSearchItem;
+		f_savedSelections = savedSelections;
 	}
 
 	@Override
@@ -52,14 +68,88 @@ public final class FinderMediator implements ILifecycle,
 			}
 		});
 
+		f_openSearchItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				OpenSearchDialog dialog = new OpenSearchDialog(f_finder
+						.getShell());
+				if (Window.CANCEL != dialog.open()) {
+					/*
+					 * Save the selection
+					 */
+					Selection newSelection = dialog.getSelection();
+					if (newSelection == null)
+						return;
+					openSelection(newSelection);
+				}
+			}
+		});
+
+		f_saveSearchAsItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				SaveSearchAsDialog dialog = new SaveSearchAsDialog(f_finder
+						.getShell());
+				if (Window.CANCEL != dialog.open()) {
+					/*
+					 * Save the selection
+					 */
+					String name = dialog.getName();
+					if (name == null)
+						return;
+					name = name.trim();
+					if ("".equals(name))
+						return;
+					f_manager.saveSelection(name, f_workingSelection);
+				}
+			}
+		});
+
+		f_deleteSearchItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				DeleteSearchDialog dialog = new DeleteSearchDialog(f_finder
+						.getShell());
+				dialog.open();
+			}
+		});
+
+		f_savedSelections.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				final String selectionName = event.text;
+				/*
+				 * open the current selection.
+				 */
+				final Selection newSelection = f_manager
+						.getSavedSelection(selectionName);
+				if (newSelection == null) {
+					SLLogger.getLogger().log(Level.SEVERE,
+							"Search '" + selectionName + "' is unknown (bug).",
+							new Exception());
+					return;
+				}
+				if (newSelection.getFilterCount() < 1) {
+					SLLogger.getLogger().log(
+							Level.SEVERE,
+							"Search '" + selectionName
+									+ "' defines no filters (bug).",
+							new Exception());
+					return;
+				}
+				openSelection(newSelection);
+			}
+		});
+
 		f_finder.addObserver(this);
 		f_manager.addObserver(this);
 
-		clearToNewWorkingSelection();
+		clearToPersistedViewState();
 	}
 
 	@Override
 	public void dispose() {
+		f_finder.removeObserver(this);
+		f_manager.removeObserver(this);
+		if (f_workingSelection != null) {
+			f_manager.saveViewState(f_workingSelection);
+		}
 	}
 
 	void setFocus() {
@@ -95,7 +185,6 @@ public final class FinderMediator implements ILifecycle,
 		f_workingSelection.initAndSyncToSea();
 		updateSavedSelections();
 		f_first = new MRadioMenuColumn(f_finder, f_workingSelection, null);
-		f_first.setObserver(this);
 		f_first.init();
 	}
 
@@ -105,7 +194,7 @@ public final class FinderMediator implements ILifecycle,
 		f_workingSelection.initAndSyncToSea();
 		f_first = new MRadioMenuColumn(f_finder, f_workingSelection, null);
 		f_first.init();
-		// f_workingSelection.refresh();
+		f_workingSelection.refresh();
 
 		MRadioMenuColumn prevMenu = (MRadioMenuColumn) f_first;
 		for (Filter filter : f_workingSelection.getFilters()) {
@@ -129,7 +218,6 @@ public final class FinderMediator implements ILifecycle,
 			prevMenu.setSelection("Show");
 			MListOfResultsColumn list = new MListOfResultsColumn(f_finder,
 					f_workingSelection, prevMenu);
-			list.setObserver(this);
 			list.init();
 		}
 	}
@@ -166,7 +254,6 @@ public final class FinderMediator implements ILifecycle,
 				column += 2; // selector and menu
 			} else if (clColumn instanceof MListOfResultsColumn) {
 				b.append(" | <a href=\"").append(column).append("\">Show</a>");
-				((MListOfResultsColumn) clColumn).setObserver(this);
 			}
 			clColumn = clColumn.getNextColumn();
 		} while (clColumn != null);
@@ -178,7 +265,30 @@ public final class FinderMediator implements ILifecycle,
 	}
 
 	private void updateSavedSelections() {
-		// TODO
+		StringBuilder b = new StringBuilder();
+		final boolean saveable = f_workingSelection != null
+				&& f_workingSelection.getFilterCount() > 0;
+		f_saveSearchAsItem.setEnabled(saveable);
+		final boolean hasSavedSelections = !f_manager.isEmpty();
+		f_openSearchItem.setEnabled(hasSavedSelections);
+		f_deleteSearchItem.setEnabled(hasSavedSelections);
+
+		if (hasSavedSelections) {
+			b.append("Saved Searches:");
+
+			for (String link : f_manager.getSavedSelectionNames()) {
+				b.append("  <a href=\"");
+				b.append(link);
+				b.append("\">");
+				b.append(link);
+				b.append("</a>");
+			}
+		} else {
+			b.append("(no saved searches)");
+		}
+		f_savedSelections.setText(b.toString());
+		f_savedSelections.getParent().layout();
+		f_finder.layout();
 	}
 
 	public void selectionChanged(Selection selecton) {
@@ -190,17 +300,4 @@ public final class FinderMediator implements ILifecycle,
 	public void selectAll() {
 		f_first.selectAll();
 	}
-
-	@Override
-	public void findingsDisposed() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void findingsLimited(boolean isLimited) {
-		// TODO Auto-generated method stub
-
-	}
-
 }

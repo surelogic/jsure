@@ -93,8 +93,6 @@ public final class MListOfResultsColumn extends MColumn implements
 		if (column != -1) {
 			getCascadingList().emptyFrom(column);
 		}
-
-		notifyObserversOfDispose();
 	}
 
 	@Override
@@ -346,12 +344,6 @@ public final class MListOfResultsColumn extends MColumn implements
 			f_table.selectAll();
 		} else {
 			super.selectAll();
-		}
-	}
-
-	private void notifyObserversOfDispose() {
-		if (observer != null) {
-			observer.findingsDisposed();
 		}
 	}
 
