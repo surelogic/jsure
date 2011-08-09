@@ -133,11 +133,11 @@ public final class SelectionManager {
 	}
 
 	public void save(File file) {
-		// TODO SelectionPersistence.save(this, file);
+		SelectionPersistence.save(this, file);
 	}
 
 	public void load(File file) {
-		// TODO SelectionPersistence.load(this, file);
+		SelectionPersistence.load(this, file);
 		notifySavedSelectionsChanged();
 	}
 }

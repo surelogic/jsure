@@ -378,6 +378,25 @@ public abstract class Filter {
 	}
 
 	/**
+	 * A helper method when persistent selections are loaded to set what values
+	 * are porous. This method skips all notifications to obvservers.
+	 * 
+	 * @param value
+	 *            a value managed by this filter.
+	 * @param porous
+	 *            <code>true</code> sets the value to be porous,
+	 *            <code>false</code> makes it non-porous.
+	 */
+	void setPorousOnLoad(String value, boolean porous) {
+		synchronized (this) {
+			if (porous)
+				f_porousValues.add(value);
+			else
+				f_porousValues.remove(value);
+		}
+	}
+
+	/**
 	 * Makes all values in this filter porous.
 	 * <p>
 	 * Note that this method removes any values that might exist as porous but
@@ -432,7 +451,9 @@ public abstract class Filter {
 	 * @return a copy of the set of porous values for this filter.
 	 */
 	public Set<String> getPorousValues() {
-		return new HashSet<String>(f_porousValues);
+		synchronized (this) {
+			return new HashSet<String>(f_porousValues);
+		}
 	}
 
 	/**
@@ -458,15 +479,9 @@ public abstract class Filter {
 	 *         porous, will allow through.
 	 */
 	public int getResultCountPorous() {
-		int result = 0;
 		synchronized (this) {
-			for (String value : f_porousValues) {
-				Integer count = f_counts.get(value);
-				if (count != null)
-					result += count;
-			}
+			return f_porousDrops.size();
 		}
-		return result;
 	}
 
 	/**
@@ -510,13 +525,13 @@ public abstract class Filter {
 	 */
 
 	void refresh() {
-		System.out.println("REFRESH of " + this);
 		final List<IProofDropInfo> incomingResults = getPreviousPorusDrops();
 		synchronized (this) {
 			refreshCounts(incomingResults);
 			deriveAllValues();
 			filterAllValues();
 			fixupPorousValues();
+			refreshPorousDrops(incomingResults);
 		}
 		notifyFilterChanged();
 	}
