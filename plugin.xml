@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-	<extension point="org.eclipse.ui.editors">
+	<!-- extension point="org.eclipse.ui.editors">
         <editor	
            name="Promises XML Editor"
            icon="feature.gif"
@@ -10,7 +10,7 @@
            default="true"
            extensions="xml"
            matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
-	</extension>
+	</extension -->
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
     
     <extension point="org.eclipse.ui.editors.templates">
@@ -54,11 +54,11 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
 		</view>
 
-		<view name="Scan Summary" allowMultiple="false"
+		<!-- view name="Scan Summary" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_graph.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
-		</view>
+		</view -->
 
         <view name="JSure Historical Source" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
