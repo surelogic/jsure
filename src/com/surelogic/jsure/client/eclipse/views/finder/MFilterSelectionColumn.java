@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -135,7 +134,6 @@ public final class MFilterSelectionColumn extends MColumn implements
 						f_totalCount.setForeground(null);
 					}
 				});
-
 				f_reportContents.addKeyListener(new KeyListener() {
 					public void keyPressed(KeyEvent e) {
 						MColumn column = null;
@@ -143,15 +141,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 							column = getPreviousColumn();
 						} else if (e.keyCode == SWT.ARROW_RIGHT) {
 							column = getNextColumn();
-						}
-						/*
-						 * No longer needs to check for these, since selections
-						 * ignore non-mouse-causes
-						 * 
-						 * else if (e.keyCode == SWT.ARROW_DOWN || e.keyCode ==
-						 * SWT.ARROW_UP) { }
-						 */
-						else {
+						} else {
 							handleChar(e);
 							return;
 						}
@@ -162,9 +152,10 @@ public final class MFilterSelectionColumn extends MColumn implements
 					}
 
 					private void handleChar(KeyEvent e) {
-						// Handle space and return by ourselves
-						// (e.g. override default OS behavior)
-						//
+						/*
+						 * Handle space and return by ourselves (e.g. override
+						 * default OS behavior)
+						 */
 						if (e.character == ' ' || e.character == SWT.CR) {
 							// Called after the table toggles the item
 							int selected = f_reportContents.getSelectionIndex();
@@ -205,104 +196,26 @@ public final class MFilterSelectionColumn extends MColumn implements
 						}
 					}
 				});
-				if (SystemUtils.IS_OS_MAC_OSX) {
-					/*
-					 * Mac OS X
-					 */
-					f_reportContents
-							.addSelectionListener(new SelectionListener() {
-								@Override
-								public void widgetSelected(SelectionEvent e) {
-									if (e.item instanceof TableItem) {
-										final TableItem item = (TableItem) e.item;
-										if ((e.detail & SWT.CHECK) != 0) {
-											/*
-											 * A check/uncheck event.
-											 */
-											selectionChanged(item);
-										}
-									}
-
-								}
-
-								@Override
-								public void widgetDefaultSelected(
-										SelectionEvent e) {
-									// Nothing to do for a double-click
-								}
-							});
-				} else {
-					/*
-					 * Windows and Linux
-					 * 
-					 * Scheme for handling mouse selections as follows: 1.
-					 * MouseDown listener marks that there's a selection to
-					 * handle 2. Selection listener only handles events on the
-					 * checkbox 3. DefaultSelection listener ignores events,
-					 * since they're already handled by the others 4. MouseUp
-					 * listener handles the rest of the selections
-					 */
-
-					// True if there's a selection that needs to be handled
-					final AtomicBoolean handleNextSelection = new AtomicBoolean();
-					f_reportContents.addListener(SWT.MouseDown, new Listener() {
-						public void handleEvent(Event e) {
-							int mods = e.stateMask & SWT.MODIFIER_MASK;
-							// Only consider left-clicks as selection events
-							if (e.button == 1 && mods == 0) {
-								handleNextSelection.set(true);
-							}
-						}
-					});
-					f_reportContents
-							.addSelectionListener(new SelectionListener() {
-								// e.g. double-click
-								public void widgetDefaultSelected(
-										SelectionEvent e) {
-									/*
-									 * Already handled by normal selection
-									 * handling
-									 */
-								}
-
-								// e.g., click on row, click on checkbox
-								public void widgetSelected(SelectionEvent e) {
-									TableItem item = (TableItem) e.item;
-									/*
-									 * Only handle if clicking on the checkbox,
-									 * not the rest
-									 */
-									if ((e.detail & SWT.CHECK) != 0) {
-										/*
-										 * Checkbox already toggled, so just
-										 * mark selection as handled, and inform
-										 * table
-										 */
-										handleNextSelection.set(false);
-										selectionChanged(item);
-									}
-								}
-							});
-					f_reportContents.addListener(SWT.MouseUp, new Listener() {
-						public void handleEvent(Event e) {
-							// Check if the selection still needs to be handled
-							if (handleNextSelection.getAndSet(false)) {
-								Point p = new Point(e.x, e.y);
-								TableItem item = f_reportContents.getItem(p);
-								if (item != null) {
-									/*
-									 * Checkbox selections should be handled
-									 * above, so we need to toggle the checkbox
-									 * ourselves
-									 */
-									item.setChecked(!item.getChecked());
-									selectionChanged(item);
-								}
+				f_reportContents.addSelectionListener(new SelectionListener() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						if (e.item instanceof TableItem) {
+							final TableItem item = (TableItem) e.item;
+							if ((e.detail & SWT.CHECK) != 0) {
+								/*
+								 * A check/uncheck event.
+								 */
+								selectionChanged(item);
 							}
 						}
 
-					});
-				}
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						// Nothing to do for a double-click
+					}
+				});
 				f_reportContents.addListener(SWT.MouseMove, new Listener() {
 					public void handleEvent(Event e) {
 						Point p = new Point(e.x, e.y);
