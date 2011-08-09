@@ -869,14 +869,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return ((IAcceptor) op).accept(node, this);
     }
 
-    private void addReceiverDeclForType(IRNode type, IJavaScope.NestedScope sc) {
-      /*
-      IRNode initD = JavaPromise.getInitMethod(type);
-      sc.put("this", JavaPromise.getReceiverNode(initD));
-      */
-      sc.put("this", JavaPromise.getReceiverNode(type));
-    }
-
     /*
     private void bindPromises(IRNode node) {
       PromiseFramework frame = PromiseFramework.getInstance();
@@ -1423,16 +1415,32 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return null;
     }
     
-    @Override
-    public Void visitClassInitializer(IRNode node) {
-      IJavaScope withThis = scope;
-      if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
+    private IJavaScope computeScopeForInstanceFieldsAndInits(IRNode node, IJavaScope scope) {
+    	// Skip body to get to type decl
         IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(node));
         if (!InterfaceDeclaration.prototype.includes(tdecl) && !AnnotationDeclaration.prototype.includes(tdecl)) {
         	IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-        	addReceiverDeclForType(tdecl, sc);
-        	withThis = sc;
-        }
+        	
+        	// addReceiverDeclForType(tdecl, sc);
+        	try {
+        	IRNode initD = JavaPromise.getInitMethod(tdecl);
+        	sc.put("this", JavaPromise.getReceiverNode(initD));
+        	// sc.put("this", JavaPromise.getReceiverNode(type));        	
+        	return sc;
+        	} catch(SlotUndefinedException e) {
+        		System.out.println("Died on: "+JavaNames.getTypeName(tdecl));
+        	}
+        }        
+        return scope;
+    }
+    
+    @Override
+    public Void visitClassInitializer(IRNode node) {
+      final IJavaScope withThis;
+      if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
+    	  withThis = computeScopeForInstanceFieldsAndInits(node, scope);
+      } else {
+    	  withThis = scope;
       }
       doBatchAcceptForChildren(node,withThis);
       return null;
@@ -1559,19 +1567,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     // Copied from ClassInitializer
     @Override
     public Void visitFieldDeclaration(IRNode node) {
-      IJavaScope withThis;
+      final IJavaScope withThis;
       if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
-        IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(node));
-        if (!InterfaceDeclaration.prototype.includes(tdecl)) {
-          IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-          addReceiverDeclForType(tdecl, sc);        
-          withThis = sc;
-        } else {
-          withThis = scope;
-        }
+    	  withThis = computeScopeForInstanceFieldsAndInits(node, scope);
       } else {
-        withThis = scope;
+    	  withThis = scope;
       }
+ 
       // At this point we are visiting if on the way to a nested class (unlikely)
       // or if batch already, or if incremental and this has changed
       // (in which case we want batch).
@@ -2112,11 +2114,33 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitQualifiedName(IRNode node) {
       visit(node); // bind where we look from
-      IBinding baseBinding = getIBinding(QualifiedName.getBase(node));
+      
+      final IRNode base = QualifiedName.getBase(node);
+      IBinding baseBinding = getIBinding(base);
       if (baseBinding == null) {
         bind(node,(IRNode)null);
-        return null;
+      } else {
+    	boolean success = bindQualifiedName(node, baseBinding);
+    	if (!success) {
+    		// TODO
+    		/*
+    		// Base might be ambiguous ... try to rebind
+    		if (SimpleName.prototype.includes(base)) {
+    			final String id = JJNode.getInfo(base);
+    			final NameContext context = computeNameContext(node);
+    			// TODO Hack the selector to make sure that the name ref exists
+    			bind(node, context.selector);
+    		}
+    		*/
+    	}
       }
+      return null;
+    }
+    
+    /**
+     * Given a binding for the base, try to bind the rest of the qualified name
+     */
+    private boolean bindQualifiedName(IRNode node, IBinding baseBinding) {
       Operator bbop = JJNode.tree.getOperator(baseBinding.getNode());
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
@@ -2131,19 +2155,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       } else {
         LOG.warning("Cannot process qualified name " + DebugUnparser.toString(node) +
             " base binding -> " + bbop);
-        return null;
+        return false;
       }
       if (scope == null) {
         LOG.severe("scope is null for " + DebugUnparser.toString(node));
-        return null;
+        return false;
       }
       NameContext context = computeNameContext(node);
       boolean success = bind(node,scope,context.selector);
       if (!success) {
     	  bind(node,scope,context.selector);
+      } else {
+    	  return true;
       }
-      return null;
+      return false;
     }
+    
+    
     
     @Override
     public Void visitQualifiedSuperExpression(IRNode node) {
@@ -2383,7 +2411,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitSimpleName(IRNode node) { 
       final NameContext context = computeNameContext(node);
-      final String name = JJNode.getInfoOrNull(node);
+      final String name = JJNode.getInfo(node);
       if ("Property".equals(name)) {
     	  System.out.println("Binding 'Property': "+context);
       }
@@ -2484,6 +2512,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitThisExpression(IRNode node) {
+      /*
+      if (ThisExpression.prototype.includes(node)) {
+    	  System.out.println("Context for this: "+DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node)));
+      }
+      */
       bind(node, IJavaScope.Util.isReceiverDecl, "this");
       return null;
     }
