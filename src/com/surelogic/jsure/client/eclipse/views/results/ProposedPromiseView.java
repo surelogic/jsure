@@ -46,6 +46,7 @@ public class ProposedPromiseView extends AbstractScanTableView<IProposedPromiseD
 				ISrcRef ref = p.getSrcRef();
 				if (ref != null) {
 					manager.add(f_annotate);
+					return; // Only needs one
 				}
 			}
 		}
