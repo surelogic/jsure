@@ -163,37 +163,51 @@
 				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				definitionId="com.surelogic.jsure.NewScanAction"
-				label="&amp;Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+				label="&amp;Verify Project"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
-				label="Manage SureLogic Licenses" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/license"
+				label="Manage SureLogic Licenses"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/license"
 				helpContextId="menu-manage-licenses">
 			</action>
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
-				label="Run JSure Tutorials" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				label="Run JSure Tutorials"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-run-jsure-tutorials">
 			</action>
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
 				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
-				label="Send Problem Report" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				label="Send Problem Report"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-send-problem-report">
 			</action>
 
 			<action class="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction" label="Send Tip for Improvement"
+				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
+				label="Send Tip for Improvement"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-send-tip-for-improvement">
 			</action>
 		</actionSet>
 	</extension>
+	
+	<!-- Keyboard shortcut to start a scan: first we associate a command with the "definitionId" above, then we define a key binding -->
+	
+	<extension
+         point="org.eclipse.ui.commands">
+         <command
+            name="Verify Project"
+            id="com.surelogic.jsure.NewScanAction" />
+    </extension>
 
 	<extension point="org.eclipse.ui.bindings">
 		<key
