@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -41,10 +42,16 @@ public final class ProposedPromiseContentProvider extends
 				contents.add(id);
 			}
 		}
-		Collections.sort(contents, sortAsString);
+		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
 	}
 
+	private final Comparator<IProposedPromiseDropInfo> sortByProposal = new Comparator<IProposedPromiseDropInfo>() {
+		public int compare(IProposedPromiseDropInfo d1, IProposedPromiseDropInfo d2) {
+			return d1.getJavaAnnotation().compareTo(d2.getJavaAnnotation());
+		}
+	};
+	
 	public Image getColumnImage(Object element, int columnIndex) {
 		if (columnIndex == 0) {
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
