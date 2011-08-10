@@ -116,7 +116,7 @@
 		<actionSet label="JSure ActionSet" visible="true"
 			id="com.surelogic.jsure.client.eclipse.workbenchActionSet">
 			<menu id="com.surelogic.jsure.client.eclipse.workbenchMenu"
-				label="JSure" path="additions">
+				label="&amp;JSure" path="additions">
 
 				<groupMarker name="client" />
 				<separator name="service" />
@@ -135,7 +135,7 @@
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-				label="Open Code Verification Perspective"
+				label="&amp;Open Code Verification Perspective"
 				tooltip="Open the Code Verification perspective to examine JSure tool results"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
@@ -162,7 +162,8 @@
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
-				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+				definitionId="com.surelogic.jsure.NewScanAction"
+				label="&amp;Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
 			<action
@@ -194,13 +195,12 @@
 		</actionSet>
 	</extension>
 
-	<extension point="org.eclipse.ui.commands">
-		<category name="JSure" description="Commands for JSure"
-			id="com.surelogic.jsure.client.eclipse.actions">
-		</category>
-		<command name="Verification Status" description="Open verification status window"
-			categoryId="com.surelogic.jsure.client.eclipse.actions" id="com.surelogic.jsure.view.client.eclipse.status">
-		</command>
+	<extension point="org.eclipse.ui.bindings">
+		<key
+     	 sequence="Ctrl+Shift+V"
+     	 commandId="com.surelogic.jsure.NewScanAction"
+     	 schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
 	</extension>
 
 	<extension id="dcPopupMenus" point="org.eclipse.ui.popupMenus">
