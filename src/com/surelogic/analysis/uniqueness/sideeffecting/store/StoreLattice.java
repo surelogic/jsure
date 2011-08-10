@@ -76,6 +76,8 @@ extends TripleLattice<Element<Integer>,
       addElement(State.SHARED);
 
   private final IRNode[] locals;
+  private final IRNode enclosingTypeQRD; // see bug 1712
+  private final IRNode constructorQRD; // see bug 1712
   
   // for creating drops
   private final IBinder binder;
@@ -267,11 +269,15 @@ extends TripleLattice<Element<Integer>,
   public StoreLattice(final IRNode flowUnit,
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
       final IBinder binder,
-      final IRNode[] locals) {
+      final IRNode[] locals,
+      final IRNode enclosingTypeQRD,
+      final IRNode constructorQRD) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
         new UnionLattice<FieldTriple>());
     this.locals = locals;
+    this.enclosingTypeQRD = enclosingTypeQRD;
+    this.constructorQRD = constructorQRD;
     this.binder = binder;
     this.analysis = analysis;
     this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
@@ -499,11 +505,17 @@ extends TripleLattice<Element<Integer>,
       addElement( EMPTY.addElement(State.BORROWED).addElement(State.SHARED) );
     temp = setObjects(temp, objects);
     
-    /* Now add each parameter or local in turn.  Currently undefined locals are
-     * held back until the end, when they are made undefined (or actually, removed altogether)
+    /* Now add each parameter or local in turn.  Undefined locals are
+     * removed altogether.  If the local is the QualifiedReceiverDeclaration
+     * associated with the flowUnit (and thus the flow unit is a constructor)
+     * we skip it, because we then add it specially so that it always
+     * aliases the QualifiedReceiverDeclaration associated with the 
+     * type declaration that contains the constructor.  (Bug 1612)
      */
-    ImmutableHashOrderSet<Object> undefinedLocals = EMPTY;
     for (final IRNode local : locals) {
+      // Skip the constructor-associated QualifiedReceiverDeclaration 
+      if (local == constructorQRD) continue;
+      
       final Operator op = JJNode.tree.getOperator(local);
       boolean isReceiverFromUniqueReturningConstructor = false;
       if (ReceiverDeclaration.prototype.includes(op)) {
@@ -536,13 +548,18 @@ extends TripleLattice<Element<Integer>,
 //          temp = opExisting(temp, srcOp, State.SHARED);
         }
         temp = pop(apply(temp, srcOp, new Add(getStackTop(temp), EMPTY.addElement(local))), srcOp);
-      } else {
-        undefinedLocals = undefinedLocals.addElement(local);
-      }
+      } 
     }
-    // NB: There's no need to make them undefined since they are out of scope
-    // We can assume variables are not used before they are in scope/defined.
-    // temp = apply(temp, new Add(State.UNDEFINED, undefinedLocals));
+    
+    /* If we have a constructor-associated QualifiedReceiverDeclaration, add 
+     * it to every object that contains the type-associated declaration.  This
+     * forces the two to be aliases.
+     */
+    if (constructorQRD != null) {
+      temp = apply(temp, srcOp,
+          new Add(enclosingTypeQRD, EMPTY.addElement(constructorQRD)));
+    }
+    
     return temp;
   }
 
@@ -573,22 +590,22 @@ extends TripleLattice<Element<Integer>,
     }
   }
 
-  /**
-   * Special case of {@link #opGet} for the receiver.
-   */
-  public Store opThis(final Store s, final IRNode srcOp) {
-    if (!s.isValid()) return s;
-    if (locals == null) {
-      SLLogger.getLogger().log(Level.SEVERE, "no 'this' (or anything else) in scope");
-    }
-    for (final IRNode l : locals) {
-      if (ReceiverDeclaration.prototype.includes(l)) {
-        return opGet(s, srcOp, l);
-      }
-    }
-    SLLogger.getLogger().log(Level.SEVERE, "no 'this' in scope");
-    return s;
-  }
+//  /**
+//   * Special case of {@link #opGet} for the receiver.
+//   */
+//  public Store opThis(final Store s, final IRNode srcOp) {
+//    if (!s.isValid()) return s;
+//    if (locals == null) {
+//      SLLogger.getLogger().log(Level.SEVERE, "no 'this' (or anything else) in scope");
+//    }
+//    for (final IRNode l : locals) {
+//      if (ReceiverDeclaration.prototype.includes(l)) {
+//        return opGet(s, srcOp, l);
+//      }
+//    }
+//    SLLogger.getLogger().log(Level.SEVERE, "no 'this' in scope");
+//    return s;
+//  }
   
   /**
    * Duplicate a stack value from further down stack
@@ -1252,6 +1269,9 @@ extends TripleLattice<Element<Integer>,
         return ParameterDeclaration.getId(n);
       } else if (ReceiverDeclaration.prototype.includes(op)) {
         return "this";
+      } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
+        final String ss = DebugUnparser.toString(JavaPromise.getPromisedFor(n));
+        return JavaNames.getQualifiedTypeName(QualifiedReceiverDeclaration.getBase(n)) + ".this";
       } else if (ReturnValueDeclaration.prototype.includes(op)) {
         return "return";
       }

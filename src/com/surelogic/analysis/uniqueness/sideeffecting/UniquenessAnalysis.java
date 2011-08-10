@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -53,6 +54,7 @@ import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
@@ -68,6 +70,7 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
@@ -123,34 +126,73 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * variables declared in outer scopes, the "return variable" and the
      * receiver.
      */
+    final String fu = DebugUnparser.toString(flowUnit);
+    
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refLocals = new ArrayList<IRNode>();
     final List<IRNode> trash = new ArrayList<IRNode>();
     LocalVariableDeclarations.separateDeclarations(binder, lvd.getLocal(), refLocals, trash);
     LocalVariableDeclarations.separateDeclarations(binder, lvd.getExternal(), refLocals, trash);
+    
+    // Add the return node
     final IRNode returnNode = JavaPromise.getReturnNodeOrNull(flowUnit);
     if (returnNode != null && LocalVariableDeclarations.hasReferenceType(binder, returnNode)) {
       refLocals.add(returnNode);
     }
 
-    // Add the receiver & any qualified receivers
+    // Add the receiver
     final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
     if (rcvrNode != null) {
       refLocals.add(rcvrNode);
     }
-    /* TODO is this right?     
-    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
-      refLocals.add(qrcvr);
+    
+//    /* TODO is this right?     
+//    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
+//      refLocals.add(qrcvr);
+//    }
+//    */
+//    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+//    if (qrcvrNode != null) {
+//    	refLocals.add(qrcvrNode);
+//    }
+    
+    /* Add the qualified receivers (if any) associated with the classes
+     * that enclose this method/constructor (BUG 1712).  Based on 
+     * JavePromise.getQualifiedReceiverNodes().
+     */
+    IRNode currentTypeDecl = VisitUtil.getEnclosingType(flowUnit);
+    final IRNode enclosingQRD = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
+    IRNode qrd = enclosingQRD;
+    while (currentTypeDecl != null) {
+      if (qrd != null) refLocals.add(qrd);
+      currentTypeDecl = VisitUtil.getEnclosingType(currentTypeDecl);
+      qrd = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
     }
-    */
-    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-    if (qrcvrNode != null) {
-    	refLocals.add(qrcvrNode);
+    
+    /* If we are a constructor also add the qualified receiver (if any)
+     * associated with the constructor.  (StoreLattice will force this
+     * qualified receiver to be an alias of the one associated with the class
+     * declaration that contains the constructor. (BUG 1712)
+     */
+    final IRNode constructorQRD;
+    if (ConstructorDeclaration.prototype.includes(flowUnit)) {
+      constructorQRD = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+      if (constructorQRD != null) refLocals.add(constructorQRD);
+    } else {
+      constructorQRD = null;
     }
+    
+    /* For each AnonClassExpression that is in the flow unit we add the 
+     * receiver from the <init> method and the QualifiedReceiverDeclaration,
+     * if any, from the anonymous class itself.  (BUG 1612)
+     */
+    ReceiverSnatcher.getReceivers(flowUnit, refLocals);
+    
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     
-    final StoreLattice lattice = new StoreLattice(flowUnit, analysis, binder, locals);
+    final StoreLattice lattice =
+        new StoreLattice(flowUnit, analysis, binder, locals, enclosingQRD, constructorQRD);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
         new UniquenessTransfer(cargo, binder, mayAlias, lattice,
@@ -617,9 +659,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       
       // If we aren't in a static context then compromise "this"
-      if (JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
+      final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
+      if (rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
-        s = lattice.opCompromise(lattice.opThis(s, node), node);
+        s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node);
+//        s = lattice.opCompromise(lattice.opThis(s, node), node);
       }
       return s;
     }
@@ -843,7 +887,23 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           LOG.fine("initializing static field '" + JJNode.getInfo(node) + "'");
         }
       } else {
-        s = lattice.opThis(s, node);
+        /* We are either a field of the class that contains the constructor
+         * declaration being analyzed, or we are a field of an anonymous class
+         * nested within the flow unit being analyzed.  In the first case,
+         * we want the the receiver of the constructor, in the second case
+         * we want the receiver of the <init> method of the anonymous class.
+         */
+        final IRNode rcvr;
+        final IRNode enclosingType = VisitUtil.getEnclosingType(node);
+        if (AnonClassExpression.prototype.includes(enclosingType) ||
+            EnumConstantClassDeclaration.prototype.includes(enclosingType)) {
+          rcvr = JavaPromise.getReceiverNode(
+              JavaPromise.getInitMethod(enclosingType));
+        } else {
+          rcvr = JavaPromise.getReceiverNode(flowUnit);
+        }
+        s = lattice.opGet(s, node, rcvr);
+//        s = lattice.opThis(s, node);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }
@@ -1281,6 +1341,32 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected RawQuery newSubAnalysisQuery(
         final Delegate<RawQuery, Store, Store, StoreLattice> delegate) {
       return new RawQuery(delegate);
+    }
+  }
+  
+  private static final class ReceiverSnatcher extends JavaSemanticsVisitor {
+    private final List<IRNode> refs;
+    
+    private ReceiverSnatcher(final IRNode flowUnit, final List<IRNode> refs) {
+      super(false, flowUnit);
+      this.refs = refs;
+    }
+    
+    public static void getReceivers(final IRNode flowUnit, final List<IRNode> refs) {
+      final ReceiverSnatcher rs = new ReceiverSnatcher(flowUnit, refs);
+      rs.doAccept(flowUnit);
+    }
+    
+    @Override
+    protected void handleAnonClassExpression(final IRNode anonClass) {
+      super.handleAnonClassExpression(anonClass);
+      
+      // Add the receiver from <init>
+      refs.add(JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
+      
+      // Add the qualified receiver from the anon class, if any
+      final IRNode qrd = JavaPromise.getQualifiedReceiverNodeOrNull(anonClass);
+      if (qrd != null) refs.add(qrd);      
     }
   }
 }
