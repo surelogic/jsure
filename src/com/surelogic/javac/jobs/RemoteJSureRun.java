@@ -116,6 +116,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 						new SeaSnapshot(new File(runDir, RESULTS_XML)).snapshot(projects.getLabel(), Sea.getDefault());
 						SeaStats.createSummaryZip(new File(runDir, SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
 								                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
+						out.println("Finished "+SUMMARIES_ZIP);
 						monitor.done();
 					} catch (Exception e) {
 						return SLStatus.createErrorStatus(e);
