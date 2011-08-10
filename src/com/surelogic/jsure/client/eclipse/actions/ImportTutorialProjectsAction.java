@@ -29,9 +29,6 @@ public class ImportTutorialProjectsAction implements
 				"/com.surelogic.jsure.client.help/ch01s03.html",
 				loader.getResource("/lib/PlanetBaronJSure.zip"),
 				loader.getResource("/lib/BoundedFIFOJSure.zip"),
-				loader.getResource("/lib/SmallWorldJSure.zip"),
-				loader.getResource("/lib/apache-log4j.zip"),
-				loader.getResource("/lib/java.util.logging.zip"),
 				loader.getResource("/lib/oswego.util.concurrent.zip"));
 	}
 
