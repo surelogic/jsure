@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.xml.AnnotationElement;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
@@ -197,6 +198,9 @@ public class AbstractAdapter {
 					ISrcRef ref = new NamedSrcRef(project, name, pkg, cu);
 					JavaNode.setSrcRef(n, ref);
 				}
+			} else if (edu.cmu.cs.fluid.java.operator.AnnotationElement.prototype.includes(op)) {
+				ReturnValueDeclaration.getReturnNode(n);
+				PromiseUtil.addReceiverDeclsToMethod(n);
 			}
 		}
 	}
