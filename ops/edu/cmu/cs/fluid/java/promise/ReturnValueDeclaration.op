@@ -13,7 +13,8 @@ public operator ReturnValueDeclaration {
     for (Operator op = mop;
 	 op != null &&
 	   !(op instanceof MethodDeclaration) &&
-	   !(op instanceof ConstructorDeclaration);
+	   !(op instanceof ConstructorDeclaration) &&
+	   !(op instanceof AnnotationElement);
 	 op = (methodNode==null)?null:tree.getOperator(methodNode)) {
       methodNode = tree.getParentOrNull(methodNode);
     }

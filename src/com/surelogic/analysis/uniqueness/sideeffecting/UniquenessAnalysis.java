@@ -62,6 +62,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -747,11 +748,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         LOG.warning("No binding for method " + DebugUnparser.toString(node));
         formals = null;
       } else {
-        if (ConstructorDeclaration.prototype.includes(mdecl)) {
-          formals = ConstructorDeclaration.getParams(mdecl);
-        } else {
-          formals = MethodDeclaration.getParams(mdecl);
-        }
+        formals = SomeFunctionDeclaration.getParams(mdecl);
+//        if (ConstructorDeclaration.prototype.includes(mdecl)) {
+//          formals = ConstructorDeclaration.getParams(mdecl);
+//        } else if (MethodDeclaration.prototype.includes(mdecl) {
+//          formals = MethodDeclaration.getParams(mdecl);
+//        } else { // AnnotationElement
+//          
+//        }
       }
       final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       
