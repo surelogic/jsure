@@ -1103,12 +1103,14 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     	if (params.size() > 0) {
     		VariableTree v = params.get(params.size()-1);
     		String last = v.toString();
-        	varargs = last.contains("..."); 
+        	varargs = v.getType().getKind() == Tree.Kind.ARRAY_TYPE && last.contains("..."); 
+        	/* TODO is this the best way to figure this out?
+        	if (varargs) {
+        		System.out.println("Found varargs: "+node);
+        	}
+        	*/
     	} else {
     		varargs = false;
-    	}
-    	if (varargs) {
-    		System.out.println("Found varargs: "+node);
     	}
 
     	int mods      = adaptModifiers(node.getModifiers());
