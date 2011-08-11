@@ -49,7 +49,7 @@ public final class FilterProject extends Filter {
 		for (IProofDropInfo d : incomingResults) {
 			final ISrcRef sr = d.getSrcRef();
 			if (sr != null) {
-				final String value = sr.getProject();
+				final String value = getProject(sr);
 				if (value != null) {
 					Integer count = f_counts.get(value);
 					if (count == null) {
@@ -70,12 +70,22 @@ public final class FilterProject extends Filter {
 		for (IProofDropInfo d : incomingResults) {
 			final ISrcRef sr = d.getSrcRef();
 			if (sr != null) {
-				final String value = sr.getProject();
+				final String value = getProject(sr);
 				if (value != null) {
 					if (f_porousValues.contains(value))
 						f_porousDrops.add(d);
 				}
 			}
 		}
+	}
+
+	private String getProject(ISrcRef sr) {
+		String result = sr.getProject();
+		if (result != null) {
+			if (result.contains("JRE_CONTAINER")) {
+				result = "Java Standard Library";
+			}
+		}
+		return result;
 	}
 }
