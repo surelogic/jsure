@@ -11,6 +11,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
@@ -30,10 +31,22 @@ public final class ProblemsViewContentProvider extends
 		Set<? extends IDropInfo> promiseWarningDrops = info
 				.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
-			// only show info drops at the main level if they are not
-			// attached
-			// to a promise drop or a result drop
-			contents.add(id);
+			/*
+			 * Only show info drops at the main level if they are not attached
+			 * to a promise drop or a result drop.
+			 * 
+			 * Also we only want to show problems in the source code. To do this
+			 * we get the CU name and see if it ends in ".java"
+			 */
+			final ISrcRef srcRef = id.getSrcRef();
+			if (srcRef != null) {
+				final String path = srcRef.getRelativePath();
+				if (path != null) {
+					if (path.endsWith(".java")) {
+						contents.add(id);
+					}
+				}
+			}
 		}
 		Collections.sort(contents, sortByLocation);
 		return info.getLabel();
