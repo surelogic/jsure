@@ -2112,7 +2112,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	}
     
     @Override
-    public Void visitQualifiedName(IRNode node) {
+    public Void visitQualifiedName(final IRNode node) {
       visit(node); // bind where we look from
       
       final IRNode base = QualifiedName.getBase(node);
@@ -2122,16 +2122,24 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       } else {
     	boolean success = bindQualifiedName(node, baseBinding);
     	if (!success) {
-    		// TODO
     		/*
     		// Base might be ambiguous ... try to rebind
     		if (SimpleName.prototype.includes(base)) {
-    			final String id = JJNode.getInfo(base);
+    			// Hack the selector to make sure that the name ref exists    			
     			final NameContext context = computeNameContext(node);
-    			// TODO Hack the selector to make sure that the name ref exists
-    			bind(node, context.selector);
-    		}
-    		*/
+       			final String id = JJNode.getInfo(node);
+       			final Selector s = new IJavaScope.AbstractSelector("Customized to find "+id) {
+					@Override
+					public boolean select(IRNode n) {
+						if (context.selector.select(n)) {
+							// TODO how do I get an IBinding from n? (need type context)
+							bindQualifiedName(node, null);
+						}
+						return false;
+					}};
+    			bind(node, s);
+    		}   
+    		*/ 		
     	}
       }
       return null;
