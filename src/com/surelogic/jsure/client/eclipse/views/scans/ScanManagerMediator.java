@@ -196,6 +196,15 @@ public final class ScanManagerMediator implements ILifecycle {
 				.getCurrentScan();
 		if (current != null)
 			f_table.setChecked(current, true);
+
+		if (f_swtTable.getItemCount() == 1)
+			packColumns();
+	}
+
+	private void packColumns() {
+		TableUtility.packColumns(f_table);
+		if (EXTRA_COLUMN)
+			f_swtTable.getColumn(0).setWidth(EXTRA_COLUMN_WIDTH);
 	}
 
 	private void reactToCheckStateChanged(final JSureScan current) {
@@ -285,9 +294,7 @@ public final class ScanManagerMediator implements ILifecycle {
 			}
 		});
 
-		TableUtility.packColumns(f_table);
-		if (EXTRA_COLUMN)
-			f_swtTable.getColumn(0).setWidth(EXTRA_COLUMN_WIDTH);
+		packColumns();
 	}
 
 	private TableColumn addColumn(String text, int alignment) {
