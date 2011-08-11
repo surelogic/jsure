@@ -1098,9 +1098,19 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
     
     public IRNode adaptMethod(MethodTree node, String className, TypeKind kind, CodeContext context) {
-    	String src = node.toString();
-    	int brace  = src.indexOf('{');    	
-    	final boolean varargs = (brace<0 ? src : src.substring(0, brace)).contains("...");    	
+    	final boolean varargs;
+    	List<? extends VariableTree> params = node.getParameters();
+    	if (params.size() > 0) {
+    		VariableTree v = params.get(params.size()-1);
+    		String last = v.toString();
+        	varargs = last.contains("..."); 
+    	} else {
+    		varargs = false;
+    	}
+    	if (varargs) {
+    		System.out.println("Found varargs: "+node);
+    	}
+
     	int mods      = adaptModifiers(node.getModifiers());
      	if (kind == TypeKind.IFACE) {
     		mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true); 
