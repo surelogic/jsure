@@ -13,16 +13,16 @@ import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public final class FilterVerificationJudgement extends Filter {
+public final class FilterVerificationJudgment extends Filter {
 
 	public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
 		public Filter construct(Selection selection, Filter previous) {
-			return new FilterVerificationJudgement(selection, previous,
+			return new FilterVerificationJudgment(selection, previous,
 					getFilterLabel());
 		}
 
 		public String getFilterLabel() {
-			return "Verification Judgement";
+			return "Verification Judgment";
 		}
 
 		@Override
@@ -31,7 +31,7 @@ public final class FilterVerificationJudgement extends Filter {
 		}
 	};
 
-	private FilterVerificationJudgement(Selection selection, Filter previous,
+	private FilterVerificationJudgment(Selection selection, Filter previous,
 			String filterLabel) {
 		super(selection, previous, filterLabel);
 	}

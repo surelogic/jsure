@@ -24,7 +24,7 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
 import com.surelogic.jsure.client.eclipse.model.selection.FilterAnalysisResult;
 import com.surelogic.jsure.client.eclipse.model.selection.FilterAnnotation;
-import com.surelogic.jsure.client.eclipse.model.selection.FilterVerificationJudgement;
+import com.surelogic.jsure.client.eclipse.model.selection.FilterVerificationJudgment;
 import com.surelogic.jsure.client.eclipse.model.selection.IFilterObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionFilterFactory;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
@@ -230,10 +230,10 @@ public final class MRadioMenuColumn extends MColumn implements
 				 */
 				if (f instanceof FilterAnalysisResult) {
 					result.remove(FilterAnnotation.FACTORY);
-					result.remove(FilterVerificationJudgement.FACTORY);
+					result.remove(FilterVerificationJudgment.FACTORY);
 				}
 				if (f instanceof FilterAnnotation
-						|| f instanceof FilterVerificationJudgement) {
+						|| f instanceof FilterVerificationJudgment) {
 					result.remove(FilterAnalysisResult.FACTORY);
 				}
 			}

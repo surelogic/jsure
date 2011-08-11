@@ -43,7 +43,7 @@ public final class Selection implements
 		allFilters.add(FilterJavaClass.FACTORY);
 		allFilters.add(FilterJavaPackage.FACTORY);
 		allFilters.add(FilterProject.FACTORY);
-		allFilters.add(FilterVerificationJudgement.FACTORY);
+		allFilters.add(FilterVerificationJudgment.FACTORY);
 
 		f_allFilters = Collections.unmodifiableSet(allFilters);
 	}
