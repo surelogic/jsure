@@ -43,33 +43,29 @@ public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 		// nothing to do
 	}
 
+	private final UIJob f_backgroundColorJob = new SLUIJob() {
+		@Override
+		public IStatus runInUIThread(IProgressMonitor monitor) {
+			final TableViewer tableViewer = (TableViewer) getViewer();
+			if (tableViewer != null) {
+				final Table table = tableViewer.getTable();
+				if (!table.isDisposed()) {
+					if (table.getItemCount() == 0) {
+						table.setBackground(null);
+					} else {
+						table.setBackground(table.getDisplay().getSystemColor(
+								SWT.COLOR_YELLOW));
+					}
+				}
+			}
+			return Status.OK_STATUS;
+		}
+	};
+
 	@Override
 	protected String updateViewer() {
 		final String result = super.updateViewer();
-
-		final TableViewer tableViewer = getTableViewer();
-		if (tableViewer != null) {
-			final UIJob job = new SLUIJob() {
-				@Override
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					final Table table = tableViewer.getTable();
-					if (!table.isDisposed()) {
-						if (table.getItemCount() == 0) {
-							table.setBackground(null);
-						} else {
-							table.setBackground(table.getDisplay()
-									.getSystemColor(SWT.COLOR_YELLOW));
-						}
-					}
-					return Status.OK_STATUS;
-				}
-			};
-			job.schedule();
-		}
+		f_backgroundColorJob.schedule();
 		return result;
-	}
-
-	public TableViewer getTableViewer() {
-		return (TableViewer) getViewer();
 	}
 }

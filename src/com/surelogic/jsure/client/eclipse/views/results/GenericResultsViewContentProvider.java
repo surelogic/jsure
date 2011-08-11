@@ -14,19 +14,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.jobs.SLUIJob;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -1185,22 +1178,6 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			infoFolder.setBaseImageName(CommonImages.IMG_INFO);
 			infoFolder.f_isInfo = true;
 			root.add(infoFolder);
-		}
-
-		if (dropsExist(PromiseWarningDrop.class)) {
-			/*
-			 * We have modeling problems...make sure the view that shows them is
-			 * visible to the user.
-			 */
-			final UIJob job = new SLUIJob() {
-				@Override
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					EclipseUIUtility.showView(ProblemsView.class.getName(),
-							null, IWorkbenchPage.VIEW_VISIBLE);
-					return Status.OK_STATUS;
-				}
-			};
-			job.schedule();
 		}
 
 		final Collection<IProofDropInfo> resultDrops = getDropsOfType(
