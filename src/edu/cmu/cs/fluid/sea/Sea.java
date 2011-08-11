@@ -443,6 +443,12 @@ public final class Sea {
 		final String result = promiseDropInfo.getType();
 		if (result == null)
 			return null;
+		// Special cases
+		if ("LockModel".equals(result))
+			return "RegionLock";
+		if ("RegionModel".equals(result))
+			return "Region";
+		// General case XResultDrop where we return X
 		if (!result.endsWith(suffix))
 			return null;
 		return result.substring(0, result.length() - suffix.length());
