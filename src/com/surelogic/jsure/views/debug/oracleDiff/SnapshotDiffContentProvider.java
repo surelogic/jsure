@@ -10,7 +10,9 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -119,7 +121,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	}
 
 	public Image getImage(Object element) {
-		// TODO Auto-generated method stub
+		if (element instanceof Entity) {
+			Entity e = (Entity) element;
+			if (e.isNewer()) {
+				return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
+			} else if (e.isOld()) {
+				return SLImages.getImage(CommonImages.IMG_EDIT_DELETE); 
+			}
+		}
 		return null;
 	}
 
