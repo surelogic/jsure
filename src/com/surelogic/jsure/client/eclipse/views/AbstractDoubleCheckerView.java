@@ -79,9 +79,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		IPersistentDropInfoListener {
 	protected static final Logger LOG = SLLogger
 			.getLogger("AbstractDoubleCheckerView");
-
+	
 	final public static Point ICONSIZE = new Point(22, 16);
 
+	private static final boolean useFancyWait = false;
+	
 	/**
 	 * leave {@code null} if the subclass doesn't want to use this capability.
 	 */
@@ -200,7 +202,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			 * the project.
 			 */
 			final IIRProjects projects = ProjectsDrop.getProjects();
-			if (projects != null
+			if (useFancyWait && projects != null
 					&& !COMP_ERRORS.equals(f_noResultsToShowLabel.getText())) {
 				final Control c = viewer.getControl();
 				if (c != null && c.isVisible()) {
