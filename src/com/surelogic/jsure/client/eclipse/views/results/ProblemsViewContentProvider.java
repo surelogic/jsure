@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
 public final class ProblemsViewContentProvider extends
 		AbstractResultsTableContentProvider<IDropInfo> {
+
 	ProblemsViewContentProvider() {
 		super("Description");
 	}
