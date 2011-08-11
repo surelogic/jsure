@@ -4,7 +4,7 @@
     <class name="IdentityArrayList">
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>
