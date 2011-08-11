@@ -448,6 +448,8 @@ public final class Sea {
 			return "RegionLock";
 		if ("RegionModel".equals(result))
 			return "Region";
+		if ("VouchFieldIsPromiseDrop".equals(result))
+			return "Vouch";
 		// General case XResultDrop where we return X
 		if (!result.endsWith(suffix))
 			return null;
