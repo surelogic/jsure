@@ -183,10 +183,16 @@ public class JavacDriver implements IResourceChangeListener {
 								"Unable to delete project: " + proj);
 					}
 				}
-				proj.mkdirs();
-
+				/* The zip already contains the project as part of the path,
+				 * so don't do the following:				
+				 * 							
+				 * proj.mkdirs();
+				 * 
 				// Unzip into the project
-				FileUtility.unzipFile(archive, proj);
+				 * FileUtility.unzipFile(archive, proj);
+				 */
+				// Unzip into the workspace
+				FileUtility.unzipFile(archive, workspace);	
 
 				// Make a copy of the script to use while updating
 				FileUtility.deleteTempFiles(scriptFilter);
