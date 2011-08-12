@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ISuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
@@ -598,9 +599,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return lattice.opNew(s);
       }
       // XXX: Will crash if given a ConstructorDeclaration
-      final IRNode ty = MethodDeclaration.getReturnType(decl);
-      if (VoidType.prototype.includes(ty)) {
-        return lattice.push(s);
+      final IRNode ty;
+      if (MethodDeclaration.prototype.includes(decl)) {
+    	  ty = MethodDeclaration.getReturnType(decl);
+    	  
+          if (VoidType.prototype.includes(ty)) {
+              return lattice.push(s);
+          }
+      } else {
+    	  // No check, since it can't be void
+    	  ty = AnnotationElement.getType(decl);
       }
       
       final IRNode retDecl = JavaPromise.getReturnNodeOrNull(decl);
