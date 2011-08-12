@@ -65,7 +65,7 @@ public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	@Override
 	protected String updateViewer() {
 		final String result = super.updateViewer();
-		f_backgroundColorJob.schedule();
+		f_backgroundColorJob.schedule(300);
 		return result;
 	}
 }
