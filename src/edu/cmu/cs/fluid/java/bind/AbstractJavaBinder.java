@@ -2120,9 +2120,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (baseBinding == null) {
         bind(node,(IRNode)null);
       } else {
-    	boolean success = bindQualifiedName(node, baseBinding);
-    	if (!success) {
-    		/*
+    	bindQualifiedName(node, baseBinding);
+    	/*
+    	if (!success) {    		
     		// Base might be ambiguous ... try to rebind
     		if (SimpleName.prototype.includes(base)) {
     			// Hack the selector to make sure that the name ref exists    			
@@ -2138,9 +2138,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 						return false;
 					}};
     			bind(node, s);
-    		}   
-    		*/ 		
+    		}      	
     	}
+    	*/
       }
       return null;
     }
