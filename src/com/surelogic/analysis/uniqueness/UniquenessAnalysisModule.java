@@ -851,7 +851,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		// Get the @borrowed and @unique params drops, if any
 		if (!TypeUtil.isStatic(mdecl)) { // don't forget the receiver
 			final IRNode self = JavaPromise.getReceiverNodeOrNull(mdecl);
-			if (self == null) {
+			if (self != null) {
 				final BorrowedPromiseDrop borrowedRcvrDrop = UniquenessRules.getBorrowed(self);
 				final UniquePromiseDrop uniqueRcvrDrop = UniquenessRules.getUnique(self);
 				if (borrowedRcvrDrop != null) {
