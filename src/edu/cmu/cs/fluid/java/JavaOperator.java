@@ -208,6 +208,9 @@ public class JavaOperator extends JJOperator {
   }
   
   public boolean includes(IRNode node) {
+	if (node == null) {
+		return false;
+	}
     return includes(JJNode.tree.getOperator(node));
   }
 
