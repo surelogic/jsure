@@ -1114,6 +1114,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return argTypes;
     }
     
+	private IJavaScope.Selector makeAccessSelector(final IRNode from) {
+		return new IJavaScope.AbstractSelector("Is accessible from "+DebugUnparser.toString(from)) {
+			public boolean select(IRNode decl) {
+				boolean ok = BindUtil.isAccessible(typeEnvironment, decl, from);
+				return ok;
+			}    	  
+		};
+	}
+	
     /**
      * @return true if bound
      */
@@ -1144,12 +1153,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       } else {
     	  from = call;
       }
-      IJavaScope.Selector isAccessible = new IJavaScope.AbstractSelector("Is accessible") {
-		public boolean select(IRNode mdecl) {
-			boolean ok = BindUtil.isAccessible(typeEnvironment, mdecl, from);
-			return ok;
-		}    	  
-      };
+      final IJavaScope.Selector isAccessible = makeAccessSelector(from);
       Iterator<IBinding> methods = IJavaScope.Util.lookupCallable(sc,name,call,isAccessible);
       BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
       /*
@@ -2419,11 +2423,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitSimpleName(IRNode node) { 
       final NameContext context = computeNameContext(node);
+      /*
       final String name = JJNode.getInfo(node);
       if ("Property".equals(name)) {
     	  System.out.println("Binding 'Property': "+context);
       }
-      boolean success = bind(node, context.selector);
+      */
+      final IJavaScope.Selector isAccessible = makeAccessSelector(node);
+      boolean success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, context.selector));
       /*
       String unparse = DebugUnparser.toString(node);
       if (unparse.contains("lattice")) {

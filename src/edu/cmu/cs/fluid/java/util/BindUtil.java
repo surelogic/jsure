@@ -530,9 +530,13 @@ public class BindUtil implements JavaGlobals {
     IRNode declCU = VisitUtil.getEnclosingCompilationUnit(declaringType);
     IRNode fromCU = VisitUtil.getEnclosingCompilationUnit(enclosingType);
     if (declCU == null || fromCU == null) {
+      // TODO is this right?
+      if (NamedPackageDeclaration.prototype.includes(decl)) {
+    	  return true;
+      }
       LOG.warning("Not in a compilation unit: " + 
     		      DebugUnparser.toString(declCU == null ? decl : from));
-      System.out.println("IRNode: "+decl);
+      System.out.println("IRNode: "+decl);      
       return false;
     }
     IRNode declPkg = CompilationUnit.getPkg(declCU);
