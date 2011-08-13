@@ -556,15 +556,28 @@ public class BindUtil implements JavaGlobals {
     
     // Handle PROTECTED
     
-    IJavaType declT = tEnv.computeErasure(tEnv.getMyThisType(declaringType));
+    final IJavaType declT = tEnv.computeErasure(tEnv.getMyThisType(declaringType));
     IRNode here = VisitUtil.getClosestType(from);
-    // Check this type and its enclosing/outer types
+    Stack<IJavaType> stack = new Stack<IJavaType>();
+    
+    // Check this type and its enclosing/outer types    
     while (here != null) {          
       IJavaType hereT = tEnv.computeErasure(tEnv.getMyThisType(here));
+      
+      /* Delayed to reverse the order, and prevent a DerivationException
+       * 
       if (tEnv.isSubType(hereT, declT)) {
         return true;
       }
+      */
+      stack.push(hereT);
       here = VisitUtil.getEnclosingType(here);
+    }
+    while (!stack.isEmpty()) {
+    	IJavaType hereT = stack.pop();
+    	if (tEnv.isSubType(hereT, declT)) {
+            return true;
+    	}
     }
     return false;
   }
