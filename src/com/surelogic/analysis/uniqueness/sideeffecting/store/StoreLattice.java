@@ -1472,7 +1472,6 @@ extends TripleLattice<Element<Integer>,
       final InfoAdder infoAdder) {
     if (shouldRecordResult()) {
       goodUnique.add(new GoodResult(uDrop, srcOp, abruptDrops, msg, infoAdder));
-      System.out.println();
     }
   }
   
