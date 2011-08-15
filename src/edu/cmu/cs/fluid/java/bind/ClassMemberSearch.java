@@ -222,7 +222,7 @@ public class ClassMemberSearch {
       @Override
       protected Object computeNext() {
         if (next != null) {
-          IRNode rv = next.getDeclaration();
+          IJavaDeclaredType rv = next;
           next = null;
           return rv;
         }
@@ -241,7 +241,7 @@ public class ClassMemberSearch {
             nestedIter = getFormalBounds((IJavaTypeFormal) t);      
             return nestedIter.next();
           } else {
-            return ((IJavaDeclaredType) t).getDeclaration();            
+            return t;            
           }
         }
         return IteratorUtil.noElement;
