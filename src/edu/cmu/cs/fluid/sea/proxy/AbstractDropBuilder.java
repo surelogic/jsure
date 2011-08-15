@@ -44,6 +44,9 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 	}
 	
 	public void setNode(IRNode n) {
+		if (n == null) {
+			throw new IllegalArgumentException("Set node to null");
+		}
 		node = n;
 	}
 	
@@ -102,7 +105,9 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 	
 	int buildDrop(IRReferenceDrop d) {
 		int num = 1;
-		d.setNodeAndCompilationUnitDependency(node);
+		if (node != null) {
+			d.setNodeAndCompilationUnitDependency(node);
+		}
 		if (messageNum < 0) {
 			d.setMessage(message);
 		} else {
