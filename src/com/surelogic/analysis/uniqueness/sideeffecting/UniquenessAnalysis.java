@@ -805,7 +805,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // for new expressions (object already duplicated)
         // and for constructor calls (also already duplicated)
         // we pop the receiver.
-        s = popReceiver(mdecl, node, s, receiverNode);
+        s = popReceiver(mdecl, node, s, (receiverNode == null) ? node : receiverNode);
       } finally {
         lattice.setSuppressDrops(false);
       }

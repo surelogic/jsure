@@ -1893,8 +1893,8 @@ extends TripleLattice<Element<Integer>,
       this.adder = adder;
       
       int hc = 17;
-      hc = 31 * hc + pd.hashCode();
-      hc = 31 * hc + srcOp.hashCode();
+      hc = 31 * hc + (pd == null ? 0 : pd.hashCode());
+      hc = 31 * hc + (srcOp == null ? 0 : srcOp.hashCode());
       hc = 31 * hc + (isAbrupt ? 1 : 0);
       hc = 31 * hc + msg;
       this.hashCode = hc;
