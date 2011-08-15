@@ -65,9 +65,11 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 		this.args = args;
 		if (num == 207) {
 			String arg0 = args[0].toString();
+			/*
 			if (arg0.startsWith("<test.AnonymousClass.SuperIsNotInner.TestFieldInit.this>:T")) {
 				System.out.println("Got 207");
 			}
+			*/
 		}
 	}
 	
