@@ -19,17 +19,20 @@ public class ClassMemberSearch {
   private static final Logger LOG = SLLogger.getLogger("FLUID.bind");
   
   private final IBinder binder;
-  private final ITypeEnvironment tEnv;
+  // Not final because it might not be created yet
+  private ITypeEnvironment tEnv;
   
   ClassMemberSearch(IBinder b) {
     binder = b; 
-    tEnv = binder.getTypeEnvironment();
   }
   
   public <T> T findClassBodyMembers(final IRNode type, ISuperTypeSearchStrategy<T> tvs, boolean throwIfNotFound) {
     if (type == null) {
       return null;
     }    
+    if (tEnv == null) {
+        tEnv = binder.getTypeEnvironment();
+    }
     final boolean isFormal = TypeFormal.prototype.includes(type);
     if (isFormal) {
       findXinTypeFormal_up(tvs, JavaTypeFactory.getTypeFormal(type));
