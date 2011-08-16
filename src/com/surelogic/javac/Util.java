@@ -361,6 +361,7 @@ public class Util {
         
 		final long canon = System.currentTimeMillis();
 		canonicalizeCUs(cus, projects);    
+		final long cleanup = System.currentTimeMillis();
 		eliminateDups(cus.asList(), cus.asList());
 		clearCaches(projects);
 		
@@ -466,7 +467,8 @@ public class Util {
 		System.out.println("Done in "+(end-start)+" ms.");
 		System.out.println("Parsing         : "+(parse-start)+" ms");
 		System.out.println("Rewriting       : "+(canon-parse)+" ms");
-		System.out.println("Canonicalization: "+(required-canon)+" ms");
+		System.out.println("Canonicalization: "+(cleanup-canon)+" ms");
+		System.out.println("Cleanup         : "+(required-cleanup)+" ms");
 		System.out.println("Add required    : "+(drops-required)+" ms");
 		System.out.println("Drop creation   : "+(promise-drops)+" ms");
 		System.out.println("Promise parsing : "+(scrub-promise)+" ms");
