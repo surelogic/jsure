@@ -41,7 +41,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode decl = VisitUtil.getClosestDecl(parent);
 		ISrcRef ref = JavaNode.getSrcRef(decl);
 		if (ref != null) {
-			System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
+			//System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
 			JavaNode.setSrcRef(n, ref);
 		}
 		/*
