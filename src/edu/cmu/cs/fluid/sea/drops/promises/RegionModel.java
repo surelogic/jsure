@@ -1,11 +1,14 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
+import java.util.logging.Level;
+
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.annotation.rules.RegionRules;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -50,6 +53,12 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	private Object colorInfo;
 
+	@Override
+	public void clearNode() {
+		SLLogger.getLogger().log(Level.WARNING, "Clearing node for "+project+'/'+this.regionName, new Throwable("For stack trace"));
+		super.clearNode();
+	}
+	
 	public static synchronized RegionModel getInstance(String regionName,
 			String projectName) {
 		purgeUnusedRegions(); // cleanup the regions
@@ -137,7 +146,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		project = proj;
 		this.setMessage("region " + name);
 		this.setCategory(JavaGlobals.REGION_CAT);
-		// System.out.println("Creating RegionModel "+name+" for "+proj);
+
+		if ("java.lang.Object.Instance".equals(name)) {
+			System.out.println("Creating RegionModel "+name+" for "+proj);
+		}				
 	}
 
 	public String getProject() {
@@ -189,6 +201,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			RegionModel drop = nameToDrop.get(key.first(), key.second());
 			if (drop == null) {
 				continue;
+			}
+			if (drop.getNode() == null) {
+				SLLogger.getLogger().severe("Null node for "+drop.project+'/'+drop.regionName);
 			}
 			/*
 			 * if (key.first().contains("[]")) {
@@ -438,6 +453,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			else {
 				if (ALL.equals(regionName)) {
 					return null;
+				}
+				if (this.getNode() == null) {
+					SLLogger.getLogger().severe("Null node for region "+project+'/'+this.regionName);
 				}
 				if (JavaNode.getModifier(this.getNode(), JavaNode.STATIC)) {
 					return RegionModel.getAllRegion(this.getNode());

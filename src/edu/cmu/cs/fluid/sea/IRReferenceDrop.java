@@ -141,7 +141,7 @@ public abstract class IRReferenceDrop extends Drop {
 		}
 	}
 
-	public final void clearNode() {
+	public /*final*/ void clearNode() {
 		// lastNonNullNode is not cleared
 		node = null;		
 	}
