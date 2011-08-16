@@ -1041,6 +1041,14 @@ public class Util {
 					System.out.println("No promises found for "+name+" in "+p.getName());
 					*/
 				}
+				/* The model won't show up yet, since it hasn't been scrubbed yet
+				if ("java.lang.Object".equals(name)) {
+					RegionModel m = RegionModel.getInstance(name, p.getName());
+					if (m.getNode() == null) {
+						SLLogger.getLogger().severe("RegionModel for java.lang.Object has null node");
+					}
+				}
+				*/
 			}
 			private void handleException(String name, Exception e) {
 				if (!(e instanceof FileNotFoundException)) {
