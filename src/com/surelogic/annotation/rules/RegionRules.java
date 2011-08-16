@@ -218,7 +218,7 @@ public class RegionRules extends AnnotationRules {
     if (annotationIsGood) {
       RegionModel model = RegionModel.getInstance(qualifiedName, a.getPromisedFor());  
       model.setAST(a); // Set to keep it from being purged
-      System.out.println("Adding region "+model.getName()+" to "+JavaNames.getFullTypeName(a.getPromisedFor())+" -- "+a.getPromisedFor());
+      //System.out.println("Adding region "+model.getName()+" to "+JavaNames.getFullTypeName(a.getPromisedFor())+" -- "+a.getPromisedFor());
       
       if (parentModel != null) { // parentModel == null if region is ALL
         model.addDependent(parentModel);
