@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
 /** An implementation of sets with some provision for infinite sets
@@ -19,7 +20,7 @@ import com.surelogic.common.logging.SLLogger;
 //@SuppressWarnings("all")
 public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 {
-  public static final boolean debug = true;
+  public static final boolean debug = XUtil.useExperimental();
 
   /** This array holds exactly the elements in the set (or not in
    * the set if inverse is true.  They are sorted by hashCode.
