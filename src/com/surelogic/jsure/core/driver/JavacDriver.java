@@ -1544,7 +1544,7 @@ public class JavacDriver implements IResourceChangeListener {
 				// This is the only public top-level type
 				break;
 			} else {
-				System.out.println("Got a non-public type: "+qname);
+				//System.out.println("Got a non-public type: "+qname);
 			}
 		}
 		if (qname == null) {
@@ -1951,7 +1951,7 @@ public class JavacDriver implements IResourceChangeListener {
 			final String msg = "Running JSure for " + projects.getLabel();
 			ILocalJSureConfig cfg = new ILocalJSureConfig() {
 				public boolean isVerbose() {
-					return true;
+					return SLLogger.isLoggable(Level.FINE);
 				}
 
 				public String getTestCode() {
