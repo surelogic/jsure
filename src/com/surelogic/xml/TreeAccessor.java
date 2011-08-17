@@ -56,7 +56,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 			}
 		}
 		String desc = "Couldn't find class " + name + " in "
-				+ DebugUnparser.toString(type);
+				+ JavaNames.getFullTypeName(type);
 		LOG.warning(desc);
 		reportProblem(desc, type);
 		return null;
@@ -74,20 +74,29 @@ public final class TreeAccessor implements TestXMLParserConstants {
 		if (top == null) {
 			return null;
 		}
+		final boolean verbose = LOG.isLoggable(Level.FINER);
 		Iterator<IRNode> e = VisitUtil.getClassBodyMembers(top);
-		LOG.finer("Looking for constructor w/ params: " + params);
+		if (verbose) {
+			LOG.finer("Looking for constructor w/ params: " + params);
+		}
 		while (e.hasNext()) {
 			IRNode c = e.next();
 			Operator op = tree.getOperator(c);
 			if (op instanceof ConstructorDeclaration) {
-				LOG.finer("Looking at "+DebugUnparser.toString(c));
+				if (verbose) {
+					LOG.finer("Looking at "+JavaNames.genSimpleMethodConstructorName(c));
+				}
 				IRNode ps = ConstructorDeclaration.getParams(c);
 				if (paramsMatch(Parameters.getFormalIterator(ps), params, tEnv)) {
-					LOG.finer("Found a match on params: " + params);
+					if (verbose) {
+						LOG.finer("Found a match on params: " + params);
+					}
 					return c;
 				}
-				LOG.finer("Looking at constructor, but no match on parameters: "
-						+ DebugUnparser.toString(ps));
+				if (verbose) {
+					LOG.finer("Looking at constructor, but no match on parameters: "
+							+ JavaNames.genSimpleMethodConstructorName(c));
+				}
 			} else {
 				// LOG.finer("Looking at "+op.name()+"
 				// "+JavaNode.getInfoOrNull(c));
