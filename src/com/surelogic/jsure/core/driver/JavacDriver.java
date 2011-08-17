@@ -60,6 +60,7 @@ import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.jobs.SLSeverity;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
@@ -1881,7 +1882,7 @@ public class JavacDriver implements IResourceChangeListener {
 						} else {
 							ProjectsDrop.ensureDrop(projects);
 						}
-					} else if (status != SLStatus.CANCEL_STATUS) {
+					} else if (status != SLStatus.CANCEL_STATUS && status.getSeverity() == SLSeverity.ERROR) {
 						if (status.getException() != null) {
 							throw status.getException();
 						}
