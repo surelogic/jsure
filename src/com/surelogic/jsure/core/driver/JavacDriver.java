@@ -1952,7 +1952,7 @@ public class JavacDriver implements IResourceChangeListener {
 			final String msg = "Running JSure for " + projects.getLabel();
 			ILocalJSureConfig cfg = new ILocalJSureConfig() {
 				public boolean isVerbose() {
-					return SLLogger.getLogger().isLoggable(Level.FINE);
+					return SLLogger.getLogger().isLoggable(Level.FINE) || XUtil.testing;
 				}
 
 				public String getTestCode() {
