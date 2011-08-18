@@ -45,8 +45,6 @@ public final class ScanCrashReport {
 	}
 
 	static private final IScanCrashReporter f_defaultReporter = new IScanCrashReporter() {
-
-		@Override
 		public void reportJSureScanCrash(SLStatus status, File scanLog) {
 			status.logTo(SLLogger.getLogger());
 		}
