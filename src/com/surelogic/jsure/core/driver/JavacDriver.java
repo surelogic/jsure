@@ -1,16 +1,6 @@
 package com.surelogic.jsure.core.driver;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -876,29 +866,14 @@ public class JavacDriver implements IResourceChangeListener {
 			// System.out.println(config.getProject()+": set to level "+version);
 
 			if (config.getLocation() != null) {
+			    /* Moved to clearProjectInfo()
 				// TODO Is this right for multi-project configurations?
 				ModuleRules.clearSettings();
 				ModuleRules.clearAsSourcePatterns();
 				ModuleRules.clearAsNeededPatterns();
-
-				final File properties = new File(config.getLocation(),
-						JSureProperties.JSURE_PROPERTIES);
-				if (properties.exists() && properties.isFile()) {
-					final Properties props = new Properties();
-					// props.put(PROJECT_KEY, p);
-					try {
-						InputStream is = new FileInputStream(properties);
-						props.load(is);
-						is.close();
-					} catch (IOException e) {
-						String msg = "Problem while loading "
-								+ JSureProperties.JSURE_PROPERTIES + ": "
-								+ e.getMessage();
-						// reportProblem(msg, null);
-						LOG.log(Level.SEVERE, msg, e);
-					} finally {
-						// Nothing to do
-					}
+				*/
+			    Properties props = JSureProperties.read(config.getLocation());
+				if (props != null) {
 					JSureProperties.handle(config.getProject(), props);
 				}
 			}
@@ -1269,6 +1244,9 @@ public class JavacDriver implements IResourceChangeListener {
 
 	public void clearProjectInfo() {
 		projects.clear();
+		ModuleRules.clearSettings();
+        ModuleRules.clearAsSourcePatterns();
+        ModuleRules.clearAsNeededPatterns();
 	}
 	
 	@SuppressWarnings("unchecked")
