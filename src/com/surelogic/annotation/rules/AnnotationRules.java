@@ -245,7 +245,7 @@ public abstract class AnnotationRules {
     while (it.hasNext()) {
       final IAASTRootNode a = it.next();
       if (a.getStatus() == AASTStatus.UNPROCESSED) {
-        LOG.severe("Didn't process "+a+" on "+JavaNames.getFullName(a.getPromisedFor()));
+        LOG.warning("Didn't process "+a+" on "+JavaNames.getFullName(a.getPromisedFor()));
       } else {
         it.remove();
       }
