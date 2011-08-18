@@ -3,6 +3,7 @@ package com.surelogic.jsure.core.driver;
 import java.util.*;
 import java.util.logging.Level;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -10,9 +11,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.analysis.JSureProperties;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.JavaProjectResources;
+import com.surelogic.common.core.JavaProjectResources.Filter;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
 
@@ -42,14 +47,19 @@ public class JavacBuild {
 			return false;
 		try {
 			JavacDriver.getInstance().clearProjectInfo();
+			
 			for (IJavaProject p : selectedProjects) {
 				boolean noErrors = XUtil.testing
 						|| JDTUtility.noCompilationErrors(p,
 								new NullProgressMonitor());
 				if (noErrors) {
+				    IFile propsFile = p.getProject().getFile(JSureProperties.JSURE_PROPERTIES);
+		            Properties props = JSureProperties.read(propsFile.getLocation().toFile());
+		            JavaProjectResources.Filter filter = makeSourceFilter(props);
+		            
 					// Collect resources and CUs for build
 					JavaProjectResources jpr = JDTUtility
-							.collectAllResources(p);
+							.collectAllResources(p, filter);
 					JavacDriver.getInstance()
 							.registerBuild(
 									p.getProject(),
@@ -75,4 +85,11 @@ public class JavacBuild {
 			return false;
 		}
 	}
+
+    private static Filter makeSourceFilter(Properties props) {
+        final String excludes = props.getProperty(JSureProperties.SRC_EXCLUDES);
+        return new Filter() {
+            
+        };
+    }
 }
