@@ -57,7 +57,8 @@ public final class TreeAccessor implements TestXMLParserConstants {
 		}
 		String desc = "Couldn't find class " + name + " in "
 				+ JavaNames.getFullTypeName(type);
-		LOG.warning(desc);
+		//LOG.warning(desc);
+		System.err.println("WARNING: "+desc);
 		reportProblem(desc, type);
 		return null;
 	}

@@ -52,6 +52,7 @@ public class TestXMLParser extends DefaultHandler implements
 	/** AnnotationVisitor is used to insert a promise into the AAST */
 	private final AnnotationVisitor annoVis;
 	private int numAnnotationsAdded = 0;
+	private String id;
 	
 	TestXMLParser(ITypeEnvironment typeEnv) {
 		tEnv = typeEnv;
@@ -81,6 +82,7 @@ public class TestXMLParser extends DefaultHandler implements
 	public int processAST(File file, IRNode root, String xml) throws Exception {
 		String pkgName = VisitUtil.getPackageName(root);
 	    numAnnotationsAdded = 0;
+	    id = xml;
 	    
 		/** Initalize the node stack */
 		nodeStack.push(new NodeElement(pkgName, NodeKind.ROOT, root));
@@ -245,7 +247,7 @@ public class TestXMLParser extends DefaultHandler implements
 					reportWarn(
 							"XML declared but could not find constructor"
 							+ " node " + e.getAttribute(NAME_ATTRB)/*,
-							"constructor", nodeStack.peek().getNode()*/);
+							"constructor", nodeStack.peek().getNode()*/, true);
 					
 					nodeStack.push(new NodeElement(params, NodeKind.CONSTRUCTOR, null));
 				}
@@ -287,7 +289,7 @@ public class TestXMLParser extends DefaultHandler implements
 							e.getAttribute(PARAMS_ATTRB), tEnv);
 							*/
 					reportWarn("Could not find method node "
-							+ name/*, name, here*/);
+							+ name/*, name, here*/, true);
 					nodeStack.push(new NodeElement(name, NodeKind.METHOD, null));
 				}
 			}
@@ -335,7 +337,10 @@ public class TestXMLParser extends DefaultHandler implements
 
 		/** Find this class' AAST node */
 		IRNode next = null;
+		final boolean isNested;
 		if (isStackTop(NodeKind.PKG)) {
+			isNested = false;
+			
 			while (nodeIterator.hasNext()) {
 				next = nodeIterator.next();
 
@@ -345,10 +350,11 @@ public class TestXMLParser extends DefaultHandler implements
 			}
 		} else {
 			next = TreeAccessor.findNestedClass(name, nodeStack.peek().getNode());
+			isNested = true;
 		}
 
 		if (next == null) {
-			reportWarn("Could not find class node " + name);
+			reportWarn("Could not find class node " + name, !isNested);			
 		}
 		nodeStack.push(new NodeElement(name, NodeKind.TYPE, next));
 	}
@@ -390,9 +396,9 @@ public class TestXMLParser extends DefaultHandler implements
 		// promise_bool = false;
 		/** Reciver and Retval entries are currently depreciated */
 		/* } else */if (eName.equalsIgnoreCase(RECEIVER)) {
-			reportWarn("Receiver is depreciated; Ignoring and moving on");
+			reportWarn("Receiver is depreciated; Ignoring and moving on", true);
 		} else if (eName.equalsIgnoreCase(RETVAL)) {
-			reportWarn("Retval is depreciated; Ignoring and moving on");
+			reportWarn("Retval is depreciated; Ignoring and moving on", true);
 
 			/*******************************************************************
 			 * Move down the nodeStack when we get to one of these end elements
@@ -505,7 +511,7 @@ public class TestXMLParser extends DefaultHandler implements
 			nodeStack.pop().getNode();
 		else
 			reportWarn("Expected node named " + name + " but node named "
-					+ nodeStack.peek().getName() + " is current stack top");
+					+ nodeStack.peek().getName() + " is current stack top", true);
 	}
 
 	/** For errors and warnings; gives the line in the XML files */
@@ -532,8 +538,13 @@ public class TestXMLParser extends DefaultHandler implements
 	 * Stub function for reporting a warning (only to warn about issue with the
 	 * XML file)
 	 */
-	private void reportWarn(String msg) {
-		LOG.warning("Line " + locations.getLineNumber() + ": " + msg);
+	private void reportWarn(String msg, boolean log) {
+		final String s = "Line " + locations.getLineNumber() + " of " +id+ ": " + msg;
+		if (log) {
+			LOG.warning(s);
+		} else {
+			System.err.println(s);
+		}
 	}
 
 	private void malformedXML(String msg) throws SAXException {
@@ -545,7 +556,7 @@ public class TestXMLParser extends DefaultHandler implements
 			IRNode here) {
 		IRNode root = VisitUtil.findRoot(here);
 
-		reportWarn(msg);
+		reportWarn(msg, true);
 		elementStack.pop();
 		elementStack.push(IGNORE_ELEMENT);
 
