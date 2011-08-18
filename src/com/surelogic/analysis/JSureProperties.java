@@ -1,7 +1,9 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis;
 
+import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.CompUnitPattern;
@@ -15,6 +17,7 @@ public class JSureProperties {
 	private static final Logger LOG = SLLogger.getLogger("analysis.JSureProperties");
 	private static final String MODULE_PREFIX = "Module.";
 	public static final String JSURE_PROPERTIES = "jsure.properties";
+	public static final String SRC_EXCLUDES = "source.excludes";
 	
 	private static final List<String> excludedLibPaths = new ArrayList<String>();
 	
@@ -34,6 +37,29 @@ public class JSureProperties {
 	
 	public static void excludeLibraryPath(String excludePath) {
 		excludedLibPaths.add(excludePath);
+	}
+	
+	public static Properties read(File project) {
+        final File properties = new File(project, JSureProperties.JSURE_PROPERTIES);
+        if (properties.exists() && properties.isFile()) {
+            final Properties props = new Properties();
+            // props.put(PROJECT_KEY, p);
+            try {
+                InputStream is = new FileInputStream(properties);
+                props.load(is);
+                is.close();
+            } catch (IOException e) {
+                String msg = "Problem while loading "
+                        + JSureProperties.JSURE_PROPERTIES + ": "
+                        + e.getMessage();
+                // reportProblem(msg, null);
+                LOG.log(Level.SEVERE, msg, e);
+            } finally {
+                // Nothing to do
+            }
+            return props;
+        }
+        return null;
 	}
 	
 	public static void handle(String proj, Properties props) {
