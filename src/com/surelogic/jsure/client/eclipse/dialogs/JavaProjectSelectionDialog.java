@@ -104,19 +104,11 @@ public final class JavaProjectSelectionDialog extends Dialog {
 		data.heightHint = 200;
 		f_projectTable.setLayoutData(data);
 
-		int index = 0;
 		for (IJavaProject jp : f_openJavaProjects) {
 			TableItem item = new TableItem(f_projectTable, SWT.NONE);
 			item.setText(jp.getElementName());
 			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
 			item.setData(jp);
-			/*
-			if (Nature.hasNature(jp.getProject())) {
-				f_projectTable.select(index);
-				f_focusProject = jp;
-			}
-			*/
-			index++;
 		}
 
 		f_projectTable.addListener(SWT.Selection, new Listener() {
