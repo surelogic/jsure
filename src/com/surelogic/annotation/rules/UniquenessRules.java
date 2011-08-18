@@ -600,6 +600,10 @@ public class UniquenessRules extends AnnotationRules {
       for (final IRNode uniqueNode : uniqueNodes) {
         // This seems wasteful and redundant
         final UniquePromiseDrop uniqueDrop = getUnique(uniqueNode);
+        if (uniqueDrop == null) {
+        	LOG.warning("No drop for "+DebugUnparser.toString(uniqueNode));
+        	continue;
+        }
         final UniqueNode uniqueAST = uniqueDrop.getAST();
         final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
         final NotUniquePromiseDrop notUniqueDrop = getNotUnique(uniqueNode);
