@@ -7,7 +7,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 import com.surelogic.scans.serviceability.IScanCrashReporter;
@@ -37,8 +39,11 @@ public final class EclipseScanCrashReporter implements IScanCrashReporter {
 		final UIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				SendServiceMessageWizard.openJSureScanCrashReport(status,
-						scanLog);
+				SendServiceMessageWizard.openJSureScanCrashReport(
+						SLLicenseProduct.JSURE
+								+ " "
+								+ EclipseUtility.getVersion(Activator
+										.getDefault()), status, scanLog);
 				return Status.OK_STATUS;
 			}
 		};
