@@ -19,6 +19,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.scans.serviceability.ScanCrashReport;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -61,6 +62,13 @@ public class Activator extends AbstractUIPlugin implements
 		 * "Touch" common-core-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch(new DialogTouchNotificationUI());
+		monitor.worked(1);
+
+		/*
+		 * Set the scan crash reporter to an Eclipse implementation.
+		 */
+		ScanCrashReport.getInstance().setReporter(
+				EclipseScanCrashReporter.getInstance());
 		monitor.worked(1);
 
 		/*
