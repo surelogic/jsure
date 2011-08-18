@@ -86,6 +86,7 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
+import com.surelogic.scans.serviceability.ScanCrashReport;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -1883,6 +1884,9 @@ public class JavacDriver implements IResourceChangeListener {
 							ProjectsDrop.ensureDrop(projects);
 						}
 					} else if (status != SLStatus.CANCEL_STATUS && status.getSeverity() == SLSeverity.ERROR) {
+					    ScanCrashReport.getInstance().getReporter() .reportJSureScanCrash(status, 
+					            new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT)); 					    
+					    
 						if (status.getException() != null) {
 							throw status.getException();
 						}
