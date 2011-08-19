@@ -278,7 +278,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		if (srcPath != null) {
 			String relPath = path.substring(srcPath.length()+1);
 			String qname = computeQualifiedName(relPath);
-			config.addFile(new JavaSourceFile(qname, file, relPath));
+			config.addFile(new JavaSourceFile(qname, file, relPath, false));
 			//System.out.println(qname+": "+file.getAbsolutePath());
 			
 			final int lastDot = qname.lastIndexOf('.');
