@@ -30,10 +30,15 @@ public class RemoteJSureRunTest extends RemoteJSureRun {
 				try {
 					return job.run(monitor);
 				} finally {
-					out.println("Closing AnnotationRules log");
-					AnnotationRules.XML_LOG.close();
+					cleanup();
 				}
 			}				
 		};
+	}
+	
+	@Override
+	protected void cleanup() {
+		out.println("Closing AnnotationRules log");
+		AnnotationRules.XML_LOG.close();
 	}
 }
