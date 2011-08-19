@@ -20,6 +20,7 @@ import com.surelogic.common.core.JavaProjectResources;
 import com.surelogic.common.core.JavaProjectResources.Filter;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.tool.ToolProperties;
 
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -53,8 +54,8 @@ public class JavacBuild {
 						|| JDTUtility.noCompilationErrors(p,
 								new NullProgressMonitor());
 				if (noErrors) {
-				    IFile propsFile = p.getProject().getFile(JSureProperties.JSURE_PROPERTIES);
-		            Properties props = JSureProperties.read(propsFile.getLocation().toFile());
+				    IFile propsFile = p.getProject().getFile(ToolProperties.PROPS_FILE);
+		            ToolProperties props = ToolProperties.read(propsFile.getLocation().toFile());
 		            JavaProjectResources.Filter filter = makeSourceFilter(props);
 		            
 					// Collect resources and CUs for build
@@ -86,12 +87,12 @@ public class JavacBuild {
 		}
 	}
 
-    private static Filter makeSourceFilter(Properties props) {
-        final String excludes;
+    private static Filter makeSourceFilter(ToolProperties props) {
+        final String[] excludes;
         if (props == null) {
-        	excludes = "";
+        	excludes = ToolProperties.noStrings;
         } else {
-        	excludes = props.getProperty(JSureProperties.SRC_EXCLUDES);
+        	excludes = props.getExcludedSourcePaths();
         }
         return new Filter() {
             
