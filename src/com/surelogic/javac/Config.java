@@ -165,7 +165,7 @@ public class Config extends AbstractClassPathEntry {
 	    			System.out.println("Bumped "+bumped+" for "+last);
 	    		}
 	    		// Only add the ones that maps to old files
-	    		oldSources.add(new JavaSourceFile(p.qname, p.file, last.relativePath, p.asBinary));
+	    		oldSources.add(new JavaSourceFile(p.qname, p.file, last.relativePath, last.asBinary));
 	    		//System.out.println("Mapped "+p.qname+" to "+last.relativePath);
 	    	} else {
 	    		// Omit those that don't match
