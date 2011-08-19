@@ -14,14 +14,16 @@ public class JavaSourceFile {
 	public final String qname;
 	public final File file;
 	public final String relativePath;
+	public final boolean asBinary;
 	
-	public JavaSourceFile(String name, File f, String path) {
+	public JavaSourceFile(String name, File f, String path, boolean asBinary) {
 		if (name.startsWith(".")) {
 			throw new IllegalArgumentException();
 		}
 		qname = name;
-		file = f;
+		file = f;		
 		relativePath = FileUtility.normalizePath(path);
+		this.asBinary = asBinary;
 	}
 	
 	@Override
@@ -57,6 +59,7 @@ public class JavaSourceFile {
 		creator.addAttribute(PersistenceConstants.PATH, relativePath);
 		creator.addAttribute(PersistenceConstants.QNAME, qname);
 		creator.addAttribute(PersistenceConstants.LOCATION, file.getAbsolutePath());
+		creator.addAttribute(PersistenceConstants.AS_BINARY, asBinary);
 		Entities.closeStart(b, true);
 	}
 }

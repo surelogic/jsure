@@ -101,9 +101,10 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 				String path = nested.getAttribute(PATH);
 				String file = nested.getAttribute(LOCATION);
 				String qname = nested.getAttribute(QNAME);
+				String asBinary = nested.getAttribute(AS_BINARY);
 				// System.out.println(proj + " has source: " + path);
 				p.getConfig().addFile(
-						new JavaSourceFile(qname, new File(file), path));
+						new JavaSourceFile(qname, new File(file), path, "true".equals(asBinary)));
 			} else if (JAR.equals(name)) {
 				String path = nested.getAttribute(PATH);
 				String orig = nested.getAttribute(ORIG_PATH);

@@ -52,7 +52,8 @@ public class PromiseMatcher {
 			props.load(zf.getInputStream(zf.getEntry(AbstractJavaZip.CLASS_MAPPING)));
 			for(Map.Entry<Object,Object> e : props.entrySet()) {
 				final String path = e.getValue().toString();
-				path2JSF.put(path, new JavaSourceFile(e.getKey().toString(), makeZipReference(srcPath, path), path));
+				//TODO is this right?
+				path2JSF.put(path, new JavaSourceFile(e.getKey().toString(), makeZipReference(srcPath, path), path, false));
 			}			
 		}
 		

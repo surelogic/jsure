@@ -26,4 +26,5 @@ public interface PersistenceConstants {
 	
 	String OPTION = "option";
 	String VALUE = "value";
+	String AS_BINARY = "as-binary";
 }

@@ -280,7 +280,8 @@ public class JavacClassParser {
 						//PlainIRNode.setCurrentRegion(new IRRegion());
 
 						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						CodeInfo info = adapter.adapt(t, jcu, sources.get(jcu.sourcefile), asBinary);				        
+						JavaSourceFile file = sources.get(jcu.sourcefile);
+						CodeInfo info = adapter.adapt(t, jcu, file, asBinary || file.asBinary);				        
 						cus.add(info);
 						Projects.setProject(info.getNode(), jp);
 						//System.out.println("Done adapting "+info.getFileName());

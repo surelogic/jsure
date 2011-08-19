@@ -1362,7 +1362,7 @@ public class Util {
 				System.out.println("Found source file: "+f.getPath());
 				String typeName = f.getName().substring(0, f.getName().length()-5);
 				String qname    = pkg.length() == 0 ? typeName : pkg+'.'+typeName;
-				config.addFile(new JavaSourceFile(qname, f, f.getAbsolutePath()));
+				config.addFile(new JavaSourceFile(qname, f, f.getAbsolutePath(), false));
 				if (!added) {
 					added = true;
 					if (debug) {
