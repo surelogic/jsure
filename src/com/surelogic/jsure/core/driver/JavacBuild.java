@@ -87,7 +87,12 @@ public class JavacBuild {
 	}
 
     private static Filter makeSourceFilter(Properties props) {
-        final String excludes = props.getProperty(JSureProperties.SRC_EXCLUDES);
+        final String excludes;
+        if (props == null) {
+        	excludes = "";
+        } else {
+        	excludes = props.getProperty(JSureProperties.SRC_EXCLUDES);
+        }
         return new Filter() {
             
         };
