@@ -1029,7 +1029,7 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 						*/
 						final String qname = computeQualifiedName(icu);						
-						config.addFile(new JavaSourceFile(qname, f, path));
+						config.addFile(new JavaSourceFile(qname, f, path, false));
 						
 						if (!added) {
 							added = true;
@@ -1505,7 +1505,7 @@ public class JavacDriver implements IResourceChangeListener {
 			} else { // Removed
 				qname = f.getName();
 			}
-			files.add(new JavaSourceFile(qname, f, path.toPortableString()));
+			files.add(new JavaSourceFile(qname, f, path.toPortableString(), false));
 		}
 		return files;
 	}
@@ -1615,7 +1615,7 @@ public class JavacDriver implements IResourceChangeListener {
 							for (String name : names) {
 								// System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
 								srcFiles.add(new JavaSourceFile(name.replace(
-										'$', '.'), f, null));
+										'$', '.'), f, null, false));
 							}
 						} else if (ze.getName().endsWith("/package-info.java")) {
 							System.out
