@@ -45,7 +45,7 @@ public class ClassMemberSearch {
     if (o == null && throwIfNotFound) {
       final String context = type+" -- "+DebugUnparser.toString(type)+"\nfor project "+
                              JavaProjects.getEnclosingProject(type).getName();      
-      LOG.log(Level.WARNING, "Couldn't find " + tvs.getLabel() + " in " + context
+      LOG.log(Level.INFO, "Couldn't find " + tvs.getLabel() + " in " + context
               //, new Throwable(">>> Just for Stack Trace <<<")
               );
       tvs.reset();

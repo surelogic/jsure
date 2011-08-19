@@ -85,6 +85,8 @@ public class TaskManager extends ThreadPoolExecutor {
 	private int processing = 0;
 	// Used to protect accesses to processing
 	private final Object stateLock = new Object();
+	
+	private final boolean testing;
 
 	/**
 	 * Constructor that creates a TaskManager with a core pool size of N+1
@@ -97,6 +99,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		super(Runtime.getRuntime().availableProcessors() + 1, (Runtime
 			.getRuntime().availableProcessors() * 2) + 1, 60, TimeUnit.SECONDS,
 			workQueue);
+		testing = false;
 	}
 
 	/**
@@ -107,8 +110,14 @@ public class TaskManager extends ThreadPoolExecutor {
 	 * @param workQueue
 	 */
 	public TaskManager(int corePoolSize, int maximumPoolSize,
-		long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+			long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+		this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, false);
+	}
+	
+	public TaskManager(int corePoolSize, int maximumPoolSize,
+		long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, boolean testing) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+		this.testing = testing;
 	}
 
 	/**
@@ -124,6 +133,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		ThreadFactory threadFactory) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 			threadFactory);
+		testing = false;
 	}
 
 	/**
@@ -139,6 +149,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		RejectedExecutionHandler handler) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 			handler);
+		testing = false;
 	}
 
 	/**
@@ -155,6 +166,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		ThreadFactory threadFactory, RejectedExecutionHandler handler) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 			threadFactory, handler);
+		testing = false;
 	}
 
 	/**
@@ -533,7 +545,7 @@ public class TaskManager extends ThreadPoolExecutor {
 			task.notifyDependents();
 		}
 		if (throwable != null) {
-			SLLogger.getLogger().log(Level.WARNING, "Problem while executing", throwable);
+			SLLogger.getLogger().log(testing ? Level.INFO : Level.WARNING, "Problem while executing", throwable);
 		}
 		
 		/* Note that this is mainly to avoid a problem on Linux

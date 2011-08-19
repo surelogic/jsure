@@ -70,7 +70,7 @@ public class PathFileLocator extends AbstractFileLocator {
         //LOG.info("Creating zip file locator for " + file);
         return new ZipFileLocator(file,ZipFileLocator.READ);
       } catch (IOException e) {
-        LOG.warning("Could not open " + file + ", ignoring it.");
+        LOG.info("Could not open " + file + ", ignoring it.");
         return NullFileLocator.prototype;
       }
     }
