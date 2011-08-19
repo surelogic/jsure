@@ -138,7 +138,7 @@ public class TestTaskFramework extends TestCase {
 	public void testThreadThrowing() {
 		System.out.println("--------------testThreadThrowing----------------");
 		TaskManager mgr = new TaskManager(1, 1, 60, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>());
+				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
 			public void run() {
@@ -191,7 +191,7 @@ public class TestTaskFramework extends TestCase {
 	public void testThreadThrowing2() {
 		System.out.println("--------------testThreadThrowing2----------------");
 		TaskManager mgr = new TaskManager(1, 1, 60, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>());
+				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
 			public void run() {
@@ -244,7 +244,7 @@ public class TestTaskFramework extends TestCase {
 	public void testThreadThrowing3() {
 		System.out.println("--------------testThreadThrowing3----------------");
 		TaskManager mgr = new TaskManager(1, 1, 60, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>());
+				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
 			public void run() {
