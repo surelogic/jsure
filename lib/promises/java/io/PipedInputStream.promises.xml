@@ -2,9 +2,7 @@
 
 <package name="java.io">
     <class name="PipedInputStream">
-        <constructor params="java.io.File">
-            <Borrowed>this</Borrowed>
-        </constructor>
+        <Promise>@Borrowed(this) for new(**)</Promise>
 
         <method name="read" params="byte[],int,int">
             <RegionEffects>writes this:Instance, arg0:Instance</RegionEffects>
