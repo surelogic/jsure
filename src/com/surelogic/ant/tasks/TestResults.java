@@ -69,32 +69,61 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 
 	private boolean inTestCase = false;
 
+	private void output(final String msg) {
+		log(msg, Project.MSG_WARN);
+		try {
+			bWriter.append(msg);
+			bWriter.newLine();
+		} catch (IOException e) {
+			log(e, Project.MSG_ERR);
+			e.printStackTrace();
+		}
+	}
+	
 	public void execute() {
+		try {
+			if (!logfile.exists()) {
+				logfile.createNewFile();
+			}
+			bWriter = new BufferedWriter(new FileWriter(logfile, true));
+		} catch(IOException e) {
+			log(e, Project.MSG_ERR);
+		}
+		
+		try {
+			execute_internal();
+		} finally {
+			if (bWriter != null) {
+				try {
+					bWriter.close();
+				} catch (IOException e) {
+					log(e, Project.MSG_ERR);
+				}
+			}
+		}
+	}
+	
+	private void execute_internal() {
+		if (file == null) {
+			getProject().setProperty(property, FAILURE_RESULT);
+			output(FAILURE_RESULT+"... null file");
+			return;
+		}
+
 		populateCollection(testTable, tests);
-		populateCollection(ignoredTable, ignore);
+		populateCollection(ignoredTable, ignore);		
 
 		if (file.exists() && file.isFile()) {
 			if (file.length() == 0) {
-				// Nothing to look at, so it should be ok, right?
-				final StringBuilder logmsg = new StringBuilder();
-				logmsg.append(SUCCESS_RESULT);
-				logmsg.append("...");
-				log(logmsg.toString(), Project.MSG_WARN);
-				try {
-					bWriter.append(logmsg.toString());
-					bWriter.newLine();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				// Nothing to look at, so fail
+				getProject().setProperty(property, FAILURE_RESULT);
+				output(FAILURE_RESULT+"... zero-length file");
+				return;
 			}
 			if ((testTable != null && ignoredTable == null)
 					|| (testTable == null && ignoredTable != null)
 					|| (testTable == null && ignoredTable == null)) {
 				try {
-					if (!logfile.exists()) {
-						logfile.createNewFile();
-					}
-					bWriter = new BufferedWriter(new FileWriter(logfile, true));
 					log("###############################################################",
 							Project.MSG_WARN);
 					log(file.getParent(), Project.MSG_WARN);
@@ -210,11 +239,7 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 				log("tests and ignore cannot both be set.", Project.MSG_ERR);
 			}
 
-			try {
-				bWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+
 		} else {
 			log(file.getAbsolutePath() + " is not a valid log file.",
 					Project.MSG_ERR);
@@ -244,17 +269,10 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 						logmsg.append(nameAttr.getNodeValue());
 						logmsg.append("\n");
 					}
-					log(logmsg.toString(), Project.MSG_WARN);
-					try {
-						bWriter.write(logmsg.toString());
-						bWriter.newLine();
-						if (getProject().getProperty(property) == null) {
-							getProject().setProperty(property, FAILURE_RESULT);
-						}
-					} catch (IOException e) {
-						log(e, Project.MSG_ERR);
-						e.printStackTrace();
+					if (getProject().getProperty(property) == null) {
+						getProject().setProperty(property, FAILURE_RESULT);
 					}
+					output(logmsg.toString());
 					break;
 				}
 			}
@@ -267,13 +285,7 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 				logmsg.append(nameAttr.getNodeValue());
 				logmsg.append("\n");
 			}
-			log(logmsg.toString(), Project.MSG_WARN);
-			try {
-				bWriter.append(logmsg.toString());
-				bWriter.newLine();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			output(logmsg.toString());
 		}
 	}
 
