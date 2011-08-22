@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -55,6 +56,7 @@ import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JarEntry;
@@ -860,11 +862,7 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 
 		private void setOptions(Config config) {
-			IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
-			int version = JDTUtility.getMajorJavaSourceVersion(jp);
-			config.setOption(Config.SOURCE_LEVEL, version);
-			// System.out.println(config.getProject()+": set to level "+version);
-
+			final IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
 			if (config.getLocation() != null) {
 			    /* Moved to clearProjectInfo()
 				// TODO Is this right for multi-project configurations?
@@ -872,11 +870,24 @@ public class JavacDriver implements IResourceChangeListener {
 				ModuleRules.clearAsSourcePatterns();
 				ModuleRules.clearAsNeededPatterns();
 				*/
-			    Properties props = JSureProperties.read(config.getLocation());
-				if (props != null) {
-					JSureProperties.handle(config.getProject(), props);
-				}
-			}
+				
+			    IFile propsFile = jp.getProject().getFile(ToolProperties.PROPS_FILE);
+	            ToolProperties props = ToolProperties.read(propsFile.getLocation().toFile());	
+	            if (props != null) {
+	            	for(Map.Entry<Object,Object> p : props.entrySet()) {					
+	            		config.setOption(p.getKey().toString(), p.getValue());
+	            	}
+	            }	            
+				// TODO obsolete?
+			    Properties props2 = JSureProperties.read(config.getLocation());
+				if (props2 != null) {
+					JSureProperties.handle(config.getProject(), props2);
+				}			
+			}			
+			// Reordered to avoid conflicts
+			int version = JDTUtility.getMajorJavaSourceVersion(jp);
+			config.setOption(Config.SOURCE_LEVEL, version);
+			// System.out.println(config.getProject()+": set to level "+version);
 		}
 
 		void addDependencies(Projects projects, Config config, IProject p,
@@ -1029,6 +1040,8 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 						*/
 						final String qname = computeQualifiedName(icu);						
+						
+						// TODO Used when there's no project info 
 						config.addFile(new JavaSourceFile(qname, f, path, false));
 						
 						if (!added) {
@@ -1491,7 +1504,8 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private Collection<JavaSourceFile> convertCompUnits(Config config,
 			final Iterable<ICompilationUnit> cus) throws JavaModelException {
-		List<JavaSourceFile> files = new ArrayList<JavaSourceFile>();
+		final List<JavaSourceFile> files = new ArrayList<JavaSourceFile>();
+		final CompUnitFilter filter = getFilter(config);
 		for (ICompilationUnit icu : cus) {
 			final IPath path = icu.getResource().getFullPath();
 			final IPath loc = icu.getResource().getLocation();
@@ -1505,9 +1519,53 @@ public class JavacDriver implements IResourceChangeListener {
 			} else { // Removed
 				qname = f.getName();
 			}
-			files.add(new JavaSourceFile(qname, f, path.toPortableString(), false));
+			files.add(new JavaSourceFile(qname, f, path.toPortableString(), filter.matches(icu)));
 		}
 		return files;
+	}
+	
+	/**
+	 * Setup exclude filter
+	 */
+	private CompUnitFilter getFilter(Config config) {		
+		final IProject p = EclipseUtility.getProject(config.getProject());
+		String[] paths = config.getListOption(ToolProperties.EXCLUDE_PATH);
+		final IPath[] excludePaths = new IPath[paths.length];
+		int i=0;
+		for(String path : paths) {
+			excludePaths[i] = p.getFullPath().append(path);
+			i++;
+		}		
+		String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
+		final Pattern[] excludePatterns = new Pattern[pkgs.length];
+		i=0;
+		for(String pattern : pkgs) {
+			final String pattern2 = pattern.replaceAll("\\.", "\\.").replaceAll("\\*", ".*");
+			excludePatterns[i] = Pattern.compile(pattern2);
+			i++;
+		}		
+		return new CompUnitFilter() {
+			public boolean matches(ICompilationUnit icu) throws JavaModelException {
+				for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
+					final String pkg = pd.getElementName();				
+					for(Pattern p : excludePatterns) {						
+						if (p.matcher(pkg).matches()) {
+							return true;
+						}
+					}
+				}
+				for(IPath p : excludePaths) {
+					if (p.isPrefixOf(icu.getPath())) {
+						return true;
+					}
+				}
+				return false;
+			}			
+		};
+	}
+	
+	interface CompUnitFilter {
+		boolean matches(ICompilationUnit icu) throws JavaModelException;
 	}
 
 	String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
@@ -1614,6 +1672,9 @@ public class JavacDriver implements IResourceChangeListener {
 						if (names != null) {
 							for (String name : names) {
 								// System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+								
+								// The last two parameters don't matter because
+								// they'll just be thrown away when we call setFiles() below
 								srcFiles.add(new JavaSourceFile(name.replace(
 										'$', '.'), f, null, false));
 							}
