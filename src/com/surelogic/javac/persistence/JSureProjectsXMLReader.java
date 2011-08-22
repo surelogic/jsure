@@ -125,10 +125,19 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 			} else if (OPTION.equals(name)) {
 				String key = nested.getAttribute(NAME);
 				String val = nested.getAttribute(VALUE);
-				if ("false".equals(val) || "true".equals(val)) {
+				if (val == null) {
+					// Nothing to do
+				}
+				else if ("false".equals(val) || "true".equals(val)) {
 					p.getConfig().setOption(key, Boolean.parseBoolean(val));
-				} else {
-					p.getConfig().setOption(key, Integer.parseInt(val));
+				} else if (val.indexOf(',') >= 0) {
+					p.getConfig().setOption(key, val);				
+				} else { 
+					try {
+						p.getConfig().setOption(key, Integer.parseInt(val));
+					} catch(NumberFormatException ex) {
+						p.getConfig().setOption(key, val);		
+					}
 				}
 			} else
 				throw new IllegalStateException("Unexpected entity: " + name);
