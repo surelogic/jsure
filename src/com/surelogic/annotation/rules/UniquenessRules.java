@@ -600,26 +600,28 @@ public class UniquenessRules extends AnnotationRules {
       for (final IRNode uniqueNode : uniqueNodes) {
         // This seems wasteful and redundant
         final UniquePromiseDrop uniqueDrop = getUnique(uniqueNode);
-        if (uniqueDrop == null) {
-        	LOG.warning("No drop for "+DebugUnparser.toString(uniqueNode));
-        	continue;
-        }
-        final UniqueNode uniqueAST = uniqueDrop.getAST();
-        final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
-        final NotUniquePromiseDrop notUniqueDrop = getNotUnique(uniqueNode);
-
-        boolean alsoBorrowed = borrowedDrop != null;
-        boolean alsoNotUnique = notUniqueDrop != null;
-        if (alsoBorrowed) {        	
-          getContext().reportError("Cannot be both unique and borrowed", uniqueAST);
-          borrowedDrop.invalidate();
-        }
-        if (alsoNotUnique) {
-          getContext().reportError("Cannot be both unique and not unique", uniqueAST);
-          notUniqueDrop.invalidate();
-        }
-        if (alsoBorrowed || alsoNotUnique) {
-          uniqueDrop.invalidate();
+        /* The unique drop can be null because it might be invalidated
+         * in RegionRules.scrubSimpleUniqueInRegion() if the node is
+         * both Unique and UniqueInRegion.
+         */
+        if (uniqueDrop != null) {
+          final UniqueNode uniqueAST = uniqueDrop.getAST();
+          final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
+          final NotUniquePromiseDrop notUniqueDrop = getNotUnique(uniqueNode);
+  
+          boolean alsoBorrowed = borrowedDrop != null;
+          boolean alsoNotUnique = notUniqueDrop != null;
+          if (alsoBorrowed) {        	
+            getContext().reportError("Cannot be both unique and borrowed", uniqueAST);
+            borrowedDrop.invalidate();
+          }
+          if (alsoNotUnique) {
+            getContext().reportError("Cannot be both unique and not unique", uniqueAST);
+            notUniqueDrop.invalidate();
+          }
+          if (alsoBorrowed || alsoNotUnique) {
+            uniqueDrop.invalidate();
+          }
         }
       }
       // Reset set of unique nodes.
