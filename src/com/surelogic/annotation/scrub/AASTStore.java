@@ -6,6 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.annotation.test.TestResult;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
@@ -31,6 +32,13 @@ public final class AASTStore {
   @UniqueInRegion("Store")
   protected static final Map<Class,Collection<? extends IAASTRootNode>> byClass = 
     new HashMap<Class,Collection<? extends IAASTRootNode>>();
+  
+  /**
+   * The AASTs organized by promisedFor
+   */
+  @UniqueInRegion("Store")
+  protected static final Map<IRNode,Collection<? extends IAASTRootNode>> byPromisedFor = 
+    new IRNodeHashedMap<Collection<? extends IAASTRootNode>>();
   
   /**
    * Map from an derived AAST to the @Promise drop that created it
@@ -68,6 +76,7 @@ public final class AASTStore {
 	//System.out.println("Adding AAST: "+ast);
     asts.add(ast);
     addByClass(ast);
+    addByPromisedFor(ast);
   }
   
   @RequiresLock("StoreLock")
@@ -83,6 +92,18 @@ public final class AASTStore {
     c.add(ast);
   }
   
+  @RequiresLock("StoreLock")
+  private static <T extends IAASTRootNode> 
+  void addByPromisedFor(T ast) {  	      
+    @SuppressWarnings("unchecked")
+    Collection<T> c = (Collection<T>) byPromisedFor.get(ast.getPromisedFor());
+    if (c == null) {
+      c = new ArrayList<T>();
+      byPromisedFor.put(ast.getPromisedFor(), c);
+    }
+    c.add(ast);
+  }
+  
   public static synchronized Iterable<IAASTRootNode> getASTs() {
     return new ArrayList<IAASTRootNode>(asts);
   }
@@ -91,6 +112,7 @@ public final class AASTStore {
 	//System.out.println("Clearing AASTs");
     asts.clear();
     byClass.clear();
+    byPromisedFor.clear();
     triggers.clear();
     results.clear();
     assumedFor.clear();
@@ -103,6 +125,25 @@ public final class AASTStore {
     return (it == null) ? Collections.<T>emptyList() : it;
   }
 
+  @SuppressWarnings("unchecked")
+  public static synchronized <T extends IAASTRootNode> Iterable<T> getASTsByPromisedFor(IRNode promisedFor, Class<T> c) {
+	  List<T> rv = null;
+	  Collection<? extends IAASTRootNode> l = byPromisedFor.get(promisedFor);
+	  if (l == null) {
+		  return Collections.emptyList();
+	  }
+	  for(IAASTRootNode a : l) {
+		  if (a.getClass().equals(c)) {
+			  // Add to results since it's the right class
+			  if (rv == null) {
+				  rv = new ArrayList<T>();
+			  }
+			  rv.add((T) a);
+		  }
+	  }	    
+	  return (rv == null) ? Collections.<T>emptyList() : rv;	    
+  }
+  
   public static synchronized void setupAssumption(IRNode cu) {
 	  assumedCu = cu;
   }
