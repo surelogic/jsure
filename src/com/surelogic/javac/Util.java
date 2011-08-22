@@ -1144,7 +1144,7 @@ public class Util {
 					throw new CancellationException();
 				}
 				if (info.getNode().identity() == IRNode.destroyedNode) {
-					LOG.warning("Destroyed: "+info.getFileName());
+					LOG.info("WARNING Already destroyed: "+info.getFileName());
 					return;
 				}
 				// invalidate past results on this java file
