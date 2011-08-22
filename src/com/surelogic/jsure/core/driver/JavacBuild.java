@@ -3,7 +3,6 @@ package com.surelogic.jsure.core.driver;
 import java.util.*;
 import java.util.logging.Level;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -11,16 +10,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
-import com.surelogic.analysis.JSureProperties;
-import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.JavaProjectResources;
-import com.surelogic.common.core.JavaProjectResources.Filter;
+import com.surelogic.common.core.*;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.tool.ToolProperties;
 
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -54,13 +47,9 @@ public class JavacBuild {
 						|| JDTUtility.noCompilationErrors(p,
 								new NullProgressMonitor());
 				if (noErrors) {
-				    IFile propsFile = p.getProject().getFile(ToolProperties.PROPS_FILE);
-		            ToolProperties props = ToolProperties.read(propsFile.getLocation().toFile());
-		            JavaProjectResources.Filter filter = makeSourceFilter(props);
-		            
 					// Collect resources and CUs for build
 					JavaProjectResources jpr = JDTUtility
-							.collectAllResources(p, filter);
+							.collectAllResources(p, null);
 					JavacDriver.getInstance()
 							.registerBuild(
 									p.getProject(),
@@ -86,16 +75,4 @@ public class JavacBuild {
 			return false;
 		}
 	}
-
-    private static Filter makeSourceFilter(ToolProperties props) {
-        final String[] excludes;
-        if (props == null) {
-        	excludes = ToolProperties.noStrings;
-        } else {
-        	excludes = props.getExcludedSourcePaths();
-        }
-        return new Filter() {
-            
-        };
-    }
 }
