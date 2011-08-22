@@ -434,6 +434,10 @@ public class JavacClassParser {
 		for(String ref : refs) {
 			//System.out.println("Got ref to "+ref+" from "+jp.getName());		    			
 			Pair<String,Object> p = classToFile.get(jp.getName(), ref);
+			if (p == null) {
+				SLLogger.getLogger().warning("Unable to find ref "+ref+" in "+jp.getName());
+				continue;
+			}
 			final Object o = p.second();
 			if (o instanceof String) {				
 				// Jar file
