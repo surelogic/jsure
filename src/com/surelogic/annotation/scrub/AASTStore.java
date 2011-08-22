@@ -125,6 +125,9 @@ public final class AASTStore {
     return (it == null) ? Collections.<T>emptyList() : it;
   }
 
+  /**
+   * Gets the AASTs of the specified type on the IRNode
+   */
   @SuppressWarnings("unchecked")
   public static synchronized <T extends IAASTRootNode> Iterable<T> getASTsByPromisedFor(IRNode promisedFor, Class<T> c) {
 	  List<T> rv = null;
