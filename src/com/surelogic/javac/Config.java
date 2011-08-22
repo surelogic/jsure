@@ -86,7 +86,7 @@ public class Config extends AbstractClassPathEntry {
 		if (l == null) {
 			return ToolProperties.noStrings;
 		}
-		return l.split("[ ,]*");
+		return l.split("[ ,]+");
 	}
 	
 	public void setAsSource() {
