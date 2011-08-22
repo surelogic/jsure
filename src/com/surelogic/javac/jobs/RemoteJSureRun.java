@@ -125,7 +125,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 				}
 			};
 		} catch(Throwable t) {
-			t.printStackTrace(out);
+			mon.failed("Unable to create JSure job", t);		
 			return null;
 		}
 	}
