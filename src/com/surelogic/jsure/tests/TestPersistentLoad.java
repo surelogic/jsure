@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.version.TestPersistent;
 public class TestPersistentLoad extends TestCase {
 	@Override
 	protected void setUp() {
-		System.setProperty("fluid.ir.versioning", "true");
+		System.setProperty("fluid.ir.versioning", "Versioning.On");
 		System.out.println("versioning = "+JJNode.versioningIsOn);
 	}
 	
