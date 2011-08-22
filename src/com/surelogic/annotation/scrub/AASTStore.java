@@ -147,6 +147,20 @@ public final class AASTStore {
 	  return (rv == null) ? Collections.<T>emptyList() : rv;	    
   }
   
+  // TODO this might be rather slow
+  public static synchronized void removeAST(IAASTRootNode ast) {
+	  asts.remove(ast);
+	  removeFromCollection(byClass.get(ast.getClass()), ast);
+	  removeFromCollection(byPromisedFor.get(ast.getPromisedFor()), ast);
+  }
+  
+  private static void removeFromCollection(Collection<? extends IAASTRootNode> l, IAASTRootNode ast) {
+	  if (l == null) {
+		  return;
+	  }
+	  l.remove(ast);
+  }
+  
   public static synchronized void setupAssumption(IRNode cu) {
 	  assumedCu = cu;
   }
