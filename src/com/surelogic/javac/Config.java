@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
+import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
@@ -63,7 +65,10 @@ public class Config extends AbstractClassPathEntry {
 	}
 	
 	public void setOption(String key, Object value) {
-		options.put(key, value);
+		Object replaced = options.put(key, value);
+		if (replaced != null && !replaced.equals(value)) {
+			SLLogger.getLogger().warning(key+": replaced "+replaced);
+		}
 	}
 	
 	public int getIntOption(String key) {
@@ -74,6 +79,14 @@ public class Config extends AbstractClassPathEntry {
 	public boolean getBoolOption(String key) {
 		Boolean i = (Boolean) options.get(key);
 		return i != null ? i : false;
+	}
+	
+	public String[] getListOption(String key) {
+		String l = (String) options.get(key);
+		if (l == null) {
+			return ToolProperties.noStrings;
+		}
+		return l.split("[ ,]*");
 	}
 	
 	public void setAsSource() {
