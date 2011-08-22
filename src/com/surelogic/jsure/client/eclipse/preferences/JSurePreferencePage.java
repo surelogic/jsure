@@ -67,11 +67,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
 				I18N.msg("jsure.eclipse.preference.page.selectProjectsToScan"),
 				diGroup);
+		setupEditor(diGroup, f_selectProjectsToScan);
 
 		f_autoSaveDirtyEditorsBeforeVerify = new BooleanFieldEditor(
 				JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
 				I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"),
 				diGroup);
+		setupEditor(diGroup, f_autoSaveDirtyEditorsBeforeVerify);
 
 		final Group annoGroup = createGroup(panel,
 				"preference.page.group.annos");
