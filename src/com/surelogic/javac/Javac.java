@@ -177,7 +177,7 @@ public class Javac extends IDE {
 		prefs.put(key, value);
 	}
 
-	private static final String JAVAC_PROPS = "javac.properties";
+	public static final String JAVAC_PROPS = "javac.properties";
 
 	public synchronized void savePreferences(File runDir) throws IOException {
 		final PrintWriter pw = new PrintWriter(new File(runDir, JAVAC_PROPS));
