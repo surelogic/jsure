@@ -61,6 +61,7 @@ import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JarEntry;
 import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
@@ -69,6 +70,7 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -94,7 +96,8 @@ import edu.cmu.cs.fluid.util.Pair;
 
 public class JavacDriver implements IResourceChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
-
+	private static final String CRASH_FILES = "crash.log.txt";
+	
 	private static final Logger LOG = SLLogger
 			.getLogger("analysis.JavacDriver");
 
@@ -1924,8 +1927,8 @@ public class JavacDriver implements IResourceChangeListener {
 							ProjectsDrop.ensureDrop(projects);
 						}
 					} else if (status != SLStatus.CANCEL_STATUS && status.getSeverity() == SLSeverity.ERROR) {
-					    ScanCrashReport.getInstance().getReporter() .reportJSureScanCrash(status, 
-					            new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT)); 					    
+						final File rollup = collectCrashFiles(projects);
+					    ScanCrashReport.getInstance().getReporter() .reportJSureScanCrash(status, rollup);					          
 					    
 						if (status.getException() != null) {
 							throw status.getException();
@@ -2038,6 +2041,58 @@ public class JavacDriver implements IResourceChangeListener {
 
 	public void setArg(String key, Object value) {
 		args.put(key, value);
+	}
+
+	private static File collectCrashFiles(Projects projects) {
+		final File crash = new File(projects.getRunDir(), CRASH_FILES);
+		final String target = crash.getAbsolutePath();
+		try {
+			PrintStream out  = new PrintStream(crash);
+			try {
+				// Get project-specific config
+				for(String name : projects.getProjectNames()) {
+					IProject proj = EclipseUtility.getProject(name);
+					if (proj == null) {
+						out.println("Project does not exist: "+name);
+						out.println("==================================================================================================");
+						continue;
+					}
+					File projLocation = proj.getLocation().toFile();
+					if (projLocation.isDirectory()) {
+						copyContentsToStream(new File(projLocation, ".project"), out, target);
+						copyContentsToStream(new File(projLocation, ".classpath"), out, target);
+						copyContentsToStream(new File(projLocation, ToolProperties.PROPS_FILE), out, target);
+					}
+				}
+				copyContentsToStream(new File(projects.getRunDir(), Javac.JAVAC_PROPS), out, target);
+				copyContentsToStream(new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML), out, target);
+				copyContentsToStream(new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT), out, target);
+			} finally {
+				out.close();
+			}
+		} catch(IOException e) {
+			// Couldn't create the new file for some reason
+			return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT); 
+		}
+		return crash;
+	}
+
+	private static void copyContentsToStream(File file, PrintStream out, String target) {
+		final String source = file.getAbsolutePath();
+
+		if (file.isFile()) {
+			out.println("==================================================================================================");
+			out.println(source);
+			out.println("==================================================================================================");
+			try {
+				FileUtility.copyToStream(false, source, new FileInputStream(file), target, out, false);
+			} catch(IOException e) {
+				e.printStackTrace(out);
+			}
+		} else {
+			out.println("File does not exist: "+source);
+			out.println("==================================================================================================");
+		}
 	}
 
 	int id = 0;
