@@ -486,7 +486,12 @@ private long parseIntLiteral(String token) {
       LOG.severe("Unexpected anon class superclass " + supertype);
       return EmptyIterator.prototype();
     } else if (op instanceof AnnotationDeclaration) {
-      IRNode anno     = findNamedType("java.lang.annotation.Annotation");
+      final int version = getMajorJavaVersion();
+      IRNode anno     = findNamedType("java.lang.annotation.Annotation");      
+      if (version < 5 || anno == null) {
+    	  // Avoid dying if the JRE is lower than Java 5
+    	  return new SingletonIterator<IJavaType>(getObjectType());
+      }
       IJavaType annoT = convertNodeTypeToIJavaType(anno);
       return new SingletonIterator<IJavaType>(annoT);
     } else if (op instanceof EnumConstantClassDeclaration) {
