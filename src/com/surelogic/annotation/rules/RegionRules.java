@@ -427,8 +427,15 @@ public class RegionRules extends AnnotationRules {
   	  uniqueDrop.invalidate();
   	  return null;
     }
-
+    
     boolean isGood = true;
+    
+    // Cannot already have an @InRegion annotation
+    if (AASTStore.getASTsByPromisedFor(promisedFor, InRegionNode.class).iterator().hasNext()) {
+      context.reportError(a, "Cannot be annotated with both @UniqueInRegion and @InRegion");
+      isGood = false;
+    }
+    
     
     // Field must be reference typed
     final IJavaType type = context.getBinder().getJavaType(promisedFor);
