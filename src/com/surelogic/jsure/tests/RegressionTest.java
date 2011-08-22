@@ -409,9 +409,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		} finally {
 			try {
 				assertNotNull(projectName);
-				EclipseLogHandler.stopFileLog();
+				final boolean ok = EclipseLogHandler.stopFileLog();
+				System.out.println("logging is ok = "+ok);
 				System.out.println("log = " + logName);
-				logOk = compareLogs(projectPath, logName, projectName);
+				logOk = compareLogs(projectPath, logName, projectName) && ok;
 
 				AnnotationRules.XML_LOG.close();
 			} catch (Throwable t) {
