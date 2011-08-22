@@ -874,7 +874,8 @@ public class JavacDriver implements IResourceChangeListener {
 			    IFile propsFile = jp.getProject().getFile(ToolProperties.PROPS_FILE);
 	            ToolProperties props = ToolProperties.read(propsFile.getLocation().toFile());	
 	            if (props != null) {
-	            	for(Map.Entry<Object,Object> p : props.entrySet()) {					
+	            	for(Map.Entry<Object,Object> p : props.entrySet()) {		
+	            		//System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
 	            		config.setOption(p.getKey().toString(), p.getValue());
 	            	}
 	            }	            
