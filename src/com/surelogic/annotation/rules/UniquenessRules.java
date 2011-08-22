@@ -10,6 +10,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
+import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
@@ -287,6 +288,20 @@ public class UniquenessRules extends AnnotationRules {
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
+        // Cannot also have a @UniqueInRegion("X") annotation
+        for (final UniqueInRegionNode n : AASTStore.getASTsByPromisedFor(promisedFor, UniqueInRegionNode.class)) {
+          context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
+          AASTStore.removeAST(n);
+          good = false;
+        }
+        
+        // Cannot also have a @UniqueInRegion("X in Y, ...") annotation
+        for (final UniqueMappingNode n : AASTStore.getASTsByPromisedFor(promisedFor, UniqueMappingNode.class)) {
+          context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
+          AASTStore.removeAST(n);
+          good = false;
+        }
+        
         if (TypeUtil.isVolatile(promisedFor)) {
           good = false;
           context.reportError(a, "@Unique cannot be used on a volatile field");

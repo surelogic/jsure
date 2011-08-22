@@ -273,6 +273,11 @@ public class RegionRules extends AnnotationRules {
       final String parentName = a.getSpec().getId();
       boolean annotationIsGood = true;
       
+      /* scrubUniqueInRegion(), which always runs before us, checks that the
+       * field doesn't have both UniqueInRegion and InRegion.  Must run before
+       * us because it can generate derived InRegion annotations.
+       */
+      
       if (TypeUtil.isFinal(promisedFor)) {
         context.reportError(a, "Field \"{0}\" is final: it cannot be given a super region because it is not a region",
             VariableDeclarator.getId(promisedFor));
@@ -420,23 +425,19 @@ public class RegionRules extends AnnotationRules {
   	  final UniqueInRegionNode a) {
     final IRNode promisedFor = a.getPromisedFor();
     
-    // Cannot also be @Unique
-    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(promisedFor);
-    if (uniqueDrop != null) {
-  	  context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
-  	  uniqueDrop.invalidate();
-  	  return null;
-    }
-    
     boolean isGood = true;
+
+    /* Scrubbing of unique, which always runs before us, checks that the
+     * field is not both @Unique and @UniqueInRegion.
+     */
     
     // Cannot already have an @InRegion annotation
-    if (AASTStore.getASTsByPromisedFor(promisedFor, InRegionNode.class).iterator().hasNext()) {
+    for (final InRegionNode n : AASTStore.getASTsByPromisedFor(promisedFor, InRegionNode.class)) {
       context.reportError(a, "Cannot be annotated with both @UniqueInRegion and @InRegion");
+      AASTStore.removeAST(n);
       isGood = false;
     }
-    
-    
+        
     // Field must be reference typed
     final IJavaType type = context.getBinder().getJavaType(promisedFor);
     if (type instanceof IJavaPrimitiveType) {
@@ -538,14 +539,12 @@ public class RegionRules extends AnnotationRules {
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
-    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(promisedFor);
-    if (uniqueDrop != null) {
-      context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
-      uniqueDrop.invalidate();
-      return null;
-    }
     
     boolean isGood = true;
+    
+    /* Scrubbing of unique, which always runs before us, checks that the
+     * field is not both @Unique and @UniqueInRegion.
+     */
     
     // Field must be reference typed
     final IJavaType type = context.getBinder().getJavaType(promisedFor);
