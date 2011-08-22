@@ -2053,8 +2053,8 @@ public class JavacDriver implements IResourceChangeListener {
 				for(String name : projects.getProjectNames()) {
 					IProject proj = EclipseUtility.getProject(name);
 					if (proj == null) {
-						out.println("Project does not exist: "+name);
 						out.println("==================================================================================================");
+						out.println("Project does not exist: "+name);
 						continue;
 					}
 					File projLocation = proj.getLocation().toFile();
@@ -2090,8 +2090,8 @@ public class JavacDriver implements IResourceChangeListener {
 				e.printStackTrace(out);
 			}
 		} else {
-			out.println("File does not exist: "+source);
 			out.println("==================================================================================================");
+			out.println("File does not exist: "+source);
 		}
 	}
 
