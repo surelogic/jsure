@@ -39,6 +39,7 @@ public class UtilityRules extends AnnotationRules {
 	@Override
 	public void register(PromiseFramework fw) {
 		registerParseRuleStorage(fw, utilityRule);
+		registerParseRuleStorage(fw, singletonRule);
 	}
 
 	static class Utility_ParseRule
