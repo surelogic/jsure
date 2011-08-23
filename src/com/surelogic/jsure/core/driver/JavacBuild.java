@@ -66,7 +66,7 @@ public class JavacBuild {
 				}
 			}
 			JavacEclipse.initialize();
-			System.out.println("Configuring build");
+			SLLogger.getLogger().fine("Configuring explicit build");
 			JavacDriver.getInstance().doExplicitBuild(buildArgs, true);
 			return true;
 		} catch (CoreException e) {

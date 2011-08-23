@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.PromiseMatcher;
 import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.listeners.NotificationHub;
@@ -100,7 +101,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		
 		if (IDE.useJavac) {						
 			JavacEclipse.initialize();
-			System.out.println("Configuring build");
+			SLLogger.getLogger().fine("Configuring build");
     		if (Util.useResultsXML) {
 				try {
 					boolean ok = PromiseMatcher.findAndLoad(JSurePreferencesUtility.getJSureDataDirectory());

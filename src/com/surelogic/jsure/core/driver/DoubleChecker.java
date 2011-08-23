@@ -487,7 +487,7 @@ public class DoubleChecker implements IAnalysisContainer {
 					m_analysisExtensionSets.add(Collections.singleton(ext));
 					analysisExtensions = new IAnalysisInfo[1];
 					analysisExtensions[0] = ext;
-					System.out.println("Found " + ext.getUniqueIdentifier());
+					SLLogger.getLogger().fine("Found " + ext.getUniqueIdentifier());
 					return;
 				}
 			}

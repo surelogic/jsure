@@ -1242,7 +1242,7 @@ public class JavacDriver implements IResourceChangeListener {
 				|| k == IncrementalProjectBuilder.FULL_BUILD) {
 			// TODO what about resources?
 			projects.put(project, new ProjectInfo(project, cus));
-			System.out.println("Got full build for "+project.getName());
+			SLLogger.getLogger().fine("Got full build for "+project.getName());
 			if (script != null) {
 				cacheCompUnits(cus);
 			}
@@ -1305,7 +1305,7 @@ public class JavacDriver implements IResourceChangeListener {
 		// TODO this needs to be run after ALL the info is collected
 		JavacEclipse.initialize();
 		if (!XUtil.testing) {
-			System.out.println("Configuring analyses for build");
+			SLLogger.getLogger().fine("Configuring analyses for build");
 			((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 		}
 		ConfigureJob configure = new ConfigureJob("Configuring JSure build",
@@ -1313,7 +1313,7 @@ public class JavacDriver implements IResourceChangeListener {
 		
 		synchronized (this) {
 			// Only if there's no build already
-			System.out.println("Starting to configure JSure build");
+			SLLogger.getLogger().fine("Starting to configure JSure build");
 			ProjectsDrop pd = ProjectsDrop.getDrop();
 			if (pd != null) {
 				for (JavacProject jp : ((Projects) pd.getIIRProjects())) {
@@ -1723,7 +1723,7 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	public static SLStatus waitForBuild(boolean isAuto) {
-		System.out.println("Waiting for build: " + isAuto);
+		SLLogger.getLogger().fine("Waiting for build: " + isAuto);
 		try {
 			Object family = isAuto ? ResourcesPlugin.FAMILY_AUTO_BUILD
 					: ResourcesPlugin.FAMILY_MANUAL_BUILD;
