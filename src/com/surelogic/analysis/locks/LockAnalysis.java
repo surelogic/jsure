@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -88,12 +89,12 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 					    new TopLevelAnalysisVisitor(
 					        new ClassProcessor(getAnalysis(), getResultDependUponDrop()));
 					  // actually n.typeDecl is a CompilationUnit here!
-						topLevel.doAccept(n.typeDecl);	
+						topLevel.doAccept(n.getTypeDecl());	
 					} else {
 						//System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 					  actuallyAnalyzeClassBody(
 					      getAnalysis(),getResultDependUponDrop(),
-					      n.typeDecl, n.classBody);
+					      n.getTypeDecl(), n.getClassBody());
 					}
 				}
 			});
@@ -259,14 +260,13 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	
 	
-	protected final class Pair {
-	  public final IRNode typeDecl;
-	  public final IRNode classBody;
-	  
+	protected final class Pair extends edu.cmu.cs.fluid.util.Pair<IRNode, IRNode> {
 	  public Pair(final IRNode td, final IRNode cb) {
-	    typeDecl = td;
-	    classBody = cb;
+	    super(td, cb);
 	  }
+	  
+	  public IRNode getTypeDecl() { return first(); }
+	  public IRNode getClassBody() { return second(); }
 	}
 	
 	
@@ -376,6 +376,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final IJavaType type = getBinder().getJavaType(varDecl);
           final IRNode typeDecl;
           final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+          final boolean isArray = type instanceof IJavaArrayType;
           final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
           final boolean usingImplDrop;
           final ContainablePromiseDrop declContainableDrop;
@@ -412,14 +413,17 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             usingImplDrop = false;
           }
           
+          final boolean isContainable = 
+                 (declContainableDrop != null)
+              || (isArray && isArrayTypeContainable((IJavaArrayType) type));
+          
           /* @ThreadSafe takes priority over @Containable: If the type is
            * threadsafe don't check the aggregation status
            */
-          final PromiseDrop<? extends IAASTRootNode> uDrop;
+          final PromiseDrop<? extends IAASTRootNode> uDrop = UniquenessUtils.getFieldUnique(varDecl);
           final Map<IRegion, IRegion> aggMap;
           boolean isContained = false;
-          if (declTSDrop == null && declContainableDrop != null) {
-            uDrop = UniquenessUtils.getFieldUnique(varDecl);
+          if (declTSDrop == null && isContainable) {
             if (uDrop != null) {
               aggMap = UniquenessUtils.constructRegionMapping(varDecl);
               isContained = true;
@@ -430,17 +434,17 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               aggMap = null;
             }
           } else {
-            uDrop = null;
             aggMap = null;
             // no @Containable annotation --> Default "annotation" of not containable
             isContained = false;
           }
           
+          final String typeString = type.toString();
           if (isPrimitive || declTSDrop != null || isContained) {
             final ResultDropBuilder result;
             if (isFinal) {
               result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
-            } else if(isVolatile) {
+            } else if (isVolatile) {
               result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
             } else { // lock protected 
               result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
@@ -448,14 +452,22 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             }
             
             if (isPrimitive) {
-              result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
+              result.addSupportingInformation(
+                  varDecl, Messages.PRIMITIVE_TYPE, typeString);
             } else if (declTSDrop != null) {
+              result.addSupportingInformation(
+                  varDecl, Messages.DECLARED_TYPE_IS_THREAD_SAFE, typeString);
               result.addTrustedPromise(declTSDrop);
               if (usingImplDrop) {
-                result.addSupportingInformation(varDecl, Messages.THREAD_SAFE_IMPL);
+                result.addSupportingInformation(
+                    varDecl, Messages.THREAD_SAFE_IMPL);
               }
             } else { // contained
-              result.addTrustedPromise(declContainableDrop);
+              result.addSupportingInformation(                  
+                  varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE, typeString);
+              if (declContainableDrop != null) {
+                result.addTrustedPromise(declContainableDrop);
+              }
               result.addTrustedPromise(uDrop);
               for (final IRegion destRegion : aggMap.values()) {
                 result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
@@ -466,6 +478,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
             // type could be a non-declared, non-primitive type, that is, an array
             if (typeDecl != null) {
+              result.addSupportingInformation(
+                  varDecl, Messages.DECLARED_TYPE_IS_NOT_THREAD_SAFE, typeString);              
               if (declTSDrop == null) {
                 result.addProposal(new ProposedPromiseBuilder(
                     "ThreadSafe", null, typeDecl, varDecl));
@@ -475,6 +489,18 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
                     "Containable", null, typeDecl, varDecl));
               }
             }
+            
+            if (isContainable) {
+              result.addSupportingInformation(
+                  varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE, typeString);
+              if (!isContained) {
+                result.addSupportingInformation(varDecl, Messages.NOT_AGGREGATED);
+              }
+            } else {
+              result.addSupportingInformation(
+                  varDecl,Messages.DECLARED_TYPE_NOT_CONTAINABLE, typeString);
+            }
+
             if (uDrop == null) {
               result.addProposal(new ProposedPromiseBuilder(
                   "Unique", null, varDecl, varDecl));
@@ -559,6 +585,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       final String id = VariableDeclarator.getId(varDecl);
       final IJavaType type = getBinder().getJavaType(varDecl);
       final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+      final boolean isArray = type instanceof IJavaArrayType;
       if (isPrimitive) {
         createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
       } else {
@@ -571,13 +598,33 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           result.addTrustedPromise(vouchDrop);
         } else {
           final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
-          final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
-          // no @Containable annotation --> Default "annotation" of not containable
-          final ContainablePromiseDrop declContainableDrop = typeDecl == null ? null : LockRules.getContainableType(typeDecl);
-          if (declContainableDrop != null && uniqueDrop != null) {
+          
+          final boolean isContainable;
+          final ContainablePromiseDrop declContainableDrop;
+          final IRNode typeDecl;
+          if (isArray) {
+            typeDecl = null;
+            declContainableDrop = null;
+            isContainable = isArrayTypeContainable((IJavaArrayType) type);
+          } else if (type instanceof IJavaDeclaredType) {
+            typeDecl = ((IJavaDeclaredType) type).getDeclaration();
+            declContainableDrop = LockRules.getContainableType(typeDecl);
+            isContainable = declContainableDrop != null;
+          } else {
+            typeDecl = null;
+            declContainableDrop = null;
+            isContainable = false;
+          }
+          
+          if (isContainable && uniqueDrop != null) {
             final ResultDropBuilder result =
               createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
-            result.addTrustedPromise(declContainableDrop);
+            result.addSupportingInformation(
+                varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toString());
+            if (declContainableDrop != null) {
+              result.addTrustedPromise(declContainableDrop);
+            }
+            result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
             result.addTrustedPromise(uniqueDrop);
           } else {
             final ResultDropBuilder result =
@@ -587,18 +634,24 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             result.addProposal(new ProposedPromiseBuilder(
                     "Vouch", "Containable", varDecl, varDecl));
             
-            if (declContainableDrop != null) {
-              result.addTrustedPromise(declContainableDrop);              
+            if (isContainable) {
+              result.addSupportingInformation(
+                  varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toString());
+              if (declContainableDrop != null) {
+                result.addTrustedPromise(declContainableDrop);              
+              }
             } else {
               // no @Containable annotation --> Default "annotation" of not containable
-              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
-              if (type instanceof IJavaDeclaredType) {
+              result.addSupportingInformation(
+                  varDecl, Messages.DECLARED_TYPE_NOT_CONTAINABLE, type.toString());
+              if (typeDecl != null) {
                 result.addProposal(new ProposedPromiseBuilder(
                     "Containable", null, typeDecl, varDecl));
               }
             }
 
             if (uniqueDrop != null) {
+              result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
               result.addTrustedPromise(uniqueDrop);
             } else {
               result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
@@ -716,4 +769,11 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       }
     }
   }  
+  
+  
+    
+  private static boolean isArrayTypeContainable(final IJavaArrayType aType) {
+    return (aType.getBaseType() instanceof IJavaPrimitiveType) &&
+        (aType.getDimensions() == 1);
+  }
 }

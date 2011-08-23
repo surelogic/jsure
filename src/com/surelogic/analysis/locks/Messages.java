@@ -121,6 +121,9 @@ public final class Messages extends AbstractMessages {
   public static final int TRIVIALLY_THREADSAFE = 408;
   public static final int THREAD_SAFE_IMPL = 409;
   public static final int VOUCHED_THREADSAFE_WITH_REASON = 410;
+  public static final int DECLARED_TYPE_IS_THREAD_SAFE = 411;
+  public static final int DECLARED_TYPE_IS_NOT_THREAD_SAFE = 412;
+  public static final int NOT_AGGREGATED = 413;
   
   
   
@@ -133,12 +136,13 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_CONTAINED_PRIMITIVE = 455;
   public static final int FIELD_CONTAINED_OBJECT = 456;
   public static final int FIELD_BAD = 457;
-  public static final int FIELD_NOT_CONTAINABLE = 458;
+  public static final int DECLARED_TYPE_NOT_CONTAINABLE = 458;
   public static final int FIELD_NOT_UNIQUE = 459;
   public static final int FIELD_NOT_AGGREGATED = 460;
   public static final int FIELD_CONTAINED_VOUCHED = 461;
   public static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 462;
-  
+  public static final int DECLARED_TYPE_IS_CONTAINABLE = 463;
+  public static final int FIELD_IS_UNIQUE=464;
   
   
   // For Immutable assurance
