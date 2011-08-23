@@ -146,4 +146,5 @@ public interface INodeVisitor<T> {
 	T visit(UtilityNode utilityNode);
 	T visit(ImmutableRefNode immutableRefNode);
 	T visit(ReadOnlyNode readonlyNode);
+	T visit(SingletonNode singletonNode);
 }
