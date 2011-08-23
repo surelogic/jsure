@@ -34,7 +34,7 @@ public class Test {
   @Unique
   private NonContainableClass f8 = null;
   
-  // Bad: Array is not containable
+  // GOOD: int[] is containable (as of 2011-08-23)
   @Unique
   private int[] f9 = { 0, 1, 2 };
   
