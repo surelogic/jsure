@@ -1,7 +1,30 @@
 package com.surelogic.jsure.core.driver;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -36,10 +59,10 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
+import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
-import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
@@ -97,7 +120,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class JavacDriver implements IResourceChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
-	
+
 	private static final Logger LOG = SLLogger
 			.getLogger("analysis.JavacDriver");
 
@@ -180,16 +203,17 @@ public class JavacDriver implements IResourceChangeListener {
 								"Unable to delete project: " + proj);
 					}
 				}
-				/* The zip already contains the project as part of the path,
-				 * so don't do the following:				
-				 * 							
+				/*
+				 * The zip already contains the project as part of the path, so
+				 * don't do the following:
+				 * 
 				 * proj.mkdirs();
 				 * 
-				// Unzip into the project
-				 * FileUtility.unzipFile(archive, proj);
+				 * // Unzip into the project FileUtility.unzipFile(archive,
+				 * proj);
 				 */
 				// Unzip into the workspace
-				FileUtility.unzipFile(archive, workspace);	
+				FileUtility.unzipFile(archive, workspace);
 
 				// Make a copy of the script to use while updating
 				FileUtility.deleteTempFiles(scriptFilter);
@@ -203,10 +227,11 @@ public class JavacDriver implements IResourceChangeListener {
 
 				// Import the project into the workspace
 				importScriptedProject(proj);
-				
+
 				// Refresh the workspace
-				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
-								
+				ResourcesPlugin.getWorkspace().getRoot()
+						.refreshLocal(IResource.DEPTH_INFINITE, null);
+
 				JavacEclipse.initialize();
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 			} catch (Exception e) {
@@ -293,7 +318,8 @@ public class JavacDriver implements IResourceChangeListener {
 					public SLStatus run(SLProgressMonitor monitor) {
 						try {
 							// TODO needs to run after the FTA auto-build
-							final UpdateScriptReader r = new UpdateScriptReader(scriptDir);
+							final UpdateScriptReader r = new UpdateScriptReader(
+									scriptDir);
 							return r.execute(scriptBeingUpdated, scriptDir) ? SLStatus.OK_STATUS
 									: SLStatus.CANCEL_STATUS;
 						} catch (Throwable e) {
@@ -313,12 +339,13 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
-	private static void importScriptedProject(final File proj) throws CoreException {
+	private static void importScriptedProject(final File proj)
+			throws CoreException {
 		File dotProject = new File(proj, EclipseUtility.DOT_PROJECT);
 		if (dotProject.exists()) {
 			EclipseUtility.importProject(proj);
 		} else {
-			for(File dir : proj.listFiles()) {
+			for (File dir : proj.listFiles()) {
 				if (dir.isDirectory()) {
 					importScriptedProject(dir);
 				}
@@ -329,10 +356,11 @@ public class JavacDriver implements IResourceChangeListener {
 	private static List<IJavaProject> findProjects(final File proj) {
 		File dotProject = new File(proj, EclipseUtility.DOT_PROJECT);
 		if (dotProject.exists()) {
-			return Collections.singletonList(JDTUtility.getJavaProject(proj.getName()));
+			return Collections.singletonList(JDTUtility.getJavaProject(proj
+					.getName()));
 		} else {
 			List<IJavaProject> rv = new ArrayList<IJavaProject>();
-			for(File dir : proj.listFiles()) {
+			for (File dir : proj.listFiles()) {
 				if (dir.isDirectory()) {
 					rv.addAll(findProjects(dir));
 				}
@@ -340,7 +368,7 @@ public class JavacDriver implements IResourceChangeListener {
 			return rv;
 		}
 	}
-	
+
 	public void updateScript() {
 		if (updateScriptJob != null) {
 			try {
@@ -363,7 +391,7 @@ public class JavacDriver implements IResourceChangeListener {
 					});
 		}
 	}
-	
+
 	private static class UpdateScriptReader extends ScriptReader {
 		public UpdateScriptReader(final File proj) {
 			super(findProjects(proj), false);
@@ -375,19 +403,22 @@ public class JavacDriver implements IResourceChangeListener {
 				public boolean execute(ICommandContext context,
 						String... contents) throws Exception {
 					// Reformat the contents for what it expects
-					return super.execute(context, contents[0], projects.get(0).getElementName(),
-							// Compensate for extra directory when there's multiple projects
-							projects.size() > 1 ? ".."+contents[2] : contents[2]);
+					return super.execute(context, contents[0], projects.get(0)
+							.getElementName(),
+					// Compensate for extra directory when there's multiple
+					// projects
+							projects.size() > 1 ? ".." + contents[2]
+									: contents[2]);
 				}
 			});
 		}
 
 		@Override
 		protected void finish() {
-			// PlatformUI.getWorkbench().close();		
+			// PlatformUI.getWorkbench().close();
 			String msg = "JSure is done re-running your script.  No actions are being recorded."
-				+ "Please shutdown Eclipse to finish the archive.";
-			//BalloonUtility.showMessage("Safe to shutdown", msg);					
+					+ "Please shutdown Eclipse to finish the archive.";
+			// BalloonUtility.showMessage("Safe to shutdown", msg);
 			System.err.println(msg);
 		}
 	}
@@ -640,11 +671,11 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static final Comparator<? super File> fileComparator = new Comparator<File>() {
 		@Override
-		public int compare(File o1, File o2) {			
+		public int compare(File o1, File o2) {
 			return (int) (o1.lastModified() - o2.lastModified());
 		}
 	};
-	
+
 	public void stopScripting() {
 		if (info != null) {
 			if (script != null) {
@@ -865,29 +896,32 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 
 		private void setOptions(Config config) {
-			final IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
+			final IJavaProject jp = JDTUtility.getJavaProject(config
+					.getProject());
 			if (config.getLocation() != null) {
-			    /* Moved to clearProjectInfo()
-				// TODO Is this right for multi-project configurations?
-				ModuleRules.clearSettings();
-				ModuleRules.clearAsSourcePatterns();
-				ModuleRules.clearAsNeededPatterns();
-				*/
-				
-			    IFile propsFile = jp.getProject().getFile(ToolProperties.PROPS_FILE);
-	            ToolProperties props = ToolProperties.read(propsFile.getLocation().toFile());	
-	            if (props != null) {
-	            	for(Map.Entry<Object,Object> p : props.entrySet()) {		
-	            		//System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
-	            		config.setOption(p.getKey().toString(), p.getValue());
-	            	}
-	            }	            
+				/*
+				 * Moved to clearProjectInfo() // TODO Is this right for
+				 * multi-project configurations? ModuleRules.clearSettings();
+				 * ModuleRules.clearAsSourcePatterns();
+				 * ModuleRules.clearAsNeededPatterns();
+				 */
+
+				IFile propsFile = jp.getProject().getFile(
+						ToolProperties.PROPS_FILE);
+				ToolProperties props = ToolProperties.read(propsFile
+						.getLocation().toFile());
+				if (props != null) {
+					for (Map.Entry<Object, Object> p : props.entrySet()) {
+						// System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
+						config.setOption(p.getKey().toString(), p.getValue());
+					}
+				}
 				// TODO obsolete?
-			    Properties props2 = JSureProperties.read(config.getLocation());
+				Properties props2 = JSureProperties.read(config.getLocation());
 				if (props2 != null) {
 					JSureProperties.handle(config.getProject(), props2);
-				}			
-			}			
+				}
+			}
 			// Reordered to avoid conflicts
 			int version = JDTUtility.getMajorJavaSourceVersion(jp);
 			config.setOption(Config.SOURCE_LEVEL, version);
@@ -959,19 +993,19 @@ public class JavacDriver implements IResourceChangeListener {
 					break;
 				default:
 					System.out.println("Unexpected: " + cpe);
-				}				
+				}
 			}
 			if (jre != null) {
 				// Add JRE if not already added
 				boolean hasJRE = false;
-				for(IClassPathEntry e : config.getClassPath()) {
+				for (IClassPathEntry e : config.getClassPath()) {
 					if (e.equals(jre.getConfig())) {
 						hasJRE = true;
 						break;
 					}
 				}
 				if (!hasJRE) {
-					System.out.println("Adding missing JRE: "+jre.getName());
+					System.out.println("Adding missing JRE: " + jre.getName());
 					config.addToClassPath(jre.getConfig());
 				}
 			}
@@ -1028,26 +1062,25 @@ public class JavacDriver implements IResourceChangeListener {
 						final File f = r.getLocation().toFile();
 						// System.out.println("Found source file: "+f.getPath());
 						/*
-						String typeName = f.getName().substring(0,
-								f.getName().length() - 5);
-						String qname = pkg.length() == 0 ? typeName : pkg + '.'
-								+ typeName;
-						config.addFile(new JavaSourceFile(qname, f, f
-								.getAbsolutePath()));
-								*/
+						 * String typeName = f.getName().substring(0,
+						 * f.getName().length() - 5); String qname =
+						 * pkg.length() == 0 ? typeName : pkg + '.' + typeName;
+						 * config.addFile(new JavaSourceFile(qname, f, f
+						 * .getAbsolutePath()));
+						 */
 						final String path = f.getAbsolutePath();
-						/* TODO Problem due to hashing conflict?
-						 *  
-						for(IType t : icu.getAllTypes()) {
-							final String qname = t.getFullyQualifiedName();
-							config.addFile(new JavaSourceFile(qname, f, path));
-						}
-						*/
-						final String qname = computeQualifiedName(icu);						
-						
-						// TODO Used when there's no project info 
+						/*
+						 * TODO Problem due to hashing conflict?
+						 * 
+						 * for(IType t : icu.getAllTypes()) { final String qname
+						 * = t.getFullyQualifiedName(); config.addFile(new
+						 * JavaSourceFile(qname, f, path)); }
+						 */
+						final String qname = computeQualifiedName(icu);
+
+						// TODO Used when there's no project info
 						config.addFile(new JavaSourceFile(qname, f, path, false));
-						
+
 						if (!added) {
 							added = true;
 							/*
@@ -1085,24 +1118,30 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			for (IClasspathEntry cpe : jp.getRawClasspath()) {
 				switch (cpe.getEntryKind()) {
-				case IClasspathEntry.CPE_CONTAINER:					
+				case IClasspathEntry.CPE_CONTAINER:
 					final String path = cpe.getPath().toPortableString();
-					if (path.startsWith(JavacTypeEnvironment.JRE_NAME)) {											
-						final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);
+					if (path.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+						final IClasspathContainer cc = JavaCore
+								.getClasspathContainer(cpe.getPath(), jp);
 						if (cc == null) {
-					        // Creating project from sun.boot.classpath
+							// Creating project from sun.boot.classpath
 							JavacProject jcp = projects.get(path);
 							if (jcp == null) {
-								final String classpath = System.getProperty("sun.boot.class.path");
-								System.out.println("sun.boot.class.path = "+classpath);		
-								
-								final Config config = new Config(path, null, true);	
-								for(String jar : classpath.split(File.pathSeparator)) {
+								final String classpath = System
+										.getProperty("sun.boot.class.path");
+								System.out.println("sun.boot.class.path = "
+										+ classpath);
+
+								final Config config = new Config(path, null,
+										true);
+								for (String jar : classpath
+										.split(File.pathSeparator)) {
 									final File f = new File(jar);
 									config.addJar(f, true);
 									projects.mapToProject(f, path);
 								}
-								JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, path);
+								JavacEclipse.getDefault().setPreference(
+										IDEPreferences.DEFAULT_JRE, path);
 								jcp = projects.add(config);
 							}
 							return jcp;
@@ -1242,7 +1281,8 @@ public class JavacDriver implements IResourceChangeListener {
 				|| k == IncrementalProjectBuilder.FULL_BUILD) {
 			// TODO what about resources?
 			projects.put(project, new ProjectInfo(project, cus));
-			SLLogger.getLogger().fine("Got full build for "+project.getName());
+			SLLogger.getLogger()
+					.fine("Got full build for " + project.getName());
 			if (script != null) {
 				cacheCompUnits(cus);
 			}
@@ -1262,10 +1302,10 @@ public class JavacDriver implements IResourceChangeListener {
 	public void clearProjectInfo() {
 		projects.clear();
 		ModuleRules.clearSettings();
-        ModuleRules.clearAsSourcePatterns();
-        ModuleRules.clearAsNeededPatterns();
+		ModuleRules.clearAsSourcePatterns();
+		ModuleRules.clearAsNeededPatterns();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(DriverConstants.BUILD_KIND);
@@ -1274,12 +1314,12 @@ public class JavacDriver implements IResourceChangeListener {
 
 	@SuppressWarnings("unchecked")
 	public void doExplicitBuild(Map args, boolean ignoreNature) {
-	    if (script != null) {
-	        printToScript(ScriptCommands.RUN_JSURE);
-	    }
-	    configureBuild(args, ignoreNature);
+		if (script != null) {
+			printToScript(ScriptCommands.RUN_JSURE);
+		}
+		configureBuild(args, ignoreNature);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
@@ -1310,7 +1350,7 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		ConfigureJob configure = new ConfigureJob("Configuring JSure build",
 				location, isAuto, args, ignoreNature);
-		
+
 		synchronized (this) {
 			// Only if there's no build already
 			SLLogger.getLogger().fine("Starting to configure JSure build");
@@ -1338,12 +1378,13 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			// final boolean hasDeltas = info.hasDeltas();
 			makeProjects(newProjects, monitor);
-			
+
 			final File dataDir = JSurePreferencesUtility
 					.getJSureDataDirectory();
-			final Projects oldProjects = useSeparateJVM ? null : (Projects) ProjectsDrop.getProjects();
+			final Projects oldProjects = useSeparateJVM ? null
+					: (Projects) ProjectsDrop.getProjects();
 			if (oldProjects != null) {
-				System.out.println("Old projects = "+oldProjects.getLabel());
+				System.out.println("Old projects = " + oldProjects.getLabel());
 			}
 			newProjects.computeScan(dataDir, oldProjects);
 
@@ -1352,15 +1393,12 @@ public class JavacDriver implements IResourceChangeListener {
 					+ "/srcs");
 			target.mkdirs();
 
-			/* TODO
-			JSureHistoricalSourceView.setLastRun(newProjects,
-					new ISourceZipFileHandles() {
-						public Iterable<File> getSourceZips() {
-							return Arrays.asList(zips.listFiles());
-						}
-					});
-            */
-			
+			/*
+			 * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
+			 * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
+			 * return Arrays.asList(zips.listFiles()); } });
+			 */
+
 			if (!clearBeforeAnalysis && oldProjects != null) {
 				findModifiedFiles(newProjects, oldProjects);
 			}
@@ -1462,15 +1500,15 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 
 	// TODO how to set up for deltas?
-	private Projects makeProjects(final Projects projects, SLProgressMonitor monitor)
-			throws JavaModelException {
+	private Projects makeProjects(final Projects projects,
+			SLProgressMonitor monitor) throws JavaModelException {
 		final List<ProjectInfo> infos = new ArrayList<ProjectInfo>(
 				this.projects.values());
-		monitor.begin(infos.size()+2);
-		
+		monitor.begin(infos.size() + 2);
+
 		findSharedJars(projects);
 		monitor.worked(1);
-		
+
 		for (ProjectInfo info : infos) {
 			if (!projects.contains(info.project.getName())) {
 				if (info.isActive()) {
@@ -1516,86 +1554,89 @@ public class JavacDriver implements IResourceChangeListener {
 			final File f = loc.toFile();
 			final String qname;
 			for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-				config.addPackage(pd.getElementName());				
-			}							
+				config.addPackage(pd.getElementName());
+			}
 			if (f.exists()) {
 				qname = computeQualifiedName(icu);
 			} else { // Removed
 				qname = f.getName();
 			}
-			files.add(new JavaSourceFile(qname, f, path.toPortableString(), filter.matches(icu)));
+			files.add(new JavaSourceFile(qname, f, path.toPortableString(),
+					filter.matches(icu)));
 		}
 		return files;
 	}
-	
+
 	/**
 	 * Setup exclude filter
 	 */
-	private CompUnitFilter getFilter(Config config) {		
+	private CompUnitFilter getFilter(Config config) {
 		final IProject p = EclipseUtility.getProject(config.getProject());
 		String[] paths = config.getListOption(ToolProperties.EXCLUDE_PATH);
 		final IPath[] excludePaths = new IPath[paths.length];
-		int i=0;
-		for(String path : paths) {
+		int i = 0;
+		for (String path : paths) {
 			excludePaths[i] = p.getFullPath().append(path);
 			i++;
-		}		
+		}
 		String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
 		final Pattern[] excludePatterns = new Pattern[pkgs.length];
-		i=0;
-		for(String pattern : pkgs) {
-			final String pattern2 = pattern.replaceAll("\\.", "\\.").replaceAll("\\*", ".*");
+		i = 0;
+		for (String pattern : pkgs) {
+			final String pattern2 = pattern.replaceAll("\\.", "\\.")
+					.replaceAll("\\*", ".*");
 			excludePatterns[i] = Pattern.compile(pattern2);
 			i++;
-		}		
+		}
 		return new CompUnitFilter() {
-			public boolean matches(ICompilationUnit icu) throws JavaModelException {
+			public boolean matches(ICompilationUnit icu)
+					throws JavaModelException {
 				for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-					final String pkg = pd.getElementName();				
-					for(Pattern p : excludePatterns) {						
+					final String pkg = pd.getElementName();
+					for (Pattern p : excludePatterns) {
 						if (p.matcher(pkg).matches()) {
 							return true;
 						}
 					}
 				}
-				for(IPath p : excludePaths) {
+				for (IPath p : excludePaths) {
 					if (p.isPrefixOf(icu.getPath())) {
 						return true;
 					}
 				}
 				return false;
-			}			
+			}
 		};
 	}
-	
+
 	interface CompUnitFilter {
 		boolean matches(ICompilationUnit icu) throws JavaModelException;
 	}
 
 	String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
 		String qname = null;
-		for(IType t : icu.getTypes()) {
+		for (IType t : icu.getTypes()) {
 			qname = t.getFullyQualifiedName();
 			/*
-			if (qname.endsWith("SingleSignOnEntry")) {
-				System.out.println("Looking at "+qname);
-			}
-			*/
+			 * if (qname.endsWith("SingleSignOnEntry")) {
+			 * System.out.println("Looking at "+qname); }
+			 */
 			final int flags = t.getFlags();
 			if (Flags.isPublic(flags)) {
 				// This is the only public top-level type
 				break;
 			} else {
-				//System.out.println("Got a non-public type: "+qname);
+				// System.out.println("Got a non-public type: "+qname);
 			}
 		}
 		if (qname == null) {
-			// Backup method: unreliable since the qname may not match the filename				
+			// Backup method: unreliable since the qname may not match the
+			// filename
 			String pkg = null;
 			for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
 				pkg = pd.getElementName();
 				break;
-			}				
+			}
 			qname = icu.getElementName();
 			if (qname.endsWith(".java")) {
 				qname = qname.substring(0, qname.length() - 5);
@@ -1606,7 +1647,7 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		return qname;
 	}
-	
+
 	static class ZippedConfig extends Config {
 		ZippedConfig(String name, File location, boolean isExported) {
 			super(name, location, isExported);
@@ -1676,9 +1717,10 @@ public class JavacDriver implements IResourceChangeListener {
 						if (names != null) {
 							for (String name : names) {
 								// System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-								
+
 								// The last two parameters don't matter because
-								// they'll just be thrown away when we call setFiles() below
+								// they'll just be thrown away when we call
+								// setFiles() below
 								srcFiles.add(new JavaSourceFile(name.replace(
 										'$', '.'), f, null, false));
 							}
@@ -1721,7 +1763,7 @@ public class JavacDriver implements IResourceChangeListener {
 		waitForBuild(true);
 		waitForBuild(false);
 	}
-	
+
 	public static SLStatus waitForBuild(boolean isAuto) {
 		SLLogger.getLogger().fine("Waiting for build: " + isAuto);
 		try {
@@ -1769,17 +1811,14 @@ public class JavacDriver implements IResourceChangeListener {
 				System.err.println("NOT deactivating projects");
 				// Clear projects that are inactive
 				/*
-				for (IJavaProject jp : JDTUtility.getJavaProjects()) {					
-					ProjectInfo info = JavacDriver.this.projects.get(jp
-							.getProject());
-					if (info != null) {						
-						info.setActive(Nature.hasNature(jp.getProject()));
-
-						// Check if it was previously active, but is now a
-						// dependency?
-					}
-				}
-				*/
+				 * for (IJavaProject jp : JDTUtility.getJavaProjects()) {
+				 * ProjectInfo info = JavacDriver.this.projects.get(jp
+				 * .getProject()); if (info != null) {
+				 * info.setActive(Nature.hasNature(jp.getProject()));
+				 * 
+				 * // Check if it was previously active, but is now a //
+				 * dependency? } }
+				 */
 			}
 			final boolean runRemote = !XUtil.profile && ignoreNature;
 			doBuild(projects, args, monitor, runRemote);
@@ -1841,7 +1880,7 @@ public class JavacDriver implements IResourceChangeListener {
 			monitor.worked(1);
 			System.out.println("Zipping         = " + (zip - start) + " ms");
 			System.out.println("Relocating jars = " + (end - zip) + " ms");
-			
+
 			if (afterJob != null) {
 				if (XUtil.testing) {
 					afterJob.run(monitor);
@@ -1926,14 +1965,21 @@ public class JavacDriver implements IResourceChangeListener {
 						} else {
 							ProjectsDrop.ensureDrop(projects);
 						}
-					} else if (status != SLStatus.CANCEL_STATUS && status.getSeverity() == SLSeverity.ERROR) {
+					} else if (status != SLStatus.CANCEL_STATUS
+							&& status.getSeverity() == SLSeverity.ERROR) {
+						/*
+						 * Collect information and report this scan crash to
+						 * SureLogic.
+						 */
 						final File rollup = collectCrashFiles(projects);
-					    ScanCrashReport.getInstance().getReporter() .reportJSureScanCrash(status, rollup);					          
-					    
-						if (status.getException() != null) {
-							throw status.getException();
-						}
-						throw new RuntimeException(status.getMessage());
+						ScanCrashReport.getInstance().getReporter()
+								.reportJSureScanCrash(status, rollup);
+						/*
+						 * Because we already opened a dialog above about the
+						 * crash, log it and bail out of the job.
+						 */
+						status.logTo(SLLogger.getLogger());
+						return SLStatus.CANCEL_STATUS;
 					}
 				} else {
 					if (clearBeforeAnalysis || oldProjects == null) {
@@ -1944,10 +1990,13 @@ public class JavacDriver implements IResourceChangeListener {
 						ok = Util.openFiles(oldProjects, projects, true);
 					}
 					// Persist the Sea
-					final File location = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
-					new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
+					final File location = new File(projects.getRunDir(),
+							RemoteJSureRun.RESULTS_XML);
+					new SeaSnapshot(location).snapshot(
+							projects.getShortLabel(), Sea.getDefault());
 				}
-				JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
+				JSureDataDirHub.getInstance().scanDirectoryAdded(
+						projects.getRunDir());
 				/*
 				 * final File rootLoc =
 				 * EclipseUtility.getProject(config.getProject
@@ -1974,7 +2023,7 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				if (XUtil.testing) {
 					throw new RuntimeException(e);
-				} 
+				}
 				return SLStatus.createErrorStatus(
 						"Problem while running JSure", e);
 			} finally {
@@ -1982,9 +2031,9 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			NotificationHub.notifyAnalysisCompleted();
 			// recordViewUpdate();
-			
+
 			// Cleared here after notifications are processed
-			// to prevent redoing some (binder) work 
+			// to prevent redoing some (binder) work
 			IDE.getInstance().clearCaches();
 
 			if (lastMonitor == monitor) {
@@ -1999,7 +2048,8 @@ public class JavacDriver implements IResourceChangeListener {
 			final String msg = "Running JSure for " + projects.getLabel();
 			ILocalJSureConfig cfg = new ILocalJSureConfig() {
 				public boolean isVerbose() {
-					return SLLogger.getLogger().isLoggable(Level.FINE) || XUtil.testing;
+					return SLLogger.getLogger().isLoggable(Level.FINE)
+							|| XUtil.testing;
 				}
 
 				public String getTestCode() {
@@ -2026,10 +2076,11 @@ public class JavacDriver implements IResourceChangeListener {
 					return projects.getRunDir().getAbsolutePath();
 				}
 
-                @Override
-                public String getLogPath() {
-                    return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT).getAbsolutePath();
-                }
+				@Override
+				public String getLogPath() {
+					return new File(projects.getRunDir(),
+							RemoteJSureRun.LOG_TXT).getAbsolutePath();
+				}
 			};
 			return LocalJSureJob.factory.newJob(msg, 100, cfg);
 		}
@@ -2047,48 +2098,57 @@ public class JavacDriver implements IResourceChangeListener {
 		final File crash = new File(projects.getRunDir(), CRASH_FILES);
 		final String target = crash.getAbsolutePath();
 		try {
-			PrintStream out  = new PrintStream(crash);
+			PrintStream out = new PrintStream(crash);
 			try {
 				// Get project-specific config
-				for(String name : projects.getProjectNames()) {
+				for (String name : projects.getProjectNames()) {
 					IProject proj = EclipseUtility.getProject(name);
 					if (proj == null) {
 						out.println("==================================================================================================");
-						out.println("Project does not exist: "+name);
+						out.println("Project does not exist: " + name);
 						continue;
 					}
 					IPath projLocation = proj.getLocation();
 					if (projLocation != null) {
 						File projFile = projLocation.toFile();
 						if (projFile != null && projFile.isDirectory()) {
-							copyContentsToStream(new File(projFile, ".project"), out, target);
-							copyContentsToStream(new File(projFile, ".classpath"), out, target);
-							copyContentsToStream(new File(projFile, ToolProperties.PROPS_FILE), out, target);
+							copyContentsToStream(
+									new File(projFile, ".project"), out, target);
+							copyContentsToStream(new File(projFile,
+									".classpath"), out, target);
+							copyContentsToStream(new File(projFile,
+									ToolProperties.PROPS_FILE), out, target);
 						} else {
 							out.println("==================================================================================================");
-							out.println("File could not be created for project location: "+projLocation);
+							out.println("File could not be created for project location: "
+									+ projLocation);
 							continue;
 						}
 					} else {
 						out.println("==================================================================================================");
-						out.println("Project location could not be retrieved: "+name);
+						out.println("Project location could not be retrieved: "
+								+ name);
 						continue;
 					}
 				}
-				copyContentsToStream(new File(projects.getRunDir(), Javac.JAVAC_PROPS), out, target);
-				copyContentsToStream(new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML), out, target);
-				copyContentsToStream(new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT), out, target);
+				copyContentsToStream(new File(projects.getRunDir(),
+						Javac.JAVAC_PROPS), out, target);
+				copyContentsToStream(new File(projects.getRunDir(),
+						PersistenceConstants.PROJECTS_XML), out, target);
+				copyContentsToStream(new File(projects.getRunDir(),
+						RemoteJSureRun.LOG_TXT), out, target);
 			} finally {
 				out.close();
 			}
-		} catch(IOException e) {
+		} catch (IOException e) {
 			// Couldn't create the new file for some reason
-			return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT); 
+			return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT);
 		}
 		return crash;
 	}
 
-	private static void copyContentsToStream(File file, PrintStream out, String target) {
+	private static void copyContentsToStream(File file, PrintStream out,
+			String target) {
 		final String source = file.getAbsolutePath();
 
 		if (file.isFile()) {
@@ -2096,13 +2156,14 @@ public class JavacDriver implements IResourceChangeListener {
 			out.println(source);
 			out.println("==================================================================================================");
 			try {
-				FileUtility.copyToStream(false, source, new FileInputStream(file), target, out, false);
-			} catch(IOException e) {
+				FileUtility.copyToStream(false, source, new FileInputStream(
+						file), target, out, false);
+			} catch (IOException e) {
 				e.printStackTrace(out);
 			}
 		} else {
 			out.println("==================================================================================================");
-			out.println("File does not exist: "+source);
+			out.println("File does not exist: " + source);
 		}
 	}
 
