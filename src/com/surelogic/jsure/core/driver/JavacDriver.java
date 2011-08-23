@@ -2057,11 +2057,22 @@ public class JavacDriver implements IResourceChangeListener {
 						out.println("Project does not exist: "+name);
 						continue;
 					}
-					File projLocation = proj.getLocation().toFile();
-					if (projLocation.isDirectory()) {
-						copyContentsToStream(new File(projLocation, ".project"), out, target);
-						copyContentsToStream(new File(projLocation, ".classpath"), out, target);
-						copyContentsToStream(new File(projLocation, ToolProperties.PROPS_FILE), out, target);
+					IPath projLocation = proj.getLocation();
+					if (projLocation != null) {
+						File projFile = projLocation.toFile();
+						if (projFile != null && projFile.isDirectory()) {
+							copyContentsToStream(new File(projFile, ".project"), out, target);
+							copyContentsToStream(new File(projFile, ".classpath"), out, target);
+							copyContentsToStream(new File(projFile, ToolProperties.PROPS_FILE), out, target);
+						} else {
+							out.println("==================================================================================================");
+							out.println("File could not be created for project location: "+projLocation);
+							continue;
+						}
+					} else {
+						out.println("==================================================================================================");
+						out.println("Project location could not be retrieved: "+name);
+						continue;
 					}
 				}
 				copyContentsToStream(new File(projects.getRunDir(), Javac.JAVAC_PROPS), out, target);
