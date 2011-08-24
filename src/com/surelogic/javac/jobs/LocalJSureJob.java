@@ -120,6 +120,8 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 		    // TODO do I need to check if I'm running in 64-bit mode?
 		    cmdj.createVmArgument().setValue("-XX:+UseCompressedOops");
 		}		
+		cmdj.createVmArgument().setValue("-verbosegc");
+		
 		// Only for debugging the remote JVM
 		if (XUtil.debug) {
 			cmdj.createVmArgument().setValue("-Xdebug");
