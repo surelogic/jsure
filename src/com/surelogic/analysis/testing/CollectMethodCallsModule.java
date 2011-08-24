@@ -38,13 +38,14 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
 	}
 
 	protected void runOverFile(final IRNode compUnit) {
-	  new TopLevelAnalysisVisitor(
+	  TopLevelAnalysisVisitor.processCompilationUnit(
 	      new SimpleClassProcessor() {
 	        @Override
           public void visitTypeDecl(final IRNode classDecl, final IRNode classBody) {
             new CM_Visitor(classDecl).doAccept(classBody);
           }
-        }).doAccept(compUnit);
+        },
+        compUnit);
 	}	
 	
 	@Override

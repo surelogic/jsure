@@ -10,6 +10,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
 
@@ -36,7 +37,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.util.Iteratable;
 
-public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitorFactory, UtilityAnalysis.Pair> {	
+public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitorFactory, TypeBodyPair> {	
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = false;
   
@@ -62,17 +63,16 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	
 	public UtilityAnalysis() {
-		super(willRunInParallel, queueWork ? Pair.class : null, "UtilityAssurance");
+		super(willRunInParallel, queueWork ? TypeBodyPair.class : null, "UtilityAssurance");
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			setWorkProcedure(new Procedure<Pair>() {
-				public void op(Pair n) {
+			setWorkProcedure(new Procedure<TypeBodyPair>() {
+				public void op(TypeBodyPair n) {
 					if (byCompUnit) {
-					  final TopLevelAnalysisVisitor topLevel = 
-					    new TopLevelAnalysisVisitor(new ClassProcessor(getAnalysis()));
-					  // actually n.typeDecl is a CompilationUnit here!
-						topLevel.doAccept(n.typeDecl);	
+					  TopLevelAnalysisVisitor.processCompilationUnit(
+		            // actually n.typeDecl is a CompilationUnit here!
+					      new ClassProcessor(getAnalysis()), n.typeDecl());
 					} else {
-					  actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl, n.classBody);
+					  actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
 					}
 				}
 			});
@@ -117,17 +117,17 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (byCompUnit) {
-			queueWork(new Pair(compUnit, null));
+			queueWork(new TypeBodyPair(compUnit, null));
 			return true;
 		}
 		// FIX factor out?
 		final ClassProcessor cp = new ClassProcessor(getAnalysis());
-		new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
+		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
         queueWork(cp.getTypeBodies());
 			} else {
-        runInParallel(Pair.class, cp.getTypeBodies(), getWorkProcedure());
+        runInParallel(TypeBodyPair.class, cp.getTypeBodies(), getWorkProcedure());
 			}
 		}
 		return true;
@@ -141,34 +141,22 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	
 	
-	protected final class Pair {
-	  public final IRNode typeDecl;
-	  public final IRNode classBody;
-	  
-	  public Pair(final IRNode td, final IRNode cb) {
-	    typeDecl = td;
-	    classBody = cb;
-	  }
-	}
-	
-	
-	
 	private final class ClassProcessor extends TopLevelAnalysisVisitor.SimpleClassProcessor {
     private final UtilityVisitorFactory factory;
-    private final List<Pair> types = new ArrayList<Pair>();
+    private final List<TypeBodyPair> types = new ArrayList<TypeBodyPair>();
     
     public ClassProcessor(final UtilityVisitorFactory f) {
       factory = f;
     }
 
-    public Collection<Pair> getTypeBodies() {
+    public Collection<TypeBodyPair> getTypeBodies() {
       return types;
     }
     
     @Override
     protected void visitTypeDecl(final IRNode typeDecl, final IRNode classBody) {
       if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
-        types.add(new Pair(typeDecl, classBody));
+        types.add(new TypeBodyPair(typeDecl, classBody));
       } else {
         actuallyAnalyzeClassBody(factory, typeDecl, classBody);
       }
@@ -378,131 +366,6 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       // Check for class instantiation and extension
       new BodyVisitor().doAccept(typeBody);
     }
-    
-//    public void assureClass(
-//        final IRNode classDecl, final IRNode classBody, final UtilityPromiseDrop drop) {
-//      /* We already know that it must be a class declaration because scrubbing
-//       * does not allow the annotation to appear on interfaces.
-//       */
-//      
-//      // Prefer the class to be final
-//      if ((ClassDeclaration.getMods(classDecl) & JavaNode.FINAL) == 0) {
-//        final InfoDropBuilder db =
-//          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), true);
-//        analysis.setResultDependUponDrop(db, classDecl);
-//        db.setResultMessage(Messages.CONSIDER_FINAL);
-//      }
-//      
-//      // Class must be public
-//      if ((ClassDeclaration.getMods(classDecl) & JavaNode.PUBLIC) != 0) {
-//        createResult(drop, classDecl, true, Messages.CLASS_IS_PUBLIC);
-//      } else {
-//        createResult(drop, classDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
-//      }
-//      
-//      IRNode constructorDecl = null;
-//      int numConstructors = 0;
-//      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
-//        final Operator op = JJNode.tree.getOperator(bodyDecl);
-//        if (FieldDeclaration.prototype.includes(op)) {
-//          if (TypeUtil.isStatic(bodyDecl)) {
-//            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
-//              createResult(drop, field, true, Messages.FIELD_IS_STATIC, 
-//                  VariableDeclarator.getId(field));
-//            }
-//          } else {
-//            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
-//              createResult(drop, field, false, Messages.FIELD_IS_NOT_STATIC, 
-//                  VariableDeclarator.getId(field));
-//            }
-//          }
-//        } else if (MethodDeclaration.prototype.includes(op)) {
-//          if (TypeUtil.isStatic(bodyDecl)) {
-//            createResult(drop, bodyDecl, true, Messages.METHOD_IS_STATIC,
-//                JavaNames.genMethodConstructorName(bodyDecl));
-//          } else {
-//            createResult(drop, bodyDecl, false, Messages.METHOD_IS_NOT_STATIC,
-//                JavaNames.genMethodConstructorName(bodyDecl));
-//          }
-//        } else if (ConstructorDeclaration.prototype.includes(op)) {
-//          // ignore the implicit constructor
-//          if (!JavaNode.wasImplicit(bodyDecl)) {
-//            constructorDecl = bodyDecl;
-//            numConstructors += 1;
-//          }
-//        }
-//      }
-//      
-//      if (numConstructors == 0) {
-//        createResult(drop, classDecl, false, Messages.NO_CONSTRUCTOR);
-//      } else if (numConstructors > 1) {
-//        createResult(drop, classDecl, false, Messages.TOO_MANY_CONSTRUCTORS);
-//      } else {
-//        boolean good = true;
-//        if (Visibility.getVisibilityOf(constructorDecl) != Visibility.PRIVATE) {
-//          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE);
-//          good = false;
-//        }
-//        if (Parameters.getFormalIterator(ConstructorDeclaration.getParams(constructorDecl)).hasNext()) {
-//          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_BAD_ARGS);
-//          good = false;
-//        }
-//        if (good) {
-//          createResult(drop, constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
-//        }
-//        
-//        /* Constructor must be one of 
-//         * 
-//         *   private C() {
-//         *     super();
-//         *   }
-//         * 
-//         * or
-//         * 
-//         *   private C() {
-//         *     super();
-//         *     throw new AssertionError();
-//         *   }
-//         */
-//        final Iteratable<IRNode> stmts = BlockStatement.getStmtIterator(
-//            MethodBody.getBlock(
-//                ConstructorDeclaration.getBody(constructorDecl)));
-//        /* First statement must be "super(...)".  Cannot be "this(...)" because
-//         * we know there is exactly one constructor.  Grab it and skip it.
-//         */
-//        @SuppressWarnings("unused")
-//        final IRNode superCall = stmts.next();
-//        if (stmts.hasNext()) {
-//          final IRNode stmt = stmts.next();
-//          if (stmts.hasNext()) {
-//            // Has more than 2 statements, definitely bad
-//            createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
-//          } else {
-//            boolean bad = true;
-//            // Check for a Throws statement
-//            if (ThrowStatement.prototype.includes(stmt)) {
-//              final IRNode thrown = ThrowStatement.getValue(stmt);
-//              if (NewExpression.prototype.includes(thrown)) {
-//                final IRNode type = NewExpression.getType(thrown);
-//                if (JavaNames.getFullTypeName(binder.getBinding(type)).equals("java.lang.AssertionError")) {
-//                  bad = false;
-//                }
-//              }
-//            }
-//            if (bad) {
-//              createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
-//            } else {
-//              createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
-//            }
-//          }
-//        } else {
-//          createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
-//        }
-//      }
-//      
-//      // Check for class instantiation and extension
-//      new BodyVisitor(classDecl, drop).doAccept(classBody);
-//    }    
     
     public IBinder getBinder() {
       return binder;

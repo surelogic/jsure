@@ -10,6 +10,7 @@ import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
@@ -47,7 +48,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
-public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,LockVisitor,LockAnalysis.Pair> {	
+public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, LockVisitor, TypeBodyPair> {	
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = false;
   
@@ -79,22 +80,21 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	
 	public LockAnalysis() {
-		super(willRunInParallel, queueWork ? Pair.class : null, "LockAssurance", BindingContextAnalysis.factory);
+		super(willRunInParallel, queueWork ? TypeBodyPair.class : null, "LockAssurance", BindingContextAnalysis.factory);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			setWorkProcedure(new Procedure<Pair>() {
-				public void op(Pair n) {
+			setWorkProcedure(new Procedure<TypeBodyPair>() {
+				public void op(TypeBodyPair n) {
 					if (byCompUnit) {
 						//System.out.println("Parallel Lock: "+JavaNames.genPrimaryTypeName(n));
-					  final TopLevelAnalysisVisitor topLevel = 
-					    new TopLevelAnalysisVisitor(
-					        new ClassProcessor(getAnalysis(), getResultDependUponDrop()));
-					  // actually n.typeDecl is a CompilationUnit here!
-						topLevel.doAccept(n.getTypeDecl());	
+					  TopLevelAnalysisVisitor.processCompilationUnit(
+					      new ClassProcessor(getAnalysis(), getResultDependUponDrop()),
+		            // actually n.typeDecl is a CompilationUnit here!
+					      n.typeDecl());
 					} else {
 						//System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 					  actuallyAnalyzeClassBody(
 					      getAnalysis(),getResultDependUponDrop(),
-					      n.getTypeDecl(), n.getClassBody());
+					      n.typeDecl(), n.classBody());
 					}
 				}
 			});
@@ -220,15 +220,16 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (byCompUnit) {
-			boolean flushed = queueWork(new Pair(compUnit, null));
+			boolean flushed = queueWork(new TypeBodyPair(compUnit, null));
 			if (flushed) {
 				JavaComponentFactory.clearCache();
 			}
 			return true;
 		}
 		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis(), getResultDependUponDrop());
-		new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
+		final ClassProcessor cp =
+		    new ClassProcessor(getAnalysis(), getResultDependUponDrop());
+		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
         boolean flushed = queueWork(cp.getTypeBodies());
@@ -236,7 +237,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 					JavaComponentFactory.clearCache();
 				}
 			} else {
-        runInParallel(Pair.class, cp.getTypeBodies(), getWorkProcedure());
+        runInParallel(TypeBodyPair.class, cp.getTypeBodies(), getWorkProcedure());
 			}
 		}
 		return true;
@@ -260,35 +261,24 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	
 	
-	protected final class Pair extends edu.cmu.cs.fluid.util.Pair<IRNode, IRNode> {
-	  public Pair(final IRNode td, final IRNode cb) {
-	    super(td, cb);
-	  }
-	  
-	  public IRNode getTypeDecl() { return first(); }
-	  public IRNode getClassBody() { return second(); }
-	}
-	
-	
-	
 	private final class ClassProcessor extends TopLevelAnalysisVisitor.SimpleClassProcessor {
     private final LockVisitor lockVisitor;
     private final Drop resultsDependUpon;
-    private final List<Pair> types = new ArrayList<Pair>();
+    private final List<TypeBodyPair> types = new ArrayList<TypeBodyPair>();
     
     public ClassProcessor(final LockVisitor lv, final Drop rd) {
       lockVisitor = lv;
       resultsDependUpon = rd;
     }
 
-    public Collection<Pair> getTypeBodies() {
+    public Collection<TypeBodyPair> getTypeBodies() {
       return types;
     }
     
     @Override
     protected void visitTypeDecl(final IRNode typeDecl, final IRNode classBody) {
       if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
-        types.add(new Pair(typeDecl, classBody));
+        types.add(new TypeBodyPair(typeDecl, classBody));
       } else {
         actuallyAnalyzeClassBody(
             lockVisitor, resultsDependUpon, typeDecl, classBody);

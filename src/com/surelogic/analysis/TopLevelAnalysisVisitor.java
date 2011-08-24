@@ -7,8 +7,13 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
+import edu.cmu.cs.fluid.util.Pair;
 
 public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
+  // ======================================================================
+  // == Nested types
+  // ======================================================================
+
   public static interface ClassProcessor {
     /**
      * Visit an anonymous class declaration.
@@ -66,7 +71,7 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     public void visitInterface(IRNode classDecl, IRNode classBody);
   }
   
-  
+  // ----------------------------------------------------------------------
   
   public static abstract class SimpleClassProcessor implements ClassProcessor {
     protected abstract void visitTypeDecl(IRNode typeDecl, IRNode classBody);
@@ -94,17 +99,51 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     }
   }
   
+  // ----------------------------------------------------------------------
+
+  public final static class TypeBodyPair extends Pair<IRNode, IRNode> {
+    public TypeBodyPair(final IRNode td, final IRNode cb) {
+      super(td, cb);
+    }
+    
+    public IRNode typeDecl() { return first(); }
+    public IRNode classBody() { return second(); }
+  }
+
   
+  
+  // ======================================================================
+  // == Fields
+  // ======================================================================
   
   private final ClassProcessor classProcessor;
   
   
-
-  public TopLevelAnalysisVisitor(final ClassProcessor cp) {
+  
+  // ======================================================================
+  // == Constructor
+  // ======================================================================
+  
+  private TopLevelAnalysisVisitor(final ClassProcessor cp) {
     classProcessor = cp;
   }
   
+  
+  
+  // ======================================================================
+  // == Entry point
+  // ======================================================================
 
+  public static void processCompilationUnit(
+      final ClassProcessor cp, final IRNode compUnit) {
+    new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
+  }
+  
+  
+  
+  // ======================================================================
+  // == Overridden visitor methods
+  // ======================================================================
   
   @Override
   public Void visitAnonClassExpression(final IRNode node) {
