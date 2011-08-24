@@ -14,6 +14,7 @@ import com.surelogic.analysis.concurrency.ConcurrencyDetector;
 import com.surelogic.analysis.effects.EffectsAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.locks.LockAnalysis;
+import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
 import com.surelogic.analysis.testing.CollectMethodCallsModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
@@ -72,6 +73,8 @@ public class Javac extends IDE {
 		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info");
 		
 		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
+    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
+    
 		/*
 		AnalysisInfo[] deps = new AnalysisInfo[3];
 		deps[0] = init(Module_IRAnalysis.class, 

@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
@@ -72,6 +73,8 @@ public abstract class TypeImplementationProcessor {
         processMethodDeclaration(decl);
       } else if (FieldDeclaration.prototype.includes(op)) {
         processFieldDeclaration(decl);
+      } else if (EnumConstantDeclaration.prototype.includes(op)) {
+        processEnumConstantDeclaration(decl);
       }
     }
     
@@ -109,6 +112,10 @@ public abstract class TypeImplementationProcessor {
   }
 
   protected void processClassInitializer(final IRNode decl) {
+    // Do nothing by default
+  }
+  
+  protected void processEnumConstantDeclaration(final IRNode element) {
     // Do nothing by default
   }
 }
