@@ -14,7 +14,7 @@ import com.surelogic.javac.persistence.*;
  * @author Edwin
  */
 public class JarEntry extends AbstractClassPathEntry {
-	private Config project;
+	private final Config project;
 	private File path;
 	private File origPath;
 	
