@@ -17,6 +17,7 @@ import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
+import com.surelogic.javac.SrcEntry;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -114,6 +115,13 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 				p.getConfig().addToClassPath(
 						new JarEntry(p.getConfig(), new File(path), new File(
 								orig), jarIsExported));
+			} else if (SRC.equals(name)) {
+				String path = nested.getAttribute(PATH);
+				final boolean srcIsExported = "true".equals(nested
+						.getAttribute(IS_EXPORTED));
+				// System.out.println(proj + " has jar: " + path);
+				p.getConfig().addToClassPath(
+						new SrcEntry(p.getConfig(), path));
 			} else if (PROJECT.equals(name)) {
 				String pRefName = nested.getAttribute(NAME);
 				// System.out.println(proj + " has ref to project " + pRefName);
