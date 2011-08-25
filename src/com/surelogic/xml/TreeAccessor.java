@@ -222,7 +222,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 						+ JJNode.getInfoOrNull(m));
 			}
 		}
-		String desc = "Couldn't find " + name + "(" + params + ") in "
+		String desc = "Couldn't find " + name + "(" + (params == null ? "" : params) + ") in "
 				+ JavaNames.getFullTypeName(root);
 		LOG.warning(desc);
 		reportProblem(desc, root);
