@@ -501,11 +501,11 @@ public class Util {
 
 	private static void checkProjects(Projects projects) {
 		for(final Config c : projects.getConfigs()) {
-			LOG.warning("Sanity checking: "+c.getProject());
+			//LOG.warning("Sanity checking: "+c.getProject());
 			// Check to see if the paths exists
 			path: 
 			for(final String path : c.getListOption(ToolProperties.EXCLUDE_PATH)) {
-				LOG.warning("\tChecking exclude folder: "+path);
+				//LOG.warning("\tChecking exclude folder: "+path);
 				StringBuilder paths = new StringBuilder();
 				for(IClassPathEntry e : c.getClassPath()) {
 					if (e instanceof SrcEntry) {
@@ -522,14 +522,14 @@ public class Util {
 				PromiseWarningDrop d = new PromiseWarningDrop();
 				String msg = "Exclude folder '"+path+"' in project '"+c.getProject()+"' does not exclude anything ("+paths+")";
 				d.setMessage(msg);				
-				LOG.warning(msg);
+				//LOG.warning(msg);
 			}
 		    final String[] pkgs = c.getListOption(ToolProperties.EXCLUDED_PKGS);
   		    final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
   		    int i=0;
   		    pattern:  		    
 		    for(Pattern pattern : excludePatterns) {		  
-				LOG.warning("\tChecking exclude package: "+pkgs[i]);
+				//LOG.warning("\tChecking exclude package: "+pkgs[i]);
 		    	for(String pkg : c.getPackages()) {		    	
 		    		if (pattern.matcher(pkg).matches()) {
 		    			i++;
@@ -539,7 +539,7 @@ public class Util {
 		    	PromiseWarningDrop d = new PromiseWarningDrop();
 		    	String msg = "Exclude package '"+pkgs[i]+"' in project '"+c.getProject()+"' does not exclude anything";
 				d.setMessage(msg);
-				LOG.warning(msg);
+				//LOG.warning(msg);
 				i++;
 		    }
 		}		
@@ -745,6 +745,10 @@ public class Util {
 				final PromiseFramework frame = PromiseFramework.getInstance();
 				Procedure<SourceCUDrop> proc = new Procedure<SourceCUDrop>() {
 					public void op(SourceCUDrop cud) {		
+						if (!cud.adaptedAsSource) {
+							//LOG.warning("No analysis on "+cud.javaOSFileName);
+							return;
+						}
 						if (projects.getMonitor().isCanceled()) {
 							throw new CancellationException();
 						}
