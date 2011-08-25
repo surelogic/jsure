@@ -2107,12 +2107,10 @@ public class JavacDriver implements IResourceChangeListener {
 					if (projLocation != null) {
 						File projFile = projLocation.toFile();
 						if (projFile != null && projFile.isDirectory()) {
-							copyContentsToStream(
-									new File(projFile, ".project"), out, target);
-							copyContentsToStream(new File(projFile,
-									".classpath"), out, target);
-							copyContentsToStream(new File(projFile,
-									ToolProperties.PROPS_FILE), out, target);
+							for(String config : AbstractJavaZip.CONFIG_FILES) {
+								copyContentsToStream(
+										new File(projFile, config), out, target);
+							}
 						} else {
 							out.println("==================================================================================================");
 							out.println("File could not be created for project location: "
