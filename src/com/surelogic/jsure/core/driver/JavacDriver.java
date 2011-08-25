@@ -80,16 +80,7 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.javac.Config;
-import com.surelogic.javac.IClassPathEntry;
-import com.surelogic.javac.JarEntry;
-import com.surelogic.javac.JavaSourceFile;
-import com.surelogic.javac.Javac;
-import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.JavacTypeEnvironment;
-import com.surelogic.javac.Projects;
-import com.surelogic.javac.PromiseMatcher;
-import com.surelogic.javac.Util;
+import com.surelogic.javac.*;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -945,6 +936,7 @@ public class JavacDriver implements IResourceChangeListener {
 						addSourceFiles(config, cpe);
 					}
 					config.addToClassPath(config);
+					config.addToClassPath(new SrcEntry(config, cpe.getPath().makeRelativeTo(p.getFullPath()).toString()));
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					// System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
@@ -1580,14 +1572,7 @@ public class JavacDriver implements IResourceChangeListener {
 			i++;
 		}
 		String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
-		final Pattern[] excludePatterns = new Pattern[pkgs.length];
-		i = 0;
-		for (String pattern : pkgs) {
-			final String pattern2 = pattern.replaceAll("\\.", "\\.")
-					.replaceAll("\\*", ".*");
-			excludePatterns[i] = Pattern.compile(pattern2);
-			i++;
-		}
+		final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
 		return new CompUnitFilter() {
 			public boolean matches(ICompilationUnit icu)
 					throws JavaModelException {
