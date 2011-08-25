@@ -32,9 +32,6 @@ public final class ProblemsViewContentProvider extends
 				.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
 			/*
-			 * Only show info drops at the main level if they are not attached
-			 * to a promise drop or a result drop.
-			 * 
 			 * Also we only want to show problems in the source code. To do this
 			 * we get the CU name and see if it ends in ".java"
 			 */
@@ -46,6 +43,8 @@ public final class ProblemsViewContentProvider extends
 						contents.add(id);
 					}
 				}
+			} else {
+				contents.add(id);
 			}
 		}
 		Collections.sort(contents, sortByLocation);
