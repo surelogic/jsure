@@ -1572,12 +1572,24 @@ public class JavacDriver implements IResourceChangeListener {
 			i++;
 		}
 		String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
+		/*
+		for(String pkg : pkgs) {
+			if (pkg.contains("rendering")) {
+				System.out.println("Got package pattern: "+pkg);
+			}
+		}
+		*/
 		final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
 		return new CompUnitFilter() {
 			public boolean matches(ICompilationUnit icu)
 					throws JavaModelException {
 				for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
 					final String pkg = pd.getElementName();
+					/*
+					if (pkg.contains("rendering")) {
+						System.out.println("Got package: "+pkg);
+					}
+					*/
 					for (Pattern p : excludePatterns) {
 						if (p.matcher(pkg).matches()) {
 							return true;
