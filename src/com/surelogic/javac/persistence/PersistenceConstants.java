@@ -15,6 +15,7 @@ public interface PersistenceConstants {
 	String NAME = "name";
 	String IS_EXPORTED = "is-exported";
 	
+	String SRC = "source";
 	String JAR = "jar";
 	String PATH = "path";
 	String ORIG_PATH = "orig-path";
