@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
 import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.driver.DriverConstants;
@@ -46,8 +47,15 @@ public final class JSurePreferencesUtility {
 				cpuCount = 1;
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.ANALYSIS_THREAD_COUNT, cpuCount);
+
+			// Underestimate a little bit
+			final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb() - 256;
+			int mem = 2048;
+			while (mem > estimatedMax) {
+				mem -= 512;
+			}
 			EclipseUtility.setDefaultIntPreference(
-					IDEPreferences.TOOL_MEMORY_MB, 1024);
+					IDEPreferences.TOOL_MEMORY_MB, mem);
 
 			EclipseUtility.setDefaultBooleanPreference(
 					SHOW_BALLOON_NOTIFICATIONS, true);
