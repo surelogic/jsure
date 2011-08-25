@@ -1967,19 +1967,7 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 					} else if (status != SLStatus.CANCEL_STATUS
 							&& status.getSeverity() == SLSeverity.ERROR) {
-						/*
-						 * Collect information and report this scan crash to
-						 * SureLogic.
-						 */
-						final File rollup = collectCrashFiles(projects);
-						ScanCrashReport.getInstance().getReporter()
-								.reportJSureScanCrash(status, rollup);
-						/*
-						 * Because we already opened a dialog above about the
-						 * crash, log it and bail out of the job.
-						 */
-						status.logTo(SLLogger.getLogger());
-						return SLStatus.CANCEL_STATUS;
+						handleCrash(status);
 					}
 				} else {
 					if (clearBeforeAnalysis || oldProjects == null) {
@@ -1995,17 +1983,9 @@ public class JavacDriver implements IResourceChangeListener {
 					new SeaSnapshot(location).snapshot(
 							projects.getShortLabel(), Sea.getDefault());
 				}
-				JSureDataDirHub.getInstance().scanDirectoryAdded(
-						projects.getRunDir());
-				/*
-				 * final File rootLoc =
-				 * EclipseUtility.getProject(config.getProject
-				 * ()).getLocation().toFile(); final File xmlLocation = new
-				 * File(rootLoc, "oracle20100415.sea.xml"); final
-				 * SeaSummary.Diff diff = SeaSummary.diff(config.getProject(),
-				 * Sea.getDefault(), xmlLocation);
-				 */
-				if (!ok) {
+				if (ok) {
+					JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
+				} else {
 					NotificationHub.notifyAnalysisPostponed(); // TODO fix
 					if (lastMonitor == monitor) {
 						lastMonitor = null;
@@ -2024,8 +2004,8 @@ public class JavacDriver implements IResourceChangeListener {
 				if (XUtil.testing) {
 					throw new RuntimeException(e);
 				}
-				return SLStatus.createErrorStatus(
-						"Problem while running JSure", e);
+				handleCrash(SLStatus.createErrorStatus("Problem while running JSure", e));
+				return SLStatus.CANCEL_STATUS;
 			} finally {
 				endAnalysis();
 			}
@@ -2043,6 +2023,21 @@ public class JavacDriver implements IResourceChangeListener {
 			return SLStatus.OK_STATUS;
 		}
 
+		private void handleCrash(SLStatus status) {
+			/*
+			 * Collect information and report this scan crash to
+			 * SureLogic.
+			 */
+			final File rollup = collectCrashFiles(projects);
+			ScanCrashReport.getInstance().getReporter()
+					.reportJSureScanCrash(status, rollup);
+			/*
+			 * Because we already opened a dialog above about the
+			 * crash, log it and bail out of the job.
+			 */
+			status.logTo(SLLogger.getLogger());
+		}
+		
 		private LocalJSureJob makeLocalJSureJob(final Projects projects) {
 			System.out.println("run = " + projects.getRun());
 			final String msg = "Running JSure for " + projects.getLabel();
