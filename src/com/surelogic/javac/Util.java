@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import jsr166y.forkjoin.*;
@@ -23,6 +24,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.javac.persistence.*;
 import com.surelogic.common.jsure.xml.*;
 import com.surelogic.persistence.*;
@@ -373,6 +375,8 @@ public class Util {
 		final long drops = System.currentTimeMillis();
 		final boolean useDependencies = AbstractWholeIRAnalysis.useDependencies;
 		final Dependencies deps = checkDependencies(cus);
+    	checkProjects(projects);   
+		
 		// cus now include reprocessed dependencies
 		createCUDrops(cus, pd, projects.getMonitor());
 		if (addRequired) {
@@ -494,6 +498,52 @@ public class Util {
 		AbstractTypeEnvironment.printStats();
 		return pd;
     }
+
+	private static void checkProjects(Projects projects) {
+		for(final Config c : projects.getConfigs()) {
+			LOG.warning("Sanity checking: "+c.getProject());
+			// Check to see if the paths exists
+			path: 
+			for(final String path : c.getListOption(ToolProperties.EXCLUDE_PATH)) {
+				LOG.warning("\tChecking exclude folder: "+path);
+				StringBuilder paths = new StringBuilder();
+				for(IClassPathEntry e : c.getClassPath()) {
+					if (e instanceof SrcEntry) {
+						SrcEntry s = (SrcEntry) e;
+						if (path.equals(s.getProjectRelativePath())) {
+							continue path; // Matched something
+						}
+						if (paths.length() > 0) {
+							paths.append(", ");
+						}
+						paths.append(s.getProjectRelativePath());
+					}
+				}
+				PromiseWarningDrop d = new PromiseWarningDrop();
+				String msg = "Exclude folder '"+path+"' in project '"+c.getProject()+"' does not exclude anything ("+paths+")";
+				d.setMessage(msg);				
+				LOG.warning(msg);
+			}
+		    final String[] pkgs = c.getListOption(ToolProperties.EXCLUDED_PKGS);
+  		    final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
+  		    int i=0;
+  		    pattern:  		    
+		    for(Pattern pattern : excludePatterns) {		  
+				LOG.warning("\tChecking exclude package: "+pkgs[i]);
+		    	for(String pkg : c.getPackages()) {		    	
+		    		if (pattern.matcher(pkg).matches()) {
+		    			i++;
+		    			continue pattern; // Matched something
+		    		}
+		    	}
+		    	PromiseWarningDrop d = new PromiseWarningDrop();
+		    	String msg = "Exclude package '"+pkgs[i]+"' in project '"+c.getProject()+"' does not exclude anything";
+				d.setMessage(msg);
+				LOG.warning(msg);
+				i++;
+		    }
+		}		
+	}
 
 	private static void computeSubtypeInfo(Projects projects)
 			throws IOException {
