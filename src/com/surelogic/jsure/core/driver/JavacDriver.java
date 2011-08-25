@@ -1592,12 +1592,14 @@ public class JavacDriver implements IResourceChangeListener {
 					*/
 					for (Pattern p : excludePatterns) {
 						if (p.matcher(pkg).matches()) {
+							System.out.println("Excluding: "+icu.getHandleIdentifier());
 							return true;
 						}
 					}
 				}
 				for (IPath p : excludePaths) {
 					if (p.isPrefixOf(icu.getPath())) {
+						System.out.println("Excluding due to "+p+": "+icu.getHandleIdentifier());
 						return true;
 					}
 				}
