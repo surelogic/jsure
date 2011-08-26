@@ -260,7 +260,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     
     @Override
     protected void processVariableDeclarator(
-        final IRNode varDecl, final boolean isStatic) {
+        final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
       if (isStatic) {
         createResult(varDecl, true, Messages.FIELD_IS_STATIC, 
             VariableDeclarator.getId(varDecl));

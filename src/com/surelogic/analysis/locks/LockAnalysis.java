@@ -328,7 +328,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     @Override
     protected void processVariableDeclarator(
-        final IRNode varDecl, final boolean isStatic) {
+        final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
       // we have a field
       hasFields = true;
       
@@ -571,7 +571,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     @Override
     protected void processVariableDeclarator(
-        final IRNode varDecl, final boolean isStatic) {
+        final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
       final String id = VariableDeclarator.getId(varDecl);
       final IJavaType type = getBinder().getJavaType(varDecl);
       final boolean isPrimitive = type instanceof IJavaPrimitiveType;
@@ -685,7 +685,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     @Override
     protected void processVariableDeclarator(
-        final IRNode varDecl, final boolean isStatic) {
+        final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
       // We have a field
       hasFields = true;
       

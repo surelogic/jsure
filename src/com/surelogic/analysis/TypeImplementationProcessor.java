@@ -94,12 +94,12 @@ public abstract class TypeImplementationProcessor {
     final boolean isStatic = JavaNode.getModifier(decl, JavaNode.STATIC);
     for (final IRNode varDecl : VariableDeclarators.getVarIterator(
         FieldDeclaration.getVars(decl))) {
-      processVariableDeclarator(varDecl, isStatic);
+      processVariableDeclarator(decl, varDecl, isStatic);
     }
   }
 
   protected void processVariableDeclarator(
-      final IRNode varDecl, final boolean isStatic) {
+      final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
     // Do nothing by default
   }
   
