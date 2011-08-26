@@ -17,6 +17,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -443,5 +444,33 @@ public class Projects extends JavaProjects implements IIRProjects,
 
 	public File getResultsFile() {
 		return f_resultsFile;
+	}
+	
+	public String[] getExcludedSourceFolders() {
+		List<String> folders = new ArrayList<String>();
+		for(Config c : getConfigs()) {
+			String[] here = c.getListOption(ToolProperties.EXCLUDE_PATH);
+			for(String p : here) {
+				folders.add('/'+c.getProject()+'/'+p);
+			}
+		}
+		if (folders.size() == 0) {
+			return ToolProperties.noStrings;
+		}
+		return folders.toArray(new String[folders.size()]);
+	}
+
+	public String[] getExcludedSourcePackages() {
+		List<String> pkgs = new ArrayList<String>();
+		for(Config c : getConfigs()) {
+			String[] here = c.getListOption(ToolProperties.EXCLUDED_PKGS);
+			for(String p : here) {
+				pkgs.add(p);
+			}
+		}
+		if (pkgs.size() == 0) {
+			return ToolProperties.noStrings;
+		}
+		return pkgs.toArray(new String[pkgs.size()]);
 	}
 }
