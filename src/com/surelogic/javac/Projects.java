@@ -446,6 +446,10 @@ public class Projects extends JavaProjects implements IIRProjects,
 		return f_resultsFile;
 	}
 	
+	/**
+	 * Gets the source folders that were excluded from analysis 
+	 * (relative to the workspace)
+	 */
 	public String[] getExcludedSourceFolders() {
 		List<String> folders = new ArrayList<String>();
 		for(Config c : getConfigs()) {
