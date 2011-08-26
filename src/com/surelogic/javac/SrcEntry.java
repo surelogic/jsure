@@ -26,13 +26,11 @@ public class SrcEntry extends AbstractClassPathEntry {
 		return projectRelativePath;
 	}
 	
-	@Override
 	public void init(JavacProject jp, JavacClassParser loader)
 			throws IOException {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
 	public void outputToXML(JSureProjectsXMLCreator creator, int indent,
 			StringBuilder b) {
 		Entities.start(PersistenceConstants.SRC, b, indent);
@@ -41,7 +39,6 @@ public class SrcEntry extends AbstractClassPathEntry {
 		Entities.closeStart(b, true);
 	}
 
-	@Override
 	public void relocateJars(File targetDir) throws IOException {
 		// TODO Auto-generated method stub
 	}
