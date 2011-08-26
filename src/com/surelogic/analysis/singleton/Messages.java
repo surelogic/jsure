@@ -31,7 +31,8 @@ public final class Messages extends AbstractMessages {
   public static final int CLASS_METHOD_COMPILED = 664;
   public static final int CLASS_FOUND_GETTER = 665;
   public static final int CLASS_NO_GETTER = 666;
-  
+  public static final int CLASS_SERIALIZABLE_NOT_SUPPORTED = 667;
+      
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 
   /** To support JSure-Sierra integration

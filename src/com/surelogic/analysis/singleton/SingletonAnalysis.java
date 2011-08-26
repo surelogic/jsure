@@ -20,9 +20,11 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -312,6 +314,15 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       return JJNode.tree.getParentOrNull(JJNode.tree.getParentOrNull(n));
     }
     
+    private IRNode implementsSerializable() {
+      for (final IRNode i : Implements.getIntfIterator(ClassDeclaration.getImpls(typeDecl))) {
+        final IRNode iDecl = binder.getBinding(i);
+        if (JavaNames.getFullTypeName(iDecl).equals("java.io.Serializable")) {
+          return i;
+        }
+      }
+      return null;
+    }
     
     
     @Override
@@ -320,6 +331,11 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
         createResult(typeDecl, true, Messages.CLASS_IS_FINAL);
       } else {
         createResult(typeDecl, false, Messages.CLASS_NOT_FINAL);        
+      }
+      
+      final IRNode serializable = implementsSerializable();
+      if (serializable != null) {
+        createResult(serializable, false, Messages.CLASS_SERIALIZABLE_NOT_SUPPORTED);
       }
     }
     
