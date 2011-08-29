@@ -503,9 +503,16 @@ public class Util {
 	private static void checkProjects(Projects projects) {
 		for(final Config c : projects.getConfigs()) {
 			//LOG.warning("Sanity checking: "+c.getProject());
+			
 			// Check to see if the paths exists
+			final Set<String> checked = new HashSet<String>();
 			path: 
 			for(final String path : c.getListOption(ToolProperties.EXCLUDE_PATH)) {
+				if (checked.contains(path)) {
+					continue;
+				}
+				checked.add(path);
+				
 				//LOG.warning("\tChecking exclude folder: "+path);
 				StringBuilder paths = new StringBuilder();
 				for(IClassPathEntry e : c.getClassPath()) {
