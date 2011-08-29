@@ -556,7 +556,7 @@ public class Util {
 		// TODO note this is a memory leak if run as embedded
 		IRNode n = new MarkedIRNode("For src ref");
 		final String path = '/'+project+'/'+ToolProperties.PROPS_FILE;
-		JavaNode.setSrcRef(n, new NamedSrcRef(project, null, null, path) {
+		JavaNode.setSrcRef(n, new NamedSrcRef(project, path, null, path) {
 			public URI getEnclosingURI() {
 				try {
 					return new URI(path);
