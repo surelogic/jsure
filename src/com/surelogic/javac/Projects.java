@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -445,36 +446,81 @@ public class Projects extends JavaProjects implements IIRProjects,
 	public File getResultsFile() {
 		return f_resultsFile;
 	}
-	
+
 	/**
-	 * Gets the source folders that were excluded from analysis 
-	 * (relative to the workspace)
+	 * Gets the source folders that were excluded from analysis (relative to the
+	 * workspace).
+	 * 
+	 * @return the excluded source folders, or an empty list if none.
 	 */
-	public String[] getExcludedSourceFolders() {
+	public List<String> getExcludedSourceFolders() {
 		List<String> folders = new ArrayList<String>();
-		for(Config c : getConfigs()) {
+		for (Config c : getConfigs()) {
 			String[] here = c.getListOption(ToolProperties.EXCLUDE_PATH);
-			for(String p : here) {
-				folders.add('/'+c.getProject()+'/'+p);
+			for (String p : here) {
+				folders.add('/' + c.getProject() + '/' + p);
 			}
 		}
 		if (folders.size() == 0) {
-			return ToolProperties.noStrings;
+			return Collections.emptyList();
 		}
-		return folders.toArray(new String[folders.size()]);
+		return folders;
 	}
 
-	public String[] getExcludedSourcePackages() {
+	/**
+	 * Gets the excluded source packages with wildcards.
+	 * 
+	 * @return the excluded source package spec with wildcards, or an empty list
+	 *         if none.
+	 */
+	public List<String> getExcludedSourcePackageSpec() {
 		List<String> pkgs = new ArrayList<String>();
-		for(Config c : getConfigs()) {
+		for (Config c : getConfigs()) {
 			String[] here = c.getListOption(ToolProperties.EXCLUDED_PKGS);
-			for(String p : here) {
+			for (String p : here) {
 				pkgs.add(p);
 			}
 		}
 		if (pkgs.size() == 0) {
-			return ToolProperties.noStrings;
+			return Collections.emptyList();
 		}
-		return pkgs.toArray(new String[pkgs.size()]);
+		return pkgs;
+	}
+
+	public String getConciseExcludedFoldersAndPackages() {
+		final StringBuilder b = new StringBuilder();
+
+		List<String> flds = getExcludedSourceFolders();
+		List<String> pkgs = getExcludedSourcePackageSpec();
+
+		if (!flds.isEmpty()) {
+			b.append("Folders: ");
+			boolean first = true;
+			for (String s : flds) {
+				if (first) {
+					first = false;
+				} else {
+					b.append(", ");
+				}
+				b.append(s);
+			}
+		}
+
+		if (!pkgs.isEmpty()) {
+			if (!flds.isEmpty()) {
+				b.append("; ");
+			}
+			b.append("Packages: ");
+			boolean first = true;
+			for (String s : pkgs) {
+				if (first) {
+					first = false;
+				} else {
+					b.append(", ");
+				}
+				b.append(s);
+			}
+		}
+		return b.toString();
 	}
 }
