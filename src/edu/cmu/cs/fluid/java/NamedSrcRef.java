@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.java;
 
 import com.surelogic.common.HashGenerator;
 
-public final class NamedSrcRef extends AbstractSrcRef {
+public class NamedSrcRef extends AbstractSrcRef {
   private final Object file;
   private final String pkg, cunit;
   private final String project;
