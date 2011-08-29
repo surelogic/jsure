@@ -1,6 +1,8 @@
 package com.surelogic.javac;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
@@ -527,10 +529,7 @@ public class Util {
 						paths.append(s.getProjectRelativePath());
 					}
 				}
-				PromiseWarningDrop d = new PromiseWarningDrop();
-				final String msg = I18N.res(700, path, c.getProject(), paths);
-				d.setMessage(msg);			
-				//LOG.warning(msg);
+				makePromiseWarningDrop(c.getProject(), 700, path, c.getProject(), paths);
 			}
 		    final String[] pkgs = c.getListOption(ToolProperties.EXCLUDED_PKGS);
   		    final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
@@ -544,13 +543,33 @@ public class Util {
 		    			continue pattern; // Matched something
 		    		}
 		    	}
-				PromiseWarningDrop d = new PromiseWarningDrop();
-				final String msg = I18N.res(701, pkgs[i], c.getProject());
-				d.setMessage(msg);
-				//LOG.warning(msg);
+				makePromiseWarningDrop(c.getProject(), 701, pkgs[i], c.getProject());
 				i++;
 		    }
 		}		
+	}
+	
+	private static void makePromiseWarningDrop(String project, int num, Object... args) {
+		PromiseWarningDrop d = new PromiseWarningDrop();
+		d.setResultMessage(num, args);			
+		
+		// TODO note this is a memory leak if run as embedded
+		IRNode n = new MarkedIRNode("For src ref");
+		final String path = '/'+project+'/'+ToolProperties.PROPS_FILE;
+		JavaNode.setSrcRef(n, new NamedSrcRef(project, null, null, path) {
+			public URI getEnclosingURI() {
+				try {
+					return new URI(path);
+				} catch (URISyntaxException e) {
+					return null;
+				}
+			}
+			public int getLineNumber() {
+				return -1;
+			}
+		});
+		d.setNode(n);
+		//LOG.warning(d.getMessage());
 	}
 
 	private static void computeSubtypeInfo(Projects projects)
