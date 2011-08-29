@@ -596,11 +596,15 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitReturnValueDeclaration(IRNode rvd) {
 	  IRNode n = JavaPromise.getPromisedForOrNull(rvd);
-	  if (MethodDeclaration.prototype.includes(n)) {
+	  Operator op = JJNode.tree.getOperator(n);
+	  if (MethodDeclaration.prototype.includes(op)) {
 		  return getJavaType(MethodDeclaration.getReturnType(n));
 	  }
-	  else if (ConstructorDeclaration.prototype.includes(n)) {
+	  else if (ConstructorDeclaration.prototype.includes(op)) {
 		  return JavaTypeFactory.getThisType(n);
+	  }
+	  else if (AnnotationElement.prototype.includes(op)) {
+		  return getJavaType(AnnotationElement.getType(n));
 	  }
 	  throw new UnsupportedOperationException("No return value for "+DebugUnparser.toString(n));
   }
