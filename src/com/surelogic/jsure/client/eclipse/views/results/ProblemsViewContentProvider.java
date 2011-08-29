@@ -7,6 +7,7 @@ import java.util.Set;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
@@ -39,7 +40,7 @@ public final class ProblemsViewContentProvider extends
 			if (srcRef != null) {
 				final String path = srcRef.getRelativePath();
 				if (path != null) {
-					if (path.endsWith(".java")) {
+					if (path.endsWith(".java") || path.endsWith(ToolProperties.PROPS_FILE)) {
 						contents.add(id);
 					}
 				}

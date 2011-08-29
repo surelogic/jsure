@@ -120,10 +120,11 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 			return getResource(d);
 		case 2:
 			int line = getLine(d);
-			if (line > 0 && line < Integer.MAX_VALUE)
+			if (line > 0 && line < Integer.MAX_VALUE) {
 				return Integer.toString(line);
-			else
+			} else if (line >= 0) {			
 				return "(binary)";
+			}
 		}
 		return "";
 	}
