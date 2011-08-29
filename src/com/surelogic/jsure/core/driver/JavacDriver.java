@@ -69,6 +69,7 @@ import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.SourceZip;
+import com.surelogic.common.core.JDTUtility.CompUnitFilter;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -1565,55 +1566,8 @@ public class JavacDriver implements IResourceChangeListener {
 	private CompUnitFilter getFilter(Config config) {
 		final IProject p = EclipseUtility.getProject(config.getProject());
 		String[] paths = config.getListOption(ToolProperties.EXCLUDE_PATH);
-		final Set<String> unique = new HashSet<String>();
-		for (String path : paths) {
-			unique.add(path);
-		}		
-		final IPath[] excludePaths = new IPath[unique.size()];
-		int i = 0;
-		for (String path : unique) {
-			excludePaths[i] = p.getFullPath().append(path);
-			i++;
-		}
 		String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
-		/*
-		for(String pkg : pkgs) {
-			if (pkg.contains("rendering")) {
-				System.out.println("Got package pattern: "+pkg);
-			}
-		}
-		*/
-		final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
-		return new CompUnitFilter() {
-			public boolean matches(ICompilationUnit icu)
-					throws JavaModelException {
-				for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-					final String pkg = pd.getElementName();
-					/*
-					if (pkg.contains("rendering")) {
-						System.out.println("Got package: "+pkg);
-					}
-					*/
-					for (Pattern p : excludePatterns) {
-						if (p.matcher(pkg).matches()) {
-							System.out.println("Excluding: "+icu.getHandleIdentifier());
-							return true;
-						}
-					}
-				}
-				for (IPath p : excludePaths) {
-					if (p.isPrefixOf(icu.getPath())) {
-						System.out.println("Excluding due to "+p+": "+icu.getHandleIdentifier());
-						return true;
-					}
-				}
-				return false;
-			}
-		};
-	}
-
-	interface CompUnitFilter {
-		boolean matches(ICompilationUnit icu) throws JavaModelException;
+		return JDTUtility.getFilter(p, paths, pkgs);
 	}
 
 	String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
