@@ -23,10 +23,10 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -39,6 +39,7 @@ import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ISuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
@@ -566,7 +567,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return lattice.opNull(s);
       }
       // Will crash if given a ConstructorDeclaration
-      final IRNode ty = MethodDeclaration.getReturnType(decl);
+      final Operator op = JJNode.tree.getOperator(decl);
+      final IRNode ty;
+      if (MethodDeclaration.prototype.includes(op)) {
+        ty = MethodDeclaration.getReturnType(decl);
+      } else {
+    	ty = AnnotationElement.getType(decl);
+      }
       if (VoidType.prototype.includes(ty)) {
         return lattice.opNull(s);
       }
@@ -682,8 +689,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         LOG.warning("No binding for method " + DebugUnparser.toString(node));
         formals = null;
       } else {
-        if (ConstructorDeclaration.prototype.includes(mdecl)) {
+    	Operator mop = JJNode.tree.getOperator(mdecl);
+        if (ConstructorDeclaration.prototype.includes(mop)) {
           formals = ConstructorDeclaration.getParams(mdecl);
+        } else if (AnnotationElement.prototype.includes(mop)) {
+          formals = AnnotationElement.getParams(mdecl);
         } else {
           formals = MethodDeclaration.getParams(mdecl);
         }
