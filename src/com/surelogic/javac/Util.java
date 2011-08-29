@@ -21,6 +21,7 @@ import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
@@ -520,8 +521,8 @@ public class Util {
 					}
 				}
 				PromiseWarningDrop d = new PromiseWarningDrop();
-				String msg = "Exclude folder '"+path+"' in project '"+c.getProject()+"' does not exclude anything ("+paths+")";
-				d.setMessage(msg);				
+				final String msg = I18N.res(700, path, c.getProject(), paths);
+				d.setMessage(msg);			
 				//LOG.warning(msg);
 			}
 		    final String[] pkgs = c.getListOption(ToolProperties.EXCLUDED_PKGS);
@@ -536,8 +537,8 @@ public class Util {
 		    			continue pattern; // Matched something
 		    		}
 		    	}
-		    	PromiseWarningDrop d = new PromiseWarningDrop();
-		    	String msg = "Exclude package '"+pkgs[i]+"' in project '"+c.getProject()+"' does not exclude anything";
+				PromiseWarningDrop d = new PromiseWarningDrop();
+				final String msg = I18N.res(701, pkgs[i], c.getProject());
 				d.setMessage(msg);
 				//LOG.warning(msg);
 				i++;
