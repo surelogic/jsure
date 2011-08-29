@@ -20,6 +20,7 @@ import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -240,6 +241,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	public static long computeHash(IRNode node, boolean debug) {			
+		if (node instanceof MarkedIRNode) {
+			return 0; // Not an AST node
+		}
 		final String unparse = DebugUnparser.unparseCode(node);
 		if (debug) {
 			System.out.println("Unparse: "+unparse);
@@ -247,7 +251,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return unparse.hashCode();
 	}
 	
-	public static long computeContext(IRNode node, boolean debug) {			
+	public static long computeContext(IRNode node, boolean debug) {	
+		if (node instanceof MarkedIRNode) {
+			return 0; // Not an AST node
+		}
 		final String context = JavaNames.computeContextId(node);
 		if (context != null) {
 			if (debug) {
