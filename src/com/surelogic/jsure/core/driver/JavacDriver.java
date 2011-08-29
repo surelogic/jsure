@@ -1565,9 +1565,13 @@ public class JavacDriver implements IResourceChangeListener {
 	private CompUnitFilter getFilter(Config config) {
 		final IProject p = EclipseUtility.getProject(config.getProject());
 		String[] paths = config.getListOption(ToolProperties.EXCLUDE_PATH);
-		final IPath[] excludePaths = new IPath[paths.length];
-		int i = 0;
+		final Set<String> unique = new HashSet<String>();
 		for (String path : paths) {
+			unique.add(path);
+		}		
+		final IPath[] excludePaths = new IPath[unique.size()];
+		int i = 0;
+		for (String path : unique) {
 			excludePaths[i] = p.getFullPath().append(path);
 			i++;
 		}
