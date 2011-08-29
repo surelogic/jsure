@@ -41,6 +41,9 @@ public final class CommonStrings {
 	 * Add the String to the pool if not already in it
 	 */
 	public static String intern(String value) {
+		if (value == null) {
+			return null;
+		}
 		String pooled = pool.get(value);
 		if (pooled == null) {
 			pooled = value;
