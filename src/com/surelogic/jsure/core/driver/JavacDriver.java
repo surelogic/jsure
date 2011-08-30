@@ -937,6 +937,7 @@ public class JavacDriver implements IResourceChangeListener {
 						addSourceFiles(config, cpe);
 					}
 					config.addToClassPath(config);
+					// TODO makeRelativeTo is a 3.5 API
 					config.addToClassPath(new SrcEntry(config, cpe.getPath().makeRelativeTo(p.getFullPath()).toString()));
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
