@@ -105,8 +105,21 @@ public class TypeUtils {
 			if (first) {
 				ec.addAll(getEST(t));
 				first = false;
+			} else if (t instanceof IJavaNullType) {
+				// JLS 4.10.2: 
+				// The direct supertypes of the null type are all reference 
+				// types other than the null type itself.
+				continue;
 			} else {
 				ec.retainAll(getEST(t));
+			}
+		}
+		if (ec.isEmpty()) {
+			for(IJavaReferenceType t : types) {
+				System.err.println("STs for "+t);
+				for(IJavaDeclaredType s : getST(t)) {
+					System.err.println("\t"+s);
+				}
 			}
 		}
 		return ec;
@@ -345,6 +358,11 @@ public class TypeUtils {
 				}
 			}
 		}
+		/*
+		if (result == null) {
+			return tEnv.getObjectType();
+		}
+		*/
 		return result;
 	}
 	
