@@ -386,6 +386,11 @@ public class Config extends AbstractClassPathEntry {
 				if (!j1.equals(d2)) {
 					throw new MergeException("Different jars: "+j1.getPath()+" != "+((JarEntry) d2).getPath());
 				}
+			} else if (e1 instanceof SrcEntry) {
+				SrcEntry s1 = (SrcEntry) e1;
+				if (!s1.equals(d2)) {
+					throw new MergeException("Different jars: "+s1.getProjectRelativePath()+" != "+((SrcEntry) d2).getProjectRelativePath());
+				}
 			} else {
 				throw new IllegalStateException("Unexpected entry: "+e1);
 			}
