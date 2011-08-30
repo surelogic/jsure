@@ -23,7 +23,7 @@ public class CodeContext {
 	}
 	
 	public static CodeContext makeFromAnnotation(CodeContext context, boolean fromAnnotation) {
-		return new CodeContext(context.isStatic, false, fromAnnotation);
+		return new CodeContext(context.isStatic, true, fromAnnotation);
 	}
 
 	public boolean isStatic() {
