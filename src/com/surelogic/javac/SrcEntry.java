@@ -42,4 +42,18 @@ public class SrcEntry extends AbstractClassPathEntry {
 	public void relocateJars(File targetDir) throws IOException {
 		// TODO Auto-generated method stub
 	}
+	
+	@Override
+	public int hashCode() {
+		return projectRelativePath.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof SrcEntry) {
+			SrcEntry s2 = (SrcEntry) o;
+			return projectRelativePath.equals(s2.projectRelativePath);
+		}
+		return false;
+	}
 }
