@@ -412,7 +412,13 @@ private long parseIntLiteral(String token) {
     } 
     if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
-      
+      if (ct.getLowerBound() instanceof IJavaNullType) {
+    	  // JLS 4.10.2: 
+    	  // The direct supertypes of the null type are all reference 
+    	  // types other than the null type itself.
+    	  LOG.warning("Using upper bound as supertype for capture type "+ct);
+          return new SingletonIterator<IJavaType>(ct.getUpperBound());
+      }
       return new SingletonIterator<IJavaType>(ct.getLowerBound());
     }
     if (ty instanceof IJavaWildcardType) {
@@ -429,6 +435,7 @@ private long parseIntLiteral(String token) {
                                            findJavaTypeByName("java.io.Serializable"));      
     }
     if (!(ty instanceof IJavaDeclaredType)) {
+      // TODO not right for null type
       return EmptyIterator.prototype();
     }
     IJavaDeclaredType dt = ((IJavaDeclaredType)ty);
