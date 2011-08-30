@@ -665,7 +665,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         IRNode body    = ClassBody.createNode(mbrs);
         IRNode rv;
         if (context.fromInterface()) {
+        	// JLS 9.5
         	mods |= JavaNode.PUBLIC;
+        	mods |= JavaNode.STATIC;
         }
         if (isInterface) {        	
         	if (isNested) {
