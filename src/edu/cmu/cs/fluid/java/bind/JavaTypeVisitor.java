@@ -1074,7 +1074,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 				  System.err.println("Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
 			  }
 		  } else {
-			  LOG.log( Level.SEVERE, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
+			  LOG.log( Level.WARNING, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
 		  }
 		  result = doAccept(node);  
 	  /*
