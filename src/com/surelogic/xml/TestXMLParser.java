@@ -289,7 +289,7 @@ public class TestXMLParser extends DefaultHandler implements
 							e.getAttribute(PARAMS_ATTRB), tEnv);
 							*/
 					reportWarn("Could not find method node "
-							+ name/*, name, here*/, true);
+							+ name/*, name, here*/, false);
 					nodeStack.push(new NodeElement(name, NodeKind.METHOD, null));
 				}
 			}
