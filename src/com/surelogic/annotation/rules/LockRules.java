@@ -697,8 +697,10 @@ public class LockRules extends AnnotationRules {
 					final Visibility methodViz = Visibility.getVisibilityOf(annotatedMethod);
 					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
-						    "lock \"" + lockSpec.getLock().getId() +
-						    "\" is less visible than requiring method/constructor", //$NON-NLS-1$
+						    "lock \"" + lockSpec.getLock().getId() + "\" (" +
+						    lockViz.nameLowerCase() + 
+						    ") is less visible than requiring method/constructor (" +
+						    methodViz.nameLowerCase() + ")",
 								lockSpec);
 						currentGood = false;
 					}
@@ -2189,7 +2191,7 @@ public class LockRules extends AnnotationRules {
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
         final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.locks.Messages.toString(com.surelogic.analysis.locks.Messages.LockAnalysis_ds_LockViz));
-        wd.setResultMessage(com.surelogic.analysis.locks.Messages.LockAnalysis_ds_LockViz, field, region);
+        wd.setResultMessage(com.surelogic.analysis.locks.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
         wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
         wd.setCategory(com.surelogic.analysis.locks.Messages.DSC_LOCK_VIZ);
         model.addDependent(wd);

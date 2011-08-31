@@ -43,9 +43,16 @@ public enum Visibility {
   public abstract String getSourceText();
   
   /**
+   * Get the name of the element, but all lower case.
+   */
+  public final String nameLowerCase() {
+    return name().toLowerCase();
+  }
+  
+  /**
    * Are we as visible or more so than the given visibility?
    */
-  public boolean atLeastAsVisibleAs(final Visibility other) {
+  public final boolean atLeastAsVisibleAs(final Visibility other) {
     return this.compareTo(other) >= 0;
   }
 

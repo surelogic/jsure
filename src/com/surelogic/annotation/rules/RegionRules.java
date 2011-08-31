@@ -188,8 +188,13 @@ public class RegionRules extends AnnotationRules {
           }
           
           // Region cannot be more visible than its parent 
-          if (!parentModel.getVisibility().atLeastAsVisibleAs(a.getVisibility())) {
-            context.reportError(a, "Region \"{0}\" is more visible than its parent \"{1}\"", simpleName, parentName);
+          final Visibility parentViz = parentModel.getVisibility();
+          final Visibility myViz = a.getVisibility();
+          if (!parentViz.atLeastAsVisibleAs(myViz)) {
+            context.reportError(
+                a, "Region \"{0}\" ({1}) is more visible than its parent \"{2}\" ({3})",
+                simpleName, myViz.nameLowerCase(),
+                parentName, parentViz.nameLowerCase());
             annotationIsGood = false;
           }
     
@@ -317,10 +322,13 @@ public class RegionRules extends AnnotationRules {
           }
 
           // Region cannot be more visible than its parent 
-          if (!parentModel.getVisibility().atLeastAsVisibleAs(
-              Visibility.getVisibilityOf(JJNode.tree.getParent(JJNode.tree.getParent(promisedFor))))) {
-            context.reportError(a, "Region \"{0}\" is more visible than its parent \"{1}\"",
-                VariableDeclarator.getId(promisedFor), parentName);
+          final Visibility parentViz = parentModel.getVisibility();
+          final Visibility myViz = Visibility.getVisibilityOf(
+              JJNode.tree.getParent(JJNode.tree.getParent(promisedFor)));
+          if (!parentViz.atLeastAsVisibleAs(myViz)) {
+            context.reportError(a, "Region \"{0}\" ({1}) is more visible than its parent \"{2}\" ({3})",
+                VariableDeclarator.getId(promisedFor), myViz.nameLowerCase(),
+                parentName, parentViz.nameLowerCase());
             annotationIsGood = false;
           }
     
