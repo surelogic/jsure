@@ -224,7 +224,8 @@ public final class TreeAccessor implements TestXMLParserConstants {
 		}
 		String desc = "Couldn't find " + name + "(" + (params == null ? "" : params) + ") in "
 				+ JavaNames.getFullTypeName(root);
-		LOG.warning(desc);
+		//LOG.warning(desc);
+		System.err.println("WARNING: "+desc);
 		reportProblem(desc, root);
 		return null;
 	}
