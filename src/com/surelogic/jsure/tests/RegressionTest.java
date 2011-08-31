@@ -345,7 +345,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 					project = parent;
 				} else {
 					// TODO hack to get things to go when there's no script
-					project = new File(projectPath);
+					//project = new File(projectPath);
+					project = new File(System.getProperty("test.module"));
 				}
 			}
 		}
