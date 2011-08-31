@@ -416,7 +416,7 @@ private long parseIntLiteral(String token) {
     	  // JLS 4.10.2: 
     	  // The direct supertypes of the null type are all reference 
     	  // types other than the null type itself.
-    	  LOG.warning("Using upper bound as supertype for capture type "+ct);
+    	  LOG.info("WARNING: Using upper bound as supertype for capture type "+ct);
           return new SingletonIterator<IJavaType>(ct.getUpperBound());
       }
       return new SingletonIterator<IJavaType>(ct.getLowerBound());
