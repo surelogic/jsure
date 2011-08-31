@@ -172,7 +172,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
 		final File analysisSettingsFile = findFile(project,
 				ScriptCommands.ANALYSIS_SETTINGS, true);
-		if (analysisSettingsFile.exists() && analysisSettingsFile.isFile()) {
+		if (analysisSettingsFile != null && analysisSettingsFile.exists() && analysisSettingsFile.isFile()) {
 			System.out.println("Found project-specific analysis settings.");
 			JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
 			DoubleChecker.getDefault().initAnalyses();
@@ -273,12 +273,16 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				File script = findFile(parent, ScriptCommands.NAME, false);
 				if (script != null) {
 					project = parent;
+				} else {
+					// TODO hack to get things to go when there's no script
+					project = new File(projectPath);
 				}
 			}
 		}
 		if (project == null) {
 			fail("No project");
 		}
+				
 		// System.out.println("Setting up log for "+project.getName());
 		output = IDE.getInstance().makeLog(project.getName());
 		try {
