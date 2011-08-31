@@ -100,42 +100,72 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 						+ "' does not reference a directory");
 			
 			setupClasspath(testModule);
+			setupPreferences(testModule);
 			importProject(testModule);
 		}
 	}
 
 	static final String CLASSPATH_VARS = "classpath.properties";
+	static final String JSURE_PREFS = "jsure.pref.properties";
 	
-	private void setupClasspath(File testModule) {
-		File vars = new File(testModule, testModule.getName()+'/'+CLASSPATH_VARS);
-		if (!vars.isFile()) {
-			System.err.println("Couldn't find "+vars);
-			vars = new File(testModule, CLASSPATH_VARS);
+	private Properties loadProperties(File root, String name) {
+		File f = new File(root, root.getName()+'/'+name);
+		if (!f.isFile()) {
+			System.err.println("Couldn't find "+f);
+			f = new File(root, name);
 		}
-		if (vars.isFile()) {
+		if (f.isFile()) {
 			Properties p = new Properties();
 			try {
-				p.load(new FileInputStream(vars));				
-				
-				for(Map.Entry<Object, Object> e : p.entrySet()) {
-					final File path = new File(testModule, e.getValue().toString());
-					try {			
-						JavaCore.setClasspathVariable(e.getKey().toString(), new Path(path.getAbsolutePath()), null);
-						System.out.println("Set classpath variable "+e.getKey()+" to "+path);
-					} catch (JavaModelException e1) {
-						System.err.println("Couldn't set "+e.getKey()+" to "+path);
-						e1.printStackTrace();
-					}
-				}
+				p.load(new FileInputStream(f));				
+				return p;
 			} catch (IOException e) {
-				System.err.println("Couldn't get classpath vars from "+vars);
+				System.err.println("Couldn't get properties from "+f);
 				e.printStackTrace();
 			}
 		} else {
-			System.err.println("Couldn't find "+vars);
+			System.err.println("Couldn't find "+f);
+		}
+		return null;
+	}
+	
+	private void setupClasspath(File testModule) {
+		final Properties p = loadProperties(testModule, CLASSPATH_VARS);
+		if (p != null) {
+			for(Map.Entry<Object, Object> e : p.entrySet()) {
+				final File path = new File(testModule, e.getValue().toString());
+				try {			
+					JavaCore.setClasspathVariable(e.getKey().toString(), new Path(path.getAbsolutePath()), null);
+					System.out.println("Set classpath variable "+e.getKey()+" to "+path);
+				} catch (JavaModelException e1) {
+					System.err.println("Couldn't set "+e.getKey()+" to "+path);
+					e1.printStackTrace();
+				}
+			}
 		}
 	}
 
+	private void setupPreferences(File testModule) {
+		final Properties p = loadProperties(testModule, JSURE_PREFS);
+		if (p != null) {
+			for(Map.Entry<Object, Object> e : p.entrySet()) {
+				final String key = e.getKey().toString();
+				final String value = e.getValue().toString();
+				if ("true".equals(value) || "false".equals(value)) {
+					EclipseUtility.setBooleanPreference(key, Boolean.parseBoolean(value));
+				} else {
+					try {
+						int i = Integer.parseInt(value);
+						EclipseUtility.setIntPreference(key, i);
+					} catch(NumberFormatException ex) {
+						EclipseUtility.setStringPreference(key, value);
+					}					
+				}
+				System.out.println("Set pref "+key+" to "+value);
+			}
+		}
+	}
+	
 	/**
 	 * Change to check for a .project file If not present, try to import
 	 * immediate sub-directories
