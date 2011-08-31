@@ -1,11 +1,14 @@
 package com.surelogic.jsure.tests;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Stack;
 
 import junit.framework.AssertionFailedError;
@@ -22,9 +25,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
@@ -92,7 +98,41 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			if (!testModule.isDirectory())
 				fail("'-Dtest.module=" + testModulePath
 						+ "' does not reference a directory");
+			
+			setupClasspath(testModule);
 			importProject(testModule);
+		}
+	}
+
+	static final String CLASSPATH_VARS = "classpath.properties";
+	
+	private void setupClasspath(File testModule) {
+		File vars = new File(testModule, testModule.getName()+'/'+CLASSPATH_VARS);
+		if (!vars.isFile()) {
+			System.err.println("Couldn't find "+vars);
+			vars = new File(testModule, CLASSPATH_VARS);
+		}
+		if (vars.isFile()) {
+			Properties p = new Properties();
+			try {
+				p.load(new FileInputStream(vars));				
+				
+				for(Map.Entry<Object, Object> e : p.entrySet()) {
+					final File path = new File(testModule, e.getValue().toString());
+					try {			
+						JavaCore.setClasspathVariable(e.getKey().toString(), new Path(path.getAbsolutePath()), null);
+						System.out.println("Set classpath variable "+e.getKey()+" to "+path);
+					} catch (JavaModelException e1) {
+						System.err.println("Couldn't set "+e.getKey()+" to "+path);
+						e1.printStackTrace();
+					}
+				}
+			} catch (IOException e) {
+				System.err.println("Couldn't get classpath vars from "+vars);
+				e.printStackTrace();
+			}
+		} else {
+			System.err.println("Couldn't find "+vars);
 		}
 	}
 
@@ -388,7 +428,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(
 				projects.length);
 		for (IProject p : projects) {
-			jprojects.add(JDTUtility.getJavaProject(p.getName()));
+			IJavaProject jp = JDTUtility.getJavaProject(p.getName());
+			if (jp != null) {
+				jprojects.add(jp);
+			} else {
+				System.out.println("Couldn't get java project for "+p);
+			}
 		}
 		JavacBuild.analyze(jprojects, IErrorListener.throwListener);
 		end("Done running JSure analysis...");
