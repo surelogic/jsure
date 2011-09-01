@@ -105,7 +105,8 @@ public final class TreeAccessor implements TestXMLParserConstants {
 		}
 		String desc = "Couldn't find constructor with params (" + params
 				+ ") in " + JavaNames.getFullTypeName(top);
-		LOG.warning(desc);
+		//LOG.warning(desc);
+		System.err.println("WARNING: "+desc);
 		reportProblem(desc, top);
 		return null;
 	}

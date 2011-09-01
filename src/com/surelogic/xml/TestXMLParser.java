@@ -247,7 +247,7 @@ public class TestXMLParser extends DefaultHandler implements
 					reportWarn(
 							"XML declared but could not find constructor"
 							+ " node " + e.getAttribute(NAME_ATTRB)/*,
-							"constructor", nodeStack.peek().getNode()*/, true);
+							"constructor", nodeStack.peek().getNode()*/, false);
 					
 					nodeStack.push(new NodeElement(params, NodeKind.CONSTRUCTOR, null));
 				}
