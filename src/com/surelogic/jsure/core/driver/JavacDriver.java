@@ -925,8 +925,10 @@ public class JavacDriver implements IResourceChangeListener {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 			// TODO what export rules?
 			JavacProject jre = scanForJDK(projects, jp);
-
+			System.out.println("Project "+jp);
+			
 			for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
+				System.out.println("\tCPE = "+cpe);
 				// TODO ignorable since they'll be handled by the compiler
 				// cpe.getAccessRules();
 				// cpe.combineAccessRules();
