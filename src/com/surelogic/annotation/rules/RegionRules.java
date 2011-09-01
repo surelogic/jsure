@@ -38,6 +38,8 @@ public class RegionRules extends AnnotationRules {
   public static final String MAP_FIELDS = "MapFields";
   public static final String SIMPLE_UNIQUE_IN_REGION = "UniqueInRegion";
   public static final String EXPLICIT_UNIQUE_IN_REGION = "Unique Mapping"; // Never meant to be parsed
+  public static final String SIMPLE_BORROWED_IN_REGION = "BorrowedInRegion";
+  public static final String EXPLICIT_BORROWED_IN_REGION = "Borrowed Mapping"; // Never meant to be parsed
   public static final String REGION_INITIALIZER = "RegionInitializer";
   public static final String REGIONS_DONE = "RegionsDone";
   
@@ -54,9 +56,14 @@ public class RegionRules extends AnnotationRules {
   private static final SimpleUniqueInRegion_ParseRule simpleUniqueInRegionRule = 
 	  new SimpleUniqueInRegion_ParseRule();
   
+  private static final ExplicitBorrowedInRegion_ParseRule explicitBorrowedInRegionRule =
+	    new ExplicitBorrowedInRegion_ParseRule();
+	  private static final SimpleBorrowedInRegion_ParseRule simpleBorrowedInRegionRule = 
+		  new SimpleBorrowedInRegion_ParseRule();
+  
   private static final SimpleScrubber regionsDone = new SimpleScrubber(
       REGIONS_DONE, REGION, IN_REGION, SIMPLE_UNIQUE_IN_REGION,
-      EXPLICIT_UNIQUE_IN_REGION) {
+      EXPLICIT_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION, EXPLICIT_BORROWED_IN_REGION) {
     @Override
     protected void scrub() {
       // do nothing
@@ -109,6 +116,8 @@ public class RegionRules extends AnnotationRules {
     }, true);
     registerParseRuleStorage(fw, explicitUniqueInRegionRule);
     registerParseRuleStorage(fw, simpleUniqueInRegionRule);
+    registerParseRuleStorage(fw, explicitBorrowedInRegionRule);
+    registerParseRuleStorage(fw, simpleBorrowedInRegionRule);
     registerScrubber(fw, regionsDone);
 //    registerScrubber(fw, new UniquelyNamed_NoCycles());
   }
@@ -428,6 +437,43 @@ public class RegionRules extends AnnotationRules {
     }
   }
 
+  public static class SimpleBorrowedInRegion_ParseRule 
+  extends DefaultSLAnnotationParseRule<SimpleBorrowedInRegionNode,SimpleBorrowedInRegionPromiseDrop> {
+    protected SimpleBorrowedInRegion_ParseRule() {
+      super(SIMPLE_BORROWED_IN_REGION, fieldDeclOp, SimpleBorrowedInRegionNode.class);
+    }
+    @Override
+  protected boolean producesOtherAASTRootNodes() {
+      return true;
+    }
+    @Override
+    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+      // Also creates ExplicitBorrowedInRegionNode(s)
+      return parser.borrowedInRegion().getTree();
+    }
+  
+    @Override
+    protected IPromiseDropStorage<SimpleBorrowedInRegionPromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), SimpleBorrowedInRegionPromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<SimpleBorrowedInRegionNode> makeScrubber() {
+      return new AbstractAASTScrubber<SimpleBorrowedInRegionNode, SimpleBorrowedInRegionPromiseDrop>(
+          this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
+        @Override
+        protected SimpleBorrowedInRegionPromiseDrop makePromiseDrop(SimpleBorrowedInRegionNode a) {
+          return storeDropIfNotNull(a, scrubSimpleBorrowedInRegion(getContext(), a));          
+        }
+      };
+    }
+  }
+  
+  static SimpleBorrowedInRegionPromiseDrop scrubSimpleBorrowedInRegion(
+		  IAnnotationScrubberContext context, SimpleBorrowedInRegionNode a) {
+	  // TODO Auto-generated method stub
+	  return new SimpleBorrowedInRegionPromiseDrop(a);
+  }
+  
   static SimpleUniqueInRegionPromiseDrop scrubSimpleUniqueInRegion(
   	  final IAnnotationScrubberContext context,
   	  final UniqueInRegionNode a) {
@@ -538,6 +584,33 @@ public class RegionRules extends AnnotationRules {
         @Override
         protected ExplicitUniqueInRegionPromiseDrop makePromiseDrop(UniqueMappingNode a) {
           return storeDropIfNotNull(a, scrubExplicitUniqueInRegion(getContext(), a));          
+        }
+      };
+    }
+  }
+  
+  public static class ExplicitBorrowedInRegion_ParseRule
+  extends DefaultSLAnnotationParseRule<ExplicitBorrowedInRegionNode,ExplicitBorrowedInRegionPromiseDrop> {
+    protected ExplicitBorrowedInRegion_ParseRule() {
+      super(EXPLICIT_BORROWED_IN_REGION, fieldDeclOp, ExplicitBorrowedInRegionNode.class);
+    }
+    
+    @Override
+    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+      throw new UnsupportedOperationException(context.getAllText());
+    }
+    
+    @Override
+    protected IPromiseDropStorage<ExplicitBorrowedInRegionPromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), ExplicitBorrowedInRegionPromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ExplicitBorrowedInRegionNode> makeScrubber() {
+      return new AbstractAASTScrubber<ExplicitBorrowedInRegionNode, ExplicitBorrowedInRegionPromiseDrop>(
+          this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
+        @Override
+        protected ExplicitBorrowedInRegionPromiseDrop makePromiseDrop(ExplicitBorrowedInRegionNode a) {
+          return storeDropIfNotNull(a, scrubExplicitBorrowedInRegion(getContext(), a));          
         }
       };
     }
@@ -701,6 +774,13 @@ public class RegionRules extends AnnotationRules {
     } else {
       return null;
     }
+  }
+
+  
+  protected static ExplicitBorrowedInRegionPromiseDrop scrubExplicitBorrowedInRegion(
+			IAnnotationScrubberContext context, ExplicitBorrowedInRegionNode a) {
+	  // TODO
+	  return new ExplicitBorrowedInRegionPromiseDrop(a);
   }
   
   private static String truncateName(final String qualifiedName) {

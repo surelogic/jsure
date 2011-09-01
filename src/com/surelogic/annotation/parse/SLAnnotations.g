@@ -79,6 +79,8 @@ tokens {
   GuardedBy;
   Itself;
   AnnoParameters;
+  ExplicitBorrowedInRegion;
+  SimpleBorrowedInRegion;
   END_IMAGINARY;
   
 	//Locking
@@ -456,6 +458,11 @@ uniqueInRegion
   : mappedRegionSpecification EOF -> ^(UniqueMapping mappedRegionSpecification)
 	| regionSpecification EOF -> ^(UniqueInRegion regionSpecification)
 	;
+	
+borrowedInRegion
+  : mappedRegionSpecification EOF -> ^(ExplicitBorrowedInRegion mappedRegionSpecification)
+  | regionSpecification EOF -> ^(SimpleBorrowedInRegion regionSpecification)
+;
 	
 mapFields
     : fieldMappings EOF -> fieldMappings

@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.promise.UniqueMappingNode;
+import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -14,8 +14,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
-public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> {
-  public ExplicitUniqueInRegionPromiseDrop(UniqueMappingNode n) {
+public final class ExplicitBorrowedInRegionPromiseDrop extends PromiseDrop<ExplicitBorrowedInRegionNode> {
+  public ExplicitBorrowedInRegionPromiseDrop(ExplicitBorrowedInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
   }
@@ -42,15 +42,11 @@ public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueM
       final String name = JavaNames.getFieldDecl(getNode());
       final String mappings = getAST().getMapping().unparse(false);
       setResultMessage(
-          Messages.RegionAnnotation_uniqueInRegionDrop, mappings, name); 
+          Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name); 
     }
 //    for (RegionMappingNode m : getAST().getMapping().getMappingList()) {
 //      IRegionBinding b = m.getTo().resolveBinding();
 //      b.getModel().addDependent(this);
 //    }
-  }
-  
-  public boolean allowRead() {
-	  return getAST().allowRead();
   }
 }

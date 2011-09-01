@@ -220,7 +220,7 @@ public abstract class AbstractNodeAdaptor extends CommonTreeAdaptor {
       }
       int start = context.mapToSource(this.start);
       int stop  = context.mapToSource(this.stop);
-      return ASTFactory.getInstance().create(token, start, stop, mods, id, dims, kids);
+      return ASTFactory.getInstance().create(token, start, stop, mods | context.getModifiers(), id, dims, kids);
     }
     
     public String finalizeId() {
