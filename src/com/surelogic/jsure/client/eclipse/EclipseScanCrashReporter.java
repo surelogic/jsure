@@ -35,7 +35,7 @@ public final class EclipseScanCrashReporter implements IScanCrashReporter {
 	}
 
 	@Override
-	public void reportJSureScanCrash(final SLStatus status, final File scanLog) {
+	public void reportScanCrash(final SLStatus status, final File scanLog) {
 		final UIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
