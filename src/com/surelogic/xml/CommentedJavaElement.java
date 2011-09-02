@@ -54,7 +54,7 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	
 	public final void addComments(Collection<String> c) {		
 		for(String s : c) {
-			CommentElement e = new CommentElement(s);
+			CommentElement e = CommentElement.make(s);
 			comments.add(e);
 			e.setParent(this);
 		}
@@ -73,7 +73,7 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	
 	void setLastComments(Collection<String> c) {
 		for(String s : c) {
-			CommentElement e = new CommentElement(s);
+			CommentElement e = CommentElement.make(s);
 			lastEnclosedComments.add(e);
 			e.setParent(this);
 		}

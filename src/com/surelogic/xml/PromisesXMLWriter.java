@@ -84,6 +84,13 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		for(CommentElement c : comments) {
 			Entities.indent(b, indent);
 			b.append("<!--");
+			b.append(CommentElement.MARKER);
+			b.append(c.getUID().toString());
+			b.append(CommentElement.SEPARATOR);
+			b.append(c.getRevision());
+			b.append(CommentElement.SEPARATOR);
+			b.append(c.isModified());
+			b.append(CommentElement.END_MARKER);
 			b.append(Entities.unescape(c.getLabel()));
 			b.append("-->\n");
 			flush();
