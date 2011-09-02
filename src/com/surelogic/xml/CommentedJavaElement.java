@@ -17,7 +17,35 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	 */
 	private final List<CommentElement> lastEnclosedComments = new ArrayList<CommentElement>(0);
 	
-
+	public boolean addCommentBefore(CommentElement newC, CommentElement targetC) {
+		int index = comments.indexOf(targetC);
+		if (index < 0) {
+			return false;
+		}
+		comments.add(index, newC);
+		newC.setParent(this);
+		markAsDirty();
+		return true;
+	}
+	
+	public boolean addCommentAfter(CommentElement newC, CommentElement targetC) {
+		final int index = comments.indexOf(targetC);
+		if (index < 0) {
+			return false;
+		}
+		final int size = comments.size();
+		final int newIndex = index+1;
+		if (newIndex == size) {
+			// It's the last element, so just append
+			comments.add(newC);
+		} else {
+			comments.add(newIndex, newC);
+		}
+		newC.setParent(this);
+		markAsDirty();
+		return true;
+	}
+	
     public void addComment(CommentElement c) {
         comments.add(c);
         c.setParent(this);
