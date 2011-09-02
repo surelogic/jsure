@@ -27,7 +27,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -68,8 +67,8 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.SourceZip;
 import com.surelogic.common.core.JDTUtility.CompUnitFilter;
+import com.surelogic.common.core.SourceZip;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -80,8 +79,19 @@ import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.javac.*;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.IClassPathEntry;
+import com.surelogic.javac.JarEntry;
+import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Javac;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.PromiseMatcher;
+import com.surelogic.javac.SrcEntry;
+import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -95,7 +105,6 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
-import com.surelogic.scans.serviceability.ScanCrashReport;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -290,8 +299,8 @@ public class JavacDriver implements IResourceChangeListener {
 					zip.delete();
 				}
 				// Zip up most of the project before it gets changed
-				zipInfo = FileUtility.zipDirAndMore(workspace, new File(workspace, proj),
-						zip);
+				zipInfo = FileUtility.zipDirAndMore(workspace, new File(
+						workspace, proj), zip);
 				if (update == null) {
 					out = new PrintStream(scriptF);
 				}
@@ -926,10 +935,10 @@ public class JavacDriver implements IResourceChangeListener {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 			// TODO what export rules?
 			JavacProject jre = scanForJDK(projects, jp);
-			System.out.println("Project "+jp);
-			
+			System.out.println("Project " + jp);
+
 			for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
-				System.out.println("\tCPE = "+cpe);
+				System.out.println("\tCPE = " + cpe);
 				// TODO ignorable since they'll be handled by the compiler
 				// cpe.getAccessRules();
 				// cpe.combineAccessRules();
@@ -941,7 +950,8 @@ public class JavacDriver implements IResourceChangeListener {
 					}
 					config.addToClassPath(config);
 					// TODO makeRelativeTo is a 3.5 API
-					config.addToClassPath(new SrcEntry(config, cpe.getPath().makeRelativeTo(p.getFullPath()).toString()));
+					config.addToClassPath(new SrcEntry(config, cpe.getPath()
+							.makeRelativeTo(p.getFullPath()).toString()));
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					// System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
@@ -1945,7 +1955,8 @@ public class JavacDriver implements IResourceChangeListener {
 							projects.getShortLabel(), Sea.getDefault());
 				}
 				if (ok) {
-					JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
+					JSureDataDirHub.getInstance().scanDirectoryAdded(
+							projects.getRunDir());
 				} else {
 					NotificationHub.notifyAnalysisPostponed(); // TODO fix
 					if (lastMonitor == monitor) {
@@ -1965,7 +1976,8 @@ public class JavacDriver implements IResourceChangeListener {
 				if (XUtil.testing) {
 					throw new RuntimeException(e);
 				}
-				handleCrash(SLStatus.createErrorStatus("Problem while running JSure", e));
+				handleCrash(SLStatus.createErrorStatus(
+						"Problem while running JSure", e));
 				return SLStatus.CANCEL_STATUS;
 			} finally {
 				endAnalysis();
@@ -1986,19 +1998,18 @@ public class JavacDriver implements IResourceChangeListener {
 
 		private void handleCrash(SLStatus status) {
 			/*
-			 * Collect information and report this scan crash to
-			 * SureLogic.
+			 * Collect information and report this scan crash to SureLogic.
 			 */
 			final File rollup = collectCrashFiles(projects);
-			ScanCrashReport.getInstance().getReporter()
+			JSureScanCrashReport.getInstance().getReporter()
 					.reportJSureScanCrash(status, rollup);
 			/*
-			 * Because we already opened a dialog above about the
-			 * crash, log it and bail out of the job.
+			 * Because we already opened a dialog above about the crash, log it
+			 * and bail out of the job.
 			 */
 			status.logTo(SLLogger.getLogger());
 		}
-		
+
 		private LocalJSureJob makeLocalJSureJob(final Projects projects) {
 			System.out.println("run = " + projects.getRun());
 			final String msg = "Running JSure for " + projects.getLabel();
@@ -2068,7 +2079,7 @@ public class JavacDriver implements IResourceChangeListener {
 					if (projLocation != null) {
 						File projFile = projLocation.toFile();
 						if (projFile != null && projFile.isDirectory()) {
-							for(String config : AbstractJavaZip.CONFIG_FILES) {
+							for (String config : AbstractJavaZip.CONFIG_FILES) {
 								copyContentsToStream(
 										new File(projFile, config), out, target);
 							}
