@@ -21,6 +21,7 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -254,9 +255,40 @@ public class PromisesXMLEditor extends EditorPart {
 			return;
 		}
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
+		if (o instanceof CommentElement) {
+			final CommentElement c0 = (CommentElement) o;
+		    makeMenuItem(menu, "Add comment above this", new SelectionAdapter() {
+		        @Override
+		        public void widgetSelected(SelectionEvent e) {              
+		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
+		            CommentElement c = new CommentElement("...");
+		            boolean success = cje.addCommentBefore(c, c0);
+		            if (success) {
+		            	contents.refresh();
+		            	contents.expandToLevel(cje, 1);
+		            } else {
+		            	SLLogger.getLogger().warning("Couldn't add comment before '"+c0.getLabel()+"' in "+cje.getLabel());
+		            }
+		        }
+		    });
+		    makeMenuItem(menu, "Add comment below this", new SelectionAdapter() {
+		        @Override
+		        public void widgetSelected(SelectionEvent e) {              
+		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
+		            CommentElement c = new CommentElement("...");
+		            boolean success = cje.addCommentAfter(c, c0);
+		            if (success) {
+		            	contents.refresh();
+		            	contents.expandToLevel(cje, 1);
+		            } else {
+		            	SLLogger.getLogger().warning("Couldn't add comment after '"+c0.getLabel()+"' in "+cje.getLabel());
+		            }
+		        }
+		    });
+		}		
 		if (o instanceof CommentedJavaElement) {
 		    final CommentedJavaElement cje = (CommentedJavaElement) o;
-		    makeMenuItem(menu, "Add comment", new SelectionAdapter() {
+		    makeMenuItem(menu, "Append comment", new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {                
 		            CommentElement c = new CommentElement("...");
