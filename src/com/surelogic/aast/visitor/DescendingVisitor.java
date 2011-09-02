@@ -768,12 +768,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  @Override
   public T visit(SimpleBorrowedInRegionNode n) {
 	  return doAccept(n.getSpec());
   }
 
-  @Override
   public T visit(ExplicitBorrowedInRegionNode n) {
 	  return doAccept(n.getMapping());
   }
