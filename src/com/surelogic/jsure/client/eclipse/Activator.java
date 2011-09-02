@@ -14,12 +14,12 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.scans.serviceability.ScanCrashReport;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -67,7 +67,7 @@ public class Activator extends AbstractUIPlugin implements
 		/*
 		 * Set the scan crash reporter to an Eclipse implementation.
 		 */
-		ScanCrashReport.getInstance().setReporter(
+		JSureScanCrashReport.getInstance().setReporter(
 				EclipseScanCrashReporter.getInstance());
 		monitor.worked(1);
 

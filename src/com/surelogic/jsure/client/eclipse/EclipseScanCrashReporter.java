@@ -10,9 +10,9 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.serviceability.scan.IScanCrashReporter;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
-import com.surelogic.scans.serviceability.IScanCrashReporter;
 
 /**
  * An Eclipse implementation of the JSure scan crash reporter. It simply calls
