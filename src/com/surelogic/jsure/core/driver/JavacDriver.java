@@ -2002,7 +2002,7 @@ public class JavacDriver implements IResourceChangeListener {
 			 */
 			final File rollup = collectCrashFiles(projects);
 			JSureScanCrashReport.getInstance().getReporter()
-					.reportJSureScanCrash(status, rollup);
+					.reportScanCrash(status, rollup);
 			/*
 			 * Because we already opened a dialog above about the crash, log it
 			 * and bail out of the job.
