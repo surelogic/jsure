@@ -290,7 +290,7 @@ public class JavacDriver implements IResourceChangeListener {
 					zip.delete();
 				}
 				// Zip up most of the project before it gets changed
-				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj),
+				zipInfo = FileUtility.zipDirAndMore(workspace, new File(workspace, proj),
 						zip);
 				if (update == null) {
 					out = new PrintStream(scriptF);
@@ -674,7 +674,8 @@ public class JavacDriver implements IResourceChangeListener {
 				script.close();
 			}
 			try {
-				final File baseDir = scriptResourcesDir.getParentFile();
+				final File projDir = scriptResourcesDir.getParentFile();
+				final File baseDir = projDir.getParentFile();
 				// Updating a previously created script
 				if (XUtil.updateScript() != null) {
 					// Only add the sea.xml files
@@ -706,15 +707,15 @@ public class JavacDriver implements IResourceChangeListener {
 				} else {
 					info.zipDir(baseDir, scriptResourcesDir);
 					info.zipFile(baseDir,
-							new File(baseDir, ScriptCommands.NAME));
+							new File(projDir, ScriptCommands.NAME));
 				}
-				final File settings = new File(baseDir,
+				final File settings = new File(projDir,
 						ScriptCommands.ANALYSIS_SETTINGS);
 				if (!settings.exists()) {
 					DoubleChecker.getDefault().writePrefsToXML(settings);
 					info.zipFile(baseDir, settings);
 				}
-				final File props = new File(baseDir,
+				final File props = new File(projDir,
 						ScriptCommands.TEST_PROPERTIES);
 				if (!props.exists()) {
 					// Find out which settings to include
