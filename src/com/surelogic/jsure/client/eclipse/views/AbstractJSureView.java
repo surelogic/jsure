@@ -73,7 +73,11 @@ public abstract class AbstractJSureView extends AbstractSLView {
 						final char slash  = File.separatorChar;
 						final String pkg  = srcRef.getPackage().replace('.', slash);
 						String name = srcRef.getCUName();
-						if (name.endsWith(".class")) {
+						int dollar = name.indexOf('$');
+						if (dollar >= 0) {
+							name = name.substring(0, dollar);
+						}
+						else if (name.endsWith(".class")) {
 							name = name.substring(0, name.length() - 6);
 						}
 						final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
