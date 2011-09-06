@@ -116,6 +116,7 @@ public class PromisesXMLEditor extends EditorPart {
     		   provider.inputChanged(contents, null, f.getURI());    		   
     	   }
        }
+       setPartName(input.getName());
     }
     
     @Override
