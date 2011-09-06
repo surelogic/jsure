@@ -261,7 +261,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {              
 		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = new CommentElement("...");
+		            CommentElement c = CommentElement.make("...");
 		            boolean success = cje.addCommentBefore(c, c0);
 		            if (success) {
 		            	contents.refresh();
@@ -275,7 +275,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {              
 		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = new CommentElement("...");
+		            CommentElement c = CommentElement.make("...");
 		            boolean success = cje.addCommentAfter(c, c0);
 		            if (success) {
 		            	contents.refresh();
@@ -291,7 +291,7 @@ public class PromisesXMLEditor extends EditorPart {
 		    makeMenuItem(menu, "Append comment", new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {                
-		            CommentElement c = new CommentElement("...");
+		            CommentElement c = CommentElement.make("...");
 		            cje.addComment(c);
 		            contents.refresh();
 		            contents.expandToLevel(cje, 1);
