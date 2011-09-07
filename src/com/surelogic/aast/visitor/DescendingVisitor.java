@@ -672,14 +672,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.surelogic.aast.INodeVisitor#visit(com.surelogic.aast.promise.NotUniqueNode)
-	 */
-	public T visit(NotUniqueNode notUniqueNode) {
-    T rv = defaultValue;
-    return rv;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.surelogic.aast.INodeVisitor#visit(com.surelogic.aast.promise.RegionEffectsNode)
 	 */
 	public T visit(RegionEffectsNode regionEffectsNode) {

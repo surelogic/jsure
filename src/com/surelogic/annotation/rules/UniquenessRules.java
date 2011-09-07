@@ -42,7 +42,6 @@ import edu.cmu.cs.fluid.util.Iteratable;
 
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
-  public static final String NOTUNIQUE = "NotUnique";
   public static final String BORROWED = "Borrowed";
   public static final String CONFLICTS = "CheckForUniquenessConflicts";
   public static final String UNIQUENESS_DONE = "UniquenessDone";
@@ -54,7 +53,6 @@ public class UniquenessRules extends AnnotationRules {
   
   private static final Readonly_ParseRule readonlyRule = new Readonly_ParseRule();
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
-  private static final NotUnique_ParseRule notUniqueRule     = new NotUnique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
   private static final CheckForAnnotationConflicts conflictsRule = new CheckForAnnotationConflicts();
   private static final SimpleScrubber uniquenessDone = new SimpleScrubber(UNIQUENESS_DONE, CONFLICTS) {
@@ -76,14 +74,6 @@ public class UniquenessRules extends AnnotationRules {
   
   public static UniquePromiseDrop getUnique(IRNode vdecl) {
     return getBooleanDrop(uniqueRule.getStorage(), vdecl);
-  }
-  
-  public static boolean isNotUnique(IRNode vdecl) {
-    return getNotUnique(vdecl) != null;
-  }
-  
-  public static NotUniquePromiseDrop getNotUnique(IRNode vdecl) {
-    return getBooleanDrop(notUniqueRule.getStorage(), vdecl);
   }
   
   public static boolean isBorrowed(IRNode vdecl) {
@@ -149,7 +139,6 @@ public class UniquenessRules extends AnnotationRules {
 	registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
-    registerParseRuleStorage(fw, notUniqueRule);
     registerScrubber(fw, conflictsRule);
     registerScrubber(fw, uniquenessDone);
   }
@@ -517,51 +506,6 @@ public class UniquenessRules extends AnnotationRules {
       }
     }
   }
-  
-  public static class NotUnique_ParseRule extends
-      DefaultBooleanAnnotationParseRule<NotUniqueNode, NotUniquePromiseDrop>
-      implements DropGenerator<NotUniqueNode, NotUniquePromiseDrop> {  	
-		public NotUnique_ParseRule() {
-      super(NOTUNIQUE, methodOrParamDeclOps, NotUniqueNode.class);
-    }
-		
-    @Override
-    protected Object parse(IAnnotationParsingContext context,
-        SLAnnotationsParser parser) throws Exception, RecognitionException {
-      if (context.getSourceType() == AnnotationSource.JAVADOC) {
-        return parser.borrowedList().getTree();
-      }
-      else if (SomeFunctionDeclaration.prototype.includes(context.getOp())) {
-        return parser.thisExpr().getTree();
-      }
-      // on a parameter
-      return parser.nothing().getTree();
-    } 
-		
-    @Override
-    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new NotUniqueNode(offset);
-    }
-    @Override
-    protected IPromiseDropStorage<NotUniquePromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), NotUniquePromiseDrop.class);
-    }
-    @Override
-    protected IAnnotationScrubber<NotUniqueNode> makeScrubber() {
-      return new AbstractAASTScrubber<NotUniqueNode, NotUniquePromiseDrop>(this) {
-        @Override
-        protected PromiseDrop<NotUniqueNode> makePromiseDrop(NotUniqueNode a) {
-          return storeDropIfNotNull(a, 
-              checkForReferenceType(
-                  NotUnique_ParseRule.this, getContext(), a, "NotUnique"));
-        }
-      };
-    }   
-    
-    public NotUniquePromiseDrop generateDrop(final NotUniqueNode a) {
-      return new NotUniquePromiseDrop(a);
-    }
-  }
 
   
   private static <T extends IAASTRootNode> boolean checkForReferenceType(
@@ -607,7 +551,7 @@ public class UniquenessRules extends AnnotationRules {
 
   private static final class CheckForAnnotationConflicts extends SimpleScrubber {
     public CheckForAnnotationConflicts() {
-      super(CONFLICTS, UNIQUE, NOTUNIQUE, BORROWED);
+      super(CONFLICTS, UNIQUE, BORROWED);
     }
     
     @Override
@@ -622,19 +566,13 @@ public class UniquenessRules extends AnnotationRules {
         if (uniqueDrop != null) {
           final UniqueNode uniqueAST = uniqueDrop.getAST();
           final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
-          final NotUniquePromiseDrop notUniqueDrop = getNotUnique(uniqueNode);
   
           boolean alsoBorrowed = borrowedDrop != null;
-          boolean alsoNotUnique = notUniqueDrop != null;
           if (alsoBorrowed) {        	
             getContext().reportError("Cannot be both unique and borrowed", uniqueAST);
             borrowedDrop.invalidate();
           }
-          if (alsoNotUnique) {
-            getContext().reportError("Cannot be both unique and not unique", uniqueAST);
-            notUniqueDrop.invalidate();
-          }
-          if (alsoBorrowed || alsoNotUnique) {
+          if (alsoBorrowed) {
             uniqueDrop.invalidate();
           }
         }
