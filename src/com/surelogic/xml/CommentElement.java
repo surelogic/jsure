@@ -124,6 +124,7 @@ public class CommentElement extends AbstractJavaElement {
 		modified = true;
 	}
 	
+	@Override
 	CommentElement cloneMe() {
 		return new CommentElement(uid, revision, modified, comment);
 	}

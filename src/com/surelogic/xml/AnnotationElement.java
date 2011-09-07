@@ -233,6 +233,7 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 		super.mergeThis(other, type);		
 	}
 	
+	@Override
 	AnnotationElement cloneMe() {
 		AnnotationElement clone = new AnnotationElement(uid, promise, contents, attributes);
 		copyToClone(clone);

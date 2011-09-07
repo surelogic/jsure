@@ -215,12 +215,19 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 		*/
 	}
 	
+	/**
+	 * Only merges the contents at this node
+	 * (i.e. the comments)
+	 */
 	void mergeThis(CommentedJavaElement changed, MergeType type) {
 		super.mergeThis(changed, type);
 		mergeList(comments, changed.comments, type);
 		mergeList(lastEnclosedComments, changed.lastEnclosedComments, type);
 	}
 	
+	/**
+	 * Finishes the deep copy of comments
+	 */
 	void copyToClone(CommentedJavaElement clone) {
 		super.copyToClone(clone);
 		for(CommentElement e : comments) {

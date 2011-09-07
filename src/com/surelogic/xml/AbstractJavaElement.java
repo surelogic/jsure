@@ -37,11 +37,22 @@ abstract class AbstractJavaElement implements IJavaElement {
 		isDirty = false;
 	}
 	
+	/**
+	 * Only merges the contents at this node
+	 */
 	void mergeThis(AbstractJavaElement changed, MergeType type) {
 		// Nothing to do yet
 	}
 	
+	/**
+	 * Finishes the deep copy
+	 */
 	void copyToClone(CommentedJavaElement clone) {
 		// Nothing to do yet
 	}
+	
+	/**
+	 * Do a deep copy
+	 */
+	abstract AbstractJavaElement cloneMe();
 }

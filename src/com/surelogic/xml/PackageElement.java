@@ -55,6 +55,9 @@ public class PackageElement extends AnnotatedJavaElement {
 		clazz.markAsClean();
 	}
 
+	/**
+	 * This is effectively the root, so we start merging the whole tree here
+	 */
 	PackageElement merge(PackageElement changed) {
 		if (changed.getName().equals(getName())) {
 			ClassElement c;
@@ -76,5 +79,12 @@ public class PackageElement extends AnnotatedJavaElement {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	PackageElement cloneMe() {
+		PackageElement e = new PackageElement(getName(), clazz);
+		copyToClone(e);
+		return e;
 	}
 }

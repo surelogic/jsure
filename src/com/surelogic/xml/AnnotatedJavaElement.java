@@ -86,6 +86,10 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		return this;
 	}
 	
+	/**
+	 * Only merges the contents at this node
+	 * (e.g. the annotations)
+	 */
 	void mergeThis(AnnotatedJavaElement changed) {
 		super.mergeThis(changed, MergeType.MERGE);
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {

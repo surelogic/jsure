@@ -223,7 +223,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 		return null;
 	}
-
+	
 	void copyToClone(ClassElement clone) {
 		super.copyToClone(clone);
 		if (clinit != null) {
@@ -241,5 +241,12 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(NestedClassElement n : classes.values()) {
 			clone.addMember(n.cloneMe());
 		}
+	}
+	
+	@Override
+	ClassElement cloneMe() {
+		ClassElement e = new ClassElement(getName());
+		copyToClone(e);
+		return e;
 	}
 }

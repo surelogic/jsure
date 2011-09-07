@@ -21,6 +21,7 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		return FieldDeclaration.prototype;
 	}
 
+	@Override
 	FieldElement cloneMe() {
 		FieldElement clone = new FieldElement(getName());
 		copyToClone(clone);

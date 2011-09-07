@@ -28,6 +28,7 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return ParameterDeclaration.prototype;
 	}
 
+	@Override
 	FunctionParameterElement cloneMe() {
 		FunctionParameterElement clone = new FunctionParameterElement(index);
 		copyToClone(clone);
