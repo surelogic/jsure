@@ -1,7 +1,6 @@
 package nonReference;
 
 import com.surelogic.Borrowed;
-import com.surelogic.NotUnique;
 import com.surelogic.Unique;
 
 public class Test {
@@ -54,23 +53,6 @@ public class Test {
   }
 
   public void badBorrowed(@Borrowed(/* is UNASSOCIATED */) int p) {
-    // do stuff
-  }
-  
-  
-  
-  @NotUnique("this" /* is CONSISTENT */)
-  public void goodNotUniqueReceiver() {
-    // do stuff
-  }
-
-  
-  
-  public void goodNotUnique(@NotUnique(/* is CONSISTENT */) Test p) {
-    // do stuff
-  }
-
-  public void badNotUnique(@NotUnique(/* is UNASSOCIATED */) int p) {
     // do stuff
   }
 }
