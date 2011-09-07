@@ -465,23 +465,37 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 					n, binder);
 			if (type instanceof IJavaDeclaredType) {
 				final IJavaDeclaredType t = (IJavaDeclaredType) type;
+				supers:
 				for(IJavaType superT : t.getSupertypes(this)) {
 					IJavaDeclaredType s = (IJavaDeclaredType) superT;
 			
 
                     //if (print) {
-					System.out.println(getProject().getName()+" adding supertype: "+s+" <--- "+t);
+					//System.out.println(getProject().getName()+" adding supertype: "+s+" <--- "+t);
 					//}
 					
 					// Changed to put the info in supertype's type env, instead of the subtype's
 					//
 					// List<IRNode> oldL = subtypeMap.putIfAbsent(s.getDeclaration(), newL);
 					final JavacTypeEnvironment tEnv = getTypeEnv_cached(s.getDeclaration());
+					if (tEnv != this) {
+						if (tEnv.getProject().getName().contains("org.eclipse.jdt.launching.JRE_CONTAINER")) {
+							System.out.println("JRE adding supertype: "+s+" <--- "+t);
+						} else {
+							System.out.println(tEnv.getProject().getName()+" adding supertype: "+s+" <--- "+t);
+						}
+					}
 					List<IRNode> oldL = tEnv.subtypeMap.putIfAbsent(s.getDeclaration(), newL);
 					if (oldL == null) {
 						// Will be adding first mapping
 						oldL = newL;
 						newL = new ArrayList<IRNode>();
+					}
+					// TODO this could be really slow (n^2) for types like j.l.Object
+					else if (oldL.contains(t.getDeclaration())) {
+						// Skip, otherwise we would end up with duplicate mappings, due to 'type' being in both TypeEnvs
+						System.out.println("Duplicate subtype info for "+t);
+						continue supers;
 					}
 					oldL.add(t.getDeclaration());
 				}
