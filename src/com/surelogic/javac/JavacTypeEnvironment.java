@@ -467,11 +467,17 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				final IJavaDeclaredType t = (IJavaDeclaredType) type;
 				for(IJavaType superT : t.getSupertypes(this)) {
 					IJavaDeclaredType s = (IJavaDeclaredType) superT;
-					
+			
+
                     //if (print) {
-					//	System.out.println(getProject().getName()+" adding supertype: "+s+" <--- "+t);
-					//}                    
-					List<IRNode> oldL = subtypeMap.putIfAbsent(s.getDeclaration(), newL);
+					System.out.println(getProject().getName()+" adding supertype: "+s+" <--- "+t);
+					//}
+					
+					// Changed to put the info in supertype's type env, instead of the subtype's
+					//
+					// List<IRNode> oldL = subtypeMap.putIfAbsent(s.getDeclaration(), newL);
+					final JavacTypeEnvironment tEnv = getTypeEnv_cached(s.getDeclaration());
+					List<IRNode> oldL = tEnv.subtypeMap.putIfAbsent(s.getDeclaration(), newL);
 					if (oldL == null) {
 						// Will be adding first mapping
 						oldL = newL;
