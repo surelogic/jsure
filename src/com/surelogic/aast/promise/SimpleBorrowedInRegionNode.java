@@ -12,7 +12,7 @@ public class SimpleBorrowedInRegionNode extends AASTRootNode
   private final RegionSpecificationNode spec;
   
   public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("BorrowedInRegion") {
+    new AbstractAASTNodeFactory("SimpleBorrowedInRegion") {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
