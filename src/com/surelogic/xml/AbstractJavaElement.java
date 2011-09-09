@@ -55,4 +55,35 @@ abstract class AbstractJavaElement implements IJavaElement {
 	 * Do a deep copy
 	 */
 	abstract AbstractJavaElement cloneMe();
+	
+	protected static void merge(IMergeableElement me, IMergeableElement other) {		
+		if (me.isModified()) {
+		 	return; // Keep what we've edited
+		}
+		final int thisRev = me.getRevision();
+		final int otherRev = other.getRevision();
+		MergeType type;
+		if (thisRev == otherRev) {
+			if (!other.isModified()) {
+				return; // These should be the same
+			}
+			// Same revision, and the other's modified, so			
+			// Overwrite things in common
+			/*
+			me.merge(other, MergeType.USE_OTHER);
+			incrRevision();			
+			*/
+		} else if (otherRev > thisRev) {
+			// Overwrite this completely, since the other's newer
+			/*
+			attributes.clear();
+			contents = other.contents;
+			attributes.putAll(other.attributes);
+			*/
+			type = MergeType.USE_OTHER;
+		} else {
+			// Ignore the other, since it's an older rev
+			return;
+		}	
+	}
 }

@@ -141,6 +141,7 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	}
 	
 	private void mergeList(List<CommentElement> orig, List<CommentElement> other, MergeType type) {
+		// TODO
 		if (type == MergeType.USE_OTHER) {
 			orig.clear();
 			copyList(other, orig);

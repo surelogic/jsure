@@ -8,12 +8,12 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.UniqueID;
 
-public class CommentElement extends AbstractJavaElement {
+public class CommentElement extends AbstractJavaElement implements IMergeableElement {
 	public static final char MARKER = '%';
 	public static final String SEPARATOR = ":";
 	public static final String END_MARKER = MARKER+"--";
 	private final UniqueID uid;
-	private final int revision;
+	private int revision;
 	private boolean modified;
 	private String comment;
 
@@ -69,6 +69,14 @@ public class CommentElement extends AbstractJavaElement {
 	
 	public boolean isModified() {
 		return modified;
+	}
+	
+	public void incrRevision() {
+		if (!isModified()) {
+			throw new IllegalStateException("Not dirty");
+		}
+		modified = false;
+		this.revision++;
 	}
 	
 	@Override

@@ -94,6 +94,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		super.mergeThis(changed, MergeType.MERGE);
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
 			// TODO how to merge the ordering?
+			// right now, this puts any new elements at the end
 			final AnnotationElement a = promises.get(e.getKey());
 			if (a != null) {
 				a.merge(e.getValue());				

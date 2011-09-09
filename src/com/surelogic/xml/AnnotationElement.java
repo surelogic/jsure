@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class AnnotationElement extends CommentedJavaElement implements TestXMLParserConstants {
+public class AnnotationElement extends CommentedJavaElement implements IMergeableElement, TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private String contents;
