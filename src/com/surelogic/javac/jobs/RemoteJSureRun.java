@@ -2,7 +2,6 @@ package com.surelogic.javac.jobs;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.util.*;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.TestResult;
@@ -27,7 +26,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	public static final String RESULTS_XML  = "results"+SeaSnapshot.SUFFIX;
-	public static final String LOG_TXT = "remote.log.txt";
+	public static final String LOG_TXT = "remote"+LOG_SUFFIX;
 	public static final String SUMMARIES_ZIP = "summaries.zip";
 	
 	public static void main(String[] args) {
