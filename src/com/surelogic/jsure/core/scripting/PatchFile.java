@@ -55,7 +55,7 @@ public class PatchFile extends AbstractCommand {
 			IFilePatchResult result = filePatch.apply(file, config, null);
 
 			if (result.hasRejects()) {
-				System.err.println("Some patches could not be applied.");
+				System.err.println("Some patches could not be applied to "+contents[2]);
 				return false;
 			}
 
