@@ -208,7 +208,6 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 		return merge(this, other);	
 	}
 	
-	@Override
 	public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
 		mergeThis((AnnotationElement) other, MergeType.MERGE);

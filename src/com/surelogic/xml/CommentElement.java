@@ -137,7 +137,6 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 		return new CommentElement(uid, revision, modified, comment);
 	}
 
-	@Override
 	public void mergeAttached(IMergeableElement other) {
 		if (other instanceof CommentElement) {
 			// TODO what is there to do?  nothing's attached
