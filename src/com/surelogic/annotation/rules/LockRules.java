@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class LockRules extends AnnotationRules {
   private static final String JAVA_LANG_ENUM = "java.lang.Enum";
@@ -1767,29 +1768,64 @@ public class LockRules extends AnnotationRules {
 	        bad = true;
 	        context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
 	      }
+	      
+	      // Scan each extended interface for incompatibility
+	      final IRNode extensions = InterfaceDeclaration.getExtensions(promisedFor);
+	      if (extensions != null) {
+	        for (final IRNode superDecl : Extensions.getSuperInterfaceIterator(extensions)) {
+	          final IRNode bound = context.getBinder().getBinding(superDecl);
+	          checkAnnotatedInterfaceSuperInterface(node, promisedFor, bound);
+	        }
+	      }
 	    } else { // class
 	      final IRNode superDecl;
+	      final Iterable<IRNode> interfaces;
 	      if (EnumDeclaration.prototype.includes(op)) {
 	        superDecl = context.getBinder().getTypeEnvironment().findNamedType(
 	            JAVA_LANG_ENUM);
+	        interfaces = Implements.getIntfIterator(EnumDeclaration.getImpls(promisedFor));
 	      } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
 	        // Get the enclosing EnumDeclaration
 	        superDecl = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
+	        interfaces = null;
 	      } else if (AnonClassExpression.prototype.includes(op)) {
-	        superDecl = context.getBinder().getBinding(
-	            AnonClassExpression.getType(promisedFor));
+	        final IRNode superTypeName = AnonClassExpression.getType(promisedFor);
+          final IRNode superType = context.getBinder().getBinding(superTypeName);
+	        if (TypeUtil.isInterface(superType)) {
+	          superDecl = context.getBinder().getTypeEnvironment().getObjectType().getDeclaration();
+	          interfaces = new Iterable<IRNode>() {
+              public Iterator<IRNode> iterator() {
+                return new SingletonIterator<IRNode>(superTypeName);
+              }	            
+	          };
+	        } else {
+	          superDecl = superType;
+	          interfaces = null;
+	        }
 	      } else {
 	        superDecl = context.getBinder().getBinding(
 	            ClassDeclaration.getExtension(promisedFor));
+	        interfaces = Implements.getIntfIterator(ClassDeclaration.getImpls(promisedFor));
 	      }
 
+        // Scan each implemented interface for incompatibility
+        if (interfaces != null) {
+          for (final IRNode intfName : interfaces) {
+            final IRNode bound = context.getBinder().getBinding(intfName);
+            checkAnnotatedClassSuperInterface(node, promisedFor, bound);
+          }
+        }
+
+        // Scan superclass for incompatibility
+        checkAnnotatedClassSuperClass(node, promisedFor, superDecl);
+        
 	      if (implementationOnly) {
 	        final IRNode impls = EnumDeclaration.prototype.includes(op) ?
 	            EnumDeclaration.getImpls(promisedFor) :
 	              ClassDeclaration.getImpls(promisedFor);
 	        for (final IRNode intfName : Implements.getIntfIterator(impls)) {
 	          final IRNode intfDecl = context.getBinder().getBinding(intfName);
-	          if (getSuperTypeAnno(intfDecl) != null) {
+	          if (getAnnotation(intfDecl) != null) {
 	            bad = true;
 	            context.reportError(node,
 	                "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
@@ -1799,23 +1835,25 @@ public class LockRules extends AnnotationRules {
 	        
 	        // java.lang.Object doesn't have a superclass
 	        if (superDecl != promisedFor) {
-	          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> superAnno = getSuperTypeAnno(superDecl);
-	          if (superAnno == null) {
-	            bad = true;
-	            context.reportError(node,
-	                "Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
-	                name, JavaNames.getQualifiedTypeName(superDecl));
-	          } else if(!superAnno.isImplementationOnly() ) {
-	            bad = true;
-	            context.reportError(node,
-	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
-	                name, JavaNames.getQualifiedTypeName(superDecl));
+	          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> superAnno = getAnnotation(superDecl);
+	          if (!isLessSpecific(superDecl)) {
+  	          if (superAnno == null) {
+  	            bad = true;
+  	            context.reportError(node,
+  	                "Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
+  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	          } else if(!superAnno.isImplementationOnly() ) {
+  	            bad = true;
+  	            context.reportError(node,
+  	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
+  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	          }
 	          }
 	        }
 	      } else { // implementationOnly == false
 	        // java.lang.Object doesn't have a superclass
 	        if (superDecl != promisedFor) {
-	          if (getSuperTypeAnno(superDecl) == null) {
+	          if (!isLessSpecific(superDecl) && getAnnotation(superDecl) == null) {
 	            bad = true;
 	            context.reportError(node,
 	                "Class may not be @{0} because it extends the non-@{0} class {1}",
@@ -1855,6 +1893,8 @@ public class LockRules extends AnnotationRules {
       
       // Are we actually annotated with the NOT form of the annotation?
       final boolean isNOT = getNotAnnotation(typeDecl) != null;
+      // Are we annotated with a more specific annotation
+      final boolean isMoreSpecific = isMoreSpecific(typeDecl);
       
       boolean result = true;      
       if (isInterface) { // unannotated interface
@@ -1863,12 +1903,12 @@ public class LockRules extends AnnotationRules {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
           // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
           if (TypeUtil.isInterface(zuperDecl)) {
-            if (getSuperTypeAnno(zuperDecl) != null) {
+            if (getAnnotation(zuperDecl) != null) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
-              } else {
+              } else if (!isMoreSpecific) {
                 context.reportError(typeDecl,
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
@@ -1877,17 +1917,17 @@ public class LockRules extends AnnotationRules {
             }
           }
         }
-      } else {
+      } else { // unannotated class
         for (final IJavaType zuper : supers) {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> anno = getSuperTypeAnno(zuperDecl);
+          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> anno = getAnnotation(zuperDecl);
           if (anno != null) {
             if (TypeUtil.isInterface(zuperDecl)) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Class may not be @{0} because it implements a @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
-              } else {
+              } else if (!isMoreSpecific) {
                 context.reportError(typeDecl,
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
@@ -1911,10 +1951,31 @@ public class LockRules extends AnnotationRules {
       return result;
     }
 	  
+    protected abstract ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(IRNode typeDecl);
+    
     protected abstract NP getNotAnnotation(IRNode typeDecl);
-	  
-	  protected abstract ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getSuperTypeAnno(IRNode superDecl);
-	  
+    
+    /* typeDecl is an unannotated class.  We want to know if it is actually
+     * annotated with an annotation more specific than the one we are checking.
+     */
+    protected boolean isMoreSpecific(IRNode typeDecl) {
+      return false;
+    }
+    
+    /* classDecl is the superclass of an annotated class.  We want to know if it
+     * is actually annotated with an annotation less specific than the one we are
+     * checking.
+     */
+    protected boolean isLessSpecific(IRNode classDecl) {
+      return false;
+    }
+    
+    protected abstract void checkAnnotatedInterfaceSuperInterface(A node, IRNode iDecl, IRNode sDecl);
+
+    protected abstract void checkAnnotatedClassSuperInterface(A node, IRNode cDecl, IRNode iDecl);
+    
+    protected abstract void checkAnnotatedClassSuperClass(A node, IRNode cDecl, IRNode sDecl);
+
 	  protected abstract P createDrop(A node);
 	  
 	  protected abstract A makeDerivedAnnotation(int offset, int mods);
@@ -1937,7 +1998,7 @@ public class LockRules extends AnnotationRules {
     protected IAnnotationScrubber<ContainableNode> makeScrubber() {
       return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, "Containable", "NotContainable", NOT_CONTAINABLE) {
         @Override
-        protected ContainablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
+        protected ContainablePromiseDrop getAnnotation(final IRNode superDecl) {
           return getContainableImplementation(superDecl);
         }
         
@@ -1955,6 +2016,24 @@ public class LockRules extends AnnotationRules {
         protected ContainableNode makeDerivedAnnotation(
             final int offset, final int mods) {
           return new ContainableNode(offset, mods);
+        }
+
+        @Override
+        protected void checkAnnotatedInterfaceSuperInterface(
+            final ContainableNode node, final IRNode iDecl, final IRNode sDecl) {
+          // Nothing to check
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperInterface(
+            final ContainableNode node, final IRNode cDecl, final IRNode iDecl) {
+          // Nothing to check
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperClass(
+            final ContainableNode node, final IRNode iDecl, final IRNode sDecl) {
+          // Nothing to check
         }
       };
     }    
@@ -1976,11 +2055,10 @@ public class LockRules extends AnnotationRules {
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
       return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
         @Override
-        protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getSuperTypeAnno(final IRNode superDecl) {
-          final ThreadSafePromiseDrop p = getThreadSafeImplementation(superDecl);
-          return (p == null) ? getImmutableImplementation(superDecl) : p; 
+        protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(final IRNode superDecl) {
+          return getThreadSafeImplementation(superDecl);
         }
-        
+
         @Override
         protected ThreadSafePromiseDrop createDrop(final ThreadSafeNode node) {
           return new ThreadSafePromiseDrop(node);
@@ -1990,11 +2068,62 @@ public class LockRules extends AnnotationRules {
         protected NotThreadSafePromiseDrop getNotAnnotation(final IRNode typeDecl) {
           return getNotThreadSafe(typeDecl);
         }
+
+        /* typeDecl is a class not annotated with ThreadSafe.  We want to know
+         * if is actually annotated with Immutable, which is more specific
+         * than ThreadSafe.
+         */
+        @Override
+        protected boolean isMoreSpecific(final IRNode typeDecl) {
+          return getImmutableImplementation(typeDecl) != null;
+        }
+        
+        /* classDecl is the superclass of a class annotated with ThreasSafe.
+         * We want to know if it is actually annotated with
+         * @Immutable(implementationOnly=true), which is less specific than 
+         * @ThreadSafe.
+         */
+        @Override
+        protected boolean isLessSpecific(IRNode classDecl) {
+          final ImmutablePromiseDrop iDrop = getImmutableImplementation(classDecl);
+          return (iDrop != null) && (iDrop.isImplementationOnly());
+        }
         
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
             final int offset, final int mods) {
           return new ThreadSafeNode(offset, mods);
+        }
+
+        @Override
+        protected void checkAnnotatedInterfaceSuperInterface(
+            final ThreadSafeNode node, final IRNode iDecl, final IRNode sDecl) {
+          if (getImmutableImplementation(sDecl) != null) {
+            getContext().reportError(node, 
+                "Interface may not be @ThreadSafe because it extends the @Immutable interface {0}",
+                JavaNames.getQualifiedTypeName(sDecl));
+          }
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperInterface(
+            final ThreadSafeNode node, final IRNode cDecl, final IRNode iDecl) {
+          if (getImmutableImplementation(iDecl) != null) {
+            getContext().reportError(node, 
+                "Class may not be @ThreadSafe because it implements the @Immutable interface {0}",
+                JavaNames.getQualifiedTypeName(iDecl));
+          }
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperClass(
+            final ThreadSafeNode node, final IRNode iDecl, final IRNode sDecl) {
+          final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
+          if (iDrop != null && !iDrop.isImplementationOnly()) {
+            getContext().reportError(node, 
+                "Class may not be @ThreadSafe because it extends the @Immutable(implementationOnly=false) class {0}",
+                JavaNames.getQualifiedTypeName(sDecl));
+          }
         }
       };
     }    
@@ -2102,7 +2231,7 @@ public class LockRules extends AnnotationRules {
     protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
       return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
         @Override
-        protected ImmutablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
+        protected ImmutablePromiseDrop getAnnotation(final IRNode superDecl) {
           return getImmutableImplementation(superDecl);
         }
         
@@ -2120,6 +2249,28 @@ public class LockRules extends AnnotationRules {
         protected ImmutableNode makeDerivedAnnotation(
             final int offset, final int mods) {
           return new ImmutableNode(offset, mods);
+        }
+
+        @Override
+        protected void checkAnnotatedInterfaceSuperInterface(
+            final ImmutableNode node, final IRNode iDecl, final IRNode sDecl) {
+          // Nothing to check: Super interface may be ThreadSafe
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperInterface(
+            final ImmutableNode node, final IRNode cDecl, final IRNode iDecl) {
+          // Nothing to check: Implemented interfaces may be ThreadSafe
+        }
+
+        @Override
+        protected void checkAnnotatedClassSuperClass(
+            final ImmutableNode node, final IRNode iDecl, final IRNode sDecl) {
+          if (getThreadSafeImplementation(sDecl) != null) {
+            getContext().reportError(node, 
+                "Class may not be @Immutable because it extends the @ThreadSafe class {0}",
+                JavaNames.getQualifiedTypeName(sDecl));
+          }
         }
         
         @Override
