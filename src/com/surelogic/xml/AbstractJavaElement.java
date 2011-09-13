@@ -4,8 +4,6 @@ import java.util.*;
 
 import com.surelogic.common.logging.IErrorListener;
 
-import difflib.*;
-
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
 	private boolean isDirty;
