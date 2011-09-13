@@ -204,37 +204,19 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 		return CommonImages.IMG_ANNOTATION;
 	}
 	
-	void merge(AnnotationElement other) {		
-		if (isModified()) {
-		 	return; // Keep what we've edited
-		}
-		final int thisRev = getRevision();
-		final int otherRev = other.getRevision();
-		MergeType type;
-		if (thisRev == otherRev) {
-			if (!other.isModified()) {
-				return; // These should be the same
-			}
-			// Overwrite things in common
-			contents = other.contents;
-			attributes.putAll(other.attributes);
-			incrRevision();			
-			type = MergeType.USE_OTHER;
-		} else if (otherRev > thisRev) {
-			// Overwrite this completely
-			attributes.clear();
-			contents = other.contents;
-			attributes.putAll(other.attributes);
-			type = MergeType.USE_OTHER;
-		} else {
-			// Ignore the other, since it's an older rev
-			return;
-		}
-		super.mergeThis(other, type);		
+	AnnotationElement merge(AnnotationElement other) {		
+		return merge(this, other);	
 	}
 	
 	@Override
-	AnnotationElement cloneMe() {
+	public void mergeAttached(IMergeableElement other) {
+		// Merge the comments that are attached
+		mergeThis((AnnotationElement) other, MergeType.MERGE);
+		// TODO what about attributes?
+	}
+	
+	@Override
+	public AnnotationElement cloneMe() {
 		AnnotationElement clone = new AnnotationElement(uid, promise, contents, attributes);
 		copyToClone(clone);
 		return clone;

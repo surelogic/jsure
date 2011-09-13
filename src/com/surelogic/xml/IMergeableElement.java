@@ -4,4 +4,15 @@ public interface IMergeableElement extends IJavaElement {
 	boolean isModified();
 	int getRevision();
 	void incrRevision();
+	
+	/**
+	 * Also include anything attached to me
+	 */
+	IMergeableElement cloneMe();
+	
+	/**
+	 * Merge anything attached to either,
+	 * leaving this element otherwise unchanged
+	 */
+	void mergeAttached(IMergeableElement other);
 }

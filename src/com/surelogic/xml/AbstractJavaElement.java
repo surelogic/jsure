@@ -1,6 +1,10 @@
 package com.surelogic.xml;
 
+import java.util.*;
+
 import com.surelogic.common.logging.IErrorListener;
+
+import difflib.*;
 
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
@@ -56,34 +60,127 @@ abstract class AbstractJavaElement implements IJavaElement {
 	 */
 	abstract AbstractJavaElement cloneMe();
 	
-	protected static void merge(IMergeableElement me, IMergeableElement other) {		
+	/**
+	 * If one is modified or has a higher revision, take everything on that one
+	 * Otherwise, we need to merge whatever's attached to both
+	 * (e.g. comments on the annotation)
+	 * 
+	 * @return Either me, or a new element
+	 */
+	@SuppressWarnings("unchecked")
+	protected static <T extends IMergeableElement> T merge(T me, T other) {		
 		if (me.isModified()) {
-		 	return; // Keep what we've edited
+		 	return me; // Keep what we've edited
 		}
 		final int thisRev = me.getRevision();
 		final int otherRev = other.getRevision();
-		MergeType type;
 		if (thisRev == otherRev) {
 			if (!other.isModified()) {
-				return; // These should be the same
+				// Merge everything attached if it's modified
+				me.mergeAttached(other);
+				return me; 
 			}
 			// Same revision, and the other's modified, so			
-			// Overwrite things in common
-			/*
-			me.merge(other, MergeType.USE_OTHER);
-			incrRevision();			
-			*/
+			// use the other
+			T updated = (T) other.cloneMe();
+			updated.incrRevision();
+			return updated;
 		} else if (otherRev > thisRev) {
-			// Overwrite this completely, since the other's newer
-			/*
-			attributes.clear();
-			contents = other.contents;
-			attributes.putAll(other.attributes);
-			*/
-			type = MergeType.USE_OTHER;
+			// Use other, since the other's a newer	revision
+			return (T) other.cloneMe(); 
 		} else {
 			// Ignore the other, since it's an older rev
-			return;
+			return me;
 		}	
+	}
+	
+	protected <T extends AbstractJavaElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
+		if (type != MergeType.MERGE) {
+			throw new IllegalStateException("Unexpected type: "+type);
+		}
+		if (type == MergeType.USE_OTHER) {
+			orig.clear();
+			copyList(other, orig);
+			return;
+		}
+		if (other.isEmpty()) {
+			return; // Nothing to do
+		}
+		if (orig.isEmpty()) {
+			copyList(other, orig);
+			return;
+		} 
+		// Keep the original
+		/*
+			// Something to merge, so first find what's shared
+			final Set<String> shared = new HashSet<String>();
+			for(CommentElement e : orig) {
+				shared.add(e.getLabel());
+			}
+			int i=0;
+			boolean same = true;
+			for(CommentElement e : other) {
+				if (!shared.contains(e.getLabel())) {
+					shared.remove(e.getLabel());
+				}
+				if (!e.equals(orig.get(i))) {
+					same = false;
+				}
+				i++;
+			}
+			if (same) {
+				return; // Both are the same, so there's nothing to do
+			}
+			if (shared.isEmpty()) {
+				if (type == MergeType.PREFER_OTHER) {
+					// Replace
+					orig.clear();
+					copyList(other, orig);
+					return;
+				} else {
+					// Keep the original comments
+					return;
+				}
+			} else {
+			*/
+		
+		/*
+		// TODO is this just a complicated way of saying "keep or overwrite"?
+		final List<CommentElement> temp = new ArrayList<CommentElement>();			
+		final Patch p = DiffUtils.diff(orig, other);			
+		int lastPosition = 0;
+		for(final Delta d : p.getDeltas()) {
+			final Chunk origC = d.getOriginal();
+			// Copy everything between where we left off and where this chunk starts
+			for(i=lastPosition; i<origC.getPosition(); i++) {
+				CommentElement e = orig.get(i).cloneMe();
+				e.setParent(this);
+				temp.add(e);
+			}
+			final Chunk src = type == MergeType.PREFER_OTHER ? d.getRevised() : d.getOriginal();
+			for(Object o : src.getLines()) {
+				CommentElement e = ((CommentElement) o).cloneMe();
+				e.setParent(this);
+				temp.add(e);
+			}
+			lastPosition = origC.getPosition() + origC.getSize();
+		}
+		for(i=lastPosition; i<orig.size(); i++) {
+			CommentElement e = orig.get(i).cloneMe();
+			e.setParent(this);
+			temp.add(e);
+		}
+		*/
+			//}
+	}
+	
+	private <T extends AbstractJavaElement> void copyList(List<T> src, List<T> dest) {
+		for(T e : src) {
+			@SuppressWarnings("unchecked")
+			T c = (T) e.cloneMe();
+			dest.add(c);
+			c.setParent(this);
+		}
+		markAsDirty();
 	}
 }
