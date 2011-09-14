@@ -263,11 +263,10 @@
 
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
-				<echo message="[suite to scan] ${jsure.tests.suites}${fs}@{suite} -> ${suite.dir}" />
+				<echo message="[suite to scan] ${jsure.tests.suites}${fs}@{suite} -> ${sandbox.suites.dir}${fs}@{suite}" />
 				<copy-project-to-a-dir projectDir="@{suite}" fromDir="${jsure.tests.suites}" toDir="${sandbox.suites.dir}" />
 				<mkdir dir="${sandbox.workspace.dir}${fs}@{suite}" />
-				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" param="name.zip" trim="true">
 					<sequential>
 						<if>
@@ -275,10 +274,10 @@
 							<then>
 								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
 								<propertyRegex property="name.no.dot.zip" input="@{name.zip}" regexp="(.*)\.zip$" select="\1" override="true" casesensitive="false" />
-								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
-								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
-								<delete file="${suite.dir}${fs}@{name.zip}" />
-								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip} (and removed @{name.zip})" />
+								<mkdir dir="${sandbox.suites.dir}${fs}@{suite}${fs}${name.no.dot.zip}" />
+								<unzip src="${sandbox.suites.dir}${fs}@{suite}${fs}@{name.zip}" dest="${sandbox.suites.dir}${fs}@{suite}${fs}${name.no.dot.zip}" />
+								<delete file="${sandbox.suites.dir}${fs}@{suite}${fs}@{name.zip}" />
+								<echo message="Unzipped @{name.zip} into ${sandbox.suites.dir}${fs}@{suite}${fs}${name.no.dot.zip} (and removed @{name.zip})" />
 							</then>
 						</if>
 					</sequential>
@@ -315,9 +314,8 @@
 
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
 				<property name="workspace.dir" value="${sandbox.workspace.dir}${fs}@{suite}" />
-				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
 						<echo message="${ln}" />
@@ -326,7 +324,7 @@
 
 						<mkdir dir="${workspace.dir}${fs}@{project}" />
 
-						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
+						<propertyfile file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}test.properties">
 							<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
 							<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
 							<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
@@ -335,16 +333,16 @@
 							<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
 							<entry key="classname" value="${jsure-tests-plugin-id}.RunARegressionTest" />
 							<entry key="junit-report-output" value="${workspace.dir}${fs}@{project}" />
-							<entry key="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
+							<entry key="extraVMargs" value="-Dtest.module=${sandbox.suites.dir}${fs}@{suite}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
 						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
-							<property file="${suite.dir}${fs}@{project}${fs}test.properties" />
+							<property file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}test.properties" />
 						</ant>
 
-						<move todir="${suite.dir}${fs}@{project}">
+						<move todir="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}">
 							<fileset dir="${workspace.dir}${fs}@{project}" includes="**/*" defaultexcludes="no" />
 						</move>
-						<move todir="${suite.dir}${fs}@{project}">
+						<move todir="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}">
 							<fileset dir="${sandbox.eclipse.dir}" includes="*.log.Tests.xml" defaultexcludes="no" />
 						</move>
 					</sequential>
@@ -406,11 +404,10 @@
 		<echo message="${ln}" />
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
-				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testResults file="${suite.dir}${fs}@{project}${fs}RemoteJSureRun.AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}RemoteJSureRun.AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
@@ -421,11 +418,10 @@
 		<echo message="${ln}" />
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
-				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testResults file="${suite.dir}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
@@ -436,11 +432,10 @@
 		<echo message="${ln}" />
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
-				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testResults file="${suite.dir}${fs}@{project}${fs}com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
