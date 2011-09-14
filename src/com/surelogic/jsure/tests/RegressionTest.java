@@ -171,6 +171,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	 * immediate sub-directories
 	 */
 	private void importProject(final File projectDir) {
+		if (FileUtility.JSURE_DATA_PATH_FRAGMENT.equals(projectDir.getName())) {
+			return; // It won't be in the jsure-data dir
+		}
+		
 		// check for a .project file
 		final File dotProjectFile = new File(projectDir, ".project");
 		if (!dotProjectFile.exists()) {
