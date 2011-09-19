@@ -2304,13 +2304,48 @@ public class LockRules extends AnnotationRules {
 	  @Override
 	  protected IAnnotationScrubber<ImmutableRefNode> makeScrubber() {
 		  // TODO scrub
-		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(this) {
+		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
+		      this, ScrubberType.UNORDERED, UniquenessRules.READONLY) {
 			  @Override
 			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
-				  return storeDropIfNotNull(n, new ImmutableRefPromiseDrop(n));
+				  return storeDropIfNotNull(n, scrubImmutableRef(getContext(), n));
 			  }    		
 		  };
 	  }
+  }
+  
+  private static ImmutableRefPromiseDrop scrubImmutableRef(
+      final IAnnotationScrubberContext context, final ImmutableRefNode n) {
+    // must be a reference type
+    boolean good = UniquenessRules.checkForReferenceType(context, n, "Immutable");
+
+    final IRNode promisedFor = n.getPromisedFor();
+    if (UniquenessRules.isBorrowed(promisedFor)) {
+      context.reportError(
+          n, "Cannot be annotated with both @Immutable and @Borrowed");
+      good = false;
+    }
+    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          n, "Cannot be annotated with both @Immutable and @BorrowedInRegion");
+      good = false;
+    }
+    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          n, "Cannot be annotated with both @Immutable and @BorrowedInRegion");
+      good = false;
+    }
+    if (UniquenessRules.getReadOnly(promisedFor) != null) {
+      context.reportError(
+          n, "Cannot be annotated with both @Immutable and @ReadOnly");
+      good = false;
+    }
+    
+    if (good) {
+      return new ImmutableRefPromiseDrop(n);
+    } else {
+      return null;
+    }
   }
   
   private static final class LockFieldVisibilityScrubber extends SimpleScrubber {

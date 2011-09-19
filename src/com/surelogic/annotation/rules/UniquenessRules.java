@@ -44,7 +44,6 @@ public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
   public static final String BORROWED = "Borrowed";
   public static final String CONFLICTS = "CheckForUniquenessConflicts";
-  public static final String UNIQUENESS_DONE = "UniquenessDone";
   public static final String READONLY = "ReadOnly";
   
   private static final AnnotationRules instance = new UniquenessRules();
@@ -55,12 +54,6 @@ public class UniquenessRules extends AnnotationRules {
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
   private static final CheckForAnnotationConflicts conflictsRule = new CheckForAnnotationConflicts();
-  private static final SimpleScrubber uniquenessDone = new SimpleScrubber(UNIQUENESS_DONE, CONFLICTS) {
-    @Override
-    protected void scrub() {
-      // do nothing
-    }
-  };
 
   
   
@@ -139,8 +132,7 @@ public class UniquenessRules extends AnnotationRules {
 	registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
-    registerScrubber(fw, conflictsRule);
-    registerScrubber(fw, uniquenessDone);
+//    registerScrubber(fw, conflictsRule);
   }
   
   private static interface DropGenerator<T extends IAASTRootNode, D extends PromiseDrop<T>> {
@@ -200,12 +192,39 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<ReadOnlyNode> makeScrubber() {
     	// TODO scrub
-    	return new AbstractAASTScrubber<ReadOnlyNode, ReadOnlyPromiseDrop>(this) {
-			@Override
-			protected ReadOnlyPromiseDrop makePromiseDrop(ReadOnlyNode n) {
-				return storeDropIfNotNull(n, new ReadOnlyPromiseDrop(n));
-			}    		
+    	return new AbstractAASTScrubber<ReadOnlyNode, ReadOnlyPromiseDrop>(
+    	    this, ScrubberType.UNORDERED,
+    	    RegionRules.EXPLICIT_BORROWED_IN_REGION,
+    	    RegionRules.SIMPLE_BORROWED_IN_REGION) {
+	  		@Override
+		  	protected ReadOnlyPromiseDrop makePromiseDrop(ReadOnlyNode n) {
+			  	return storeDropIfNotNull(n, scrubReadOnly(context, n));
+  			}    		
     	};
+    }
+    
+    private ReadOnlyPromiseDrop scrubReadOnly(
+        final IAnnotationScrubberContext context, final ReadOnlyNode n) {
+      // must be a reference type variable
+      boolean isGood = checkForReferenceType(context, n, "ReadOnly");
+      
+      /* Cannot also be borrowed, unless the annotation is on a field.
+       * Imples we don't have to check for BorrowedInRegion, because that
+       * can only appear on a field, and would thus be legal.
+       */
+      final IRNode promisedFor = n.getPromisedFor();
+      if (isBorrowed(promisedFor) &&
+          !FieldDeclaration.prototype.includes(
+              JJNode.tree.getParentOrNull(JJNode.tree.getParentOrNull(promisedFor)))) {
+        context.reportError(n, "Cannot be annotated with both @Borrowed and @ReadOnly");
+        isGood = false;
+      }
+      
+      if (isGood) {
+        return new ReadOnlyPromiseDrop(n);
+      } else {
+        return null;
+      }
     }
   }
   
@@ -226,7 +245,8 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<UniqueNode> makeScrubber() {
       return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(
-          this, ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+          this, ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY,
+          LockRules.IMMUTABLE_REF) {
         @Override
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
           final UniquePromiseDrop storedDrop =
@@ -277,20 +297,6 @@ public class UniquenessRules extends AnnotationRules {
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
-        // Cannot also have a @UniqueInRegion("X") annotation
-        for (final UniqueInRegionNode n : AASTStore.getASTsByPromisedFor(promisedFor, UniqueInRegionNode.class)) {
-          context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
-          AASTStore.removeAST(n);
-          good = false;
-        }
-        
-        // Cannot also have a @UniqueInRegion("X in Y, ...") annotation
-        for (final UniqueMappingNode n : AASTStore.getASTsByPromisedFor(promisedFor, UniqueMappingNode.class)) {
-          context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
-          AASTStore.removeAST(n);
-          good = false;
-        }
-        
         if (TypeUtil.isVolatile(promisedFor)) {
           good = false;
           context.reportError(a, "@Unique cannot be used on a volatile field");
@@ -302,6 +308,39 @@ public class UniquenessRules extends AnnotationRules {
         }
       }
 
+      if (UniquenessRules.isBorrowed(promisedFor)) {
+        context.reportError(
+            a, "Cannot be annotated with both @Unique and @Borrowed");
+        good = false;
+      }
+      if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+        context.reportError(
+            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
+        good = false;
+      }
+      if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
+        context.reportError(
+            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
+        good = false;
+      }
+      if (UniquenessRules.getReadOnly(promisedFor) != null) {
+        context.reportError(
+            a, "Cannot be annotated with both @Unique and @ReadOnly");
+        good = false;
+      }
+      if (LockRules.isImmutableRef(promisedFor)) {
+        context.reportError(
+            a, "Cannot be annotated with both @Unique and @Immutable");
+        good = false;
+      }
+      
+      // Warn if both @Unique("return") and @Borrowed("this")
+      if (ReturnValueDeclaration.prototype.includes(promisedFor)) {
+        if (isBorrowed(JavaPromise.getReceiverNodeOrNull(JavaPromise.getPromisedFor(promisedFor)))) {
+          context.reportWarning(a, "Use of both @Unique(\"return\") and @Borrowed(\"this\") is redundant");
+        }
+      }
+      
       if (good) {
         /* Check consistency of annotated parameters and receiver declarations.
          * Cannot add @Unique to a previously unannotated parameter/receiver.
@@ -401,7 +440,7 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<BorrowedNode> makeScrubber() {
       return new AbstractAASTScrubber<BorrowedNode, BorrowedPromiseDrop>(this,
-          ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, UNIQUE) {
+          ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
         @Override
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
           return storeDropIfNotNull(a, scrubBorrowed(getContext(), a));
@@ -478,26 +517,42 @@ public class UniquenessRules extends AnnotationRules {
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Borrowed");
       
-      /* If the annotation is @Borrowed("this"), and it appears on a constructor,
-       * then we also make sure that the constructor is not annotated with
-       * @Unique("return").
-       */
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-      if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
-        // Get the method/constructor declaration that the receiver belongs to
-        final IRNode decl = JavaPromise.getPromisedForOrNull(promisedFor);
-        if (ConstructorDeclaration.prototype.includes(decl)) {
-          // It's from a constructor, look for unique on the return node
-          final IRNode returnNode = JavaPromise.getReturnNodeOrNull(decl);
-          if (returnNode != null) {
-            if (isUnique(returnNode)) {
-              good = false;
-              context.reportError("Cannot use both @Borrowed(\"this\") and @Unique(\"return\") on a constructor declaration", a);
-            }
-          }
+      if (VariableDeclarator.prototype.includes(promisedForOp)) {
+        if (!TypeUtil.isFinal(promisedFor)) {
+          context.reportError(a, "@Borrowed fields must be final");
+          good = false;
+        }
+        if (TypeUtil.isStatic(promisedFor)) {
+          context.reportError(a, "@Borrowed fields must not be static");
+          good = false;
         }
       }
+      
+      /* NEED TO MOVE THIS TO <UNIQUE> BECAUSE BORROWED IS CHECKED BEFORE
+       * UNIQUE. 
+       */
+//      /* If the annotation is @Borrowed("this"), and it appears on a constructor,
+//       * then we also make sure that the constructor is not annotated with
+//       * @Unique("return").
+//       */
+//      final IRNode promisedFor = a.getPromisedFor();
+//      final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+//      if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+//        // Get the method/constructor declaration that the receiver belongs to
+//        final IRNode decl = JavaPromise.getPromisedForOrNull(promisedFor);
+//        if (ConstructorDeclaration.prototype.includes(decl)) {
+//          // It's from a constructor, look for unique on the return node
+//          final IRNode returnNode = JavaPromise.getReturnNodeOrNull(decl);
+//          if (returnNode != null) {
+//            if (isUnique(returnNode)) {
+//              good = false;
+//              context.reportError("Cannot use both @Borrowed(\"this\") and @Unique(\"return\") on a constructor declaration", a);
+//            }
+//          }
+//        }
+//      }
 
       if (good) {
         return new BorrowedPromiseDrop(a);
@@ -508,7 +563,7 @@ public class UniquenessRules extends AnnotationRules {
   }
 
   
-  private static <T extends IAASTRootNode> boolean checkForReferenceType(
+  public static <T extends IAASTRootNode> boolean checkForReferenceType(
       final IAnnotationScrubberContext context, final T a, final String label) {
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);

@@ -206,7 +206,7 @@ public class TypeUtil implements JavaGlobals {
    * interface.
    * 
    * @param node
-   *          A VariableDeclarator
+   *          A VariableDeclarator, ParameterDeclaration, or FieldDeclaration
    */
   public static boolean isFinal(final IRNode node) {
     final Operator op = JJNode.tree.getOperator(node);
@@ -224,11 +224,16 @@ public class TypeUtil implements JavaGlobals {
         }
       }      
       return false;
+    } else if (FieldDeclaration.prototype.includes(op)) {
+      if (TypeUtil.isInterface(VisitUtil.getEnclosingType(node))) {
+        return true; // declared in an interface
+      } else {
+        return JavaNode.getModifier(node, JavaNode.FINAL);
+      }
     } else if (ParameterDeclaration.prototype.includes(op)) {
       return JavaNode.getModifier(node, JavaNode.FINAL);
-    } else {
-      return false;
     }
+    return false;
   }
   
   /**

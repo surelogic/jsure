@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class RegionRules extends AnnotationRules {
   public static final String REGION = "Region";
@@ -95,6 +96,14 @@ public class RegionRules extends AnnotationRules {
 
   public static SimpleUniqueInRegionPromiseDrop getSimpleUniqueInRegion(IRNode vdecl) {
 	  return getDrop(simpleUniqueInRegionRule.getStorage(), vdecl);
+  }
+  
+  public static ExplicitBorrowedInRegionPromiseDrop getExplicitBorrowedInRegion(IRNode vdecl) {
+    return getDrop(explicitBorrowedInRegionRule.getStorage(), vdecl);
+  }
+
+  public static SimpleBorrowedInRegionPromiseDrop getSimpleBorrowedInRegion(IRNode vdecl) {
+    return getDrop(simpleBorrowedInRegionRule.getStorage(), vdecl);
   }
   
   @Override
@@ -265,7 +274,8 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<InRegionNode> makeScrubber() {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
-          this, ScrubberType.BY_HIERARCHY, REGION, SIMPLE_UNIQUE_IN_REGION) {
+          this, ScrubberType.BY_HIERARCHY, REGION,
+          SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
           return storeDropIfNotNull(a, scrubInRegion(getContext(), a));          
@@ -470,8 +480,33 @@ public class RegionRules extends AnnotationRules {
   
   static SimpleBorrowedInRegionPromiseDrop scrubSimpleBorrowedInRegion(
 		  IAnnotationScrubberContext context, SimpleBorrowedInRegionNode a) {
-	  // TODO Auto-generated method stub
-	  return new SimpleBorrowedInRegionPromiseDrop(a);
+    // must be a reference type variable
+    boolean good = UniquenessRules.checkForReferenceType(context, a, "BorrowedInRegion");
+    
+    final IRNode promisedFor = a.getPromisedFor();
+    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+    if (VariableDeclarator.prototype.includes(promisedForOp)) {
+      if (!TypeUtil.isFinal(promisedFor)) {
+        context.reportError(a, "@BorrowedInRegion fields must be final");
+        good = false;
+      }
+      if (TypeUtil.isStatic(promisedFor)) {
+        context.reportError(a, "@BorrowedInRegion fields must not be static");
+        good = false;
+      }
+    }
+
+    // Cannot also be @Borrowed
+    if (UniquenessRules.isBorrowed(a.getPromisedFor())) {
+      context.reportError(a, "Cannot be annotated with both @Borrowed and @BorrowedInRegion");
+      good = false;
+    }
+    
+    if (good) {
+      return new SimpleBorrowedInRegionPromiseDrop(a);
+    } else {
+      return null;
+    }
   }
   
   static SimpleUniqueInRegionPromiseDrop scrubSimpleUniqueInRegion(
@@ -480,12 +515,47 @@ public class RegionRules extends AnnotationRules {
     final IRNode promisedFor = a.getPromisedFor();
     
     boolean isGood = true;
-
-    /* Scrubbing of unique, which always runs before us, checks that the
-     * field is not both @Unique and @UniqueInRegion.
-     */
     
+    if (UniquenessRules.isBorrowed(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
+      isGood = false;
+    }
+    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+      isGood = false;
+    }
+    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+      isGood = false;
+    }
+    if (UniquenessRules.getReadOnly(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @ReadOnly");
+      isGood = false;
+    }
+    if (LockRules.isImmutableRef(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Immutable");
+      isGood = false;
+    }
+    if (UniquenessRules.isUnique(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Unique");
+      isGood = false;
+    }
+
     // Cannot already have an @InRegion annotation
+    /* This is tricky to check.  UniqueInRegion can generate an InRegion
+     * promise.  So we need to check if there is already an InRegion promise
+     * before we generate it.  If we don't do this, another part of the
+     * promise framework barfs because there will be two InRegion annotations
+     * on the same node.  So we have to check for the presence of InRegion
+     * before the InRegion promise has been processed.  This requires looking
+     * at the raw AST, which is slower than dealing with the promises directly.
+     */
     for (final InRegionNode n : AASTStore.getASTsByPromisedFor(promisedFor, InRegionNode.class)) {
       context.reportError(a, "Cannot be annotated with both @UniqueInRegion and @InRegion");
       AASTStore.removeAST(n);
@@ -623,9 +693,36 @@ public class RegionRules extends AnnotationRules {
     
     boolean isGood = true;
     
-    /* Scrubbing of unique, which always runs before us, checks that the
-     * field is not both @Unique and @UniqueInRegion.
-     */
+    if (UniquenessRules.isBorrowed(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
+      isGood = false;
+    }
+    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+      isGood = false;
+    }
+    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+      isGood = false;
+    }
+    if (UniquenessRules.getReadOnly(promisedFor) != null) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @ReadOnly");
+      isGood = false;
+    }
+    if (LockRules.isImmutableRef(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Immutable");
+      isGood = false;
+    }
+    if (UniquenessRules.isUnique(promisedFor)) {
+      context.reportError(
+          a, "Cannot be annotated with both @UniqueInRegion and @Unique");
+      isGood = false;
+    }
     
     // Field must be reference typed
     final IJavaType type = context.getBinder().getJavaType(promisedFor);
@@ -779,8 +876,33 @@ public class RegionRules extends AnnotationRules {
   
   protected static ExplicitBorrowedInRegionPromiseDrop scrubExplicitBorrowedInRegion(
 			IAnnotationScrubberContext context, ExplicitBorrowedInRegionNode a) {
-	  // TODO
-	  return new ExplicitBorrowedInRegionPromiseDrop(a);
+    // must be a reference type variable
+    boolean good = UniquenessRules.checkForReferenceType(context, a, "BorrowedInRegion");
+    
+    final IRNode promisedFor = a.getPromisedFor();
+    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+    if (VariableDeclarator.prototype.includes(promisedForOp)) {
+      if (!TypeUtil.isFinal(promisedFor)) {
+        context.reportError(a, "@BorrowedInRegion fields must be final");
+        good = false;
+      }
+      if (TypeUtil.isStatic(promisedFor)) {
+        context.reportError(a, "@BorrowedInRegion fields must not be static");
+        good = false;
+      }
+    }
+
+    // Cannot also be @Borrowed
+    if (UniquenessRules.isBorrowed(a.getPromisedFor())) {
+      context.reportError(a, "Cannot be annotated with both @Borrowed and @BorrowedInRegion");
+      good = false;
+    }
+
+    if (good) {
+      return new ExplicitBorrowedInRegionPromiseDrop(a);
+    } else {
+      return null;
+    }
   }
   
   private static String truncateName(final String qualifiedName) {
