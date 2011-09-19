@@ -41,6 +41,7 @@ public class JavacClassParser {
 	}; 
 	
 	private static final boolean debug = Util.debug;
+	private final boolean loadAllLibraries = false;
 	
 	//ToolProvider.getSystemJavaCompiler();
 	//private static final JavaCompiler compiler = JavacTool.create();
@@ -361,6 +362,14 @@ public class JavacClassParser {
 	private void handleReferences(BatchParser parser, List<CodeInfo> results) throws IOException {
         Util.startSubTask(parser.tEnv.getProgressMonitor(), "Handling references for "+parser.jp.getName()); 
         final References refs = parser.refs;
+		if (loadAllLibraries) {
+			for(Pair<String,String> keys : classToFile.keys()) {
+				// Only look at ones from this project
+				if (parser.jp.getName().equals(keys.first())) {
+					refs.add(keys.second());
+				}
+			}
+		}        
         refs.add("java.lang.Object");
         refs.add("java.lang.Class");
         refs.add("java.lang.String"); // For comparison purposes
