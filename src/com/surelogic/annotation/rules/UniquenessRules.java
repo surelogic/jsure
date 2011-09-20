@@ -336,8 +336,10 @@ public class UniquenessRules extends AnnotationRules {
       
       // Warn if both @Unique("return") and @Borrowed("this")
       if (ReturnValueDeclaration.prototype.includes(promisedFor)) {
-        if (isBorrowed(JavaPromise.getReceiverNodeOrNull(JavaPromise.getPromisedFor(promisedFor)))) {
-          context.reportWarning(a, "Use of both @Unique(\"return\") and @Borrowed(\"this\") is redundant");
+        final IRNode decl = JavaPromise.getPromisedFor(promisedFor);
+        if (ConstructorDeclaration.prototype.includes(decl) && 
+            isBorrowed(JavaPromise.getReceiverNodeOrNull(decl))) {
+          context.reportWarning(a, "Use of both @Unique(\"return\") and @Borrowed(\"this\") on a constructor is redundant");
         }
       }
       
@@ -529,30 +531,6 @@ public class UniquenessRules extends AnnotationRules {
           good = false;
         }
       }
-      
-      /* NEED TO MOVE THIS TO <UNIQUE> BECAUSE BORROWED IS CHECKED BEFORE
-       * UNIQUE. 
-       */
-//      /* If the annotation is @Borrowed("this"), and it appears on a constructor,
-//       * then we also make sure that the constructor is not annotated with
-//       * @Unique("return").
-//       */
-//      final IRNode promisedFor = a.getPromisedFor();
-//      final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-//      if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
-//        // Get the method/constructor declaration that the receiver belongs to
-//        final IRNode decl = JavaPromise.getPromisedForOrNull(promisedFor);
-//        if (ConstructorDeclaration.prototype.includes(decl)) {
-//          // It's from a constructor, look for unique on the return node
-//          final IRNode returnNode = JavaPromise.getReturnNodeOrNull(decl);
-//          if (returnNode != null) {
-//            if (isUnique(returnNode)) {
-//              good = false;
-//              context.reportError("Cannot use both @Borrowed(\"this\") and @Unique(\"return\") on a constructor declaration", a);
-//            }
-//          }
-//        }
-//      }
 
       if (good) {
         return new BorrowedPromiseDrop(a);
