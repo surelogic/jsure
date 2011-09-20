@@ -80,7 +80,7 @@ public class C {
 	}
 	
 	/* BAD: Don't mix old and new --- which should flag the error? */
-	@Borrowed("this" /* is UNASSOCIATED */)
+	@Borrowed("this" /* is CONSISTENT */)
 	@Unique("return" /* is CONSISTENT */)
 	public C(final double x, final double y) {
 		super();
