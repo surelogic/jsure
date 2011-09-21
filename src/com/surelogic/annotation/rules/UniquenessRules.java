@@ -1,7 +1,5 @@
 package com.surelogic.annotation.rules;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 
 import org.antlr.runtime.RecognitionException;
@@ -10,12 +8,10 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
-import com.surelogic.annotation.scrub.SimpleScrubber;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
@@ -48,12 +44,9 @@ public class UniquenessRules extends AnnotationRules {
   
   private static final AnnotationRules instance = new UniquenessRules();
   
-  private static final Set<IRNode> uniqueNodes = new HashSet<IRNode>(); 
-  
   private static final Readonly_ParseRule readonlyRule = new Readonly_ParseRule();
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
-  private static final CheckForAnnotationConflicts conflictsRule = new CheckForAnnotationConflicts();
 
   
   
@@ -132,11 +125,6 @@ public class UniquenessRules extends AnnotationRules {
 	registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
-//    registerScrubber(fw, conflictsRule);
-  }
-  
-  private static interface DropGenerator<T extends IAASTRootNode, D extends PromiseDrop<T>> {
-    public D generateDrop(T a);
   }
 
   private static abstract class AbstractParseRule<N extends IAASTRootNode,D extends PromiseDrop<N>> 
@@ -249,12 +237,7 @@ public class UniquenessRules extends AnnotationRules {
           LockRules.IMMUTABLE_REF) {
         @Override
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
-          final UniquePromiseDrop storedDrop =
-            storeDropIfNotNull(a, scrubUnique(getContext(), a));
-          if (storedDrop != null) {
-            uniqueNodes.add(a.getPromisedFor());
-          }
-          return storedDrop;          
+          return storeDropIfNotNull(a, scrubUnique(getContext(), a));          
         }
         
         @Override
@@ -567,51 +550,6 @@ public class UniquenessRules extends AnnotationRules {
       return false;
     } else {
       return true;
-    }
-  }
-  
-  private static <T extends IAASTRootNode, D extends PromiseDrop<T>> D
-  checkForReferenceType(
-      final DropGenerator<T, D> dropGen, final IAnnotationScrubberContext context,
-      final T a, final String label) {
-    if (checkForReferenceType(context, a, label)) {
-      return dropGen.generateDrop(a);
-    } else {
-      return null;
-    }
-  }
-  
-
-  private static final class CheckForAnnotationConflicts extends SimpleScrubber {
-    public CheckForAnnotationConflicts() {
-      super(CONFLICTS, UNIQUE, BORROWED);
-    }
-    
-    @Override
-    protected void scrub() {
-      for (final IRNode uniqueNode : uniqueNodes) {
-        // This seems wasteful and redundant
-        final UniquePromiseDrop uniqueDrop = getUnique(uniqueNode);
-        /* The unique drop can be null because it might be invalidated
-         * in RegionRules.scrubSimpleUniqueInRegion() if the node is
-         * both Unique and UniqueInRegion.
-         */
-        if (uniqueDrop != null) {
-          final UniqueNode uniqueAST = uniqueDrop.getAST();
-          final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
-  
-          boolean alsoBorrowed = borrowedDrop != null;
-          if (alsoBorrowed) {        	
-            getContext().reportError("Cannot be both unique and borrowed", uniqueAST);
-            borrowedDrop.invalidate();
-          }
-          if (alsoBorrowed) {
-            uniqueDrop.invalidate();
-          }
-        }
-      }
-      // Reset set of unique nodes.
-      uniqueNodes.clear();
     }
   }
 }
