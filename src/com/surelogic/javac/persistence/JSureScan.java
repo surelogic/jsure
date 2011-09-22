@@ -13,7 +13,12 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
-
+	private static final String PRECOMPUTED_PROPS = "precomputed.properties";
+	/**
+	 * As a double
+	 */
+	private static final String SIZE_IN_MB = "scan.size.in.mb";
+	
 	/**
 	 * Looks up a scan by its directory name in a list of scans.
 	 * 
@@ -103,13 +108,70 @@ public class JSureScan implements Comparable<JSureScan> {
 		}
 		f_timeOfScan = SLUtility.fromStringHMS(name[name.length - 2] + ' '
 				+ (name[name.length - 1].replace('-', ':')));
-		f_sizeInMB = FileUtility.recursiveSizeInBytes(f_scanDir)
-				/ (1024 * 1024.0);
+		
+		final Properties props = getScanProperties(scanDir);
+		f_sizeInMB = getDoubleProperty(props, SIZE_IN_MB, 1.0);
 
 		// check the various files
 		getProjects();
 	}
 	
+	private static double getDoubleProperty(Properties props, String key, double defaultValue) {
+		String val = props.getProperty(key);
+		if (val != null) {
+			try {
+				return Double.parseDouble(val);
+			} catch(NumberFormatException e) {
+				// Ignore
+			}
+		}
+		return defaultValue;
+	}
+
+	private static Properties getScanProperties(File scanDir) {
+		final Properties props = new Properties();
+		final File precomputed = new File(scanDir, PRECOMPUTED_PROPS);
+		if (precomputed.exists()) {
+			InputStream in = null;
+			try {			
+				in = new FileInputStream(precomputed);
+				props.load(in);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} 
+		if (props.isEmpty()) {
+			// No values, so recreate the file
+			final double size = FileUtility.recursiveSizeInBytes(scanDir)	/ (1024 * 1024.0);
+			props.setProperty(SIZE_IN_MB, Double.toString(size));
+			
+			OutputStream out = null;
+			try {
+				out = new FileOutputStream(precomputed);
+				props.store(out, "Precomputed info for JSureScan");
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (out != null) {
+					try {
+						out.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}	
+				}
+			}
+		}
+		return props;
+	}
+
 	public Date getTimeOfScan() {
 		return f_timeOfScan;
 	}
