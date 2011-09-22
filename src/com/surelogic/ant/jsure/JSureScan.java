@@ -14,9 +14,9 @@ public class JSureScan extends Javac {
 	private String home;
 
 	/**
-	 * The intended location of the resulting scan document
+	 * The intended location of the JSure data directory
 	 */
-	private String document;
+	private String datadir;
 
 	/**
 	 * The name of the project being scanned
@@ -39,12 +39,12 @@ public class JSureScan extends Javac {
 		this.project = p;
 	}
 
-	public String getDocument() {
-		return document;
+	public String getDataDir() {
+		return datadir;
 	}
 
-	public void setDocument(String doc) {
-		this.document = doc;
+	public void setDataDir(String doc) {
+		this.datadir = doc;
 	}
 
 	@Override
@@ -72,6 +72,8 @@ public class JSureScan extends Javac {
 	 */
 	@Override
 	protected void compile() {
+		checkDir(getHome());
+		checkDir(getDataDir());
 		File destDir = this.getDestdir();
 
 		if (compileList.length > 0) {
@@ -99,6 +101,12 @@ public class JSureScan extends Javac {
 					log("Failed", Project.MSG_ERR);
 				}
 			}
+		}
+	}
+
+	private void checkDir(String path) {
+		if (!new File(getHome()).isDirectory()) {
+			throw new BuildException("Not a directory: "+path, getLocation());
 		}
 	}
 }

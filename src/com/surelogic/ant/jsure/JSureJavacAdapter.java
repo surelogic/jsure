@@ -10,10 +10,19 @@ import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
+import com.surelogic.javac.jobs.ILocalJSureConfig;
+import com.surelogic.javac.jobs.JSureConstants;
+import com.surelogic.javac.jobs.LocalJSureJob;
+import com.surelogic.javac.jobs.RemoteJSureRun;
+
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	boolean keepRunning = true;
@@ -21,11 +30,12 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	Path sourcepath = null;
 	final JSureScan scan;
 
-	public JSureJavacAdapter(JSureScan sierraScan) {
-		scan = sierraScan;
+	public JSureJavacAdapter(JSureScan s) {
+		scan = s;
 	}
 
 	public boolean execute() throws BuildException {	
+		// TODO Check if home, document, projectname are defined and valid
 		/*
 		for(Object key : System.getProperties().keySet()) {
 			System.out.println("Key: "+key);
@@ -36,18 +46,72 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			checkClassPath("java.class.path");
 		}
 		try {
-			// TODO do we want to run as a separate JVM?
+			// Set up prefs
+			System.out.println("project = "+scan.getProjectName());
+			Javac.initialize();
+			Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, scan.getDataDir());
+			Javac.getDefault().setPreference(IDEPreferences.JSURE_XML_DIRECTORY, 
+					scan.getHome()+"/lib/fluid/lib/promises");
+			
 			Config config = createConfig();
-			/*
-			ToolUtil.scan(config, new Monitor(), true);
-			*/
-			final Projects projects = new Projects(config, new NullSLProgressMonitor());
-			Util.openFiles(projects, true);
+			System.out.println("config = "+config.getProject());
+		
+			final Projects projects = new Projects(config, new NullSLProgressMonitor()); 
+			System.out.println("data-dir = "+scan.getDataDir());
+			projects.computeScan(new File(scan.getDataDir()), null);
+			
+			// Note: this doesn't work if we don't have our javac library installed
+			//
+			// Util.openFiles(projects, true);
+			//
+			// Run as a separate JVM?
+			System.out.println("run dir = " + projects.getRunDir());
+			Javac.getDefault().savePreferences(projects.getRunDir());
+			
+			final String msg = "Running JSure for " + projects.getLabel();
+			LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new BuildException("Exception while scanning", t);
 		}
 		return true;
+	}
+
+	private ILocalJSureConfig makeJSureConfig(final Projects projects) {
+		return new ILocalJSureConfig() {
+			public boolean isVerbose() {
+				return verbose;
+			}
+
+			public String getTestCode() {
+				return TestCode.NONE.name();
+			}
+
+			public int getMemorySize() {
+				return parseMemorySize(memoryMaximumSize);
+			}
+
+			public String getPluginDir(String id, boolean required) {
+				File home = new File(scan.getHome());				
+				if (JSureConstants.COMMON_PLUGIN_ID.equals(id)) {
+					return new File(home, "lib/common").getAbsolutePath();
+				}
+				else if (JSureConstants.FLUID_PLUGIN_ID.equals(id)) {
+					return new File(home, "lib/fluid").getAbsolutePath();
+				}
+				throw new IllegalStateException("Unknown plugin id requested: "+id);
+			}
+
+			public String getRunDirectory() {
+				return projects.getRunDir().getAbsolutePath();
+			}
+
+			@Override
+			public String getLogPath() {
+				return new File(projects.getRunDir(),
+						RemoteJSureRun.LOG_TXT).getAbsolutePath();
+			}
+		};
 	}
 
 	private void checkClassPath(String key) {
@@ -213,10 +277,14 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				bootClasspath.add(new Path(getProject(), st.nextToken()));
 			}			
 		}
+		/* TODO add directly to projects
 		Config binaries = new Config("Dependencies", null, true); // TODO what location?
 		addPath(binaries, bootClasspath);
 		addPath(binaries, classpath);
 		cmd.addToClassPath(binaries);
+		*/
+		addPath(cmd, bootClasspath);
+		addPath(cmd, classpath);
 		
 		// If the buildfile specifies sourcepath="", then don't
 		// output any sourcepath.
