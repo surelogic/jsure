@@ -194,8 +194,12 @@ public class Javac extends IDE {
 	}
 
 	public synchronized void loadPreferences(File runDir) throws IOException {
+		File f = new File(runDir, JAVAC_PROPS);
+		if (!f.isFile()) {
+			return; // No file to read
+		}
 		Properties p = new Properties();
-		Reader r = new FileReader(new File(runDir, JAVAC_PROPS));
+		Reader r = new FileReader(f);
 		try {
 			p.load(r);
 			prefs.clear();
