@@ -1,8 +1,10 @@
 package com.surelogic.ant.jsure;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.compilers.*;
@@ -11,15 +13,12 @@ import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.remote.TestCode;
-import com.surelogic.javac.Config;
-import com.surelogic.javac.JavaSourceFile;
-import com.surelogic.javac.Javac;
-import com.surelogic.javac.Projects;
-import com.surelogic.javac.Util;
+import com.surelogic.javac.*;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -58,7 +57,21 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			final Projects projects = new Projects(config, new NullSLProgressMonitor()); 
 			System.out.println("projects = "+projects.getLabel());
 			System.out.println("data-dir = "+scan.getDataDir());
-			projects.computeScan(new File(scan.getDataDir()), null);
+			final File dataDir = new File(scan.getDataDir());
+			projects.computeScan(dataDir, null);
+			
+			// Zip up the sources for future reference
+			final File zips = new File(projects.getRunDir(), PersistenceConstants.ZIPS_DIR);
+			if (zips.mkdirs()) {
+				ConfigZip zip = new ConfigZip(config);
+				FileOutputStream o = new FileOutputStream(new File(zips, config.getProject()+".zip"));
+				ZipOutputStream out = new ZipOutputStream(o);
+				try {
+					zip.generateSourceZipContents(out);
+				} finally {
+					out.close();
+				}
+			}
 			
 			// Note: this doesn't work if we don't have our javac library installed
 			//
