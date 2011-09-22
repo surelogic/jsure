@@ -91,12 +91,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 	 * Only used by Util and jsure-ant
 	 */
 	public Projects(Config cfg, SLProgressMonitor monitor) {
+		f_scan = UNINIT;
 		this.monitor = monitor;
 		add(cfg);
 		location = cfg.getLocation();
 		isAuto = false;
 		args = new HashMap<String, Object>();
-		f_scan = null;
 		date = new Date();
 	}
 
@@ -197,7 +197,7 @@ public class Projects extends JavaProjects implements IIRProjects,
 	public JavacProject add(Config cfg) {
 		if (f_scan != UNINIT) {
 			throw new IllegalStateException(
-					"Adding config after run already set");
+					"Adding config after run already set: "+f_scan);
 		}
 		ordering.clear();
 		JavacProject p = new JavacProject(this, cfg, cfg.getProject(), monitor);
