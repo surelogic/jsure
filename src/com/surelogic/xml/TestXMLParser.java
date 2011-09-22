@@ -65,11 +65,7 @@ public class TestXMLParser extends DefaultHandler implements
 	 * @param xml
 	 *            The name of the promises.xml file to parse in
 	 * @return The number of annotations added
-	 */
-	public static int process(IRNode root, String xml) throws Exception {
-		return process(IDE.getInstance().getTypeEnv(), root, xml);
-	}
-	
+	 */	
 	public static int process(ITypeEnvironment tEnv, IRNode root, String xml) throws Exception {
 		return process(tEnv, null, root, xml);
 	}

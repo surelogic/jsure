@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ImportDeclarations;
@@ -49,7 +50,7 @@ public class PackageDrop extends CUDrop {
   private boolean hasPromises = false;
   private final boolean isFromSrc;
   
-  private PackageDrop(String pkgName, IRNode root, IRNode n,
+  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n,
 		              boolean fromSrc) { 
     super(pkgName, root);
     node      = n;
@@ -61,7 +62,7 @@ public class PackageDrop extends CUDrop {
 	// Look for XML annotations
 	final String xmlName = pkgName+'.'+"package-info"+TestXMLParserConstants.SUFFIX;
 	try {
-		int added = TestXMLParser.process(root, xmlName);
+		int added = TestXMLParser.process(tEnv, root, xmlName);
 		//System.out.println("Added XML annos: "+added);			
 		if (added > 0) {
 		    //System.out.println("Found promises for "+pkgName+": "+added);
@@ -76,8 +77,8 @@ public class PackageDrop extends CUDrop {
 	}
   }
   
-  private PackageDrop(String pkgName, IRNode root, IRNode n) {
-	this(pkgName, root, n, !XML.getDefault().processingXML());
+  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n) {
+	this(tEnv, pkgName, root, n, !XML.getDefault().processingXML());
   }
   
   public static class Info {
@@ -186,7 +187,7 @@ public class PackageDrop extends CUDrop {
 		name = CommonStrings.intern(name);
 	}
   	
-    PackageDrop pkg = new PackageDrop(name, root, n);
+    PackageDrop pkg = new PackageDrop(proj.getTypeEnv(), name, root, n);
     packageMap.put(name, pkg);
     if (DEFAULT_NAME.equals(name)) {
       packageMap.put("", pkg);
