@@ -17,7 +17,7 @@ public class JavaSourceFile {
 	public final boolean asBinary;
 	
 	public JavaSourceFile(String name, File f, String path, boolean asBinary) {
-		if (name.startsWith(".")) {
+		if (name != null && name.startsWith(".")) {
 			throw new IllegalArgumentException();
 		}
 		qname = name;
