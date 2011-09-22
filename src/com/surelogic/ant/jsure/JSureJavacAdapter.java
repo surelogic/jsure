@@ -21,7 +21,6 @@ import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JSureJavacAdapter extends DefaultCompilerAdapter {
@@ -57,6 +56,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			System.out.println("config = "+config.getProject());
 		
 			final Projects projects = new Projects(config, new NullSLProgressMonitor()); 
+			System.out.println("projects = "+projects.getLabel());
 			System.out.println("data-dir = "+scan.getDataDir());
 			projects.computeScan(new File(scan.getDataDir()), null);
 			
@@ -124,6 +124,11 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
 	private Config createConfig() throws IOException {
 		Config config = new Config(scan.getProjectName(), null, false); // TODO what location?
+		config.setOption(Config.AS_SOURCE, Boolean.TRUE);
+		final String srcLevel = scan.getSource();
+		if (srcLevel.startsWith("1.")) {
+			config.setOption(Config.SOURCE_LEVEL, Integer.parseInt(srcLevel.substring(2)));
+		}
 		setupConfig(config, false);
 		logAndAddFilesToCompile(config);
 		/*
