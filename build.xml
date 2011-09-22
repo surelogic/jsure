@@ -13,33 +13,31 @@
 	<target name="build">
 	  <mkdir dir="./lib"/>
  
-	  <jar destfile="./lib/common.jar" basedir="../common/bin" />
 	  <mkdir dir="./lib/common"/>
-	  <copy todir="./lib/common">
+	  <jar destfile="./lib/common/common.jar" basedir="../common/bin" />
+	  <mkdir dir="./lib/common/lib/runtime"/>
+	  <copy todir="./lib/common/lib/runtime">
 	    <fileset dir="../common/lib/runtime"/>
 	  </copy>
 		
-	  <jar destfile="./lib/fluid.jar" basedir="../fluid/bin" />
 	  <mkdir dir="./lib/fluid"/>
-	  <copy todir="./lib/fluid">
-		<fileset dir="../fluid/lib/jars"/>
+	  <jar destfile="./lib/fluid/fluid.jar" basedir="../fluid/bin" />
+	  <mkdir dir="./lib/fluid/lib/runtime"/>
+	  <copy todir="./lib/fluid/lib/runtime">
+	    <fileset dir="../fluid/lib/runtime"/>
+	  </copy>	
+	  <mkdir dir="./lib/fluid/lib/promises"/>
+	  <copy todir="./lib/fluid/lib/promises">
+		<fileset dir="../fluid/lib/promises"/>
 	  </copy>		
 	  
-	  <!--
-	  <jar destfile="./lib/fluid-javac.jar" basedir="../fluid-javac/bin" />
-		<mkdir dir="./lib/fluid-javac"/>
-		<copy todir="./lib/fluid-javac">
-			<fileset dir="../fluid-javac/lib"/>
-		</copy>	
-	  -->
 	  <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
 	  
 	</target>
 	  
 	<target name="zip">
-
 	  <zip destfile="./jsure-ant.zip" basedir=".."
-	       includes="jsure-ant/lib/**/*.jar, jsure-ant/lib/**/*.MF, jsure-ant/README.txt"/>
+	       includes="jsure-ant/lib/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**"/>
 	</target>
 </project>
 	  

@@ -6,9 +6,10 @@
           You need to change sl.home to match where you've 
           unzipped jsure-ant.zip
     -->
-  <property name="sl.home" value="c:/work/workspace/jsure-ant" />
+  <property name="sl.home" value="c:/work/workspace-3.5.1/jsure-ant" />
   <property name="sl.lib" value="${sl.home}/lib" />
   <property name="project" value="SmallWorld"/>
+  <property name="datadir" value="${sl.home}/../../jsure-test2-workspace/.jsure-data"/>
   
   <path id="sl.classpath">
       <fileset dir="${sl.lib}" includes="**/*.jar"/>
@@ -29,7 +30,6 @@
   <tstamp/>
   
 	<target name="scan">	  	  	
-	  <property name="document" value="${project}-${DSTAMP}${TSTAMP}" />
 	  
 	  <!-- 3. Change the properties for the jsure-scan task to match your
 	          Java project, in particular, srcdir, destdir, and classpath.
@@ -46,7 +46,7 @@
          classpath="${jdom.lib}"
          source="1.5"
          home="${sl.home}"
-	       document="${document}"
+	       datadir="${datadir}"
 	       projectname="${project}">
       </jsure-scan>
 	</target>
