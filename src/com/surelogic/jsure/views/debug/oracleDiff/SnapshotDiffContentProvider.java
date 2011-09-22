@@ -54,8 +54,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 					final File pFile = p.getLocation().toFile();
 					file = SeaSummary.findSummary(pFile.getAbsolutePath());
 				}
-				diff = SeaSummary.diff(info, file);
-				return scan.getLabel();
+				if (file != null) {
+					diff = SeaSummary.diff(info, file);
+					if (diff != null) {
+						return scan.getLabel();
+					}
+				} else {
+					diff = null;
+				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
