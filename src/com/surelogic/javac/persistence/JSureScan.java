@@ -14,10 +14,46 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
 	private static final String PRECOMPUTED_PROPS = "precomputed.properties";
+
+	private abstract static class ScanProperty {
+		final String key;
+		
+		ScanProperty(String k) {
+			key = k;
+		}
+		
+		boolean isValid(String value) {
+			return value != null;
+		}
+		abstract String computeValue(JSureScan s);
+	}
+	
 	/**
 	 * As a double
 	 */
-	private static final String SIZE_IN_MB = "scan.size.in.mb";
+	private static final ScanProperty SIZE_IN_MB = new ScanProperty("scan.size.in.mb") {
+		@Override
+		boolean isValid(String value) {
+			if (super.isValid(value)) {
+				try {
+					double d = Double.parseDouble(value);
+					return d > 0;
+				} catch(NumberFormatException e) {
+					return false;
+				}
+			}
+			return false;
+		}
+		@Override
+		public String computeValue(JSureScan s) {
+			final double size = FileUtility.recursiveSizeInBytes(s.getDir()) / (1024 * 1024.0);
+			return Double.toString(size);
+		}
+	};
+	
+	private static final ScanProperty[] REQUIRED_PROPS = {
+		SIZE_IN_MB,
+	};
 	
 	/**
 	 * Looks up a scan by its directory name in a list of scans.
@@ -110,25 +146,16 @@ public class JSureScan implements Comparable<JSureScan> {
 				+ (name[name.length - 1].replace('-', ':')));
 		
 		final Properties props = getScanProperties(scanDir);
-		f_sizeInMB = getDoubleProperty(props, SIZE_IN_MB, 1.0);
+		f_sizeInMB = Double.parseDouble(props.getProperty(SIZE_IN_MB.key));
 
 		// check the various files
 		getProjects();
 	}
 	
-	private static double getDoubleProperty(Properties props, String key, double defaultValue) {
-		String val = props.getProperty(key);
-		if (val != null) {
-			try {
-				return Double.parseDouble(val);
-			} catch(NumberFormatException e) {
-				// Ignore
-			}
-		}
-		return defaultValue;
-	}
-
-	private static Properties getScanProperties(File scanDir) {
+	/**
+	 * Returns all the expected properties
+	 */
+	private Properties getScanProperties(File scanDir) {
 		final Properties props = new Properties();
 		final File precomputed = new File(scanDir, PRECOMPUTED_PROPS);
 		if (precomputed.exists()) {
@@ -148,11 +175,16 @@ public class JSureScan implements Comparable<JSureScan> {
 				}
 			}
 		} 
-		if (props.isEmpty()) {
-			// No values, so recreate the file
-			final double size = FileUtility.recursiveSizeInBytes(scanDir)	/ (1024 * 1024.0);
-			props.setProperty(SIZE_IN_MB, Double.toString(size));
-			
+		// Check if I have all the info that I need
+		boolean changed = false;
+		for(ScanProperty p : REQUIRED_PROPS) {
+			if (!p.isValid(props.getProperty(p.key))) {
+				props.setProperty(SIZE_IN_MB.key, p.computeValue(this));
+				changed = true;
+			}
+		}
+		if (changed) {
+			// Rewrite the properties file
 			OutputStream out = null;
 			try {
 				out = new FileOutputStream(precomputed);
