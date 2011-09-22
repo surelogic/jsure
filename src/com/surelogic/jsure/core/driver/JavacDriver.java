@@ -1395,7 +1395,7 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			newProjects.computeScan(dataDir, oldProjects);
 
-			final File zips = new File(dataDir, newProjects.getRun() + "/zips");
+			final File zips = new File(dataDir, newProjects.getRun()+"/"+PersistenceConstants.ZIPS_DIR);
 			final File target = new File(dataDir, newProjects.getRun()
 					+ "/srcs");
 			target.mkdirs();
