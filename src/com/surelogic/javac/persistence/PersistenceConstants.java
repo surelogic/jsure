@@ -4,6 +4,7 @@ public interface PersistenceConstants {
 	String RESULTS_ZIP = "results.zip";
 	String PARTIAL_RESULTS_ZIP = "results.partial.zip";
 	String PROJECTS_XML = "projects.xml";
+	String ZIPS_DIR = "zips";
 	
 	String PROJECTS = "projects";
 	String LOCATION = "location";
