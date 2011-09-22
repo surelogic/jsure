@@ -7,6 +7,7 @@ import java.util.Collections;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.common.xml.NestedXMLReader;
@@ -126,7 +127,11 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 				String pRefName = nested.getAttribute(NAME);
 				// System.out.println(proj + " has ref to project " + pRefName);
 				final JavacProject pRef = projects.get(pRefName);
-				p.getConfig().addToClassPath(pRef.getConfig());
+				if (pRef != null) {
+					p.getConfig().addToClassPath(pRef.getConfig());
+				} else {
+					SLLogger.getLogger().warning("Couldn't find project named '"+pRefName+"'");
+				}
 			} else if (PACKAGE.equals(name)) {
 				String pkg = nested.getAttribute(NAME);
 				p.getConfig().addPackage(pkg);
