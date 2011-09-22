@@ -23,7 +23,6 @@ import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
