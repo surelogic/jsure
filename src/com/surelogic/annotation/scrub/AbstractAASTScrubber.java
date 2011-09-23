@@ -458,15 +458,15 @@ extends AbstractHierarchyScrubber<A> {
 					return;
 					*/
 				case BY_TYPE:
-					scrubByPromisedFor_Type(cls);
+					scrubByPromisedFor_Type();
 					return;
 				case BY_HIERARCHY:
 				case INCLUDE_SUBTYPES_BY_HIERARCHY:
 				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy(cls);
+					scrubByPromisedFor_Hierarchy();
 					return;
 				case DIY:
-					scrubAll(nullCallback, AASTStore.getASTsByClass(cls));
+					scrubAll(nullCallback, getRelevantAnnotations());
 					return;
 				case OTHER:
 					throw new UnsupportedOperationException();
@@ -486,9 +486,9 @@ extends AbstractHierarchyScrubber<A> {
 		}
 	};
 	
-	void scrubByPromisedFor_Type(Class<A> c) {
+	void scrubByPromisedFor_Type() {
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
-		organizeByType(c, byType);
+		organizeByType(byType);
 		
 		for(Map.Entry<IRNode, List<A>> e : byType.entrySet()) {
 			List<A> l = e.getValue();
@@ -505,9 +505,9 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	@Override
-	protected void organizeByType(Class<A> c, Map<IRNode, List<A>> byType) {
+	protected void organizeByType(Map<IRNode, List<A>> byType) {
 		// Organize by promisedFor
-		for (A a : AASTStore.getASTsByClass(c)) {
+		for (A a : getRelevantAnnotations()) {
 			IRNode promisedFor = a.getPromisedFor();
 			IRNode type = VisitUtil.getClosestType(promisedFor);
 			if (type == null) {
@@ -527,8 +527,8 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	@Override
-	protected Iterable<A> getRelevantAnnotations(Class<A> c) {
-		return AASTStore.getASTsByClass(c);
+	protected Iterable<A> getRelevantAnnotations() {
+		return AASTStore.getASTsByClass(cls);
 	}
 
 	static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
@@ -568,9 +568,9 @@ extends AbstractHierarchyScrubber<A> {
 	 * Scrub the bindings of the specified kind in order of the position of
 	 * their promisedFor (assumed to be a type decl) in the type hierarchy
 	 */
-	private void scrubByPromisedFor_Hierarchy(Class<A> c) {
+	private void scrubByPromisedFor_Hierarchy() {
 		TypeHierarchyVisitor walk = new TypeHierarchyVisitor();
-		walk.init(c);
+		walk.init();
 		do {
 			walk.walkHierarchy();
 		} 

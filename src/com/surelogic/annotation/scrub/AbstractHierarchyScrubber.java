@@ -15,6 +15,11 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
+/**
+ * Designed to scrub annotations/promises hanging off of IRNodes
+ * 
+ * @author Edwin
+ */
 public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> extends AbstractScrubber {
 	final ScrubberType scrubberType;
 	
@@ -24,8 +29,9 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	}
 
 	// Things to override
-	protected abstract Iterable<A> getRelevantAnnotations(Class<A> c);	
-	protected abstract void organizeByType(Class<A> c, Map<IRNode, List<A>> byType);
+	protected abstract Iterable<A> getRelevantAnnotations();	
+	protected abstract void organizeByType(Map<IRNode, List<A>> byType);
+	
 	protected abstract void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l);
 	protected abstract void finishAddDerived(A clone, PromiseDrop<? extends A> pd);
 	
@@ -74,8 +80,8 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		final Map<IRNode, List<IRNode>> methodRelatedDeclsToCheck = new HashMap<IRNode, List<IRNode>>();
 		final Set<IRNode> done = new HashSet<IRNode>();
 		
-		void init(Class<A> c) {
-			organizeByType(c, byType);
+		void init() {
+			organizeByType(byType);
 			switch (scrubberType) {
 			case INCLUDE_SUBTYPES_BY_HIERARCHY:
 				for(IRNode type : new ArrayList<IRNode>(byType.keySet())) {
@@ -95,7 +101,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				}		
 				break;
 			case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-				computeMethodRelatedDeclsToCheck(c);
+				computeMethodRelatedDeclsToCheck();
 				break;
 			default:
 			}
@@ -104,10 +110,10 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		/**
 		 * Find the decls in overridden methods that we also need to look at
 		 */
-		private void computeMethodRelatedDeclsToCheck(Class<A> c) {
+		private void computeMethodRelatedDeclsToCheck() {
 			final Set<IRNode> declsToCheck = new HashSet<IRNode>();
 			final Set<IRNode> hasAASTs = new HashSet<IRNode>();
-			for (A a : getRelevantAnnotations(c)) {
+			for (A a : getRelevantAnnotations()) {
 				final IRNode promisedFor = a.getPromisedFor();		
 				hasAASTs.add(promisedFor);
 				
