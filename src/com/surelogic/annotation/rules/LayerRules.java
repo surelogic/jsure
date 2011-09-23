@@ -231,7 +231,7 @@ public class LayerRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<TypeSetNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new Scrubber<TypeSetNode, TypeSetPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<TypeSetNode> makePromiseDrop(TypeSetNode a) {
@@ -261,7 +261,7 @@ public class LayerRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<LayerNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new Scrubber<LayerNode, LayerPromiseDrop>(this, TYPESET) {
 				@Override
 				protected PromiseDrop<LayerNode> makePromiseDrop(LayerNode a) {
@@ -291,7 +291,7 @@ public class LayerRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<InLayerNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<InLayerNode, InLayerPromiseDrop>(this, ScrubberType.UNORDERED, LAYER) {
 				@Override
 				protected PromiseDrop<InLayerNode> makePromiseDrop(InLayerNode a) {
@@ -346,7 +346,7 @@ public class LayerRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<MayReferToNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<MayReferToNode, MayReferToPromiseDrop>(this, ScrubberType.UNORDERED, IN_LAYER) {
 				@Override
 				protected PromiseDrop<MayReferToNode> makePromiseDrop(MayReferToNode a) {
@@ -376,7 +376,7 @@ public class LayerRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<AllowsReferencesFromNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<AllowsReferencesFromNode, AllowsReferencesFromPromiseDrop>(this, ScrubberType.UNORDERED, IN_LAYER) {
 				@Override
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {

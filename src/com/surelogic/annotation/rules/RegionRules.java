@@ -149,7 +149,7 @@ public class RegionRules extends AnnotationRules {
       return PromiseDropSeqStorage.create(name(), RegionModel.class);
     }
     @Override
-    protected IAnnotationScrubber<NewRegionDeclarationNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<NewRegionDeclarationNode, RegionModel>(
           this, ScrubberType.BY_HIERARCHY, REGION_INITIALIZER) {
         @Override
@@ -272,7 +272,7 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), InRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<InRegionNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
           this, ScrubberType.BY_HIERARCHY, REGION,
           SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
@@ -387,7 +387,7 @@ public class RegionRules extends AnnotationRules {
       return PromiseDropSeqStorage.create(name(), MapFieldsPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<FieldMappingsNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<FieldMappingsNode, MapFieldsPromiseDrop>(this, ScrubberType.UNORDERED, 
                                                          new String[] { IN_REGION }, REGION) {
         @Override
@@ -436,7 +436,7 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), SimpleUniqueInRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<UniqueInRegionNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueInRegionNode, SimpleUniqueInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.UNIQUE) {
         @Override
@@ -467,7 +467,7 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), SimpleBorrowedInRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<SimpleBorrowedInRegionNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<SimpleBorrowedInRegionNode, SimpleBorrowedInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
         @Override
@@ -678,7 +678,7 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), ExplicitUniqueInRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<UniqueMappingNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueMappingNode, ExplicitUniqueInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.UNIQUE) {
         @Override
@@ -705,7 +705,7 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), ExplicitBorrowedInRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ExplicitBorrowedInRegionNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<ExplicitBorrowedInRegionNode, ExplicitBorrowedInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
         @Override

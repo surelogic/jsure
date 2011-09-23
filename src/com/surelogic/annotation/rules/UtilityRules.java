@@ -62,7 +62,7 @@ public class UtilityRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<UtilityNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<UtilityNode, UtilityPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<UtilityNode> makePromiseDrop(UtilityNode a) {
@@ -101,7 +101,7 @@ public class UtilityRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<SingletonNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<SingletonNode, SingletonPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<SingletonNode> makePromiseDrop(SingletonNode a) {

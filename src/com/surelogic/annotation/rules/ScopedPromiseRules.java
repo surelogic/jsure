@@ -154,7 +154,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		}
 		
 		@Override
-		protected IAnnotationScrubber<AssumeScopedPromiseNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE, 
 					                                                 noStrings, ScrubberOrder.FIRST) {
 				final PromiseFramework frame = PromiseFramework.getInstance();
@@ -226,7 +226,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		}		
 				
 		@Override
-		protected IAnnotationScrubber<ScopedPromiseNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED, 
 					                                           noStrings, ScrubberOrder.FIRST) {
 				@Override

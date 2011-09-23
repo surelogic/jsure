@@ -178,7 +178,7 @@ public class UniquenessRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), ReadOnlyPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ReadOnlyNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
     	// TODO scrub
     	return new AbstractAASTScrubber<ReadOnlyNode, ReadOnlyPromiseDrop>(
     	    this, ScrubberType.UNORDERED,
@@ -231,7 +231,7 @@ public class UniquenessRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), UniquePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<UniqueNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(
           this, ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY,
           LockRules.IMMUTABLE_REF) {
@@ -423,7 +423,7 @@ public class UniquenessRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), BorrowedPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<BorrowedNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<BorrowedNode, BorrowedPromiseDrop>(this,
           ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
         @Override

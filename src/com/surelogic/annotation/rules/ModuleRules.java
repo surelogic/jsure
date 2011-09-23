@@ -73,7 +73,7 @@ public class ModuleRules extends AnnotationRules {
     	return SinglePromiseDropStorage.create(name(), NoVisPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<NoVisClauseNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<NoVisClauseNode, NoVisPromiseDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<NoVisClauseNode> makePromiseDrop(NoVisClauseNode a) {
@@ -104,7 +104,7 @@ public class ModuleRules extends AnnotationRules {
     }
     
     @Override
-    protected IAnnotationScrubber<VisClauseNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<VisClauseNode, VisDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<VisClauseNode> makePromiseDrop(VisClauseNode a) {
@@ -135,7 +135,7 @@ public class ModuleRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), ModulePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ModuleChoiceNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<ModuleChoiceNode, ModulePromiseDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<ModuleChoiceNode> makePromiseDrop(ModuleChoiceNode a) {
@@ -166,7 +166,7 @@ public class ModuleRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), ExportDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ExportNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<ExportNode, ExportDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<ExportNode> makePromiseDrop(ExportNode a) {

@@ -40,7 +40,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * @author Edwin.Chan
  */
 public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends PromiseDrop<? super A>> extends
-		DescendingVisitor<Boolean> implements IAnnotationScrubber<A> {
+		DescendingVisitor<Boolean> implements IAnnotationScrubber {
 	protected IAnnotationScrubberContext context;
 
 	/**

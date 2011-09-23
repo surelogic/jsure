@@ -26,7 +26,7 @@ implements ISingleAnnotationParseRule<A,P> {
   private static final Class[] defaultParamTypes = new Class[] { int.class };
   private final Class<A> aastType;
   private final IPromiseDropStorage<P> storage;
-  private final IAnnotationScrubber<A> scrubber;
+  private final IAnnotationScrubber scrubber;
 
   protected AbstractAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops);
@@ -78,7 +78,7 @@ implements ISingleAnnotationParseRule<A,P> {
     return storage;
   }
   
-  public final IAnnotationScrubber<A> getScrubber() {
+  public final IAnnotationScrubber getScrubber() {
     return scrubber;
   }
   
@@ -86,7 +86,7 @@ implements ISingleAnnotationParseRule<A,P> {
     return null;
   }
   
-  protected IAnnotationScrubber<A> makeScrubber() {
+  protected IAnnotationScrubber makeScrubber() {
     return null;
   }
 

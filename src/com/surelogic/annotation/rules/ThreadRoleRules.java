@@ -184,7 +184,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleTransparentNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleTransparentNode, TRoleTransparentDrop>(this) {
 				@Override
 				protected PromiseDrop<ThreadRoleTransparentNode> makePromiseDrop(
@@ -250,7 +250,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleNode, TRoleRequireDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override
@@ -280,7 +280,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleImportNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleImportNode, TRoleImportDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override
@@ -333,7 +333,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleGrantNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleGrantNode, TRoleGrantDrop>(this) {
 				@Override
 				protected TRoleGrantDrop makePromiseDrop(ThreadRoleGrantNode a) {
@@ -360,7 +360,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleRevokeNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleRevokeNode, TRoleRevokeDrop>(this) {
 				@Override
 				protected TRoleRevokeDrop makePromiseDrop(ThreadRoleRevokeNode a) {
@@ -387,7 +387,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleDeclarationNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleDeclarationNode, TRoleDeclareDrop>(this) {
 				@Override
 				protected TRoleDeclareDrop makePromiseDrop(
@@ -416,7 +416,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleIncompatibleNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleIncompatibleNode, TRoleIncompatibleDrop>(this) {
 				@Override
 				protected TRoleIncompatibleDrop makePromiseDrop(
@@ -448,7 +448,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ThreadRoleRenameNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ThreadRoleRenameNode, TRoleRenameDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override

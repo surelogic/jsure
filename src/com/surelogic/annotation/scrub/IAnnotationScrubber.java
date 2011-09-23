@@ -1,8 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/scrub/IAnnotationScrubber.java,v 1.6 2007/08/21 16:42:31 chance Exp $*/
 package com.surelogic.annotation.scrub;
 
-import com.surelogic.aast.IAASTRootNode;
-
 /**
  * Encapsulates the scrubber code, and specifies its dependencies on 
  * other scrubbers.
@@ -11,7 +9,7 @@ import com.surelogic.aast.IAASTRootNode;
  * 
  * @author Edwin.Chan
  */
-public interface IAnnotationScrubber<A extends IAASTRootNode> extends Runnable {
+public interface IAnnotationScrubber extends Runnable {
   String[] NONE = {};
   
   /**

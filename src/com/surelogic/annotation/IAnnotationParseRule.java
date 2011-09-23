@@ -42,5 +42,5 @@ extends IPromiseRule, PromiseConstants {
    /**
     * @return null if there's no associated scrubber
     */
-   IAnnotationScrubber<A> getScrubber();
+   IAnnotationScrubber getScrubber();
 }

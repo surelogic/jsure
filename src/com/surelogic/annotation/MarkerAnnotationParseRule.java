@@ -24,7 +24,7 @@ extends	DefaultBooleanAnnotationParseRule<A, P> {
 	    return parser.nothing().getTree();	  
 	}
     @Override
-    protected final IAnnotationScrubber<A> makeScrubber() {
+    protected final IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<A, P>(this) {
         @Override
         protected PromiseDrop<A> makePromiseDrop(A a) {

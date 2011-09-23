@@ -383,7 +383,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ReturnsLockNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ReturnsLockNode, ReturnsLockPromiseDrop>(this,
 					ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, LOCK, POLICY_LOCK) {
 				@Override
@@ -499,7 +499,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<ProhibitsLockNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ProhibitsLockNode, ProhibitsLockPromiseDrop>(this,
 					ScrubberType.UNORDERED, LOCK,
 					POLICY_LOCK, RETURNS_LOCK, REQUIRES_LOCK) {
@@ -561,7 +561,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<RequiresLockNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 		  /* Order by hierarchy so that we know that any ancestral RequiresLock
 		   * annotations are scrubbed.
 		   */
@@ -818,7 +818,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<LockDeclarationNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<LockDeclarationNode, LockModel>(this,
 					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER,
 					RegionRules.REGIONS_DONE, VOUCH_FIELD_IS) {
@@ -1408,7 +1408,7 @@ public class LockRules extends AnnotationRules {
 		// No storage: shared with @Lock
 
 		@Override
-		protected IAnnotationScrubber<PolicyLockDeclarationNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<PolicyLockDeclarationNode, LockModel>(name(),
           PolicyLockDeclarationNode.class, lockRule.getStorage(),
 					ScrubberType.BY_HIERARCHY, VOUCH_FIELD_IS) {
@@ -1460,7 +1460,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<IsLockNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<IsLockNode, IsLockPromiseDrop>(this,
 					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
 				@Override
@@ -1995,7 +1995,7 @@ public class LockRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), ContainablePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ContainableNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, "Containable", "NotContainable", NOT_CONTAINABLE) {
         @Override
         protected ContainablePromiseDrop getAnnotation(final IRNode superDecl) {
@@ -2052,7 +2052,7 @@ public class LockRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), ThreadSafePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(final IRNode superDecl) {
@@ -2228,7 +2228,7 @@ public class LockRules extends AnnotationRules {
       return BooleanPromiseDropStorage.create(name(), ImmutablePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
+    protected IAnnotationScrubber makeScrubber() {
       return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ImmutablePromiseDrop getAnnotation(final IRNode superDecl) {
@@ -2302,7 +2302,7 @@ public class LockRules extends AnnotationRules {
 		  return BooleanPromiseDropStorage.create(name(), ImmutableRefPromiseDrop.class);
 	  }
 	  @Override
-	  protected IAnnotationScrubber<ImmutableRefNode> makeScrubber() {
+	  protected IAnnotationScrubber makeScrubber() {
 		  // TODO scrub
 		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
 		      this, ScrubberType.UNORDERED, UniquenessRules.READONLY) {
@@ -2518,7 +2518,7 @@ public class LockRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<VouchFieldIsNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<VouchFieldIsNode, VouchFieldIsPromiseDrop>(
 			    this, ScrubberType.UNORDERED, NOT_THREAD_SAFE, NOT_CONTAINABLE, 
 			    MUTABLE) {

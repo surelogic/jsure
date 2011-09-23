@@ -114,7 +114,7 @@ public class MethodEffectsRules extends AnnotationRules {
 		}
 		
 		@Override
-		protected IAnnotationScrubber<RegionEffectsNode> makeScrubber() {
+		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<RegionEffectsNode, RegionEffectsPromiseDrop>(this,
 					ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, RegionRules.REGIONS_DONE) {
 				@Override
