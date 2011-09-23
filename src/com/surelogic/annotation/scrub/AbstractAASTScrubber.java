@@ -2,7 +2,6 @@
 package com.surelogic.annotation.scrub;
 
 import java.util.*;
-import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -14,18 +13,13 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
  * A superclass specialized to implementing scrubbers that iterate over AASTs.
@@ -278,6 +272,11 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	@Override
+	protected void finishRun() {
+		AASTStore.sync();
+	}
+	
+	@Override
 	protected void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
 			// Sort to process in a consistent order
@@ -330,7 +329,9 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	/**
-	 * Written for boolean/node promises that can really only take one AAST per node
+	 * Written for boolean/node promises that can really only take one AAST per node,
+	 * checking for conflicts 
+	 * 
 	 * @param cb 
 	 */
 	protected void processAASTsByNode(IAnnotationTraversalCallback<A> cb, Collection<A> l) {
@@ -441,44 +442,6 @@ extends AbstractHierarchyScrubber<A> {
 		}
 		return result;
 	}
-
-	public void run() {
-		IDE.runAtMarker(new AbstractRunner() {
-			public void run() {
-				if (SLLogger.getLogger().isLoggable(Level.FINER)) {
-					SLLogger.getLogger().finer(
-							"Running "
-									+ AbstractAASTScrubber.this.getClass()
-											.getName());
-				}
-				switch (scrubberType) {
-				case UNORDERED:
-					/* Eliminated due to @Assume's need to process by type
-					scrub(cls);
-					return;
-					*/
-				case BY_TYPE:
-					scrubByPromisedFor_Type();
-					return;
-				case BY_HIERARCHY:
-				case INCLUDE_SUBTYPES_BY_HIERARCHY:
-				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy();
-					return;
-				case DIY:
-					scrubAll(nullCallback, getRelevantAnnotations());
-					return;
-				case OTHER:
-					throw new UnsupportedOperationException();
-				}
-				AASTStore.sync();
-			}
-		});
-	}
-	
-	protected void scrubAll(IAnnotationTraversalCallback<A> cb, Iterable<A> all) {
-		throw new UnsupportedOperationException();
-	}
 	
 	private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
 		public void addDerived(A c, PromiseDrop<? extends A> pd) {
@@ -486,44 +449,9 @@ extends AbstractHierarchyScrubber<A> {
 		}
 	};
 	
-	void scrubByPromisedFor_Type() {
-		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
-		organizeByType(byType);
-		
-		for(Map.Entry<IRNode, List<A>> e : byType.entrySet()) {
-			List<A> l = e.getValue();
-			if (l != null && !l.isEmpty()) {
-				final IRNode decl = e.getKey();
-				startScrubbingType_internal(decl);
-				try {
-					processAASTsForType(nullCallback, decl, l);
-				} finally {
-					finishScrubbingType_internal(decl);
-				}
-			}
-		}
-	}
-	
 	@Override
-	protected void organizeByType(Map<IRNode, List<A>> byType) {
-		// Organize by promisedFor
-		for (A a : getRelevantAnnotations()) {
-			IRNode promisedFor = a.getPromisedFor();
-			IRNode type = VisitUtil.getClosestType(promisedFor);
-			if (type == null) {
-				type = VisitUtil.getEnclosingCompilationUnit(promisedFor);
-			}
-			else if (!TypeDeclaration.prototype.includes(type)) {
-				throw new IllegalArgumentException("Not a type decl: "
-						+ DebugUnparser.toString(type));
-			}
-			List<A> l = byType.get(type);
-			if (l == null) {
-				l = new ArrayList<A>();
-				byType.put(type, l);
-			}
-			l.add(a);
-		}
+	protected IAnnotationTraversalCallback<A> getNullCallback() {
+		return nullCallback;
 	}
 	
 	@Override
@@ -563,19 +491,6 @@ extends AbstractHierarchyScrubber<A> {
 			return min;
 		}
 	};
-
-	/**
-	 * Scrub the bindings of the specified kind in order of the position of
-	 * their promisedFor (assumed to be a type decl) in the type hierarchy
-	 */
-	private void scrubByPromisedFor_Hierarchy() {
-		TypeHierarchyVisitor walk = new TypeHierarchyVisitor();
-		walk.init();
-		do {
-			walk.walkHierarchy();
-		} 
-		while (walk.hasMoreTypes());
-	}
 
 	protected P storeDropIfNotNull(A a, P pd) {
 	  return AnnotationRules.storeDropIfNotNull(stor, a, pd);

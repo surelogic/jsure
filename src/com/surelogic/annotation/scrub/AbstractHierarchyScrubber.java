@@ -1,10 +1,13 @@
 package com.surelogic.annotation.scrub;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import com.surelogic.analysis.*;
 import com.surelogic.annotation.AnnotationLocation;
+import com.surelogic.common.logging.SLLogger;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
@@ -14,6 +17,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
  * Designed to scrub annotations/promises hanging off of IRNodes
@@ -29,9 +33,9 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	}
 
 	// Things to override
-	protected abstract Iterable<A> getRelevantAnnotations();	
-	protected abstract void organizeByType(Map<IRNode, List<A>> byType);
-	
+	protected abstract Iterable<A> getRelevantAnnotations();			
+	protected abstract IAnnotationTraversalCallback<A> getNullCallback();
+	protected abstract void finishRun(); 
 	protected abstract void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l);
 	protected abstract void finishAddDerived(A clone, PromiseDrop<? extends A> pd);
 	
@@ -69,6 +73,40 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	
 	protected void finishScrubbingType(IRNode decl) {
 		// Nothing to do right now
+	}
+	
+	public void run() {
+		IDE.runAtMarker(new AbstractRunner() {
+			public void run() {
+				if (SLLogger.getLogger().isLoggable(Level.FINER)) {
+					SLLogger.getLogger().finer(
+							"Running "
+									+ AbstractHierarchyScrubber.this.getClass()
+											.getName());
+				}
+				switch (scrubberType) {
+				case UNORDERED:
+					/* Eliminated due to @Assume's need to process by type
+					scrub(cls);
+					return;
+					*/
+				case BY_TYPE:
+					scrubByPromisedFor_Type();
+					return;
+				case BY_HIERARCHY:
+				case INCLUDE_SUBTYPES_BY_HIERARCHY:
+				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
+					scrubByPromisedFor_Hierarchy();
+					return;
+				case DIY:
+					scrubAll(getNullCallback(), getRelevantAnnotations());
+					return;
+				case OTHER:
+					throw new UnsupportedOperationException();
+				}
+				finishRun();
+			}
+		});	
 	}
 	
 	/**
@@ -293,7 +331,66 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		}
 	} // end TypeHierarchyVisitor
 	
-	protected final void startScrubbingType_internal(IRNode decl) {
+	/**
+	 * Loads up byType with the result of getRelevantAnnotations()
+	 */
+	private void organizeByType(Map<IRNode, List<A>> byType) {
+		// Organize by promisedFor
+		for (A a : getRelevantAnnotations()) {
+			IRNode promisedFor = a.getPromisedFor();
+			IRNode type = VisitUtil.getClosestType(promisedFor);
+			if (type == null) {
+				type = VisitUtil.getEnclosingCompilationUnit(promisedFor);
+			}
+			else if (!TypeDeclaration.prototype.includes(type)) {
+				throw new IllegalArgumentException("Not a type decl: "
+						+ DebugUnparser.toString(type));
+			}
+			List<A> l = byType.get(type);
+			if (l == null) {
+				l = new ArrayList<A>();
+				byType.put(type, l);
+			}
+			l.add(a);
+		}
+	}
+	
+	private void scrubByPromisedFor_Type() {
+		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
+		organizeByType(byType);
+		
+		for(Map.Entry<IRNode, List<A>> e : byType.entrySet()) {
+			List<A> l = e.getValue();
+			if (l != null && !l.isEmpty()) {
+				final IRNode decl = e.getKey();
+				startScrubbingType_internal(decl);
+				try {
+					processAASTsForType(getNullCallback(), decl, l);
+				} finally {
+					finishScrubbingType_internal(decl);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Scrub the bindings of the specified kind in order of the position of
+	 * their promisedFor (assumed to be a type decl) in the type hierarchy
+	 */
+	private void scrubByPromisedFor_Hierarchy() {
+		TypeHierarchyVisitor walk = new TypeHierarchyVisitor();
+		walk.init();
+		do {
+			walk.walkHierarchy();
+		} 
+		while (walk.hasMoreTypes());
+	}
+	
+	protected void scrubAll(IAnnotationTraversalCallback<A> cb, Iterable<A> all) {
+		throw new UnsupportedOperationException();
+	}
+	
+	private void startScrubbingType_internal(IRNode decl) {
 		startScrubbingType(decl);	
 		if (useAssumptions()) {
 			IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
@@ -309,7 +406,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		}
 	}
 	
-	protected final void finishScrubbingType_internal(IRNode decl) {
+	private void finishScrubbingType_internal(IRNode decl) {
 		if (useAssumptions()) {
 			PromiseFramework.getInstance().popTypeContext();
 		}
