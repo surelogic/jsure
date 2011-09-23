@@ -186,7 +186,7 @@ public class UniquenessRules extends AnnotationRules {
     	    RegionRules.SIMPLE_BORROWED_IN_REGION) {
 	  		@Override
 		  	protected ReadOnlyPromiseDrop makePromiseDrop(ReadOnlyNode n) {
-			  	return storeDropIfNotNull(n, scrubReadOnly(context, n));
+			  	return storeDropIfNotNull(n, scrubReadOnly(getContext(), n));
   			}    		
     	};
     }
@@ -437,9 +437,9 @@ public class UniquenessRules extends AnnotationRules {
           /* Cannot remove @Borrowed annotations */
           final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
           if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
-            return consistencyCheckReceiver(context, promisedFor);
+            return consistencyCheckReceiver(getContext(), promisedFor);
           } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
-            return consistencyCheckParameter(context, promisedFor);          
+            return consistencyCheckParameter(getContext(), promisedFor);          
           }
           
           return true;

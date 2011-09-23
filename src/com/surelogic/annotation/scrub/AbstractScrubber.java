@@ -18,6 +18,9 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		this.runsBefore   = before;
 	}
 
+	/**
+	 * Returns the scrubber's name
+	 */
 	public final String name() {
 		return name;
 	}
@@ -26,18 +29,32 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		return order;
 	}
 
+	/**
+	 * Returns a list of strings, each of which is the name of another scrubber
+	 * that this scrubber depends on having run before it.
+	 */
 	public final String[] dependsOn() {
 		return dependencies;
 	}
 
+	/**
+	 * Returns a list of strings, each of which is the name of another scrubber
+	 * that this scrubber needs to run before.
+	 */
 	public final String[] shouldRunBefore() {
 		return runsBefore;
 	}
 
+	/**
+	 * Sets the context for reporting errors, etc.
+	 */
 	public final void setContext(IAnnotationScrubberContext c) {
 		context = c;
 	}
 		  
+	/**
+	 * Returns the context
+	 */
 	protected final IAnnotationScrubberContext getContext() {
 		return context;
 	}

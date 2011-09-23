@@ -189,7 +189,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 					  d.invalidate();
 					  return null;
 					case NOT_APPLICABLE:
-					  context.reportWarning("Assumption not applied", a);
+					  getContext().reportWarning("Assumption not applied", a);
 					default:
 					}
 					storeDropIfNotNull(a, d);

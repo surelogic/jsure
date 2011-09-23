@@ -39,21 +39,17 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * 
  * @author Edwin.Chan
  */
-public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends PromiseDrop<? super A>> extends
-		DescendingVisitor<Boolean> implements IAnnotationScrubber {
-	protected IAnnotationScrubberContext context;
-
+public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends PromiseDrop<? super A>>
+extends AbstractScrubber {
+	private final Visitor visitor = new Visitor(Boolean.TRUE);
+	
 	/**
 	 * The annotation being scrubbed
 	 */
 	private IAASTRootNode current;
 
-	private final String name;
 	private final ScrubberType type;
 	private final Class<A> cls;
-	private final ScrubberOrder order;
-	private final String[] dependencies;
-	private final String[] runsBefore;
 	private final IPromiseDropStorage<P> stor;
 
 	/**
@@ -75,17 +71,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	public AbstractAASTScrubber(String name, Class<A> c,
 	    IPromiseDropStorage<P> stor, ScrubberType type, String[] before,
 			ScrubberOrder order, String... deps) {
-		super(Boolean.TRUE); // set to default to true
-		this.name = name;
+		super(before, name, order, deps);
 		this.stor = stor;
 		if (stor == null) {
 			System.out.println("Null storage");
 		}
 		this.type = type;
 		this.cls = c;
-		this.order = order;
-		this.dependencies = deps;
-		this.runsBefore = before;
 	}
 
 	public AbstractAASTScrubber(String name, Class<A> c,
@@ -133,59 +125,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	}
 
 	private AbstractAASTScrubber() {
-		super(Boolean.TRUE); // set to default to true
+		super(null, null, null, (String[])null);
 		cls = null;
-		dependencies = null;
-		name = null;
-		order = null;
-		runsBefore = null;
 		stor = null;
 		type = null;
 	}
 	
-	/**
-	 * Returns the scrubber's name
-	 */
-	public final String name() {
-		return name;
-	}
-
-	public ScrubberOrder order() {
-		return order;
-	}
-
-	/**
-	 * Returns a list of strings, each of which is the name of another scrubber
-	 * that this scrubber depends on having run before it.
-	 */
-	public final String[] dependsOn() {
-		return dependencies;
-	}
-
-	/**
-	 * Returns a list of strings, each of which is the name of another scrubber
-	 * that this scrubber needs to run before.
-	 */
-	public final String[] shouldRunBefore() {
-		return runsBefore;
-	}
-
-	/**
-	 * Sets the context for reporting errors, etc.
-	 */
-	public final void setContext(IAnnotationScrubberContext c) {
-		context = c;
-	}
-
-	/**
-	 * Returns the context
-	 * 
-	 * @return
-	 */
-	protected final IAnnotationScrubberContext getContext() {
-		return context;
-	}
-
 	protected IAASTRootNode getCurrent() {
 		return current;
 	}
@@ -198,44 +143,50 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	 * superclass
 	 **************************************************************************/
 
-	/**
-	 * An AAST is only valid if all of it is valid
-	 */
-	@Override
-	protected final Boolean combineResults(Boolean before, Boolean next) {
-		return before && next;
-	}
-
-	@Override
-	public final Boolean doAccept(AASTNode node) {
-		Boolean result = super.doAccept(node);
-		boolean rv = result == null ? true : result.booleanValue();
-		if (rv) {
-			result = customScrubBindings(node);
-			if (result != null) {
-				return rv && result;
-			}
-			if (node instanceof Resolvable) {
-				Resolvable r = (Resolvable) node;
-				if (!r.bindingExists() && context != null) {
-					String msg = "Couldn't resolve a binding for "+node+" on "+current;
-					context.reportError(msg, node);		
-					if (msg.startsWith("Couldn't resolve a binding for InstanceRegion on RegionEffects Writes test_qualifiedThis.C.this:InstanceRegion")) {
-						r.bindingExists();
-					}
-					rv = false;
-				}
-			}
-			rv = checkForTypeBinding(node, rv);
+	private class Visitor extends DescendingVisitor<Boolean> {
+		public Visitor(Boolean defaultVal) {
+			super(defaultVal);
 		}
-		return rv;
+
+		/**
+		 * An AAST is only valid if all of it is valid
+		 */
+		@Override
+		protected final Boolean combineResults(Boolean before, Boolean next) {
+			return before && next;
+		}
+
+		@Override
+		public final Boolean doAccept(AASTNode node) {
+			Boolean result = super.doAccept(node);
+			boolean rv = result == null ? true : result.booleanValue();
+			if (rv) {
+				result = customScrubBindings(node);
+				if (result != null) {
+					return rv && result;
+				}
+				if (node instanceof Resolvable) {
+					Resolvable r = (Resolvable) node;
+					if (!r.bindingExists() && getContext() != null) {
+						String msg = "Couldn't resolve a binding for "+node+" on "+current;
+						getContext().reportError(msg, node);		
+						if (msg.startsWith("Couldn't resolve a binding for InstanceRegion on RegionEffects Writes test_qualifiedThis.C.this:InstanceRegion")) {
+							r.bindingExists();
+						}
+						rv = false;
+					}
+				}
+				rv = checkForTypeBinding(node, rv);
+			}
+			return rv;
+		}
 	}
-	
+		
 	protected final boolean checkForTypeBinding(AASTNode node, boolean rv) {
 		if (node instanceof ResolvableToType) {
 			ResolvableToType r = (ResolvableToType) node;
-			if (!r.typeExists() && context != null) {					
-				context.reportError("Couldn't resolve a type for " + node
+			if (!r.typeExists() && getContext() != null) {					
+				getContext().reportError("Couldn't resolve a type for " + node
 						+ " on " + current, node);
 				rv = false;
 			}
@@ -260,7 +211,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			System.out.println("No AST to scrub");
 			return false;
 		}
-		boolean result = doAccept((AASTNode) a);
+		boolean result = visitor.doAccept((AASTNode) a);
 		current = null;
 		return result;
 	}
@@ -297,7 +248,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		case SEQ:
 			return true; // OK to have multiple
 		case NONE:
-			context.reportError("No storage allocated", a);
+			getContext().reportError("No storage allocated", a);
 			return false;
 		}
 		return true;
@@ -320,7 +271,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			String aS      = a.toString();
 			if (!oldS.equals(aS)) {
 				//System.out.println(JavaNames.genQualifiedMethodConstructorName(promisedFor));
-				context.reportError("Conflicting promises: "+oldS+", "+aS, old);				
+				getContext().reportError("Conflicting promises: "+oldS+", "+aS, old);				
 			}
 		}
 		return !defined;
@@ -439,11 +390,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 								}
 								*/								
 								if (sp != null) {
-									context.reportError(sp.getMessage()+" ("+JavaNames.getFullName(sp.getNode())+
+									getContext().reportError(sp.getMessage()+" ("+JavaNames.getFullName(sp.getNode())+
 											") overridden by explicit annotation "+
 											a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", a2);
 								} else {
-									context.reportError(a2+" ("+JavaNames.getFullName(a2.getPromisedFor())+
+									getContext().reportError(a2+" ("+JavaNames.getFullName(a2.getPromisedFor())+
 											            ") overridden by explicit annotation "+
 														a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", a2);
 								}
@@ -467,7 +418,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			} else {
 				// Create warning for all ASTs
 				for(A a : l) {
-					context.reportError("More than one annotation applies", a);
+					getContext().reportError("More than one annotation applies", a);
 				}
 			}
 		}
@@ -595,7 +546,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	
 	private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
 		public void addDerived(A c, PromiseDrop<? extends A> pd) {
-			context.reportWarning("Ignoring derived AAST created by "+pd.getClass().getSimpleName(), c);
+			getContext().reportWarning("Ignoring derived AAST created by "+pd.getClass().getSimpleName(), c);
 		}
 	};
 	

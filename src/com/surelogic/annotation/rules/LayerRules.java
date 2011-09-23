@@ -171,7 +171,7 @@ public class LayerRules extends AnnotationRules {
 				if (checkUnidentifiedTargetNode(node)) {
 					return true;
 				} else {
-					context.reportError("Couldn't resolve a binding for " + node
+					getContext().reportError("Couldn't resolve a binding for " + node
 							+ " on " + getCurrent(), node);
 					checkUnidentifiedTargetNode(node);
 				}
@@ -206,7 +206,7 @@ public class LayerRules extends AnnotationRules {
 			
 			boolean rv = refs.checkOne(computeCurrentName());
 			if (!rv) {
-				context.reportError("Cycle detected", a);
+				getContext().reportError("Cycle detected", a);
 			}
 			return rv;
 		}
