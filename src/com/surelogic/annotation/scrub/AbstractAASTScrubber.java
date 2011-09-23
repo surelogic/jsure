@@ -458,18 +458,6 @@ extends AbstractHierarchyScrubber<A> {
 	protected Iterable<A> getRelevantAnnotations() {
 		return AASTStore.getASTsByClass(cls);
 	}
-
-	static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
-		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
-			final IRNode p1 = o1.getPromisedFor();
-			final IRNode p2 = o2.getPromisedFor();
-			if (p1.equals(p2)) {
-				return o1.getOffset() - o2.getOffset();
-			} else {
-				return p1.hashCode() - p2.hashCode();
-			}
-		}
-	};
 		
 	final Comparator<Map.Entry<IRNode,Collection<A>>> entryComparator = new Comparator<Map.Entry<IRNode,Collection<A>>>() {
 		public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {

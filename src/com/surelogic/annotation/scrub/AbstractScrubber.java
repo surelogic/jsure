@@ -1,8 +1,13 @@
 package com.surelogic.annotation.scrub;
 
+import java.util.Comparator;
+
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractScrubber implements IAnnotationScrubber {
 	private IAnnotationScrubberContext context;
@@ -63,4 +68,27 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		TestResult expected = AASTStore.getTestResult(a);   
 		TestResult.checkIfMatchesResult(expected, TestResultType.UNASSOCIATED);
 	}
+	
+	protected static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
+		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
+			final IRNode p1 = o1.getPromisedFor();
+			final IRNode p2 = o2.getPromisedFor();
+			if (p1.equals(p2)) {
+				// Sufficient because we're only comparing things in the same type				
+				return o1.getOffset() - o2.getOffset();
+			} else {
+				return p1.hashCode() - p2.hashCode();
+			}
+		}
+	};
+	
+	protected static final Comparator<PromiseDrop<? extends IAASTRootNode>> dropComparator =  
+		new Comparator<PromiseDrop<? extends IAASTRootNode>>() {
+			@Override
+			public int compare(PromiseDrop<? extends IAASTRootNode> o1,
+					PromiseDrop<? extends IAASTRootNode> o2) {
+				return aastComparator.compare(o1.getAST(), o2.getAST());
+			}
+	
+	};
 }
