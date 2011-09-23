@@ -12,6 +12,13 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * Works like AbstractAASTScrubber, but on PromiseDrops.
  * Requires you to define getRelevantAnnotations() and override other methods if needed
  * 
+ * Probably registered as shown below:
+ * 
+ *  @Override
+ *  public void register(PromiseFramework fw) {
+ *    ...
+ *    registerScrubber(fw, myNewScrubber);
+ *  } 
  * @author Edwin
  */
 public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IAASTRootNode>> extends AbstractHierarchyScrubber<P> {
