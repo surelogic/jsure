@@ -8,7 +8,12 @@ import com.surelogic.aast.IAASTRootNode;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-
+/**
+ * Works like AbstractAASTScrubber, but on PromiseDrops.
+ * Requires you to define getRelevantAnnotations() and override other methods if needed
+ * 
+ * @author Edwin
+ */
 public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IAASTRootNode>> extends AbstractHierarchyScrubber<P> {
 	protected AbstractPromiseScrubber(ScrubberType type, String[] before,
 			String name, ScrubberOrder order, String[] deps) {
@@ -52,5 +57,6 @@ public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IA
 	@Override
 	protected void finishRun() {
 		// Nothing to do?
+		// TODO Reset state?
 	}
 }
