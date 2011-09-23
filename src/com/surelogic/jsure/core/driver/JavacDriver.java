@@ -2001,8 +2001,16 @@ public class JavacDriver implements IResourceChangeListener {
 			 * Collect information and report this scan crash to SureLogic.
 			 */
 			final File rollup = collectCrashFiles(projects);
-			JSureScanCrashReport.getInstance().getReporter()
-					.reportScanCrash(status, rollup);
+			if (XUtil.testing) {
+				if (status.getException() != null) {
+					status.getException().printStackTrace();					
+				} else {
+					System.err.println("CRASH: "+status.getMessage());
+				}
+			} else {
+				JSureScanCrashReport.getInstance().getReporter()
+				.reportScanCrash(status, rollup);
+			}
 			/*
 			 * Because we already opened a dialog above about the crash, log it
 			 * and bail out of the job.
