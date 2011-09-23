@@ -4,6 +4,7 @@ package com.surelogic.aast;
 import com.surelogic.annotation.AnnotationSource;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.IHasPromisedFor;
 
 /**
  * A root node for an AAST
@@ -11,7 +12,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  *
  * @author Edwin.Chan
  */
-public interface IAASTRootNode extends IAASTNode {
+public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
   void clearPromisedFor();
   IRNode getPromisedFor();
   AASTStatus getStatus();

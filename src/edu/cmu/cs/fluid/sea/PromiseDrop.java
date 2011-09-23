@@ -8,6 +8,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.JavaSourceReference;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
@@ -20,7 +21,7 @@ import edu.cmu.cs.fluid.sea.xml.*;
  * cutpoints for the analyses.
  */
 public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
-		implements ISrcRef {
+		implements ISrcRef, IHasPromisedFor {
 	public static final String VIRTUAL = "virtual";
 
 	public static final String FROM_SRC = "from-src";
@@ -46,6 +47,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 
 	public PromiseDrop() {
 		this(null);
+	}
+	
+	public final IRNode getPromisedFor() {
+		return getNode();
+		//return getAST().getPromisedFor();
 	}
 	
 	/**
