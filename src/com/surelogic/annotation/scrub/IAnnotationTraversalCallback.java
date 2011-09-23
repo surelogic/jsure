@@ -1,7 +1,6 @@
 package com.surelogic.annotation.scrub;
 
-import com.surelogic.aast.IAASTRootNode;
-
+import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
@@ -9,7 +8,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * 
  * @author Edwin
  */
-public interface IAnnotationTraversalCallback<A extends IAASTRootNode> {
+public interface IAnnotationTraversalCallback<A extends IHasPromisedFor> {
 	/**
 	 * Handles a derived AAST that annotates a subclass of the class we are currently visiting
 	 * 

@@ -9,8 +9,6 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
@@ -21,16 +19,12 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
@@ -40,7 +34,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * @author Edwin.Chan
  */
 public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends PromiseDrop<? super A>>
-extends AbstractScrubber {
+extends AbstractHierarchyScrubber<A> {
 	private final Visitor visitor = new Visitor(Boolean.TRUE);
 	
 	/**
@@ -48,7 +42,6 @@ extends AbstractScrubber {
 	 */
 	private IAASTRootNode current;
 
-	private final ScrubberType type;
 	private final Class<A> cls;
 	private final IPromiseDropStorage<P> stor;
 
@@ -71,12 +64,11 @@ extends AbstractScrubber {
 	public AbstractAASTScrubber(String name, Class<A> c,
 	    IPromiseDropStorage<P> stor, ScrubberType type, String[] before,
 			ScrubberOrder order, String... deps) {
-		super(before, name, order, deps);
+		super(type, before, name, order, deps);
 		this.stor = stor;
 		if (stor == null) {
 			System.out.println("Null storage");
 		}
-		this.type = type;
 		this.cls = c;
 	}
 
@@ -125,10 +117,9 @@ extends AbstractScrubber {
 	}
 
 	private AbstractAASTScrubber() {
-		super(null, null, null, (String[])null);
+		super(null, null, null, null, (String[])null);
 		cls = null;
 		stor = null;
-		type = null;
 	}
 	
 	protected IAASTRootNode getCurrent() {
@@ -285,36 +276,8 @@ extends AbstractScrubber {
 	protected boolean customScrub(A a) {
 		return true;
 	}
-
-	/**
-	 * Intended to be overridden
-	 * 
-	 * @return true if okay
-	 */
-	protected boolean processUnannotatedType(IJavaDeclaredType dt) {
-		return true;
-	}
 	
-	final void processUnannotatedDeclsForType(List<IRNode> declsToCheck) {
-		if (declsToCheck == null) {
-			return;
-		}	
-		// TODO do I need to sort these? (they're unannotated)		
-		// Collections.sort(declsToCheck, nodeComparator);
-		for(IRNode decl : declsToCheck) {
-			processUnannotatedMethodRelatedDecl(decl);
-		}
-	}
-	
-	/**
-	 * Intended to be overridden
-	 * 
-	 * @return true if okay
-	 */
-	protected boolean processUnannotatedMethodRelatedDecl(IRNode decl) {
-		return true;
-	}
-	
+	@Override
 	protected void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
 			// Sort to process in a consistent order
@@ -344,6 +307,18 @@ extends AbstractScrubber {
 				processAASTsByNode(e.getValue());
 			}
 			*/
+		}
+	}
+	
+	@Override
+	protected void finishAddDerived(A clone, PromiseDrop<? extends A> pd) {
+		// Copied from AASTStore
+		synchronized (AASTStore.class) {
+			AASTStore.setPromiseSource(clone, pd);
+			if (pd instanceof ValidatedDropCallback<?>) {
+				AASTStore.triggerWhenValidated(clone, (ValidatedDropCallback<?>) pd);
+			}
+			AASTStore.cloneTestResult(pd.getAST(), clone);
 		}
 	}
 	
@@ -476,7 +451,7 @@ extends AbstractScrubber {
 									+ AbstractAASTScrubber.this.getClass()
 											.getName());
 				}
-				switch (type) {
+				switch (scrubberType) {
 				case UNORDERED:
 					/* Eliminated due to @Assume's need to process by type
 					scrub(cls);
@@ -488,7 +463,7 @@ extends AbstractScrubber {
 				case BY_HIERARCHY:
 				case INCLUDE_SUBTYPES_BY_HIERARCHY:
 				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy(cls, type);
+					scrubByPromisedFor_Hierarchy(cls);
 					return;
 				case DIY:
 					scrubAll(nullCallback, AASTStore.getASTsByClass(cls));
@@ -500,49 +475,10 @@ extends AbstractScrubber {
 			}
 		});
 	}
-
-	protected void startScrubbingType(IRNode decl) {
-		// Nothing to do right now		
-	}
-	
-	protected void finishScrubbingType(IRNode decl) {
-		// Nothing to do right now
-	}
-	/**
-	 * Use assumptions while scrubbing
-	 * @return
-	 */
-	protected boolean useAssumptions() {
-		return true;
-	}
 	
 	protected void scrubAll(IAnnotationTraversalCallback<A> cb, Iterable<A> all) {
 		throw new UnsupportedOperationException();
 	}
-	
-	private void startScrubbingType_internal(IRNode decl) {
-		startScrubbingType(decl);	
-		if (useAssumptions()) {
-			IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
-			if (cu == null) {
-				// Probably already the CU decl
-				cu = decl; 
-				/*
-				IRNode parent = JJNode.tree.getParentOrNull(decl);
-				System.out.println("parent = "+DebugUnparser.toString(parent));
-				*/
-			}
-			PromiseFramework.getInstance().pushTypeContext(cu);
-		}
-	}
-	
-	private void finishScrubbingType_internal(IRNode decl) {
-		if (useAssumptions()) {
-			PromiseFramework.getInstance().popTypeContext();
-		}
-		finishScrubbingType(decl);
-	}
-	
 	
 	private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
 		public void addDerived(A c, PromiseDrop<? extends A> pd) {
@@ -568,7 +504,8 @@ extends AbstractScrubber {
 		}
 	}
 	
-	void organizeByType(Class<A> c, Map<IRNode, List<A>> byType) {
+	@Override
+	protected void organizeByType(Class<A> c, Map<IRNode, List<A>> byType) {
 		// Organize by promisedFor
 		for (A a : AASTStore.getASTsByClass(c)) {
 			IRNode promisedFor = a.getPromisedFor();
@@ -589,224 +526,9 @@ extends AbstractScrubber {
 		}
 	}
 	
-	private class HierarchyWalk implements IAnnotationTraversalCallback<A> {
-		// Empty list = a subclass w/o required annos
-		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
-		final Map<IRNode, List<IRNode>> methodRelatedDeclsToCheck = new HashMap<IRNode, List<IRNode>>();
-		final Set<IRNode> done = new HashSet<IRNode>();
-		final ScrubberType scrubberType;
-		
-		HierarchyWalk(ScrubberType type) {
-			this.scrubberType = type;
-		}
-
-		void init(Class<A> c) {
-			organizeByType(c, byType);
-			switch (scrubberType) {
-			case INCLUDE_SUBTYPES_BY_HIERARCHY:
-				for(IRNode type : new ArrayList<IRNode>(byType.keySet())) {
-					final IIRProject p = JavaProjects.getEnclosingProject(type);
-					/*
-					if ("I".equals(JJNode.getInfoOrNull(type))) {
-						System.out.println("Looking at my type");
-					}
-                    */
-					for(IRNode sub : p.getTypeEnv().getRawSubclasses(type)) {
-						// Add empty lists for types w/o required annos
-						if (!byType.containsKey(sub)) {
-							// Mark it as a type that we need to look at
-							byType.put(sub, Collections.<A>emptyList());
-						}
-					}
-				}		
-				break;
-			case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-				computeMethodRelatedDeclsToCheck(c);
-				break;
-			default:
-			}
-		}
-
-		/**
-		 * Find the decls in overridden methods that we also need to look at
-		 */
-		private void computeMethodRelatedDeclsToCheck(Class<A> c) {
-			final Set<IRNode> declsToCheck = new HashSet<IRNode>();
-			final Set<IRNode> hasAASTs = new HashSet<IRNode>();
-			for (A a : AASTStore.getASTsByClass(c)) {
-				final IRNode promisedFor = a.getPromisedFor();		
-				hasAASTs.add(promisedFor);
-				
-				// Find the relative location of the AST
-				final Operator op = JJNode.tree.getOperator(promisedFor);
-				final AnnotationLocation loc;
-				int parameterNum = -1;
-				if (SomeFunctionDeclaration.prototype.includes(op)) {
-					loc = AnnotationLocation.DECL;
-				}
-				else if (ReceiverDeclaration.prototype.includes(op)) {
-					loc = AnnotationLocation.RECEIVER;
-				}
-				else if (ParameterDeclaration.prototype.includes(op)) {
-					loc = AnnotationLocation.PARAMETER;
-					IRLocation irLoc = JJNode.tree.getLocation(promisedFor);
-					parameterNum = JJNode.tree.childLocationIndex(promisedFor, irLoc);
-				}
-				else if (ReturnValueDeclaration.prototype.includes(op)) {
-					loc = AnnotationLocation.RETURN_VAL;
-				}
-				else if (VariableDeclarator.prototype.includes(op) || ClassInitDeclaration.prototype.includes(op)) {
-				    // These can't be overridden by anything else
-				    continue;
-				}
-				else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
-					loc = AnnotationLocation.QUALIFIED_RECEIVER;
-				}
-				else {
-					throw new IllegalStateException("Unexpected decl: "+op.name());
-				}
-				
-				// Find the decls to visit
-				final IRNode enclosingFunc = VisitUtil.getClosestClassBodyDecl(promisedFor);
-				IRNode type = VisitUtil.getEnclosingType(enclosingFunc);
-				if (type == null) {
-					type = VisitUtil.getEnclosingCompilationUnit(enclosingFunc);
-				}
-				final IIRProject p = JavaProjects.getEnclosingProject(type);
-				for(IRNode om : p.getTypeEnv().getBinder().findOverridingMethodsFromType(enclosingFunc, type)) {					
-					switch (loc) {
-					case DECL:
-						declsToCheck.add(om);
-						break;
-					case RECEIVER:
-						declsToCheck.add(ReceiverDeclaration.getReceiverNode(om));
-						break;
-					case RETURN_VAL:
-						declsToCheck.add(ReturnValueDeclaration.getReturnNode(om));
-						break;
-					case PARAMETER:
-						final IRNode params = SomeFunctionDeclaration.getParams(om);
-						declsToCheck.add(JJNode.tree.getChild(params, parameterNum));
-						break;
-					}
-				}				
-			}
-			// Remove decls that we'll already look at
-			declsToCheck.removeAll(hasAASTs);
-			hasAASTs.clear(); 
-			methodRelatedDeclsToCheck.clear();
-			
-			// Sort by type
-			for(IRNode decl : declsToCheck) {
-				final IRNode type = VisitUtil.getEnclosingType(decl);
-				if (!byType.containsKey(type)) {
-					// Mark it as a type that we need to look at
-					byType.put(type, Collections.<A>emptyList());
-				}
-				List<IRNode> mrds = methodRelatedDeclsToCheck.get(type); 
-				if (mrds == null) {
-					mrds = new ArrayList<IRNode>();
-					methodRelatedDeclsToCheck.put(type, mrds);
-				}
-				mrds.add(decl);
-			}
-		}
-
-		/**
-		 * Walk ancestors backwards (from roots like java.lang.Object)
-		 */
-		void walkHierarchy() {
-			for (IRNode type : byType.keySet()) {
-				IJavaDeclaredType dt = JavaTypeFactory.getMyThisType(type);
-				walkHierarchy(dt);
-			}
-		}
-
-		private void walkHierarchy(final IJavaDeclaredType dt) {
-			final IRNode decl = dt.getDeclaration();
-			if (done.contains(decl)) {
-				return;
-			}
-			final IIRProject p = JavaProjects.getEnclosingProject(decl);
-			// get super types
-			for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
-				walkHierarchy((IJavaDeclaredType) st);
-			}
-
-			// process this type
-			//System.out.println("Scrubbing promises for "+dt+" -- "+decl);
-			List<A> l = byType.get(decl);
-			if (l != null) {
-				startScrubbingType_internal(decl);
-				try {
-					final List<IRNode> otherDeclsToCheck;
-					if (type == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-						otherDeclsToCheck = methodRelatedDeclsToCheck.get(decl);
-				    } else {
-						otherDeclsToCheck = Collections.emptyList();
-					}
-					if (l == Collections.emptyList()) {
-						if (type == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(otherDeclsToCheck);
-						} else {
-							processUnannotatedType(dt);
-						}
-					} else {
-						processAASTsForType(this, dt.getDeclaration(), l);
-						if (type == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(otherDeclsToCheck);
-						}
-					}
-				} finally {
-					finishScrubbingType_internal(decl);
-				}
-			}
-			// Mark as done
-			done.add(decl);
-		}
-
-		boolean hasMoreTypes() {
-			// Check that we've processed everything
-			for (IRNode t : done) {
-				byType.remove(t);
-			}
-			if (!byType.isEmpty()) {
-				for (IRNode type : byType.keySet()) {
-					final IJavaDeclaredType dt = JavaTypeFactory.getMyThisType(type);
-					final IIRProject p = JavaProjects.getEnclosingProject(type);
-					// get super types
-					for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
-						if (st instanceof IJavaDeclaredType) {
-							IJavaDeclaredType sdt = (IJavaDeclaredType) st;
-							if (!done.contains(sdt.getDeclaration())) {
-								throw new Error("Didn't process "+dt+"'s supertype: "+sdt);
-							}
-						}		
-					}
-				}
-				return true;
-			}
-			return false;
-		}
-
-		public void addDerived(A clone, PromiseDrop<? extends A> pd) {
-			IRNode ty = VisitUtil.getClosestType(clone.getPromisedFor());
-			List<A> l = byType.get(ty);
-			if (l == null || l.isEmpty()) {
-				l = new ArrayList<A>(1);
-				byType.put(ty, l);
-			}
-			l.add(clone);
-			
-			// Copied from AASTStore
-			synchronized (AASTStore.class) {
-				AASTStore.setPromiseSource(clone, pd);
-				if (pd instanceof ValidatedDropCallback<?>) {
-					AASTStore.triggerWhenValidated(clone, (ValidatedDropCallback<?>) pd);
-				}
-				AASTStore.cloneTestResult(pd.getAST(), clone);
-			}
-		}
+	@Override
+	protected Iterable<A> getRelevantAnnotations(Class<A> c) {
+		return AASTStore.getASTsByClass(c);
 	}
 
 	static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
@@ -846,8 +568,8 @@ extends AbstractScrubber {
 	 * Scrub the bindings of the specified kind in order of the position of
 	 * their promisedFor (assumed to be a type decl) in the type hierarchy
 	 */
-	private void scrubByPromisedFor_Hierarchy(Class<A> c, ScrubberType type) {
-		HierarchyWalk walk = new HierarchyWalk(type);
+	private void scrubByPromisedFor_Hierarchy(Class<A> c) {
+		TypeHierarchyVisitor walk = new TypeHierarchyVisitor();
 		walk.init(c);
 		do {
 			walk.walkHierarchy();
