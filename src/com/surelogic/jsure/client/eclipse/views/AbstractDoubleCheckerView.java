@@ -335,10 +335,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 						IMarker location = null;
 						try {
 							location = ResourcesPlugin.getWorkspace().getRoot()
-									.createMarker("edu.cmu.fluid");
+									.createMarker("com.surelogic.jsure.client.eclipse.marker");
+							//boolean text = location.isSubtypeOf("org.eclipse.core.resources.textmarker");
 							final int offset = srcRef.getOffset();
 							if (offset >= 0 && offset != Integer.MAX_VALUE
 									&& srcRef.getLength() >= 0) {
+								int len = srcRef.getLength();
+								if (len == 0) {
+									len = 1;
+								}
 								location.setAttribute(IMarker.CHAR_START,
 										srcRef.getOffset());
 								location.setAttribute(IMarker.CHAR_END,

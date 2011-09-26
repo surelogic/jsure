@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
+	<extension
+	      id="marker"
+	      name="JSure Marker"
+	      point="org.eclipse.core.resources.markers">
+	   <super
+	         type="org.eclipse.core.resources.textmarker">
+	   </super>
+	</extension>
+
 	<!-- extension point="org.eclipse.ui.editors">
         <editor	
            name="Promises XML Editor"
