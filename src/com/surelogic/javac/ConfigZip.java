@@ -50,8 +50,10 @@ public class ConfigZip extends AbstractJavaZip<JavaSourceFile> {
 
 	@Override
 	protected String getName(JavaSourceFile res) {
-		final int lastSep = res.relativePath.lastIndexOf(File.pathSeparatorChar);
-		return lastSep < 0 ? res.qname : res.qname.substring(lastSep+1);
+		final int lastSep = res.relativePath.lastIndexOf(File.separatorChar);
+		String rv = lastSep < 0 ? res.relativePath : res.relativePath.substring(lastSep+1);
+		//System.out.println("Name = "+rv);
+		return rv;
 	}
 
 	@Override
