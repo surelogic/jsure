@@ -59,6 +59,9 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		if (ref.getOffset() > 0) {
 			addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		}
+		if (ref.getLength() > 0) {
+			addAttribute(LENGTH_ATTR, (long) ref.getLength());
+		}			
 		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
 		String path = ref.getRelativePath();
 		if (path != null) {

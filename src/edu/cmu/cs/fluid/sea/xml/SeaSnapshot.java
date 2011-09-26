@@ -515,6 +515,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 					}
 				}
 				
+				@Override
+				public int getLength() {
+					String offset = ref.getAttribute(LENGTH_ATTR);
+					if (offset == null) {
+						return 0;
+					} else {
+						return Integer.valueOf(offset);
+					}
+				}
+				
 				public Long getHash() {
 					String hash = ref.getAttribute(HASH_ATTR);
 					if (hash == null) {
