@@ -327,7 +327,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
 						srcRef.getCUName(), srcRef.getLineNumber());
 
-				if (file != null) {
+				if (file != null && file.exists()) {
 					IJavaElement elt = JavaCore.create(file);
 					if (elt != null) {
 						IEditorPart ep = JavaUI.openInEditor(elt, false, true);
