@@ -99,7 +99,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 				total += numRead;
 			}
 			if (total != length) {
-				System.out.println("Sizes not matching");
+				System.out.println("Source sizes not matching: got "+total+" out of "+length);
 			}
 			return sb.toString();
 		} catch (IOException e) {
