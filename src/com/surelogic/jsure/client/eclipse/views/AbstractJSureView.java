@@ -66,7 +66,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
 						srcRef.getCUName(), srcRef.getLineNumber());
 
-				if (file != null) {
+				if (file != null && file.exists()) {
 					IJavaElement elt = JavaCore.create(file);					
 					if (elt instanceof IClassFile) {
 						final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
