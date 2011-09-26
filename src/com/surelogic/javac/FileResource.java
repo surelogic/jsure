@@ -47,12 +47,24 @@ public class FileResource implements ICodeFile {
 	}
 	
 	public FileResource(Projects projects, JavaSourceFile sourceFile, String pkg, String proj) {
-		this(pkg, sourceFile.relativePath.substring(sourceFile.relativePath.lastIndexOf('/')+1, sourceFile.relativePath.length()-5), 
-			sourceFile.getLocation(), proj);			
+		this(pkg, computeCUName(sourceFile.relativePath), sourceFile.getLocation(), proj);			
 	}
 
 	public String getProjectName() {
 		return project;
+	}
+	
+	private static String computeCUName(String path) {
+		int lastSlash = path.lastIndexOf('/');
+		if (File.separatorChar != '/' && lastSlash < 0) {
+			lastSlash = path.lastIndexOf(File.separatorChar);
+		}
+		if (lastSlash < 0) {
+			return path; // TODO Need to remove suffix?
+		}
+		String rv = path.substring(lastSlash+1, path.length()-5);
+		//System.out.println("CUName: "+path+" => "+rv);
+		return rv;
 	}
 	
 	private static String computePackage(String qname) {
