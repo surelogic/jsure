@@ -2,6 +2,7 @@
 package com.surelogic.xml;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
@@ -48,4 +49,13 @@ public interface TestXMLParserConstants
   public static final int HASH_MAP_LOAD = 3;
 
   public static final String DIR_PREFIX = System.getProperty("user.dir") + File.separator;
+  
+  public static final String PROMISES_XML_PATH = "lib/promises";
+  
+
+  public static final FileFilter XML_FILTER = new FileFilter() {		
+	  public boolean accept(File f) {
+		  return f.isDirectory() || f.getName().endsWith(SUFFIX);
+	  }
+  };
 }

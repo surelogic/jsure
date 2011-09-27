@@ -118,7 +118,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 		InputStream is = null;
 		if (root == null) {
 			URL rroot = IDE.getInstance().getResourceRoot();	
-			URL clazz = new URL(rroot, "lib/promises/" + dirName + className);		
+			URL clazz = new URL(rroot, PROMISES_XML_PATH+"/" + dirName + className);		
 			is = clazz.openStream();
 		} else {
 			is = new FileInputStream(new File(root, dirName + className));
@@ -168,7 +168,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 			File root = new File(uri);
 			if (root.exists() && root.isDirectory()) {
 				List<String> qnames = new ArrayList<String>();
-				findPromiseXMLsInDir(qnames, new File(root, "lib/promises"), "");
+				findPromiseXMLsInDir(qnames, new File(root, PROMISES_XML_PATH), "");
 				return qnames;
 			}
 		} catch (URISyntaxException e) {
@@ -179,7 +179,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 	}
 
 	private static void findPromiseXMLsInDir(List<String> qnames, File dir, String path) {
-		for(File xml : dir.listFiles(xmlFilter)) {				
+		for(File xml : dir.listFiles(XML_FILTER)) {				
 			findPromiseXMLs(qnames, xml, path);
 		}
 	}
@@ -207,10 +207,4 @@ public class PackageAccessor implements TestXMLParserConstants {
 			return path+'.'+name;
 		}
 	}
-
-	private static FileFilter xmlFilter = new FileFilter() {		
-		public boolean accept(File f) {
-			return f.isDirectory() || f.getName().endsWith(PROMISES_XML);
-		}
-	};
 }
