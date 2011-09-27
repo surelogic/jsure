@@ -1,5 +1,6 @@
 package com.surelogic.xml;
 
+import java.io.*;
 import java.util.*;
 
 import org.xml.sax.Attributes;
@@ -166,5 +167,16 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	
 	public final PackageElement getPackage() {
 		return pkg;
+	}
+	
+	public static PackageElement load(File f) throws Exception {
+		InputStream is = new FileInputStream(f);
+		try {
+			PromisesXMLReader r = new PromisesXMLReader();
+			r.read(is);
+			return r.getPackage();
+		} finally {
+			is.close();
+		}
 	}
 }
