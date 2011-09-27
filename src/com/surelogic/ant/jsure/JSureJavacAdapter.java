@@ -119,7 +119,6 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				return projects.getRunDir().getAbsolutePath();
 			}
 
-			@Override
 			public String getLogPath() {
 				return new File(projects.getRunDir(),
 						RemoteJSureRun.LOG_TXT).getAbsolutePath();
