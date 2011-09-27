@@ -4,6 +4,8 @@ import java.util.*;
 
 import com.surelogic.common.logging.IErrorListener;
 
+import difflib.*;
+
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
 	private boolean isDirty;
@@ -140,13 +142,15 @@ abstract class AbstractJavaElement implements IJavaElement {
 					return;
 				}
 			} else {
-			*/
-		
-		/*
-		// TODO is this just a complicated way of saying "keep or overwrite"?
-		final List<CommentElement> temp = new ArrayList<CommentElement>();			
+			*/		
+	}
+	
+	protected <T extends AbstractJavaElement> void diff(List<T> orig, List<T> other) {
+		final List<T> temp = new ArrayList<T>();			
 		final Patch p = DiffUtils.diff(orig, other);			
+
 		int lastPosition = 0;
+		/*
 		for(final Delta d : p.getDeltas()) {
 			final Chunk origC = d.getOriginal();
 			// Copy everything between where we left off and where this chunk starts
@@ -169,7 +173,6 @@ abstract class AbstractJavaElement implements IJavaElement {
 			temp.add(e);
 		}
 		*/
-			//}
 	}
 	
 	private <T extends AbstractJavaElement> void copyList(List<T> src, List<T> dest) {
