@@ -8,7 +8,8 @@ Bundle-ClassPath: .,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
  lib/runtime/log4j-1.3alpha-8.jar,
  lib/runtime/javac.jar,
- lib/runtime/javadoc.jar
+ lib/runtime/javadoc.jar,
+ lib/runtime/java-diff-utils-1.2.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
  com.surelogic.aast,
@@ -62,6 +63,7 @@ Export-Package:
  com.surelogic.tree.diff,
  com.surelogic.util,
  com.surelogic.xml,
+ difflib,
  edu.cmu.cs.crystal.java.operator,
  edu.cmu.cs.crystal.java.promise,
  edu.cmu.cs.fluid,
