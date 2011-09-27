@@ -65,7 +65,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	private void handleNestedElement(ClassElement c, Entity n, List<String> comments) {		
 		final String name = n.getName();
 		final String id = n.getAttribute(NAME_ATTRB);
-		System.out.println("Looking at "+name+" -- "+id);
+		//System.out.println("Looking at "+name+" -- "+id);
 		
 		IClassMember m;
 		if (METHOD.equals(name)) {
