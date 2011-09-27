@@ -19,6 +19,7 @@ import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.PersistenceConstants;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -49,7 +50,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			Javac.initialize();
 			Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, scan.getDataDir());
 			Javac.getDefault().setPreference(IDEPreferences.JSURE_XML_DIRECTORY, 
-					scan.getHome()+"/lib/fluid/lib/promises");
+					scan.getHome()+"/lib/fluid/"+TestXMLParserConstants.PROMISES_XML_PATH);
 			
 			Config config = createConfig();
 			System.out.println("config = "+config.getProject());
