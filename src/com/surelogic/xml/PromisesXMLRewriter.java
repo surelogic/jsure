@@ -4,9 +4,15 @@ import java.io.*;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 
+/**
+ * Only meant to be used initially to make sure we can handle all cases
+ * 
+ * @author Edwin
+ */
+@Deprecated
 public class PromisesXMLRewriter {
 	public static void main(String[] args) {
-		final String path = "c:/work/workspace-3.5.1/fluid/lib/promises";
+		final String path = "c:/work/workspace-3.5.1/fluid/"+TestXMLParserConstants.PROMISES_XML_PATH;
 		AnnotationRules.initialize();
 		rewrite(new File(path));
 	}
