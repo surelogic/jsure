@@ -28,7 +28,9 @@ import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -279,6 +281,10 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     private final IBinder binder;
     private final IJavaType javaType; 
     
+    private boolean isSerializable = false;
+    private boolean hasReadResolve = false;
+    private IRNode readResolveReturnExpr = null;
+    
     private int numPublicStaticFinalFields = 0;
     private int numPrivateStaticFinalFields = 0;
     private int numFields = 0;
@@ -333,10 +339,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
         createResult(typeDecl, false, Messages.CLASS_NOT_FINAL);        
       }
       
-      final IRNode serializable = implementsSerializable();
-      if (serializable != null) {
-        createResult(serializable, false, Messages.CLASS_SERIALIZABLE_NOT_SUPPORTED);
-      }
+      isSerializable = implementsSerializable() != null;
     }
     
     @Override
@@ -352,26 +355,54 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     @Override
     protected void processMethodDeclaration(final IRNode mdecl) {
       final IRNode body = MethodDeclaration.getBody(mdecl);
-      final IRNode rt = MethodDeclaration.getReturnType(mdecl);
+      final IRNode rtBound = binder.getBinding(MethodDeclaration.getReturnType(mdecl));
+      
       if (!MethodBody.prototype.includes(body)) {
         createResult(mdecl, false, Messages.CLASS_METHOD_COMPILED);
-      } else if (isPublicStatic(mdecl) && typeDecl.equals(binder.getBinding(rt))) {
-        final Iteratable<IRNode> stmts =
-            BlockStatement.getStmtIterator(MethodBody.getBlock(body));
-        if (stmts.hasNext()) { // has at least 1 stmt
+      } else { 
+        // Are we the readResolve() method?
+        if (!JavaNode.getModifier(mdecl, JavaNode.STATIC) &&
+            MethodDeclaration.getId(mdecl).equals("readResolve") &&
+            rtBound != null && JavaNames.getQualifiedTypeName(rtBound).equals("java.lang.Object") &&
+            !Parameters.getFormalIterator(MethodDeclaration.getParams(mdecl)).hasNext()) {
+          hasReadResolve = true;
+          final Iteratable<IRNode> stmts =
+              BlockStatement.getStmtIterator(MethodBody.getBlock(body));
+          // Method has a return type, so it must have at least one (return) statement.
           final IRNode firstStmt = stmts.next();
           if (!stmts.hasNext()) { // has exactly 1 stmt
             // check for return of static field
             if (ReturnStatement.prototype.includes(firstStmt)) {
               final IRNode expr = ReturnStatement.getValue(firstStmt);
-              if (FieldRef.prototype.includes(expr)) {
-                final IRNode fdecl = getGrandParent(binder.getBinding(expr));
-                if (JavaNode.getModifier(fdecl, JavaNode.STATIC)) {
-                  // Returns a static field, but from what class?
-                  if (typeDecl.equals(getGrandParent(fdecl))) {
-                    numGetters += 1;
-                    createResult(mdecl, true, Messages.CLASS_FOUND_GETTER,
-                        JavaNames.genSimpleMethodConstructorName(mdecl));
+              readResolveReturnExpr = expr;
+            } else {
+              // No return
+              createResult(body, false, Messages.BAD_READ_RESOLVE_BODY);
+            }
+          } else {
+            // > 1 statement
+            createResult(body, false, Messages.BAD_READ_RESOLVE_BODY);
+          }
+        }
+        
+        if (isPublicStatic(mdecl) && typeDecl.equals(rtBound)) {
+          final Iteratable<IRNode> stmts =
+              BlockStatement.getStmtIterator(MethodBody.getBlock(body));
+          if (stmts.hasNext()) { // has at least 1 stmt
+            final IRNode firstStmt = stmts.next();
+            if (!stmts.hasNext()) { // has exactly 1 stmt
+              // check for return of static field
+              if (ReturnStatement.prototype.includes(firstStmt)) {
+                final IRNode expr = ReturnStatement.getValue(firstStmt);
+                if (FieldRef.prototype.includes(expr)) {
+                  final IRNode fdecl = getGrandParent(binder.getBinding(expr));
+                  if (JavaNode.getModifier(fdecl, JavaNode.STATIC)) {
+                    // Returns a static field, but from what class?
+                    if (typeDecl.equals(getGrandParent(fdecl))) {
+                      numGetters += 1;
+                      createResult(mdecl, true, Messages.CLASS_FOUND_GETTER,
+                          JavaNames.genSimpleMethodConstructorName(mdecl));
+                    }
                   }
                 }
               }
@@ -396,6 +427,14 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
           }
         }
       }
+      
+      if (isSerializable && !isStatic) {
+        if (JavaNode.getModifier(fieldDecl, JavaNode.TRANSIENT)) {
+          createResult(varDecl, true, Messages.FIELD_IS_TRANSIENT);
+        } else {
+          createResult(varDecl, false, Messages.FIELD_NOT_TRANSIENT);
+        }
+      }
     }
     
     @Override
@@ -413,15 +452,19 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
           numFields == 1 && numPrivateStaticFinalFields == 1;
       final String typeString = javaType.toString();
       
+      final IRNode singletonField;
       if (publicFieldPattern) {
+        singletonField = publicStaticFinalField;
         createResult(publicStaticFinalField, true,
             Messages.CLASS_ONE_PUBLIC_FIELD, typeString,
             VariableDeclarator.getId(publicStaticFinalField));
       } else if (privateFieldPattern) {
+        singletonField = privateStaticFinalField;
         createResult(privateStaticFinalField, true,
             Messages.CLASS_ONE_PRIVATE_FIELD, typeString,
             VariableDeclarator.getId(privateStaticFinalField));
       } else {
+        singletonField = null;
         if (numPublicStaticFinalFields == 0 && numPrivateStaticFinalFields == 0) {
           createResult(typeDecl, false, Messages.CLASS_NO_PUBLIC_FIELD, typeString);
           createResult(typeDecl, false, Messages.CLASS_NO_PRIVATE_FIELD, typeString);
@@ -437,6 +480,30 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       // Check for getter methods
       if (privateFieldPattern && numGetters == 0) {
         createResult(typeDecl, false, Messages.CLASS_NO_GETTER);
+      }
+      
+      // Check the return value of the readResolve() method, if any
+      if (isSerializable) {
+        if (!hasReadResolve) {
+          createResult(typeDecl, false, Messages.NO_READ_RESOLVE);
+        }
+        if (readResolveReturnExpr != null) {
+          if (FieldRef.prototype.includes(readResolveReturnExpr)) {
+            final IRNode fdecl = binder.getBinding(readResolveReturnExpr);
+            if (fdecl.equals(singletonField)) {
+              createResult(readResolveReturnExpr, true, Messages.READ_RESOLVE_GOOD,
+                  VariableDeclarator.getId(singletonField));
+            } else {
+              // Wrong field
+              createResult(readResolveReturnExpr, false, Messages.READ_RESOLVE_BAD,
+                  VariableDeclarator.getId(singletonField));
+            }
+          } else {
+            // Not a field value at all
+            createResult(readResolveReturnExpr, false, Messages.READ_RESOLVE_BAD,
+                VariableDeclarator.getId(singletonField));
+          }
+        }
       }
     }
   }
