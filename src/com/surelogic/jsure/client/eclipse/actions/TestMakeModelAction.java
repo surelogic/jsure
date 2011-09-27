@@ -2,30 +2,15 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
+import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 
-public class TestMakeModelAction implements IWorkbenchWindowActionDelegate {
-
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void init(IWorkbenchWindow window) {
-		// TODO Auto-generated method stub
-
-	}
-
+public class TestMakeModelAction extends AbstractMainAction {
 	@Override
 	public void run(IAction action) {
 		SLJob job = new AbstractSLJob("Testing makeModel()") {			
@@ -79,11 +64,4 @@ public class TestMakeModelAction implements IWorkbenchWindowActionDelegate {
 		};
 		EclipseJob.getInstance().schedule(job);
 	}
-
-	@Override
-	public void selectionChanged(IAction action, ISelection selection) {
-		// TODO Auto-generated method stub
-
-	}
-
 }
