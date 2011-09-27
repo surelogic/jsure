@@ -28,6 +28,7 @@ public final class PromisesLibMerge {
 		}
 		final File libDir = new File(JSurePreferencesUtility.getJSureDataDirectory(), DriverConstants.XML_PATH_SEGMENT);
 		if (!libDir.exists()) {			
+			System.out.println("Nothing to merge: "+libDir);
 			return; // Nothing else to do
 		}		
 		if (toClient) {
@@ -45,14 +46,17 @@ public final class PromisesLibMerge {
 			if (!to.exists()) {
 				// Check if I should copy 
 				if (onlyMerge) {
+					System.out.println("Ignoring "+from);
 					return; // No need to do anything
 				}
 				// Copy 
+				System.out.println("Copying "+from+" into "+to);
 				to.getParentFile().mkdirs();
 				FileUtility.copy(from, to);
 			} else {
 				try {					
 					// Merge
+					System.out.println("Merging "+from+" into "+to);
 					PackageElement target = PromisesXMLReader.load(to);
 					PackageElement source = PromisesXMLReader.load(from);
 					PromisesXMLMerge.merge(target, source);
