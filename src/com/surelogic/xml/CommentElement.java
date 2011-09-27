@@ -81,16 +81,16 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	
 	@Override
 	public int hashCode() {
-		// TODO 
-		return comment.hashCode();
+		//return comment.hashCode();
+		return uid.hashCode();
 	}
 	
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof CommentElement) {
-			CommentElement other = (CommentElement) o;
-			// TODO
-			return comment.equals(other.comment);
+			CommentElement other = (CommentElement) o;			
+			//return comment.equals(other.comment);
+			return uid.equals(other.uid);
 		}
 		return false;
 	}

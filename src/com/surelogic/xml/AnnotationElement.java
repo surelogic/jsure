@@ -220,4 +220,20 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 		copyToClone(clone);
 		return clone;
 	}
+	
+	@Override
+	public int hashCode() {
+		//return comment.hashCode();
+		return uid.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof AnnotationElement) {
+			AnnotationElement other = (AnnotationElement) o;			
+			//return comment.equals(other.comment);
+			return uid.equals(other.uid);
+		}
+		return false;
+	}
 }
