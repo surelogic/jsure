@@ -2,11 +2,47 @@
 
 <package name="java.awt">
     <class name="RenderingHints">
+        <classinit>
+        </classinit>
+        <constructor params="java.awt.RenderingHints.Key,java.lang.Object">
+        </constructor>
+
+        <constructor params="java.util.Map">
+        </constructor>
+
+        <method name="add" params="java.awt.RenderingHints">
+        </method>
+
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
-        
+
+        <method name="clone">
+        </method>
+
+        <method name="containsKey" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="containsValue" params="java.lang.Object">
+        </method>
+
+        <method name="entrySet">
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+        </method>
+
+        <method name="get" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="hashCode">
+        </method>
+
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
@@ -17,33 +53,29 @@
             <RegionEffects>reads Instance</RegionEffects>
         </method>
 
+        <method name="put" params="java.lang.Object,java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>
+
+        <method name="putAll" params="java.util.Map">
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+        </method>
+
         <method name="size">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="toString">
         </method>
 
         <method name="values">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
-
-        <method name="containsKey" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
-        </method>  
-
-        <method name="get" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
-        </method>  
-        
-        <method name="put" params="java.lang.Object,java.lang.Object">
-            <Borrowed>this</Borrowed>
-        </method>          
-
-        <method name="remove" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
-        </method>        
     </class>
 </package>
