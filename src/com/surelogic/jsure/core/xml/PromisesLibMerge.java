@@ -46,7 +46,7 @@ public final class PromisesLibMerge {
 			if (!to.exists()) {
 				// Check if I should copy 
 				if (onlyMerge) {
-					System.out.println("Ignoring "+from);
+					//System.out.println("Ignoring "+from);
 					return; // No need to do anything
 				}
 				// Copy 
