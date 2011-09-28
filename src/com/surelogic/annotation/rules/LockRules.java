@@ -2318,7 +2318,7 @@ public class LockRules extends AnnotationRules {
       final IAnnotationScrubberContext context, final ImmutableRefNode n) {
     // must be a reference type
     boolean good = UniquenessRules.checkForReferenceType(context, n, "Immutable");
-
+    
     final IRNode promisedFor = n.getPromisedFor();
     if (UniquenessRules.isBorrowed(promisedFor)) {
       context.reportError(
@@ -2342,7 +2342,11 @@ public class LockRules extends AnnotationRules {
     }
     
     if (good) {
-      return new ImmutableRefPromiseDrop(n);
+      final ImmutableRefPromiseDrop immutableRefPromiseDrop = new ImmutableRefPromiseDrop(n);
+      if (!VariableDeclarator.prototype.includes(promisedFor)) {
+        UniquenessRules.addUniqueAnnotation(immutableRefPromiseDrop);
+      }
+      return immutableRefPromiseDrop;
     } else {
       return null;
     }

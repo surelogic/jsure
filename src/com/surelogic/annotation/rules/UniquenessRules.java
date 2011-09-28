@@ -1,5 +1,7 @@
 package com.surelogic.annotation.rules;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.antlr.runtime.RecognitionException;
@@ -11,13 +13,16 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.analysis.uniqueness.store.State;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinding;
@@ -39,15 +44,18 @@ import edu.cmu.cs.fluid.util.Iteratable;
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
   public static final String BORROWED = "Borrowed";
-  public static final String CONFLICTS = "CheckForUniquenessConflicts";
   public static final String READONLY = "ReadOnly";
+  public static final String CONSISTENCY = "UniquenessConsistency";
   
   private static final AnnotationRules instance = new UniquenessRules();
   
   private static final Readonly_ParseRule readonlyRule = new Readonly_ParseRule();
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
-
+  private static final UniquenessConsistencyChecker consistencyChecker = new UniquenessConsistencyChecker();
+  
+  private static final Set<PromiseDrop<? extends IAASTRootNode>> uniquenessTags =
+      new HashSet<PromiseDrop<? extends IAASTRootNode>>();
   
   
   public static AnnotationRules getInstance() {
@@ -122,9 +130,10 @@ public class UniquenessRules extends AnnotationRules {
   
   @Override
   public void register(PromiseFramework fw) {
-	registerParseRuleStorage(fw, readonlyRule);
+    registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
+    registerScrubber(fw, consistencyChecker);
   }
 
   private static abstract class AbstractParseRule<N extends IAASTRootNode,D extends PromiseDrop<N>> 
@@ -197,19 +206,20 @@ public class UniquenessRules extends AnnotationRules {
       boolean isGood = checkForReferenceType(context, n, "ReadOnly");
       
       /* Cannot also be borrowed, unless the annotation is on a field.
-       * Imples we don't have to check for BorrowedInRegion, because that
+       * Implies we don't have to check for BorrowedInRegion, because that
        * can only appear on a field, and would thus be legal.
        */
       final IRNode promisedFor = n.getPromisedFor();
-      if (isBorrowed(promisedFor) &&
-          !FieldDeclaration.prototype.includes(
-              JJNode.tree.getParentOrNull(JJNode.tree.getParentOrNull(promisedFor)))) {
+      final boolean fromField = VariableDeclarator.prototype.includes(promisedFor);
+      if (isBorrowed(promisedFor) && !fromField) {
         context.reportError(n, "Cannot be annotated with both @Borrowed and @ReadOnly");
         isGood = false;
       }
       
       if (isGood) {
-        return new ReadOnlyPromiseDrop(n);
+        final ReadOnlyPromiseDrop readOnlyPromiseDrop = new ReadOnlyPromiseDrop(n);
+        if (!fromField) addUniqueAnnotation(readOnlyPromiseDrop);
+        return readOnlyPromiseDrop;
       } else {
         return null;
       }
@@ -240,34 +250,34 @@ public class UniquenessRules extends AnnotationRules {
           return storeDropIfNotNull(a, scrubUnique(getContext(), a));          
         }
         
-        @Override
-        protected boolean processUnannotatedMethodRelatedDecl(
-            final IRNode unannotatedNode) {
-          /* Only care if the unannotated node is a return value declaration.
-           * Parameters (and receivers) can remove uniqueness requirements
-           * with out harm. 
-           */
-          final Operator op = JJNode.tree.getOperator(unannotatedNode);
-          if (ReturnValueDeclaration.prototype.includes(op)) {
-            final IRNode mdecl = JavaPromise.getPromisedFor(unannotatedNode);
-            boolean good = true;
-            for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
-              final IRNode parentMethod = context.getNode();
-              final IRNode parentReturn = JavaPromise.getReturnNode(parentMethod);
-              final UniquePromiseDrop parentUnique = getUnique(parentReturn);
-              if (parentUnique != null) {
-                // Parent has unique return, we should have one too
-                good = false;
-                getContext().reportError(mdecl,
-                    "Cannot remove unique return value from annotations of {0}",
-                    JavaNames.genQualifiedMethodConstructorName(parentMethod));
-              }
-            }
-            return good;
-          } else {
-            return true;
-          }
-        }
+//        @Override
+//        protected boolean processUnannotatedMethodRelatedDecl(
+//            final IRNode unannotatedNode) {
+//          /* Only care if the unannotated node is a return value declaration.
+//           * Parameters (and receivers) can remove uniqueness requirements
+//           * with out harm. 
+//           */
+//          final Operator op = JJNode.tree.getOperator(unannotatedNode);
+//          if (ReturnValueDeclaration.prototype.includes(op)) {
+//            final IRNode mdecl = JavaPromise.getPromisedFor(unannotatedNode);
+//            boolean good = true;
+//            for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+//              final IRNode parentMethod = context.getNode();
+//              final IRNode parentReturn = JavaPromise.getReturnNode(parentMethod);
+//              final UniquePromiseDrop parentUnique = getUnique(parentReturn);
+//              if (parentUnique != null) {
+//                // Parent has unique return, we should have one too
+//                good = false;
+//                getContext().reportError(mdecl,
+//                    "Cannot remove unique return value from annotations of {0}",
+//                    JavaNames.genQualifiedMethodConstructorName(parentMethod));
+//              }
+//            }
+//            return good;
+//          } else {
+//            return true;
+//          }
+//        }
       };
     }
     
@@ -275,11 +285,13 @@ public class UniquenessRules extends AnnotationRules {
         final IAnnotationScrubberContext context, final UniqueNode a) {
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Unique");
+      boolean fromField = false;
       
       // Unique fields must not be volatile or static final
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
+        fromField = true;
         if (TypeUtil.isVolatile(promisedFor)) {
           good = false;
           context.reportError(a, "@Unique cannot be used on a volatile field");
@@ -326,19 +338,21 @@ public class UniquenessRules extends AnnotationRules {
         }
       }
       
-      if (good) {
-        /* Check consistency of annotated parameters and receiver declarations.
-         * Cannot add @Unique to a previously unannotated parameter/receiver.
-         */
-        if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
-          good = consistencyCheckReceiver(context, promisedFor);
-        } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
-          good = consistencyCheckParameter(context, promisedFor);          
-        }
-      }
+//      if (good) {
+//        /* Check consistency of annotated parameters and receiver declarations.
+//         * Cannot add @Unique to a previously unannotated parameter/receiver.
+//         */
+//        if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+//          good = consistencyCheckReceiver(context, promisedFor);
+//        } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
+//          good = consistencyCheckParameter(context, promisedFor);          
+//        }
+//      }
       
       if (good) {
-        return new UniquePromiseDrop(a);
+        final UniquePromiseDrop uniquePromiseDrop = new UniquePromiseDrop(a);
+        if (!fromField) addUniqueAnnotation(uniquePromiseDrop);
+        return uniquePromiseDrop;
       } else {
         return null;
       }
@@ -430,20 +444,20 @@ public class UniquenessRules extends AnnotationRules {
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
           return storeDropIfNotNull(a, scrubBorrowed(getContext(), a));
         }
-        
-        @Override
-        protected boolean processUnannotatedMethodRelatedDecl(
-            final IRNode promisedFor) {
-          /* Cannot remove @Borrowed annotations */
-          final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-          if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
-            return consistencyCheckReceiver(getContext(), promisedFor);
-          } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
-            return consistencyCheckParameter(getContext(), promisedFor);          
-          }
-          
-          return true;
-        }
+//        
+//        @Override
+//        protected boolean processUnannotatedMethodRelatedDecl(
+//            final IRNode promisedFor) {
+//          /* Cannot remove @Borrowed annotations */
+//          final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+//          if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+//            return consistencyCheckReceiver(getContext(), promisedFor);
+//          } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
+//            return consistencyCheckParameter(getContext(), promisedFor);          
+//          }
+//          
+//          return true;
+//        }
         
         private boolean consistencyCheckReceiver(
             final IAnnotationScrubberContext context, final IRNode rcvrDecl) {
@@ -501,10 +515,12 @@ public class UniquenessRules extends AnnotationRules {
         final IAnnotationScrubberContext context, final BorrowedNode a) {
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Borrowed");
+      boolean fromField = false;
       
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
+        fromField = true;
         if (!TypeUtil.isFinal(promisedFor)) {
           context.reportError(a, "@Borrowed fields must be final");
           good = false;
@@ -516,7 +532,9 @@ public class UniquenessRules extends AnnotationRules {
       }
 
       if (good) {
-        return new BorrowedPromiseDrop(a);
+        final BorrowedPromiseDrop borrowedPromiseDrop = new BorrowedPromiseDrop(a);
+        if (!fromField) addUniqueAnnotation(borrowedPromiseDrop);        
+        return borrowedPromiseDrop;
       } else {
         return null;
       }
@@ -550,6 +568,166 @@ public class UniquenessRules extends AnnotationRules {
       return false;
     } else {
       return true;
+    }
+  }
+  
+  
+  public static void addUniqueAnnotation(final PromiseDrop<? extends IAASTRootNode> a) {
+    uniquenessTags.add(a);
+  }
+
+  
+  private static final class UniquenessConsistencyChecker extends AbstractPromiseScrubber<PromiseDrop<? extends IAASTRootNode>> {
+    public UniquenessConsistencyChecker() {
+      super(ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, NONE,
+          CONSISTENCY, ScrubberOrder.NORMAL, new String[] { UNIQUE });
+    }
+
+    @Override
+    protected void processDrop(PromiseDrop<? extends IAASTRootNode> a) {
+      checkConsistency(a.getPromisedFor(), getState(a));
+    }
+    
+    @Override
+    protected boolean processUnannotatedMethodRelatedDecl(
+        final IRNode unannotatedNode) {
+      final Operator op = JJNode.tree.getOperator(unannotatedNode);
+      if (ParameterDeclaration.prototype.includes(op)) {
+        System.out.println("XXXXX op = " + op + "; method = " +
+            JavaNames.genMethodConstructorName(
+                JJNode.tree.getParentOrNull(JJNode.tree.getParent(unannotatedNode))));
+        
+      } else {
+        System.out.println("XXXXX op = " + op + "; method = " +
+            JavaNames.genMethodConstructorName(
+                JavaPromise.getPromisedFor(unannotatedNode)));
+      }
+      return checkConsistency(unannotatedNode, State.SHARED);
+    }
+    
+    @Override
+    protected Iterable<PromiseDrop<? extends IAASTRootNode>> getRelevantAnnotations() {
+      return uniquenessTags;
+    }
+
+    @Override
+    protected void finishRun() {
+      uniquenessTags.clear();
+    }
+    
+    
+    
+    private State getState(final PromiseDrop<? extends IAASTRootNode> a) {
+      if (a instanceof UniquePromiseDrop) {
+        return ((UniquePromiseDrop) a).allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
+      } else if (a instanceof ImmutableRefPromiseDrop) {
+        return State.IMMUTABLE;
+      } else if (a instanceof ReadOnlyPromiseDrop) {
+        return State.READONLY;
+      } else if (a instanceof BorrowedPromiseDrop) {
+        return State.BORROWED;
+      } else {
+        throw new IllegalArgumentException(
+            "No uniqueness state for " + a.getClass().getName());
+      }
+    }
+
+    private State getState(final IRNode n) {
+      final UniquePromiseDrop uDrop = getUnique(n);
+      if (uDrop != null) {
+        return uDrop.allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
+      } else if (LockRules.getImmutableRef(n) != null) {
+        return State.IMMUTABLE;
+      } else if (getReadOnly(n) != null) {
+        return State.READONLY; 
+      } else if (getBorrowed(n) != null) {
+        return State.BORROWED;
+      } else {
+        return State.SHARED;
+      }
+    }
+    
+    
+    
+    private boolean checkConsistency(final IRNode promisedFor, final State s) {
+      /* 3 cases, return value, parameter, receiver.
+       */
+      boolean good = true;
+      
+      final Operator op = JJNode.tree.getOperator(promisedFor);
+      if (ParameterDeclaration.prototype.includes(op)) {
+        final IRNode mdecl = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
+        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+          final IRNode parentMethod = bc.getNode();
+          
+          // find the same parameter in the original
+          final IRNode params = MethodDeclaration.getParams(mdecl);
+          final IRNode parentParams = MethodDeclaration.getParams(parentMethod);
+          final Iteratable<IRNode> paramsIter = Parameters.getFormalIterator(params);
+          final Iteratable<IRNode> parentParamsIter = Parameters.getFormalIterator(parentParams);
+          while (paramsIter.hasNext()) {
+            final IRNode p = paramsIter.next();
+            final IRNode parentP = parentParamsIter.next();
+            if (p == promisedFor) { // found the original param
+              final State parentState = getState(parentP);
+              if (!State.lattice.lessEq(parentState, s)) {
+                good = false;
+                getContext().reportError(promisedFor,
+                    "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
+                    ParameterDeclaration.getId(p),
+                    JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                    parentState.getAnnotation(), s.getAnnotation());
+              }
+            }
+          }
+        }
+      } else if (ReceiverDeclaration.prototype.includes(op)) {
+        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
+        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+          final IRNode parentMethod = bc.getNode();
+          
+          final String c = DebugUnparser.toString(mdecl);
+          final String p = DebugUnparser.toString(parentMethod);
+          
+          // Get the receiver in the original
+          final IRNode rcvr = JavaPromise.getReceiverNode(parentMethod);
+          final State parentState = getState(rcvr);
+          
+//          if (s == State.SHARED) {
+//            System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@");
+//            System.out.println("method = " + c);
+//            System.out.println("state = " + s);
+//            System.out.println("parent = " + p);
+//            System.out.println("parent state = " + parentState);
+//          }
+          
+          if (!State.lattice.lessEq(parentState, s)) {
+            good = false;
+            getContext().reportError(promisedFor,
+                "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
+                JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                parentState.getAnnotation(), s.getAnnotation());
+          }
+        }
+      } else if (ReturnValueDeclaration.prototype.includes(op)) {
+        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
+        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+          final IRNode parentMethod = bc.getNode();
+
+          // Get the return value in the original
+          final IRNode rcvr = JavaPromise.getReturnNode(parentMethod);
+          final State parentState = getState(rcvr);          
+          if (!State.lattice.lessEq(s, parentState)) {
+            good = false;
+            getContext().reportError(promisedFor,
+                "The annotation on the return value of {0} cannot be changed from {1} to {2}",
+                JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                parentState.getAnnotation(), s.getAnnotation());
+          }
+        }
+      }
+      
+      return good;
     }
   }
 }
