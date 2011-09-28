@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.util.UniqueID;
 public class CommentElement extends AbstractJavaElement implements IMergeableElement {
 	public static final char MARKER = '%';
 	public static final String SEPARATOR = ":";
-	public static final String END_MARKER = MARKER+"--";
+	public static final String END_MARKER = MARKER+""+MARKER;
 	private final UniqueID uid;
 	private int revision;
 	private boolean modified;
