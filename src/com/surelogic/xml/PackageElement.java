@@ -13,7 +13,9 @@ public class PackageElement extends AnnotatedJavaElement {
 	public PackageElement(String id, ClassElement c) {
 		super(id);
 		clazz = c;
-		c.setParent(this);
+		if (clazz != null) {
+			c.setParent(this);
+		}
 	}	
 
 	@Override
