@@ -818,6 +818,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return getAttribute(ProposedPromiseDrop.CONTENTS);
 		}
 
+		public String getReplacedContents() {
+			return getAttribute(ProposedPromiseDrop.REPLACED_CONTENTS);
+		}
+		
 		public String getTargetProjectName() {
 			return getAttribute(ProposedPromiseDrop.TARGET_PROJECT);
 		}
@@ -869,21 +873,21 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				return true;
 			if (other == null)
 				return false;
-			if (getAnnotation() == null) {
-				if (other.getAnnotation() != null)
+			
+			return isSame(getAnnotation(), other.getAnnotation()) &&
+			       isSame(getContents(), other.getContents()) &&
+			       isSame(getReplacedContents(), other.getReplacedContents()) &&
+			       isSame(getSrcRef(), other.getSrcRef());
+		}
+		
+		private static <T> boolean isSame(T o1, T o2) {
+			if (o1 == null) {
+				if (o2 != null) {
 					return false;
-			} else if (!getAnnotation().equals(other.getAnnotation()))
+				}
+			} else if (!o1.equals(o2)) {
 				return false;
-			if (getContents() == null) {
-				if (other.getContents() != null)
-					return false;
-			} else if (!getContents().equals(other.getContents()))
-				return false;
-			if (getSrcRef() == null) {
-				if (other.getSrcRef() != null)
-					return false;
-			} else if (!getSrcRef().equals(other.getSrcRef()))
-				return false;
+			}
 			return true;
 		}
 		
@@ -897,6 +901,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (contents != null) {
 				hash += contents.hashCode();
 			}
+			final String replaced = getReplacedContents();
+			if (replaced != null) {
+				hash += replaced.hashCode();
+			}			
 			final ISrcRef ref = getSrcRef();
 			if (ref != null) {
 				hash += ref.getHash(); // Instead of hashCode()?

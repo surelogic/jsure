@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 public interface IProposedPromiseDropInfo extends IDropInfo {
 	String getAnnotation();
 	String getContents();
+	String getReplacedContents();
 	String getJavaAnnotation();
 	String getTargetProjectName();
 	String getFromProjectName();

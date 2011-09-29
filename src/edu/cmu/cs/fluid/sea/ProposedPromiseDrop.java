@@ -34,6 +34,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop
 implements IResultDrop, IProposedPromiseDropInfo {
 	public static final String ANNOTATION_TYPE = "annotation-type";
 	public static final String CONTENTS = "contents";
+	public static final String REPLACED_CONTENTS = "replaced-contents";
 	public static final String JAVA_ANNOTATION = "java-annotation";
 	public static final String FROM_PROJECT = "from-project";
 	public static final String TARGET_PROJECT = "target-project";
@@ -65,6 +66,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 *            this proposed promise if the compilation unit is reanalyzed.
 	 */
 	public ProposedPromiseDrop(final String annotation, final String contents,
+			final String replacedContents,
 			final IRNode at, final IRNode from) {
 		if (at == null) {
 			throw new IllegalArgumentException(I18N.err(44, "at"));
@@ -78,6 +80,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		f_requestedFrom = from;
 		f_annotation = annotation;
 		f_contents = contents;
+		f_replacedContents = replacedContents;
 		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
 
@@ -90,6 +93,11 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		setMessage(msg);
 	}
 
+	public ProposedPromiseDrop(final String annotation, final String contents,
+			final IRNode at, final IRNode from) {
+		this(annotation, contents, null, at, from);
+	}
+	
 	/**
 	 * The Java annotation being proposed. For <code>@Starts("nothing")</code>
 	 * the value of this string would be {@code "Starts"}.
@@ -158,6 +166,12 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 */
 	private final String f_contents;
 
+	private final String f_replacedContents;
+	
+	public String getReplacedContents() {
+		return f_replacedContents;
+	}
+	
 	/**
 	 * Checks if the proposed Java annotation has contents.
 	 * 
@@ -216,25 +230,24 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			return true;
 		if (other == null)
 			return false;
-		if (f_annotation == null) {
-			if (other.getAnnotation() != null)
+		
+		return isSame(f_annotation, other.getAnnotation()) &&
+		       isSame(f_contents, other.getContents()) &&
+		       isSame(f_replacedContents, other.getReplacedContents()) &&
+		       isSame(getSrcRef(), other.getSrcRef());
+	}
+	
+	private static <T> boolean isSame(T o1, T o2) {
+		if (o1 == null) {
+			if (o2 != null) {
 				return false;
-		} else if (!f_annotation.equals(other.getAnnotation()))
+			}
+		} else if (!o1.equals(o2)) {
 			return false;
-		if (f_contents == null) {
-			if (other.getContents() != null)
-				return false;
-		} else if (!f_contents.equals(other.getContents()))
-			return false;
-		final ISrcRef ref = getSrcRef();
-		if (getSrcRef() == null) {
-			if (other.getSrcRef() != null)
-				return false;
-		} else if (!ref.equals(other.getSrcRef()))
-			return false;
+		}
 		return true;
 	}
-
+	
 	public long computeHash() {
 		long hash = 0;
 		if (f_annotation != null) {
@@ -298,6 +311,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
 		s.addAttribute(ANNOTATION_TYPE, getAnnotation());
 		s.addAttribute(CONTENTS, getContents());
+		s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
 		s.addAttribute(TARGET_PROJECT, getTargetProjectName());
 		s.addAttribute(FROM_PROJECT, getFromProjectName());
 	}
