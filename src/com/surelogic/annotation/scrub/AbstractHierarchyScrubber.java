@@ -189,9 +189,18 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				IRNode type = VisitUtil.getEnclosingType(enclosingFunc);
 				if (type == null) {
 					type = VisitUtil.getEnclosingCompilationUnit(enclosingFunc);
+                /*					
+				} else if (name().equals(UniquenessRules.CONSISTENCY)) {
+					System.out.println("Looking for overrides for "+loc+" on "+JavaNames.getFullName(enclosingFunc));
+                */
 				}
 				final IIRProject p = JavaProjects.getEnclosingProject(type);
 				for(IRNode om : p.getTypeEnv().getBinder().findOverridingMethodsFromType(enclosingFunc, type)) {					
+					/*
+                    if (name().equals(UniquenessRules.CONSISTENCY)) {
+						System.out.println("Found override: "+JavaNames.getFullName(om));
+					}
+                    */
 					switch (loc) {
 					case DECL:
 						declsToCheck.add(om);
@@ -206,6 +215,9 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 						final IRNode params = SomeFunctionDeclaration.getParams(om);
 						declsToCheck.add(JJNode.tree.getChild(params, parameterNum));
 						break;
+					case QUALIFIED_RECEIVER:
+					default:
+						throw new IllegalStateException("Unexpected location: "+loc);
 					}
 				}				
 			}
@@ -228,6 +240,13 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				}
 				mrds.add(decl);
 			}
+			/*
+            if (name().equals(UniquenessRules.CONSISTENCY)) {
+				for(IRNode td : methodRelatedDeclsToCheck.keySet()) {
+					System.out.println("Got method-related decls to check on "+JavaNames.getFullTypeName(td));
+				}
+			}
+			*/
 		}
 
 		/**
@@ -252,7 +271,12 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
 
 			// process this type
-			//System.out.println("Scrubbing promises for "+dt+" -- "+decl);
+			/*
+			final String name = dt.getName();
+			if (name().equals(UniquenessRules.CONSISTENCY) && !name.startsWith("java")) {
+				System.out.println(name()+" scrubbing promises for "+name);//+" -- "+decl);
+			}
+            */
 			List<A> l = byType.get(decl);
 			if (l != null) {
 				startScrubbingType_internal(decl);

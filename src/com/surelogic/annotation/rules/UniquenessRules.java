@@ -607,6 +607,11 @@ public class UniquenessRules extends AnnotationRules {
     
     @Override
     protected Iterable<PromiseDrop<? extends IAASTRootNode>> getRelevantAnnotations() {
+      /*
+      for(PromiseDrop d : uniquenessTags) {
+    	  System.out.println("Got tag: "+d);
+      }
+      */
       return uniquenessTags;
     }
 
