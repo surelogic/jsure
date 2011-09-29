@@ -174,7 +174,7 @@ public class ProposedPromisesChange {
 		final CU cu = new CU(drop.getTargetProjectName(), srcRef.getPackage(), srcRef.getRelativePath());
 		srcRef = drop.getAssumptionRef();
 		final CU assumptionCU = new CU(drop.getFromProjectName(), srcRef.getPackage(), srcRef.getRelativePath());
-		return new AnnotationDescription(annotation, contents, target,
+		return new AnnotationDescription(annotation, contents, drop.getReplacedContents(), target,
 				assumptionTarget, cu, assumptionCU);
 	}
 
