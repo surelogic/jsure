@@ -21,6 +21,7 @@ import com.surelogic.common.refactor.AnnotationDescription.CU;
 import com.surelogic.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.sea.*;
 
 public class ProposedPromisesChange {
@@ -83,7 +84,7 @@ public class ProposedPromisesChange {
 		}
 		final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<CU, Set<AnnotationDescription>>();
 		final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
-		final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter();
+		final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(PromiseFramework.getInstance().getAllowsMultipleAnnosSet());
 		try {
 			for(final String proj : projects) {
 				if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
