@@ -43,7 +43,7 @@ public class EffectsSpecificationNode extends AASTRootNode
   @Override
   public String unparse(boolean debug, int indent) {
     String name = this.getClass().getSimpleName();
-    name = name.substring(0, name.length()-4).toLowerCase();
+    name = name.substring(0, name.length()-4);//.toLowerCase();
     
     StringBuilder sb = new StringBuilder();
     if (debug) {
