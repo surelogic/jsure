@@ -450,7 +450,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    final Set<Effect> inferred = inferEffects(false, method, missing);
 	    final ProposedPromiseBuilder proposed = 
 	      new ProposedPromiseBuilder("RegionEffects", 
-	          Effects.unparseForPromise(inferred), method, method);
+	          Effects.unparseForPromise(inferred), 
+	          declEffDrop.getAST().toString().substring("RegionEffects".length()).trim(), 
+	          method, method);
 	    for (final ResultDropBuilder r : badDrops) {
 	      r.addProposal(proposed);
 	    }
