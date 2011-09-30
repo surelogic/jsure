@@ -51,16 +51,14 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
-public final class MListOfResultsColumn extends MColumn implements
-		ISelectionObserver {
+public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
 
 	/**
 	 * The table used to display the results.
 	 */
 	private Table f_table = null;
 
-	MListOfResultsColumn(final CascadingList cascadingList,
-			final Selection selection, final MColumn previousColumn) {
+	MListOfResultsColumn(final CascadingList cascadingList, final Selection selection, final MColumn previousColumn) {
 		super(cascadingList, selection, previousColumn);
 	}
 
@@ -106,8 +104,10 @@ public final class MListOfResultsColumn extends MColumn implements
 
 	@Override
 	public void forceFocus() {
-		f_table.forceFocus();
-		getCascadingList().show(index);
+		if (f_table != null) {
+			f_table.forceFocus();
+			getCascadingList().show(index);
+		}
 	}
 
 	public void selectionChanged(final Selection selecton) {
@@ -287,11 +287,9 @@ public final class MListOfResultsColumn extends MColumn implements
 			@Override
 			public IStatus runInUIThread(final IProgressMonitor monitor) {
 				if (f_table == null) {
-					final int addAfterColumn = getPreviousColumn()
-							.getColumnIndex();
+					final int addAfterColumn = getPreviousColumn().getColumnIndex();
 					// create the display table
-					getCascadingList().addColumnAfter(f_iColumn,
-							addAfterColumn, false);
+					getCascadingList().addColumnAfter(f_iColumn, addAfterColumn, false);
 				} else {
 					// update the table's contents
 					updateTableContents();
@@ -330,8 +328,7 @@ public final class MListOfResultsColumn extends MColumn implements
 			if (!data.isCheckedByAnalysis())
 				flags |= CoE_Constants.TRUSTED;
 		}
-		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags,
-				new Point(22, 16));
+		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags, new Point(22, 16));
 
 		item.setText(data.getMessage());
 		item.setImage(rid.getCachedImage());
@@ -376,8 +373,7 @@ public final class MListOfResultsColumn extends MColumn implements
 				} else {
 					return;
 				}
-				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
-						srcRef.getCUName(), srcRef.getLineNumber());
+				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), srcRef.getCUName(), srcRef.getLineNumber());
 
 				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);
@@ -386,23 +382,17 @@ public final class MListOfResultsColumn extends MColumn implements
 
 						IMarker location = null;
 						try {
-							location = ResourcesPlugin.getWorkspace().getRoot()
-									.createMarker("edu.cmu.fluid");
+							location = ResourcesPlugin.getWorkspace().getRoot().createMarker("edu.cmu.fluid");
 							final int offset = srcRef.getOffset();
-							if (offset >= 0 && offset != Integer.MAX_VALUE
-									&& srcRef.getLength() >= 0) {
-								location.setAttribute(IMarker.CHAR_START,
-										srcRef.getOffset());
-								location.setAttribute(IMarker.CHAR_END,
-										srcRef.getOffset() + srcRef.getLength());
+							if (offset >= 0 && offset != Integer.MAX_VALUE && srcRef.getLength() >= 0) {
+								location.setAttribute(IMarker.CHAR_START, srcRef.getOffset());
+								location.setAttribute(IMarker.CHAR_END, srcRef.getOffset() + srcRef.getLength());
 							}
 							if (srcRef.getLineNumber() > 0) {
-								location.setAttribute(IMarker.LINE_NUMBER,
-										srcRef.getLineNumber());
+								location.setAttribute(IMarker.LINE_NUMBER, srcRef.getLineNumber());
 							}
 						} catch (org.eclipse.core.runtime.CoreException e) {
-							SLLogger.getLogger().log(Level.SEVERE,
-									"Failure to create an IMarker", e);
+							SLLogger.getLogger().log(Level.SEVERE, "Failure to create an IMarker", e);
 						}
 						if (location != null) {
 							IDE.gotoMarker(ep, location);
@@ -418,10 +408,7 @@ public final class MListOfResultsColumn extends MColumn implements
 					}
 				}
 			} catch (Exception e) {
-				SLLogger.getLogger()
-						.log(Level.WARNING,
-								"Unexcepted exception thrown trying to highlight a line in the editor",
-								e);
+				SLLogger.getLogger().log(Level.WARNING, "Unexcepted exception thrown trying to highlight a line in the editor", e);
 			}
 		}
 	}
