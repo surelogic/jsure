@@ -1010,4 +1010,17 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }
     return false;
   }
+
+  /**
+   * @return The set of annotation names that allow multiple annotations on a given declaration
+   */
+  public Set<String> getAllowsMultipleAnnosSet() {
+	  final Set<String> rv = new HashSet<String>();
+	  for(Map.Entry<String, IPromiseDropStorage> e : storageMap.entrySet()) {
+		  if (e.getValue().type() == StorageType.SEQ) {
+			  rv.add(e.getKey());
+		  }
+	  }
+	  return rv;
+  }
 }
