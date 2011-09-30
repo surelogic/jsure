@@ -83,7 +83,7 @@ public class RegionEffectsNode extends AASTRootNode {
     } else {
       sb.append(' ');
       if (getEffectsList().isEmpty()) {
-        sb.append("nothing");
+        sb.append("none");
       }
       
       boolean first = true;
@@ -91,7 +91,7 @@ public class RegionEffectsNode extends AASTRootNode {
         if (first) {
           first = false;
         } else {
-          sb.append(", ");
+          sb.append("; ");
         }
         sb.append(_n.unparse(false));
       }    
