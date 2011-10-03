@@ -93,7 +93,13 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
       map.put(key,entry);
       return;
     }
-    entry.setScope(scope);
+    IJavaScope currentScope = entry.getScope();
+    if (currentScope == null) {
+    	entry.setScope(scope);
+    } else {
+    	// Added to handle multiple static imports of the same identifier
+    	entry.setScope(new IJavaScope.ExtendScope(currentScope, scope));
+    }
   }
 
   class UnversionedEntry extends AbstractJavaBinder.UnversionedDependency implements Entry {

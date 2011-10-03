@@ -161,7 +161,13 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       map.put(key,entry);
       return;
     }
-    entry.setScope(scope, Version.getVersion());
+    IJavaScope currentScope = entry.getScope();
+    if (currentScope == null) {
+        entry.setScope(scope, Version.getVersion());
+    } else {
+    	// Added to handle multiple static imports of the same identifier
+    	entry.setScope(new IJavaScope.ExtendScope(currentScope, scope), Version.getVersion());
+    }
   }
   
   private synchronized <T> void removeScope(Map<T,Entry> map, T key, Version v) {
