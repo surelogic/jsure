@@ -50,6 +50,16 @@ public final class UniquenessUtils {
   }
   
   /**
+   * Given a VariableDeclarator (from a field declaration) return whether
+   * the field is borrowed.
+   */
+  public static boolean isFieldBorrowed(final IRNode varDecl) {
+    return UniquenessRules.getBorrowed(varDecl) != null || 
+        RegionRules.getSimpleBorrowedInRegion(varDecl) != null ||
+        RegionRules.getExplicitBorrowedInRegion(varDecl) != null;
+  }
+  
+  /**
    * Return whether the given declaration is indeed unique-write.
    * TODO: Perhaps we want to add allowRead to UniqueFieldInRegion ?
    * @param decl declaration node (or null)

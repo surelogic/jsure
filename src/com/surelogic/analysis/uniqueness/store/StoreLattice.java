@@ -254,7 +254,7 @@ extends TripleLattice<Element<Integer>,
 	  }
 	  if (UniquenessUtils.isFieldUnique(node)) return State.UNIQUE;
 	  // TODO: BorrowedReadOnly
-	  if (UniquenessRules.isBorrowed(node)) return State.BORROWED;
+	  if (UniquenessUtils.isFieldBorrowed(node)) return State.BORROWED;
 	  if (UniquenessRules.isReadOnly(node)) return State.READONLY;
 	  if (LockRules.isImmutableRef(node)) return State.IMMUTABLE;
 	  if (isValueNode(node)) return State.IMMUTABLE;
@@ -555,7 +555,7 @@ extends TripleLattice<Element<Integer>,
 	  // we don't allow reading of 'from' fields except when this object is 
 	  // independent, because otherwise, the aliasing rules are too tricky to
 	  // figure out.
-	  if (UniquenessRules.isBorrowed(fieldDecl)) {
+	  if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
 		  final Integer n = getStackTop(s);
 		  for (FieldTriple ft : s.getFieldStore()) {
 			  if (ft.third().contains(n)) {
@@ -564,7 +564,7 @@ extends TripleLattice<Element<Integer>,
 		  }
 	  }
 	  if (UniquenessUtils.isFieldUnique(fieldDecl) ||
-			  UniquenessRules.isBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl)) {
+	      UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl)) {
 		  final Integer n = getStackTop(s);
 		  if (localStatus(s,n) == State.IMMUTABLE) {
 			  // special case: we generate an immutable non-value reference:
@@ -672,7 +672,7 @@ extends TripleLattice<Element<Integer>,
     	}
     	temp = opRelease(opConnect(setFieldStore(s,new ImmutableHashOrderSet<FieldTriple>(newFields)),
     							   undertop,fieldDecl,stacktop));
-    } else if (UniquenessRules.isBorrowed(fieldDecl)) {
+    } else if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
     	// only permit if
     	// (1) the field is final
     	// (2) every object aliased to the top includes a borrowed(allowReturn) parameter/receiver
