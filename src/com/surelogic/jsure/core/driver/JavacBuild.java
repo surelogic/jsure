@@ -42,28 +42,35 @@ public class JavacBuild {
 		try {
 			JavacDriver.getInstance().clearProjectInfo();
 			
-			for (IJavaProject p : selectedProjects) {
-				boolean noErrors = XUtil.testing
-						|| JDTUtility.noCompilationErrors(p,
-								new NullProgressMonitor());
-				if (noErrors) {
-					// Collect resources and CUs for build
-					JavaProjectResources jpr = JDTUtility
-							.collectAllResources(p, null);
-					JavacDriver.getInstance()
-							.registerBuild(
-									p.getProject(),
-									buildArgs,
-									pairUpResources(jpr.resources,
-											IResourceDelta.ADDED), jpr.cus);
-				} else {
-					l.reportError(
-							"Compile Errors in " + p.getElementName(),
-							"JSure is unable to analyze "
-									+ p.getElementName()
-									+ " due to some compilation errors.  Please fix (or do a clean build).");
-					return false;
+			// Check for errors in the selected projects and dependencies
+			try {
+				for (IJavaProject p : JDTUtility.getAllRequiredProjects(selectedProjects)) {
+					boolean noErrors = XUtil.testing
+					|| JDTUtility.noCompilationErrors(p, new NullProgressMonitor());
+					if (!noErrors) {
+						l.reportError(
+								"Compile Errors in " + p.getElementName(),
+								"JSure is unable to analyze "
+								+ p.getElementName()
+								+ " due to some compilation errors.  Please fix (or do a clean build).");
+						return false;
+					}
 				}
+			} catch(IllegalStateException e) {
+				l.reportError("Error within Eclipse", 
+						"JSure is unable to determine if there are any compilation errors, due to problems within Eclipse:\n\t"+e.getMessage());
+				return false;
+			}
+			// Setup project info
+			for (IJavaProject p : selectedProjects) {
+				// Collect resources and CUs for build
+				JavaProjectResources jpr = JDTUtility.collectAllResources(p, null);
+				JavacDriver.getInstance().registerBuild(
+						p.getProject(),
+						buildArgs,
+						pairUpResources(jpr.resources,
+								IResourceDelta.ADDED), jpr.cus);
+
 			}
 			JavacEclipse.initialize();
 			SLLogger.getLogger().fine("Configuring explicit build");
