@@ -6,7 +6,7 @@ import com.surelogic.RegionEffects;
 import com.surelogic.Unique;
 
 public class Var {
-	private int val;
+	public int val;
 	
 	@Unique("return")
 	@RegionEffects("none")
@@ -45,10 +45,30 @@ public class Var {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
+	@RegionEffects("none")
+	@Immutable("this")
+	public void testReceiverRead2(final @Borrowed Object o) {
+		// Read effect on immutable should be discarded
+		final int z = this.val;
+	}
+	
+	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
+	 * here to force the analysis to check this method.
+	 */
 	@RegionEffects("writes this:Instance")
 	@Immutable("this")
 	public void testReceiverWrite(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		this.set(v);
+	}
+	
+	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
+	 * here to force the analysis to check this method.
+	 */
+	@RegionEffects("writes this:Instance")
+	@Immutable("this")
+	public void testReceiverWrite2(final int v, final @Borrowed Object o) {
+		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
+		this.val = v;
 	}
 }
