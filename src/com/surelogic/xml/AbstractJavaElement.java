@@ -143,16 +143,18 @@ abstract class AbstractJavaElement implements IJavaElement {
 				}
 			} else {
 			*/		
+		//diff(orig, other);
 	}
 	
 	protected <T extends AbstractJavaElement> void diff(List<T> orig, List<T> other) {
 		final List<T> temp = new ArrayList<T>();			
 		final Patch p = DiffUtils.diff(orig, other);			
-
+		// Describes the changes -- anything else is the same
+		
 		int lastPosition = 0;
-		/*
 		for(final Delta d : p.getDeltas()) {
 			final Chunk origC = d.getOriginal();
+			/*
 			// Copy everything between where we left off and where this chunk starts
 			for(i=lastPosition; i<origC.getPosition(); i++) {
 				CommentElement e = orig.get(i).cloneMe();
@@ -166,7 +168,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 				temp.add(e);
 			}
 			lastPosition = origC.getPosition() + origC.getSize();
+			*/
 		}
+		/*
 		for(i=lastPosition; i<orig.size(); i++) {
 			CommentElement e = orig.get(i).cloneMe();
 			e.setParent(this);
