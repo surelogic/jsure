@@ -75,7 +75,6 @@ public abstract class AbstractMessages {
    * Contributors:
    *     IBM Corporation - initial API and implementation
    *     
-   * From org.eclipse.osgi.framework.internal.core.MessageResourceBundle
    *******************************************************************************/
     
   /**

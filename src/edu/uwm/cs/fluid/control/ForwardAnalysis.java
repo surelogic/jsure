@@ -5,8 +5,6 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
-//import sun.security.krb5.internal.p;
-
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.AddLabel;
 import edu.cmu.cs.fluid.control.BlankInputPort;
