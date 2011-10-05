@@ -29,7 +29,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
@@ -298,7 +297,7 @@ extends TripleLattice<Element<Integer>,
    * 
    * @precondition isValid()
    */
-  public Integer getStackTop(final Store s) {
+  public static Integer getStackTop(final Store s) {
     return s.getStackSize();
   }
 
@@ -307,7 +306,7 @@ extends TripleLattice<Element<Integer>,
    * 
    * @precondition isValid()
    */
-  public Integer getUnderTop(final Store s) {
+  public static Integer getUnderTop(final Store s) {
     return Integer.valueOf(getStackTop(s).intValue() - 1);
   }
 

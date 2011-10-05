@@ -620,9 +620,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferAssignArray(final IRNode node, final Store s) {
-    	// System.out.println("At assign array , store is " + lattice.toString(s));
-      return lattice.opCompromiseNoRelease(super.transferAssignArray(node, s));
+    protected Store transferAssignArray(final IRNode node, Store s) {
+      // [..., arrayRef, idx, val]: pop idx
+      s = popSecond(s);
+      // [..., arrayRef, val]: Check for mutability of the arrayRef
+      s = lattice.opCheckMutable(s, StoreLattice.getUnderTop(s));
+      if (!s.isValid()) return s;
+      // [..., arrayRef, val]: Pop arrayRef, and compromise val
+      return lattice.opCompromiseNoRelease(popSecond(s));
     }
     
     @Override
