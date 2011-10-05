@@ -150,11 +150,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    */
   private final IBinder binder;
 
-  /**
-   * Binding context analysis, used by target elaboration.
-   */
-//  private final BindingContextAnalysis bca;
-  
   private final ThisExpressionBinder thisExprBinder;
 
   private final TargetFactory targetFactory;
@@ -267,14 +262,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
 
   //----------------------------------------------------------------------
 
-//  @Override
-//  protected void handleAnonClassExpression(final IRNode expr) {
-//    // Get the effects of the evaluating the arguments
-//    doAccept(AnonClassExpression.getArgs(expr));
-//    // Get the effects of the super-class constructor
-//    context.addEffects(getMethodCallEffects(expr));
-//  }
-
   @Override
   protected InstanceInitAction getAnonClassInitAction(
       final IRNode expr, final IRNode classBody) {
@@ -326,7 +313,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
           MethodCallUtils.getEnclosingInstanceReferences(
               binder, thisExprBinder, expr,
               superClassDecl,
-//              binder.getBinding(AnonClassExpression.getType(expr)),
               context.theReceiverNode, getEnclosingDecl());
         for (final Effect initEffect : newContext.theEffects) {
           if (!(initEffect.isMaskable(binder) || 
@@ -382,12 +368,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   
   //----------------------------------------------------------------------
 
-//  @Override
-//  protected void handleConstructorCall(final IRNode ccall) {
-//    context.addEffects(getMethodCallEffects(ccall));
-//    doAcceptForChildren(ccall);
-//  }
-  
   @Override
   protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
     final Context oldContext = context;
@@ -431,24 +411,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     return null;
   }
   
-  //----------------------------------------------------------------------
-
-//  @Override 
-//  public Void visitMethodCall(final IRNode expr) {
-//    context.addEffects(getMethodCallEffects(expr));
-//    doAcceptForChildren(expr);
-//    return null;
-//  }
-
-  //----------------------------------------------------------------------
-
-//  @Override
-//  public Void visitNewExpression(final IRNode expr) {
-//    context.addEffects(getMethodCallEffects(expr));
-//    doAcceptForChildren(expr);
-//    return null;
-//  }
- 
   //----------------------------------------------------------------------
 
   @Override
@@ -575,28 +537,4 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     }
     doAcceptForChildren(varDecl);
   }
-  
-//  @Override
-//  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
-//    // treat as new expression
-//    context.addEffects(getMethodCallEffects(decl));
-//    // no children
-//  }
-  
-//  @Override
-//  protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
-//    // treat as new expression
-//    context.addEffects(getMethodCallEffects(decl));
-//    // Handle the arguments
-//    doAcceptForChildren(decl);
-//  }
-
-  
-//  @Override
-//  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
-//    // treat as new expression
-//    context.addEffects(getMethodCallEffects(decl));
-//    // Handle the arguments
-//    doAcceptForChildren(EnumConstantClassDeclaration.getArgs(decl));
-//  }
 }
