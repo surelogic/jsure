@@ -23,9 +23,7 @@ import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.sea.*;
 
 /**
