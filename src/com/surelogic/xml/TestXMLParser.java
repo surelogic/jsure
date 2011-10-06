@@ -19,7 +19,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -87,6 +86,7 @@ public class TestXMLParser extends DefaultHandler implements
 
 		InputSource in = PackageAccessor.readPackage(file, pkgName, PackageAccessor
 				.promiseFileName(xml));
+		/*
 		if (false) {
 			PromisesXMLReader r = new PromisesXMLReader();
 			r.read(in.getByteStream());
@@ -96,6 +96,7 @@ public class TestXMLParser extends DefaultHandler implements
 			f.deleteOnExit();
 			return 0;
 		}
+		*/
 		if (in == null) {
 			throw new FileNotFoundException(xml + " doesn't exist");
 		}
@@ -456,17 +457,20 @@ public class TestXMLParser extends DefaultHandler implements
 				}
 
 				/** Add this promise to the AAST */
-				final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
-				final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
-				final boolean verify   = rawVerify == null || "true".equals(rawVerify);
-				final boolean allowReturn = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_RETURN));
-				final boolean allowRead = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_READ));
-				
-				boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
-						AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead),
-						e.getAttributes());
-				if (added) {
-					numAnnotationsAdded++;
+				final boolean ignore = "true".equals(e.getAttribute(TestXMLParserConstants.DELETE_ATTRB));
+				if (!ignore) {
+					final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
+					final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
+					final boolean verify   = rawVerify == null || "true".equals(rawVerify);
+					final boolean allowReturn = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_RETURN));
+					final boolean allowRead = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_READ));
+
+					boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
+							AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead),
+							e.getAttributes());
+					if (added) {
+						numAnnotationsAdded++;
+					}
 				}
 			}
 			// } else {

@@ -181,7 +181,11 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 	}
 	
 	public boolean isModified() {
-		return "true".equals(attributes.get(DIRTY_ATTRB));
+		return "true".equals(attributes.get(DIRTY_ATTRB)) || isToBeDeleted();
+	}
+	
+	public boolean isToBeDeleted() {
+		return "true".equals(attributes.get(DELETE_ATTRB));
 	}
 	
 	public void incrRevision() {

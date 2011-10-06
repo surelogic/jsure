@@ -15,6 +15,7 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	private final UniqueID uid;
 	private int revision;
 	private boolean modified;
+	private boolean toBeDeleted;
 	private String comment;
 
 	private CommentElement(UniqueID uid, int rev, boolean mod, String c) {
@@ -69,6 +70,10 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	
 	public boolean isModified() {
 		return modified;
+	}
+	
+	public boolean isToBeDeleted() {
+		return toBeDeleted;
 	}
 	
 	public void incrRevision() {
