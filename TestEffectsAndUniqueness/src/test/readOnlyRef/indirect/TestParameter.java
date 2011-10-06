@@ -31,7 +31,7 @@ public class TestParameter {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testParameterWrite1(final @ReadOnly Var p, final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		Var a = p;
@@ -42,7 +42,7 @@ public class TestParameter {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testParameterWrite2(final @ReadOnly Var p, final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		Var a = p;

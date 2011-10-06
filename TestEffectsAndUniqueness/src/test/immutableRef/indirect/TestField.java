@@ -13,9 +13,9 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void testFieldRead1(final @Borrowed Object o) {
-		// TODO:  Read effect on immutable should be discarded
+		// Read effect on immutable should be discarded
 		Var a = this.f;
 		Var b = a;
 		b.get();
@@ -24,9 +24,9 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void testFieldRead2(final @Borrowed Object o) {
-		// TODO:  Read effect on immutable should be discarded
+		// Read effect on immutable should be discarded
 		Var a = this.f;
 		Var b = a;
 		int z = b.val;
@@ -35,7 +35,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance; writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testFieldWrite1(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		Var a = this.f;
@@ -46,7 +46,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance; writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testFieldWrite2(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		Var a = this.f;

@@ -31,7 +31,7 @@ public class TestReturnValue {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(java.lang.Object):Instance")
+	@RegionEffects("none")
 	public void testReturnValueWrite2(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		int[] a = this.methodCall(null);

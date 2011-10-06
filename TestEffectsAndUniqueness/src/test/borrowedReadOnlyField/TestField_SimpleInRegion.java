@@ -18,7 +18,7 @@ public class TestField_SimpleInRegion {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads X")
+	@RegionEffects("none")
 	public void testFieldRead1(final @Borrowed Object o) {
 		this.f.get1();
 	}
@@ -26,7 +26,7 @@ public class TestField_SimpleInRegion {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes X")
+	@RegionEffects("none")
 	public void testFieldWrite1(final int v, final @Borrowed Object o) {
 		// NOT ALLOWED
 		this.f.set1(v);
@@ -37,7 +37,7 @@ public class TestField_SimpleInRegion {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads X")
+	@RegionEffects("none")
 	public void testFieldRead2(final @Borrowed Object o) {
 		this.f.get2();
 	}
@@ -45,7 +45,7 @@ public class TestField_SimpleInRegion {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes X")
+	@RegionEffects("none")
 	public void testFieldWrite2(final int v, final @Borrowed Object o) {
 		// NOT ALLOWED
 		this.f.set2(v);

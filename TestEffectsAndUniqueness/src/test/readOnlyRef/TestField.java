@@ -14,7 +14,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void readField(final @Borrowed Object o) {
 		Object x = this.f;
 	}
@@ -22,7 +22,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes Instance")
+	@RegionEffects("none")
 	public void writeField(final @Unique Var u, final @Borrowed Object o) {
 		this.f = u;
 	}
@@ -30,7 +30,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void testFieldRead1(final @Borrowed Object o) {
 		// TODO: Should be degraded to the effect "reads Object:All"
 		this.f.get();
@@ -39,7 +39,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void testFieldRead2(final @Borrowed Object o) {
 		// TODO: Should be degraded to the effect "reads Object:All"
 		int z = this.f.val;
@@ -48,7 +48,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance; writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testFieldWrite1(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		this.f.set(v);
@@ -57,7 +57,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance; writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testFieldWrite2(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		this.f.val = v;

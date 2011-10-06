@@ -10,14 +10,14 @@ public class TestParamPassing {
 		v.get();
 	}
 	
-	@RegionEffects("reads x:Instance")
+	@RegionEffects("none")
 	public void caller1(final Var x) {
 		Var a = x;
 		Var b = a;
 		readsVar(b);
 	}
 	
-	@RegionEffects("reads nothing")
+	@RegionEffects("none")
 	public void caller2(final @Immutable Var y) {
 		// No effects because y is Immutable ref!
 		Var a = y;

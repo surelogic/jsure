@@ -13,7 +13,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance")
+	@RegionEffects("none")
 	public void testFieldRead2(final @Borrowed Object o) {
 		// TODO: Should be degraded to the effect "reads Object:All"
 		int[] a = this.f;
@@ -24,7 +24,7 @@ public class TestField {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("reads Instance; writes any(java.lang.Object):Instance")
+	@RegionEffects("none")
 	public void testFieldWrite2(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		int[] a = this.f;

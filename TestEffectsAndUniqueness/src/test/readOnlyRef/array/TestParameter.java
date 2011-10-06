@@ -35,7 +35,7 @@ public class TestParameter {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(java.lang.Object):Instance")
+	@RegionEffects("none")
 	public void testParameterWrite(final @ReadOnly int[] p, final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on ReadOnly is illegal
 		p[0] = v;

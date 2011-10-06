@@ -55,7 +55,7 @@ public class Var {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes this:Instance")
+	@RegionEffects("none")
 	@Immutable("this")
 	public void testReceiverWrite(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
@@ -65,7 +65,7 @@ public class Var {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes this:Instance")
+	@RegionEffects("none")
 	@Immutable("this")
 	public void testReceiverWrite2(final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal

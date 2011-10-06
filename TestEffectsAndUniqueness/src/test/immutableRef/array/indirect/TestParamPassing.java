@@ -10,14 +10,14 @@ public class TestParamPassing {
 		int z = v[0];
 	}
 	
-	@RegionEffects("reads x:Instance")
+	@RegionEffects("none")
 	public void caller1(final int[] x) {
 		int[] a = x;
 		int[] b = a;
 		readsVar(b);
 	}
 	
-	@RegionEffects("reads nothing")
+	@RegionEffects("none")
 	public void caller2(final @Immutable int[] y) {
 		// No effects because y is Immutable ref!
 		int[] a = y;

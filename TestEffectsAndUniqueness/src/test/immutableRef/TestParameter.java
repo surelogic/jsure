@@ -44,7 +44,7 @@ public class TestParameter {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testParameterWrite1(final @Immutable Var p, final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		p.set(v);
@@ -53,7 +53,7 @@ public class TestParameter {
 	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
 	 * here to force the analysis to check this method.
 	 */
-	@RegionEffects("writes any(Var):Instance")
+	@RegionEffects("none")
 	public void testParameterWrite2(final @Immutable Var p, final int v, final @Borrowed Object o) {
 		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
 		p.val = v;

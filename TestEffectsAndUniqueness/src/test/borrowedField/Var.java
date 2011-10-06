@@ -51,30 +51,4 @@ public class Var {
 	public void set2(final int v) {
 		val2 = v;
 	}
-//
-//	
-//	
-//	// ======================================================================
-//	// == Test @Immutable receiver	
-//	// ======================================================================
-//	
-//	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
-//	 * here to force the analysis to check this method.
-//	 */
-//	@RegionEffects("none")
-//	@Immutable("this")
-//	public void testReceiverRead(final @Borrowed Object o) {
-//		// Read effect on immutable should be discarded
-//		this.get();
-//	}
-//	
-//	/* Driver for the U+F analysis needs to be updated.  Need @Borrowed parameter
-//	 * here to force the analysis to check this method.
-//	 */
-//	@RegionEffects("writes this:Instance")
-//	@Immutable("this")
-//	public void testReceiverWrite(final int v, final @Borrowed Object o) {
-//		// CHECKED BY FLOW ANALYSIS: Write effect on immutable is illegal
-//		this.set(v);
-//	}
 }
