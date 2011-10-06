@@ -98,7 +98,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeAnnos(int indent, AnnotatedJavaElement e) {
-		for(AnnotationElement a : e.getPromises()) {
+		for(AnnotationElement a : e.getPromises(true)) {
 			writeAnno(indent, a);
 		}
 	}

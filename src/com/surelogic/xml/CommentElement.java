@@ -76,6 +76,11 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 		return toBeDeleted;
 	}
 	
+	public void delete() {
+		markAsDirty();
+		toBeDeleted = true;
+	}
+	
 	public void incrRevision() {
 		if (!isModified()) {
 			throw new IllegalStateException("Not dirty");

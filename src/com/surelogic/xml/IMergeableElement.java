@@ -5,6 +5,7 @@ public interface IMergeableElement extends IJavaElement {
 	boolean isModified();
 	int getRevision();
 	void incrRevision();
+	void delete();
 	
 	/**
 	 * Also include anything attached to me
@@ -16,4 +17,5 @@ public interface IMergeableElement extends IJavaElement {
 	 * leaving this element otherwise unchanged
 	 */
 	void mergeAttached(IMergeableElement other);
+
 }

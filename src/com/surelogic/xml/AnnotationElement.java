@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class AnnotationElement extends CommentedJavaElement implements IMergeableElement, TestXMLParserConstants {
+public final class AnnotationElement extends CommentedJavaElement implements IMergeableElement, TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private String contents;
@@ -102,8 +102,7 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 		if (!contents.equals(text)) {
 			if (parses(promise, text, l)) {
 				contents = text;		
-				markAsDirty();
-				attributes.put(DIRTY_ATTRB, "true");
+				markAsModified();
 			} else {
 				// Handled by parses()
 				//l.reportError("Annotation unparseable", "There was a problem parsing the contents of the promise");
@@ -111,6 +110,16 @@ public class AnnotationElement extends CommentedJavaElement implements IMergeabl
 		} else {
 			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
 		}
+	}
+
+	private void markAsModified() {
+		super.markAsDirty();
+		attributes.put(DIRTY_ATTRB, "true");
+	}
+	
+	public void delete() {
+		markAsModified();
+		attributes.put(DELETE_ATTRB, "true");
 	}
 	
 	private boolean parses(final String promise, final String text, final IErrorListener l) {

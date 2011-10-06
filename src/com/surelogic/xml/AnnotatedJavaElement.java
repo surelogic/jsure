@@ -36,11 +36,19 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	}
 	
 	public Collection<AnnotationElement> getPromises() {
-		//List<AnnotationElement> sorted = new ArrayList<AnnotationElement>(promises.values());
-		List<AnnotationElement> sorted = new ArrayList<AnnotationElement>();
-		// NOTE this means that hasChildren() and other methods may not match what gets returned here
-		filterDeleted(sorted, promises.values());
-
+		return getPromises(false);
+	}
+	
+	public Collection<AnnotationElement> getPromises(boolean all) {
+		List<AnnotationElement> sorted;
+		if (all) {
+			sorted = new ArrayList<AnnotationElement>(promises.values());
+		} else {
+			sorted = new ArrayList<AnnotationElement>();
+		
+			// NOTE this means that hasChildren() and other methods may not match what gets returned here
+			filterDeleted(sorted, promises.values());
+		}
 		Collections.sort(sorted, new Comparator<AnnotationElement>() {
 			public int compare(AnnotationElement o1, AnnotationElement o2) {
 				int rv = o1.getPromise().compareTo(o2.getPromise()); 
