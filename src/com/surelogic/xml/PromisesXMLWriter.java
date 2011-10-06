@@ -89,7 +89,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 			b.append(CommentElement.SEPARATOR);
 			b.append(c.getRevision());
 			b.append(CommentElement.SEPARATOR);
-			b.append(c.isModified());
+			b.append(c.getModStatus().name());
 			b.append(CommentElement.END_MARKER);
 			b.append(Entities.unescape(c.getLabel()));
 			b.append("-->\n");

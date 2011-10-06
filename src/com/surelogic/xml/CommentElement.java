@@ -9,6 +9,18 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.UniqueID;
 
 public class CommentElement extends AbstractJavaElement implements IMergeableElement {
+	public enum ModStatus {
+		/**
+		 * Unmodified
+		 */
+		FALSE, 
+		/**
+		 * Modified
+		 */
+		TRUE, 
+		DELETE
+	}
+	
 	public static final char MARKER = '%';
 	public static final String SEPARATOR = ":";
 	public static final String END_MARKER = MARKER+""+MARKER;
@@ -18,17 +30,22 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	private boolean toBeDeleted;
 	private String comment;
 
-	private CommentElement(UniqueID uid, int rev, boolean mod, String c) {
+	private CommentElement(UniqueID uid, int rev, ModStatus mod, String c) {
+		this(uid, rev, mod != ModStatus.FALSE, mod == ModStatus.DELETE, c);
+	}
+	
+	private CommentElement(UniqueID uid, int rev, boolean mod, boolean del, String c) {
 		this.uid = uid;
 		revision = rev;
 		modified = mod;
+		toBeDeleted = del;
 		comment = c;
 	}
 	
 	public static CommentElement make(String c) {		
 		UniqueID uid = null;
 		int rev = 0;
-		boolean mod = false;
+		ModStatus mod = ModStatus.FALSE;
 		
 		if (c == null) {
 			c = "";						
@@ -45,9 +62,11 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 						try {
 							uid = UniqueID.parseUniqueID(tokens[0]);
 							rev = Integer.parseInt(tokens[1]);
-							mod = Boolean.parseBoolean(tokens[2]);
+							mod = ModStatus.valueOf(tokens[2].toUpperCase());
 							c = c.substring(nextMarker+END_MARKER.length());
 						} catch(NumberFormatException e) {
+							// Ignore the bad info
+						} catch(IllegalArgumentException e) {
 							// Ignore the bad info
 						}
 					}					
@@ -74,6 +93,14 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	
 	public boolean isToBeDeleted() {
 		return toBeDeleted;
+	}
+	
+	public ModStatus getModStatus() {
+		if (toBeDeleted) {
+			return ModStatus.DELETE;
+		} else {
+			return modified ? ModStatus.TRUE : ModStatus.FALSE;
+		}
 	}
 	
 	public void delete() {
@@ -144,7 +171,7 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	
 	@Override
 	public CommentElement cloneMe() {
-		return new CommentElement(uid, revision, modified, comment);
+		return new CommentElement(uid, revision, modified, toBeDeleted, comment);
 	}
 
 	public void mergeAttached(IMergeableElement other) {
