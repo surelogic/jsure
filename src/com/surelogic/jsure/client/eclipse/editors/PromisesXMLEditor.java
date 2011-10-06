@@ -389,6 +389,18 @@ public class PromisesXMLEditor extends EditorPart {
 				});
 			}
 		}
+		if (o instanceof IMergeableElement) {
+			final IMergeableElement me = (IMergeableElement) o;
+			makeMenuItem(menu, "Delete", new SelectionAdapter() {
+		        @Override
+		        public void widgetSelected(SelectionEvent e) {          
+		        	me.delete();
+		        	
+		          	contents.refresh();
+	            	contents.expandToLevel(me.getParent(), 1);
+		        }
+			});
+		}
 	}
 	
 	private class AnnotationCreator extends SelectionAdapter {
