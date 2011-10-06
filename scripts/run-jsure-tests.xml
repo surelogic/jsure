@@ -446,7 +446,10 @@
 		<echo message="${ln}" />
 		<testResults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
 
-
+		<!-- Sets the standard DSTAMP, TSTAMP, and TODAY properties -->
+		<tstamp/>
+		<echo message="date=${DSTAMP} time=${TSTAMP}"/>
+		
 		<if>
 			<equals arg1="${tests.failed}" arg2="FAILED" />
 			<then>
