@@ -17,6 +17,7 @@ import com.surelogic.common.xml.NestedXMLReader;
 public class PromisesXMLReader extends NestedXMLReader implements IXMLResultListener, TestXMLParserConstants {	
 	PackageElement pkg;
 	String pkgName;
+	int revision;
 	ClassElement clazz;
 	final List<AnnotationElement> promises = new ArrayList<AnnotationElement>(0);
 	
@@ -27,7 +28,19 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			if (attributes == null) {
 				return "";
 			}
-			return attributes.getValue(NAME_ATTRB);
+			final String pkg = attributes.getValue(NAME_ATTRB);
+			final String rev = attributes.getValue(REVISION_ATTRB);
+			if (rev == null) {
+				revision = 0;
+			} else {
+				try {
+					revision = Integer.parseInt(rev);
+				} catch(NumberFormatException e) {
+					LOG.warning("Bad revision for package "+pkg+": "+rev);
+					revision = 0;
+				}
+			}
+			return pkg;
 		}
 		return null;
 	}
@@ -158,7 +171,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			clazz.setLastComments(comments);
 		}
 		
-		pkg = new PackageElement(pkgName, clazz);		
+		pkg = new PackageElement(pkgName, revision, clazz);		
 		for(AnnotationElement a : promises) {
 			pkg.addPromise(a);
 		}

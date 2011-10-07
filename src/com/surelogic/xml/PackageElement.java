@@ -9,15 +9,21 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
+	private int revision;
 	
-	public PackageElement(String id, ClassElement c) {
+	public PackageElement(String id, int rev, ClassElement c) {
 		super(id);
+		revision = rev;
 		clazz = c;
 		if (clazz != null) {
 			c.setParent(this);
 		}
 	}	
 
+	int getRevision() {
+		return revision;
+	}
+	
 	@Override
 	public Operator getOperator() {
 		return PackageDeclaration.prototype;
@@ -85,7 +91,7 @@ public class PackageElement extends AnnotatedJavaElement {
 
 	@Override
 	PackageElement cloneMe() {
-		PackageElement e = new PackageElement(getName(), clazz);
+		PackageElement e = new PackageElement(getName(), revision, clazz);
 		copyToClone(e);
 		return e;
 	}

@@ -63,7 +63,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	public void write(PackageElement pkg) {		
 		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		pw.println();
-		start(0, PACKAGE, pkg);		
+		start(0, PACKAGE, pkg, REVISION_ATTRB, Integer.toString(pkg.getRevision()));		
 		writeAnnos(INCR, pkg);
 		writeClass(INCR, pkg.getClassElement());
 		end(0, PACKAGE);
