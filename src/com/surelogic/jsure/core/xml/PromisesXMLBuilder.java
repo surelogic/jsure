@@ -122,6 +122,6 @@ public class PromisesXMLBuilder {
 		}
 		// TODO fields
 		// TODO nested classes -- only public ones?
-		return new PackageElement(t.getPackageFragment().getElementName(), c);
+		return new PackageElement(t.getPackageFragment().getElementName(), 0, c);
 	}
 }
