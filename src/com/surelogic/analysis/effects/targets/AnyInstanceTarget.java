@@ -100,6 +100,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
   // Receiver is the target from the declared effect
   @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
   boolean checkTargetAgainstLocal(
       final IBinder b, final LocalTarget actualTarget) {
     return false;
@@ -134,6 +141,12 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return ((AbstractTarget) t).overlapsWithAnyInstance(binder, this);
   }
 
+
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
+    return TargetRelationship.newUnrelated();
+  }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override

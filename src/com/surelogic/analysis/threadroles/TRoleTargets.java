@@ -435,7 +435,7 @@ public class TRoleTargets {
    * @return Declared effects for cross-module or TheWorld calls, or null for
    * same-non-world-module calls.
    */
-  public static Set<Effect> getDeclaredEffectsWM(
+  public static List<Effect> getDeclaredEffectsWM(
       final IRNode mCall, final IRNode mDecl) {
     //if call-site and callee are in different modules, or if either is part of
     // TheWorld we can only depend on the declared effects!
@@ -458,7 +458,7 @@ public class TRoleTargets {
    * @return
    */
   public static Set<Target> getTargetsForMethodCall(final IRNode mCall, final IRNode mDecl) {
-    Set<Effect> callFX = getDeclaredEffectsWM(mCall, mDecl);
+    List<Effect> callFX = getDeclaredEffectsWM(mCall, mDecl);
     // callFX is now null only when mCall and mDecl are in the same module, AND that
     // module is not TheWorld. Require same module, because can only use declared 
     // effects across modules. Require not TheWorld, because we can't count on TheWorld

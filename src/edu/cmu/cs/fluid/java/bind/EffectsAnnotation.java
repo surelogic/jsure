@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.surelogic.analysis.effects.Effect;
@@ -83,7 +84,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
    * @return a created model name for the thread effects declaration
    */
   private static String genModelName(final IRNode node,
-      final Set<Effect> effects) {
+      final List<Effect> effects) {
     final Operator op = getOperator(node);
     // add the type we found the method within (could be the promised type)
     IRNode enclosingType = VisitUtil.getEnclosingType(node);
@@ -383,7 +384,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
       /* This is redundnat, and I should find a better way of generating
        * the label.
        */
-      final Set<Effect> declFx = 
+      final List<Effect> declFx = 
         Effects.getDeclaredMethodEffects(promisedFor, promisedFor);
       
       MethodEffectsPromiseDrop med = getMethodEffectsDrop(promisedFor);

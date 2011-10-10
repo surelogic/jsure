@@ -20,12 +20,14 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -38,10 +40,13 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -254,20 +259,20 @@ public final class Effects implements IBinderClient {
    *          NewExpression, ConstructorCall, MethodDeclaration, or
    *          ConstructorDeclaration.
    */
-  public static Set<Effect> getDeclaredMethodEffects(
+  public static List<Effect> getDeclaredMethodEffects(
       final IRNode mDecl, final IRNode callSite) {
     // Get the effects from the promises
     final RegionEffectsPromiseDrop promisedEffects = MethodEffectsRules.getRegionEffectsDrop(mDecl);
     if (promisedEffects == null) { // No promises, return null
       return null;
     } else {
-      final Set<Effect> result = new HashSet<Effect>();
+      final List<Effect> result = new ArrayList<Effect>();
       // Convert IRNode representation of effects in Effect objects
       getEffectsFromSpecificationNode(mDecl, promisedEffects.getEffects(), result, callSite);
       if (result.isEmpty()) {
         result.add(Effect.newEmpty(callSite));
       }
-      return Collections.unmodifiableSet(result);
+      return Collections.unmodifiableList(result);
     }
   }
 
@@ -275,7 +280,7 @@ public final class Effects implements IBinderClient {
 
   public static void getEffectsFromSpecificationNode(final IRNode mDecl,
       final Iterable<EffectsSpecificationNode> promisedEffects,
-      final Set<Effect> result, final IRNode callSite) {
+      final List<Effect> result, final IRNode callSite) {
     // Use the default target factory because we bind the receivers ourselves
     final TargetFactory tf = DefaultTargetFactory.PROTOTYPE;      
     for(final EffectsSpecificationNode effList : promisedEffects) {
@@ -336,11 +341,11 @@ public final class Effects implements IBinderClient {
    *          NewExpression, ConstructorCall, MethodDeclaration, or
    *          ConstructorDeclaration.
    */
-  public Set<Effect> getMethodEffects(
+  public List<Effect> getMethodEffects(
       final IRNode mDecl, final IRNode callSite) {
-    Set<Effect> effects = getDeclaredMethodEffects(mDecl, callSite);
+    List<Effect> effects = getDeclaredMethodEffects(mDecl, callSite);
     if (effects == null) {
-      effects = Collections.singleton(getWritesAnything(callSite));
+      effects = Collections.singletonList(getWritesAnything(callSite));
     }
     return effects;
   }
@@ -585,6 +590,22 @@ public final class Effects implements IBinderClient {
           elaborateUseExpression(expr, target, targets, newTargets);
         } else if (FieldRef.prototype.includes(op)) {
           elaborateFieldRef(expr, target, targets, newTargets);
+        } else if (ParameterDeclaration.prototype.includes(op) ||
+            ReceiverDeclaration.prototype.includes(op) ||
+            MethodCall.prototype.includes(op)) {
+          /* If the expr is an immutable ref, then we ignore the target by
+           * simply marking it as elaborated and replacing it with a 
+           * an empty target.
+           */
+          final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
+              JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
+          if (LockRules.isImmutableRef(nodeToTest)) {
+            targets.add(
+                targetFactory.createEmptyTarget(
+                    target.getElaborationEvidence(),
+                    Reason.RECEIVER_IS_IMMUTABLE));
+            elaborated.add(target);
+          }
         }
       }
     }
@@ -645,6 +666,15 @@ public final class Effects implements IBinderClient {
             newTargets.add(newTarget);
           }
         }
+      } else if (LockRules.isImmutableRef(fieldID)) {
+        /* Field is immutable: We ignore the effect by marking the target as
+         * elaborated so it is removed from the final set of targets, and
+         * replace it with a new empty target.
+         */
+        targets.add(
+            targetFactory.createEmptyTarget(
+                target.getElaborationEvidence(), Reason.RECEIVER_IS_IMMUTABLE));
+        elaborated.add(target);
       }
     }
   }

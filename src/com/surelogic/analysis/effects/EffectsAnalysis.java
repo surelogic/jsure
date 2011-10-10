@@ -7,6 +7,8 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.EmptyTarget;
+import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
@@ -114,7 +116,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final boolean isMethod = MethodDeclaration.prototype.includes(op);
 			if (isConstructor || isMethod) {
 			  // NULL if there are no declared effects
-				final Set<Effect> declFx =
+				final List<Effect> declFx =
 					Effects.getDeclaredMethodEffects(member, member);
 
 				/*
@@ -320,7 +322,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	 * @param implFx
 	 */
 	private void checkConstructor(final RegionEffectsPromiseDrop declEffDrop,
-			final IRNode constructor, final Set<Effect> declFx,
+			final IRNode constructor, final List<Effect> declFx,
 			final Set<Effect> implFx) {
 		final IRNode receiverNode = PromiseUtil.getReceiverNode(constructor);
     final Set<Effect> missing = new HashSet<Effect>();
@@ -407,6 +409,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		}
 
 		addElaborationEvidence(rd, eff.getTargetElaborationEvidence());
+		addAdditionalEvidence(rd, eff.getTarget());
 		
 		// Finish the drop
 		setResultDependUponDrop(rd, src);
@@ -429,6 +432,15 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  }
 	}
 
+	private void addAdditionalEvidence(final ResultDropBuilder rd, final Target t) {
+	  if (t instanceof EmptyTarget) {
+	    final Reason r = ((EmptyTarget) t).getReason();
+	    if (r != null) {
+	      rd.addSupportingInformation(null, r.getMessage());
+	    }
+	  }
+	}
+	
 	/**
 	 * @param report
 	 * @param method
@@ -436,7 +448,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	 * @param implFx
 	 */
 	private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
-			final Set<Effect> declFx, final Set<Effect> implFx) {
+			final List<Effect> declFx, final Set<Effect> implFx) {
 	  final Set<Effect> missing = new HashSet<Effect>();
 	  final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
 	  for (final Effect eff : implFx) {
@@ -471,31 +483,25 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
    *         <code>null</code>.
    */
 	private ResultDropBuilder checkEffect(final IRNode methodBeingChecked,
-	    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
-			final Set<Effect> declFx, final Set<Effect> missing) {
-	  if (implEff.isEmpty()) {
-	    constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-	        Messages.NO_EFFECTS, DebugUnparser.toString(implEff.getSource()));
-	    return null;
-	  } else {
-  		boolean checked = false;
-  		final Iterator<Effect> iter = declFx.iterator();
-  		while (!checked && iter.hasNext()) {
-  			final Effect eff2 = iter.next();
-  			if (implEff.isCheckedBy(getBinder(), eff2)) {
-  				checked = true;
-  				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-  						Messages.CHECKED_BY, implEff, eff2);
-  			}
-  		}
-  		if (!checked) {
-  		  missing.add(implEff);
-  			return 
-  			  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-  			      Messages.UNACCOUNTED_FOR, implEff);
-  		} else {
-  		  return null;
-  		}
-	  }
+    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
+		final List<Effect> declFx, final Set<Effect> missing) {
+		boolean checked = false;
+		final Iterator<Effect> iter = declFx.iterator();
+		while (!checked && iter.hasNext()) {
+			final Effect eff2 = iter.next();
+			if (implEff.isCheckedBy(getBinder(), eff2)) {
+				checked = true;
+				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
+						Messages.CHECKED_BY, implEff, eff2);
+			}
+		}
+		if (!checked) {
+		  missing.add(implEff);
+			return 
+			  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
+			      Messages.UNACCOUNTED_FOR, implEff);
+		} else {
+		  return null;
+		}
 	}
 }

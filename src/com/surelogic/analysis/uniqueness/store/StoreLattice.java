@@ -1,6 +1,7 @@
 package com.surelogic.analysis.uniqueness.store;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -73,14 +74,14 @@ extends TripleLattice<Element<Integer>,
 
   private final IBinder binder;
   private final IMayAlias mayAlias;
-  private final Set<Effect> effects;
+  private final List<Effect> effects;
   
 
   // ==================================================================
   // === Constructor 
   // ==================================================================
   
-  public StoreLattice(final IRNode[] locals, IBinder b, IMayAlias ma, Set<Effect> fx) {
+  public StoreLattice(final IRNode[] locals, IBinder b, IMayAlias ma, List<Effect> fx) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
         new UnionLattice<FieldTriple>());
@@ -91,7 +92,7 @@ extends TripleLattice<Element<Integer>,
   }
 	  
   public StoreLattice(final IRNode[] locals) {
-	  this(locals,null,PessimisticMayAlias.INSTANCE,ImmutableHashOrderSet.<Effect>emptySet());
+	  this(locals,null,PessimisticMayAlias.INSTANCE,Collections.<Effect>emptyList());
   }
 	  
   public int getNumLocals() {

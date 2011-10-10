@@ -1,6 +1,9 @@
 package com.surelogic.analysis.effects;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.EmptyTarget;
+import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
@@ -70,7 +73,8 @@ public abstract class Effect {
   
   private static final class EmptyEffect extends Effect {
     private EmptyEffect(final IRNode src) {
-      super(src);
+      super(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
+              null, Reason.DECLARES_NO_EFFECTS));
     }
 
   
@@ -94,11 +98,6 @@ public abstract class Effect {
       return new EmptyEffect(src);
     }
 
-    @Override
-    public Target getTarget() {
-      return null;
-    }
-    
     @Override
     public ElaborationEvidence getTargetElaborationEvidence() {
       return null;
@@ -183,13 +182,6 @@ public abstract class Effect {
   
   private abstract static class RealEffect extends Effect {
     /**
-     * The target of the effect.
-     */
-    protected final Target target;
-
-   
-    
-    /**
      * Create a new effect instance
      * 
      * @param src
@@ -198,8 +190,7 @@ public abstract class Effect {
      *          Target of the effect
      */
     protected RealEffect(final IRNode src, final Target t) {
-      super(src);
-      target = t;
+      super(src, t);
     }
 
     
@@ -215,11 +206,6 @@ public abstract class Effect {
     }
 
     @Override
-    public final Target getTarget() {
-      return target;
-    }
-
-    @Override
     public final ElaborationEvidence getTargetElaborationEvidence() {
       return target.getElaborationEvidence();
     }
@@ -231,7 +217,7 @@ public abstract class Effect {
     
     @Override
     public final boolean isEmpty() {
-      return false;
+      return (target instanceof EmptyTarget);
     }
     
     @Override 
@@ -278,7 +264,7 @@ public abstract class Effect {
     
     @Override 
     public boolean isCheckedBy(final IBinder binder, final Effect declEffect) {
-      return declEffect.checksRead(binder, this);
+      return isEmpty() || declEffect.checksRead(binder, this);
     }
     
     @Override
@@ -361,7 +347,7 @@ public abstract class Effect {
     
     @Override 
     public boolean isCheckedBy(final IBinder binder, final Effect declEffect) {
-      return declEffect.checksWrite(binder, this);
+      return isEmpty() || declEffect.checksWrite(binder, this);
     }
     
     @Override
@@ -405,6 +391,13 @@ public abstract class Effect {
   
   
   /**
+   * The target of the effect.
+   */
+  protected final Target target;
+
+ 
+  
+  /**
    * The expression that directly caused the effect or <code>null</code> if
    * unknown.
    */
@@ -412,7 +405,8 @@ public abstract class Effect {
 
   
   
-  private Effect(final IRNode src) {
+  private Effect(final IRNode src, final Target t) {
+    target = t;
     source = src;
   }
   
@@ -531,7 +525,9 @@ public abstract class Effect {
    * @return The target of the effect or <code>null</code> if the effect
    * is the empty effect.
    */
-  public abstract Target getTarget();
+  public final Target getTarget() {
+    return target;
+  }
 
   /**
    * Get the rationale for the elaboration of the target, if it was

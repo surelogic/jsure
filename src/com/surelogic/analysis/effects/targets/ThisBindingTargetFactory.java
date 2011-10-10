@@ -3,6 +3,7 @@ package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.ElaborationEvidence;
+import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -23,6 +24,11 @@ public final class ThisBindingTargetFactory implements TargetFactory {
   
   public ThisBindingTargetFactory(final ThisExpressionBinder teb) {
     thisExprBinder = teb;
+  }
+  
+  public EmptyTarget createEmptyTarget(
+      final ElaborationEvidence elabEvidence, final Reason reason) {
+    return new EmptyTarget(elabEvidence, reason);
   }
   
   public LocalTarget createLocalTarget(final IRNode varDecl) {

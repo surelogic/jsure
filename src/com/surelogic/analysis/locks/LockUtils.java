@@ -1374,7 +1374,7 @@ public final class LockUtils {
     final Effect writesInstance = Effect.newWrite(null,
         DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, RegionModel.getInstanceRegion(cdecl)));
 
-    final Set<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
+    final List<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     /* Ultimately this is only used if the effects are declared and of
      * interest.
      */

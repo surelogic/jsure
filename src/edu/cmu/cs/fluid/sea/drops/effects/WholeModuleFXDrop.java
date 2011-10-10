@@ -43,12 +43,12 @@ public class WholeModuleFXDrop extends PhantomDrop {
   
   private final Set<Effect> methodFX;
   private final Set<Effect> filteredMethodFX;
-  private final Set<Effect> fixedPointFX;
+  private final List<Effect> fixedPointFX;
   
   private WholeModuleFXDrop() {
     methodFX = new HashSet<Effect>(4);
     filteredMethodFX = new HashSet<Effect>(0);
-    fixedPointFX = new HashSet<Effect>(0);
+    fixedPointFX = new ArrayList<Effect>();
   }
   
   public static WholeModuleFXDrop getMethodFX(final IRNode mDecl) {
@@ -183,7 +183,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
   /**
    * @return Returns the fixedPointFX.
    */
-  public Set<Effect> getFixedPointFX() {
+  public List<Effect> getFixedPointFX() {
     return fixedPointFX;
   }
 

@@ -137,7 +137,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
-    Set<Effect> effects = Effects.getDeclaredMethodEffects(flowUnit, flowUnit);
+    List<Effect> effects = Effects.getDeclaredMethodEffects(flowUnit, flowUnit);
 	final StoreLattice lattice = new StoreLattice(locals,binder,mayAlias,effects);
     return new Uniqueness(
         "Uniqueness Analsys (UWM)", lattice,
@@ -331,7 +331,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     private Store considerDeclaredEffects(
         final int numFormals, final IRNode formals,
-        final Set<Effect> declEffects, Store s) {
+        final List<Effect> declEffects, Store s) {
       for (final Effect f : declEffects) {
     	if (!s.isValid()) return s;
         if (f.isEmpty()) {
@@ -1136,7 +1136,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @SuppressWarnings("unused")
 	private void debugEffects(IRNode n) {
-    	Set<Effect> fx = Effects.getDeclaredMethodEffects(n, n);
+    	List<Effect> fx = Effects.getDeclaredMethodEffects(n, n);
     	System.out.println(DebugUnparser.toString(n));
     	if (fx == null) {
     		System.out.println("No declared effects");

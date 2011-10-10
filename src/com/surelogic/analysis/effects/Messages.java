@@ -4,7 +4,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.sea.Category;
 
-final class Messages {  
+public final class Messages {  
   private Messages() {
     // private constructor to prevent instantiation
   }
@@ -18,8 +18,9 @@ final class Messages {
   public static final int EMPTY_EFFECTS = 152;
   public static final int CONSTRUCTOR_RULE = 153;
   public static final int PARAMETER_EVIDENCE = 154;
-  public static final int NO_EFFECTS = 155;
   public static final int CLASS_INIT_EFFECT = 156;
+  public static final int REASON_NO_DECLARED_EFFECT = 157;
+  public static final int REASON_RECEIVER_IS_IMMUTABLE = 158;
   
   
   
@@ -30,8 +31,9 @@ final class Messages {
 	  code2name.put(EMPTY_EFFECTS, "EffectAssurance_msgEmptyEffects");
 	  code2name.put(CONSTRUCTOR_RULE, "EffectAssurance_msgContructorRule");
 	  code2name.put(PARAMETER_EVIDENCE, "EffectAssurance");
-	  code2name.put(NO_EFFECTS, "EffectAssurance");
 	  code2name.put(CLASS_INIT_EFFECT, "EffectAssurance");
+    code2name.put(REASON_NO_DECLARED_EFFECT, "EffectAssurance");
+    code2name.put(REASON_RECEIVER_IS_IMMUTABLE, "EffectAssurance");
   }
   
   public static String toString(int code) {

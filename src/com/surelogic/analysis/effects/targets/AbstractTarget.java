@@ -63,7 +63,7 @@ abstract class AbstractTarget implements Target {
 
   
   
-  /** Only for use by LocalTarget. */
+  /** Only for use by LocalTarget and EmptyTarget. */
   AbstractTarget() {
     region = null;
   }
@@ -118,6 +118,9 @@ abstract class AbstractTarget implements Target {
   /* For double dispatching in the implementation of checkTarget() */
   
   // Receiver is the target from the declared effect
+  abstract boolean checkTargetAgainstEmpty(IBinder b, EmptyTarget actualTarget);
+  
+  // Receiver is the target from the declared effect
   abstract boolean checkTargetAgainstLocal(IBinder b, LocalTarget actualTarget);
   
   // Receiver is the target from the declared effect
@@ -132,6 +135,9 @@ abstract class AbstractTarget implements Target {
   
   
   /* For double dispatching in the implementation of overlapsWith() */  
+  
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithEmpty(IBinder binder, EmptyTarget t);
   
   // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithLocal(IBinder binder, LocalTarget t);

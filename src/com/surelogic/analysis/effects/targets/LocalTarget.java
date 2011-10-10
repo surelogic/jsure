@@ -61,7 +61,7 @@ public final class LocalTarget extends AbstractTarget {
   }
   
   public Target undoBCAElaboration() {
-    // Local targets do not original from elaboration
+    // Local targets do not originate from elaboration
     return this;
   }
 
@@ -76,6 +76,13 @@ public final class LocalTarget extends AbstractTarget {
 
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstLocal(b, this);
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return false;
   }
 
   // Receiver is the target from the declared effect
@@ -125,6 +132,12 @@ public final class LocalTarget extends AbstractTarget {
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithLocal(binder, this);
+  }
+
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
+    return TargetRelationship.newUnrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!

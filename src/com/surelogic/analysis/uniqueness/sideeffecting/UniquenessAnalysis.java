@@ -411,7 +411,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private Store considerDeclaredEffects(final IRNode rcvr,
         final int numFormals, final IRNode formals, final IRNode actuals,
         final RegionEffectsPromiseDrop fxDrop,
-        final Set<Effect> declEffects, Store s, final IRNode srcOp) {
+        final List<Effect> declEffects, Store s, final IRNode srcOp) {
       for (final Effect f : declEffects) {
         if (f.isEmpty()) {
           // empty effects are harmless
