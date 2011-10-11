@@ -12,6 +12,11 @@
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
+        <method name="remove">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
         <method name="listIterator" params="int">
             <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
