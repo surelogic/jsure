@@ -30,8 +30,7 @@ public final class OpenSearchDialog extends AbstractSearchDialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-		return setupDialogArea(parent, "Select a search to open",
-				SWT.FULL_SELECTION);
+		return setupDialogArea(parent, "Select a search to open", SWT.FULL_SELECTION);
 	}
 
 	@Override
@@ -40,8 +39,7 @@ public final class OpenSearchDialog extends AbstractSearchDialog {
 			@Override
 			void okPressed() {
 				if (f_searchTable.getSelectionCount() > 0) {
-					f_result = f_manager.getSavedSelection(f_searchTable
-							.getSelection()[0].getText());
+					f_result = f_manager.getSavedSelection(f_searchTable.getSelection()[0].getText());
 				}
 			}
 		};
@@ -51,7 +49,6 @@ public final class OpenSearchDialog extends AbstractSearchDialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Open Search");
-		newShell.setImage(SLImages
-				.getImage(CommonImages.IMG_SIERRA_INVESTIGATE));
+		newShell.setImage(SLImages.getImage(CommonImages.IMG_JSURE_FINDER));
 	}
 }

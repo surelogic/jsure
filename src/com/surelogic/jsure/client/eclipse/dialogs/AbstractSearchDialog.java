@@ -44,8 +44,7 @@ public abstract class AbstractSearchDialog extends Dialog {
 		return result;
 	}
 
-	protected Composite setupDialogArea(Composite parent, String title,
-			int projectListFlags) {
+	protected Composite setupDialogArea(Composite parent, String title, int projectListFlags) {
 		Composite panel = (Composite) super.createDialogArea(parent);
 		final GridLayout gridLayout = new GridLayout();
 		panel.setLayout(gridLayout);
@@ -62,14 +61,12 @@ public abstract class AbstractSearchDialog extends Dialog {
 		projectGroup.setText("Saved Searches");
 		projectGroup.setLayout(new FillLayout());
 
-		final Table projectList = new Table(projectGroup, SWT.MULTI
-				| SWT.FULL_SELECTION);
+		final Table projectList = new Table(projectGroup, SWT.MULTI | SWT.FULL_SELECTION);
 
 		for (String projectName : f_manager.getSavedSelectionNames()) {
 			TableItem item = new TableItem(projectList, SWT.NONE);
 			item.setText(projectName);
-			item.setImage(SLImages
-					.getImage(CommonImages.IMG_SIERRA_INVESTIGATE));
+			item.setImage(SLImages.getImage(CommonImages.IMG_JSURE_FINDER));
 		}
 
 		createMediator(projectList);

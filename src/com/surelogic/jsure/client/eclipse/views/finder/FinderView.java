@@ -65,7 +65,7 @@ public final class FinderView extends ViewPart {
 				false));
 		final ToolItem openSearchItem = new ToolItem(searchBar, SWT.PUSH);
 		openSearchItem.setImage(SLImages
-				.getImage(CommonImages.IMG_SIERRA_INVESTIGATE_DOT));
+				.getImage(CommonImages.IMG_JSURE_FINDER_DOT));
 		openSearchItem.setToolTipText("Open Search");
 		final ToolItem saveSearchAsItem = new ToolItem(searchBar, SWT.PUSH);
 		saveSearchAsItem.setImage(SLImages
