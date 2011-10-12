@@ -217,7 +217,7 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		return CommonImages.IMG_ANNOTATION;
 	}
 	
-	AnnotationElement merge(AnnotationElement other) {		
+	AnnotationElement merge(AnnotationElement other, MergeType type) {		
 		return merge(this, other);	
 	}
 	

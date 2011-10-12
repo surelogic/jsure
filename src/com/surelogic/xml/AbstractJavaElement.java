@@ -95,21 +95,25 @@ abstract class AbstractJavaElement implements IJavaElement {
 	}
 	
 	protected <T extends AbstractJavaElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
-		if (type != MergeType.MERGE) {
+		if (type != MergeType.MERGE && type != MergeType.UPDATE) { 
 			throw new IllegalStateException("Unexpected type: "+type);
 		}
-		if (type == MergeType.USE_OTHER) {
-			orig.clear();
-			copyList(other, orig);
-			return;
+		// MERGE  = take explicitly marked mods/deletes from other into orig
+		if (type == MergeType.MERGE) {
+			if (other.isEmpty()) {
+				return; // Nothing to do, since there aren't any marked changes
+			}
 		}
-		if (other.isEmpty()) {
-			return; // Nothing to do
+		// UPDATE = take (implicit) changes from other unless there's a conflict
+		else if (type == MergeType.UPDATE) {
+			if (orig.isEmpty()) {
+				// Take everything, since there's nothing to conflict with
+				copyList(other, orig);
+				return;
+			} 
+			
 		}
-		if (orig.isEmpty()) {
-			copyList(other, orig);
-			return;
-		} 
+
 		// Keep the original
 		/*
 			// Something to merge, so first find what's shared

@@ -93,8 +93,8 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		}
 	}
 	
-	AnnotatedJavaElement merge(AnnotatedJavaElement changed) {
-		mergeThis(changed);
+	AnnotatedJavaElement merge(AnnotatedJavaElement changed, MergeType type) {
+		mergeThis(changed, type);
 		return this;
 	}
 	
@@ -102,14 +102,14 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	 * Only merges the contents at this node
 	 * (e.g. the annotations)
 	 */
-	void mergeThis(AnnotatedJavaElement changed) {
-		super.mergeThis(changed, MergeType.MERGE);
+	void mergeThis(AnnotatedJavaElement changed, MergeType type) {
+		super.mergeThis(changed, type);		
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
 			// TODO how to merge the ordering?
 			// right now, this puts any new elements at the end
 			final AnnotationElement a = promises.get(e.getKey());
 			if (a != null) {
-				a.merge(e.getValue());				
+				a.merge(e.getValue(), type);				
 			} else {				
 				addPromise(e.getValue().cloneMe());
 			}

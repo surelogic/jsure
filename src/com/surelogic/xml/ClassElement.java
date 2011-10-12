@@ -178,17 +178,17 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 	}
 
-	ClassElement merge(ClassElement changed) {
+	ClassElement merge(ClassElement changed, MergeType type) {
 		if (getName().equals(changed.getName())) {
 			if (clinit != null) {
-				clinit.merge(changed.clinit);
+				clinit.merge(changed.clinit, type);
 			} else if (changed.clinit != null) {
 				clinit = changed.clinit.cloneMe();
 			}
 			for(FieldElement f2 : changed.fields.values()) {
 				FieldElement f0 = fields.get(f2.getName());
 				if (f0 != null) {
-					f0.merge(f2);
+					f0.merge(f2, type);
 				} else {
 					addMember(f2.cloneMe());
 				}
@@ -196,7 +196,7 @@ public class ClassElement extends AnnotatedJavaElement {
 			for(ConstructorElement c2 : changed.constructors.values()) {
 				ConstructorElement c0 = constructors.get(c2.getParams());
 				if (c0 != null) {
-					c0.merge(c2);
+					c0.merge(c2, type);
 				} else {
 					addMember(c2.cloneMe());
 				}
@@ -205,7 +205,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				MethodElement m2 = changed.methods.get(keys.first(), keys.second());
 				MethodElement m0 = methods.get(keys.first(), keys.second());
 				if (m0 != null) {
-					m0.merge(m2);
+					m0.merge(m2, type);
 				} else {
 					addMember(m2.cloneMe());
 				}
@@ -213,12 +213,12 @@ public class ClassElement extends AnnotatedJavaElement {
 			for(NestedClassElement n2 : changed.classes.values()) {
 				NestedClassElement n0 = classes.get(n2.getName());
 				if (n0 != null) {
-					n0.merge(n2);
+					n0.merge(n2, type);
 				} else {
 					addMember(n2.cloneMe());
 				}
 			}
-			mergeThis(changed);
+			mergeThis(changed, type);
 			return this;
 		}
 		return null;

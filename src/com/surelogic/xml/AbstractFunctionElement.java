@@ -110,16 +110,16 @@ implements IClassMember, TestXMLParserConstants
 		}
 	}
 	
-	AbstractFunctionElement merge(AbstractFunctionElement changed) {
+	AbstractFunctionElement merge(AbstractFunctionElement changed, MergeType type) {
 		for(FunctionParameterElement p2 : changed.params) {
 			FunctionParameterElement p0 = getParameter(p2.getIndex());
 			if (p0 != null) {
-				p0.merge(p2);
+				p0.merge(p2, type);
 			} else {
 				setParameter(p2.cloneMe());
 			}
 		}
-		mergeThis(changed);
+		mergeThis(changed, type);
 		return this;
 	}
 	

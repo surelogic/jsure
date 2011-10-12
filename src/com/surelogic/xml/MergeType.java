@@ -1,5 +1,16 @@
 package com.surelogic.xml;
 
 public enum MergeType {
-	MERGE, /*PREFER_OTHER,*/ USE_OTHER
+	/**
+	 * Merge dirty elements to fluid 
+	 */
+	MERGE, 
+	/**
+	 * Update changes to client
+	 */
+	UPDATE;
+	
+	public static MergeType get(boolean toClient) {
+		return toClient ? UPDATE : MERGE;
+	}
 }

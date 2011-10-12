@@ -65,30 +65,39 @@ public class PackageElement extends AnnotatedJavaElement {
 
 	/**
 	 * This is effectively the root, so we start merging the whole tree here
+	 * 
+	 * @param updateToClient if true; merge to fluid otherwise
 	 */
-	PackageElement merge(PackageElement changed) {
+	PackageElement merge(PackageElement changed, boolean updateToClient) { 
+		final boolean needsToSync = !updateToClient || this.revision > changed.revision;
+		if (!needsToSync) {
+			// Nothing to do, since I'm updating the client, and the revisions are the same
+			return this;
+		}
+		final MergeType type = MergeType.get(updateToClient);
+		
 		if (changed.getName().equals(getName())) {
 			ClassElement c;
 			if (clazz != null) {
 				if (changed.clazz == null) {
 					// One's a class, the other's a package
 					return null;
-				}
-				c = clazz.merge(changed.clazz);
+				}			
+				c = clazz.merge(changed.clazz, type);
 				if (c != null) {
 					// Class merged, so continue merging
-					mergeThis(changed);				
+					mergeThis(changed, type);				
 					return this;
 				}
 			} else if (changed.clazz == null) {
 				// neither has a class, so they're both package-info.java files
-				mergeThis(changed);				
+				mergeThis(changed, type);								
 				return this;
 			}
 		}
 		return null;
-	}
-
+	}	
+	
 	@Override
 	PackageElement cloneMe() {
 		PackageElement e = new PackageElement(getName(), revision, clazz);
