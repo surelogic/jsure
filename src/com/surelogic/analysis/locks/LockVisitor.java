@@ -177,6 +177,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 	}
 
+	private final Effects effects;
+	
 	private final ThisExpressionBinder thisExprBinder;
 
 	private final IIRAnalysis analysisRoot;
@@ -732,6 +734,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final AtomicReference<GlobalLockModel> glmRef) {
 		analysisRoot = a;
 		binder = b;
+		effects = new Effects(b);
 		bindingContextAnalysis = bca;
 		mayAlias = ma;
 		sysLockModelHandle = glmRef;
@@ -1778,7 +1781,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * lock <code>L</code> must be held.
 		 */
 		final Set<NeededLock> neededLocks = lockUtils
-				.getLocksForMethodAsRegionRef(ctxtBcaQuery, ctxtConflicter,
+				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery, ctxtConflicter,
 						call, enclosingMethod);
 		final LockChecker indirectAccessChecker = new LockChecker(call) {
 			@Override
@@ -2028,7 +2031,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		dereferencesSafeObject(expr);
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
-				ctxtBcaQuery, expr, !isWrite, lockUtils.createInstanceTarget(
+				effects, ctxtBcaQuery, expr, !isWrite, lockUtils.createInstanceTarget(
 						ArrayRefExpression.getArray(expr), RegionModel.getInstanceRegion(expr))));
 		// continue into the expression
 		doAcceptForChildren(expr);
@@ -2215,7 +2218,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						.getObject(fieldRef), fieldAsRegion);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
-					ctxtBcaQuery, fieldRef, !isWrite, target));
+					effects, ctxtBcaQuery, fieldRef, !isWrite, target));
 		}
 
 		// continue into the expression
@@ -2888,7 +2891,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 							assureRegionRef(varDecl, lockUtils
 									.getLocksForDirectRegionAccess(
-											ctxtBcaQuery, varDecl, false,
+											effects, ctxtBcaQuery, varDecl, false,
 											target));
 						}
 						// analyze the the RHS of the initialization

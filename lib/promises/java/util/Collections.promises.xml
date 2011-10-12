@@ -18,6 +18,11 @@
                 <!-- not really true -->
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
+            
+            <method name="remove">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="CheckedList">

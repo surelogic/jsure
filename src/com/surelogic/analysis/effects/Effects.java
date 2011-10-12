@@ -29,6 +29,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
+import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -514,7 +515,7 @@ public final class Effects implements IBinderClient {
   // Target elaboration methods
   // ----------------------------------------------------------------------
   
-  public static Set<Effect> elaborateEffect(
+  public Set<Effect> elaborateEffect(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
       final IBinder binder, final IRNode src, final boolean isRead,
@@ -529,7 +530,7 @@ public final class Effects implements IBinderClient {
     }
   }
 
-  static void elaborateInstanceTargetEffects(
+  void elaborateInstanceTargetEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
       final IBinder binder, final IRNode src, final boolean isRead,
@@ -540,7 +541,7 @@ public final class Effects implements IBinderClient {
     }
   }
   
-  private static class TargetElaborator {
+  private class TargetElaborator {
     private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
@@ -593,17 +594,27 @@ public final class Effects implements IBinderClient {
         } else if (ParameterDeclaration.prototype.includes(op) ||
             ReceiverDeclaration.prototype.includes(op) ||
             MethodCall.prototype.includes(op)) {
+          final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
+              JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
+              
           /* If the expr is an immutable ref, then we ignore the target by
            * simply marking it as elaborated and replacing it with a 
            * an empty target.
            */
-          final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
-              JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
           if (LockRules.isImmutableRef(nodeToTest)) {
             targets.add(
                 targetFactory.createEmptyTarget(
                     target.getElaborationEvidence(),
                     Reason.RECEIVER_IS_IMMUTABLE));
+            elaborated.add(target);
+          }
+          
+          /* If the expr is a read only ref, then we replace the target with 
+           * a class target on Object:All.
+           */
+          if (UniquenessRules.isReadOnly(nodeToTest)) {
+            targets.add(
+                targetFactory.createClassTarget(getAllRegion(expr)));
             elaborated.add(target);
           }
         }
@@ -674,6 +685,11 @@ public final class Effects implements IBinderClient {
         targets.add(
             targetFactory.createEmptyTarget(
                 target.getElaborationEvidence(), Reason.RECEIVER_IS_IMMUTABLE));
+        elaborated.add(target);
+      } else if (UniquenessRules.isReadOnly(fieldID)) {
+        /* Field is read only: Replace the target with Object:All. */
+        targets.add(
+            targetFactory.createClassTarget(getAllRegion(expr)));
         elaborated.add(target);
       }
     }

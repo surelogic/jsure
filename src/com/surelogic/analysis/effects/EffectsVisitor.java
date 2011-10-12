@@ -331,7 +331,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
                 newTarget = targetFactory.createAnyInstanceTarget(
                     (IJavaReferenceType) type, target.getRegion());
               }
-              Effects.elaborateInstanceTargetEffects(
+              effects.elaborateInstanceTargetEffects(
                   context.bcaQuery, targetFactory, binder, expr, initEffect.isRead(),
                   newTarget, context.theEffects);
             } else {
@@ -349,7 +349,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   public Void visitArrayRefExpression(final IRNode expr) {
     final IRNode array = ArrayRefExpression.getArray(expr);
     final boolean isRead = context.isRead();
-    Effects.elaborateInstanceTargetEffects(
+    effects.elaborateInstanceTargetEffects(
         context.bcaQuery, targetFactory, binder, expr, isRead,
         targetFactory.createInstanceTarget(array, INSTANCE_REGION), context.theEffects);
     doAcceptForChildren(expr);
@@ -402,7 +402,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
         if (!Effects.isNullExpression(obj)) {
           final Target initTarget = 
             targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
-          Effects.elaborateInstanceTargetEffects(
+          effects.elaborateInstanceTargetEffects(
               context.bcaQuery, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
         }
       }
