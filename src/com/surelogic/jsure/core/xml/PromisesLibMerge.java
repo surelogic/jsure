@@ -15,6 +15,9 @@ import com.surelogic.xml.*;
  * @author Edwin
  */
 public final class PromisesLibMerge {
+	/**
+	 * @param toClient update if true; merge to fluid otherwise
+	 */
 	public static void merge(boolean toClient) {
 		File fluidDir = null;
 		try {
@@ -39,7 +42,7 @@ public final class PromisesLibMerge {
 	}
 		
 	/**
-	 * @param onlyMerge also copy if false
+	 * @param onlyMerge also copy (to fluid) if false
 	 */
 	private static void merge(final boolean onlyMerge, File to, File from) {
 		if (from.isFile()) {			
@@ -59,7 +62,7 @@ public final class PromisesLibMerge {
 					System.out.println("Merging "+from+" into "+to);
 					PackageElement target = PromisesXMLReader.load(to);
 					PackageElement source = PromisesXMLReader.load(from);
-					PromisesXMLMerge.merge(target, source);
+					PromisesXMLMerge.merge(onlyMerge, target, source);
 					
 					PromisesXMLWriter w = new PromisesXMLWriter(to);
 					w.write(target);
