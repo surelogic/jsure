@@ -69,10 +69,8 @@ public final class PromisesLibMerge {
 					if (!onlyMerge) {
 						// Merging all changes to fluid, so they should both be the same afterward
 						// TODO what about conflicts?
-						/*
 						w = new PromisesXMLWriter(from);
 						w.write(target);
-						*/
 					}
 				} catch (Exception e) {
 					System.err.println("While merging "+from+" into "+to);
