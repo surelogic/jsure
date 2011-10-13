@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="test" revision="0">
+<package name="test" revision="1">
     <class name="XMLTest">
         <Immutable revision="1"/>
         <Region revision="1" uid="15e368b0-7e38-4f94-9cca-4cb5929ffee6">foo</Region>
@@ -13,6 +13,7 @@
         <constructor params="java.util.Map">
         </constructor>
 
+        <!--%7hmp3br2c51v8:1:FALSE%%...-->
         <method name="add" params="java.awt.RenderingHints">
         </method>
     </class>
