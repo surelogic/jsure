@@ -112,7 +112,7 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		}
 	}
 
-	private void markAsModified() {
+	public void markAsModified() {
 		super.markAsDirty();
 		attributes.put(DIRTY_ATTRB, "true");
 	}
