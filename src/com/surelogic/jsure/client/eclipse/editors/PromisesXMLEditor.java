@@ -250,6 +250,12 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	private static CommentElement makeComment() {
+        CommentElement c = CommentElement.make("...");
+        c.markAsDirty();
+        return c;
+	}
+	
 	private void setupContextMenu(final Menu menu) {
 		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
 		if (s.size() != 1) {
@@ -262,7 +268,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {              
 		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = CommentElement.make("...");
+		            CommentElement c = makeComment();
 		            boolean success = cje.addCommentBefore(c, c0);
 		            if (success) {
 		            	contents.refresh();
@@ -276,7 +282,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {              
 		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = CommentElement.make("...");
+		            CommentElement c = makeComment();
 		            boolean success = cje.addCommentAfter(c, c0);
 		            if (success) {
 		            	contents.refresh();
@@ -292,7 +298,7 @@ public class PromisesXMLEditor extends EditorPart {
 		    makeMenuItem(menu, "Append comment", new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {                
-		            CommentElement c = CommentElement.make("...");
+		            CommentElement c = makeComment();
 		            cje.addComment(c);
 		            contents.refresh();
 		            contents.expandToLevel(cje, 1);
