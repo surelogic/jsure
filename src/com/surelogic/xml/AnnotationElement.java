@@ -189,6 +189,7 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		return 0;
 	}
 	
+	@Override
 	public boolean isModified() {
 		return "true".equals(attributes.get(DIRTY_ATTRB)) || isToBeDeleted();
 	}
@@ -217,8 +218,8 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		return CommonImages.IMG_ANNOTATION;
 	}
 	
-	AnnotationElement merge(AnnotationElement other, MergeType type) {		
-		return merge(this, other);	
+	final AnnotationElement merge(AnnotationElement other, MergeType type) {		
+		return merge(this, other, type);	
 	}
 	
 	public void mergeAttached(IMergeableElement other) {

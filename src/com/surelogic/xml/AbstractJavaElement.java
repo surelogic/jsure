@@ -33,6 +33,13 @@ abstract class AbstractJavaElement implements IJavaElement {
 		return isDirty;
 	}
 
+	/**
+	 * Here only to be overridden by Comment/AnnotationElement
+	 */
+	public boolean isModified() {
+		return false;
+	}
+	
 	void markAsDirty() {
 		isDirty = true;
 	}
@@ -42,7 +49,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 	}
 	
 	/**
-	 * Only merges the contents at this node
+	 * Only s the contents at this node
 	 */
 	void mergeThis(AbstractJavaElement changed, MergeType type) {
 		// Nothing to do yet
@@ -68,33 +75,51 @@ abstract class AbstractJavaElement implements IJavaElement {
 	 * @return Either me, or a new element
 	 */
 	@SuppressWarnings("unchecked")
-	protected static <T extends IMergeableElement> T merge(T me, T other) {		
-		if (me.isModified()) {
-		 	return me; // Keep what we've edited
-		}
-		final int thisRev = me.getRevision();
+	static <T extends IMergeableElement> T merge(T me, T other, MergeType t) {		
+		final int myRev = me.getRevision();
 		final int otherRev = other.getRevision();
-		if (thisRev == otherRev) {
+		if (t == MergeType.MERGE) { // to fluid
+			checkIf(myRev != otherRev, "Merging different revisions: "+myRev+" vs "+otherRev);	
+			// check other for mods
 			if (!other.isModified()) {
-				// Merge everything attached if it's modified
+				// Try to merge everything attached if it's modified
 				me.mergeAttached(other);
 				return me; 
 			}
+			checkIf(me.isModified(), "Merging into a modified "+me);			
+		
 			// Same revision, and the other's modified, so			
 			// use the other
-			T updated = (T) other.cloneMe();
+			T updated = (T) other.cloneMe();			
 			updated.incrRevision();
+			// TODO what about attached stuff?
 			return updated;
-		} else if (otherRev > thisRev) {
+		}
+		else if (t == MergeType.UPDATE) { // to client
+			if (me.isModified()) {
+				me.mergeAttached(other);
+				return me; // Conflict, so keep my changes
+			}
+			if (myRev == otherRev) {
+				me.mergeAttached(other);
+				return me; // Same revision, so there's nothing to change
+			}
+			checkIf(other.isModified(), "Updating with a modified "+other);
+			checkIf(myRev > otherRev, "Updating with "+myRev+" > "+otherRev);
 			// Use other, since the other's a newer	revision
+			// TODO what about attached stuff?
 			return (T) other.cloneMe(); 
-		} else {
-			// Ignore the other, since it's an older rev
-			return me;
-		}	
+		}
+		throw new IllegalStateException("Unexpected merge type: "+t);		
 	}
 	
-	protected <T extends AbstractJavaElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
+	private static void checkIf(boolean cond, String issue) {
+		if (cond) {
+			throw new IllegalStateException(issue);
+		}
+	}
+	
+	protected <T extends IMergeableElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
 		if (type != MergeType.MERGE && type != MergeType.UPDATE) { 
 			throw new IllegalStateException("Unexpected type: "+type);
 		}
@@ -107,83 +132,82 @@ abstract class AbstractJavaElement implements IJavaElement {
 		// UPDATE = take (implicit) changes from other unless there's a conflict
 		else if (type == MergeType.UPDATE) {
 			if (orig.isEmpty()) {
-				// Take everything, since there's nothing to conflict with
+				// Take everything in the other, since there's nothing to conflict with
 				copyList(other, orig);
 				return;
 			} 
-			
 		}
-
-		// Keep the original
-		/*
-			// Something to merge, so first find what's shared
-			final Set<String> shared = new HashSet<String>();
-			for(CommentElement e : orig) {
-				shared.add(e.getLabel());
-			}
-			int i=0;
-			boolean same = true;
-			for(CommentElement e : other) {
-				if (!shared.contains(e.getLabel())) {
-					shared.remove(e.getLabel());
-				}
-				if (!e.equals(orig.get(i))) {
-					same = false;
-				}
-				i++;
-			}
-			if (same) {
-				return; // Both are the same, so there's nothing to do
-			}
-			if (shared.isEmpty()) {
-				if (type == MergeType.PREFER_OTHER) {
-					// Replace
-					orig.clear();
-					copyList(other, orig);
-					return;
-				} else {
-					// Keep the original comments
-					return;
-				}
+		final List<T> baseline = handleNonconflictingChanges(orig, other, type);		
+		for(int i=0; i<baseline.size(); i++) {
+			final T e = baseline.get(i);
+			// TODO could be a slow lookup?
+			final T o0, o2;
+			final int i0 = orig.indexOf(e);
+			if (i0 < 0) {
+				continue;
 			} else {
-			*/		
-		//diff(orig, other);
+				o0 = orig.get(i0);
+			}
+			final int i2 = other.indexOf(e);
+			if (i2 < 0) {
+				continue;
+			} else {
+				o2 = other.get(i2);
+			}
+			T syncd = (T) merge(o0, o2, type);
+			if (syncd != e) {
+				baseline.set(i, syncd);
+			}			
+		}
 	}
 	
-	protected <T extends AbstractJavaElement> void diff(List<T> orig, List<T> other) {
-		final List<T> temp = new ArrayList<T>();			
+	/**
+	 * Computes the baseline of which elements will be in the final list
+	 * Deals with inserts/deletes
+	 */
+	protected <T extends IMergeableElement> List<T> handleNonconflictingChanges(List<T> orig, List<T> other, MergeType type) {		
+		// Compute which deltas don't conflict
 		final Patch p = DiffUtils.diff(orig, other);			
-		// Describes the changes -- anything else is the same
-		
-		int lastPosition = 0;
+		final List<Delta> nonConflicts = new ArrayList<Delta>();	
+		deltas:
 		for(final Delta d : p.getDeltas()) {
-			final Chunk origC = d.getOriginal();
 			/*
-			// Copy everything between where we left off and where this chunk starts
-			for(i=lastPosition; i<origC.getPosition(); i++) {
-				CommentElement e = orig.get(i).cloneMe();
-				e.setParent(this);
-				temp.add(e);
-			}
-			final Chunk src = type == MergeType.PREFER_OTHER ? d.getRevised() : d.getOriginal();
-			for(Object o : src.getLines()) {
-				CommentElement e = ((CommentElement) o).cloneMe();
-				e.setParent(this);
-				temp.add(e);
-			}
-			lastPosition = origC.getPosition() + origC.getSize();
+            final Chunk origC = d.getOriginal();
+			final Chunk otherC = d.getRevised();
+			System.out.println("Delta: "+d);
 			*/
+			if (d instanceof InsertDelta) {
+				nonConflicts.add(d);
+			} 
+			else if (d instanceof DeleteDelta) { 
+				checkIf(type == MergeType.MERGE, "Deletes should be explicitly marked for "+type);
+				
+				// Check for conflicting changes in the original (client)
+				for(Object o : d.getOriginal().getLines()) {
+					@SuppressWarnings("unchecked")
+					T l = (T) o;
+					if (l.isModified()) {
+						continue deltas;
+					}
+				}
+				nonConflicts.add(d);
+			}
+			// Ignore others
 		}
-		/*
-		for(i=lastPosition; i<orig.size(); i++) {
-			CommentElement e = orig.get(i).cloneMe();
-			e.setParent(this);
-			temp.add(e);
+		// Apply nonconflicting deltas
+		final Patch filtered = new Patch();
+		filtered.setDeltas(nonConflicts);		
+		try {
+			final List<T> temp = new ArrayList<T>();	
+			DiffUtils.patch(temp, filtered);
+			return temp;
+		} catch (PatchFailedException e) {
+			e.printStackTrace();
+			return orig;
 		}
-		*/
 	}
 	
-	private <T extends AbstractJavaElement> void copyList(List<T> src, List<T> dest) {
+	private <T extends IMergeableElement> void copyList(List<T> src, List<T> dest) {
 		for(T e : src) {
 			@SuppressWarnings("unchecked")
 			T c = (T) e.cloneMe();

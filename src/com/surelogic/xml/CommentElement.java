@@ -87,6 +87,7 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 		return revision;
 	}
 	
+	@Override
 	public boolean isModified() {
 		return modified;
 	}
@@ -180,5 +181,9 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 		} else {
 			throw new IllegalArgumentException("Trying to merge "+other);
 		}
+	}
+	
+	final CommentElement merge(CommentElement other, MergeType t) {
+		return merge(this, other, t);
 	}
 }
