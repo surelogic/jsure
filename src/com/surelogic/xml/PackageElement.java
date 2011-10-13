@@ -69,7 +69,7 @@ public class PackageElement extends AnnotatedJavaElement {
 	 * @param updateToClient if true; merge to fluid otherwise
 	 */
 	PackageElement merge(PackageElement changed, boolean updateToClient) { 
-		final boolean needsToSync = !updateToClient || this.revision > changed.revision;
+		final boolean needsToSync = !updateToClient || this.revision < changed.revision;
 		if (!needsToSync) {
 			// Nothing to do, since I'm updating the client, and the revisions are the same
 			return this;
