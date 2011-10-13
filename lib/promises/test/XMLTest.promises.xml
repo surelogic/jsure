@@ -3,9 +3,12 @@
 <package name="test" revision="0">
     <class name="XMLTest">
         <Immutable revision="1"/>
+        <Region revision="1" uid="15e368b0-7e38-4f94-9cca-4cb5929ffee6">foo</Region>
+        <Region revision="1" uid="019879f5-ee35-47a5-860c-42beaf8e90d0">bar</Region>
         <classinit>
         </classinit>
-        <!--%7hmp3br31pov0:1:FALSE%%First commnet-->
+        <!--%7hmp3br31pov0:2:FALSE%%First comment-->
+        <!--%7hmp3br2m9llo:1:FALSE%%blah-->
         <!--%36ctsl7bsj5m:1:FALSE%%Last comment-->
         <constructor params="java.util.Map">
         </constructor>
