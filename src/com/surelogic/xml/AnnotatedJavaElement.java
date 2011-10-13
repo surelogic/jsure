@@ -150,6 +150,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 				throw new IllegalStateException("Couldn't find ordering for "+old);
 			}
 			l = new ArrayList<AnnotationElement>();
+			order.put(a.getPromise(), l);
 		} else if (old != null) {
 			l.remove(old);
 		}
