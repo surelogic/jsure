@@ -13,10 +13,13 @@ public class TestXMLMergeAction extends AbstractMainAction {
 		SLJob job = new AbstractSLJob("Testing XML Merge") {			
 			@Override
 			public SLStatus run(SLProgressMonitor monitor) {
-				System.out.println("Merging to client");
-				PromisesLibMerge.merge(true);
-				System.out.println("Merging to fluid");
-				PromisesLibMerge.merge(false);
+				if (false) {
+					System.out.println("Updating to client");
+					PromisesLibMerge.merge(true);
+				} else {
+					System.out.println("Merging to fluid");
+					PromisesLibMerge.merge(false);
+				}
 				return SLStatus.OK_STATUS;
 			}
 		};

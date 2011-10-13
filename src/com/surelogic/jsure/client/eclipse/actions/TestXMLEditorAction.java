@@ -16,7 +16,7 @@ public class TestXMLEditorAction extends AbstractMainAction {
 		final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
 		final char slash = File.separatorChar;
 		// In jsure demo
-		String path = root+slash+"java"+slash+"awt"+slash+"RenderingHints.promises.xml";
+		String path = root+slash+"test"+slash+"XMLTest.promises.xml";
 		EclipseUIUtility.openInEditor(path);
 	}
 }
