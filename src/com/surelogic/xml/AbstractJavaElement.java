@@ -89,11 +89,11 @@ abstract class AbstractJavaElement implements IJavaElement {
 			checkIf(me.isModified(), "Merging into a modified "+me);			
 		
 			// Same revision, and the other's modified, so			
-			// use the other
+			// update and use the other
+			other.incrRevision();
 			T updated = (T) other.cloneMe();			
-			updated.incrRevision();
+			//updated.incrRevision();
 			// TODO what about attached stuff?
-			// TODO what about updating other to match?
 			return updated;
 		}
 		else if (t == MergeType.UPDATE) { // to client
