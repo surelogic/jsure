@@ -93,6 +93,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			T updated = (T) other.cloneMe();			
 			updated.incrRevision();
 			// TODO what about attached stuff?
+			// TODO what about updating other to match?
 			return updated;
 		}
 		else if (t == MergeType.UPDATE) { // to client
@@ -146,7 +147,11 @@ abstract class AbstractJavaElement implements IJavaElement {
 			// TODO could be a slow lookup?
 			final T o0, o2;
 			final int i0 = orig.indexOf(e);
-			if (i0 < 0) {
+			if (i0 < 0) {				
+				if (type == MergeType.MERGE) {					
+					// Merging something new 
+					e.incrRevision();
+				}
 				continue;
 			} else {
 				o0 = orig.get(i0);
@@ -162,6 +167,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 				baseline.set(i, syncd);
 			}			
 		}
+		//return baseline;
+		orig.clear();
+		orig.addAll(baseline);
 	}
 	
 	/**
@@ -202,7 +210,11 @@ abstract class AbstractJavaElement implements IJavaElement {
 		filtered.setDeltas(nonConflicts);		
 		try {
 			final List<T> temp = new ArrayList<T>();	
-			DiffUtils.patch(temp, filtered);
+			for(Object o : DiffUtils.patch(orig, filtered)) {
+				@SuppressWarnings("unchecked")
+				T t = (T) o;
+				temp.add(t);
+			}
 			return temp;
 		} catch (PatchFailedException e) {
 			e.printStackTrace();
