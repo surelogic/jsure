@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="test" revision="0">
+    <class name="XMLTest">
+        <classinit>
+        </classinit>
+
+        <constructor params="java.util.Map">
+        </constructor>
+
+        <method name="add" params="java.awt.RenderingHints">
+        </method>
+    </class>
+</package>
