@@ -145,6 +145,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   
   private final RegionModel INSTANCE_REGION;
 
+  private final Effects.ElaborationCallback callback;
+  
   /**
    * The binder to use.
    */
@@ -194,8 +196,9 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    *          anonymous classes, this should be the appropriate sub-sub-query.
    */
   public EffectsVisitor(final IBinder b, final IRNode flowUnit,
-      final BindingContextAnalysis.Query query) {
+      final BindingContextAnalysis.Query query, final Effects.ElaborationCallback cb) {
     super(false, flowUnit);
+    this.callback = cb;
     this.binder = b;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
@@ -244,20 +247,18 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     return this.binder.getBinding(node);
   }
 
-  /**
-   * Assumes that the enclosing method/constructor of the call is the
-   * method/constructor declaration represented by
-   * {@link Context#enclosingMethod enclosing method} of the current
-   * {@link #context context.}.
-   */
-  private Set<Effect> getMethodCallEffects(final IRNode call) {
-    return effects.getMethodCallEffects(context.bcaQuery,
-        targetFactory, binder, call, getEnclosingDecl());
-  }
-  
+  //----------------------------------------------------------------------
+
   @Override
   protected void handleAsMethodCall(final IRNode call) {
-    context.addEffects(getMethodCallEffects(call));
+    /* Assumes that the enclosing method/constructor of the call is the
+     * method/constructor declaration represented by
+     * {@link Context#enclosingMethod enclosing method} of the current
+     * {@link #context context.}.
+     */
+    context.addEffects(
+        effects.getMethodCallEffects(context.bcaQuery,
+            targetFactory, binder, callback, call, getEnclosingDecl()));
   }
 
   //----------------------------------------------------------------------
@@ -332,8 +333,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
                     (IJavaReferenceType) type, target.getRegion());
               }
               effects.elaborateInstanceTargetEffects(
-                  context.bcaQuery, targetFactory, binder, expr, initEffect.isRead(),
-                  newTarget, context.theEffects);
+                  context.bcaQuery, targetFactory, binder, expr, 
+                  callback, initEffect.isRead(), newTarget, context.theEffects);
             } else {
               context.addEffect(initEffect.setSource(expr));
             }
@@ -350,7 +351,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     final IRNode array = ArrayRefExpression.getArray(expr);
     final boolean isRead = context.isRead();
     effects.elaborateInstanceTargetEffects(
-        context.bcaQuery, targetFactory, binder, expr, isRead,
+        context.bcaQuery, targetFactory, binder, expr, callback, isRead,
         targetFactory.createInstanceTarget(array, INSTANCE_REGION), context.theEffects);
     doAcceptForChildren(expr);
     return null;
@@ -403,7 +404,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
           final Target initTarget = 
             targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
           effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
+              context.bcaQuery, targetFactory, binder, expr, callback, 
+              isRead, initTarget, context.theEffects);
         }
       }
     }

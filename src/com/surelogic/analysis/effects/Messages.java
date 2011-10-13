@@ -21,6 +21,7 @@ public final class Messages {
   public static final int CLASS_INIT_EFFECT = 156;
   public static final int REASON_NO_DECLARED_EFFECT = 157;
   public static final int REASON_RECEIVER_IS_IMMUTABLE = 158;
+  public static final int READONLY_REFERENCE = 159;
   
   
   
@@ -34,6 +35,7 @@ public final class Messages {
 	  code2name.put(CLASS_INIT_EFFECT, "EffectAssurance");
     code2name.put(REASON_NO_DECLARED_EFFECT, "EffectAssurance");
     code2name.put(REASON_RECEIVER_IS_IMMUTABLE, "EffectAssurance");
+    code2name.put(READONLY_REFERENCE, "EffectAssurance");
   }
   
   public static String toString(int code) {

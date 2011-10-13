@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -93,7 +94,8 @@ public final class Effects implements IBinderClient {
     }
     
     public Set<Effect> getResultFor(final IRNode expr) {
-      final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit, bcaQuery);
+      final EffectsVisitor visitor =
+          new EffectsVisitor(binder, flowUnit, bcaQuery, Effects.NullCallback.INSTANCE);
       visitor.doAccept(expr);
       return Collections.unmodifiableSet(visitor.getTheEffects());
     }
@@ -212,16 +214,18 @@ public final class Effects implements IBinderClient {
   /**
    * Get the effects of a method/constructor implementation.  This 
    * method is equivalent too, but hopefully slightly faster than,
-   * <code>this.getEffectsQuery(flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultsFor(flowUnit)</code>
+   * <code>this.getEffectsQuery(flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultsFor(flowUnit)</code>,
+   * except that it allows the elaboration callback to be specified.
    * 
    * @param decl A MethodDeclaration or ConstructorDeclaration node.
    * @param bac The BCA analysis to use.
    * @return The effects of the method as implemented, not declared.
    */
   public Set<Effect> getImplementationEffects(
-      final IRNode flowUnit, final BindingContextAnalysis bca) {
+      final IRNode flowUnit, final BindingContextAnalysis bca,
+      final Effects.ElaborationCallback callback) {
     final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit,
-        bca.getExpressionObjectsQuery(flowUnit));
+        bca.getExpressionObjectsQuery(flowUnit), callback);
     visitor.doAccept(flowUnit);
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
@@ -398,7 +402,8 @@ public final class Effects implements IBinderClient {
       }
     };
     return getMethodCallEffects(
-        bcaQuery, new ThisBindingTargetFactory(teb), binder, call, caller);
+        bcaQuery, new ThisBindingTargetFactory(teb), binder,
+        NullCallback.INSTANCE, call, caller);
   }
   /*
   static int createdTEBs = 0;
@@ -437,7 +442,8 @@ public final class Effects implements IBinderClient {
    */
   public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
-      final IBinder binder, final IRNode call, final IRNode callingMethodDecl) {
+      final IBinder binder, final ElaborationCallback callback,
+      final IRNode call, final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
     if (mdecl == null) {
@@ -470,7 +476,7 @@ public final class Effects implements IBinderClient {
             final Target newTarg =
               targetFactory.createInstanceTarget(val, t.getRegion());
             elaborateInstanceTargetEffects(
-                bcaQuery, targetFactory, binder, call, eff.isRead(),
+                bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
                 newTarg, methodEffects);
           }
         } else { // See if ref is a QualifiedReceiverDeclaration
@@ -523,7 +529,8 @@ public final class Effects implements IBinderClient {
     if (target instanceof InstanceTarget) {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
       elaborateInstanceTargetEffects(
-          bcaQuery, targetFactory, binder, src, isRead, target, elaboratedEffects);
+          bcaQuery, targetFactory, binder, src, NullCallback.INSTANCE, isRead,
+          target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
       return Collections.singleton(Effect.newEffect(src, isRead, target));
@@ -533,29 +540,53 @@ public final class Effects implements IBinderClient {
   void elaborateInstanceTargetEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
-      final IBinder binder, final IRNode src, final boolean isRead,
+      final IBinder binder, final IRNode src,
+      final ElaborationCallback callback, final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
-    final TargetElaborator te = new TargetElaborator(bcaQuery, targetFactory, binder);
+    final TargetElaborator te =
+        new TargetElaborator(bcaQuery, targetFactory, binder, callback, !isRead);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
+  }
+  
+  public interface ElaborationCallback {
+    public void writeToBorrowedReadOnly(
+        ReadOnlyPromiseDrop pd, IRNode expr, Target t);
+  }
+  
+  public static enum NullCallback implements ElaborationCallback {
+    INSTANCE;
+    
+    public void writeToBorrowedReadOnly(
+        final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
+      // does nothing
+    }    
   }
   
   private class TargetElaborator {
     private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
+    private final boolean isWrite;
+    private final ElaborationCallback callback;
+    
     /**
      * Keep track of those targets that were elaborated so that we can remove
      * them at the end
      */
     private final Set<Target> elaborated = new HashSet<Target>();
     
+    
+    
     public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
-        final TargetFactory targetFactory, final IBinder binder) {
+        final TargetFactory targetFactory, final IBinder binder,
+        final ElaborationCallback c, final boolean write) {
       this.bcaQuery = bcaQuery;
       this.targetFactory = targetFactory;
       this.binder = binder;
+      this.callback = c;
+      this.isWrite = write;
     }
     
     public Set<Target> elaborateTarget(final Target initTarget) {
@@ -659,6 +690,18 @@ public final class Effects implements IBinderClient {
       final Map<IRegion, IRegion> aggregationMap = 
         UniquenessUtils.constructRegionMapping(fieldID);
       if (aggregationMap != null) {
+        /* If the field is also @ReadOnly, then we have a @Borrowed @ReadOnly
+         * field.  We knows it's not @Unique @ReadOnly because that combination
+         * is rejected by sanity checking.
+         */
+        final ReadOnlyPromiseDrop readOnlyPD = UniquenessRules.getReadOnly(fieldID);
+        if (readOnlyPD != null && isWrite) {
+          /* ILLEGAL: Cannot be checked for in the uniqueness flow analysis
+           * because there is no way to model borrowed & read-only.
+           */
+          callback.writeToBorrowedReadOnly(readOnlyPD, expr, target);
+        }
+        // Aggregate the state
         final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
         final AggregationEvidence evidence =
           new AggregationEvidence(target, aggregationMap, newRegion);

@@ -36,6 +36,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
@@ -54,8 +55,11 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
   private IJavaDeclaredType javaLangObject;
   
+  private final Effects.ElaborationCallback callback;
+  
 	public EffectsAnalysis() {
 		super(willRunInParallel, IRNode.class, "EffectAssurance2", BindingContextAnalysis.factory);
+		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<IRNode>() {
 				public void op(IRNode compUnit) {
@@ -126,8 +130,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 				 */
 				if (!JavaNode.getModifier(member, JavaNode.ABSTRACT)
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
-          final Set<Effect> implFx =
-            getAnalysis().getImplementationEffects(member, getSharedAnalysis());
+          final Set<Effect> implFx = getAnalysis().getImplementationEffects(
+              member, getSharedAnalysis(), callback);
 					// only assure if there is declared intent
 					if (declFx != null) {
 						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
@@ -503,5 +507,26 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		} else {
 		  return null;
 		}
+	}
+	
+	
+	
+	private class ElaborationErrorReporter implements Effects.ElaborationCallback {
+	  public ElaborationErrorReporter() {
+	    super();
+	  }
+	  
+    public void writeToBorrowedReadOnly(
+        final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
+      final ResultDropBuilder rd = ResultDropBuilder.create(
+          EffectsAnalysis.this, Messages.toString(Messages.READONLY_REFERENCE));
+      rd.addCheckedPromise(pd);
+      setResultDependUponDrop(rd, expr);
+      rd.setConsistent(false);
+      rd.setResultMessage(Messages.READONLY_REFERENCE);
+
+      addElaborationEvidence(rd, t.getElaborationEvidence()); // Definitely useful: we get here from elaboration
+      addAdditionalEvidence(rd, t); // XXX: Useless?
+    }	  
 	}
 }
