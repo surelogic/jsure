@@ -2,9 +2,11 @@
 
 <package name="test" revision="0">
     <class name="XMLTest">
+        <Immutable revision="1"/>
         <classinit>
         </classinit>
-
+        <!--%7hmp3br31pov0:1:FALSE%%First commnet-->
+        <!--%36ctsl7bsj5m:1:FALSE%%Last comment-->
         <constructor params="java.util.Map">
         </constructor>
 
