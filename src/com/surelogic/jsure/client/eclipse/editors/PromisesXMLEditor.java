@@ -441,6 +441,7 @@ public class PromisesXMLEditor extends EditorPart {
 						a = new AnnotationElement(null, tag, "", attrs);
 					}
 					j.addPromise(a);
+					a.markAsModified();
 				}
 				contents.refresh();
 				contents.expandToLevel(j, 1);
