@@ -104,6 +104,25 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	 */
 	void mergeThis(AnnotatedJavaElement changed, MergeType type) {
 		super.mergeThis(changed, type);		
+		
+		promises.clear();
+		for(Map.Entry<String, List<AnnotationElement>> e : changed.order.entrySet()) {
+			List<AnnotationElement> l = order.get(e.getKey());
+			if (l == null) {
+				l = new ArrayList<AnnotationElement>();
+				order.put(e.getKey(), l);
+			}
+			mergeList(l, e.getValue(), type);
+			if (l.isEmpty()) {
+				// delete if empty
+				order.remove(e.getKey());
+			}
+			
+			for(AnnotationElement a : l) {
+				promises.put(a.getUid(), a);
+			}
+		}		
+		/*
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
 			// TODO how to merge the ordering?
 			// right now, this puts any new elements at the end
@@ -114,6 +133,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 				addPromise(e.getValue().cloneMe());
 			}
 		}
+		*/
 	}
 	
 	void copyToClone(AnnotatedJavaElement clone) {
