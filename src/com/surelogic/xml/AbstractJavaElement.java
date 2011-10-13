@@ -120,6 +120,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 	}
 	
 	protected <T extends IMergeableElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
+		if (orig.isEmpty() && other.isEmpty()) {
+			return;
+		}
 		if (type != MergeType.MERGE && type != MergeType.UPDATE) { 
 			throw new IllegalStateException("Unexpected type: "+type);
 		}
