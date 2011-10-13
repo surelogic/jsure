@@ -178,50 +178,58 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 	}
 
-	ClassElement merge(ClassElement changed, MergeType type) {
+	MergeResult<ClassElement> merge(ClassElement changed, MergeType type) {
 		if (getName().equals(changed.getName())) {
+			boolean modified = false;
+			
 			if (clinit != null) {
-				clinit.merge(changed.clinit, type);
+				modified |= clinit.merge(changed.clinit, type);
 			} else if (changed.clinit != null) {
 				clinit = changed.clinit.cloneMe();
+				modified = true;
 			}
 			for(FieldElement f2 : changed.fields.values()) {
 				FieldElement f0 = fields.get(f2.getName());
 				if (f0 != null) {
-					f0.merge(f2, type);
+					modified |= f0.merge(f2, type);
 				} else {
 					addMember(f2.cloneMe());
+					modified = true;
 				}
 			}
 			for(ConstructorElement c2 : changed.constructors.values()) {
 				ConstructorElement c0 = constructors.get(c2.getParams());
 				if (c0 != null) {
-					c0.merge(c2, type);
+					modified |= c0.merge(c2, type);
 				} else {
 					addMember(c2.cloneMe());
+					modified = true;
 				}
 			}
 			for(Pair<String,String> keys : changed.methods.keys()) {
 				MethodElement m2 = changed.methods.get(keys.first(), keys.second());
 				MethodElement m0 = methods.get(keys.first(), keys.second());
 				if (m0 != null) {
-					m0.merge(m2, type);
+					modified |= m0.merge(m2, type);
 				} else {
 					addMember(m2.cloneMe());
+					modified = true;
 				}
 			}
 			for(NestedClassElement n2 : changed.classes.values()) {
 				NestedClassElement n0 = classes.get(n2.getName());
 				if (n0 != null) {
-					n0.merge(n2, type);
+					final MergeResult<?> r = n0.merge(n2, type);
+					modified |= r.isModified;
 				} else {
 					addMember(n2.cloneMe());
+					modified = true;
 				}
 			}
-			mergeThis(changed, type);
-			return this;
+			modified |= mergeThis(changed, type);
+			return new MergeResult<ClassElement>(this, modified);
 		}
-		return null;
+		return MergeResult.nullResult();
 	}
 	
 	void copyToClone(ClassElement clone) {

@@ -93,17 +93,18 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		}
 	}
 	
-	AnnotatedJavaElement merge(AnnotatedJavaElement changed, MergeType type) {
-		mergeThis(changed, type);
-		return this;
+	boolean merge(AnnotatedJavaElement changed, MergeType type) {
+		return mergeThis(changed, type);
 	}
 	
 	/**
 	 * Only merges the contents at this node
 	 * (e.g. the annotations)
+	 * 
+	 * @return true if changed
 	 */
-	void mergeThis(AnnotatedJavaElement changed, MergeType type) {
-		super.mergeThis(changed, type);		
+	boolean mergeThis(AnnotatedJavaElement changed, MergeType type) {
+		boolean modified = super.mergeThis(changed, type);		
 		
 		promises.clear();
 		for(Map.Entry<String, List<AnnotationElement>> e : changed.order.entrySet()) {
@@ -112,7 +113,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 				l = new ArrayList<AnnotationElement>();
 				order.put(e.getKey(), l);
 			}
-			mergeList(l, e.getValue(), type);
+			modified |= mergeList(l, e.getValue(), type);
 			if (l.isEmpty()) {
 				// delete if empty
 				order.remove(e.getKey());
@@ -134,6 +135,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 			}
 		}
 		*/
+		return modified;
 	}
 	
 	void copyToClone(AnnotatedJavaElement clone) {

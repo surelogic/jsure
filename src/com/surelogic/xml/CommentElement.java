@@ -165,7 +165,7 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 	}
 	
 	@Override
-	void markAsDirty() {
+	public void markAsDirty() {
 		super.markAsDirty();
 		modified = true;
 	}

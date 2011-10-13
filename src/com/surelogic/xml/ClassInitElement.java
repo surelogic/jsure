@@ -21,11 +21,11 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 		return ClassInitDeclaration.prototype;
 	}
 
-	ClassInitElement merge(ClassInitElement clinit, MergeType type) {
+	boolean merge(ClassInitElement clinit, MergeType type) {
 		if (clinit != null) {
-			mergeThis(clinit, type);
+			return mergeThis(clinit, type);
 		}
-		return this;
+		return false;
 	}
 
 	@Override

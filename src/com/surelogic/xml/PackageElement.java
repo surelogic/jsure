@@ -77,21 +77,27 @@ public class PackageElement extends AnnotatedJavaElement {
 		final MergeType type = MergeType.get(updateToClient);
 		
 		if (changed.getName().equals(getName())) {
-			ClassElement c;
 			if (clazz != null) {
 				if (changed.clazz == null) {
 					// One's a class, the other's a package
 					return null;
 				}			
-				c = clazz.merge(changed.clazz, type);
-				if (c != null) {
+				final MergeResult<ClassElement> r = clazz.merge(changed.clazz, type);
+				if (r.element != null) {
 					// Class merged, so continue merging
-					mergeThis(changed, type);				
+					boolean modified = r.isModified;
+					modified |= mergeThis(changed, type);		
+					if (modified) {
+						revision++;
+					}
 					return this;
 				}
 			} else if (changed.clazz == null) {
 				// neither has a class, so they're both package-info.java files
-				mergeThis(changed, type);								
+				boolean modified = mergeThis(changed, type);								
+				if (modified) {
+					revision++;
+				}
 				return this;
 			}
 		}

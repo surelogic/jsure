@@ -49,10 +49,13 @@ abstract class AbstractJavaElement implements IJavaElement {
 	}
 	
 	/**
-	 * Only s the contents at this node
+	 * Only syncs the contents at this node
+	 * 
+	 * @return true if changed
 	 */
-	void mergeThis(AbstractJavaElement changed, MergeType type) {
+	boolean mergeThis(AbstractJavaElement changed, MergeType type) {
 		// Nothing to do yet
+		return false;
 	}
 	
 	/**
@@ -120,9 +123,12 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 	}
 	
-	protected <T extends IMergeableElement> void mergeList(List<T> orig, List<T> other, MergeType type) {
+	/**
+	 * @return true if changed
+	 */
+	protected <T extends IMergeableElement> boolean mergeList(List<T> orig, List<T> other, MergeType type) {
 		if (orig.isEmpty() && other.isEmpty()) {
-			return;
+			return false;
 		}
 		if (type != MergeType.MERGE && type != MergeType.UPDATE) { 
 			throw new IllegalStateException("Unexpected type: "+type);
@@ -130,7 +136,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		// MERGE  = take explicitly marked mods/deletes from other into orig
 		if (type == MergeType.MERGE) {
 			if (other.isEmpty()) {
-				return; // Nothing to do, since there aren't any marked changes
+				return false; // Nothing to do, since there aren't any marked changes
 			}
 		}
 		// UPDATE = take (implicit) changes from other unless there's a conflict
@@ -138,10 +144,11 @@ abstract class AbstractJavaElement implements IJavaElement {
 			if (orig.isEmpty()) {
 				// Take everything in the other, since there's nothing to conflict with
 				copyList(other, orig);
-				return;
+				return false;
 			} 
 		}
 		final List<T> baseline = handleNonconflictingChanges(orig, other, type);		
+		boolean changed = false;
 		for(int i=0; i<baseline.size(); i++) {
 			final T e = baseline.get(i);
 			// TODO could be a slow lookup?
@@ -151,6 +158,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 				if (type == MergeType.MERGE) {					
 					// Merging something new 
 					e.incrRevision();
+					changed = true;
 				}
 				continue;
 			} else {
@@ -165,11 +173,14 @@ abstract class AbstractJavaElement implements IJavaElement {
 			T syncd = (T) merge(o0, o2, type);
 			if (syncd != e) {
 				baseline.set(i, syncd);
+				changed = true;
 			}			
 		}
 		//return baseline;
 		orig.clear();
 		orig.addAll(baseline);
+		// TODO does this include deletes?
+		return changed;
 	}
 	
 	/**

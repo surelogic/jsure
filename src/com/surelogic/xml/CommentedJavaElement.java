@@ -145,11 +145,14 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	/**
 	 * Only merges the contents at this node
 	 * (i.e. the comments)
+	 * 
+	 * @return true if changed
 	 */
-	void mergeThis(CommentedJavaElement changed, MergeType type) {
-		super.mergeThis(changed, type);
-		mergeList(comments, changed.comments, type);
-		mergeList(lastEnclosedComments, changed.lastEnclosedComments, type);
+	boolean mergeThis(CommentedJavaElement changed, MergeType type) {
+		boolean modified = super.mergeThis(changed, type);
+		modified |= mergeList(comments, changed.comments, type);
+		modified |= mergeList(lastEnclosedComments, changed.lastEnclosedComments, type);
+		return modified;
 	}
 	
 	/**
