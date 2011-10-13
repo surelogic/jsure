@@ -654,28 +654,25 @@ public final class Effects implements IBinderClient {
         final Set<Target> newTargets) {
       final IRegion region = target.getRegion();
       final IRNode fieldID = binder.getBinding(expr);
-      final boolean isUnique = UniquenessUtils.isFieldUnique(fieldID);
 
-      if (isUnique) {
-        // The field is unique, see if we can exploit uniqueness aggregation.
-        final Map<IRegion, IRegion> aggregationMap = 
-          UniquenessUtils.constructRegionMapping(fieldID);
-        if (aggregationMap != null) {
-          final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
-          final AggregationEvidence evidence =
-            new AggregationEvidence(target, aggregationMap, newRegion);
-          final Target newTarget;
-          if (newRegion.isStatic()) {
-            newTarget = targetFactory.createClassTarget(newRegion, evidence);
-          } else {
-            final IRNode newObject = FieldRef.getObject(expr);
-            // FIX for bug 1284: Need to bind the receiver here!
-            newTarget = targetFactory.createInstanceTarget(newObject, newRegion, evidence);
-          }        
-          if (targets.add(newTarget)) {
-            elaborated.add(target);
-            newTargets.add(newTarget);
-          }
+      // If the field is unique or borrowed we can exploit uniqueness aggregation.
+      final Map<IRegion, IRegion> aggregationMap = 
+        UniquenessUtils.constructRegionMapping(fieldID);
+      if (aggregationMap != null) {
+        final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
+        final AggregationEvidence evidence =
+          new AggregationEvidence(target, aggregationMap, newRegion);
+        final Target newTarget;
+        if (newRegion.isStatic()) {
+          newTarget = targetFactory.createClassTarget(newRegion, evidence);
+        } else {
+          final IRNode newObject = FieldRef.getObject(expr);
+          // FIX for bug 1284: Need to bind the receiver here!
+          newTarget = targetFactory.createInstanceTarget(newObject, newRegion, evidence);
+        }        
+        if (targets.add(newTarget)) {
+          elaborated.add(target);
+          newTargets.add(newTarget);
         }
       } else if (LockRules.isImmutableRef(fieldID)) {
         /* Field is immutable: We ignore the effect by marking the target as

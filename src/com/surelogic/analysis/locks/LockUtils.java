@@ -713,16 +713,13 @@ public final class LockUtils {
     		final IRNode actual = entry.getValue();
     		if (actual != null && FieldRef.prototype.includes(actual)) {
     			final IRNode fieldID = binder.getBinding(actual);
-    			final boolean isUnique = UniquenessUtils.isFieldUnique(fieldID);
-    			if (isUnique) {
-    				final Map<IRegion, IRegion> aggregationMap = 
-    				  UniquenessUtils.constructRegionMapping(fieldID);
-    				if (aggregationMap != null) {
-    					for (final IRegion from : aggregationMap.keySet()) {
-    						// This is okay because only instance regions can be mapped
-    						final Target testTarget = targetFactory.createInstanceTarget(actual, from);
-    						exposedTargets.add(testTarget);
-    					}
+    			final Map<IRegion, IRegion> aggregationMap = 
+    			    UniquenessUtils.constructRegionMapping(fieldID);
+    			if (aggregationMap != null) {
+    			  for (final IRegion from : aggregationMap.keySet()) {
+    			    // This is okay because only instance regions can be mapped
+    			    final Target testTarget = targetFactory.createInstanceTarget(actual, from);
+    			    exposedTargets.add(testTarget);
     				}
     			}
     		}

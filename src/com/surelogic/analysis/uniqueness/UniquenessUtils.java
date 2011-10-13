@@ -1,16 +1,13 @@
 package com.surelogic.analysis.uniqueness;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
-import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -18,10 +15,10 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionAggregationDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.SimpleUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
@@ -146,23 +143,18 @@ public final class UniquenessUtils {
          * fieldRef = <e.f1> . <region>
          */
         final IRNode fieldID = binder.getBinding(expr);
-        final boolean isUnique = isFieldUnique(fieldID);
-  
-        /* Field can only be aggregated if the indirect field is unique */
-        if (isUnique) {
-          /* The field is unique, see if we can exploit uniqueness aggregation. */
-          final Map<IRegion, IRegion> aggregationMap = constructRegionMapping(fieldID);
-          if (aggregationMap != null) {
-            final IRNode newObject = FieldRef.getObject(expr);
-            final IRegion newRegion = getMappedRegion(region.getModel(), aggregationMap);
-            /* <expr> . <region> == <newObject.f1> . <region> aggregates into
-             * <newObject> . <newRegion>
-             * 
-             * See what regions <newObject.newRegion> aggregate into. (The
-             * recursive call will add <newObject> . <newRegion> to the results.)
-             */
-            fieldRefAggregatesInto(binder, targetFactory, newObject, newRegion, result);
-          }
+        /* The field is unique or borrowed, see if we can exploit aggregation. */
+        final Map<IRegion, IRegion> aggregationMap = constructRegionMapping(fieldID);
+        if (aggregationMap != null) {
+          final IRNode newObject = FieldRef.getObject(expr);
+          final IRegion newRegion = getMappedRegion(region.getModel(), aggregationMap);
+          /* <expr> . <region> == <newObject.f1> . <region> aggregates into
+           * <newObject> . <newRegion>
+           * 
+           * See what regions <newObject.newRegion> aggregate into. (The
+           * recursive call will add <newObject> . <newRegion> to the results.)
+           */
+          fieldRefAggregatesInto(binder, targetFactory, newObject, newRegion, result);
         }
       }
     }
@@ -172,49 +164,58 @@ public final class UniquenessUtils {
   
   
   /**
-   * Build a map of the region mapping from a specific unique field. Map is from
+   * Build a map of the region mapping from a specific unique or borrowed field. Map is from
    * {@link RegionModel} to {@link Region}. Returns <code>null</code> if the
-   * field is not unique.
+   * field is not unique or borrowed.
    * 
    * @param field
    *          A VariableDeclarator for a field declaration.
    */
   public static Map<IRegion, IRegion> constructRegionMapping(final IRNode field) {
-    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(field);
-    if (uniqueDrop != null) {
-      /* Aggregates Instance into the field if the field is non-final.
-       * Aggregates Instance into Instance if the field is final and non-static.
-       */
-      final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-      if (TypeUtil.isFinal(field)) {
-        return Collections.<IRegion, IRegion>singletonMap(
-            instanceRegion, instanceRegion);
-      } else {
-        return Collections.<IRegion, IRegion>singletonMap(
-            instanceRegion, new FieldRegion(field));
-      }
-    } else {
-      final SimpleUniqueInRegionPromiseDrop simpleDrop =
-        RegionRules.getSimpleUniqueInRegion(field);
-      if (simpleDrop != null) {
-        final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-        final IRegion dest = simpleDrop.getAST().getSpec().resolveBinding().getRegion();
-        return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
-      } else {
-        final ExplicitUniqueInRegionPromiseDrop explicitDrop =
-          RegionRules.getExplicitUniqueInRegion(field);
-        if (explicitDrop != null) {
-          final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
-          for (final RegionMappingNode mapping :
-              explicitDrop.getAST().getMapping().getMappingList()) {
-            aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
-                               mapping.getTo().resolveBinding().getRegion());
-          }
-          return Collections.unmodifiableMap(aggregationMap);
-        }
-      }
-    }
-    return null;
+    RegionAggregationDrop aggDrop;
+    aggDrop = UniquenessRules.getUnique(field);
+    if (aggDrop == null) aggDrop = RegionRules.getSimpleUniqueInRegion(field);
+    if (aggDrop == null) aggDrop = RegionRules.getExplicitUniqueInRegion(field);
+    if (aggDrop == null) aggDrop = UniquenessRules.getBorrowed(field);
+    if (aggDrop == null) aggDrop = RegionRules.getSimpleBorrowedInRegion(field);
+    if (aggDrop == null) aggDrop = RegionRules.getExplicitBorrowedInRegion(field);
+    return (aggDrop == null) ? null : aggDrop.getAggregationMap(field);
+    
+//    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(field);
+//    if (uniqueDrop != null) {
+//      /* Aggregates Instance into the field if the field is non-final.
+//       * Aggregates Instance into Instance if the field is final and non-static.
+//       */
+//      final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
+//      if (TypeUtil.isFinal(field)) {
+//        return Collections.<IRegion, IRegion>singletonMap(
+//            instanceRegion, instanceRegion);
+//      } else {
+//        return Collections.<IRegion, IRegion>singletonMap(
+//            instanceRegion, new FieldRegion(field));
+//      }
+//    } else {
+//      final SimpleUniqueInRegionPromiseDrop simpleDrop =
+//        RegionRules.getSimpleUniqueInRegion(field);
+//      if (simpleDrop != null) {
+//        final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
+//        final IRegion dest = simpleDrop.getAST().getSpec().resolveBinding().getRegion();
+//        return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
+//      } else {
+//        final ExplicitUniqueInRegionPromiseDrop explicitDrop =
+//          RegionRules.getExplicitUniqueInRegion(field);
+//        if (explicitDrop != null) {
+//          final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
+//          for (final RegionMappingNode mapping :
+//              explicitDrop.getAST().getMapping().getMappingList()) {
+//            aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
+//                               mapping.getTo().resolveBinding().getRegion());
+//          }
+//          return Collections.unmodifiableMap(aggregationMap);
+//        }
+//      }
+//    }
+//    return null;
   }
 
   
