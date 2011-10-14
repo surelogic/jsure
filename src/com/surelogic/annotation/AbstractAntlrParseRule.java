@@ -16,6 +16,7 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.*;
 import com.surelogic.parse.AbstractNodeAdaptor;
 
+import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -58,11 +59,8 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		}
 		try {
 		  Object result       = parse(context, initParser(contents));
-		  if (result == ParseResult.IGNORE) {
-//		    System.out.println("Ignoring: @"+name()+' '+contents);
-		    return ParseResult.IGNORE;
-		  } else if (result == ParseResult.OK) {
-			return ParseResult.OK;
+		  if (result instanceof ParseResult) {
+			  return (ParseResult) result;
 		  }
 		  AASTNode an;
 		  if (result instanceof AASTNode) {
@@ -101,6 +99,10 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		catch (RecognitionException e) {
 		  handleRecognitionException(context, contents, e);
 		  return ParseResult.FAIL;
+		}
+		catch (ParseException e) {
+			context.reportError(IAnnotationParsingContext.UNKNOWN, e.getMessage());
+			return ParseResult.FAIL;
 		}
 		catch (Exception e) {
 			context.reportException(IAnnotationParsingContext.UNKNOWN, e);
