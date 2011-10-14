@@ -215,6 +215,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 				nonConflicts.add(d);
 			}
 			// Ignore others
+			else {
+				System.out.println("Ignoring "+d);
+			}
 		}
 		// Apply nonconflicting deltas
 		final Patch filtered = new Patch();
