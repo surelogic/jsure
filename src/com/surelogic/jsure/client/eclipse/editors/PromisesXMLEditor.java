@@ -39,6 +39,7 @@ public class PromisesXMLEditor extends EditorPart {
 	private static final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
     private TreeViewer contents;
+    private boolean isDirty = false;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -127,9 +128,12 @@ public class PromisesXMLEditor extends EditorPart {
     }	
 	
 	@Override
-	
 	public void doSave(IProgressMonitor monitor) {
-		provider.save(monitor);
+		provider.save(monitor);		
+		if (isDirty) {
+			isDirty = false;
+			firePropertyChange(IEditorPart.PROP_DIRTY);
+		}
 	}
 
 	@Override
@@ -161,6 +165,7 @@ public class PromisesXMLEditor extends EditorPart {
 				File f = new File(location);
 				PromisesXMLWriter w = new PromisesXMLWriter(f);
 				w.write(pkg);
+				pkg.markAsClean();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -250,9 +255,18 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
-	private static CommentElement makeComment() {
+	private void markAsDirty() {
+		if (!isDirty) {
+			isDirty = true;
+			firePropertyChange(IEditorPart.PROP_DIRTY);
+		}
+		// otherwise already dirty
+	}
+	
+	private CommentElement makeComment() {
         CommentElement c = CommentElement.make("...");
         c.markAsDirty();
+        markAsDirty();
         return c;
 	}
 	
@@ -384,6 +398,7 @@ public class PromisesXMLEditor extends EditorPart {
 									String params = PromisesXMLBuilder.translateParameters(m);									
 									c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
 										                            new MethodElement(m.getElementName(), params));
+									markAsDirty();
 								}
 								contents.refresh();
 								//contents.refresh(c, true);
@@ -401,7 +416,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {          
 		        	me.delete();
-		        	
+		        	markAsDirty();
 		          	contents.refresh();
 	            	contents.expandToLevel(me.getParent(), 1);
 		        }
@@ -448,6 +463,7 @@ public class PromisesXMLEditor extends EditorPart {
 					}
 					j.addPromise(a);
 					a.markAsModified();
+					markAsDirty();
 				}
 				contents.refresh();
 				contents.expandToLevel(j, 1);
