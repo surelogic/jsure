@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
@@ -2511,7 +2512,11 @@ public class LockRules extends AnnotationRules {
 			if ("final".equals(id)) {
 				kind = FieldKind.Final;
 			} else {				
-				kind = FieldKind.valueOf(id);				
+				try {
+					kind = FieldKind.valueOf(id);				
+				} catch(IllegalArgumentException e) {
+					throw new ParseException("Invalid type of vouch: "+id);
+				}
 			}
 			return new VouchFieldIsNode(context.mapToSource(0), kind, context.getProperty(VouchFieldIsNode.REASON));
 		}
