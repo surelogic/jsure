@@ -258,6 +258,8 @@ public class PromisesXMLEditor extends EditorPart {
 	}
 	
 	private void fireDirtyProperty() {
+		// This shouldn't be necessary, but Eclipse doesn't seem to 
+		// realize that the editor is dirty otherwise
 		new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
