@@ -21,9 +21,11 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
@@ -132,7 +134,7 @@ public class PromisesXMLEditor extends EditorPart {
 		provider.save(monitor);		
 		if (isDirty) {
 			isDirty = false;
-			firePropertyChange(IEditorPart.PROP_DIRTY);
+			fireDirtyProperty();
 		}
 	}
 
@@ -255,10 +257,20 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	private void fireDirtyProperty() {
+		new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				firePropertyChange(IEditorPart.PROP_DIRTY);
+				return Status.OK_STATUS;
+			}
+		}.schedule();	
+	}
+	
 	private void markAsDirty() {
 		if (!isDirty) {
 			isDirty = true;
-			firePropertyChange(IEditorPart.PROP_DIRTY);
+			fireDirtyProperty();
 		}
 		// otherwise already dirty
 	}
