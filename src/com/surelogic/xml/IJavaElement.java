@@ -18,6 +18,7 @@ public interface IJavaElement {
 	boolean hasChildren();
 	Object[] getChildren();
 	
+	boolean isModified();
 	boolean canModify();
 	void modify(String value, IErrorListener l);
 	Operator getOperator();
