@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
@@ -21,7 +22,6 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
@@ -255,6 +255,20 @@ public class PromisesXMLEditor extends EditorPart {
 			IJavaElement e = (IJavaElement) element;
 			return SLImages.getImage(e.getImageKey());
 		}
+		
+		@Override
+		public Color getForeground(Object element) {
+			IJavaElement e = (IJavaElement) element;
+			if (e.isModified()) {
+				if (colorRed == null) {
+					colorRed = contents.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
+				}
+				return colorRed;
+			} 
+			return null;
+		}
+		
+		private Color colorRed;
 	}
 	
 	private void fireDirtyProperty() {
