@@ -104,8 +104,12 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	 * @return true if changed
 	 */
 	boolean mergeThis(AnnotatedJavaElement changed, MergeType type) {
+		if (type == MergeType.JAVA) {
+			return false;
+		}
 		boolean modified = super.mergeThis(changed, type);		
 		
+		// TODO this nukes all of the original annos
 		promises.clear();
 		for(Map.Entry<String, List<AnnotationElement>> e : changed.order.entrySet()) {
 			List<AnnotationElement> l = order.get(e.getKey());
