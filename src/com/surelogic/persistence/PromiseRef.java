@@ -16,7 +16,7 @@ public class PromiseRef {
 	
 	public PromiseRef(String anno, String details, IRNode decl, boolean implies) {
 		final IIRProject p = JavaProjects.getEnclosingProject(decl);
-		location = JavaIdentifier.encodeDecl(p.getTypeEnv().getBinder(), decl);
+		location = JavaIdentifier.encodeDecl(p.getTypeEnv().getProject(), decl);
 		promise = anno;
 		contents = details;
 		useImplication = implies;

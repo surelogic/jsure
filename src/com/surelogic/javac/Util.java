@@ -615,7 +615,7 @@ public class Util {
     			sources.put(path, (SourceCUDrop) cud);
     		}
     		for(IRNode type : VisitUtil.getTypeDecls(cud.cu)) {
-    			String loc = JavaIdentifier.encodeDecl(cud.getTypeEnv().getBinder(), type);
+    			String loc = JavaIdentifier.encodeDecl(cud.getTypeEnv().getProject(), type);
     			types.put(loc, type);
     		}
     	}
@@ -656,7 +656,7 @@ public class Util {
     		ScopedPromisesLexer.init();
     		SLAnnotationsLexer.init();
     		for(CodeInfo cu : cus.asList()) {
-    			JavaIdentifier.testFindEncoding(projects, cu.getTypeEnv().getBinder(), cu.getNode());
+    			JavaIdentifier.testFindEncoding(projects, cu.getTypeEnv().getProject(), cu.getNode());
     		}
     		ScopedPromisesLexer.clear();
     		SLAnnotationsLexer.clear();

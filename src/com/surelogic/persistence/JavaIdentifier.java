@@ -23,30 +23,30 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class JavaIdentifier {
 	private static final String SEPARATOR = ":";
 	
-	public static void testFindEncoding(IIRProjects projs, IBinder b, IRNode cu) {
+	public static void testFindEncoding(IIRProjects projs, final IIRProject proj, IRNode cu) {
 		for(IRNode tt : VisitUtil.getTypeDecls(cu)) {
-			testFindEncodingType(projs, b, tt);
+			testFindEncodingType(projs, proj, tt);
 		}
 	}
 	
-	private static void testFindEncodingType(IIRProjects projs, IBinder b, IRNode type) {
-		testFindEncodingDecl(projs, b, type);
+	private static void testFindEncodingType(IIRProjects projs, final IIRProject proj, IRNode type) {
+		testFindEncodingDecl(projs, proj, type);
 		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
 			final Operator op = JJNode.tree.getOperator(member);
 			if (NestedTypeDeclaration.prototype.includes(op)) {
-				testFindEncodingType(projs, b, member);
+				testFindEncodingType(projs, proj, member);
 			} else if (FieldDeclaration.prototype.includes(op)) {
 				for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(member))) {
-					testFindEncodingDecl(projs, b, vd);
+					testFindEncodingDecl(projs, proj, vd);
 				}
 			} else {
-				testFindEncodingDecl(projs, b, member);
+				testFindEncodingDecl(projs, proj, member);
 			}			
 		}
 	}
 	
-	private static void testFindEncodingDecl(IIRProjects projs, IBinder b, IRNode decl) {
-		final String encoding = encodeDecl(b, decl);
+	private static void testFindEncodingDecl(IIRProjects projs, final IIRProject proj, IRNode decl) {
+		final String encoding = encodeDecl(proj, decl);
 		if (encoding == null) {
 			return; // Not meant to be encoded
 		}
@@ -58,7 +58,7 @@ public final class JavaIdentifier {
 				System.err.println("Not matching: "+encoding+" => "+DebugUnparser.toString(found));
 			}
 			findDecl(projs, encoding);
-			encodeDecl(b, decl);
+			encodeDecl(proj, decl);
 		} else {
 			//System.out.println("Found "+encoding);
 		}
@@ -85,11 +85,20 @@ public final class JavaIdentifier {
 	/**
 	 * project:pkg:type.inner:name:(params)
 	 */
-	public static String encodeDecl(IBinder b, IRNode decl) {
+	public static String encodeDecl(IRNode decl) {
+		return encodeDecl(null, decl);
+	}
+	
+	public static String encodeDecl(IIRProject proj, IRNode decl) {
 		final IRNode type      = VisitUtil.getClosestType(decl);
 		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type);
 		final StringBuilder sb = new StringBuilder();
-		sb.append(JavaProjects.getProject(cu).getName()).append(SEPARATOR);
+		
+		if (proj == null) {
+			proj = JavaProjects.getProject(cu);
+		}
+		final IBinder b = proj.getTypeEnv().getBinder();
+		sb.append(proj.getName()).append(SEPARATOR);
 
 		final String pkg = VisitUtil.getPackageName(cu);
 		if (pkg.equals("")) {

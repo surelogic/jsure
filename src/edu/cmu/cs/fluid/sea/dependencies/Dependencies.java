@@ -332,7 +332,7 @@ public class Dependencies {
 
 	private void collectOldInfoAnnotationInfoForDecl(final CUDrop cud, final IRNode n) {
 		// Does this include the method signature?
-		final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getBinder(), n);
+		final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getProject(), n);
 		oldInfo.put(name, null); // Used to mark that it was declared
 		
 		final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
@@ -407,7 +407,7 @@ public class Dependencies {
 	}
 	
 	private void findDepsForNewlyAnnotatedDecls(MultiMap<ITypeEnvironment,AnnotationInfo> toScan, CodeInfo info, IRNode n) {
-		final String name                         = JavaIdentifier.encodeDecl(info.getTypeEnv().getBinder(), n);
+		final String name                         = JavaIdentifier.encodeDecl(info.getTypeEnv().getProject(), n);
 		final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 		if (oldDrops == null) {
 			// New decl, so any annotations are brand-new, and will be analyzed

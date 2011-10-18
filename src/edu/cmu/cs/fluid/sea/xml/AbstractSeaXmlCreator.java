@@ -9,9 +9,12 @@ import java.net.URI;
 import java.util.*;
 
 import com.surelogic.common.xml.*;
+import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.operator.Declaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
  * Really a JSure-specific XML creator
@@ -47,6 +50,13 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		addLocation(s);		
 		if (flavor != null) {
 			addAttribute(FLAVOR_ATTR, flavor);
+		}
+		
+		if (Declaration.prototype.includes(context)) {
+			addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(context));
+		} else {
+			final IRNode decl = VisitUtil.getEnclosingDecl(context);
+			addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(context));
 		}
 		addAttribute(HASH_ATTR, getHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
