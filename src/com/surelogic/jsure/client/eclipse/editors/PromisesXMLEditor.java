@@ -36,6 +36,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class PromisesXMLEditor extends EditorPart {
+	public static final boolean hideEmpty = false;
+	
 	private final Provider provider = new Provider();
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
 	private static final ParameterProvider paramProvider = new ParameterProvider();
@@ -218,6 +220,11 @@ public class PromisesXMLEditor extends EditorPart {
 					r.read(in);
 					roots = new Object[1];
 					roots[0] = pkg = r.getPackage();					
+					if (true) {
+						if (PromisesXMLBuilder.updateElements(pkg)) {
+							System.out.println("Added elements");
+						}
+					}
 				} catch (Exception e) {
 					pkg = null;
 					roots = ArrayUtil.empty;
@@ -227,7 +234,18 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		@Override
 		public Object[] getChildren(Object element) {
-			return ((IJavaElement) element).getChildren();
+			Object[] children = ((IJavaElement) element).getChildren();
+			if (hideEmpty) {
+				final List<IJavaElement> nonLeaf = new ArrayList<IJavaElement>();
+				for(Object o : children) {
+					IJavaElement c = (IJavaElement) o;
+					if (c.hasChildren() || c instanceof IMergeableElement) {
+						nonLeaf.add(c);
+					}
+				}
+				return nonLeaf.toArray();
+			}
+			return children;
 		}
 
 		@Override
