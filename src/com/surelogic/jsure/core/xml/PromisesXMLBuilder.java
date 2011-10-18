@@ -147,7 +147,7 @@ public class PromisesXMLBuilder {
 		if (c == null) {
 			return false;
 		}
-		final MergeResult<ClassElement> result = p.getClassElement().merge(c, MergeType.UPDATE);
+		final MergeResult<ClassElement> result = p.getClassElement().merge(c, MergeType.JAVA);
 		return result.isModified;
 	}
 }
