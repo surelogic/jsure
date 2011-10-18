@@ -66,72 +66,17 @@ public abstract class AbstractJSureView extends AbstractSLView {
 				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
 						srcRef.getCUName(), srcRef.getLineNumber());
 
-				if (file != null && file.exists()) {
+				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);					
 					if (elt instanceof IClassFile) {
-						final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
-						final char slash  = File.separatorChar;
-						final String pkg  = srcRef.getPackage().replace('.', slash);
-						String name = srcRef.getCUName();
-						int dollar = name.indexOf('$');
-						if (dollar >= 0) {
-							name = name.substring(0, dollar);
-						}
-						else if (name.endsWith(".class")) {
-							name = name.substring(0, name.length() - 6);
-						}
-						final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
-						final File xml = new File(path);
-						if (!xml.exists() || xml.length() == 0) {
-							xml.getParentFile().mkdirs();
-
-							// Create a template
-							try {
-								PrintWriter pw = new PrintWriter(xml);
-								// Try to copy from fluid first
-								try {
-									final InputSource is = PackageAccessor.readPackage(srcRef.getPackage(), name+TestXMLParserConstants.SUFFIX);									
-									if (is.getCharacterStream() == null) {
-										if (is.getByteStream() != null) {									
-											is.setCharacterStream(new InputStreamReader(is.getByteStream()));
-										} else {
-											// Try generating instead
-											throw new FileNotFoundException();
-										}
-									}
-									// This causes problems with the original first line
-									// pw.println("<!-- Generated from the original XML within JSure -->");
-									char[] buf = new char[8192];
-									int read; 
-									while ((read = is.getCharacterStream().read(buf)) >= 0) {
-										pw.write(buf, 0, read);
-									}									
-								} catch (FileNotFoundException e) {
-									// No such XML in fluid, so generate something
-									IRNode ast = null;
-									if (ast != null) {
-										// Currently unused, since there's no good way to get the right AST
-										final String s = XMLGenerator.generateStringXML(ast, true);
-										pw.println(s);
-									} else {
-										PackageElement pe = PromisesXMLBuilder.makeModel(srcRef.getPackage(), name);
-										if (pe != null) {
-											PromisesXMLWriter w = new PromisesXMLWriter(pw);
-											w.write(pe);
-										}
-									}
-								} finally {								
-									pw.close();
-								}
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-						boolean success = EclipseUIUtility.openInEditor(path);
+						boolean success = handleIClassFile(srcRef);
 						if (success) {
 							return;
 						}
-					}					
+					}			
+					if (!file.exists()) {
+						return;
+					}
 					if (elt != null) {					    						
 						IEditorPart ep = JavaUI.openInEditor(elt);						
 						
@@ -175,6 +120,68 @@ public abstract class AbstractJSureView extends AbstractSLView {
 				showMessage("CoreException was thrown");
 			}
 		}
+	}
+	
+	private boolean handleIClassFile(final ISrcRef srcRef) throws JavaModelException {
+		final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+		final char slash  = File.separatorChar;
+		final String pkg  = srcRef.getPackage().replace('.', slash);
+		String name = srcRef.getCUName();
+		int dollar = name.indexOf('$');
+		if (dollar >= 0) {
+			name = name.substring(0, dollar);
+		}
+		else if (name.endsWith(".class")) {
+			name = name.substring(0, name.length() - 6);
+		}
+		final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
+		final File xml = new File(path);
+		if (!xml.exists() || xml.length() == 0) {
+			xml.getParentFile().mkdirs();
+
+			// Create a template
+			try {
+				PrintWriter pw = new PrintWriter(xml);
+				// Try to copy from fluid first
+				try {
+					final InputSource is = PackageAccessor.readPackage(srcRef.getPackage(), name+TestXMLParserConstants.SUFFIX);									
+					if (is.getCharacterStream() == null) {
+						if (is.getByteStream() != null) {									
+							is.setCharacterStream(new InputStreamReader(is.getByteStream()));
+						} else {
+							// Try generating instead
+							throw new FileNotFoundException();
+						}
+					}
+					// This causes problems with the original first line
+					// pw.println("<!-- Generated from the original XML within JSure -->");
+					char[] buf = new char[8192];
+					int read; 
+					while ((read = is.getCharacterStream().read(buf)) >= 0) {
+						pw.write(buf, 0, read);
+					}									
+				} catch (FileNotFoundException e) {
+					// No such XML in fluid, so generate something
+					IRNode ast = null;
+					if (ast != null) {
+						// Currently unused, since there's no good way to get the right AST
+						final String s = XMLGenerator.generateStringXML(ast, true);
+						pw.println(s);
+					} else {
+						PackageElement pe = PromisesXMLBuilder.makeModel(srcRef.getPackage(), name);
+						if (pe != null) {
+							PromisesXMLWriter w = new PromisesXMLWriter(pw);
+							w.write(pe);
+						}
+					}
+				} finally {								
+					pw.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return EclipseUIUtility.openInEditor(path);
 	}
 }
 
