@@ -1,8 +1,8 @@
 package com.surelogic.xml;
 
-class MergeResult<T extends IJavaElement> {
-	final T element;
-	final boolean isModified;
+public class MergeResult<T extends IJavaElement> {
+	public final T element;
+	public final boolean isModified;
 	
 	MergeResult(T e, boolean mod) {
 		element = e;

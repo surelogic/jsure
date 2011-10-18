@@ -178,7 +178,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 	}
 
-	MergeResult<ClassElement> merge(ClassElement changed, MergeType type) {
+	public MergeResult<ClassElement> merge(ClassElement changed, MergeType type) {
 		if (getName().equals(changed.getName())) {
 			boolean modified = false;
 			
