@@ -104,6 +104,14 @@ public class PromisesXMLBuilder {
 	}
 	
 	public static PackageElement makeModel(IType t) throws JavaModelException {
+		ClassElement c = makeClass(t);
+		if (c == null) {
+			return null;
+		}
+		return new PackageElement(t.getPackageFragment().getElementName(), 0, c);
+	}
+	
+	private static ClassElement makeClass(IType t) throws JavaModelException {
 		if (t == null) {
 			return null;
 		}
@@ -122,6 +130,21 @@ public class PromisesXMLBuilder {
 		}
 		// TODO fields
 		// TODO nested classes -- only public ones?
-		return new PackageElement(t.getPackageFragment().getElementName(), 0, c);
+		return c;
+	}
+	
+	/**
+	 * Update to add Java elements
+	 * 
+	 * @return true if updated
+	 */
+	public static boolean updateElements(PackageElement p) throws JavaModelException {
+		final IType t = JDTUtility.findIType(null, p.getName(), p.getClassElement().getName());
+		final ClassElement c = makeClass(t);
+		if (c == null) {
+			return false;
+		}
+		final MergeResult<ClassElement> result = p.getClassElement().merge(c, MergeType.UPDATE);
+		return result.isModified;
 	}
 }
