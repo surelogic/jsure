@@ -118,6 +118,9 @@ public class PromisesXMLBuilder {
 		// TODO not quite right for nested classes
 		final ClassElement c = new ClassElement(t.getElementName());
 		for(IMethod m : t.getMethods()) {
+			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags())) {
+				continue;
+			}
 			if (m.getDeclaringType().equals(t)) {
 				if ("<clinit>".equals(m.getElementName())) {
 					c.addMember(new ClassInitElement());
