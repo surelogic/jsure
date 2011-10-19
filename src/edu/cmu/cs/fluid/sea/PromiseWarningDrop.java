@@ -105,4 +105,8 @@ implements ISrcRef
   public ISrcRef createSrcRef(int offset) {
 	throw new UnsupportedOperationException();
   }
+  
+  public String getJavaId() {
+	  return null;
+  }
 }

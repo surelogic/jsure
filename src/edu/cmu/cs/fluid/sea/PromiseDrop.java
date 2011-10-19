@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
@@ -442,6 +443,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	 * Stuff to implement ISrcRef
 	 **************************************************************************/
 
+	public String getJavaId() {
+		final IRNode decl = getNode();
+		return decl == null ? null : JavaIdentifier.encodeDecl(decl);
+	}
+	
 	public ISrcRef createSrcRef(int offset) {
 		throw new UnsupportedOperationException();
 	}

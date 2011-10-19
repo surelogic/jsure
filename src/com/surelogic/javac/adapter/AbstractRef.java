@@ -25,4 +25,8 @@ public abstract class AbstractRef implements ISrcRef {
 	public int getLineNumber() {
 		return line;
 	}
+	
+	public String getJavaId() {
+		return null;
+	}
 }

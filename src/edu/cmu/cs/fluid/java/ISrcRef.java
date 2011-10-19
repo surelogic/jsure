@@ -114,4 +114,9 @@ public interface ISrcRef {
    * Create a similar ISrcRef, but with the new offset
    */
   ISrcRef createSrcRef(int offset);
+
+  /**
+   * @return the corresponding JavaIdentifier, if any
+   */
+  String getJavaId();
 }

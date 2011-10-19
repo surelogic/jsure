@@ -45,4 +45,8 @@ public abstract class AbstractSrcRef implements ISrcRef {
   public ISrcRef createSrcRef(int offset) {
 	return null;
   }
+  
+  public String getJavaId() {
+	  return null;
+  }
 }

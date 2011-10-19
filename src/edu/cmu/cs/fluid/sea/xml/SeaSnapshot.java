@@ -482,6 +482,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 					return this;
 				}
 
+				public String getJavaId() {
+					return ref.getAttribute(JAVA_ID_ATTR);
+				}
+				
 				public String getCUName() {
 					return ref.getAttribute(CUNIT_ATTR);
 				}
