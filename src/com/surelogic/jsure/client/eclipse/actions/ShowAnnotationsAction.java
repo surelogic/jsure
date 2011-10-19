@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.*;
@@ -10,6 +9,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
+import com.surelogic.jsure.core.scans.*;
+
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
 	private final ASTParser parser;
@@ -49,11 +53,21 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				ICompilationUnit cu = makeCompUnit(input.getStorage());
 				ASTNode root = parseInput(cu);
 				
-				Visitor v = new Visitor();
+				final Visitor v = new Visitor();
 				root.accept(v);
-				v.getIdentifier();
-				// TODO how do I look it up?
-				// TODO where do I output to
+				final String id = v.getIdentifier();
+				if (id != null) {
+					final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+					for(IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
+						final ISrcRef ref = d.getSrcRef();
+						if (ref == null) {
+							System.out.println("No src ref:  @"+d.getMessage());
+						} 
+						else if (id.equals(ref.getJavaId())) {
+							System.out.println("Has promise: @"+d.getMessage());
+						}
+					}				
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
