@@ -38,7 +38,7 @@ public class JavaIdentifierUtil {
 		if (enclosingTB != null) {
 			// Nested type
 			encodeTypeBinding(sb, enclosingTB);
-			sb.append('.').append(tb.getName());
+			sb.append('.').append(tb.getErasure().getName());
 		} else {
 			IMethodBinding mb = tb.getDeclaringMethod();
 			if (mb != null) {
@@ -50,14 +50,15 @@ public class JavaIdentifierUtil {
 					throw new IllegalStateException("Couldn't find a project for "+tb);
 				}
 				sb.append(e.getJavaProject().getElementName());
-				sb.append(JavaIdentifier.SEPARATOR).append(tb.getName());
+				sb.append(JavaIdentifier.SEPARATOR).append(tb.getPackage().getName());
+				sb.append(JavaIdentifier.SEPARATOR).append(tb.getErasure().getName());
 			}
 		}
 	}
 	
 	private static String encodeParameterType(ITypeBinding t) {
 		// TODO Auto-generated method stub
-		return t.getName();
+		return t.getQualifiedName();
 	}
 	
 	// TODO map a JavaIdentifier to a ???
