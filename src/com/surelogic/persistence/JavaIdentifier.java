@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class JavaIdentifier {
-	private static final String SEPARATOR = ":";
+	public static final String SEPARATOR = ":";
 	
 	public static void testFindEncoding(IIRProjects projs, final IIRProject proj, IRNode cu) {
 		for(IRNode tt : VisitUtil.getTypeDecls(cu)) {
