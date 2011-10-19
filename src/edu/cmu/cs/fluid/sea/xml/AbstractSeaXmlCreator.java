@@ -13,8 +13,12 @@ import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.JavaPromiseOpInterface;
 import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Really a JSure-specific XML creator
@@ -52,11 +56,27 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 			addAttribute(FLAVOR_ATTR, flavor);
 		}
 		
-		if (Declaration.prototype.includes(context)) {
-			addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(context));
+		final Operator op = JJNode.tree.getOperator(context);
+		boolean onDecl = Declaration.prototype.includes(op);
+		IRNode decl = context;
+		if (!onDecl) {
+			if (op instanceof JavaPromiseOpInterface) {
+				// Deal with promise nodes hanging off of a decl
+				decl = JavaPromise.getPromisedForOrNull(context);
+				
+				if (decl != null && Declaration.prototype.includes(decl)) {
+					onDecl = true;
+				} else {
+					decl = VisitUtil.getEnclosingDecl(context);
+				}
+			} else {
+				decl = VisitUtil.getEnclosingDecl(context);
+			}
+		}
+		if (onDecl) {
+			addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(decl));
 		} else {
-			final IRNode decl = VisitUtil.getEnclosingDecl(context);
-			addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(context));
+			addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
 		}
 		addAttribute(HASH_ATTR, getHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
