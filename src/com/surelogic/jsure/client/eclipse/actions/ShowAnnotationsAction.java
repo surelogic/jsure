@@ -59,7 +59,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				
 				final Visitor v = new Visitor();
 				root.accept(v);
-				final String id = omitProject(v.getIdentifier());
+				final String id = JavaIdentifier.omitProject(v.getIdentifier());
 				System.out.println("id = "+id);
 				if (id != null) {
 					final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
@@ -96,17 +96,6 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 	}
 	
-	private String omitProject(String id) {
-		if (id == null) {
-			return null;
-		}
-		final int sep = id.indexOf(JavaIdentifier.SEPARATOR);
-		if (sep > 0) {
-			return id.substring(sep);
-		}
-		return id;
-	}
-
 	private Map<String,List<IDropInfo>> preprocessPromises(final JSureScanInfo info) {
 		Map<String,List<IDropInfo>> rv = new HashMap<String, List<IDropInfo>>();
 		for(IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
@@ -114,7 +103,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 			if (ref == null) {
 				//System.out.println("No src ref:  @"+d.getMessage());
 			} else {				
-				final String rId = omitProject(ref.getJavaId());							
+				final String rId = JavaIdentifier.omitProject(ref.getJavaId());							
 				if (rId == null) {
 					System.out.println("No id for @"+d.getMessage());
 				} else {
