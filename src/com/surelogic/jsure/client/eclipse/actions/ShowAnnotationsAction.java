@@ -1,10 +1,10 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
-import org.eclipse.core.resources.*;
+import java.util.*;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.*;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.*;
@@ -63,6 +63,14 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				System.out.println("id = "+id);
 				if (id != null) {
 					final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+					final Map<String,List<IDropInfo>> promises = preprocessPromises(info);
+					List<IDropInfo> l = promises.get(id);
+					if (l != null) {
+						for(IDropInfo d : l) {
+							System.out.println("Has promise: @"+d.getMessage());
+						}
+					}
+					/*
 					for(IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
 						final ISrcRef ref = d.getSrcRef();						
 						if (ref == null) {
@@ -79,14 +87,15 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 								System.out.println("Has promise: @"+d.getMessage());
 							}
 						}
-					}				
+					}	
+					*/			
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
-
+	
 	private String omitProject(String id) {
 		if (id == null) {
 			return null;
@@ -98,6 +107,29 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		return id;
 	}
 
+	private Map<String,List<IDropInfo>> preprocessPromises(final JSureScanInfo info) {
+		Map<String,List<IDropInfo>> rv = new HashMap<String, List<IDropInfo>>();
+		for(IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
+			final ISrcRef ref = d.getSrcRef();						
+			if (ref == null) {
+				//System.out.println("No src ref:  @"+d.getMessage());
+			} else {				
+				final String rId = omitProject(ref.getJavaId());							
+				if (rId == null) {
+					System.out.println("No id for @"+d.getMessage());
+				} else {
+					List<IDropInfo> l = rv.get(rId);
+					if (l == null) { 
+						l = new ArrayList<IDropInfo>();
+						rv.put(rId, l);
+					}
+					l.add(d);
+				}
+			}
+		}
+		return rv;
+	}
+	
 	class Visitor extends ASTVisitor {
 		private MethodInvocation call;
 		
