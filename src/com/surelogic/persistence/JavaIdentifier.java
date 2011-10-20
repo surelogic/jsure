@@ -82,6 +82,31 @@ public final class JavaIdentifier {
 	
 	private static final String DEFAULT_PKG = "(default)";
 	
+	public static String omitProject(String id) {
+		if (id == null) {
+			return null;
+		}
+		final int sep = id.indexOf(JavaIdentifier.SEPARATOR);
+		if (sep > 0) {
+			return id.substring(sep);
+		}
+		return id;
+	}
+
+	public static String isolateType(String id) {
+		if (id == null) {
+			return null;
+		}
+		final int paramStart = id.lastIndexOf(JavaIdentifier.SEPARATOR+'(');
+		if (paramStart > 0) {
+			final int sep = id.lastIndexOf(JavaIdentifier.SEPARATOR, paramStart);
+			if (sep > 0) {
+				return id.substring(0, sep);
+			}
+		}
+		return id;
+	}
+	
 	/**
 	 * project:pkg:type.inner:name:(params)
 	 */
