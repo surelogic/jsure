@@ -1,14 +1,11 @@
 package com.surelogic.analysis.effects.targets;
 
-import java.util.logging.Logger;
-
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.AggregationEvidence;
+import com.surelogic.analysis.effects.BCAEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 
 /**
@@ -21,22 +18,51 @@ import edu.cmu.cs.fluid.java.bind.*;
  * Target objects are immutable.
  *
  * @see Effect
+ * @see EmptyTarget
  * @see AnyInstanceTarget
  * @see ClassTarget
  * @see InstanceTarget
  * @see LocalTarget
- * @author Aaron Greenhouse
  */
 abstract class AbstractTarget implements Target {
-  /** Logger instance for debugging. */
-  protected static final Logger LOG =
-	  SLLogger.getLogger("FLUID.analysis.effects");
-
   /** The region accessed by the target */
   protected final IRegion region;
 
 
 
+  /** Only for use by LocalTarget and EmptyTarget. */
+  AbstractTarget() {
+    region = null;
+  }
+
+  protected AbstractTarget(final IRegion reg) {
+    if (reg == null) {
+      throw new NullPointerException("region cannot be null");
+    }
+    region = reg;
+  }
+  
+    
+  
+  /**
+   * Get the region component of the target.
+   * 
+   * @return The region component
+   */
+  public final IRegion getRegion() {
+    return region;
+  }
+
+  // Used by implementations of degradeRegion()
+  protected final void checkNewRegion(final IRegion newRegion) {
+    if (!newRegion.ancestorOf(region)) {
+      throw new IllegalArgumentException("New region is not an ancestor of the old region");
+    }
+  }
+
+  
+  
+  // Used by implementions of the overlapsWith methods
   /**
    * Returns whether <code>t1</code> is an ancestor of <code>t2</code>,
    * or vice versa.  This uses ITypeEnvironment.isSubType() which 
@@ -49,6 +75,29 @@ abstract class AbstractTarget implements Target {
     return tEnv.isRawSubType(t1, t2) || tEnv.isRawSubType(t2, t1);
   }
 
+  /* For double dispatching in the implementation of overlapsWith() */  
+
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithEmpty(IBinder binder, EmptyTarget t);
+
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithLocal(IBinder binder, LocalTarget t);
+
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithAnyInstance(
+      IBinder binder, AnyInstanceTarget t);
+
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithClass(
+      IBinder binder, ClassTarget t);
+
+  // Receiver is the argument from the original overlapsWith() call
+  abstract TargetRelationship overlapsWithInstance(
+      IMayAlias mayAlias, IBinder binder, InstanceTarget t);
+
+  
+
+  // Used by implementations of checkTarget methods
   /**
    * Returns whether <code>t1</code> is an ancestor of <code>t2</code>.
    * This uses ITypeEnvironment.isSubType() which 
@@ -59,60 +108,6 @@ abstract class AbstractTarget implements Target {
     final IBinder b, final IJavaType t1, final IJavaType t2) {
     ITypeEnvironment tEnv = b.getTypeEnvironment();
     return tEnv.isRawSubType(t2, t1);
-  }
-
-  
-  
-  /** Only for use by LocalTarget and EmptyTarget. */
-  AbstractTarget() {
-    region = null;
-  }
-
-  protected AbstractTarget(final IRegion reg) {
-    if (reg == null) {
-      throw new NullPointerException("region cannot be null");
-    }
-    region = reg;
-  }
-
-  // Only instance targets have references
-  public IRNode getReference() {
-    return null;
-  }
-
-  /**
-	 * Get the region component of the target.
-	 * 
-	 * @return The region component
-	 */
-  public final IRegion getRegion() {
-    return region;
-  }
-
-  protected final void checkNewRegion(final IRegion newRegion) {
-    if (!newRegion.ancestorOf(region)) {
-      throw new IllegalArgumentException("New region is not an ancestor of the old region");
-    }
-  }
-    
-  // Only instance or class targets have elaboration evidence
-  public ElaborationEvidence getElaborationEvidence() {
-    return null;
-  }
-  
-  public boolean isAggregated() {
-    return getLastAggregation() != null;
-  }
-  
-  public AggregationEvidence getLastAggregation() {
-    final ElaborationEvidence ee = getElaborationEvidence();
-    if (ee == null) {
-      return null;
-    } else if (ee instanceof AggregationEvidence) {
-      return (AggregationEvidence) ee;
-    } else {
-      return ee.getElaboratedFrom().getLastAggregation();
-    }
   }
 
   /* For double dispatching in the implementation of checkTarget() */
@@ -134,50 +129,30 @@ abstract class AbstractTarget implements Target {
 
   
   
-  /* For double dispatching in the implementation of overlapsWith() */  
-  
-  // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithEmpty(IBinder binder, EmptyTarget t);
-  
-  // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithLocal(IBinder binder, LocalTarget t);
-
-  // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithAnyInstance(
-      IBinder binder, AnyInstanceTarget t);
-
-  // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithClass(
-      IBinder binder, ClassTarget t);
-
-  // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithInstance(
-      IMayAlias mayAlias, IBinder binder, InstanceTarget t);
-
-  
-  
-  /**
-	 * Get the name of the target. This is currently the same as calling <tt>getString()</tt>,
-	 * but I'm not yet convinced that I should get rid of it.
-	 * 
-	 * @return The name of the target, which includes information about the
-	 *         embedded region
-	 */
-  public String getName() {
-    return toString();
+  public final boolean isAggregated() {
+    return getLastAggregation() != null;
   }
 
+  public final AggregationEvidence getLastAggregation() {
+    final TargetEvidence ee = getEvidence();
+    if (ee instanceof AggregationEvidence) {
+      return (AggregationEvidence) ee;
+    } else if (ee instanceof BCAEvidence) {
+      return ((BCAEvidence) ee).getElaboratedFrom().getLastAggregation();
+    }
+    return null;
+  }
+
+
+  
+  /**
+   * Force subclasses to get used {@link #toString(StringBuilder)} as 
+   * the implementation.
+   */
   @Override
   public final String toString() {
     return toString(new StringBuilder()).toString();
   }
-  
-  /**
-   * Append the string representation of this target to the given 
-   * {@code StringBuilder}.
-   * @return The string builder passed to {@code sb}.
-   */
-  public abstract StringBuilder toString(StringBuilder sb);
 
   /**
 	 * Make equals abstract so that the subclasses will be forced to implement

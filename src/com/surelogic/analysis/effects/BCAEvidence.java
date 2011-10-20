@@ -1,12 +1,10 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.effects;
 
-import java.text.MessageFormat;
-
+import com.surelogic.analysis.effects.targets.EvidenceVisitor;
 import com.surelogic.analysis.effects.targets.Target;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 
 public final class BCAEvidence extends ElaborationEvidence {
   private final IRNode useExpr;
@@ -27,15 +25,11 @@ public final class BCAEvidence extends ElaborationEvidence {
     return srcExpr;
   }
   
-  @Override
-  public String getMessage() {
-    return MessageFormat.format(
-        "The value of variable {0} may originate from {1}",
-        DebugUnparser.toString(useExpr), DebugUnparser.toString(srcExpr));
-  }
-  
-  @Override
   public IRNode getLink() {
     return useExpr;
+  }
+  
+  public void visit(final EvidenceVisitor v) {
+    v.visitBCAEvidence(this);
   }
 }

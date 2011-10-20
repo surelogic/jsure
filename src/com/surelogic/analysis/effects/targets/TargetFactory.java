@@ -1,7 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.effects.ElaborationEvidence;
-import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -9,7 +8,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 
 public interface TargetFactory {
   public EmptyTarget createEmptyTarget(
-      ElaborationEvidence elabEvidence, Reason reason);
+      EmptyEvidence.Reason r, Target comesFrom, IRNode link);
   
   public LocalTarget createLocalTarget(IRNode varDecl);
   

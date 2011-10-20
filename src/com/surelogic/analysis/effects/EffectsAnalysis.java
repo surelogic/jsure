@@ -7,10 +7,11 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
-import com.surelogic.analysis.effects.targets.EmptyTarget;
-import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
+import com.surelogic.analysis.effects.targets.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 
@@ -283,17 +284,22 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		return s1 == s2;
 	}
 	
+	/* Destroys the incoming set! */
 	private Set<Effect> filterEffects(final Set<Effect> input) {
-	  final Set<Effect> result = new HashSet<Effect>();
-	  for (final Effect testing : input) {
-	    boolean isRedundant = false;
+	  final Set<Effect> result = new HashSet<Effect>(input);
+	  final Iterator<Effect> inputIter = input.iterator();
+	  while (inputIter.hasNext()) {
+	    final Effect testing = inputIter.next();
+	    inputIter.remove();
 	    for (final Effect e : input) {
-	      if ((testing != e) && testing.isCheckedBy(getBinder(), e)) {
-	        isRedundant = true;
+	      if (testing.isCheckedBy(getBinder(), e)) {
+	        result.remove(testing);
 	        break;
+	      } else if (e.isCheckedBy(getBinder(), testing)) {
+	        result.remove(e);
+	        // No break: testing may check other effects still
 	      }
 	    }
-	    if (!isRedundant) result.add(testing);
 	  }
 	  return result;
 	}
@@ -412,8 +418,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			}
 		}
 
-		addElaborationEvidence(rd, eff.getTargetElaborationEvidence());
-		addAdditionalEvidence(rd, eff.getTarget());
+		(new EvidenceAdder(rd)).accept(eff.getTarget().getEvidence());
+
+//		addElaborationEvidence(rd, eff.getTargetElaborationEvidence());
+//		addAdditionalEvidence(rd, eff.getTarget());
 		
 		// Finish the drop
 		setResultDependUponDrop(rd, src);
@@ -421,28 +429,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		rd.setResultMessage(msgTemplate, msgArgs);
 		
 		return rd;
-	}
-	
-	/**
-	 * Recurses through the elaboration evidence, and adds it as supporting 
-	 * information to the given result drop, in the order that the elaboration
-	 * occurred.
-	 */
-	private void addElaborationEvidence(
-	    final ResultDropBuilder rd, final ElaborationEvidence elabEvidence) {
-	  if (elabEvidence != null) {
-	    addElaborationEvidence(rd, elabEvidence.getElaboratedFrom().getElaborationEvidence());
-	    rd.addSupportingInformation(elabEvidence.getMessage(), elabEvidence.getLink());
-	  }
-	}
-
-	private void addAdditionalEvidence(final ResultDropBuilder rd, final Target t) {
-	  if (t instanceof EmptyTarget) {
-	    final Reason r = ((EmptyTarget) t).getReason();
-	    if (r != null) {
-	      rd.addSupportingInformation(null, r.getMessage());
-	    }
-	  }
 	}
 	
 	/**
@@ -511,7 +497,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
 	
 	
-	private class ElaborationErrorReporter implements Effects.ElaborationCallback {
+	private final class ElaborationErrorReporter implements Effects.ElaborationCallback {
 	  public ElaborationErrorReporter() {
 	    super();
 	  }
@@ -524,9 +510,75 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);
       rd.setResultMessage(Messages.READONLY_REFERENCE);
-
-      addElaborationEvidence(rd, t.getElaborationEvidence()); // Definitely useful: we get here from elaboration
-      addAdditionalEvidence(rd, t); // XXX: Useless?
+      (new EvidenceAdder(rd)).accept(t.getEvidence());
+//      addElaborationEvidence(rd, t.getElaborationEvidence()); // Definitely useful: we get here from elaboration
+//      addAdditionalEvidence(rd, t); // XXX: Useless?
     }	  
+	}
+	
+	 
+//  /**
+//   * Recurses through the elaboration evidence, and adds it as supporting 
+//   * information to the given result drop, in the order that the elaboration
+//   * occurred.
+//   */
+//  private void addElaborationEvidence(
+//      final ResultDropBuilder rd, final ElaborationEvidence elabEvidence) {
+//    if (elabEvidence != null) {
+//      addElaborationEvidence(rd, elabEvidence.getElaboratedFrom().getElaborationEvidence());
+//      rd.addSupportingInformation(elabEvidence.getMessage(), elabEvidence.getLink());
+//    }
+//  }
+//
+//  private void addAdditionalEvidence(final ResultDropBuilder rd, final Target t) {
+//    if (t instanceof EmptyTarget) {
+//      final Reason r = ((EmptyTarget) t).getReason();
+//      if (r != null) {
+//        rd.addSupportingInformation(null, r.getMessage());
+//      }
+//    }
+//  }
+
+	
+	private static final class EvidenceAdder extends EvidenceProcessor {
+	  private final ResultDropBuilder resultDrop;
+	  
+	  public EvidenceAdder(final ResultDropBuilder rd) {
+	    resultDrop = rd;
+	  }
+    
+    @Override
+    public void visitAggregationEvidence(final AggregationEvidence e) {
+      final IRNode originalExpression = e.getOriginalExpression();
+      resultDrop.addSupportingInformation(
+          e.getLink(), Messages.AGGREGATION_EVIDENCE,
+          e.getOriginalRegion().getName(),
+          DebugUnparser.toString(originalExpression),
+          e.getMappedRegion().getName(),
+          DebugUnparser.toString(FieldRef.getObject(originalExpression)));
+          
+      accept(e.getMoreEvidence());
+    }
+    
+    @Override
+    public void visitBCAEvidence(final BCAEvidence e) {
+      resultDrop.addSupportingInformation(
+          e.getLink(), Messages.BCA_EVIDENCE,
+          DebugUnparser.toString(e.getUseExpression()), 
+          DebugUnparser.toString(e.getSourceExpression()));
+      accept(e.getMoreEvidence());
+    }
+	  
+	  @Override
+    public void visitEmptyEvidence(final EmptyEvidence e) {
+	    final Reason reason = e.getReason();
+	    if (reason == Reason.FINAL_FIELD) {
+	      resultDrop.addSupportingInformation(e.getLink(), reason.getMessage(),
+	          VariableDeclarator.getId(e.getLink()));
+	    } else {
+	      resultDrop.addSupportingInformation(e.getLink(), reason.getMessage());
+	    }
+	    accept(e.getMoreEvidence());
+	  }
 	}
 }

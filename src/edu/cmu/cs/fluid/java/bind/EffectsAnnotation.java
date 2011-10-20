@@ -7,7 +7,6 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
@@ -106,10 +105,10 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
     for (Iterator<Effect> i = effects.iterator(); i.hasNext();) {
       Effect eff = i.next();
       if (eff.isRead()) {
-        reads += (readCt++ > 0 ? ", " : "") + eff.getTarget().getName();
+        reads += (readCt++ > 0 ? ", " : "") + eff.getTarget().toString();
       }
       if (eff.isWrite()) {
-        writes += (writeCt++ > 0 ? ", " : "") + eff.getTarget().getName();
+        writes += (writeCt++ > 0 ? ", " : "") + eff.getTarget().toString();
       }
     }
     if (readCt == 0) {

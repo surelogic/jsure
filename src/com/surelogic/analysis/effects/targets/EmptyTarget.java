@@ -2,8 +2,6 @@ package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.BCAEvidence;
-import com.surelogic.analysis.effects.ElaborationEvidence;
-import com.surelogic.analysis.effects.Messages;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -19,59 +17,35 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
  * no target, as it represents nothing. 
  */
 public final class EmptyTarget extends AbstractTarget {
-  public enum Reason {
-    DECLARES_NO_EFFECTS(Messages.REASON_NO_DECLARED_EFFECT),
-    RECEIVER_IS_IMMUTABLE(Messages.REASON_RECEIVER_IS_IMMUTABLE);
-    
-    private int msg;
-
-    private Reason(final int m) {
-      msg = m;
-    }
-    
-    public int getMessage() {
-      return msg;
-    }
-  }
-  
-  
-  
-  private final ElaborationEvidence elabEvidence;
-  
-  private final Reason reason; 
+  private final EmptyEvidence evidence;
   
   
   
   // Force use of the target factories
-  EmptyTarget(final ElaborationEvidence ee, final Reason r) {
+  EmptyTarget(final EmptyEvidence ee) {
     super();
-    elabEvidence = ee;
-    reason = r;
+    evidence = ee;
   }
   
-  public Reason getReason() {
-    return reason;
+  
+  
+  public IRNode getReference() {
+    return null;
+  }
+  
+  
+  
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return null;
   }
   
   public Target degradeRegion(final IRegion newRegion) {
     // doesn't use the region, so return self
     return this;
   }
+
   
-  public IJavaType getRelativeClass(final IBinder binder) {
-    return null;
-  }
   
-  public Target undoBCAElaboration() {
-    Target current = this;
-    ElaborationEvidence ee = current.getElaborationEvidence();
-    while (ee instanceof BCAEvidence) { // null never satisfies instanceof
-      current = ee.getElaboratedFrom();
-      ee = current.getElaborationEvidence();
-    }
-    return current;
-  }
- 
   public boolean isMaskable(final IBinder binder) {
     // We want this to percolate up to the results, so never mask them
     return false;
@@ -79,50 +53,6 @@ public final class EmptyTarget extends AbstractTarget {
 
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
-  }
-
-  @Override
-  public ElaborationEvidence getElaborationEvidence() {
-    return elabEvidence;
-  }
-  
-  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
-    return ((AbstractTarget) declaredTarget).checkTargetAgainstEmpty(b, this);
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstEmpty(
-      final IBinder b, final EmptyTarget actualTarget) {
-    return true;
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstLocal(
-      final IBinder b, final LocalTarget actualTarget) {
-    return true;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstAnyInstance(
-      final IBinder b, final AnyInstanceTarget actualTarget) {
-    return true;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstClass(
-      final IBinder b, final ClassTarget actualTarget) {
-    return true;
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstInstance(
-      final IBinder b, final InstanceTarget actualTarget) {
-    return true;
   }
 
   public TargetRelationship overlapsWith(
@@ -164,21 +94,75 @@ public final class EmptyTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+
+  
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstEmpty(b, this);
+  }
+  
+  // Receiver is the target from the declared effect
   @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return true;
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    return true;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    return true;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+    return true;
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    return true;
+  }
+
+
+  
+  public TargetEvidence getEvidence() {
+    return evidence;
+  }
+  
+  public Target undoBCAElaboration() {
+    Target current = this;
+    TargetEvidence e = evidence.getMoreEvidence();
+    while (e instanceof BCAEvidence) { // null never satisfies instanceof
+      current = ((BCAEvidence) e).getElaboratedFrom();
+      e = current.getEvidence();
+    }
+    return current;
+  }
+  
+  
+  
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("nothing");
     return sb;
   }
 
-  /**
-	 * Compare two instance targets. Two local targets are equal if the refer to
-	 * the same expression and same region.
-	 */
   @Override
   public boolean equals(final Object o) {
     if (o instanceof EmptyTarget) {
       final EmptyTarget t = (EmptyTarget) o;
-      return region.equals(t.region);
+      return (evidence == null ? t.evidence == null : evidence.equals(t.evidence));
     }
     return false;
   }
@@ -186,7 +170,7 @@ public final class EmptyTarget extends AbstractTarget {
   @Override
   public int hashCode() {
     int result = 17;
-    result = 31 * result + ((reason == null) ? 0 : reason.hashCode());
+    result = 31 * result + ((evidence == null) ? 0 : evidence.hashCode());
     return result;
   }
 }

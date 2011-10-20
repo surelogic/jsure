@@ -1,11 +1,9 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.effects;
 
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.TargetEvidence;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-
-public abstract class ElaborationEvidence {
+public abstract class ElaborationEvidence implements TargetEvidence {
   /** The target that was elaborated.  Must be an instance target. */
   protected final Target elaboratedFrom;
   
@@ -13,10 +11,11 @@ public abstract class ElaborationEvidence {
     elaboratedFrom = from;
   }
   
-  public Target getElaboratedFrom() {
+  public final Target getElaboratedFrom() {
     return elaboratedFrom;
   }
   
-  public abstract String getMessage();
-  public abstract IRNode getLink();
+  public final TargetEvidence getMoreEvidence() {
+    return (elaboratedFrom == null) ? null : elaboratedFrom.getEvidence();
+  }
 }

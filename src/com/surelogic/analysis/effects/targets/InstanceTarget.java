@@ -6,8 +6,6 @@ import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
-import com.surelogic.annotation.rules.RegionRules;
-import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -35,9 +33,10 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 /* I only want this class to be usable by the TargetFactory implementations */
 public final class InstanceTarget extends AbstractTarget {
+  // AnyInstanceTarget needs to look at this
   final IRNode reference;
 
-  final ElaborationEvidence elabEvidence;
+  private final ElaborationEvidence elabEvidence;
   
   
   
@@ -62,6 +61,18 @@ public final class InstanceTarget extends AbstractTarget {
     elabEvidence = ee;
   }
   
+  
+  
+  public IRNode getReference() {
+    return reference;
+  }
+  
+
+  
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return binder.getJavaType(reference);
+  }
+  
   public Target degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     if (newRegion.isStatic()) {
@@ -71,20 +82,8 @@ public final class InstanceTarget extends AbstractTarget {
     }
   }
   
-  public IJavaType getRelativeClass(final IBinder binder) {
-    return binder.getJavaType(reference);
-  }
   
-  public Target undoBCAElaboration() {
-    Target current = this;
-    ElaborationEvidence ee = current.getElaborationEvidence();
-    while (ee instanceof BCAEvidence) { // null never satisfies instanceof
-      current = ee.getElaboratedFrom();
-      ee = current.getElaborationEvidence();
-    }
-    return current;
-  }
- 
+  
   public boolean isMaskable(final IBinder binder) {
     IRNode expr = reference;
     Operator exprOp = JJNode.tree.getOperator(expr);
@@ -130,77 +129,14 @@ public final class InstanceTarget extends AbstractTarget {
     return false;
   }
 
+  
+
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return reference.equals(rcvrNode);
-  }
-
-  @Override
-  public IRNode getReference() {
-    return reference;
-  }
-
-  @Override
-  public ElaborationEvidence getElaborationEvidence() {
-    return elabEvidence;
-  }
-  
-  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
-    return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstEmpty(
-      final IBinder b, final EmptyTarget actualTarget) {
-    return false;
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstLocal(
-      final IBinder b, final LocalTarget actualTarget) {
-    return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstAnyInstance(
-      final IBinder b, final AnyInstanceTarget actualTarget) {
-   return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstClass(
-      final IBinder b, final ClassTarget actualTarget) {
-   return false;
-  }
-  
-  // Receiver is the target from the delcared effect
-  @Override
-  boolean checkTargetAgainstInstance(
-      final IBinder b, final InstanceTarget actualTarget) {
-    /* this (the target from the declared effect) must be of the form p.rgn,
-     * where p is a parameter declaration or ReceiverDeclaration. We will only
-     * check if actualTarget are also of the form q.rgn', where p == q, rgn' is
-     * a descendant of rgn.
-     */
-    final Operator op = JJNode.tree.getOperator(actualTarget.reference);
-    if (ParameterDeclaration.prototype.includes(op)
-        || QualifiedReceiverDeclaration.prototype.includes(op) 
-        || ReceiverDeclaration.prototype.includes(op)) {
-      return this.reference.equals(actualTarget.reference)
-          && this.region.ancestorOf(actualTarget.region);
-    } else {
-      return false;
-    }
-  }
-
-  public TargetRelationship overlapsWith(
+  }  public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithInstance(mayAlias, binder, this);
   }
-
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
@@ -291,7 +227,78 @@ public final class InstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  
+  
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
+  }
+
+  // Receiver is the target from the declared effect
   @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return false;
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+   return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+   return false;
+  }
+  
+  // Receiver is the target from the delcared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    /* this (the target from the declared effect) must be of the form p.rgn,
+     * where p is a parameter declaration or ReceiverDeclaration. We will only
+     * check if actualTarget are also of the form q.rgn', where p == q, rgn' is
+     * a descendant of rgn.
+     */
+    final Operator op = JJNode.tree.getOperator(actualTarget.reference);
+    if (ParameterDeclaration.prototype.includes(op)
+        || QualifiedReceiverDeclaration.prototype.includes(op) 
+        || ReceiverDeclaration.prototype.includes(op)) {
+      return this.reference.equals(actualTarget.reference)
+          && this.region.ancestorOf(actualTarget.region);
+    } else {
+      return false;
+    }
+  }  
+  
+  
+
+  public TargetEvidence getEvidence() {
+    return elabEvidence;
+  }
+  
+  public Target undoBCAElaboration() {
+    Target current = this;
+    TargetEvidence e = this.elabEvidence;
+    while (e instanceof BCAEvidence) { // null never satisfies instanceof
+      current = ((BCAEvidence) e).getElaboratedFrom();
+      e = current.getEvidence();
+    }
+    return current;
+  }
+
+
+
   public StringBuilder toString(final StringBuilder sb) {
     /* Because of BCA, uses of parameters are represented as
      * ParameterDeclarations. These unparse as the parameter declaration in the
@@ -316,7 +323,9 @@ public final class InstanceTarget extends AbstractTarget {
   public boolean equals(final Object o) {
     if (o instanceof InstanceTarget) {
       final InstanceTarget t = (InstanceTarget) o;
-      return region.equals(t.region) && reference.equals(t.reference);
+      return region.equals(t.region)
+          && reference.equals(t.reference)
+          && (elabEvidence == null ? t.elabEvidence == null : elabEvidence.equals(t.elabEvidence));
     }
     return false;
   }
@@ -332,6 +341,7 @@ public final class InstanceTarget extends AbstractTarget {
     int result = 17;
     result = 31 * result + ((reference == null) ? 0 : reference.hashCode());
     result = 31 * result + ((region == null) ? 0 : region.hashCode());
+    result = 31 * result + ((elabEvidence == null) ? 0 : elabEvidence.hashCode());
     return result;
   }
 }

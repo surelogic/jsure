@@ -2,7 +2,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.effects.ElaborationEvidence;
-import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -28,8 +27,8 @@ public final class DefaultTargetFactory implements TargetFactory {
   }
   
   public EmptyTarget createEmptyTarget(
-      final ElaborationEvidence elabEvidence, final Reason reason) {
-    return new EmptyTarget(elabEvidence, reason);
+      final EmptyEvidence.Reason reason, final Target comesFrom, final IRNode link) {
+    return new EmptyTarget(new EmptyEvidence(reason, comesFrom, link));
   }
   
   public LocalTarget createLocalTarget(final IRNode varDecl) {

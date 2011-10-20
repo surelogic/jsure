@@ -1,24 +1,12 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
-
-/*
- * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
- * Added implementation of equals() and hashCode()
- */
-
-/*
- * 98 Sept 11 Removed iwArrayElt because I removed the ArrayEltTarget class
- */
-
-/*
- * 98-06-01: - Added javadoc
- */
 
 /**
  * This class represents a target that accesses a region <i>r</i> of <em>any</em>
@@ -35,14 +23,13 @@ import edu.cmu.cs.fluid.java.bind.*;
  * 
  * @author Aaron Greenhouse
  */
-// TODO: Need to deal with the class parameter of the any-instance target
-/* I only want this class to be usable by the TargetFactory implementations */
 public final class AnyInstanceTarget extends AbstractTarget {
   /**
    * Reference to the class declaration node of the class that parameterizes the
    * target.
    */
   final IJavaReferenceType clazz;  
+  
   
   
   /**
@@ -57,14 +44,22 @@ public final class AnyInstanceTarget extends AbstractTarget {
     if (r.isStatic()) {
       throw new IllegalArgumentException("Region cannot be static: use a ClassTarget instead");
     }
-
     if (c == null) {
       throw new IllegalArgumentException("The class parameter is null");
-    }
-    else if (!(c instanceof IJavaDeclaredType) && !(c instanceof IJavaArrayType)) {
+    } else if (!(c instanceof IJavaDeclaredType) && !(c instanceof IJavaArrayType)) {
       throw new IllegalArgumentException("The class parameter must be an IJavaDeclaredType or an IJavaArrayType, not a " + c.getClass().getName());
     }
     clazz = c;
+  }
+
+  
+  
+  public IRNode getReference() {
+    return null;
+  }
+  
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return clazz;
   }
 
   public Target degradeRegion(final IRegion newRegion) {
@@ -75,67 +70,20 @@ public final class AnyInstanceTarget extends AbstractTarget {
       return new AnyInstanceTarget(clazz, newRegion);
     }
   }
+
   
-  public IJavaType getRelativeClass(final IBinder binder) {
-    return clazz;
-  }
-  
-  public Target undoBCAElaboration() {
-    // Any instance targets do not original from elaboration
-    return this;
-  }
   
   public boolean isMaskable(final IBinder binder) {
     // Any instance targets are never maskable
     return false;
   }
 
+  
+  
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
 
-  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
-    return ((AbstractTarget) declaredTarget).checkTargetAgainstAnyInstance(b, this);
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstEmpty(
-      final IBinder b, final EmptyTarget actualTarget) {
-    return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstLocal(
-      final IBinder b, final LocalTarget actualTarget) {
-    return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstAnyInstance(
-      final IBinder b, final AnyInstanceTarget actualTarget) {
-    return isAncestorOf(b, this.clazz, actualTarget.clazz)
-        && this.getRegion().ancestorOf(actualTarget.region);
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstClass(
-      final IBinder b, final ClassTarget actualTarget) {
-   return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstInstance(
-      final IBinder b, final InstanceTarget actualTarget) {
-    final IJavaType clazz = b.getJavaType(actualTarget.reference);
-    return isAncestorOf(b, this.clazz, clazz)
-        && this.region.getRegion().ancestorOf(actualTarget.region);
-  }
-  
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithAnyInstance(binder, this);
@@ -223,7 +171,62 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  
+  
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstAnyInstance(b, this);
+  }
+
+  // Receiver is the target from the declared effect
   @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    return isAncestorOf(b, this.clazz, actualTarget.clazz)
+        && this.getRegion().ancestorOf(actualTarget.region);
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+   return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    final IJavaType clazz = b.getJavaType(actualTarget.reference);
+    return isAncestorOf(b, this.clazz, clazz)
+        && this.region.getRegion().ancestorOf(actualTarget.region);
+  }
+
+  
+  public TargetEvidence getEvidence() {
+    return null;
+  }
+  
+  public Target undoBCAElaboration() {
+    // Any instance targets do not original from elaboration
+    return this;
+  }
+
+  
+
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("any("); 
     if (clazz instanceof IJavaDeclaredType) {

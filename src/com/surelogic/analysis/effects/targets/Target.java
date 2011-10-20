@@ -17,12 +17,20 @@ public interface Target {
    */
   public IRNode getReference();
 
+  
+  
   /**
    * Get the region component of the target.
    * 
    * @return The region component
    */
   public IRegion getRegion();
+  
+  /**
+   * Get the class that should be used to look up the region referenced by
+   * this target.
+   */
+  public IJavaType getRelativeClass(IBinder binder);
   
   /**
    * Update the region to the given ancestor region. May change the type of
@@ -34,12 +42,47 @@ public interface Target {
    */
   public Target degradeRegion(IRegion newRegion);
 
+  
+  
+  
   /**
-   * Get the evidence chain describing the targets this target was
-   * elaborated from, or {@value null} if this target was not generated
-   * from elaboration.
+   * Does the target refer to state that is not visible outside of the context
+   * (i.e., method) in which it originates. 
    */
-  public ElaborationEvidence getElaborationEvidence();
+  public boolean isMaskable(IBinder binder);
+  
+  
+  
+  /**
+   * Does the target overlap with the instance region of the given receiver node?
+   */
+  public boolean overlapsReceiver(IRNode rcvrNode);
+
+  /**
+   * Query if two targets overlap, that is, identify potentially overlapping
+   * state. This takes static approximations of run-time realities into account,
+   * e.g., aliasing.
+   */
+  public TargetRelationship overlapsWith(
+      IMayAlias mayAlias, IBinder binder, Target t);
+  
+  /**
+   * The checkTgt relationship from Chapter 4 of Aaron's dissertation. The
+   * receiver must be a target from an effect that has been through elaboration
+   * and masking. The parameter <code>declaredTarget</code> must be a target from an
+   * effect declared on a method. (This is related to the old includes relationship, but
+   * that was semantically suspect, and this operation is more narrowly scoped.)
+   */
+  public boolean checkTarget(IBinder b, Target declaredTarget);
+
+  
+  
+  /**
+   * Get any additional evidence for why this target exists, and how it may
+   * have been computed.  For example region aggregation, binding context
+   * information, masking.
+   */
+  public TargetEvidence getEvidence();
   
   /** 
    * Does this target result from aggregation of state? 
@@ -55,50 +98,15 @@ public interface Target {
    * Undo the most recent chain of BCA elaborations.
    */
   public Target undoBCAElaboration();
-  
-  /**
-   * Get the class that should be used to look up the region referenced by
-   * this target.
-   */
-  public IJavaType getRelativeClass(IBinder binder);
-  
-  /**
-   * Does the target refer to state that is not visible outside of the context
-   * (i.e., method) in which it originates. 
-   */
-  public boolean isMaskable(IBinder binder);
-  
-  /**
-   * Does the target overlap with the instance region of the given receiver node?
-   */
-  public boolean overlapsReceiver(IRNode rcvrNode);
-  
-  /**
-   * The checkTgt relationship from Chapter 4 of Aaron's dissertation. The
-   * receiver must be a target from an effect that has been through elaboration
-   * and masking. The parameter <code>declaredTarget</code> must be a target from an
-   * effect declared on a method. (This is related to the old includes relationship, but
-   * that was semantically suspect, and this operation is more narrowly scoped.)
-   */
-  public boolean checkTarget(IBinder b, Target declaredTarget);
 
+  
+  
   /**
-   * Query if two targets overlap, that is, identify potentially overlapping
-   * state. This takes static approximations of run-time realities into account,
-   * e.g., aliasing.
-   */
-  public TargetRelationship overlapsWith(
-      IMayAlias mayAlias, IBinder binder, Target t);
-
-  /**
-   * Get the name of the target. This is currently the same as calling
-   * <tt>getString()</tt>, but I'm not yet convinced that I should get rid of
-   * it.
+   * Add the string representation of the target to the given StringBuilder.
    * 
-   * @return The name of the target, which includes information about the
-   *         embedded region
+   * @param sb
+   *          The StringBuilder to add the string representatin to.
+   * @return Returns <code>sb</code>.
    */
-  public String getName();
-  
   public StringBuilder toString(StringBuilder sb);
 }

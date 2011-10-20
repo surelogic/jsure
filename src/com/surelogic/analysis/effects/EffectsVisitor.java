@@ -10,6 +10,7 @@ import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
@@ -408,6 +409,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
               isRead, initTarget, context.theEffects);
         }
       }
+    } else {
+      context.addEffect(
+          Effect.newEffect(expr, isRead, 
+              targetFactory.createEmptyTarget(
+                  EmptyEvidence.Reason.FINAL_FIELD, null, id)));
     }
     doAcceptForChildren(expr);
     return null;

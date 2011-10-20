@@ -795,7 +795,11 @@ public final class LockUtils {
             } else {
               objExpr = target.getReference();
             }
-            targets.add(targetFactory.createInstanceTarget(objExpr, destRegion, target.getElaborationEvidence()));
+            /* The only way we can get here is if getLastAggregation() != null,
+             * and this implies that that target has ElaborationEvidence
+             */
+            targets.add(targetFactory.createInstanceTarget(
+                objExpr, destRegion, (ElaborationEvidence) target.getEvidence()));
           }
         }
       }

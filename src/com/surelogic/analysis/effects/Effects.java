@@ -20,7 +20,7 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
-import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
+import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
@@ -635,8 +635,7 @@ public final class Effects implements IBinderClient {
           if (LockRules.isImmutableRef(nodeToTest)) {
             targets.add(
                 targetFactory.createEmptyTarget(
-                    target.getElaborationEvidence(),
-                    Reason.RECEIVER_IS_IMMUTABLE));
+                    EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest));
             elaborated.add(target);
           }
           
@@ -724,7 +723,7 @@ public final class Effects implements IBinderClient {
          */
         targets.add(
             targetFactory.createEmptyTarget(
-                target.getElaborationEvidence(), Reason.RECEIVER_IS_IMMUTABLE));
+                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID));
         elaborated.add(target);
       } else if (UniquenessRules.isReadOnly(fieldID)) {
         /* Field is read only: Replace the target with Object:All. */

@@ -1,8 +1,7 @@
 package com.surelogic.analysis.effects.targets;
 
-import java.util.logging.Level;
-
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -15,16 +14,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-
-/*
- * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
- * Added implementation of equals() and hashCode()
- */
-
-/*
- * 98 Sept 11 Removed iwArrayElt because I removed the ArrayEltTarget class
- */
-
 /**
  * Representation of a use of local variable or a formal parameter. Can only
  * intersect with another LocalTarget that represents an alias of this Target.
@@ -32,6 +21,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class LocalTarget extends AbstractTarget {
   private final IRNode var;
 
+  
+  
   /**
 	 * Create a new local target.
 	 * 
@@ -43,12 +34,21 @@ public final class LocalTarget extends AbstractTarget {
   LocalTarget(final IRNode v) {
     super();
     if (v == null) {
-      LOG.log(
-        Level.SEVERE,
-        "Got a null variable for local target",
-        new Throwable("For stack trace"));
+      throw new NullPointerException("Got a null variable for local target");
     }
     var = v;
+  }
+
+  
+
+  public IRNode getReference() {
+    return null;
+  }
+  
+  
+  
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return null;
   }
   
   public LocalTarget degradeRegion(final IRegion newRegion) {
@@ -56,23 +56,63 @@ public final class LocalTarget extends AbstractTarget {
     return this;
   }
   
-  public IJavaType getRelativeClass(final IBinder binder) {
-    return null;
-  }
   
-  public Target undoBCAElaboration() {
-    // Local targets do not originate from elaboration
-    return this;
-  }
-
+  
   public boolean isMaskable(final IBinder binder) {
     // Local targets are always maskable
     return true;
   }
 
+
+
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
+
+  public TargetRelationship overlapsWith(
+      final IMayAlias mayAlias, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithLocal(binder, this);
+  }
+
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
+    return TargetRelationship.newUnrelated();
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithLocal(
+      final IBinder binder, final LocalTarget t) {
+    if (var.equals(t.var)) {
+      return TargetRelationship.newSameVariable();
+    } else {
+      return TargetRelationship.newUnrelated();
+    }
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithAnyInstance(
+      final IBinder binder, final AnyInstanceTarget t) {
+    return TargetRelationship.newUnrelated();
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithClass(
+      final IBinder binder, final ClassTarget t) {
+    return TargetRelationship.newUnrelated();
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithInstance(
+      final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
+    return TargetRelationship.newUnrelated();
+  }
+
+  
 
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstLocal(b, this);
@@ -128,59 +168,27 @@ public final class LocalTarget extends AbstractTarget {
     throw new UnsupportedOperationException(
         "Doesn't make sense to use this method on a local target");
   }
-
-  public TargetRelationship overlapsWith(
-      final IMayAlias mayAlias, final IBinder binder, final Target t) {
-    return ((AbstractTarget) t).overlapsWithLocal(binder, this);
+  
+  
+  
+  public TargetEvidence getEvidence() {
+    return null;
+  }
+  
+  public Target undoBCAElaboration() {
+    // Local targets do not originate from elaboration
+    return this;
   }
 
-  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
-  @Override
-  TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
-    return TargetRelationship.newUnrelated();
-  }
-
-  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
-  @Override
-  TargetRelationship overlapsWithLocal(
-      final IBinder binder, final LocalTarget t) {
-    if (var.equals(t.var)) {
-      return TargetRelationship.newSameVariable();
-    } else {
-      return TargetRelationship.newUnrelated();
-    }
-  }
-
-  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
-  @Override
-  TargetRelationship overlapsWithAnyInstance(
-      final IBinder binder, final AnyInstanceTarget t) {
-    return TargetRelationship.newUnrelated();
-  }
-
-  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
-  @Override
-  TargetRelationship overlapsWithClass(
-      final IBinder binder, final ClassTarget t) {
-    return TargetRelationship.newUnrelated();
-  }
-
-  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
-  @Override
-  TargetRelationship overlapsWithInstance(
-      final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
-    return TargetRelationship.newUnrelated();
-  }
 
   /**
 	 * Get a String representation of the Target.
 	 * 
 	 * @return A String of the form "<TT>&lt;Local</tt><i>V</i><tt>(
 	 *         </tt><i>H</i><tt>)</tt>, where <i>V</i> is a String
-	 *         represenation of the variable use and <i>H</I> is the hashcode
+	 *         representation of the variable use and <i>H</I> is the hashcode
 	 *         of the IRNode representing the variable use
 	 */
-  @Override
   public StringBuilder toString(final StringBuilder sb) {
     final Operator op = JJNode.tree.getOperator(var);
     if (VariableDeclarator.prototype.includes(op)) {

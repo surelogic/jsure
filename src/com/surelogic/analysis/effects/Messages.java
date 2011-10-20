@@ -22,6 +22,9 @@ public final class Messages {
   public static final int REASON_NO_DECLARED_EFFECT = 157;
   public static final int REASON_RECEIVER_IS_IMMUTABLE = 158;
   public static final int READONLY_REFERENCE = 159;
+  public static final int REASON_FINAL_FIELD = 160;
+  public static final int BCA_EVIDENCE = 161;
+  public static final int AGGREGATION_EVIDENCE = 162;
   
   
   
@@ -36,6 +39,9 @@ public final class Messages {
     code2name.put(REASON_NO_DECLARED_EFFECT, "EffectAssurance");
     code2name.put(REASON_RECEIVER_IS_IMMUTABLE, "EffectAssurance");
     code2name.put(READONLY_REFERENCE, "EffectAssurance");
+    code2name.put(REASON_FINAL_FIELD, "EffectAssurance");
+    code2name.put(BCA_EVIDENCE, "EffectAssurance");
+    code2name.put(AGGREGATION_EVIDENCE, "EffectAssurance");
   }
   
   public static String toString(int code) {

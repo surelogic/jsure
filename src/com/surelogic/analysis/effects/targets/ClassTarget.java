@@ -27,72 +27,35 @@ public final class ClassTarget extends AbstractTarget {
     elabEvidence = evidence;
   }
   
-  public ClassTarget degradeRegion(final IRegion newRegion) {
-    checkNewRegion(newRegion);
-    return new ClassTarget(newRegion, elabEvidence);
+  
+  
+  public IRNode getReference() {
+    return null;
   }
+  
+
   
   public IJavaType getRelativeClass(final IBinder binder) {
     final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
     return JavaTypeFactory.getMyThisType(cdecl);
   }
-  
-  public Target undoBCAElaboration() {
-    // Class targets cannot originate from BCA elaboration
-    return this;
+
+  public ClassTarget degradeRegion(final IRegion newRegion) {
+    checkNewRegion(newRegion);
+    return new ClassTarget(newRegion, elabEvidence);
   }
- 
+  
+  
+  
   public boolean isMaskable(final IBinder binder) {
     // Class targets are never maskable
     return false;
   }
 
-  @Override
-  public ElaborationEvidence getElaborationEvidence() {
-    return elabEvidence;
-  }
-
+  
+  
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
-  }
-
-  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
-    return ((AbstractTarget) declaredTarget).checkTargetAgainstClass(b, this);
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstEmpty(
-      final IBinder b, final EmptyTarget actualTarget) {
-    return false;
-  }
-
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstLocal(
-      final IBinder b, final LocalTarget actualTarget) {
-    return false;
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstAnyInstance(
-      final IBinder b, final AnyInstanceTarget actualTarget) {
-    return this.getRegion().ancestorOf(actualTarget.region);
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstClass(
-      final IBinder b, final ClassTarget actualTarget) {
-    return this.region.ancestorOf(actualTarget.region);
-  }
-  
-  // Receiver is the target from the declared effect
-  @Override
-  boolean checkTargetAgainstInstance(
-      final IBinder b, final InstanceTarget actualTarget) {
-    return this.region.ancestorOf(actualTarget.region);
   }
 
   public TargetRelationship overlapsWith(
@@ -179,9 +142,60 @@ public final class ClassTarget extends AbstractTarget {
     }
   }
 
+  
+  
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstClass(b, this);
+  }
 
-
+  // Receiver is the target from the declared effect
   @Override
+  boolean checkTargetAgainstEmpty(
+      final IBinder b, final EmptyTarget actualTarget) {
+    return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    return false;
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    return this.getRegion().ancestorOf(actualTarget.region);
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+    return this.region.ancestorOf(actualTarget.region);
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    return this.region.ancestorOf(actualTarget.region);
+  }
+
+  
+
+  public TargetEvidence getEvidence() {
+    return elabEvidence;
+  }
+  
+  public Target undoBCAElaboration() {
+    // Class targets cannot originate from BCA elaboration
+    return this;
+  }
+
+
+
   public StringBuilder toString(final StringBuilder sb) {
     sb.append(
         JavaNames.getQualifiedTypeName(
@@ -199,7 +213,8 @@ public final class ClassTarget extends AbstractTarget {
   public boolean equals(final Object o) {
     if (o instanceof ClassTarget) {
       final ClassTarget t = (ClassTarget) o;
-      return region.equals(t.region);
+      return region.equals(t.region) && 
+          (elabEvidence == null ? t.elabEvidence == null : elabEvidence.equals(t.elabEvidence));
     }
     return false;
   }
@@ -213,6 +228,7 @@ public final class ClassTarget extends AbstractTarget {
   public int hashCode() {
     int result = 17;
     result = 31 * result + region.hashCode();
+    result = 31 * result + (elabEvidence == null ? 0 : elabEvidence.hashCode());
     return result;
   }
 }

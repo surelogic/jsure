@@ -1,16 +1,13 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.effects;
 
-import java.text.MessageFormat;
 import java.util.Map;
 
+import com.surelogic.analysis.effects.targets.EvidenceVisitor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.operator.FieldRef;
 
 public final class AggregationEvidence extends ElaborationEvidence {
   private final Map<IRegion, IRegion> regionMapping;
@@ -40,17 +37,11 @@ public final class AggregationEvidence extends ElaborationEvidence {
     return regionMapping;
   }
   
-  @Override
-  public String getMessage() {
-    final IRNode originalExpression = getOriginalExpression();
-    return MessageFormat.format(
-        "Region {0} of object referenced by {1} is mapped into region {2} of the object referenced by {3}",
-        getOriginalRegion().getName(), DebugUnparser.toString(originalExpression),
-        getMappedRegion().getName(), DebugUnparser.toString(FieldRef.getObject(originalExpression)));
-  }
-  
-  @Override
   public IRNode getLink() {
     return getOriginalExpression();
+  }
+  
+  public void visit(final EvidenceVisitor v) {
+    v.visitAggregationEvidence(this);
   }
 }

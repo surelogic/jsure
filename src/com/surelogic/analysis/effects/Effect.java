@@ -2,9 +2,10 @@ package com.surelogic.analysis.effects;
 
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EmptyTarget;
-import com.surelogic.analysis.effects.targets.EmptyTarget.Reason;
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.TargetEvidence;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
 
@@ -74,7 +75,7 @@ public abstract class Effect {
   private static final class EmptyEffect extends Effect {
     private EmptyEffect(final IRNode src) {
       super(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
-              null, Reason.DECLARES_NO_EFFECTS));
+          EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null));
     }
 
   
@@ -96,11 +97,6 @@ public abstract class Effect {
     @Override
     public Effect setSource(final IRNode src) {
       return new EmptyEffect(src);
-    }
-
-    @Override
-    public ElaborationEvidence getTargetElaborationEvidence() {
-      return null;
     }
 
     @Override
@@ -203,11 +199,6 @@ public abstract class Effect {
     @Override
     public final boolean affectsReceiver(final IRNode rcvrNode) {
       return target.overlapsReceiver(rcvrNode);
-    }
-
-    @Override
-    public final ElaborationEvidence getTargetElaborationEvidence() {
-      return target.getElaborationEvidence();
     }
 
     @Override
@@ -534,7 +525,9 @@ public abstract class Effect {
    * elaborated.  Returns {@value null} if the target was not generated
    * from elaboration.
    */
-  public abstract ElaborationEvidence getTargetElaborationEvidence();
+  public final TargetEvidence getTargetEvidence() {
+    return target.getEvidence();
+  }
   
   /** 
    * Did the target of this effect result from aggregation? 
