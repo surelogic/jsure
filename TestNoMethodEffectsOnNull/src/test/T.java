@@ -40,5 +40,14 @@ public class T {
   	((T) null).f = 10;
   	((T) (T) (T) (null)).f = 100;
   	(((T) ((T) (null)))).f = 1000;
+  	
+  	T o1 = null;
+  	o1.f = 10;
+  	
+  	T o2 = ((T) o1);
+  	o2.f = 100;
+  	
+  	T o3 = ((T) ((T) (o2)));
+  	o3.f = 1000;
   }
 }
