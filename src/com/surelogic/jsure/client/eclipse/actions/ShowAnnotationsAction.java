@@ -1,8 +1,11 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
 import org.eclipse.core.resources.*;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.viewers.ISelection;
@@ -51,7 +54,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	public void run(IAction action) {
 		if (input != null && selection != null) {
 			try {
-				ICompilationUnit cu = makeCompUnit(input.getStorage());
+				ICompilationUnit cu = makeCompUnit(input);
 				ASTNode root = parseInput(cu);
 				
 				final Visitor v = new Visitor();
@@ -151,12 +154,16 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	}
     */
 
-	private ICompilationUnit makeCompUnit(IStorage storage) {
+	private ICompilationUnit makeCompUnit(IStorageEditorInput input) throws CoreException {
+		return JavaUI.getWorkingCopyManager().getWorkingCopy(input);
+		/*
+		final IStorage storage = input.getStorage();
 		// TODO not right if the editor is modified		
 		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		final IWorkspaceRoot wsRoot = workspace.getRoot();
 		final IFile file = wsRoot.getFile(storage.getFullPath());
 		return JavaCore.createCompilationUnitFrom(file);
+		*/
 	}
 	
 	private ASTNode parseInput(ICompilationUnit cu) {
