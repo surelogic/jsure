@@ -68,9 +68,14 @@ public final class PromisesLibMerge {
 					w.write(target);
 					if (!onlyMerge) {
 						// Merging all changes to fluid, so they should both be the same afterward
+						// (or the local one should be deleted/empty)
 						// TODO what about conflicts?
-						w = new PromisesXMLWriter(from);
-						w.write(target);
+						if (PromisesXMLMerge.onlyKeepDiffs) {
+							from.delete();
+						} else {
+							w = new PromisesXMLWriter(from);
+							w.write(target);
+						}
 					}
 				} catch (Exception e) {
 					System.err.println("While merging "+from+" into "+to);
