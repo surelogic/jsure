@@ -1662,9 +1662,19 @@ public class JavacDriver implements IResourceChangeListener {
 
 			// Reverse mapping
 			final Map<String, List<String>> path2qnames = new HashMap<String, List<String>>();
+
+			// Needed to keep javac from dying on a bad qualified name
+			boolean pathsContainDot = false;
 			// int count = 0;
 			for (Map.Entry<Object, Object> e : props.entrySet()) {
-				String path = (String) e.getValue();
+				final String path = (String) e.getValue();
+				if (useSourceZipsDirectly) {
+					final int len = path.length();
+					// Assumes that it ends with '.java'
+					if (path.lastIndexOf('.', len-5) >= 0) {
+						pathsContainDot = true;
+					}
+				}
 				List<String> l = path2qnames.get(path);
 				if (l == null) {
 					l = new ArrayList<String>();
@@ -1707,7 +1717,7 @@ public class JavacDriver implements IResourceChangeListener {
 					}
 				}
 			};
-			if (useSourceZipsDirectly) {
+			if (useSourceZipsDirectly && !pathsContainDot) {
 				// OK
 				// jar:///C:/Documents%20and%20Settings/UncleBob/lib/vendorA.jar!com/vendora/LibraryClass.class
 				final Enumeration<? extends ZipEntry> e = zf.entries();
