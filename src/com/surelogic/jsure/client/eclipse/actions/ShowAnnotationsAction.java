@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
+import java.io.File;
 import java.util.*;
 
 import org.eclipse.core.runtime.CoreException;
@@ -11,15 +12,20 @@ import org.eclipse.jface.text.*;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
+import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.jsure.core.scans.*;
 import com.surelogic.persistence.JavaIdentifier;
+import com.surelogic.xml.TestXMLParserConstants;
 
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
+	private static final char slash = File.separatorChar;	
 	private final ASTParser parser;
 	
 	IStorageEditorInput input;
@@ -59,15 +65,23 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				
 				final Visitor v = new Visitor();
 				root.accept(v);
+				final String qname = v.getQualifiedName();
+				if (qname != null) {
+					final String xmlRoot = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+					String path = xmlRoot+slash+qname.replace('.', slash)+TestXMLParserConstants.SUFFIX;
+					EclipseUIUtility.openInEditor(path);
+				}				
 				final String id = JavaIdentifier.omitProject(v.getIdentifier());
 				System.out.println("id = "+id);
-				if (id != null) {
+				if (id != null) {										
 					final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-					final Map<String,List<IDropInfo>> promises = preprocessPromises(info);
-					List<IDropInfo> l = promises.get(id);
-					if (l != null) {
-						for(IDropInfo d : l) {
-							System.out.println("Has promise: @"+d.getMessage());
+					if (info != null) {
+						final Map<String,List<IDropInfo>> promises = preprocessPromises(info);
+						List<IDropInfo> l = promises.get(id);
+						if (l != null) {
+							for(IDropInfo d : l) {
+								System.out.println("Has promise: @"+d.getMessage());
+							}
 						}
 					}
 					/*
@@ -152,6 +166,14 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				} else {
 					System.out.println("No binding for "+call);
 				}
+			}
+			return null;
+		}
+		
+		String getQualifiedName() {
+			if (call != null) {
+				final IMethodBinding mb = call.resolveMethodBinding();
+				return mb.getDeclaringClass().getErasure().getQualifiedName();
 			}
 			return null;
 		}
