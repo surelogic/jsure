@@ -1,6 +1,8 @@
 package com.surelogic.xml;
 
 public class PromisesXMLMerge implements TestXMLParserConstants {
+	public static final boolean onlyKeepDiffs = false;
+	
 	/**
 	 * Merge changes into the "original
 	 * 
