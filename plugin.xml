@@ -10,7 +10,7 @@
 	   </super>
 	</extension>
 
-	<!-- extension point="org.eclipse.ui.editors">
+	<extension point="org.eclipse.ui.editors">
         <editor	
            name="Promises XML Editor"
            icon="feature.gif"
@@ -19,8 +19,32 @@
            default="true"
            extensions="xml"
            matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
-	</extension -->
+	</extension>
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
+    
+   	<extension id="editorPopupMenus" point="org.eclipse.ui.popupMenus">
+       <viewerContribution
+             id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup"
+             targetID="#CompilationUnitEditorContext">
+          <menu
+                id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu"
+                label="JSure"
+                path="additions">
+             <groupMarker
+                   name="content">
+             </groupMarker>
+             <separator
+                   name="additions">
+             </separator>
+          </menu>
+          <action
+                class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsAction"
+                id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.showAnnotations"
+                label="Show Annotations"
+                menubarPath="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu/content">
+          </action>
+       </viewerContribution>
+	</extension>
     
     <extension point="org.eclipse.ui.editors.templates">
 		<!--contextType name="Promises XML Tag Context"
@@ -139,6 +163,20 @@
 				label="Test makeModel()"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action -->
+
+	        <action
+				class="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
+				label="Test XML Merge"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+	        <!--action
+				class="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"
+				label="Test XML Editor"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action-->
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
