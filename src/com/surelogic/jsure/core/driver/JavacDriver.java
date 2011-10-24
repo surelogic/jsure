@@ -60,6 +60,7 @@ import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.FileUtility.FileRunner;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.PeriodicUtility;
@@ -105,6 +106,7 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -121,6 +123,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class JavacDriver implements IResourceChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
+	private static final String SEPARATOR = "==================================================================================================";
 
 	private static final Logger LOG = SLLogger
 			.getLogger("analysis.JavacDriver");
@@ -2079,6 +2082,11 @@ public class JavacDriver implements IResourceChangeListener {
 		args.put(key, value);
 	}
 
+	private static void outputMessage(PrintStream out, String msg) {
+		out.println(SEPARATOR);
+		out.println(msg);
+	}
+	
 	private static File collectCrashFiles(Projects projects) {
 		final File crash = new File(projects.getRunDir(), CRASH_FILES);
 		final String target = crash.getAbsolutePath();
@@ -2089,8 +2097,7 @@ public class JavacDriver implements IResourceChangeListener {
 				for (String name : projects.getProjectNames()) {
 					IProject proj = EclipseUtility.getProject(name);
 					if (proj == null) {
-						out.println("==================================================================================================");
-						out.println("Project does not exist: " + name);
+						outputMessage(out, "Project does not exist: " + name);
 						continue;
 					}
 					IPath projLocation = proj.getLocation();
@@ -2102,14 +2109,12 @@ public class JavacDriver implements IResourceChangeListener {
 										new File(projFile, config), out, target);
 							}
 						} else {
-							out.println("==================================================================================================");
-							out.println("File could not be created for project location: "
+							outputMessage(out, "File could not be created for project location: "
 									+ projLocation);
 							continue;
 						}
 					} else {
-						out.println("==================================================================================================");
-						out.println("Project location could not be retrieved: "
+						outputMessage(out, "Project location could not be retrieved: "
 								+ name);
 						continue;
 					}
@@ -2120,6 +2125,9 @@ public class JavacDriver implements IResourceChangeListener {
 						PersistenceConstants.PROJECTS_XML), out, target);
 				copyContentsToStream(new File(projects.getRunDir(),
 						RemoteJSureRun.LOG_TXT), out, target);
+				
+				final File libDir = new File(JSurePreferencesUtility.getJSureDataDirectory(), DriverConstants.XML_PATH_SEGMENT);
+				FileUtility.recursiveIterate(makePromisesXMLCopier(out, target), libDir);				
 			} finally {
 				out.close();
 			}
@@ -2130,14 +2138,27 @@ public class JavacDriver implements IResourceChangeListener {
 		return crash;
 	}
 
+	private static FileRunner makePromisesXMLCopier(final PrintStream out, final String target) {
+		return new FileRunner() {
+			@Override
+			public boolean accept(File pathname) {
+				return TestXMLParserConstants.XML_FILTER.accept(pathname);
+			}
+
+			@Override
+			protected void iterate(File f) {
+				copyContentsToStream(f, out, target);
+			}
+		};
+	}
+	
 	private static void copyContentsToStream(File file, PrintStream out,
 			String target) {
 		final String source = file.getAbsolutePath();
 
 		if (file.isFile()) {
-			out.println("==================================================================================================");
-			out.println(source);
-			out.println("==================================================================================================");
+			outputMessage(out, source);
+			out.println(SEPARATOR);
 			try {
 				FileUtility.copyToStream(false, source, new FileInputStream(
 						file), target, out, false);
@@ -2145,8 +2166,7 @@ public class JavacDriver implements IResourceChangeListener {
 				e.printStackTrace(out);
 			}
 		} else {
-			out.println("==================================================================================================");
-			out.println("File does not exist: " + source);
+			outputMessage(out, "File does not exist: " + source);
 		}
 	}
 
