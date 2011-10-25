@@ -181,7 +181,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 				e.printStackTrace();
 			}
 		}
-		return EclipseUIUtility.openInEditor(path);
+		return EclipseUIUtility.openInEditor(path) != null;
 	}
 }
 
