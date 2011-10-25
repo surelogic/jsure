@@ -56,7 +56,7 @@ public class JavaIdentifierUtil {
 		}
 	}
 	
-	private static String encodeParameterType(ITypeBinding t) {
+	public static String encodeParameterType(ITypeBinding t) {
 		// TODO Auto-generated method stub
 		return t.getQualifiedName();
 	}
