@@ -30,7 +30,7 @@ implements IClassMember, TestXMLParserConstants
 		return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
 	}
 	
-	private static String normalize(String orig) {
+	public static String normalize(String orig) {
 		if (orig == null) {
 			return "";
 		}

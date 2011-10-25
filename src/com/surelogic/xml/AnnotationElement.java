@@ -47,7 +47,11 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 			attributes.put(UID_ATTRB, uid);
 		}
 	}
-		
+	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
+	
 	public static boolean isIdentifier(String id) {
 		boolean first = true;
 		for(int i=0; i<id.length(); i++) {

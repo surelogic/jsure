@@ -27,4 +27,8 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		copyToClone(clone);
 		return clone;
 	}
+	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
 }

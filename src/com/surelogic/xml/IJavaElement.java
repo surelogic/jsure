@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  */
 public interface IJavaElement {
+	<T> T visit(IJavaElementVisitor<T> v);
 	void setParent(IJavaElement p);
 	IJavaElement getParent();
 	

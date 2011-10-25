@@ -20,6 +20,10 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 	}	
 
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
+	
 	int getRevision() {
 		return revision;
 	}

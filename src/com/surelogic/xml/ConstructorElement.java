@@ -29,4 +29,8 @@ public class ConstructorElement extends AbstractFunctionElement {
 		copyToClone(clone);
 		return clone;
 	}
+	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
 }

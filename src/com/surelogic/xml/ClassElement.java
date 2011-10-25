@@ -19,6 +19,10 @@ public class ClassElement extends AnnotatedJavaElement {
 		super(id);
 	}
 	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
+	
 	@Override
 	public Operator getOperator() {
 		return ClassDeclaration.prototype;

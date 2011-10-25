@@ -42,6 +42,10 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 		comment = c;
 	}
 	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
+	
 	public static CommentElement make(String c) {		
 		UniqueID uid = null;
 		int rev = 0;

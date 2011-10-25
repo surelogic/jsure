@@ -34,4 +34,8 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		copyToClone(clone);
 		return clone;
 	}
+	
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
 }
