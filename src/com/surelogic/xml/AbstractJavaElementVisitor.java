@@ -27,12 +27,10 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 		return combine(result, visitAll(elt.getPromises(true)));
 	}
 	
-	@Override
 	public T visit(PackageElement packageElt) {
 		return visit(packageElt.getClassElement());
 	}
 
-	@Override
 	public T visit(ClassElement classElt) {
 		T result = defaultValue;
 		result = combine(result, classElt.getClassInit().visit(this));
@@ -43,12 +41,10 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 		return combine(result, visitAnnotated(classElt));
 	}
 
-	@Override
 	public T visit(MethodElement methodElt) {
 		return visitFunc(methodElt);	
 	}
 	
-	@Override
 	public T visit(ConstructorElement constructorElt) {
 		return visitFunc(constructorElt);		
 	}
@@ -58,27 +54,22 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 		return combine(result, visitAnnotated(elt));
 	}
 
-	@Override
 	public T visit(FunctionParameterElement functionParameterElt) {
 		return visitAnnotated(functionParameterElt);
 	}
 
-	@Override
 	public T visit(FieldElement fieldElt) {
 		return visitAnnotated(fieldElt);
 	}
 
-	@Override
 	public T visit(ClassInitElement classInitElt) {
 		return visitAnnotated(classInitElt);
 	}
 
-	@Override
 	public T visit(AnnotationElement annotationElt) {
 		return visitCommented(annotationElt);
 	}
 
-	@Override
 	public T visit(CommentElement commentElt) {
 		return defaultValue;
 	}
