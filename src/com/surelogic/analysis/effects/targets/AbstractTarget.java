@@ -1,9 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.AggregationEvidence;
-import com.surelogic.analysis.effects.BCAEvidence;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.java.bind.*;
@@ -138,20 +135,6 @@ abstract class AbstractTarget implements Target {
   
   public final TargetEvidence getEvidence() {
     return evidence;
-  }
-  
-  public final boolean isAggregated() {
-    return getLastAggregation() != null;
-  }
-
-  public final AggregationEvidence getLastAggregation() {
-    final TargetEvidence ee = getEvidence();
-    if (ee instanceof AggregationEvidence) {
-      return (AggregationEvidence) ee;
-    } else if (ee instanceof BCAEvidence) {
-      return ((BCAEvidence) ee).getElaboratedFrom().getLastAggregation();
-    }
-    return null;
   }
 
 

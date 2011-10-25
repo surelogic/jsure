@@ -179,13 +179,6 @@ public final class ClassTarget extends AbstractTarget {
     return this.region.ancestorOf(actualTarget.region);
   }
 
-  
-
-//  public Target undoBCAElaboration() {
-//    // Class targets cannot originate from BCA elaboration
-//    return this;
-//  }
-
 
 
   public StringBuilder toString(final StringBuilder sb) {

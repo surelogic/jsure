@@ -631,7 +631,7 @@ public final class LockUtils {
       effects.elaborateEffect(bcaQuery, targetFactory, binder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
-        getLocksFromEffect(effect, neededLocks);
+        getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
       }
     }
   }
@@ -740,8 +740,10 @@ public final class LockUtils {
     for (final Effect effect : callFx) {
       if (effect.isEmpty()) {
         continue;
-      } else if (effect.isTargetAggregated()) {
-        getLocksFromEffect(effect, result);
+      } 
+      final AggregationEvidence lastAgg = LastAggregationProcessor.get(effect);
+      if (lastAgg != null) {
+        getLocksFromEffect(effect, lastAgg, result);
       } else {
         final Target target = effect.getTarget();
         if (target instanceof ClassTarget || target instanceof AnyInstanceTarget) {
@@ -766,8 +768,8 @@ public final class LockUtils {
    * targets. <em>Does not do anything any instance targets; simply ignores
    * them.</em>
    */
-  private void getLocksFromEffect(
-      final Effect effect, final Set<NeededLock> result) {
+  private void getLocksFromEffect(final Effect effect,
+      final AggregationEvidence lastAgg, final Set<NeededLock> result) {
     /* If the target comes from aggregation, it is possible that the region
      * that has been aggregated has subregions that are aggregated into
      * lock-protected regions.  This is not immediately apparent from looking 
@@ -782,10 +784,9 @@ public final class LockUtils {
     final Target target = effect.getTarget();
     final Set<Target> targets = new HashSet<Target>();
     targets.add(target);
-    final com.surelogic.analysis.effects.AggregationEvidence aggEvidence = target.getLastAggregation();
-    if (aggEvidence != null) { // We have aggregation
-      final IRegion aggedRegion = aggEvidence.getOriginalRegion();
-      final Map<IRegion, IRegion> aggMap = aggEvidence.getRegionMapping();
+    if (lastAgg != null) { // We have aggregation
+      final IRegion aggedRegion = lastAgg.getOriginalRegion();
+      final Map<IRegion, IRegion> aggMap = lastAgg.getRegionMapping();
       for (final Map.Entry<IRegion, IRegion> mapping : aggMap.entrySet()) {
         if (aggedRegion.ancestorOf(mapping.getKey())) {
           final IRegion destRegion = mapping.getValue();
@@ -794,7 +795,7 @@ public final class LockUtils {
           } else {
             final IRNode objExpr;
             if (target instanceof ClassTarget) {
-              objExpr = FieldRef.getObject(aggEvidence.getOriginalExpression());
+              objExpr = FieldRef.getObject(lastAgg.getOriginalExpression());
             } else {
               objExpr = target.getReference();
             }
@@ -816,7 +817,6 @@ public final class LockUtils {
        * backtrack over BCA until we hit aggregation or the end.
        */
       t = UndoBCAProcessor.undo(t);
-//      t = t.undoBCAElaboration();
       
       final IRegion region = t.getRegion();
       /* Final and volatile regions do not need locks */

@@ -100,10 +100,10 @@ public abstract class Effect {
       return new EmptyEffect(src);
     }
 
-    @Override
-    public boolean isTargetAggregated() {
-      return false;
-    }
+//    @Override
+//    public boolean isTargetAggregated() {
+//      return false;
+//    }
     
     @Override
     public boolean isRead() {
@@ -202,10 +202,10 @@ public abstract class Effect {
       return target.overlapsReceiver(rcvrNode);
     }
 
-    @Override
-    public final boolean isTargetAggregated() {
-      return target.isAggregated();
-    }
+//    @Override
+//    public final boolean isTargetAggregated() {
+//      return target.isAggregated();
+//    }
     
     @Override
     public final boolean isEmpty() {
@@ -530,11 +530,11 @@ public abstract class Effect {
     return target.getEvidence();
   }
   
-  /** 
-   * Did the target of this effect result from aggregation? 
-   */
-  public abstract boolean isTargetAggregated();
-  
+//  /** 
+//   * Did the target of this effect result from aggregation? 
+//   */
+//  public abstract boolean isTargetAggregated();
+//  
   /**
    * Query if the effect is a read effect.
    */

@@ -215,13 +215,6 @@ public final class AnyInstanceTarget extends AbstractTarget {
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
 
-
-  
-//  public Target undoBCAElaboration() {
-//    // Any instance targets do not original from elaboration
-//    return this;
-//  }
-
   
 
   public StringBuilder toString(final StringBuilder sb) {

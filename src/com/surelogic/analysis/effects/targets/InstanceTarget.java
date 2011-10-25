@@ -1,8 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.BCAEvidence;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
@@ -277,18 +275,6 @@ public final class InstanceTarget extends AbstractTarget {
       return false;
     }
   }  
-  
-  
-
-//  public Target undoBCAElaboration() {
-//    Target current = this;
-//    TargetEvidence e = this.elabEvidence;
-//    while (e instanceof BCAEvidence) { // null never satisfies instanceof
-//      current = ((BCAEvidence) e).getElaboratedFrom();
-//      e = current.getEvidence();
-//    }
-//    return current;
-//  }
 
 
 

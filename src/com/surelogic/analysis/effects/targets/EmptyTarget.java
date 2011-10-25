@@ -128,18 +128,6 @@ public final class EmptyTarget extends AbstractTarget {
       final IBinder b, final InstanceTarget actualTarget) {
     return true;
   }
-
-
-  
-//  public Target undoBCAElaboration() {
-//    Target current = this;
-//    TargetEvidence e = evidence.getMoreEvidence();
-//    while (e instanceof BCAEvidence) { // null never satisfies instanceof
-//      current = ((BCAEvidence) e).getElaboratedFrom();
-//      e = current.getEvidence();
-//    }
-//    return current;
-//  }
   
   
   

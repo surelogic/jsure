@@ -167,13 +167,6 @@ public final class LocalTarget extends AbstractTarget {
     throw new UnsupportedOperationException(
         "Doesn't make sense to use this method on a local target");
   }
-  
-  
-  
-//  public Target undoBCAElaboration() {
-//    // Local targets do not originate from elaboration
-//    return this;
-//  }
 
 
   /**
