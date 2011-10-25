@@ -6,6 +6,8 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.effects.targets.AggregationEvidence;
+import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;

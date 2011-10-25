@@ -1,6 +1,6 @@
 package com.surelogic.analysis.locks;
 
-import com.surelogic.analysis.effects.BCAEvidence;
+import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.Target;
 

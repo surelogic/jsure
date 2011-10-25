@@ -19,6 +19,8 @@ import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.effects.targets.AggregationEvidence;
+import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;

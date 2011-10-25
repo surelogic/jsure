@@ -1,9 +1,5 @@
 package com.surelogic.analysis.effects.targets;
 
-import com.surelogic.analysis.effects.AggregationEvidence;
-import com.surelogic.analysis.effects.BCAEvidence;
-import com.surelogic.analysis.effects.ElaborationEvidence;
-
 public abstract class EvidenceProcessor implements EvidenceVisitor {
   protected EvidenceProcessor() {
     super();

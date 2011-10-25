@@ -1,8 +1,8 @@
 package com.surelogic.analysis.locks;
 
-import com.surelogic.analysis.effects.AggregationEvidence;
-import com.surelogic.analysis.effects.BCAEvidence;
 import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.targets.AggregationEvidence;
+import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.Target;
 

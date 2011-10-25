@@ -7,6 +7,7 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
+import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
