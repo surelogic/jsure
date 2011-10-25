@@ -2,7 +2,6 @@ package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.AggregationEvidence;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -92,12 +91,14 @@ public interface Target {
   /**
    * Get the most recent aggregation evidence, if any.
    */
+  // TODO: Find a way to get rid of this method
   public AggregationEvidence getLastAggregation();
   
-  /**
-   * Undo the most recent chain of BCA elaborations.
-   */
-  public Target undoBCAElaboration();
+//  /**
+//   * Undo the most recent chain of BCA elaborations.
+//   */
+//  // TODO: Find a way to get rid of this method
+//  public Target undoBCAElaboration();
 
   
   

@@ -1,7 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -37,8 +36,9 @@ public final class AnyInstanceTarget extends AbstractTarget {
    * given region.
    */
   // Force use of the target factories
-  AnyInstanceTarget(final IJavaReferenceType c, final IRegion r) {
-    super(r);
+  AnyInstanceTarget(final IJavaReferenceType c, final IRegion r,
+      final TargetEvidence te) {
+    super(r, te);
     
     // Region cannot be static: use class target
     if (r.isStatic()) {
@@ -65,9 +65,9 @@ public final class AnyInstanceTarget extends AbstractTarget {
   public Target degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     if (newRegion.isStatic()) {
-      return new ClassTarget(newRegion, null);
+      return new ClassTarget(newRegion, evidence);
     } else {
-      return new AnyInstanceTarget(clazz, newRegion);
+      return new AnyInstanceTarget(clazz, newRegion, evidence);
     }
   }
 
@@ -215,15 +215,12 @@ public final class AnyInstanceTarget extends AbstractTarget {
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
 
+
   
-  public TargetEvidence getEvidence() {
-    return null;
-  }
-  
-  public Target undoBCAElaboration() {
-    // Any instance targets do not original from elaboration
-    return this;
-  }
+//  public Target undoBCAElaboration() {
+//    // Any instance targets do not original from elaboration
+//    return this;
+//  }
 
   
 
@@ -248,7 +245,10 @@ public final class AnyInstanceTarget extends AbstractTarget {
   public boolean equals(final Object o) {
     if (o instanceof AnyInstanceTarget) {
       final AnyInstanceTarget t = (AnyInstanceTarget) o;
-      return clazz.equals(t.clazz) && region.equals(t.region);
+      return clazz.equals(t.clazz)
+          && region.equals(t.region)
+          && (evidence == null ? t.evidence == null : evidence.equals(t.evidence));
+          
     }
     return false;
   }
@@ -264,6 +264,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
     int result = 17;
     result = 31 * result + clazz.hashCode();
     result = 31 * result + region.hashCode();
+    result = 31 * result + (evidence == null ? 0 : evidence.hashCode());
     return result;
   }
 }

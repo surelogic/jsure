@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.regions.IRegion;
@@ -130,12 +131,12 @@ public final class UniquenessUtils {
      */
     if (region.isStatic()) {
       /* fieldRef = <Class> . <region> */
-      result.add(targetFactory.createClassTarget(region));
+      result.add(targetFactory.createClassTarget(region, NoEvidence.INSTANCE));
     } else {
       /* fieldRef = <expr> . <region>
        * FieldRef always aggregates into itself
        */
-      result.add(targetFactory.createInstanceTarget(expr, region));
+      result.add(targetFactory.createInstanceTarget(expr, region, NoEvidence.INSTANCE));
   
       /* Field can only be aggregated if there is another level of indirection. */
       if (FieldRef.prototype.includes(JJNode.tree.getOperator(expr))) {

@@ -1,7 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -32,7 +31,7 @@ public final class LocalTarget extends AbstractTarget {
 	 */
   // Force use of the target factories
   LocalTarget(final IRNode v) {
-    super();
+    super(null); // No evidence, ever
     if (v == null) {
       throw new NullPointerException("Got a null variable for local target");
     }
@@ -171,14 +170,10 @@ public final class LocalTarget extends AbstractTarget {
   
   
   
-  public TargetEvidence getEvidence() {
-    return null;
-  }
-  
-  public Target undoBCAElaboration() {
-    // Local targets do not originate from elaboration
-    return this;
-  }
+//  public Target undoBCAElaboration() {
+//    // Local targets do not originate from elaboration
+//    return this;
+//  }
 
 
   /**

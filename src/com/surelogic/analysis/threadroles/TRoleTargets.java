@@ -14,6 +14,7 @@ import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
@@ -232,7 +233,7 @@ public class TRoleTargets {
       
       // If we found a suitable region, generate the result
       if (creg != null) {
-        Target tgt = targetFactory.createClassTarget(creg);
+        Target tgt = targetFactory.createClassTarget(creg, NoEvidence.INSTANCE);
         Set<Target> res = new HashSet<Target>();
         res.add(tgt);
         return res;
@@ -410,7 +411,7 @@ public class TRoleTargets {
            * We do this by checking whether "writes <e.f>.mappedRegion"
            * conflicts with the method's effects.
            */
-          final Target t = targetFactory.createInstanceTarget(actual, mappedRegion);
+          final Target t = targetFactory.createInstanceTarget(actual, mappedRegion, NoEvidence.INSTANCE);
           final Effect e = Effect.newWrite(mcall, t); // bogus src expression
           final Set<Effect> eAsSet = Collections.singleton(e);
           /* XXX: This is just as broken as it was before we cared about the

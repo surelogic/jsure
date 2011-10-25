@@ -28,18 +28,25 @@ abstract class AbstractTarget implements Target {
   /** The region accessed by the target */
   protected final IRegion region;
 
+  /** 
+   * Evidence, if any, for the target's existence.  May be <code>null</code>
+   */
+  protected final TargetEvidence evidence;
+  
 
 
   /** Only for use by LocalTarget and EmptyTarget. */
-  AbstractTarget() {
+  AbstractTarget(final TargetEvidence te) {
     region = null;
+    evidence = te;
   }
 
-  protected AbstractTarget(final IRegion reg) {
+  protected AbstractTarget(final IRegion reg, final TargetEvidence te) {
     if (reg == null) {
       throw new NullPointerException("region cannot be null");
     }
     region = reg;
+    evidence = te;
   }
   
     
@@ -62,7 +69,7 @@ abstract class AbstractTarget implements Target {
 
   
   
-  // Used by implementions of the overlapsWith methods
+  // Used by implementations of the overlapsWith methods
   /**
    * Returns whether <code>t1</code> is an ancestor of <code>t2</code>,
    * or vice versa.  This uses ITypeEnvironment.isSubType() which 
@@ -128,6 +135,10 @@ abstract class AbstractTarget implements Target {
   abstract boolean checkTargetAgainstInstance(IBinder b, InstanceTarget actualTarget);
 
   
+  
+  public final TargetEvidence getEvidence() {
+    return evidence;
+  }
   
   public final boolean isAggregated() {
     return getLastAggregation() != null;

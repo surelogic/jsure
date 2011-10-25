@@ -10,6 +10,7 @@ import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.regions.IRegion;
@@ -219,7 +220,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
               }
             }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
-                (IJavaReferenceType) ty, region);
+                (IJavaReferenceType) ty, region, NoEvidence.INSTANCE);
           }
         }
 

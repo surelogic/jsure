@@ -35,14 +35,12 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class InstanceTarget extends AbstractTarget {
   // AnyInstanceTarget needs to look at this
   final IRNode reference;
-
-  private final ElaborationEvidence elabEvidence;
   
   
   
   // Force use of the target factories
-  InstanceTarget(final IRNode object, final IRegion field, final ElaborationEvidence ee) {
-    super(field);
+  InstanceTarget(final IRNode object, final IRegion field, final TargetEvidence te) {
+    super(field, te);
     
     // Region cannot be static: use class target
     if (field.isStatic()) {
@@ -58,7 +56,6 @@ public final class InstanceTarget extends AbstractTarget {
     }
     
     reference = object;
-    elabEvidence = ee;
   }
   
   
@@ -76,9 +73,9 @@ public final class InstanceTarget extends AbstractTarget {
   public Target degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     if (newRegion.isStatic()) {
-      return new ClassTarget(newRegion, elabEvidence);
+      return new ClassTarget(newRegion, evidence);
     } else {
-      return new InstanceTarget(reference, newRegion, elabEvidence);
+      return new InstanceTarget(reference, newRegion, evidence);
     }
   }
   
@@ -283,19 +280,15 @@ public final class InstanceTarget extends AbstractTarget {
   
   
 
-  public TargetEvidence getEvidence() {
-    return elabEvidence;
-  }
-  
-  public Target undoBCAElaboration() {
-    Target current = this;
-    TargetEvidence e = this.elabEvidence;
-    while (e instanceof BCAEvidence) { // null never satisfies instanceof
-      current = ((BCAEvidence) e).getElaboratedFrom();
-      e = current.getEvidence();
-    }
-    return current;
-  }
+//  public Target undoBCAElaboration() {
+//    Target current = this;
+//    TargetEvidence e = this.elabEvidence;
+//    while (e instanceof BCAEvidence) { // null never satisfies instanceof
+//      current = ((BCAEvidence) e).getElaboratedFrom();
+//      e = current.getEvidence();
+//    }
+//    return current;
+//  }
 
 
 
@@ -325,7 +318,7 @@ public final class InstanceTarget extends AbstractTarget {
       final InstanceTarget t = (InstanceTarget) o;
       return region.equals(t.region)
           && reference.equals(t.reference)
-          && (elabEvidence == null ? t.elabEvidence == null : elabEvidence.equals(t.elabEvidence));
+          && (evidence == null ? t.evidence == null : evidence.equals(t.evidence));
     }
     return false;
   }
@@ -341,7 +334,7 @@ public final class InstanceTarget extends AbstractTarget {
     int result = 17;
     result = 31 * result + ((reference == null) ? 0 : reference.hashCode());
     result = 31 * result + ((region == null) ? 0 : region.hashCode());
-    result = 31 * result + ((elabEvidence == null) ? 0 : elabEvidence.hashCode());
+    result = 31 * result + ((evidence == null) ? 0 : evidence.hashCode());
     return result;
   }
 }

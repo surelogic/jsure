@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
@@ -99,7 +100,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
       }
       
       final IJavaReferenceType jRefType = (IJavaReferenceType) jType;
-      final Target t = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(jRefType, r);
+      final Target t = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(jRefType, r, NoEvidence.INSTANCE);
       final Effect e = Effect.newWrite(null, t); // bogus src expression
       interestingRegionWriteFX.add(e);
     }

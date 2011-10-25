@@ -12,6 +12,7 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -327,11 +328,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
               final IRNode newRef = enclosing.replace(ref);
               if (newRef != null) {
                 newTarget = targetFactory.createInstanceTarget(
-                    newRef, target.getRegion());
+                    newRef, target.getRegion(), NoEvidence.INSTANCE);
               } else {
                 final IJavaType type = binder.getJavaType(ref);
                 newTarget = targetFactory.createAnyInstanceTarget(
-                    (IJavaReferenceType) type, target.getRegion());
+                    (IJavaReferenceType) type, target.getRegion(), NoEvidence.INSTANCE);
               }
               effects.elaborateInstanceTargetEffects(
                   context.bcaQuery, targetFactory, binder, expr, 
@@ -353,7 +354,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     final boolean isRead = context.isRead();
     effects.elaborateInstanceTargetEffects(
         context.bcaQuery, targetFactory, binder, expr, callback, isRead,
-        targetFactory.createInstanceTarget(array, INSTANCE_REGION), context.theEffects);
+        targetFactory.createInstanceTarget(array, INSTANCE_REGION, NoEvidence.INSTANCE),
+        context.theEffects);
     doAcceptForChildren(expr);
     return null;
   }
@@ -396,14 +398,14 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     final IRNode id = binder.getBinding(expr);
     if (!TypeUtil.isFinal(id)) {
       if (TypeUtil.isStatic(id)) {
-        context.addEffect(
-            Effect.newEffect(expr, isRead, targetFactory.createClassTarget(id)));
+        context.addEffect(Effect.newEffect(expr, isRead,
+            targetFactory.createClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
       } else {
         final IRNode obj = FieldRef.getObject(expr);
         // Public bug 37: Skip effects on "null" references
         if (!Effects.isNullExpression(obj)) {
           final Target initTarget = 
-            targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
+            targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id), NoEvidence.INSTANCE);
           effects.elaborateInstanceTargetEffects(
               context.bcaQuery, targetFactory, binder, expr, callback, 
               isRead, initTarget, context.theEffects);
@@ -412,8 +414,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     } else {
       context.addEffect(
           Effect.newEffect(expr, isRead, 
-              targetFactory.createEmptyTarget(
-                  EmptyEvidence.Reason.FINAL_FIELD, null, id)));
+              targetFactory.createEmptyTarget(new EmptyEvidence(
+                  EmptyEvidence.Reason.FINAL_FIELD, null, id))));
     }
     doAcceptForChildren(expr);
     return null;
@@ -523,11 +525,13 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
       final IRNode varDecl, final boolean isStatic) {
     if (!TypeUtil.isFinal(varDecl)) {
       if (isStatic) {
-        context.addEffect(Effect.newWrite(varDecl, targetFactory.createClassTarget(varDecl)));
+        context.addEffect(Effect.newWrite(varDecl, 
+            targetFactory.createClassTarget(
+                RegionModel.getInstance(varDecl), NoEvidence.INSTANCE)));
       } else {
         context.addEffect(Effect.newRead(varDecl, targetFactory.createLocalTarget(context.theReceiverNode)));
         // This never needs elaborating because it is not a use expression or a field reference expression
-        final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(varDecl));
+        final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(varDecl), NoEvidence.INSTANCE);
         context.addEffect(Effect.newWrite(varDecl, t));
       }
     }

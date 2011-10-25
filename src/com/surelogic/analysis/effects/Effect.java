@@ -75,7 +75,8 @@ public abstract class Effect {
   private static final class EmptyEffect extends Effect {
     private EmptyEffect(final IRNode src) {
       super(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
-          EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null));
+          new EmptyEvidence(
+              EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null)));
     }
 
   

@@ -1,7 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 
@@ -19,12 +18,9 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 /* I only want this class to be usable by the TargetFactory implementations */
 public final class ClassTarget extends AbstractTarget {
-  final ElaborationEvidence elabEvidence;
-
   // Force use of the target factories
-  ClassTarget(final IRegion rgn, final ElaborationEvidence evidence) {
-    super(rgn);
-    elabEvidence = evidence;
+  ClassTarget(final IRegion rgn, final TargetEvidence evidence) {
+    super(rgn, evidence);
   }
   
   
@@ -42,7 +38,7 @@ public final class ClassTarget extends AbstractTarget {
 
   public ClassTarget degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
-    return new ClassTarget(newRegion, elabEvidence);
+    return new ClassTarget(newRegion, evidence);
   }
   
   
@@ -185,14 +181,10 @@ public final class ClassTarget extends AbstractTarget {
 
   
 
-  public TargetEvidence getEvidence() {
-    return elabEvidence;
-  }
-  
-  public Target undoBCAElaboration() {
-    // Class targets cannot originate from BCA elaboration
-    return this;
-  }
+//  public Target undoBCAElaboration() {
+//    // Class targets cannot originate from BCA elaboration
+//    return this;
+//  }
 
 
 
@@ -214,7 +206,7 @@ public final class ClassTarget extends AbstractTarget {
     if (o instanceof ClassTarget) {
       final ClassTarget t = (ClassTarget) o;
       return region.equals(t.region) && 
-          (elabEvidence == null ? t.elabEvidence == null : elabEvidence.equals(t.elabEvidence));
+          (evidence == null ? t.evidence == null : evidence.equals(t.evidence));
     }
     return false;
   }
@@ -228,7 +220,7 @@ public final class ClassTarget extends AbstractTarget {
   public int hashCode() {
     int result = 17;
     result = 31 * result + region.hashCode();
-    result = 31 * result + (elabEvidence == null ? 0 : elabEvidence.hashCode());
+    result = 31 * result + (evidence == null ? 0 : evidence.hashCode());
     return result;
   }
 }

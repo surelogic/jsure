@@ -12,4 +12,5 @@ public interface EvidenceVisitor {
   public void visitBCAEvidence(BCAEvidence e);
   public void visitElaborationEvidence(ElaborationEvidence e);
   public void visitEmptyEvidence(EmptyEvidence e);
+  public void visitNoEvidence(NoEvidence e);
 }

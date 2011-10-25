@@ -22,6 +22,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -129,7 +130,7 @@ public final class Effects implements IBinderClient {
   
   private Effect getWritesAnything(final IRNode effectSrc) {	  
     final Target anything =
-      DefaultTargetFactory.PROTOTYPE.createClassTarget(getAllRegion(effectSrc));
+      DefaultTargetFactory.PROTOTYPE.createClassTarget(getAllRegion(effectSrc), NoEvidence.INSTANCE);
     return Effect.newWrite(effectSrc, anything);
   }
 
@@ -297,30 +298,36 @@ public final class Effects implements IBinderClient {
         final Target targ;
         if (pContext instanceof ImplicitQualifierNode) {
           if (region.isStatic()) { // Static region -> class target
-            targ = tf.createClassTarget(region);
+            targ = tf.createClassTarget(region, NoEvidence.INSTANCE);
           } else { // Instance region -> qualify with receiver
             // We bind the receiver ourselves, so this is safe
-            targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
+            targ = tf.createInstanceTarget(
+                JavaPromise.getReceiverNode(mDecl), region, NoEvidence.INSTANCE);
           }
         } else if (pContext instanceof AnyInstanceExpressionNode) {
           final IJavaType type = 
             ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
-          targ = tf.createAnyInstanceTarget((IJavaReferenceType) type, region);
+          targ = tf.createAnyInstanceTarget(
+              (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
         } else if (pContext instanceof QualifiedThisExpressionNode) {
           final QualifiedThisExpressionNode qthis =
             (QualifiedThisExpressionNode) pContext;
           final IRNode canonicalReceiver =
             JavaPromise.getQualifiedReceiverNodeByName(mDecl, qthis.resolveType().getNode());
           // We just bound the receiver ourselves, so this is safe
-          targ = tf.createInstanceTarget(canonicalReceiver, region);
+          targ = tf.createInstanceTarget(
+              canonicalReceiver, region, NoEvidence.INSTANCE);
         } else if (pContext instanceof TypeExpressionNode) {
-          targ = tf.createClassTarget(region);
+          targ = tf.createClassTarget(region, NoEvidence.INSTANCE);
         } else if (pContext instanceof ThisExpressionNode) {
           // We bind the receiver ourselves, so this is safe
-          targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
+          targ = tf.createInstanceTarget(
+              JavaPromise.getReceiverNode(mDecl), region, NoEvidence.INSTANCE);
         } else if (pContext instanceof VariableUseExpressionNode) {
           // The object expression cannot be a receiver, so this is safe
-          targ = tf.createInstanceTarget(((VariableUseExpressionNode) pContext).resolveBinding().getNode(), region);
+          targ = tf.createInstanceTarget(
+              ((VariableUseExpressionNode) pContext).resolveBinding().getNode(),
+              region, NoEvidence.INSTANCE);
         } else {
           // Shouldn't happen, but we need to ensure that blank final targ is initialized
           targ = null;
@@ -474,7 +481,7 @@ public final class Effects implements IBinderClient {
            */
           if (!isNullExpression(val)) {
             final Target newTarg =
-              targetFactory.createInstanceTarget(val, t.getRegion());
+              targetFactory.createInstanceTarget(val, t.getRegion(), NoEvidence.INSTANCE);
             elaborateInstanceTargetEffects(
                 bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
                 newTarg, methodEffects);
@@ -483,7 +490,7 @@ public final class Effects implements IBinderClient {
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
             final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
             final Target newTarg = targetFactory.createAnyInstanceTarget(
-                JavaTypeFactory.getMyThisType(type), t.getRegion()); 
+                JavaTypeFactory.getMyThisType(type), t.getRegion(), NoEvidence.INSTANCE); 
             methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
           } else {
             // something went wrong          
@@ -634,8 +641,8 @@ public final class Effects implements IBinderClient {
            */
           if (LockRules.isImmutableRef(nodeToTest)) {
             targets.add(
-                targetFactory.createEmptyTarget(
-                    EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest));
+                targetFactory.createEmptyTarget(new EmptyEvidence(
+                    EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
             elaborated.add(target);
           }
           
@@ -644,7 +651,7 @@ public final class Effects implements IBinderClient {
            */
           if (UniquenessRules.isReadOnly(nodeToTest)) {
             targets.add(
-                targetFactory.createClassTarget(getAllRegion(expr)));
+                targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
             elaborated.add(target);
           }
         }
@@ -666,7 +673,7 @@ public final class Effects implements IBinderClient {
         if (BindingContext.isExternalVar(n)) {
           final IJavaType type = binder.getJavaType(expr);
           newTarget = targetFactory.createAnyInstanceTarget(
-              (IJavaReferenceType) type, region);
+              (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
         } else {
           // BCA already binds receivers to ReceiverDeclaration and QualifiedReceiverDeclaration nodes
           final BCAEvidence evidence = new BCAEvidence(target, expr, n);        
@@ -722,13 +729,13 @@ public final class Effects implements IBinderClient {
          * replace it with a new empty target.
          */
         targets.add(
-            targetFactory.createEmptyTarget(
-                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID));
+            targetFactory.createEmptyTarget(new EmptyEvidence(
+                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID)));
         elaborated.add(target);
       } else if (UniquenessRules.isReadOnly(fieldID)) {
         /* Field is read only: Replace the target with Object:All. */
         targets.add(
-            targetFactory.createClassTarget(getAllRegion(expr)));
+            targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
         elaborated.add(target);
       }
     }

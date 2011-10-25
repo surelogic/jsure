@@ -11,12 +11,16 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
   
   
   
-  public void accept(final TargetEvidence e) {
+  public final void accept(final TargetEvidence e) {
     if (e != null) e.visit(this);
   }
   
   
   
+  /**
+   * Generic visit method: if no specific {@code visit} method handles the 
+   * evidence, this method handles it.  
+   */
   protected void visit(final TargetEvidence e) {
     // do nothing
   }
@@ -39,4 +43,7 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     visit(e);
   }
 
+  public void visitNoEvidence(final NoEvidence e) {
+    visit(e);
+  }
 }

@@ -11,6 +11,7 @@ import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -436,8 +437,9 @@ public final class LockUtils {
       final Effects.Query fxQuery, final ConflictChecker conflicter, 
       final IRNode array, final IRNode sync) {
     if (sync != null) {
-      final Set<Effect> exprEffects =
-        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, RegionModel.getInstanceRegion(sync))));
+      final Set<Effect> exprEffects = Collections.singleton(
+          Effect.newRead(null, targetFactory.createInstanceTarget(
+              array, RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -718,7 +720,8 @@ public final class LockUtils {
     			if (aggregationMap != null) {
     			  for (final IRegion from : aggregationMap.keySet()) {
     			    // This is okay because only instance regions can be mapped
-    			    final Target testTarget = targetFactory.createInstanceTarget(actual, from);
+    			    final Target testTarget = targetFactory.createInstanceTarget(
+    			        actual, from, NoEvidence.INSTANCE);
     			    exposedTargets.add(testTarget);
     				}
     			}
@@ -787,7 +790,7 @@ public final class LockUtils {
         if (aggedRegion.ancestorOf(mapping.getKey())) {
           final IRegion destRegion = mapping.getValue();
           if (destRegion.isStatic()) {
-            targets.add(targetFactory.createClassTarget(destRegion));
+            targets.add(targetFactory.createClassTarget(destRegion, NoEvidence.INSTANCE));
           } else {
             final IRNode objExpr;
             if (target instanceof ClassTarget) {
@@ -799,7 +802,7 @@ public final class LockUtils {
              * and this implies that that target has ElaborationEvidence
              */
             targets.add(targetFactory.createInstanceTarget(
-                objExpr, destRegion, (ElaborationEvidence) target.getEvidence()));
+                objExpr, destRegion, target.getEvidence()));
           }
         }
       }
@@ -812,7 +815,8 @@ public final class LockUtils {
        * then we don't care about the result.  We take our given target and 
        * backtrack over BCA until we hit aggregation or the end.
        */
-      t = t.undoBCAElaboration();
+      t = UndoBCAProcessor.undo(t);
+//      t = t.undoBCAElaboration();
       
       final IRegion region = t.getRegion();
       /* Final and volatile regions do not need locks */
@@ -1333,11 +1337,11 @@ public final class LockUtils {
   
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region) {
-    return targetFactory.createInstanceTarget(object, region);
+    return targetFactory.createInstanceTarget(object, region, NoEvidence.INSTANCE);
   }
 
   public ClassTarget createClassTarget(final IRegion field) {
-    return targetFactory.createClassTarget(field);
+    return targetFactory.createClassTarget(field, NoEvidence.INSTANCE);
   }
 
   /**
@@ -1374,7 +1378,8 @@ public final class LockUtils {
      * receiver declaration node directly.
      */
     final Effect writesInstance = Effect.newWrite(null,
-        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, RegionModel.getInstanceRegion(cdecl)));
+        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(
+            rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
 
     final List<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     /* Ultimately this is only used if the effects are declared and of
