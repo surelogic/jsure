@@ -630,4 +630,44 @@ public class PromisesXMLEditor extends EditorPart {
 			return element.toString();
 		}
 	}
+
+	public void focusOnMethod(String name, String params) {
+		PackageElement p = provider.pkg;
+		if (p != null) {
+			final MethodElement m = p.visit(new MethodFinder(name, params));
+			if (m != null) {
+				//contents.expandToLevel(m, 1);
+				contents.setSelection(new StructuredSelection(m));
+				contents.reveal(m);
+			}
+		}
+	}
+	
+	static class MethodFinder extends AbstractJavaElementVisitor<MethodElement> {
+		final String name, params;
+		
+		MethodFinder(String name, String params) {
+			super(null);
+			this.name = name;
+			this.params = params;
+		}
+
+		@Override
+		protected MethodElement combine(MethodElement old, MethodElement result) {
+			if (old != null) {
+				return old;
+			}
+			return result;
+		}
+		
+		@Override
+		public MethodElement visit(MethodElement m) {
+			if (name.equals(m.getName())) {
+				if (params.equals(m.getParams())) {
+					return m;
+				}				
+			}
+			return null;
+		}
+	}
 }

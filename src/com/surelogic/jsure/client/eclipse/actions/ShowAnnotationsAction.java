@@ -13,6 +13,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.jsure.core.scans.*;
@@ -65,11 +66,15 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				
 				final Visitor v = new Visitor();
 				root.accept(v);
-				final String qname = v.getQualifiedName();
+				final String qname = v.getQualifiedTypeName();
 				if (qname != null) {
 					final String xmlRoot = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
 					String path = xmlRoot+slash+qname.replace('.', slash)+TestXMLParserConstants.SUFFIX;
-					EclipseUIUtility.openInEditor(path);
+					IEditorPart editor = EclipseUIUtility.openInEditor(path);
+					if (editor instanceof PromisesXMLEditor) {
+						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
+						pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					
+					}
 				}				
 				final String id = JavaIdentifier.omitProject(v.getIdentifier());
 				System.out.println("id = "+id);
@@ -135,6 +140,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	
 	class Visitor extends ASTVisitor {
 		private MethodInvocation call;
+		private IMethodBinding binding;
 		
 		@Override	
 		public boolean visit(MethodInvocation node) {			
@@ -147,6 +153,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				} 
 				//System.out.println("Position = "+node.getStartPosition()+" ("+selection.getOffset()+")");
 				call = node;
+				binding = call.resolveMethodBinding();
 			}
 			return true;
 		}
@@ -157,23 +164,48 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 		
 		String getIdentifier() {
-			if (call != null) {
-				final IMethodBinding mb = call.resolveMethodBinding();
-				if (mb != null) {
-					String id = JavaIdentifierUtil.encodeBinding(mb);
-					//System.out.println("id = "+id);
-					return id;
-				} else {
-					System.out.println("No binding for "+call);
-				}
+			if (binding != null) {
+				String id = JavaIdentifierUtil.encodeBinding(binding);
+				//System.out.println("id = "+id);
+				return id;
+			} else {
+				System.out.println("No binding for "+call);
 			}
 			return null;
 		}
 		
-		String getQualifiedName() {
-			if (call != null) {
-				final IMethodBinding mb = call.resolveMethodBinding();
-				return mb.getDeclaringClass().getErasure().getQualifiedName();
+		String getQualifiedTypeName() {
+			if (binding != null) {
+				return binding.getDeclaringClass().getErasure().getQualifiedName();
+			}
+			return null;
+		}
+		
+		String getMethodName() {
+			if (binding != null) {
+				return binding.getName();
+			}
+			return null;
+		}
+		
+		String getMethodParameters() {
+			if (binding != null) {
+				ITypeBinding[] params = binding.getParameterTypes();
+				switch (params.length) {
+				case 0:
+					return "";
+				case 1:
+					return JavaIdentifierUtil.encodeParameterType(params[0]);
+				default:
+					final StringBuilder sb = new StringBuilder();
+					for(ITypeBinding t : params) {
+						if (sb.length() > 0) {
+							sb.append(","); // Same as AbstractFunctionElement.normalize()
+						}
+						sb.append(JavaIdentifierUtil.encodeParameterType(t));
+					}
+					return sb.toString();
+				}
 			}
 			return null;
 		}
