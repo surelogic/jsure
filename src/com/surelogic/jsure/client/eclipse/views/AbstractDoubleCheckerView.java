@@ -11,12 +11,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -47,22 +41,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.analysis.IIRProjects;
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 
@@ -303,78 +289,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 *            the source reference to highlight
 	 */
 	protected void highlightLineInJavaEditor(ISrcRef srcRef) {
-		if (srcRef != null) {
-			try {
-				Object f = srcRef.getEnclosingFile();
-				IFile file;
-				if (f instanceof IFile) {
-					file = (IFile) f;
-				} else if (f instanceof String) {
-					String s = (String) f;
-					if (s.indexOf('/') < 0) {
-						return; // probably not a file
-					}
-					s = HistoricalSourceView.tryToMapPath(s);
-					file = EclipseUtility.resolveIFile(s);
-
-					if (file == null) {
-						s = srcRef.getRelativePath();
-						file = EclipseUtility.resolveIFile(s);
-					}
-				} else {
-					return;
-				}
-				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
-						srcRef.getCUName(), srcRef.getLineNumber());
-
-				if (file != null && file.exists()) {
-					IJavaElement elt = JavaCore.create(file);
-					if (elt != null) {
-						IEditorPart ep = JavaUI.openInEditor(elt, false, true);
-
-						IMarker location = null;
-						try {
-							location = ResourcesPlugin.getWorkspace().getRoot()
-									.createMarker("com.surelogic.jsure.client.eclipse.marker");
-							//boolean text = location.isSubtypeOf("org.eclipse.core.resources.textmarker");
-							final int offset = srcRef.getOffset();
-							if (offset >= 0 && offset != Integer.MAX_VALUE
-									&& srcRef.getLength() >= 0) {
-								int len = srcRef.getLength();
-								if (len == 0) {
-									len = 1;
-								}
-								location.setAttribute(IMarker.CHAR_START,
-										srcRef.getOffset());
-								location.setAttribute(IMarker.CHAR_END,
-										srcRef.getOffset() + srcRef.getLength());
-							}
-							if (srcRef.getLineNumber() > 0) {
-								location.setAttribute(IMarker.LINE_NUMBER,
-										srcRef.getLineNumber());
-							}
-						} catch (org.eclipse.core.runtime.CoreException e) {
-							SLLogger.getLogger().log(Level.SEVERE,
-									"Failure to create an IMarker", e);
-						}
-						if (location != null) {
-							IDE.gotoMarker(ep, location);
-						}
-					} else { // try to open as a text file
-						IWorkbench bench = PlatformUI.getWorkbench();
-						IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
-						if (win == null && bench.getWorkbenchWindowCount() > 0) {
-							win = bench.getWorkbenchWindows()[0];
-						}
-						IWorkbenchPage page = win.getActivePage();
-						IDE.openEditor(page, file, false);
-					}
-				}
-			} catch (PartInitException e) {
-				showMessage("PartInitException was thrown");
-			} catch (org.eclipse.core.runtime.CoreException e) {
-				showMessage("CoreException was thrown");
-			}
+		try {
+			EditorUtil.highlightLineInJavaEditor(srcRef);
+		} catch (org.eclipse.core.runtime.CoreException e) {
+			showMessage("CoreException was thrown");
 		}
 	}
 
