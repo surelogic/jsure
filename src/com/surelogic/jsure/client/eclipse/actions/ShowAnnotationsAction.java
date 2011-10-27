@@ -23,7 +23,6 @@ import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
-	private static final char slash = File.separatorChar;	
 	private final ASTParser parser;
 	
 	IStorageEditorInput input;
@@ -72,7 +71,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 					*/
 					String path = qname.replace('.', '/')+TestXMLParserConstants.SUFFIX;
 					IEditorPart editor = PromisesXMLEditor.openInEditor(path);
-					if (editor instanceof PromisesXMLEditor) {
+					if (editor instanceof PromisesXMLEditor && v.getMethodName() != null) {
 						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
 						pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					
 					}
@@ -142,6 +141,36 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	class Visitor extends ASTVisitor {
 		private MethodInvocation call;
 		private IMethodBinding binding;
+		private ITypeBinding typeB;
+		private Name name;
+		
+		@Override
+		public boolean visit(SimpleName node) {
+			return visitName(node);
+		}
+		
+		@Override
+		public boolean visit(QualifiedName node) {
+			visitName(node.getQualifier());
+			return visitName(node);
+		}
+		
+		private boolean visitName(Name node) {
+			if (containsSelection(node.getStartPosition(), node.getLength())) {
+				if (name != null) {
+					if (node.getStartPosition() < name.getStartPosition()) {
+						// Keep looking
+						return true;
+					}
+				}
+				IBinding b = node.resolveBinding();
+				if (b instanceof ITypeBinding) {
+					name = node;			
+					typeB = (ITypeBinding) b;
+				}
+			}
+			return true;
+		}
 		
 		@Override	
 		public boolean visit(MethodInvocation node) {			
@@ -155,6 +184,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				//System.out.println("Position = "+node.getStartPosition()+" ("+selection.getOffset()+")");
 				call = node;
 				binding = call.resolveMethodBinding();
+				typeB = binding.getDeclaringClass();
 			}
 			return true;
 		}
@@ -176,8 +206,8 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 		
 		String getQualifiedTypeName() {
-			if (binding != null) {
-				return binding.getDeclaringClass().getErasure().getQualifiedName();
+			if (typeB != null) {
+				return typeB.getErasure().getQualifiedName();
 			}
 			return null;
 		}
