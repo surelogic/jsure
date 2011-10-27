@@ -2,11 +2,13 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
@@ -27,6 +29,8 @@ import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
@@ -668,6 +672,96 @@ public class PromisesXMLEditor extends EditorPart {
 				}				
 			}
 			return null;
+		}
+	}
+	
+	public static IEditorInput makeInput(String relativePath) {
+		try {
+			return new Input(relativePath);
+		} catch (URISyntaxException e) {
+			return null;
+		}
+	}
+	
+	private static class Input implements IURIEditorInput {
+		private final String path;
+		private final String name;
+		private final URI uri;
+		
+		Input(String relativePath) throws URISyntaxException {
+			path = relativePath;
+			uri = new URI(path);
+			
+			final int lastSlash = path.lastIndexOf('/');
+			if (lastSlash < 0) {
+				name = path;
+			} else {
+				name = path.substring(lastSlash+1);
+			}
+		}
+
+		@Override
+		public boolean exists() {
+			final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
+			if (localXml != null) {
+				File f = new File(localXml, path);
+				if (f.isFile()) {
+					return true;
+				}
+			}
+			// Try fluid
+			final File xml = PromisesLibMerge.getFluidXMLDir();
+			if (xml != null) {
+				File f = new File(xml, path);
+				if (f.isFile()) {
+					return true;
+				}
+			}
+			return false;			
+		}
+
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return null; // TODO
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public IPersistableElement getPersistable() {
+			return new IPersistableElement() {				
+				@Override
+				public void saveState(IMemento memento) {
+					memento.putString(PromisesXMLFactory.PATH, path);					
+				}
+				
+				@Override
+				public String getFactoryId() {
+					return PromisesXMLFactory.class.getName();
+				}
+			};
+		}
+
+		@Override
+		public String getToolTipText() {
+			return path;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object getAdapter(Class adapter) {
+			if (adapter == Object.class) {
+				return this;
+			}
+			return null;
+		}
+
+		@Override
+		public URI getURI() {
+			return uri;
 		}
 	}
 }
