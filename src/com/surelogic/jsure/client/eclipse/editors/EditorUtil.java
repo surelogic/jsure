@@ -29,6 +29,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.PackageAccessor;
 import com.surelogic.xml.PackageElement;
@@ -125,7 +126,7 @@ public class EditorUtil {
 	}
 	
 	private static boolean handleIClassFile(final ISrcRef srcRef) throws JavaModelException {
-		final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+		final String root = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 		final char slash  = File.separatorChar;
 		final String pkg  = srcRef.getPackage().replace('.', slash);
 		String name = srcRef.getCUName();
