@@ -9,13 +9,17 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
+import com.surelogic.analysis.effects.targets.CallEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.NoEvidence;
+import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
+import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 
@@ -381,48 +385,48 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		rd.addCheckedPromise(declEffDrop);
 
 		final IRNode src = eff.getSource();
-		final Operator op = JJNode.tree.getOperator(src);
-		if (op instanceof CallInterface) {
-			final IRNode mdecl = getBinder().getBinding(src);
-			final RegionEffectsPromiseDrop cutpoint =
-				MethodEffectsRules.getRegionEffectsDrop(mdecl);
-			// No drops to make if there are no declared effects
-			if (cutpoint != null) {
-				rd.addTrustedPromise(cutpoint);
-				// Add parameter bindings
-				final Map<IRNode, IRNode> bindings =
-					MethodCallUtils.constructFormalToActualMap(
-							// XXX: This is not correct because it should really use the
-							// specific constructor implementations when analyzing field inits
-							// and instance inits, but this is not possible from here. Yet
-							// another reason why I need to chang the EffectsVisitor to build
-							// it's own COE.
-							getBinder(), src, getBinder().getBinding(src), methodBeingChecked);
-				for (final Map.Entry<IRNode, IRNode> binding : bindings.entrySet()) {
-					final IRNode formal = binding.getKey();
-					final Operator formalOp = JJNode.tree.getOperator(formal);
-					final String formalString;
-					if (ParameterDeclaration.prototype.includes(formalOp)) {
-						formalString = ParameterDeclaration.getId(formal);
-					} else if (ReceiverDeclaration.prototype.includes(formalOp)) {
-						formalString = "this";
-					} else if (QualifiedReceiverDeclaration.prototype.includes(formalOp)) {
-						formalString = JavaNames.getFullTypeName(QualifiedReceiverDeclaration.getType(getBinder(), formal)) + " .this";
-					} else {
-						// Shouldn't get here
-						throw new IllegalStateException("Formal parameter is not a ParameterDeclaration or a Receiver");
-					}
-					final IRNode actual = binding.getValue();
-					final String actualString = DebugUnparser.toString(actual);
+//		final Operator op = JJNode.tree.getOperator(src);
+//		if (op instanceof CallInterface) {
+//			final IRNode mdecl = getBinder().getBinding(src);
+//			final RegionEffectsPromiseDrop cutpoint =
+//				MethodEffectsRules.getRegionEffectsDrop(mdecl);
+//			// No drops to make if there are no declared effects
+//			if (cutpoint != null) {
+//				rd.addTrustedPromise(cutpoint);
+//				// Add parameter bindings
+//				final Map<IRNode, IRNode> bindings =
+//					MethodCallUtils.constructFormalToActualMap(
+//							// XXX: This is not correct because it should really use the
+//							// specific constructor implementations when analyzing field inits
+//							// and instance inits, but this is not possible from here. Yet
+//							// another reason why I need to chang the EffectsVisitor to build
+//							// it's own COE.
+//							getBinder(), src, getBinder().getBinding(src), methodBeingChecked);
+//				for (final Map.Entry<IRNode, IRNode> binding : bindings.entrySet()) {
+//					final IRNode formal = binding.getKey();
+//					final Operator formalOp = JJNode.tree.getOperator(formal);
+//					final String formalString;
+//					if (ParameterDeclaration.prototype.includes(formalOp)) {
+//						formalString = ParameterDeclaration.getId(formal);
+//					} else if (ReceiverDeclaration.prototype.includes(formalOp)) {
+//						formalString = "this";
+//					} else if (QualifiedReceiverDeclaration.prototype.includes(formalOp)) {
+//						formalString = JavaNames.getFullTypeName(QualifiedReceiverDeclaration.getType(getBinder(), formal)) + " .this";
+//					} else {
+//						// Shouldn't get here
+//						throw new IllegalStateException("Formal parameter is not a ParameterDeclaration or a Receiver");
+//					}
+//					final IRNode actual = binding.getValue();
+//					final String actualString = DebugUnparser.toString(actual);
+//
+//					rd.addSupportingInformation(actual, 
+//                            Messages.PARAMETER_EVIDENCE,
+//					        formalString, actualString);
+//				}
+//			}
+//		}
 
-					rd.addSupportingInformation(actual, 
-                            Messages.PARAMETER_EVIDENCE,
-					        formalString, actualString);
-				}
-			}
-		}
-
-		(new EvidenceAdder(rd)).accept(eff.getTarget().getEvidence());
+		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
 		
 		// Finish the drop
 		setResultDependUponDrop(rd, src);
@@ -511,7 +515,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);
       rd.setResultMessage(Messages.READONLY_REFERENCE);
-      (new EvidenceAdder(rd)).accept(t.getEvidence());
+      (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());
     }	  
 	}
 
@@ -519,8 +523,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
 	private static final class EvidenceAdder extends EvidenceProcessor {
 	  private final ResultDropBuilder resultDrop;
+	  private final IBinder binder;
 	  
-	  public EvidenceAdder(final ResultDropBuilder rd) {
+	  public EvidenceAdder(final IBinder b, final ResultDropBuilder rd) {
+	    binder = b;
 	    resultDrop = rd;
 	  }
     
@@ -554,6 +560,15 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       accept(e.getMoreEvidence());
     }
 	  
+    @Override
+    public void visitCallEvidence(final CallEvidence e) {
+      final RegionEffectsPromiseDrop cutpoint =
+          MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
+      if (cutpoint != null) {
+        resultDrop.addTrustedPromise(cutpoint);
+      }
+    }
+    
 	  @Override
     public void visitEmptyEvidence(final EmptyEvidence e) {
 	    final Reason reason = e.getReason();
@@ -565,5 +580,59 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    }
 	    accept(e.getMoreEvidence());
 	  }
+    
+    @Override
+    public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
+      final RegionEffectsPromiseDrop cutpoint =
+          MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
+      if (cutpoint != null) {
+        resultDrop.addTrustedPromise(cutpoint);
+        
+        final IRNode formal = e.getFormal();
+        final Operator formalOp = JJNode.tree.getOperator(formal);
+        final String formalString;
+        if (ParameterDeclaration.prototype.includes(formalOp)) {
+          formalString = ParameterDeclaration.getId(formal);
+        } else if (ReceiverDeclaration.prototype.includes(formalOp)) {
+          formalString = "this";
+        } else if (QualifiedReceiverDeclaration.prototype.includes(formalOp)) {
+          formalString = JavaNames.getFullTypeName(QualifiedReceiverDeclaration.getType(binder, formal)) + " .this";
+        } else {
+          // Shouldn't get here
+          throw new IllegalStateException("Formal parameter is not a ParameterDeclaration or a Receiver");
+        }
+        final String actualString = DebugUnparser.toString(e.getActual());
+        resultDrop.addSupportingInformation(
+            e.getLink(), Messages.PARAMETER_EVIDENCE,
+            formalString, actualString);
+      }
+    }
+    
+    @Override
+    public void visitQualifiedReceiverConversionEvidence(
+        final QualifiedReceiverConversionEvidence e) {
+      final RegionEffectsPromiseDrop cutpoint =
+          MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
+      if (cutpoint != null) {
+        resultDrop.addTrustedPromise(cutpoint);
+        final String qString = JavaNames.getFullTypeName(
+            QualifiedReceiverDeclaration.getType(
+                binder, e.getQualifiedReceiver())) + " .this";
+        final String tString = JavaNames.getQualifiedTypeName(e.getType());
+        resultDrop.addSupportingInformation(
+            e.getLink(), Messages.QRCVR_CONVERSION_EVIDENCE,
+            qString, tString);
+      }
+    }
+    
+    @Override
+    public void visitUnknownReferenceConversionEvidence(
+        final UnknownReferenceConversionEvidence e) {
+      resultDrop.addSupportingInformation(
+          e.getUnknownRef(), Messages.UNKNOWN_REF_CONVERSION_EVIDENCE,
+          DebugUnparser.toString(e.getUnknownRef()), 
+          JavaNames.getQualifiedTypeName(e.getType()));
+      super.visitUnknownReferenceConversionEvidence(e);
+    }
 	}
 }

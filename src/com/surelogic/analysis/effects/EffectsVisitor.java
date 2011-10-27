@@ -17,6 +17,7 @@ import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
+import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -339,7 +340,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
                 context.addEffect(Effect.newEffect(expr, initEffect.isRead(),
                     targetFactory.createAnyInstanceTarget(
                         (IJavaReferenceType) type, target.getRegion(), 
-                        new AnonClassEvidence(initEffect))));
+                        new UnknownReferenceConversionEvidence(initEffect, ref, (IJavaReferenceType) type))));
               }
             } else {
               context.addEffect(

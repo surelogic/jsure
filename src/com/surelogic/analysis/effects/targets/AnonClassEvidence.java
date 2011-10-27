@@ -4,7 +4,7 @@ import com.surelogic.analysis.effects.Effect;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
-public final class AnonClassEvidence implements TargetEvidence {
+public class AnonClassEvidence implements TargetEvidence {
   private final Effect originalEffect;
   
   public AnonClassEvidence(final Effect effect) {

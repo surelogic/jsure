@@ -26,6 +26,8 @@ public final class Messages {
   public static final int BCA_EVIDENCE = 161;
   public static final int AGGREGATION_EVIDENCE = 162;
   public static final int ACE_EVIDENCE = 163;
+  public static final int QRCVR_CONVERSION_EVIDENCE = 164;
+  public static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
   
   
   
@@ -44,6 +46,8 @@ public final class Messages {
     code2name.put(BCA_EVIDENCE, "EffectAssurance");
     code2name.put(AGGREGATION_EVIDENCE, "EffectAssurance");
     code2name.put(ACE_EVIDENCE, "EffectAssurance");
+    code2name.put(QRCVR_CONVERSION_EVIDENCE, "EffectAssurance");
+    code2name.put(UNKNOWN_REF_CONVERSION_EVIDENCE, "EffectAssurance");
   }
   
   public static String toString(int code) {

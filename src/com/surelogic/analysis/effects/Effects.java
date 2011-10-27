@@ -21,10 +21,13 @@ import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
+import com.surelogic.analysis.effects.targets.CallEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.NoEvidence;
+import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -482,8 +485,9 @@ public final class Effects implements IBinderClient {
            * the effect because there is no object. 
            */
           if (!isNullExpression(val)) {
-            final Target newTarg =
-              targetFactory.createInstanceTarget(val, t.getRegion(), NoEvidence.INSTANCE);
+            final Target newTarg = 
+                targetFactory.createInstanceTarget(val, t.getRegion(),
+                    new MappedArgumentEvidence(mdecl, ref, val));
             elaborateInstanceTargetEffects(
                 bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
                 newTarg, methodEffects);
@@ -491,8 +495,10 @@ public final class Effects implements IBinderClient {
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
             final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
+            final IJavaReferenceType javaType = JavaTypeFactory.getMyThisType(type);
             final Target newTarg = targetFactory.createAnyInstanceTarget(
-                JavaTypeFactory.getMyThisType(type), t.getRegion(), NoEvidence.INSTANCE); 
+                javaType, t.getRegion(),
+                new QualifiedReceiverConversionEvidence(mdecl, ref, javaType)); 
             methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
           } else {
             // something went wrong          
@@ -500,7 +506,7 @@ public final class Effects implements IBinderClient {
           }
         }
       } else { // It's an effect on static state, or any instance
-        methodEffects.add(eff.setSource(call));
+        methodEffects.add(eff.changeSource(call, new CallEvidence(mdecl)));
       }
     }
   

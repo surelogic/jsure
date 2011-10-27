@@ -35,6 +35,10 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     visitElaborationEvidence(e);
   }
 
+  public void visitCallEvidence(final CallEvidence e) {
+    visit(e);
+  }
+  
   public void visitElaborationEvidence(final ElaborationEvidence e) {
     visit(e);
   }
@@ -43,7 +47,19 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     visit(e);
   }
 
+  public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
+    visitCallEvidence(e);
+  }
+  
   public void visitNoEvidence(final NoEvidence e) {
     visit(e);
+  }
+  
+  public void visitQualifiedReceiverConversionEvidence(final QualifiedReceiverConversionEvidence e) {
+    visitCallEvidence(e);
+  }
+  
+  public void visitUnknownReferenceConversionEvidence(final UnknownReferenceConversionEvidence e) {
+    visitAnonClassEvidence(e);
   }
 }
