@@ -93,7 +93,7 @@ public class PromisesXMLEditor extends EditorPart {
        contents.setCellModifier(new ICellModifier() {
     	   @Override
         public boolean canModify(Object element, String property) {    		 
-    		   return ((IJavaElement) element).canModify();
+    		   return provider.isMutable() && ((IJavaElement) element).canModify();
     	   }
     	   @Override
         public Object getValue(Object element, String property) {
@@ -136,6 +136,12 @@ public class PromisesXMLEditor extends EditorPart {
     		   contents.setInput(f.getURI());
     	   } else {
     		   provider.inputChanged(contents, null, f.getURI());    		   
+    		   if (f instanceof Input) {
+    			   Input i = (Input) f;
+    			   if (i.readOnly) {
+    				   provider.markAsReadOnly();
+    			   }
+    		   }
     	   }
        }
        setPartName(input.getName());
@@ -180,6 +186,10 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		boolean isMutable() {
 			return status == FileStatus.FLUID || status == FileStatus.LOCAL;
+		}
+		
+		void markAsReadOnly() {
+			status = FileStatus.READ_ONLY;
 		}
 		
 		URI getInput() {
@@ -728,24 +738,26 @@ public class PromisesXMLEditor extends EditorPart {
 		return null;	
 	}
 	
-	public static IEditorPart openInEditor(String path) {
-		return EclipseUIUtility.openInEditor(makeInput(path), PromisesXMLEditor.class.getName());
+	public static IEditorPart openInEditor(String path, boolean readOnly) {
+		return EclipseUIUtility.openInEditor(makeInput(path, readOnly), PromisesXMLEditor.class.getName());
 	}
 	
-	public static IEditorInput makeInput(String relativePath) {
+	public static IEditorInput makeInput(String relativePath, boolean readOnly) {
 		try {
-			return new Input(relativePath);
+			return new Input(relativePath, readOnly);
 		} catch (URISyntaxException e) {
 			return null;
 		}
 	}
 	
 	private static class Input implements IURIEditorInput {
+		private final boolean readOnly;
 		private final String path;
 		private final String name;
 		private final URI uri;
 		
-		Input(String relativePath) throws URISyntaxException {
+		Input(String relativePath, boolean ro) throws URISyntaxException {
+			readOnly = ro;
 			path = relativePath;
 			uri = new URI(path);
 			
@@ -778,6 +790,7 @@ public class PromisesXMLEditor extends EditorPart {
 				@Override
 				public void saveState(IMemento memento) {
 					memento.putString(PromisesXMLFactory.PATH, path);					
+					memento.putBoolean(PromisesXMLFactory.READ_ONLY, readOnly);
 				}
 				
 				@Override
