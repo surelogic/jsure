@@ -12,11 +12,8 @@ import org.eclipse.jface.text.*;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
-import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
-import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.*;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -68,9 +65,13 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				root.accept(v);
 				final String qname = v.getQualifiedTypeName();
 				if (qname != null) {
+					/*
 					final String xmlRoot = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 					String path = xmlRoot+slash+qname.replace('.', slash)+TestXMLParserConstants.SUFFIX;
 					IEditorPart editor = EclipseUIUtility.openInEditor(path);
+					*/
+					String path = qname.replace('.', '/')+TestXMLParserConstants.SUFFIX;
+					IEditorPart editor = PromisesXMLEditor.openInEditor(path);
 					if (editor instanceof PromisesXMLEditor) {
 						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
 						pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					

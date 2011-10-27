@@ -26,6 +26,7 @@ import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -40,6 +41,14 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class PromisesXMLEditor extends EditorPart {
+	enum FileStatus { 		
+		READ_ONLY, 
+		/** Mutable, but saves to a local file */
+		FLUID, 
+		/** Mutable in the usual way */
+		LOCAL 
+	}
+	
 	public static final boolean hideEmpty = false;
 	
 	private final Provider provider = new Provider();
@@ -61,7 +70,9 @@ public class PromisesXMLEditor extends EditorPart {
     	   @Override
     	   public void menuDetected(MenuDetectEvent e) {
     		   final Menu menu = new Menu(contents.getControl().getShell(), SWT.POP_UP);
-    		   setupContextMenu(menu);
+    		   if (provider.isMutable()) {
+    			   setupContextMenu(menu);
+    		   }
     		   contents.getTree().setMenu(menu);
     	   }
        });
@@ -69,9 +80,11 @@ public class PromisesXMLEditor extends EditorPart {
        contents.addDoubleClickListener(new IDoubleClickListener() {
     	   @Override
     	   public void doubleClick(DoubleClickEvent event) {
-    		   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
-    		   System.out.println("Doubleclik on "+s.getFirstElement());
-    		   contents.editElement(s.getFirstElement(), 0);
+    		   if (provider.isMutable()) {
+    			   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
+    			   System.out.println("Doubleclik on "+s.getFirstElement());
+    			   contents.editElement(s.getFirstElement(), 0);
+    		   }
     	   }
        });
 
@@ -161,16 +174,25 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	class Provider extends AbstractContentProvider implements ITreeContentProvider {
 		URI location;
+		FileStatus status = null;
 		PackageElement pkg;
 		Object[] roots;
+		
+		boolean isMutable() {
+			return status == FileStatus.FLUID || status == FileStatus.LOCAL;
+		}
 		
 		URI getInput() {
 			return location;
 		}
 		
 		void save(IProgressMonitor monitor) {
+			if (status == null || status == FileStatus.READ_ONLY) {
+				return;
+			}
 			try {
-				File f = new File(location);
+				final File root = JSurePreferencesUtility.getJSureXMLDirectory();
+				File f = new File(root, location.toASCIIString());
 				PromisesXMLWriter w = new PromisesXMLWriter(f);
 				w.write(pkg);
 				pkg.markAsClean();
@@ -215,11 +237,20 @@ public class PromisesXMLEditor extends EditorPart {
 		void build() {
 			if (location != null) {
 				try {
-					/*
-					File f = new File(location);
-					System.out.println("location = "+f);
-					*/
-					InputStream in = location.toURL().openStream();
+					InputStream in = null;					
+					try {
+						in = location.toURL().openStream();
+						status = FileStatus.READ_ONLY;
+					} catch(IllegalArgumentException e) {
+						final String path = location.toASCIIString();
+						Pair<File,FileStatus> rv = findPromisesXML(path);
+						if (rv != null) {
+							in = new FileInputStream(rv.first());
+							status = rv.second();
+						} else {
+							throw e;
+						}
+					}
 					PromisesXMLReader r = new PromisesXMLReader();
 					r.read(in);
 					roots = new Object[1];
@@ -678,12 +709,12 @@ public class PromisesXMLEditor extends EditorPart {
 	/**
 	 * @return true if local
 	 */
-	static Pair<File,Boolean> findPromisesXML(String path) {
+	static Pair<File,FileStatus> findPromisesXML(String path) {
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			File f = new File(localXml, path);
 			if (f.isFile()) {
-				return new Pair<File,Boolean>(f, Boolean.TRUE);
+				return new Pair<File,FileStatus>(f, FileStatus.LOCAL);
 			}
 		}
 		// Try fluid
@@ -691,10 +722,14 @@ public class PromisesXMLEditor extends EditorPart {
 		if (xml != null) {
 			File f = new File(xml, path);
 			if (f.isFile()) {
-				return new Pair<File,Boolean>(f, Boolean.FALSE);
+				return new Pair<File,FileStatus>(f, FileStatus.FLUID);
 			}
 		}
 		return null;	
+	}
+	
+	public static IEditorPart openInEditor(String path) {
+		return EclipseUIUtility.openInEditor(makeInput(path), PromisesXMLEditor.class.getName());
 	}
 	
 	public static IEditorInput makeInput(String relativePath) {
