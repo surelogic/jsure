@@ -675,6 +675,28 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	/**
+	 * @return true if local
+	 */
+	static Pair<File,Boolean> findPromisesXML(String path) {
+		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
+		if (localXml != null) {
+			File f = new File(localXml, path);
+			if (f.isFile()) {
+				return new Pair<File,Boolean>(f, Boolean.TRUE);
+			}
+		}
+		// Try fluid
+		final File xml = PromisesLibMerge.getFluidXMLDir();
+		if (xml != null) {
+			File f = new File(xml, path);
+			if (f.isFile()) {
+				return new Pair<File,Boolean>(f, Boolean.FALSE);
+			}
+		}
+		return null;	
+	}
+	
 	public static IEditorInput makeInput(String relativePath) {
 		try {
 			return new Input(relativePath);
@@ -702,22 +724,7 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public boolean exists() {
-			final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
-			if (localXml != null) {
-				File f = new File(localXml, path);
-				if (f.isFile()) {
-					return true;
-				}
-			}
-			// Try fluid
-			final File xml = PromisesLibMerge.getFluidXMLDir();
-			if (xml != null) {
-				File f = new File(xml, path);
-				if (f.isFile()) {
-					return true;
-				}
-			}
-			return false;			
+			return findPromisesXML(path) != null;
 		}
 
 		@Override
