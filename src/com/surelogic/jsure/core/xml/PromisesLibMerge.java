@@ -15,10 +15,7 @@ import com.surelogic.xml.*;
  * @author Edwin
  */
 public final class PromisesLibMerge {
-	/**
-	 * @param toClient update if true; merge to fluid otherwise
-	 */
-	public static void merge(boolean toClient) {
+	public static File getFluidXMLDir() {
 		File fluidDir = null;
 		try {
 			fluidDir = new File(JavacEclipse.getDefault().getResourceRoot().toURI());
@@ -26,10 +23,18 @@ public final class PromisesLibMerge {
 			throw new IllegalStateException("Bad URL: "+JavacEclipse.getDefault().getResourceRoot());
 		}
 		final File fLibDir = new File(fluidDir, TestXMLParserConstants.PROMISES_XML_PATH);
-		if (!fLibDir.exists()) {
-			throw new IllegalStateException("Couldn't find "+fLibDir);
+		if (!fLibDir.isDirectory()) {
+			throw new IllegalStateException("Couldn't find directory "+fLibDir);
 		}
-		final File libDir = new File(JSurePreferencesUtility.getJSureDataDirectory(), DriverConstants.XML_PATH_SEGMENT);
+		return fLibDir;
+	}
+	
+	/**
+	 * @param toClient update if true; merge to fluid otherwise
+	 */
+	public static void merge(boolean toClient) {
+		final File fLibDir = getFluidXMLDir();
+		final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (!libDir.exists()) {			
 			System.out.println("Nothing to merge: "+libDir);
 			return; // Nothing else to do
