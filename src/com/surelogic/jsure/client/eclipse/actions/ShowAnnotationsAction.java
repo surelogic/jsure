@@ -16,11 +16,11 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.*;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.xml.TestXMLParserConstants;
 
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -68,7 +68,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				root.accept(v);
 				final String qname = v.getQualifiedTypeName();
 				if (qname != null) {
-					final String xmlRoot = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+					final String xmlRoot = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 					String path = xmlRoot+slash+qname.replace('.', slash)+TestXMLParserConstants.SUFFIX;
 					IEditorPart editor = EclipseUIUtility.openInEditor(path);
 					if (editor instanceof PromisesXMLEditor) {
