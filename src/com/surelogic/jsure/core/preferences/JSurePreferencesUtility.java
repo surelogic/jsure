@@ -81,9 +81,6 @@ public final class JSurePreferencesUtility {
 					.getADataDirectoryPath(FileUtility.JSURE_DATA_PATH_FRAGMENT);
 			EclipseUtility.setDefaultStringPreference(
 					IDEPreferences.JSURE_DATA_DIRECTORY, dataDir);
-			EclipseUtility.setDefaultStringPreference(
-					IDEPreferences.JSURE_XML_DIRECTORY, dataDir + '/'
-							+ DriverConstants.XML_PATH_SEGMENT);
 
 			for (IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
 				// System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
@@ -151,6 +148,13 @@ public final class JSurePreferencesUtility {
 		return result;
 	}
 
+	public static File getJSureXMLDirectory() {
+		final String path = EclipseUtility
+		.getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+		File data = getJSureDataDirectory();
+		return new File(data, DriverConstants.XML_PATH_SEGMENT);
+	}
+	
 	/**
 	 * Gets the switch-to-the-JSure-perspective preferences.
 	 * 
