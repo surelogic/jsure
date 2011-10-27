@@ -2126,7 +2126,7 @@ public class JavacDriver implements IResourceChangeListener {
 				copyContentsToStream(new File(projects.getRunDir(),
 						RemoteJSureRun.LOG_TXT), out, target);
 				
-				final File libDir = new File(JSurePreferencesUtility.getJSureDataDirectory(), DriverConstants.XML_PATH_SEGMENT);
+				final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
 				FileUtility.recursiveIterate(makePromisesXMLCopier(out, target), libDir);				
 			} finally {
 				out.close();

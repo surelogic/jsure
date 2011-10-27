@@ -26,7 +26,7 @@ public class JavacEclipse extends Javac {
     {
     	File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
     	setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, dataDir.getAbsolutePath());
-    	setPreference(IDEPreferences.JSURE_XML_DIRECTORY, new File(dataDir, DriverConstants.XML_PATH_SEGMENT).getAbsolutePath());
+    	setPreference(IDEPreferences.JSURE_XML_DIRECTORY, JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath());
     }
     
     public void synchronizeAnalysisPrefs() {
