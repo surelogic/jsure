@@ -7,6 +7,7 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
+import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
@@ -422,9 +423,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		}
 
 		(new EvidenceAdder(rd)).accept(eff.getTarget().getEvidence());
-
-//		addElaborationEvidence(rd, eff.getTargetElaborationEvidence());
-//		addAdditionalEvidence(rd, eff.getTarget());
 		
 		// Finish the drop
 		setResultDependUponDrop(rd, src);
@@ -514,34 +512,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       rd.setConsistent(false);
       rd.setResultMessage(Messages.READONLY_REFERENCE);
       (new EvidenceAdder(rd)).accept(t.getEvidence());
-//      addElaborationEvidence(rd, t.getElaborationEvidence()); // Definitely useful: we get here from elaboration
-//      addAdditionalEvidence(rd, t); // XXX: Useless?
     }	  
 	}
-	
-	 
-//  /**
-//   * Recurses through the elaboration evidence, and adds it as supporting 
-//   * information to the given result drop, in the order that the elaboration
-//   * occurred.
-//   */
-//  private void addElaborationEvidence(
-//      final ResultDropBuilder rd, final ElaborationEvidence elabEvidence) {
-//    if (elabEvidence != null) {
-//      addElaborationEvidence(rd, elabEvidence.getElaboratedFrom().getElaborationEvidence());
-//      rd.addSupportingInformation(elabEvidence.getMessage(), elabEvidence.getLink());
-//    }
-//  }
-//
-//  private void addAdditionalEvidence(final ResultDropBuilder rd, final Target t) {
-//    if (t instanceof EmptyTarget) {
-//      final Reason r = ((EmptyTarget) t).getReason();
-//      if (r != null) {
-//        rd.addSupportingInformation(null, r.getMessage());
-//      }
-//    }
-//  }
 
+	
 	
 	private static final class EvidenceAdder extends EvidenceProcessor {
 	  private final ResultDropBuilder resultDrop;
@@ -561,6 +535,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           DebugUnparser.toString(FieldRef.getObject(originalExpression)));
           
       accept(e.getMoreEvidence());
+    }
+    
+    @Override
+    public void visitAnonClassEvidence(final AnonClassEvidence e) {
+      final Effect originalEffect = e.getOriginalEffect();
+      resultDrop.addSupportingInformation(
+          e.getLink(), Messages.ACE_EVIDENCE, originalEffect);
+      accept(originalEffect.getTargetEvidence());
     }
     
     @Override

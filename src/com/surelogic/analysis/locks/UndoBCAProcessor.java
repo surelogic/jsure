@@ -1,5 +1,6 @@
 package com.surelogic.analysis.locks;
 
+import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.Target;
@@ -14,6 +15,11 @@ final class UndoBCAProcessor extends EvidenceProcessor {
   }
   
 
+  
+  @Override
+  public void visitAnonClassEvidence(final AnonClassEvidence e) {
+    accept(e.getOriginalEffect().getTargetEvidence());
+  }
 
   @Override
   public void visitBCAEvidence(final BCAEvidence e) {

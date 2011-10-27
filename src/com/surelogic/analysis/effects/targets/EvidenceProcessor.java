@@ -27,6 +27,10 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     visitElaborationEvidence(e);
   }
 
+  public void visitAnonClassEvidence(final AnonClassEvidence e) {
+    visit(e);
+  }
+  
   public void visitBCAEvidence(final BCAEvidence e) {
     visitElaborationEvidence(e);
   }

@@ -82,6 +82,12 @@ public interface Target {
    */
   public TargetEvidence getEvidence();
   
+  /**
+   * Create a new target of the same implementation class and replace the
+   * original evidence with the given one.
+   */
+  public Target changeEvidence(TargetEvidence e);
+  
   
   
   /**

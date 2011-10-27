@@ -10,6 +10,7 @@ import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.NoEvidence;
@@ -323,22 +324,27 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
             final Target target = initEffect.getTarget();
             if (target instanceof InstanceTarget) {
               final IRNode ref = target.getReference();
-              final Target newTarget;
               
               final IRNode newRef = enclosing.replace(ref);
               if (newRef != null) {
-                newTarget = targetFactory.createInstanceTarget(
-                    newRef, target.getRegion(), NoEvidence.INSTANCE);
+                effects.elaborateInstanceTargetEffects(
+                    context.bcaQuery, targetFactory, binder, expr, 
+                    callback, initEffect.isRead(), 
+                    targetFactory.createInstanceTarget(
+                        newRef, target.getRegion(), 
+                        new AnonClassEvidence(initEffect)),
+                    context.theEffects);
               } else {
                 final IJavaType type = binder.getJavaType(ref);
-                newTarget = targetFactory.createAnyInstanceTarget(
-                    (IJavaReferenceType) type, target.getRegion(), NoEvidence.INSTANCE);
+                context.addEffect(Effect.newEffect(expr, initEffect.isRead(),
+                    targetFactory.createAnyInstanceTarget(
+                        (IJavaReferenceType) type, target.getRegion(), 
+                        new AnonClassEvidence(initEffect))));
               }
-              effects.elaborateInstanceTargetEffects(
-                  context.bcaQuery, targetFactory, binder, expr, 
-                  callback, initEffect.isRead(), newTarget, context.theEffects);
             } else {
-              context.addEffect(initEffect.setSource(expr));
+              context.addEffect(
+                  initEffect.changeSource(
+                      expr, new AnonClassEvidence(initEffect)));
             }
           }
         }

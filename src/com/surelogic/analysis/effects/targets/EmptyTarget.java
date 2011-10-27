@@ -131,6 +131,12 @@ public final class EmptyTarget extends AbstractTarget {
   
   
   
+  public EmptyTarget changeEvidence(final TargetEvidence e) {
+    return new EmptyTarget(e);
+  }
+  
+  
+  
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("nothing");
     return sb;

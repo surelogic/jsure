@@ -216,6 +216,12 @@ public final class AnyInstanceTarget extends AbstractTarget {
   }
 
   
+  
+  public AnyInstanceTarget changeEvidence(final TargetEvidence e) {
+    return new AnyInstanceTarget(clazz, region, e);
+  }
+  
+  
 
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("any("); 

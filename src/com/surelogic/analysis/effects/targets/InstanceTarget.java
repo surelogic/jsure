@@ -275,6 +275,12 @@ public final class InstanceTarget extends AbstractTarget {
       return false;
     }
   }  
+  
+  
+  
+  public InstanceTarget changeEvidence(final TargetEvidence e) {
+    return new InstanceTarget(reference, region, e);
+  }
 
 
 

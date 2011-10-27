@@ -179,6 +179,11 @@ public final class ClassTarget extends AbstractTarget {
     return this.region.ancestorOf(actualTarget.region);
   }
 
+  
+  
+  public ClassTarget changeEvidence(final TargetEvidence e) {
+    return new ClassTarget(region, e);
+  }
 
 
   public StringBuilder toString(final StringBuilder sb) {

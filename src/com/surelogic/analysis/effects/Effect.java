@@ -56,25 +56,13 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Aaron Greenhouse
  */
 public abstract class Effect {
-  public enum Kind {
-    READ("reads"), WRITE("writes");
-    
-    final String unparseAs;
-    
-    private Kind(final String label) {
-      unparseAs = label;
-    }
-    
-    public String unparse() {
-      return unparseAs;
-    }
-  }
-  
-  
-  
   private static final class EmptyEffect extends Effect {
+    private EmptyEffect(final IRNode src, final Target t) {
+      super(src, t);
+    }
+
     private EmptyEffect(final IRNode src) {
-      super(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
+      this(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
           new EmptyEvidence(
               EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null)));
     }
@@ -99,12 +87,12 @@ public abstract class Effect {
     public Effect setSource(final IRNode src) {
       return new EmptyEffect(src);
     }
-
-//    @Override
-//    public boolean isTargetAggregated() {
-//      return false;
-//    }
     
+    @Override
+    public EmptyEffect changeSource(final IRNode src, final TargetEvidence e) {
+      return new EmptyEffect(src, target.changeEvidence(e));
+    }
+
     @Override
     public boolean isRead() {
       return false;
@@ -202,11 +190,6 @@ public abstract class Effect {
       return target.overlapsReceiver(rcvrNode);
     }
 
-//    @Override
-//    public final boolean isTargetAggregated() {
-//      return target.isAggregated();
-//    }
-    
     @Override
     public final boolean isEmpty() {
       return (target instanceof EmptyTarget);
@@ -228,6 +211,11 @@ public abstract class Effect {
     @Override
     public Effect setSource(final IRNode src) {
       return new ReadEffect(src, target);
+    }
+    
+    @Override
+    public ReadEffect changeSource(final IRNode src, final TargetEvidence e) {
+      return new ReadEffect(src, target.changeEvidence(e));
     }
     
     @Override
@@ -308,6 +296,11 @@ public abstract class Effect {
     @Override
     public Effect setSource(final IRNode src) {
       return new WriteEffect(src, target);
+    }
+    
+    @Override
+    public WriteEffect changeSource(final IRNode src, final TargetEvidence e) {
+      return new WriteEffect(src, target.changeEvidence(e));
     }
     
     @Override
@@ -486,8 +479,22 @@ public abstract class Effect {
    *          The new source of the effect
    * @return A copy of this effect with the source changed to <code>src</code>.
    */
+  @Deprecated
   public abstract Effect setSource(IRNode src);
-
+  
+  /**
+   * Get a copy of this effect except change the source and evidence of the new
+   * effect.
+   * 
+   * @param src
+   *          The new source of the effect
+   * @param e
+   *          The new evidence for the target.
+   * @return An effect of the same implementation class whose source node and
+   *         target evidence are modifed with the given arguments.
+   */
+  public abstract Effect changeSource(IRNode src, TargetEvidence e);
+  
   /**
    * Query whether the effect is indirect, that is originates from invoking a
    * method/constructor.
@@ -529,12 +536,7 @@ public abstract class Effect {
   public final TargetEvidence getTargetEvidence() {
     return target.getEvidence();
   }
-  
-//  /** 
-//   * Did the target of this effect result from aggregation? 
-//   */
-//  public abstract boolean isTargetAggregated();
-//  
+
   /**
    * Query if the effect is a read effect.
    */

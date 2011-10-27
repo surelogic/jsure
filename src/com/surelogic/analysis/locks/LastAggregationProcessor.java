@@ -2,6 +2,7 @@ package com.surelogic.analysis.locks;
 
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
+import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.Target;
@@ -20,6 +21,11 @@ final class LastAggregationProcessor extends EvidenceProcessor {
   @Override
   public void visitAggregationEvidence(final AggregationEvidence e) {
     result = e;
+  }
+  
+  @Override
+  public void visitAnonClassEvidence(final AnonClassEvidence e) {
+    accept(e.getOriginalEffect().getTargetEvidence());
   }
   
   @Override

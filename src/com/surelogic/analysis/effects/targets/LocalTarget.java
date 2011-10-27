@@ -167,6 +167,13 @@ public final class LocalTarget extends AbstractTarget {
     throw new UnsupportedOperationException(
         "Doesn't make sense to use this method on a local target");
   }
+  
+  
+  
+  public LocalTarget changeEvidence(final TargetEvidence e) {
+    // Catch errors: Local targets should never reach a context where this method is invoked.
+    throw new UnsupportedOperationException("Local targets don't have evidence");
+  }
 
 
   /**
