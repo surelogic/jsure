@@ -22,6 +22,11 @@
 	</extension>
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
     
+    <extension point="org.eclipse.ui.elementFactories">
+        <factory id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLFactory" 
+                 class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLFactory" /> 
+    </extension>
+    
    	<extension id="editorPopupMenus" point="org.eclipse.ui.popupMenus">
        <viewerContribution
              id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup"
@@ -67,6 +72,11 @@
 
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="com.surelogic.jsure"></category>
+		
+		<view name="JSure XML Explorer" allowMultiple="false"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
+			id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView">
+		</view>
 		
 		<view name="JSure Scans" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
@@ -140,6 +150,11 @@
 			<perspectiveShortcut
 				id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			</perspectiveShortcut>
+
+	        <view id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
+                    relative="org.eclipse.jdt.ui.PackageExplorer"
+                    relationship="stack"
+                    visible="false"/>
 		</perspectiveExtension>
 	</extension>
 
