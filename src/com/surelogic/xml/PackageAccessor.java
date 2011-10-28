@@ -10,6 +10,7 @@ import java.util.zip.ZipFile;
 import org.xml.sax.InputSource;
 
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.util.*;
 
 public class PackageAccessor implements TestXMLParserConstants {
@@ -164,12 +165,20 @@ public class PackageAccessor implements TestXMLParserConstants {
 	
 	public static Iterable<String> findPromiseXMLs() {
 		try {
-			URI uri = IDE.getInstance().getResourceRoot().toURI();
-			File root = new File(uri);
+			final String localPath = IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+			final File local = new File(localPath);
+			
+			final URI uri = IDE.getInstance().getResourceRoot().toURI();
+			final File root = new File(uri);
 			if (root.exists() && root.isDirectory()) {
-				List<String> qnames = new ArrayList<String>();
-				findPromiseXMLsInDir(qnames, new File(root, PROMISES_XML_PATH), "");
-				return qnames;
+				final boolean localExists = local.isDirectory();
+				XmlCollector qnames = findPromiseXMLsInDir(new File(root, PROMISES_XML_PATH), localExists);			
+				if (localExists) {
+					findPromiseXMLsInDir(qnames, local);
+				}
+				return qnames.results;
+			} else if (local.isDirectory()) {
+				return findPromiseXMLsInDir(local, false).results;
 			}
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
@@ -177,14 +186,24 @@ public class PackageAccessor implements TestXMLParserConstants {
 		}	
 		return EmptyIterator.prototype();
 	}
-
-	private static void findPromiseXMLsInDir(List<String> qnames, File dir, String path) {
+	
+	private static XmlCollector findPromiseXMLsInDir(File dir, boolean makeUnique) {
+		XmlCollector c = new XmlCollector(makeUnique);
+		findPromiseXMLsInDir(c, dir);
+		return c;
+	}
+	
+	public static void findPromiseXMLsInDir(IXmlProcessor qnames, File dir) {
+		findPromiseXMLsInDir(qnames, dir, "");
+	}
+	
+	private static void findPromiseXMLsInDir(IXmlProcessor qnames, File dir, String path) {
 		for(File xml : dir.listFiles(XML_FILTER)) {				
 			findPromiseXMLs(qnames, xml, path);
 		}
 	}
 	
-	private static void findPromiseXMLs(List<String> qnames, File f, String path) {
+	private static void findPromiseXMLs(IXmlProcessor qnames, File f, String path) {
 		if (!f.exists()) {
 			return;
 		}
@@ -192,19 +211,37 @@ public class PackageAccessor implements TestXMLParserConstants {
 			findPromiseXMLsInDir(qnames, f, computeName(path, f.getName()));
 		} else if (f.getName().endsWith(PROMISES_XML)) {
 			if ("package-info.promises.xml".equals(f.getName())) {
-				qnames.add(path);
+				qnames.addPackage(path);
 			} else {
 				String name = f.getName().substring(0, f.getName().length()-PROMISES_XML.length());
-				qnames.add(computeName(path, name));
+				qnames.addType(path, name);
 			}			
 		}
 	}
 	
-	private static String computeName(String path, String name) {
+	static String computeName(String path, String name) {
 		if (path.length() == 0) {
 			return name;
 		} else {
 			return path+'.'+name;
+		}
+	}
+	
+	static class XmlCollector implements IXmlProcessor {
+		final Collection<String> results;
+		
+		XmlCollector(boolean makeUnique) {
+			results = makeUnique ? new HashSet<String>() : new ArrayList<String>();
+		}
+		
+		@Override
+		public void addPackage(String qname) {
+			results.add(qname);
+		}
+
+		@Override
+		public void addType(String pkg, String name) {
+			results.add(computeName(pkg, name));
 		}
 	}
 }
