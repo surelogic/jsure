@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -18,6 +19,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.xml.TestXMLParserConstants;
 
 public class XMLExplorerView extends AbstractJSureView {	
 	final IJSureTreeContentProvider f_content = new Provider();
@@ -52,6 +54,19 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	protected void handleDoubleClick(IStructuredSelection selection) {
+		final Object o = selection.getFirstElement();
+		if (o instanceof Type) {
+			Type t = (Type) o;
+			PromisesXMLEditor.openInEditor(t.pkg.name.replace('.', '/')+'/'+t.name+TestXMLParserConstants.SUFFIX, false);
+		}
+		else if (o instanceof Package) {
+			Package p = (Package) o;
+			PromisesXMLEditor.openInEditor(p.name.replace('.', '/')+"/package-info"+TestXMLParserConstants.SUFFIX, false);
+		}
 	}
 	
 	/**
@@ -102,7 +117,11 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public Object getParent(Object element) {
-			throw new UnsupportedOperationException();
+			if (element instanceof Type) {
+				Type t = (Type) element;
+				return t.pkg;
+			}
+			return null;
 		}
 
 		@Override
@@ -118,7 +137,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (element instanceof Package) {
 				return SLImages.getImage(CommonImages.IMG_PACKAGE);
 			}
-			if (element instanceof String) {
+			if (element instanceof Type) {
 				return SLImages.getImage(CommonImages.IMG_CLASS);
 			}
 			return null;
@@ -152,11 +171,16 @@ public class XMLExplorerView extends AbstractJSureView {
 	
 	static class Package implements Comparable<Package> {
 		final String name;
-		final String[] types;
+		final Type[] types;
 		
 		public Package(Entry<String, Collection<String>> e) {
 			name = e.getKey();
-			types = e.getValue().toArray(noStrings);
+			types = new Type[e.getValue().size()];
+			int i=0;
+			for(String s : e.getValue()) {
+				types[i] = new Type(this, s);
+				i++;
+			}
 			Arrays.sort(types);
 		}
 
@@ -169,5 +193,25 @@ public class XMLExplorerView extends AbstractJSureView {
 		public int compareTo(Package o) {
 			return name.compareTo(o.name);
 		}		
+	}
+	
+	static class Type implements Comparable<Type> {
+		final Package pkg;
+		final String name;
+		
+		Type(Package pkg, String name) {
+			this.pkg = pkg;
+			this.name = name;
+		}
+		 
+		@Override
+		public String toString() {
+			return name;
+		}
+		
+		@Override
+		public int compareTo(Type o) {
+			return name.compareTo(o.name);
+		}	
 	}
 }
