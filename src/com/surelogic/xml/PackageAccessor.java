@@ -234,12 +234,10 @@ public class PackageAccessor implements TestXMLParserConstants {
 			results = makeUnique ? new HashSet<String>() : new ArrayList<String>();
 		}
 		
-		@Override
 		public void addPackage(String qname) {
 			results.add(qname);
 		}
 
-		@Override
 		public void addType(String pkg, String name) {
 			results.add(computeName(pkg, name));
 		}

@@ -28,6 +28,7 @@ public final class Messages {
   public static final int ACE_EVIDENCE = 163;
   public static final int QRCVR_CONVERSION_EVIDENCE = 164;
   public static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
+  public static final int REASON_NULL_REFERENCE = 166;
   
   
   

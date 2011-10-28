@@ -24,6 +24,7 @@ import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.CallEvidence;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.NoEvidence;
@@ -481,17 +482,12 @@ public final class Effects implements IBinderClient {
         final IRNode ref = t.getReference();
         final IRNode val = table.get(ref);
         if (val != null) {
-          /* Public bug 37: if the actual argument is "null" then we ignore 
-           * the effect because there is no object. 
-           */
-          if (!isNullExpression(val)) {
-            final Target newTarg = 
-                targetFactory.createInstanceTarget(val, t.getRegion(),
-                    new MappedArgumentEvidence(mdecl, ref, val));
-            elaborateInstanceTargetEffects(
-                bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
-                newTarg, methodEffects);
-          }
+          final Target newTarg = 
+              targetFactory.createInstanceTarget(val, t.getRegion(),
+                  new MappedArgumentEvidence(mdecl, ref, val));
+          elaborateInstanceTargetEffects(
+              bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
+              newTarg, methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
             final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
@@ -662,6 +658,13 @@ public final class Effects implements IBinderClient {
                 targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
             elaborated.add(target);
           }
+        } else if (isNullExpression(expr)) {
+          /* Public bug 37: if the actual argument is "null" then we ignore 
+           * the effect because there is no object. 
+           */
+          targets.add(targetFactory.createEmptyTarget(
+                  new EmptyEvidence(Reason.NULL_REFERENCE, target, expr)));
+          elaborated.add(target);
         }
       }
     }
