@@ -721,7 +721,7 @@ public class PromisesXMLEditor extends EditorPart {
 
 		private Collection<String> getPkg(String qname) {
 			Collection<String> c = get(qname);
-			if (c != null) {
+			if (c == null) {
 				c = new HashSet<String>(4);
 				put(qname, c);
 			}
