@@ -59,12 +59,17 @@ public class PackageElement extends AnnotatedJavaElement {
 	}
 	
 	public boolean isDirty() {
-		return clazz.isDirty() || super.isDirty();
+		if (clazz != null && clazz.isDirty()) {
+			return true;
+		}
+		return super.isDirty();
 	}
 	
 	public void markAsClean() {
 		super.markAsClean();
-		clazz.markAsClean();
+		if (clazz != null) {
+			clazz.markAsClean();
+		}
 	}
 
 	/**
