@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URISyntaxException;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.jsure.core.driver.DriverConstants;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.xml.*;
