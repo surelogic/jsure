@@ -142,6 +142,9 @@ public class PromisesXMLBuilder {
 	 * @return true if updated
 	 */
 	public static boolean updateElements(PackageElement p) throws JavaModelException {
+		if (p.getClassElement() == null) {
+			return false;
+		}
 		final IType t = JDTUtility.findIType(null, p.getName(), p.getClassElement().getName());
 		final ClassElement c = makeClass(t);
 		if (c == null) {
