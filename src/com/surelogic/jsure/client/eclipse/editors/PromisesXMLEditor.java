@@ -777,7 +777,11 @@ public class PromisesXMLEditor extends EditorPart {
 	}
 	
 	public static IEditorPart openInEditor(String path, boolean readOnly) {
-		return EclipseUIUtility.openInEditor(makeInput(path, readOnly), PromisesXMLEditor.class.getName());
+		final IEditorInput i = makeInput(path, readOnly);
+		if (i == null || !i.exists()) {
+			return null;
+		}
+		return EclipseUIUtility.openInEditor(i, PromisesXMLEditor.class.getName());
 	}
 	
 	public static IEditorInput makeInput(String relativePath, boolean readOnly) {
@@ -809,7 +813,8 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public boolean exists() {
-			return findPromisesXML(path) != null;
+			final Pair<File,FileStatus> f = findPromisesXML(path);
+			return f != null && f.first().isFile();
 		}
 
 		@Override
@@ -855,6 +860,20 @@ public class PromisesXMLEditor extends EditorPart {
 		@Override
 		public URI getURI() {
 			return uri;
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof IURIEditorInput) {
+				IURIEditorInput i = (IURIEditorInput) o;
+				return uri.equals(i.getURI());
+			}
+			return false;
+		}
+		
+		@Override
+		public int hashCode() {
+			return path.hashCode();
 		}
 	}
 }

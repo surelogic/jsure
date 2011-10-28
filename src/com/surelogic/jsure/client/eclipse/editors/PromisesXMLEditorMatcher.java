@@ -16,7 +16,7 @@ public class PromisesXMLEditorMatcher implements IEditorMatchingStrategy {
 		}		
 		try {
 			IEditorInput eInput = editorRef.getEditorInput();
-			return name.equals(eInput.getName());
+			return name.equals(eInput.getName()) && input.equals(eInput);
 		} catch (PartInitException e) {
 			e.printStackTrace();
 			return false;
