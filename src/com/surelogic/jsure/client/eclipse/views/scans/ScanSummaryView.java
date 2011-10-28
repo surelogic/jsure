@@ -598,7 +598,6 @@ public class ScanSummaryView extends AbstractJSureView implements
 
 	private final SimpleDateFormat format = new SimpleDateFormat(
 			"HH:mm:ss\nyy-MM-dd");
-	private static final String[] noStrings = new String[0];
 
 	private void updateChart() {
 		for (int j = KEYS; j < labels.length; j++) {
