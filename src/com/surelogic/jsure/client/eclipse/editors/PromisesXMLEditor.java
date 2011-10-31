@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jdt.ui.ITypeHierarchyViewPart;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
@@ -23,6 +25,7 @@ import org.eclipse.ui.part.EditorPart;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
@@ -70,9 +73,7 @@ public class PromisesXMLEditor extends EditorPart {
     	   @Override
     	   public void menuDetected(MenuDetectEvent e) {
     		   final Menu menu = new Menu(contents.getControl().getShell(), SWT.POP_UP);
-    		   if (provider.isMutable()) {
-    			   setupContextMenu(menu);
-    		   }
+    		   setupContextMenu(menu);
     		   contents.getTree().setMenu(menu);
     	   }
        });
@@ -367,6 +368,11 @@ public class PromisesXMLEditor extends EditorPart {
 			return;
 		}
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
+		addNavigationActions(menu, o);
+		
+		if (!provider.isMutable()) {
+			return;
+		}
 		if (o instanceof CommentElement) {
 			final CommentElement c0 = (CommentElement) o;
 		    makeMenuItem(menu, "Add comment above this", new SelectionAdapter() {
@@ -449,6 +455,7 @@ public class PromisesXMLEditor extends EditorPart {
 			} 
 			else if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
+				
 				for(ScopedTargetType t : ScopedTargetType.values()) {
 					makeMenuItem(menu, "Add scoped promise for "+t.label+"...", new AnnotationCreator(j, t));
 				}
@@ -456,6 +463,9 @@ public class PromisesXMLEditor extends EditorPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						final IType t = findIType(c, "");						
+						if (t == null) {
+							return;
+						}
 						ListSelectionDialog d;
 						try {
 							List<IMethod> methods = new ArrayList<IMethod>();
@@ -515,6 +525,25 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	private void addNavigationActions(Menu menu, IJavaElement o) {
+		if (o instanceof ClassElement) {
+			final ClassElement c = (ClassElement) o;
+			makeMenuItem(menu, "Open Type Hierarchy", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					final IViewPart view = EclipseUIUtility.showView(JavaUI.ID_TYPE_HIERARCHY);
+					if (view instanceof ITypeHierarchyViewPart) {
+						final ITypeHierarchyViewPart v = (ITypeHierarchyViewPart) view;
+						final IType t = findIType(c, "");	
+						if (t != null) {
+							v.setInputElement(t);
+						}
+					}
+				}
+			});
+		}
+	}
+
 	private class AnnotationCreator extends SelectionAdapter {
 		final AnnotatedJavaElement j;
 		final ScopedTargetType target;
