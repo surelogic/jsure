@@ -16,7 +16,13 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	}
 
 	public String getLabel() {
-		return "Arg #"+index;
+		AbstractFunctionElement parent = (AbstractFunctionElement) getParent();
+		try {
+			final String type = parent.getSplitParams()[index];
+			return "Arg #"+index+" : "+type;
+		} catch(IndexOutOfBoundsException e) {
+			return "Arg #"+index;
+		}
 	}
 	
 	public final String getImageKey() {
