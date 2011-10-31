@@ -164,6 +164,13 @@ public class CommentElement extends AbstractJavaElement implements IMergeableEle
 
 	@Override
 	public void modify(String value, IErrorListener l) {
+		if (value == null) {
+			value = "";
+		}
+		if (comment.equals(value)) {
+			// Nothing changed
+			return; 
+		}
 		comment = value;
 		markAsDirty();
 	}
