@@ -84,7 +84,8 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		if (paren < 0) {
 			if (!isIdentifier(value)) {
 				// Ignore, since the promise type changed
-				l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+value);
+				//
+				//l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+value);
 				return;
 			}
 			anno = value;
