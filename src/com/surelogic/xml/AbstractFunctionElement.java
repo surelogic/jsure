@@ -27,7 +27,8 @@ implements IClassMember, TestXMLParserConstants
 	}
 	
 	public final String getImageKey() {
-		return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
+		//return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
+		return null;
 	}
 	
 	public static String normalize(String orig) {
