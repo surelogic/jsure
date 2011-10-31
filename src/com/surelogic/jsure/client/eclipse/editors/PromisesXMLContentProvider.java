@@ -39,7 +39,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	Object[] roots;
 	final boolean hideEmpty;
 	
-	PromisesXMLContentProvider(boolean hideEmpty) {
+	protected PromisesXMLContentProvider(boolean hideEmpty) {
 		this.hideEmpty = hideEmpty;
 	}
 	
@@ -108,7 +108,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		}
 	}
 
-	void build() {
+	private void build() {
 		if (location != null) {
 			try {
 				InputStream in = null;					
@@ -125,20 +125,24 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 						throw e;
 					}
 				}
-				PromisesXMLReader r = new PromisesXMLReader();
-				r.read(in);
 				roots = new Object[1];
-				roots[0] = pkg = r.getPackage();					
-				if (true) {
-					if (PromisesXMLBuilder.updateElements(pkg)) {
-						System.out.println("Added elements");
-					}
-				}
+				roots[0] = pkg = getXML(in);
 			} catch (Exception e) {
 				pkg = null;
 				roots = ArrayUtil.empty;
 			}
 		}
+	}
+	
+	public static PackageElement getXML(InputStream in ) throws Exception {
+		PromisesXMLReader r = new PromisesXMLReader();
+		r.read(in);
+		if (true) {
+			if (PromisesXMLBuilder.updateElements(r.getPackage())) {
+				System.out.println("Added elements");
+			}
+		}
+		return r.getPackage();
 	}
 	
 	@Override
@@ -185,10 +189,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	
 	@Override
 	public Color getForeground(Object element) {
-		IJavaElement e = (IJavaElement) element;
-		if (e.isModified()) {
-			return colorRed;
-		} 
+		if (element instanceof IJavaElement) {
+			IJavaElement e = (IJavaElement) element;
+			if (e.isModified()) {
+				return colorRed;
+			} 
+		}
 		return null;
 	}
 }
