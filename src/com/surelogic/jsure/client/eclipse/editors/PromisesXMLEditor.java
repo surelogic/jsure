@@ -15,8 +15,6 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
@@ -29,7 +27,6 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -53,7 +50,7 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	public static final boolean hideEmpty = false;
 	
-	private final Provider provider = new Provider();
+	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty);
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
 	private static final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
@@ -176,162 +173,6 @@ public class PromisesXMLEditor extends EditorPart {
 	@Override
 	public boolean isSaveAsAllowed() {
 		return false;
-	}
-	
-	class Provider extends AbstractContentProvider implements ITreeContentProvider {
-		URI location;
-		FileStatus status = null;
-		PackageElement pkg;
-		Object[] roots;
-		
-		boolean isMutable() {
-			return status == FileStatus.FLUID || status == FileStatus.LOCAL;
-		}
-		
-		void markAsReadOnly() {
-			status = FileStatus.READ_ONLY;
-		}
-		
-		URI getInput() {
-			return location;
-		}
-		
-		void save(IProgressMonitor monitor) {
-			if (status == null || status == FileStatus.READ_ONLY) {
-				return;
-			}
-			try {
-				final File root = JSurePreferencesUtility.getJSureXMLDirectory();
-				File f = new File(root, location.toASCIIString());
-				PromisesXMLWriter w = new PromisesXMLWriter(f);
-				w.write(pkg);
-				pkg.markAsClean();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-
-		boolean isDirty() {
-			if (pkg == null) {
-				return false;
-			}
-			return pkg.isDirty();
-		}
-
-		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			if (newInput != location) {
-				if (newInput instanceof URI) {
-					location = (URI) newInput;				
-					System.out.println("Editor got "+location);
-					build();
-				}
-			} else {
-				System.out.println("Ignoring duplicate input");
-				/*
-				IType t = JDTUtility.findIType(null, pkg.getName(), pkg.getClassElement().getName());
-				contents.setInput(t);
-                */
-			}
-			if (viewer != null && viewer == contents) {
-				contents.getControl().getDisplay().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						contents.expandAll();
-					}					
-				});
-
-			}
-		}
-
-		void build() {
-			if (location != null) {
-				try {
-					InputStream in = null;					
-					try {
-						in = location.toURL().openStream();
-						status = FileStatus.READ_ONLY;
-					} catch(IllegalArgumentException e) {
-						final String path = location.toASCIIString();
-						Pair<File,FileStatus> rv = findPromisesXML(path);
-						if (rv != null) {
-							in = new FileInputStream(rv.first());
-							status = rv.second();
-						} else {
-							throw e;
-						}
-					}
-					PromisesXMLReader r = new PromisesXMLReader();
-					r.read(in);
-					roots = new Object[1];
-					roots[0] = pkg = r.getPackage();					
-					if (true) {
-						if (PromisesXMLBuilder.updateElements(pkg)) {
-							System.out.println("Added elements");
-						}
-					}
-				} catch (Exception e) {
-					pkg = null;
-					roots = ArrayUtil.empty;
-				}
-			}
-		}
-		
-		@Override
-		public Object[] getChildren(Object element) {
-			Object[] children = ((IJavaElement) element).getChildren();
-			if (hideEmpty) {
-				final List<IJavaElement> nonLeaf = new ArrayList<IJavaElement>();
-				for(Object o : children) {
-					IJavaElement c = (IJavaElement) o;
-					if (c.hasChildren() || c instanceof IMergeableElement) {
-						nonLeaf.add(c);
-					}
-				}
-				return nonLeaf.toArray();
-			}
-			return children;
-		}
-
-		@Override
-		public Object getParent(Object element) {
-			return ((IJavaElement) element).getParent();
-		}
-
-		@Override
-		public boolean hasChildren(Object element) {
-			return ((IJavaElement) element).hasChildren();
-		}
-
-		@Override
-		public Object[] getElements(Object inputElement) {
-			return roots;
-		}
-		
-		@Override
-		public String getText(Object element) {
-			return ((IJavaElement) element).getLabel();
-		}
-
-		@Override
-		public Image getImage(Object element) {
-			IJavaElement e = (IJavaElement) element;
-			return SLImages.getImage(e.getImageKey());
-		}
-		
-		@Override
-		public Color getForeground(Object element) {
-			IJavaElement e = (IJavaElement) element;
-			if (e.isModified()) {
-				if (colorRed == null) {
-					colorRed = contents.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
-				}
-				return colorRed;
-			} 
-			return null;
-		}
-		
-		private Color colorRed;
 	}
 	
 	private void fireDirtyProperty() {
