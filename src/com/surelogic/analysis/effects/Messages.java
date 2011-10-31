@@ -29,6 +29,7 @@ public final class Messages {
   public static final int QRCVR_CONVERSION_EVIDENCE = 164;
   public static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
   public static final int REASON_NULL_REFERENCE = 166;
+  public static final int REASON_NEW_OBJECT = 167;
   
   
   
@@ -49,6 +50,8 @@ public final class Messages {
     code2name.put(ACE_EVIDENCE, "EffectAssurance");
     code2name.put(QRCVR_CONVERSION_EVIDENCE, "EffectAssurance");
     code2name.put(UNKNOWN_REF_CONVERSION_EVIDENCE, "EffectAssurance");
+    code2name.put(REASON_NULL_REFERENCE, "EffectAssurance");
+    code2name.put(REASON_NEW_OBJECT, "EffectAssurance");
   }
   
   public static String toString(int code) {

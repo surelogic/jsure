@@ -69,23 +69,18 @@ public abstract class Effect {
 
   
   
-    @Override
-    public boolean isMaskable(final IBinder binder) {
+    @Override 
+    public EmptyEffect mask(final IBinder binder) {
       /* Empty effects are not maskable because we want to process them so
        * that we can create links to the annotation that declared them.
        */
-      return false;
+      return this;
     }
     
     @Override
     public boolean affectsReceiver(final IRNode rcvrNode) {
       // Empty effects affect nothing
       return false;
-    }
-
-    @Override
-    public Effect setSource(final IRNode src) {
-      return new EmptyEffect(src);
     }
     
     @Override
@@ -178,13 +173,18 @@ public abstract class Effect {
       super(src, t);
     }
 
-    
-    
-    @Override
-    public final boolean isMaskable(final IBinder binder) {
-      return target.isMaskable(binder);
+    protected final Effect maskImpl(final IBinder binder, final boolean isRead) {
+      final Target maskedTarget = target.mask(binder);
+      if (maskedTarget == null) {
+        return null;
+      } else if (maskedTarget == target) {
+        return this;        
+      } else {
+        return newEffect(source, isRead, maskedTarget);
+      }
     }
 
+    
     @Override
     public final boolean affectsReceiver(final IRNode rcvrNode) {
       return target.overlapsReceiver(rcvrNode);
@@ -209,8 +209,8 @@ public abstract class Effect {
     }
 
     @Override
-    public Effect setSource(final IRNode src) {
-      return new ReadEffect(src, target);
+    public final Effect mask(final IBinder binder) {
+      return maskImpl(binder, true);
     }
     
     @Override
@@ -292,10 +292,10 @@ public abstract class Effect {
     private WriteEffect(final IRNode src, final Target t) {
       super(src, t);
     }
-    
+
     @Override
-    public Effect setSource(final IRNode src) {
-      return new WriteEffect(src, target);
+    public final Effect mask(final IBinder binder) {
+      return maskImpl(binder, false);
     }
     
     @Override
@@ -451,10 +451,14 @@ public abstract class Effect {
   
   
   /**
-   * Does this effect refer to state that is not accessible outside of the
-   * method in which it originates. 
+   * Mask the effect, that is, convert it to an empty effect if the effect
+   * affects state that is not visible outside of the flow unit that generated
+   * the effect.
+   * 
+   * @return The masked effect, or <code>null</code> if the effect should be
+   *         ignored completely.
    */
-  public abstract boolean isMaskable(IBinder binder);
+  public abstract Effect mask(IBinder binder);
   
   /**
    * Does this effect affect an instance region of the receiver only?  That is,
@@ -471,16 +475,6 @@ public abstract class Effect {
   public final IRNode getSource() {
     return source;
   }
-
-  /**
-   * Get a copy of this effect except change the source of the new effect.
-   * 
-   * @param src
-   *          The new source of the effect
-   * @return A copy of this effect with the source changed to <code>src</code>.
-   */
-  @Deprecated
-  public abstract Effect setSource(IRNode src);
   
   /**
    * Get a copy of this effect except change the source and evidence of the new

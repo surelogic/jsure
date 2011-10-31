@@ -46,15 +46,13 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
-import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
-import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.util.OpUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
@@ -246,7 +244,8 @@ public final class Effects implements IBinderClient {
     } else {
       final Set<Effect> newEffects = new HashSet<Effect>();
       for (final Effect e : effects) {
-        if (!e.isMaskable(binder)) newEffects.add(e);
+        final Effect masked = e.mask(binder);
+        if (masked != null) newEffects.add(masked);
       }
       return Collections.unmodifiableSet(newEffects);
     }
@@ -509,24 +508,7 @@ public final class Effects implements IBinderClient {
     return Collections.unmodifiableSet(methodEffects);
   }
 
-  /**
-   * Test if an expression is a NullLiteral.  Unwraps ParenExpression
-   * and CastExpressions.
-   */
-  // Package visible: Allow EffectsVisitor to call this method
-  static boolean isNullExpression(final IRNode expr) {
-    final Operator op = JJNode.tree.getOperator(expr);
-    if (NullLiteral.prototype.includes(op)) {
-      return true;
-    } else if (ParenExpression.prototype.includes(op)) {
-      return isNullExpression(ParenExpression.getOp(expr));
-    } else if (CastExpression.prototype.includes(op)) {
-      return isNullExpression(CastExpression.getExpr(expr));
-    } else {
-      return false;
-    }
-  }
-
+  
   
   // ----------------------------------------------------------------------
   // Target elaboration methods
@@ -658,7 +640,7 @@ public final class Effects implements IBinderClient {
                 targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
             elaborated.add(target);
           }
-        } else if (isNullExpression(expr)) {
+        } else if (OpUtil.isNullExpression(expr)) {
           /* Public bug 37: if the actual argument is "null" then we ignore 
            * the effect because there is no object. 
            */

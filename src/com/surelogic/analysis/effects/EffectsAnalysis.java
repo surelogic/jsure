@@ -183,20 +183,20 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	private Set<Effect> inferEffects(
 	    final boolean isConstructor, final IRNode member, 
 	    final Set<Effect> implFx) {
+    final IRNode rcvrNode;
+    if (isConstructor) {
+      rcvrNode = JavaPromise.getReceiverNodeOrNull(member);
+    } else {
+      rcvrNode = null;
+    }
     final Set<Effect> inferred = new HashSet<Effect>();
-    for (final Effect effect : implFx) {
-      final IRNode rcvrNode;
-      if (isConstructor) {
-        rcvrNode = JavaPromise.getReceiverNodeOrNull(member);
-      } else {
-        rcvrNode = null;
-      }
-
-      if (!effect.isEmpty()
-          && !effect.isMaskable(getBinder())
-          && !(isConstructor && rcvrNode != null && effect
-              .affectsReceiver(rcvrNode))) {
-        Target target = effect.getTarget();
+    for (final Effect e : implFx) {
+      final Effect maskedEffect = e.mask(getBinder());
+      if (maskedEffect != null
+          && !maskedEffect.isEmpty()
+          && !(isConstructor && rcvrNode != null
+              && maskedEffect.affectsReceiver(rcvrNode))) {
+        Target target = maskedEffect.getTarget();
         if (target instanceof InstanceTarget) {
           final IRNode ref = ((InstanceTarget) target).getReference();
           final Operator refOp = JJNode.tree.getOperator(ref);
@@ -232,8 +232,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         }
 
         final Target cleanedTarget = cleanInferredTarget(member, target);
-        final Effect cleanedEffect = Effect.newEffect(null, effect.isRead(),
-            cleanedTarget);
+        final Effect cleanedEffect =
+            Effect.newEffect(null, maskedEffect.isRead(), cleanedTarget);
         inferred.add(cleanedEffect);
       }
     } 

@@ -45,6 +45,11 @@ public final class EmptyTarget extends AbstractTarget {
     return false;
   }
 
+  public Target mask(final IBinder binder) {
+    // We want this to percolate up to the results, so never mask them
+    return this;
+  }
+
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }

@@ -44,12 +44,14 @@ public interface Target {
   
   
   /**
-   * Does the target refer to state that is not visible outside of the context
-   * (i.e., method) in which it originates. 
+   * Mask the target if it refers to state that is not visible outside of the
+   * context (i.e., method) in which it originates.
+   * @return <code>null</code> if the effect containing the target should be
+   * eliminated completely; the receiver if the effect should not be masked; or
+   * a new {@link EmptyTarget} if the effect should be masked to an effect
+   * on empty state (useful for providing feedback to the end user). 
    */
-  public boolean isMaskable(IBinder binder);
-  
-  
+  public Target mask(IBinder binder);
   
   /**
    * Does the target overlap with the instance region of the given receiver node?

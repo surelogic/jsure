@@ -62,7 +62,12 @@ public final class LocalTarget extends AbstractTarget {
     return true;
   }
 
+  public Target mask(final IBinder binder) {
+    // Local targets are always ignorable outside the current context
+    return null;
+  }
 
+  
 
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;

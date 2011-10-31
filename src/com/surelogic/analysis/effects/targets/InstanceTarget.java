@@ -1,6 +1,7 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
@@ -19,6 +20,7 @@ import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.util.OpUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -104,12 +106,12 @@ public final class InstanceTarget extends AbstractTarget {
     } else if (VariableUseExpression.prototype.includes(exprOp)) {
       // Throw out; handled by elaboration
       return true;
-    } else if (AllocationExpression.prototype.includes(exprOp)) {
+    } else if (OpUtil.isAllocationExpression(expr)) {
       /* Filter out instance targets with allocation expressions:
        * The newly allocated state is unknown in the calling context.
        */
       return true;
-    } else if (OuterObjectSpecifier.prototype.includes(exprOp)) {
+    } else if (OpUtil.isOuterObjectSpecifier(expr)) {
       /* The expression must be of the form "o. new C(...)", which is an
        * allocation expression, so we can ignore it.  (OuterObjectSpecifier 
        * could also be "o. super(...)", but that is impossible in this context
@@ -122,6 +124,49 @@ public final class InstanceTarget extends AbstractTarget {
      * objects visible outside the context.
      */
     return false;
+  }
+  
+  public Target mask(final IBinder binder) {
+    IRNode expr = reference;
+    Operator exprOp = JJNode.tree.getOperator(expr);
+    if (Initialization.prototype.includes(exprOp)) {
+      expr = Initialization.getValue(expr);
+      exprOp = JJNode.tree.getOperator(expr);
+    }
+
+    final boolean aggregationPivot;
+    if (FieldRef.prototype.includes(exprOp)) {
+      final IRNode fieldID = binder.getBinding(expr);
+      aggregationPivot = UniquenessUtils.isFieldUnique(fieldID)
+          || UniquenessUtils.isFieldBorrowed(fieldID);
+    } else {
+      aggregationPivot = false;
+    }
+
+    if (aggregationPivot) {
+      // Filter out unique field accesses (handle by elaboration)
+      return null;
+    } else if (VariableUseExpression.prototype.includes(exprOp)) {
+      // Throw out; handled by elaboration and BCA
+      return null;
+    } else if (OpUtil.isAllocationExpression(expr)) {
+      /* Filter out instance targets with allocation expressions:
+       * The newly allocated state is unknown in the calling context.
+       */
+      return new EmptyTarget(new EmptyEvidence(Reason.NEW_OBJECT, this, expr));
+    } else if (OpUtil.isOuterObjectSpecifier(expr)) {
+      /* The expression must be of the form "o. new C(...)", which is an
+       * allocation expression, so we can ignore it.  (OuterObjectSpecifier 
+       * could also be "o. super(...)", but that is impossible in this context
+       * because it wouldn't ever be returned by BCA.)
+       */
+      return new EmptyTarget(new EmptyEvidence(Reason.NEW_OBJECT, this, expr));
+    }
+                        
+    /* We leave QualifiedReceiverDeclarations because they do refer to
+     * objects visible outside the context.
+     */
+    return this;
   }
 
   

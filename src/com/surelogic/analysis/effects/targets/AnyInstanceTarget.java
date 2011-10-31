@@ -78,6 +78,11 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return false;
   }
 
+  public Target mask(final IBinder binder) {
+    // Any instance targets are never maskable
+    return this;
+  }
+
   
   
   public boolean overlapsReceiver(final IRNode rcvrNode) {

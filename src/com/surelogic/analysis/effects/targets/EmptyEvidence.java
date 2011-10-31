@@ -9,7 +9,8 @@ public class EmptyEvidence implements TargetEvidence {
     DECLARES_NO_EFFECTS(Messages.REASON_NO_DECLARED_EFFECT),
     RECEIVER_IS_IMMUTABLE(Messages.REASON_RECEIVER_IS_IMMUTABLE),
     FINAL_FIELD(Messages.REASON_FINAL_FIELD),
-    NULL_REFERENCE(Messages.REASON_NULL_REFERENCE);
+    NULL_REFERENCE(Messages.REASON_NULL_REFERENCE),
+    NEW_OBJECT(Messages.REASON_NEW_OBJECT);
     
     private int msg;
 

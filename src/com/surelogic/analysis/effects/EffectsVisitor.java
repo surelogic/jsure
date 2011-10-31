@@ -319,10 +319,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
               binder, thisExprBinder, expr,
               superClassDecl,
               context.theReceiverNode, getEnclosingDecl());
-        for (final Effect initEffect : newContext.theEffects) {
-          if (!(initEffect.isMaskable(binder) || 
-              initEffect.affectsReceiver(newContext.theReceiverNode))) {
-            final Target target = initEffect.getTarget();
+        for (final Effect e : newContext.theEffects) {
+          final Effect maskedEffect = e.mask(binder);
+          if (maskedEffect != null
+              && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
+            final Target target = maskedEffect.getTarget();
             if (target instanceof InstanceTarget) {
               final IRNode ref = target.getReference();
               
@@ -330,22 +331,22 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
               if (newRef != null) {
                 effects.elaborateInstanceTargetEffects(
                     context.bcaQuery, targetFactory, binder, expr, 
-                    callback, initEffect.isRead(), 
+                    callback, maskedEffect.isRead(), 
                     targetFactory.createInstanceTarget(
                         newRef, target.getRegion(), 
-                        new AnonClassEvidence(initEffect)),
+                        new AnonClassEvidence(maskedEffect)),
                     context.theEffects);
               } else {
                 final IJavaType type = binder.getJavaType(ref);
-                context.addEffect(Effect.newEffect(expr, initEffect.isRead(),
+                context.addEffect(Effect.newEffect(expr, maskedEffect.isRead(),
                     targetFactory.createAnyInstanceTarget(
                         (IJavaReferenceType) type, target.getRegion(), 
-                        new UnknownReferenceConversionEvidence(initEffect, ref, (IJavaReferenceType) type))));
+                        new UnknownReferenceConversionEvidence(maskedEffect, ref, (IJavaReferenceType) type))));
               }
             } else {
               context.addEffect(
-                  initEffect.changeSource(
-                      expr, new AnonClassEvidence(initEffect)));
+                  maskedEffect.changeSource(
+                      expr, new AnonClassEvidence(maskedEffect)));
             }
           }
         }
