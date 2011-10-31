@@ -25,7 +25,6 @@ import org.eclipse.ui.part.EditorPart;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
