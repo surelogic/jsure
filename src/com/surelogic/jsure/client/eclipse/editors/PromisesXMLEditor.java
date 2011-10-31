@@ -50,7 +50,7 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	public static final boolean hideEmpty = false;
 	
-	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty);
+	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty, false);
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
 	private static final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();

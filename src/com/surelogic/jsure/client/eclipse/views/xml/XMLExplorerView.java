@@ -89,7 +89,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		Package[] pkgs = noPackages;
 		
 		Provider() {
-			super(true);
+			super(true, true);
 		}
 		
 		public String build() {

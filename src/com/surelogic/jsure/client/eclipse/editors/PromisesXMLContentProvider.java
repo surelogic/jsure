@@ -21,6 +21,7 @@ import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.CommentElement;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.IMergeableElement;
 import com.surelogic.xml.PackageElement;
@@ -38,9 +39,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	PackageElement pkg;
 	Object[] roots;
 	final boolean hideEmpty;
+	final boolean alsoHideComments;
 	
-	protected PromisesXMLContentProvider(boolean hideEmpty) {
+	protected PromisesXMLContentProvider(boolean hideEmpty, boolean alsoHideComments) {
 		this.hideEmpty = hideEmpty;
+		this.alsoHideComments = alsoHideComments;
 	}
 	
 	boolean isMutable() {
@@ -152,6 +155,9 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			final List<IJavaElement> nonLeaf = new ArrayList<IJavaElement>();
 			for(Object o : children) {
 				IJavaElement c = (IJavaElement) o;
+				if (alsoHideComments && c instanceof CommentElement) {
+					continue;
+				}
 				if (c.hasChildren() || c instanceof IMergeableElement) {
 					nonLeaf.add(c);
 				}
