@@ -198,6 +198,9 @@ public class PackageAccessor implements TestXMLParserConstants {
 	}
 	
 	private static void findPromiseXMLsInDir(IXmlProcessor qnames, File dir, String path) {
+		if (dir == null || !dir.isDirectory()) {
+			return;
+		}
 		for(File xml : dir.listFiles(XML_FILTER)) {				
 			findPromiseXMLs(qnames, xml, path);
 		}
