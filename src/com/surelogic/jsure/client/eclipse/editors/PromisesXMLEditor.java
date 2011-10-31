@@ -626,7 +626,7 @@ public class PromisesXMLEditor extends EditorPart {
 	/**
 	 * @return true if local
 	 */
-	static Pair<File,FileStatus> findPromisesXML(String path) {
+	public static Pair<File,FileStatus> findPromisesXML(String path) {
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			File f = new File(localXml, path);
