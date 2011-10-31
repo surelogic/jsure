@@ -5,10 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.ui.ISharedImages;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -21,12 +22,7 @@ import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
-import com.surelogic.xml.CommentElement;
-import com.surelogic.xml.IJavaElement;
-import com.surelogic.xml.IMergeableElement;
-import com.surelogic.xml.PackageElement;
-import com.surelogic.xml.PromisesXMLReader;
-import com.surelogic.xml.PromisesXMLWriter;
+import com.surelogic.xml.*;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Pair;
@@ -190,9 +186,16 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	@Override
 	public Image getImage(Object element) {
 		IJavaElement e = (IJavaElement) element;
-		return SLImages.getImage(e.getImageKey());
+		String key = e.getImageKey();
+		if (key != null) {
+			Image i = SLImages.getImage(key);
+			if (i != null) {
+				return i;
+			}
+		}
+		return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PUBLIC);
 	}
-	
+
 	@Override
 	public Color getForeground(Object element) {
 		if (element instanceof IJavaElement) {
