@@ -116,11 +116,15 @@ public final class JavaIdentifier {
 	
 	public static String encodeDecl(IIRProject proj, IRNode decl) {
 		final IRNode type      = VisitUtil.getClosestType(decl);
-		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type);
+		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type == null ? decl : type);
 		final StringBuilder sb = new StringBuilder();
 		
 		if (proj == null) {
 			proj = JavaProjects.getProject(cu);
+
+			if (proj == null) {
+				System.out.println("No project found for "+JJNode.tree.getOperator(decl).name()+" : "+DebugUnparser.toString(decl));
+			}
 		}
 		final IBinder b = proj.getTypeEnv().getBinder();
 		sb.append(proj.getName()).append(SEPARATOR);
