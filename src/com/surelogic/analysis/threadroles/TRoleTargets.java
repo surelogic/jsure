@@ -364,7 +364,9 @@ public class TRoleTargets {
     Effects eff = null;
     final Set<Effect> methodFx = eff.getMethodCallEffects(
         bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
-        targetFactory, binder, Effects.NullCallback.INSTANCE, mcall, enclosingMethod);
+        targetFactory, binder,
+        Effects.ElaborationErrorCallback.NullCallback.INSTANCE, mcall,
+        enclosingMethod);
     final Operator callOp = getOperator(mcall);
     
     // Process all the actual parameters

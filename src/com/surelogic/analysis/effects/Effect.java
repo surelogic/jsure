@@ -11,9 +11,6 @@ import com.surelogic.analysis.effects.targets.TargetRelationships;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Represents an effect on a region. Effects are either read or write, where
@@ -489,29 +486,6 @@ public abstract class Effect {
    */
   public abstract Effect changeSource(IRNode src, TargetEvidence e);
   
-  /**
-   * Query whether the effect is indirect, that is originates from invoking a
-   * method/constructor.
-   */
-  public final boolean isIndirect() {
-    if (source == null) {
-      return false;
-    } else {
-      final Operator op = JJNode.tree.getOperator(source);
-      return MethodDeclaration.prototype.includes(op)
-          || ConstructorDeclaration.prototype.includes(op)
-          || op instanceof CallInterface;
-    }
-  }
-
-  /**
-   * Query whether the effect is direct, that is does not originate from a
-   * latent method/constructor effect.
-   */
-  public boolean isDirect() {
-    return !isIndirect();
-  }
-
   /**
    * Get the target of the effect.
    * 

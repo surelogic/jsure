@@ -64,7 +64,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
   private IJavaDeclaredType javaLangObject;
   
-  private final Effects.ElaborationCallback callback;
+  private final Effects.ElaborationErrorCallback callback;
   
 	public EffectsAnalysis() {
 		super(willRunInParallel, IRNode.class, "EffectAssurance2", BindingContextAnalysis.factory);
@@ -127,52 +127,51 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final boolean isConstructor =
 				ConstructorDeclaration.prototype.includes(op);
 			final boolean isMethod = MethodDeclaration.prototype.includes(op);
-			if (isConstructor || isMethod) {
+      /*
+       * Compare the declared effects to the actual effects of the
+       * implementation. (First make sure the method is not abstract or
+       * native.)
+       */
+			if ((isConstructor || isMethod)
+			    && !JavaNode.getModifier(member, JavaNode.ABSTRACT)
+			    && !JavaNode.getModifier(member, JavaNode.NATIVE)) {
 			  // NULL if there are no declared effects
-				final List<Effect> declFx =
-					Effects.getDeclaredMethodEffects(member, member);
+        final List<Effect> declFx =
+          Effects.getDeclaredMethodEffects(member, member);
+        final Set<Effect> implFx = getAnalysis().getImplementationEffects(
+            member, getSharedAnalysis(), callback);
+				// only assure if there is declared intent
+				if (declFx != null) {
+					final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
 
-				/*
-				 * Compare the declared effects to the actual effects of the
-				 * implementation. (First make sure the method is not abstract or
-				 * native.)
-				 */
-				if (!JavaNode.getModifier(member, JavaNode.ABSTRACT)
-						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
-          final Set<Effect> implFx = getAnalysis().getImplementationEffects(
-              member, getSharedAnalysis(), callback);
-					// only assure if there is declared intent
-					if (declFx != null) {
-						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
+					// This won't be null because we know we have declared effects
+					final RegionEffectsPromiseDrop declaredEffectsDrop =
+						MethodEffectsRules.getRegionEffectsDrop(member);
 
-						// This won't be null because we know we have declared effects
-						final RegionEffectsPromiseDrop declaredEffectsDrop =
-							MethodEffectsRules.getRegionEffectsDrop(member);
-
-						if (maskedFx.isEmpty()) {
-							final ResultDropBuilder rd = ResultDropBuilder.create(this, Messages.toString(Messages.EMPTY_EFFECTS));
-							rd.addCheckedPromise(declaredEffectsDrop);
-							setResultDependUponDrop(rd, member);
-							rd.setConsistent();
-							rd.setResultMessage(Messages.EMPTY_EFFECTS);
-						} else {
-							if (isConstructor) {
-								checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
-							} else {
-								checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
-							}
-						}
+					if (maskedFx.isEmpty()) {
+						final ResultDropBuilder rd = ResultDropBuilder.create(
+						    this, Messages.toString(Messages.EMPTY_EFFECTS));
+						rd.addCheckedPromise(declaredEffectsDrop);
+						setResultDependUponDrop(rd, member);
+						rd.setConsistent();
+						rd.setResultMessage(Messages.EMPTY_EFFECTS);
 					} else {
-					  // Infer effects
-					  final Set<Effect> inferredEffects = 
-					    inferEffects(isConstructor, member, implFx);
-            final ProposedPromiseBuilder pb =
-              new ProposedPromiseBuilder("RegionEffects",
-                  Effects.unparseForPromise(inferredEffects), member, member);
-            handleBuilder(pb);
+						if (isConstructor) {
+							checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
+						} else {
+							checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
+						}
 					}
+				} else {
+				  // Infer effects
+				  final Set<Effect> inferredEffects = 
+				    inferEffects(isConstructor, member, implFx);
+          final ProposedPromiseBuilder pb =
+            new ProposedPromiseBuilder("RegionEffects",
+                Effects.unparseForPromise(inferredEffects), member, member);
+          handleBuilder(pb);
 				}
-			} else if(TypeUtil.isTypeDecl(member)) {
+			} else if (TypeUtil.isTypeDecl(member)) {
 			  reportClassInitializationEffects(member);
 			}			  
 		}
@@ -284,12 +283,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  return target.degradeRegion(region);
 	}
 	
-	private boolean equals(String s1, String s2) {
-		if (s1 != null) {
-			return s1.equals(s2);
-		}
-		// s1 is null
-		return s1 == s2;
+	private static boolean equals(final Object o1, final Object o2) {
+	  return (o1 == null) ? o2 == null : o1.equals(o2);
 	}
 	
 	/* Destroys the incoming set! */
@@ -373,98 +368,34 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
 
 	/**
-	 * @param declEffDrop
-	 * @param eff
-	 */
-	private ResultDropBuilder constructResultDrop(
-	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
-			final boolean isConsistent, final Effect eff, final int msgTemplate,
-			final Object... msgArgs) {
-		final ResultDropBuilder rd =
-		  ResultDropBuilder.create(this, Messages.toString(msgTemplate));
-		rd.addCheckedPromise(declEffDrop);
-
-		final IRNode src = eff.getSource();
-//		final Operator op = JJNode.tree.getOperator(src);
-//		if (op instanceof CallInterface) {
-//			final IRNode mdecl = getBinder().getBinding(src);
-//			final RegionEffectsPromiseDrop cutpoint =
-//				MethodEffectsRules.getRegionEffectsDrop(mdecl);
-//			// No drops to make if there are no declared effects
-//			if (cutpoint != null) {
-//				rd.addTrustedPromise(cutpoint);
-//				// Add parameter bindings
-//				final Map<IRNode, IRNode> bindings =
-//					MethodCallUtils.constructFormalToActualMap(
-//							// XXX: This is not correct because it should really use the
-//							// specific constructor implementations when analyzing field inits
-//							// and instance inits, but this is not possible from here. Yet
-//							// another reason why I need to chang the EffectsVisitor to build
-//							// it's own COE.
-//							getBinder(), src, getBinder().getBinding(src), methodBeingChecked);
-//				for (final Map.Entry<IRNode, IRNode> binding : bindings.entrySet()) {
-//					final IRNode formal = binding.getKey();
-//					final Operator formalOp = JJNode.tree.getOperator(formal);
-//					final String formalString;
-//					if (ParameterDeclaration.prototype.includes(formalOp)) {
-//						formalString = ParameterDeclaration.getId(formal);
-//					} else if (ReceiverDeclaration.prototype.includes(formalOp)) {
-//						formalString = "this";
-//					} else if (QualifiedReceiverDeclaration.prototype.includes(formalOp)) {
-//						formalString = JavaNames.getFullTypeName(QualifiedReceiverDeclaration.getType(getBinder(), formal)) + " .this";
-//					} else {
-//						// Shouldn't get here
-//						throw new IllegalStateException("Formal parameter is not a ParameterDeclaration or a Receiver");
-//					}
-//					final IRNode actual = binding.getValue();
-//					final String actualString = DebugUnparser.toString(actual);
-//
-//					rd.addSupportingInformation(actual, 
-//                            Messages.PARAMETER_EVIDENCE,
-//					        formalString, actualString);
-//				}
-//			}
-//		}
-
-		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
-		
-		// Finish the drop
-		setResultDependUponDrop(rd, src);
-		rd.setConsistent(isConsistent);
-		rd.setResultMessage(msgTemplate, msgArgs);
-		
-		return rd;
-	}
-	
-	/**
-	 * @param report
-	 * @param method
-	 * @param declFx
-	 * @param implFx
-	 */
-	private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
-			final List<Effect> declFx, final Set<Effect> implFx) {
-	  final Set<Effect> missing = new HashSet<Effect>();
-	  final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
-	  for (final Effect eff : implFx) {
-	    final ResultDropBuilder r = 
-	      checkEffect(method, declEffDrop, eff, declFx, missing);
-	    if (r != null) badDrops.add(r);
-		}
-	  if (!missing.isEmpty()) {
-	    // Needed effects are those that are declared plus those that are missing
-	    missing.addAll(declFx);
-	    final Set<Effect> inferred = inferEffects(false, method, missing);
-	    final ProposedPromiseBuilder proposed = 
-	      new ProposedPromiseBuilder("RegionEffects", 
-	          Effects.unparseForPromise(inferred), 
-	          declEffDrop.getAST().toString().substring("RegionEffects".length()).trim(), 
-	          method, method);
-	    for (final ResultDropBuilder r : badDrops) {
-	      r.addProposal(proposed);
-	    }
-	  }
-	}
+   * @param report
+   * @param method
+   * @param declFx
+   * @param implFx
+   */
+  private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
+  		final List<Effect> declFx, final Set<Effect> implFx) {
+    final Set<Effect> missing = new HashSet<Effect>();
+    final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
+    for (final Effect eff : implFx) {
+      final ResultDropBuilder r = 
+        checkEffect(method, declEffDrop, eff, declFx, missing);
+      if (r != null) badDrops.add(r);
+  	}
+    if (!missing.isEmpty()) {
+      // Needed effects are those that are declared plus those that are missing
+      missing.addAll(declFx);
+      final Set<Effect> inferred = inferEffects(false, method, missing);
+      final ProposedPromiseBuilder proposed = 
+        new ProposedPromiseBuilder("RegionEffects", 
+            Effects.unparseForPromise(inferred), 
+            declEffDrop.getAST().toString().substring("RegionEffects".length()).trim(), 
+            method, method);
+      for (final ResultDropBuilder r : badDrops) {
+        r.addProposal(proposed);
+      }
+    }
+  }
 
   /**
    * Check an implementation effect against a set of declared effects. Does
@@ -477,32 +408,55 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
    * @return The result drop if the effect is <em>not</em> assured. Otherwise
    *         <code>null</code>.
    */
-	private ResultDropBuilder checkEffect(final IRNode methodBeingChecked,
+  private ResultDropBuilder checkEffect(final IRNode methodBeingChecked,
     final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
-		final List<Effect> declFx, final Set<Effect> missing) {
-		boolean checked = false;
-		final Iterator<Effect> iter = declFx.iterator();
-		while (!checked && iter.hasNext()) {
-			final Effect eff2 = iter.next();
-			if (implEff.isCheckedBy(getBinder(), eff2)) {
-				checked = true;
-				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-						Messages.CHECKED_BY, implEff, eff2);
-			}
-		}
-		if (!checked) {
-		  missing.add(implEff);
-			return 
-			  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-			      Messages.UNACCOUNTED_FOR, implEff);
-		} else {
-		  return null;
-		}
+  	final List<Effect> declFx, final Set<Effect> missing) {
+  	boolean checked = false;
+  	final Iterator<Effect> iter = declFx.iterator();
+  	while (!checked && iter.hasNext()) {
+  		final Effect eff2 = iter.next();
+  		if (implEff.isCheckedBy(getBinder(), eff2)) {
+  			checked = true;
+  			constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
+  					Messages.CHECKED_BY, implEff, eff2);
+  		}
+  	}
+  	if (!checked) {
+  	  missing.add(implEff);
+  		return 
+  		  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
+  		      Messages.UNACCOUNTED_FOR, implEff);
+  	} else {
+  	  return null;
+  	}
+  }
+
+  /**
+	 * @param declEffDrop
+	 * @param eff
+	 */
+	private ResultDropBuilder constructResultDrop(
+	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
+			final boolean isConsistent, final Effect eff, final int msgTemplate,
+			final Object... msgArgs) {
+		final ResultDropBuilder rd =
+		  ResultDropBuilder.create(this, Messages.toString(msgTemplate));
+		rd.addCheckedPromise(declEffDrop);
+
+		final IRNode src = eff.getSource();
+		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
+		
+		// Finish the drop
+		setResultDependUponDrop(rd, src);
+		rd.setConsistent(isConsistent);
+		rd.setResultMessage(msgTemplate, msgArgs);
+		
+		return rd;
 	}
 	
 	
 	
-	private final class ElaborationErrorReporter implements Effects.ElaborationCallback {
+	private final class ElaborationErrorReporter implements Effects.ElaborationErrorCallback {
 	  public ElaborationErrorReporter() {
 	    super();
 	  }
