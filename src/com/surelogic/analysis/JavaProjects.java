@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.common.logging.SLLogger;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
@@ -55,6 +57,9 @@ public class JavaProjects {
 		IIRProject old = getProject(cu);
 		if (old == null) {
 			cu.setSlotValue(projectSI, p);
+		} 
+		else if (old != p) {
+			SLLogger.getLogger().warning("Resetting project from "+old.getName()+" to "+p.getName()+" for "+DebugUnparser.toString(cu));
 		}
 	}
 }
