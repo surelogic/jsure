@@ -75,6 +75,7 @@ public class PackageDrop extends CUDrop {
 			LOG.finer("Couldn't find "+xmlName);
 		}
 	}
+	JavaProjects.setProject(root, tEnv.getProject());
   }
   
   private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n) {
