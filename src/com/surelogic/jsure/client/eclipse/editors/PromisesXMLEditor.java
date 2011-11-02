@@ -577,7 +577,7 @@ public class PromisesXMLEditor extends EditorPart {
 		@Override
 		public MethodElement visit(MethodElement m) {
 			if (name.equals(m.getName())) {
-				if (params.equals(m.getParams())) {
+				if (params == null || params.equals(m.getParams())) {
 					return m;
 				}				
 			}
