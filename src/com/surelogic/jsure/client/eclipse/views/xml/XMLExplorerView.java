@@ -17,6 +17,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
@@ -72,8 +73,33 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 		else if (o instanceof Package) {
 			Package p = (Package) o;
-			PromisesXMLEditor.openInEditor(p.name.replace('.', '/')+"/package-info"+TestXMLParserConstants.SUFFIX, false);
+			PromisesXMLEditor.openInEditor(getPackagePath(p.name), false);
 		}
+		else if (o instanceof IJavaElement) {
+			IJavaElement e = (IJavaElement) o;
+			while (e != null) {
+				if (e instanceof PackageElement) {
+					break;
+				}
+				e = e.getParent();
+			}
+			PackageElement p = (PackageElement) e;
+			
+			if (p.getClassElement() == null) {
+				PromisesXMLEditor.openInEditor(getPackagePath(p.getName()), false);
+			} else {
+				final IEditorPart ep = 
+					PromisesXMLEditor.openInEditor(p.getName().replace('.', '/')+'/'+p.getClassElement().getName()+TestXMLParserConstants.SUFFIX, false);
+				if (ep instanceof PromisesXMLEditor) {
+					final PromisesXMLEditor xe = (PromisesXMLEditor) ep;
+					xe.focusOn((IJavaElement) o);
+				}
+			}
+		}
+	}
+
+	private String getPackagePath(String qname) {
+		return qname.replace('.', '/')+"/package-info"+TestXMLParserConstants.SUFFIX;
 	}
 	
 	/**

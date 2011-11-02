@@ -745,4 +745,8 @@ public class PromisesXMLEditor extends EditorPart {
 			return path.hashCode();
 		}
 	}
+
+	public void focusOn(IJavaElement o) {		
+		// TODO Auto-generated method stub	
+	}
 }
