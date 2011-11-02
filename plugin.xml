@@ -17,7 +17,7 @@
            class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
            id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
            default="true"
-           extensions="xml"
+           extensions="promises.xml"
            matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
 	</extension>
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
