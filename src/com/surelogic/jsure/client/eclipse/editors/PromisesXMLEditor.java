@@ -418,9 +418,9 @@ public class PromisesXMLEditor extends EditorPart {
 					final AnnotationElement a;
 					final Map<String,String> attrs = Collections.<String,String>emptyMap();
 					if (makeScopedPromise) {
-						a = new AnnotationElement(null, ScopedPromiseRules.PROMISE, "@"+tag+" for "+target.target, attrs);
+						a = new AnnotationElement(j, null, ScopedPromiseRules.PROMISE, "@"+tag+" for "+target.target, attrs);
 					} else {
-						a = new AnnotationElement(null, tag, "", attrs);
+						a = new AnnotationElement(j, null, tag, "", attrs);
 					}
 					j.addPromise(a);
 					a.markAsModified();

@@ -29,7 +29,8 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider {	
-	private Color colorRed;
+	private Color colorForModified;
+	private Color colorForBadSyntax;
 	
 	URI location;
 	FileStatus status = null;
@@ -79,8 +80,9 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
 	@Override
 	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		if (colorRed == null && viewer != null) {
-			colorRed = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
+		if (colorForModified == null && viewer != null) {
+			colorForModified = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_BLUE);
+			colorForBadSyntax = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
 		}
 		
 		if (newInput != location) {
@@ -229,9 +231,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	public Color getForeground(Object element) {
 		if (element instanceof IJavaElement) {
 			IJavaElement e = (IJavaElement) element;
+			if (e.isBad()) {
+				return colorForBadSyntax;
+			}
 			if (e.isModified()) {
-				return colorRed;
-			} 
+				return colorForModified;
+			}			
 		}
 		return null;
 	}
