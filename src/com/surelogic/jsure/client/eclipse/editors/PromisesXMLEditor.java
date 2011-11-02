@@ -550,9 +550,7 @@ public class PromisesXMLEditor extends EditorPart {
 		if (p != null) {
 			final MethodElement m = p.visit(new MethodFinder(name, params));
 			if (m != null) {
-				//contents.expandToLevel(m, 1);
-				contents.setSelection(new StructuredSelection(m));
-				contents.reveal(m);
+				focusOn(m);
 			}
 		}
 	}
@@ -747,6 +745,7 @@ public class PromisesXMLEditor extends EditorPart {
 	}
 
 	public void focusOn(IJavaElement e) {		
+		contents.setSelection(new StructuredSelection(e));
 		contents.reveal(e);
 	}
 }

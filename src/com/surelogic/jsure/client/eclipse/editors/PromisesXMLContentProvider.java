@@ -111,13 +111,16 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		if (location != null) {
 			try {
 				InputStream in = null;					
+				String label = null;
 				try {
+					label = location.toASCIIString();
 					in = location.toURL().openStream();
 					status = FileStatus.READ_ONLY;
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
 					Pair<File,FileStatus> rv = PromisesXMLEditor.findPromisesXML(path);
 					if (rv != null) {
+						label = path;
 						in = new FileInputStream(rv.first());
 						status = rv.second();
 					} else {
@@ -125,7 +128,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 					}
 				}
 				roots = new Object[1];
-				roots[0] = pkg = getXML(in);
+				roots[0] = pkg = getXML(label, in);
 			} catch (Exception e) {
 				pkg = null;
 				roots = ArrayUtil.empty;
@@ -133,15 +136,25 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		}
 	}
 	
-	public static PackageElement getXML(InputStream in ) throws Exception {
-		PromisesXMLReader r = new PromisesXMLReader();
-		r.read(in);
-		if (true) {
-			if (PromisesXMLBuilder.updateElements(r.getPackage())) {
-				System.out.println("Added elements");
+	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
+	
+	public static synchronized PackageElement getXML(String label, InputStream in) throws Exception {
+		System.out.println("Getting XML for "+label);
+		PackageElement p = cache.get(label);
+		if (p == null) {
+			PromisesXMLReader r = new PromisesXMLReader();
+			r.read(in);
+			if (true) {
+				if (PromisesXMLBuilder.updateElements(r.getPackage())) {
+					System.out.println("Added elements");
+				}
 			}
+			p = r.getPackage();
+			cache.put(label, p);
+		} else {
+			System.out.println("Used cache for "+label);
 		}
-		return r.getPackage();
+		return p;
 	}
 	
 	@Override

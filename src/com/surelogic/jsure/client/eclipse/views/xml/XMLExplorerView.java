@@ -286,7 +286,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (rv != null) {
 				try {
 					InputStream in = new FileInputStream(rv.first());
-					root = PromisesXMLContentProvider.getXML(in);
+					root = PromisesXMLContentProvider.getXML(path, in);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
