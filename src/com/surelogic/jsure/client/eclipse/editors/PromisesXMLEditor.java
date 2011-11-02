@@ -746,7 +746,7 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 
-	public void focusOn(IJavaElement o) {		
-		// TODO Auto-generated method stub	
+	public void focusOn(IJavaElement e) {		
+		contents.reveal(e);
 	}
 }
