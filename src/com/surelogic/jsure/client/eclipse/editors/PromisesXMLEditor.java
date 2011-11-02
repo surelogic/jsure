@@ -157,6 +157,7 @@ public class PromisesXMLEditor extends EditorPart {
 		if (isDirty) {
 			isDirty = false;
 			fireDirtyProperty();
+			PromisesXMLContentProvider.refreshAll(provider.pkg);
 		}
 	}
 

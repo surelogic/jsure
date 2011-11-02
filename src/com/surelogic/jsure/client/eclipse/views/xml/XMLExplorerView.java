@@ -111,11 +111,16 @@ public class XMLExplorerView extends AbstractJSureView {
 	
 	private static final Package[] noPackages = new Package[0];
 	
-	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider {
+	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider, PromisesXMLContentProvider.Listener {
 		Package[] pkgs = noPackages;
 		
 		Provider() {
 			super(true, true);
+			listenForRefresh(this);
+		}
+		
+		public void refresh(PackageElement e) {
+			f_viewer.refresh();
 		}
 		
 		public String build() {

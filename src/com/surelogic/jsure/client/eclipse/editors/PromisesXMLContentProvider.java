@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.ui.ISharedImages;
@@ -135,8 +136,13 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			}
 		}
 	}
+
+	public interface Listener {
+		void refresh(PackageElement e);
+	}
 	
 	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
+	private static final Collection<Listener> listeners = new CopyOnWriteArraySet<Listener>();
 	
 	public static synchronized PackageElement getXML(String label, InputStream in) throws Exception {
 		System.out.println("Getting XML for "+label);
@@ -155,6 +161,16 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			System.out.println("Used cache for "+label);
 		}
 		return p;
+	}
+	
+	public static void listenForRefresh(Listener l) {
+		listeners.add(l);
+	}
+	
+	public static void refreshAll(PackageElement e) {
+		for(Listener v : listeners) {
+			v.refresh(e);
+		}
 	}
 	
 	@Override
