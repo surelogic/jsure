@@ -15,10 +15,27 @@ abstract class AbstractJavaElement implements IJavaElement {
 	}
 
 	public final void setParent(IJavaElement p) {
+		if (p == null) {
+			throw new IllegalStateException("Trying to clear the parent");
+		}
+		if (parent == p) {
+			return; // Already the same
+		}
 		if (parent != null) {
-			throw new IllegalStateException("Already has a parent");
+			if (this instanceof AnnotationElement) {
+				if (parent.getClass() != p.getClass()) {
+					throw new IllegalStateException("Resetting the parent of an annotation to a different type: "+
+							parent.getClass().getSimpleName()+" -> "+p.getClass().getSimpleName());
+				}
+			} else {
+				throw new IllegalStateException("Already has a parent");
+			}
 		}
 		parent = p;
+	}
+	
+	public boolean isBad() {
+		return false;
 	}
 	
 	public boolean canModify() {

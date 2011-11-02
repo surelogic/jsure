@@ -13,6 +13,7 @@ import com.surelogic.promise.StorageType;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.Annotation;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class AnnotationElement extends CommentedJavaElement implements IMergeableElement, TestXMLParserConstants {
@@ -20,8 +21,12 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 	private final String promise;
 	private String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
+	private boolean isBad;
 	
-	public AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
+	public AnnotationElement(IJavaElement parent, final String id, final String tag, String text, Map<String,String> a) {
+		if (parent != null) {
+			setParent(parent);
+		}
 		final String name = AnnotationVisitor.capitalize(tag);
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
 		if (storage == null) {
@@ -42,10 +47,16 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		}
 		promise = name;
 		contents = text == null ? "" : text.trim();
+
 		attributes.putAll(a);
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
 		}
+		isBad = !parses(promise, contents);
+	}
+	
+	public boolean isBad() {
+		return isBad;
 	}
 	
 	public <T> T visit(IJavaElementVisitor<T> v) {
@@ -90,30 +101,36 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 			}
 			anno = value;
 			text = "";
-		} else {
+		} else {			
+			final int end;
 			if (!value.endsWith(")")) {
-				// Ignore, since the text doesn't have the right format
+				// Ignore, since the text doesn't have the right format?
+				/*
 				l.reportError("Bad annotation syntax", "The annotation needs to use the general syntax:\n\tFoo()");
 				return;
+				*/
+				// Act as if it ended with ')'
+				end = value.length();
+			} else {
+				end = value.length()-1;
 			}
 			anno = value.substring(0, paren).trim();
-			text = value.substring(paren+1, value.length()-1).trim();
+			text = value.substring(paren+1, end).trim();
 		}			
+		/* Ignore changes to the promise
+		 * 
 		if (!promise.equals(anno)) {
 			// Ignore, since the promise type changed
 			l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+anno);
 			return;
 		}
+		*/
 		if (!contents.equals(text)) {
-			if (parses(promise, text, l)) {
-				contents = text;		
-				markAsModified();
-			} else {
-				// Handled by parses()
-				//l.reportError("Annotation unparseable", "There was a problem parsing the contents of the promise");
-			}
+			isBad = !parses(promise, text);
+			contents = text;		
+			markAsModified();
 		} else {
-			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
+			//l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
 		}
 	}
 
@@ -127,7 +144,7 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 		attributes.put(DELETE_ATTRB, "true");
 	}
 	
-	private boolean parses(final String promise, final String text, final IErrorListener l) {
+	private boolean parses(final String promise, final String text/*, final IErrorListener l*/) {
 		final IAnnotationParseRule<?,?> rule = PromiseFramework.getInstance().getParseDropRule(promise);
 		final IAnnotationParsingContext context = new AbstractAnnotationParsingContext(AnnotationSource.XML) {			
 			@Override
@@ -135,6 +152,10 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 				return null; // None to return
 			}
 			public Operator getOp() {
+				if (getParent() == null) {
+					// Might not be fully initialized
+					return PackageDeclaration.prototype;
+				}
 				return getParent().getOperator();
 			}
 
@@ -145,15 +166,14 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 			public <T extends IAASTRootNode> void reportAAST(int offset,
 					AnnotationLocation loc, Object o, T ast) {				
 				// Ignore this; we only care that it parses
-			}
-
+			}			
 			public void reportError(int offset, String msg) {
-				l.reportError("Problem parsing annotation", msg);
+				//l.reportError("Problem parsing annotation", msg);
 			}
 			public void reportException(int offset, Exception e) {
 				e.printStackTrace();
-				l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
-			}			
+				//l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
+			}						
 		};
 		return rule.parse(context, text) == ParseResult.OK;
 	}
@@ -235,7 +255,7 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 	
 	@Override
 	public AnnotationElement cloneMe() {
-		AnnotationElement clone = new AnnotationElement(uid, promise, contents, attributes);
+		AnnotationElement clone = new AnnotationElement(getParent(), uid, promise, contents, attributes);
 		copyToClone(clone);
 		return clone;
 	}

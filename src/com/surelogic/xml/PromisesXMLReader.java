@@ -71,7 +71,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		}
 		else {
 			final String uid = e.getAttribute(UID_ATTRB);
-			promises.add(new AnnotationElement(uid, name, e.getCData(), e.getAttributes()));
+			promises.add(new AnnotationElement(null, uid, name, e.getCData(), e.getAttributes()));
 		}
 	}
 	
@@ -146,7 +146,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 
 	private static void handleAnnotationOnElt(AnnotatedJavaElement func, final List<String> comments, Entity n) {
 		final String uid = n.getAttribute(UID_ATTRB);
-		AnnotationElement a = new AnnotationElement(uid, n.getName(), n.getCData(), n.getAttributes());
+		AnnotationElement a = new AnnotationElement(func, uid, n.getName(), n.getCData(), n.getAttributes());
 		func.addPromise(a);
 		a.addComments(comments);
 		comments.clear();

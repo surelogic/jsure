@@ -19,8 +19,13 @@ public interface IJavaElement {
 	boolean hasChildren();
 	Object[] getChildren();
 	
+	/**
+	 * e.g. because the syntax is wrong
+	 */
+	boolean isBad();
 	boolean isModified();
 	boolean canModify();
 	void modify(String value, IErrorListener l);
 	Operator getOperator();
+
 }
