@@ -37,18 +37,23 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 		}				
 		else if (o instanceof IMember) {
 			final IMember m = (IMember) o;
-			openInXMLEditor(m.getDeclaringType());
+			final IEditorPart e = openInXMLEditor(m.getDeclaringType());
+			if (m instanceof IMethod && e instanceof PromisesXMLEditor) {
+				final IMethod m2 = (IMethod) m;
+				final PromisesXMLEditor xe = (PromisesXMLEditor) e;
+				xe.focusOnMethod(m2.getElementName(), null);
+			}
 			// TODO find member
 		}		
 	}
 
-	private void openInXMLEditor(final IType t) {
+	private IEditorPart openInXMLEditor(final IType t) {
 		String qname = t.getFullyQualifiedName();
 		int firstDollar = qname.indexOf('$');
 		if (firstDollar >= 0) {
 			// Eliminate any refs to nested classes
 			qname = qname.substring(0, firstDollar);
 		}
-		PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, true);
+		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, true);
 	}
 }
