@@ -32,19 +32,26 @@ public final class PromisesLibMerge {
 	 * @param toClient update if true; merge to fluid otherwise
 	 */
 	public static void merge(boolean toClient) {
-		final File fLibDir = getFluidXMLDir();
-		final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
-		if (!libDir.exists()) {			
-			System.out.println("Nothing to merge: "+libDir);
+		merge(toClient, "");
+	}
+	
+	public static void merge(boolean toClient, String relativePath) {
+		final File fLibRoot = getFluidXMLDir();
+		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
+
+		final File fLibPath = new File(fLibRoot, relativePath);
+		final File libPath = new File(libRoot, relativePath);
+		if (!fLibPath.exists() || !libPath.exists()) {			
+			System.out.println("Nothing to merge: "+relativePath);
 			return; // Nothing else to do
 		}		
 		if (toClient) {
-			merge(toClient, libDir, fLibDir);
+			merge(toClient, libPath, fLibPath);
 		} else {
-			merge(toClient, fLibDir, libDir);
+			merge(toClient, fLibPath, libPath);
 		}
 	}
-		
+	
 	/**
 	 * @param onlyMerge also copy (to fluid) if false
 	 */
