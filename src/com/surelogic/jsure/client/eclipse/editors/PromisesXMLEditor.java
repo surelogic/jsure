@@ -586,11 +586,16 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	static class XmlMap extends HashMap<String,Collection<String>> implements IXmlProcessor {
 		private static final long serialVersionUID = 1L;
-
+		private final boolean makeUnique;
+		
+		XmlMap(boolean makeUnique) {
+			this.makeUnique = makeUnique;
+		}
+		
 		private Collection<String> getPkg(String qname) {
 			Collection<String> c = get(qname);
 			if (c == null) {
-				c = new HashSet<String>(4);
+				c = makeUnique ? new HashSet<String>(4) : new ArrayList<String>(2);
 				put(qname, c);
 			}
 			return c;
@@ -612,10 +617,20 @@ public class PromisesXMLEditor extends EditorPart {
 	 * @return a map of packages to qualified names
 	 */
 	public static Map<String,Collection<String>> findAllPromisesXML() {
+		return findLocalPromisesXML(true);
+	}
+	
+	public static Map<String,Collection<String>> findLocalPromisesXML() {
+		return findLocalPromisesXML(false);
+	}
+	
+	private static Map<String,Collection<String>> findLocalPromisesXML(boolean includeFluid) {
+		final XmlMap map = new XmlMap(true);
+		if (includeFluid) {
+			final File xml = PromisesLibMerge.getFluidXMLDir();
+			PackageAccessor.findPromiseXMLsInDir(map, xml);
+		}		
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
-		final File xml = PromisesLibMerge.getFluidXMLDir();
-		final XmlMap map = new XmlMap();
-		PackageAccessor.findPromiseXMLsInDir(map, xml);
 		if (localXml != null) {
 			PackageAccessor.findPromiseXMLsInDir(map, localXml);
 		}

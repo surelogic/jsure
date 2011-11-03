@@ -125,8 +125,10 @@ public class XMLExplorerView extends AbstractJSureView {
 		
 		public String build() {
 			final List<Package> l = new ArrayList<Package>();
+			final Map<String,Collection<String>> local = PromisesXMLEditor.findLocalPromisesXML();
 			for(Map.Entry<String,Collection<String>> e : PromisesXMLEditor.findAllPromisesXML().entrySet()) {
-				l.add(new Package(e));
+				Package p = new Package(e, local.get(e.getKey()));
+				l.add(p);				
 			}
 			Collections.sort(l);
 			pkgs = l.toArray(noPackages);
@@ -231,13 +233,15 @@ public class XMLExplorerView extends AbstractJSureView {
 	static class Package implements Comparable<Package> {
 		final String name;
 		final Type[] types;
+		final boolean hasLocal;
 		
-		public Package(Entry<String, Collection<String>> e) {
+		public Package(Entry<String, Collection<String>> e, Collection<String> local) {
+			hasLocal = local != null;
 			name = e.getKey();
 			types = new Type[e.getValue().size()];
 			int i=0;
-			for(String s : e.getValue()) {
-				types[i] = new Type(this, s);
+			for(String type : e.getValue()) {
+				types[i] = new Type(this, type, hasLocal ? local.contains(type) : false);				
 				i++;
 			}
 			Arrays.sort(types);
@@ -245,6 +249,9 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public String toString() {
+			if (hasLocal) {
+				return "> "+name;
+			}
 			return name;
 		}
 		
@@ -257,13 +264,15 @@ public class XMLExplorerView extends AbstractJSureView {
 	static class Type implements Comparable<Type> {
 		final Package pkg;
 		final String name;
+		final boolean isLocal;
 		PackageElement root;
 		
-		Type(Package pkg, String name) {
+		Type(Package pkg, String name, boolean isLocal) {
 			this.pkg = pkg;
 			this.name = name;
+			this.isLocal = isLocal;
 		}
-
+		
 		String getPath() {
 			return pkg.name.replace('.', '/')+'/'+name+TestXMLParserConstants.SUFFIX;
 		}
@@ -274,6 +283,9 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public String toString() {
+			if (isLocal) {
+				return "> "+name;
+			}
 			return name;
 		}
 		
