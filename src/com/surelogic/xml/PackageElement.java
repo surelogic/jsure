@@ -24,6 +24,13 @@ public class PackageElement extends AnnotatedJavaElement {
 		return v.visit(this);
 	}
 	
+	public boolean needsToUpdate(PackageElement other) {
+		if (other == null) {
+			return false;
+		}
+		return this.revision > other.revision;
+	}
+	
 	int getRevision() {
 		return revision;
 	}
