@@ -4,19 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredViewer;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.action.*;
+import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
@@ -63,6 +58,24 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+		final Object o = s.getFirstElement();
+		if (o instanceof Type) {
+			final Type t = (Type) o;
+			if (t.isLocal) {
+				final boolean hasUpdate = t.hasUpdate();			
+				manager.add(new Action(hasUpdate ? "Update local XML" : "Merge changes to JSure") {
+					@Override
+					public void run() {
+						PromisesLibMerge.merge(hasUpdate, t.getPath());
+						f_viewer.refresh();
+					}
+				}); 		
+			}
+		}
 	}
 	
 	@Override
@@ -282,10 +295,14 @@ public class XMLExplorerView extends AbstractJSureView {
 			return true;
 		}
 
+		boolean hasUpdate() {
+			return PromisesLibMerge.checkForUpdate(getPath());	
+		}
+		
 		@Override
 		public String toString() {
 			if (isLocal) {
-				if (PromisesLibMerge.checkForUpdate(getPath())) {
+				if (hasUpdate()) {
 					return "<> "+name;
 				}
 				return "> "+name;
