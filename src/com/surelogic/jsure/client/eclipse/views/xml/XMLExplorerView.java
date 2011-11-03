@@ -23,6 +23,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.editors.*;
 import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -284,6 +285,9 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (isLocal) {
+				if (PromisesLibMerge.checkForUpdate(getPath())) {
+					return "<> "+name;
+				}
 				return "> "+name;
 			}
 			return name;
