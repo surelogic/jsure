@@ -53,6 +53,30 @@ public final class PromisesLibMerge {
 	}
 	
 	/**
+	 * From fluid to local
+	 * 
+	 * @return true if there is an update to Fluid
+	 */
+	public static boolean checkForUpdate(String relativePath) {
+		final File fLibRoot = getFluidXMLDir();
+		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
+
+		final File fLibPath = new File(fLibRoot, relativePath);
+		final File libPath = new File(libRoot, relativePath);
+		if (!fLibPath.isFile() || !libPath.isFile()) {		
+			return false;
+		}
+		try {
+			PackageElement fluid = PromisesXMLReader.load(fLibPath);
+			PackageElement local = PromisesXMLReader.load(libPath);			
+			return fluid.needsToUpdate(local);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
 	 * @param onlyMerge also copy (to fluid) if false
 	 */
 	private static void merge(final boolean onlyMerge, File to, File from) {
