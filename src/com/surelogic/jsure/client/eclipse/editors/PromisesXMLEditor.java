@@ -25,7 +25,6 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -197,12 +196,14 @@ public class PromisesXMLEditor extends EditorPart {
 		// otherwise already dirty
 	}
 	
+	/*
 	private CommentElement makeComment() {
         CommentElement c = CommentElement.make("...");
         c.markAsDirty();
         markAsDirty();
         return c;
 	}
+	*/
 	
 	private void setupContextMenu(final Menu menu) {
 		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
@@ -215,6 +216,7 @@ public class PromisesXMLEditor extends EditorPart {
 		if (!provider.isMutable()) {
 			return;
 		}
+		/*
 		if (o instanceof CommentElement) {
 			final CommentElement c0 = (CommentElement) o;
 		    makeMenuItem(menu, "Add comment above this", new SelectionAdapter() {
@@ -258,7 +260,7 @@ public class PromisesXMLEditor extends EditorPart {
 		        }
 		    });
 		}
-		
+		*/
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
