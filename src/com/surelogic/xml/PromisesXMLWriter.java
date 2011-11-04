@@ -77,22 +77,30 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeAnno(int indent, AnnotationElement a) {
-		//writeComments(indent, a.getComments());
-		Entities.start(a.getPromise(), b, indent);
-		for(Map.Entry<String,String> attr : a.getAttributes()) {
-			// TODO indent?
-			Entities.addAttribute(attr.getKey(), attr.getValue(), b);
-		}
-		if (a.isEmpty()) {
+		if (a.isReference()) {
+			Entities.start(a.getPromise()+AnnotationElement.REF_SUFFIX, b, indent);
+			if (a.getPromise() != a.getUid()) {
+				Entities.addAttribute(UID_ATTRB, a.getUid(), b);
+			}
 			Entities.closeStart(b, true);
 		} else {
-			final boolean newline = a.getContents().contains("\n");
-			Entities.closeStart(b, false, newline);
-			Entities.addEscaped(a.getContents(), b);
-			if (newline) {
-				b.append('\n');
+			//writeComments(indent, a.getComments());
+			Entities.start(a.getPromise(), b, indent);
+			for(Map.Entry<String,String> attr : a.getAttributes()) {
+				// TODO indent?
+				Entities.addAttribute(attr.getKey(), attr.getValue(), b);
 			}
-			Entities.end(a.getPromise(), b, newline ? indent : -1);
+			if (a.isEmpty()) {
+				Entities.closeStart(b, true);
+			} else {
+				final boolean newline = a.getContents().contains("\n");
+				Entities.closeStart(b, false, newline);
+				Entities.addEscaped(a.getContents(), b);
+				if (newline) {
+					b.append('\n');
+				}
+				Entities.end(a.getPromise(), b, newline ? indent : -1);
+			}
 		}
 		flush();
 	}
