@@ -35,6 +35,15 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 		return clone;
 	}
 	
+	ClassInitElement copyIfDirty() {
+		if (isDirty()) {
+			ClassInitElement clone = new ClassInitElement();
+			copyIfDirty(clone);
+			return clone;
+		}
+		return null;
+	}
+	
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}

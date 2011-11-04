@@ -29,6 +29,15 @@ public class MethodElement extends AbstractFunctionElement {
 		return clone;
 	}
 	
+	MethodElement copyIfDirty() {
+		if (isDirty()) {
+			MethodElement clone = new MethodElement(getName(), getParams());
+			copyIfDirty(clone);
+			return clone;
+		}
+		return null;
+	}
+	
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}

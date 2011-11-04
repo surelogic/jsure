@@ -291,4 +291,9 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		}
 		return false;
 	}
+
+	AnnotationElement createRef() {
+		// TODO make factory method?
+		return new AnnotationElement(null, uid, promise+REF_SUFFIX, contents, Collections.<String,String>emptyMap());
+	}
 }

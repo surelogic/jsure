@@ -42,6 +42,15 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return clone;
 	}
 	
+	FunctionParameterElement copyIfDirty() {
+		if (isDirty()) {
+			FunctionParameterElement clone = new FunctionParameterElement(index);
+			copyIfDirty(clone);
+			return clone;
+		}
+		return null;
+	}
+	
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}

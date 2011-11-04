@@ -28,6 +28,15 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		return clone;
 	}
 	
+	FieldElement copyIfDirty() {
+		if (isDirty()) {
+			FieldElement clone = new FieldElement(getName());
+			copyIfDirty(clone);
+			return clone;
+		}
+		return null;
+	}
+	
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}

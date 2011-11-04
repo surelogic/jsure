@@ -2,7 +2,6 @@ package com.surelogic.xml;
 
 import java.util.*;
 
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.xml.Entity;
 
 public abstract class AbstractFunctionElement extends AnnotatedJavaElement 
@@ -130,6 +129,13 @@ implements IClassMember, TestXMLParserConstants
 		super.copyToClone(clone);
 		for(FunctionParameterElement p : params) {
 			clone.setParameter(p.cloneMe());
+		}
+	}
+	
+	void copyIfDirty(AbstractFunctionElement clone) {
+		super.copyIfDirty(clone);
+		for(FunctionParameterElement p : params) {
+			clone.setParameter(p.copyIfDirty());
 		}
 	}
 }

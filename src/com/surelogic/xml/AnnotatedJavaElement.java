@@ -144,8 +144,26 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	
 	void copyToClone(AnnotatedJavaElement clone) {
 		//super.copyToClone(clone);
-		for(AnnotationElement a : promises.values()) {
-			clone.addPromise(a.cloneMe());
+		for(Map.Entry<String,List<AnnotationElement>> e : order.entrySet()) {
+			// Reconstituted in the same order in the clone
+			for(AnnotationElement a : e.getValue()) {
+				clone.addPromise(a.cloneMe());
+			}
+		}
+	}
+	
+	void copyIfDirty(AnnotatedJavaElement copy) {
+		for(final Map.Entry<String,List<AnnotationElement>> e : order.entrySet()) {			
+			// Check if one of the elements is dirty
+			for(AnnotationElement a : e.getValue()) {
+				if (a.isDirty()) {
+					// Reconstituted in the same order in the clone
+					for(AnnotationElement a2 : e.getValue()) {
+						copy.addPromise(a2.isDirty() ? a2.cloneMe() : a2.createRef());
+					}
+				}
+			}
+
 		}
 	}
 	

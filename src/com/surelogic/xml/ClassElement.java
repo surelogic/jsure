@@ -33,6 +33,9 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 	
 	public IClassMember addMember(IClassMember m) {
+		if (m == null) {
+			return null;
+		}
 		m.setParent(this);
 		if (m instanceof MethodElement) {
 			MethodElement method = (MethodElement) m;
@@ -260,5 +263,32 @@ public class ClassElement extends AnnotatedJavaElement {
 		ClassElement e = new ClassElement(getName());
 		copyToClone(e);
 		return e;
+	}
+
+	ClassElement copyIfDirty() {
+		if (isDirty()) {
+			ClassElement e = new ClassElement(getName());
+			copyIfDirty(e);
+		}
+		return null;
+	}
+	
+	void copyIfDirty(ClassElement clone) {
+		super.copyIfDirty(clone);
+		if (clinit != null) {
+			clone.addMember(clinit.copyIfDirty());
+		}
+		for(FieldElement f : fields.values()) {
+			clone.addMember(f.copyIfDirty());
+		}
+		for(ConstructorElement c : constructors.values()) {
+			clone.addMember(c.copyIfDirty());
+		}
+		for(MethodElement m : methods.elements()) {
+			clone.addMember(m.copyIfDirty());
+		}
+		for(NestedClassElement n : classes.values()) {
+			clone.addMember(n.copyIfDirty());
+		}
 	}
 }

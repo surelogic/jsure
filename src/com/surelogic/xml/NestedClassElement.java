@@ -10,4 +10,13 @@ public class NestedClassElement extends ClassElement implements IClassMember {
 		copyToClone(clone);
 		return clone;
 	}
+	
+	NestedClassElement copyIfDirty() {
+		if (isDirty()) {
+			NestedClassElement clone = new NestedClassElement(getName());
+			copyIfDirty(clone);
+			return clone;
+		} 
+		return null;
+	}
 }
