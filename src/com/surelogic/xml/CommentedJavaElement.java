@@ -86,6 +86,7 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 		return !comments.isEmpty() || !lastEnclosedComments.isEmpty();
 	}
 	
+	@Override
 	public final Object[] getChildren() {
 		if (hasChildren()) {
 			List<Object> children = new ArrayList<Object>();
@@ -95,23 +96,6 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 			return children.toArray();
 		}
 		return ArrayUtil.empty;
-	}
-
-	/**
-	 * NOTE: using this means that hasChildren() and other methods may not match what gets returned here
-	 */
-	protected static <T extends IMergeableElement> 
-	void filterDeleted(Collection<? super T> result, Collection<T> orig) {
-		for(T e : orig) {
-			if (e.isToBeDeleted()) {
-				continue;
-			}
-			result.add(e);
-		}
-	}
-	
-	protected void collectOtherChildren(List<Object> children) {
-		// Nothing to do right now
 	}
 	
 	@Override

@@ -66,7 +66,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			clazz = new ClassElement(id);
 			
 			handleNestedElements(clazz, e);
-			clazz.addComments(comments);
+			//clazz.addComments(comments);
 			comments.clear();
 		}
 		else {
@@ -100,7 +100,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			handleAnnotationOnElt(c, comments, n);
 			return;
 		}
-		m.addComments(comments);
+		//m.addComments(comments);
 	}
 	
 	private IClassMember handleNestedElements(ClassElement cl, Entity c) {
@@ -116,7 +116,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 				comments.clear();
 			}
 		}
-		cl.setLastComments(comments);
+		//cl.setLastComments(comments);
 		
 		if (cl instanceof NestedClassElement) {
 			return (IClassMember) cl;
@@ -134,13 +134,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 				final int i = Integer.parseInt(n.getAttribute(INDEX_ATTRB)); 
 				FunctionParameterElement fe = new FunctionParameterElement(i);
 				func.setParameter(handleAnnotations(fe, n));
-				fe.addComments(comments);
+				//fe.addComments(comments);
 				comments.clear();
 			} else {
 				handleAnnotationOnElt(func, comments, n);
 			}
 		}
-		func.setLastComments(comments);
+		//func.setLastComments(comments);
 		return func;
 	}
 
@@ -162,14 +162,16 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 				handleAnnotationOnElt(e, comments, a);
 			}
 		}
-		e.setLastComments(comments);
+		//e.setLastComments(comments);
 		return e;
 	}
 	
 	public void done() {
+		/*
 		if (clazz != null) { 
 			clazz.setLastComments(comments);
 		}
+		*/
 		
 		pkg = new PackageElement(pkgName, revision, clazz);		
 		for(AnnotationElement a : promises) {

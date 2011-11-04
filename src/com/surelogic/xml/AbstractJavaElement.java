@@ -5,6 +5,7 @@ import java.util.*;
 import com.surelogic.common.logging.IErrorListener;
 
 import difflib.*;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
@@ -261,5 +262,31 @@ abstract class AbstractJavaElement implements IJavaElement {
 			c.setParent(this);
 		}
 		markAsDirty();
+	}
+	
+	public Object[] getChildren() {
+		if (hasChildren()) {
+			List<Object> children = new ArrayList<Object>();
+			collectOtherChildren(children);
+			return children.toArray();
+		}
+		return ArrayUtil.empty;
+	}
+	
+	protected void collectOtherChildren(List<Object> children) {
+		// Nothing to do right now
+	}
+	
+	/**
+	 * NOTE: using this means that hasChildren() and other methods may not match what gets returned here
+	 */
+	protected static <T extends IMergeableElement> 
+	void filterDeleted(Collection<? super T> result, Collection<T> orig) {
+		for(T e : orig) {
+			if (e.isToBeDeleted()) {
+				continue;
+			}
+			result.add(e);
+		}
 	}
 }

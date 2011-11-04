@@ -73,11 +73,11 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	
 	
 	private void writeComments(int indent, AnnotatedJavaElement e) {
-		writeComments(indent, e.getComments());
+		//writeComments(indent, e.getComments());
 	}
 	
 	private void writeLastComments(int indent, AnnotatedJavaElement e) {
-		writeComments(indent, e.getLastComments());
+		//writeComments(indent, e.getLastComments());
 	}
 	
 	private void writeComments(int indent, Iterable<CommentElement> comments) {

@@ -4,7 +4,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.tree.Operator;
 
-public abstract class AnnotatedJavaElement extends CommentedJavaElement {
+public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	private final String name;
 	
 	// By uid
@@ -65,7 +65,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 
 	@Override
 	public boolean hasChildren() {
-		return !promises.isEmpty() || super.hasChildren();
+		return !promises.isEmpty()/* || super.hasChildren()*/;
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	}
 	
 	void copyToClone(AnnotatedJavaElement clone) {
-		super.copyToClone(clone);
+		//super.copyToClone(clone);
 		for(AnnotationElement a : promises.values()) {
 			clone.addPromise(a.cloneMe());
 		}

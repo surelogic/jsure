@@ -23,7 +23,7 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 	}
 	
 	protected T visitAnnotated(AnnotatedJavaElement elt) {
-		T result = visitCommented(elt);
+		T result = defaultValue;//visitCommented(elt);
 		return combine(result, visitAll(elt.getPromises(true)));
 	}
 	
