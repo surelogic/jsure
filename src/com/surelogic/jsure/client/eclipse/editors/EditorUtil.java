@@ -127,7 +127,7 @@ public class EditorUtil {
 	
 	private static boolean handleIClassFile(final ISrcRef srcRef) throws JavaModelException {
 		final String root = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
-		final char slash  = File.separatorChar;
+		final char slash  = '/'; // File.separatorChar;
 		final String pkg  = srcRef.getPackage().replace('.', slash);
 		String name = srcRef.getCUName();
 		int dollar = name.indexOf('$');
@@ -184,6 +184,8 @@ public class EditorUtil {
 				e.printStackTrace();
 			}
 		}
-		return EclipseUIUtility.openInEditor(path) != null;
+		//Opens the normal XML editor
+		//return EclipseUIUtility.openInEditor(path) != null;
+		return PromisesXMLEditor.openInEditor(pkg + slash + name + TestXMLParserConstants.SUFFIX, false) != null;
 	}
 }
