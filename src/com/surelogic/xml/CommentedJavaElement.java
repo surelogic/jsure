@@ -4,6 +4,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
+@Deprecated
 public abstract class CommentedJavaElement extends AbstractJavaElement {
 	/**
 	 * These come before the element at the same level

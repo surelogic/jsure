@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.UniqueID;
 
+@Deprecated
 public class CommentElement extends AbstractJavaElement implements IMergeableElement {
 	public enum ModStatus {
 		/**
