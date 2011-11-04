@@ -157,7 +157,7 @@ public class PromisesXMLEditor extends EditorPart {
 		if (isDirty) {
 			isDirty = false;
 			fireDirtyProperty();
-			PromisesXMLContentProvider.refreshAll(provider.pkg);
+			PromisesXMLReader.refreshAll(provider.pkg);
 		}
 	}
 
@@ -658,14 +658,16 @@ public class PromisesXMLEditor extends EditorPart {
 	}
 	
 	/**
-	 * @return true if local
+	 * @return non-null Pair of files for fluid and local
 	 */
-	public static Pair<File,FileStatus> findPromisesXML(String path) {
+	public static Pair<File,File> findPromisesXML(String path) {
+		File fluid = null; 
+		File local = null;		
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			File f = new File(localXml, path);
 			if (f.isFile()) {
-				return new Pair<File,FileStatus>(f, FileStatus.LOCAL);
+				local = f;
 			}
 		}
 		// Try fluid
@@ -673,10 +675,10 @@ public class PromisesXMLEditor extends EditorPart {
 		if (xml != null) {
 			File f = new File(xml, path);
 			if (f.isFile()) {
-				return new Pair<File,FileStatus>(f, FileStatus.FLUID);
+				fluid = f;
 			}
 		}
-		return null;	
+		return new Pair<File,File>(fluid, local);	
 	}
 	
 	public static IEditorPart openInEditor(String path, boolean readOnly) {
@@ -716,8 +718,8 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public boolean exists() {
-			final Pair<File,FileStatus> f = findPromisesXML(path);
-			return f != null && f.first().isFile();
+			final Pair<File,File> f = findPromisesXML(path);
+			return f.first() != null;
 		}
 
 		@Override

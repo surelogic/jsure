@@ -1,12 +1,10 @@
 package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.ui.ISharedImages;
@@ -114,66 +112,26 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
 	private void build() {
 		if (location != null) {
-			try {
-				InputStream in = null;					
-				String label = null;
+			try {	
+				roots = new Object[1];
 				try {
-					label = location.toASCIIString();
-					in = location.toURL().openStream();
+					InputStream in = location.toURL().openStream();
 					status = FileStatus.READ_ONLY;
+					roots[0] = pkg = PromisesXMLReader.loadRaw(in);
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
-					Pair<File,FileStatus> rv = PromisesXMLEditor.findPromisesXML(path);
-					if (rv != null) {
-						label = path;
-						in = new FileInputStream(rv.first());
-						status = rv.second();
-					} else {
-						throw e;
+					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
+					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), rv.second());
+				}
+				if (true) {
+					if (PromisesXMLBuilder.updateElements(pkg)) {
+						System.out.println("Added elements");
 					}
 				}
-				roots = new Object[1];
-				roots[0] = pkg = getXML(label, in);
 			} catch (Exception e) {
 				pkg = null;
 				roots = ArrayUtil.empty;
 			}
-		}
-	}
-
-	public interface Listener {
-		void refresh(PackageElement e);
-	}
-	
-	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
-	private static final Collection<Listener> listeners = new CopyOnWriteArraySet<Listener>();
-	
-	public static synchronized PackageElement getXML(String label, InputStream in) throws Exception {
-		System.out.println("Getting XML for "+label);
-		PackageElement p = cache.get(label);
-		if (p == null) {
-			PromisesXMLReader r = new PromisesXMLReader();
-			r.read(in);
-			if (true) {
-				if (PromisesXMLBuilder.updateElements(r.getPackage())) {
-					System.out.println("Added elements");
-				}
-			}
-			p = r.getPackage();
-			cache.put(label, p);
-		} else {
-			System.out.println("Used cache for "+label);
-		}
-		return p;
-	}
-	
-	public static void listenForRefresh(Listener l) {
-		listeners.add(l);
-	}
-	
-	public static void refreshAll(PackageElement e) {
-		for(Listener v : listeners) {
-			v.refresh(e);
 		}
 	}
 	

@@ -1,8 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.xml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -19,9 +17,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.editors.*;
 import com.surelogic.jsure.client.eclipse.views.*;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
-import com.surelogic.xml.IJavaElement;
-import com.surelogic.xml.PackageElement;
-import com.surelogic.xml.TestXMLParserConstants;
+import com.surelogic.xml.*;
 
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -125,12 +121,12 @@ public class XMLExplorerView extends AbstractJSureView {
 	
 	private static final Package[] noPackages = new Package[0];
 	
-	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider, PromisesXMLContentProvider.Listener {
+	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider, PromisesXMLReader.Listener {
 		Package[] pkgs = noPackages;
 		
 		Provider() {
 			super(true);
-			listenForRefresh(this);
+			PromisesXMLReader.listenForRefresh(this);
 		}
 		
 		public void refresh(PackageElement e) {
@@ -320,16 +316,13 @@ public class XMLExplorerView extends AbstractJSureView {
 				return;
 			}
 			final String path = getPath();		
-			final Pair<File,?> rv = PromisesXMLEditor.findPromisesXML(path);
-			if (rv != null) {
-				try {
-					InputStream in = new FileInputStream(rv.first());
-					root = PromisesXMLContentProvider.getXML(path, in);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			final Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);			
+			try {
+				root = PromisesXMLReader.load(path, rv.first(), rv.second());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
 		}
 	}
 }
