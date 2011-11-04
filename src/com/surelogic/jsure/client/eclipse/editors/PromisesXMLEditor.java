@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
@@ -52,7 +53,7 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty, false);
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
-	private static final ParameterProvider paramProvider = new ParameterProvider();
+	private final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
     private TreeViewer contents;
     private boolean isDirty = false;
@@ -267,10 +268,13 @@ public class PromisesXMLEditor extends EditorPart {
 				if (f.getParams().length() > 0) {
 					// Find out which parameters need to be added
 					final String[] params = f.getSplitParams();
-					final List<NewParameter> newParams = new ArrayList<NewParameter>();
+					final List<Object> newParams = new ArrayList<Object>();
 					for(int i=0; i<params.length; i++) {
-						if (f.getParameter(i) == null) {
+						final FunctionParameterElement p = f.getParameter(i);
+						if (p == null) {
 							newParams.add(new NewParameter(i,params[i]));
+						} else {
+							newParams.add(p);
 						}
 					}
 					if (newParams.size() > 0) {
@@ -282,9 +286,11 @@ public class PromisesXMLEditor extends EditorPart {
 								    		paramProvider, paramProvider, "Select parameter(s) to add");
 								if (d.open() == Window.OK) {
 									for(Object o : d.getResult()) {
-										NewParameter np = (NewParameter) o;
-										FunctionParameterElement p = new FunctionParameterElement(np.index);	
-										f.setParameter(p);
+										if (o instanceof NewParameter) {
+											NewParameter np = (NewParameter) o;
+											FunctionParameterElement p = new FunctionParameterElement(np.index);	
+											f.setParameter(p);
+										}
 									}
 									contents.refresh();
 									contents.expandToLevel(f, 1);
@@ -521,7 +527,7 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
-	static class ParameterProvider extends AbstractContentProvider {
+	class ParameterProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
 			return (Object[]) inputElement;
@@ -529,8 +535,20 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public String getText(Object element) {
-			NewParameter p = (NewParameter) element;
-			return "["+p.index+"] : "+p.type;
+			if (element instanceof NewParameter) {
+				NewParameter p = (NewParameter) element;
+				return FunctionParameterElement.PREFIX+(p.index+1)+" : "+p.type;
+			}
+			FunctionParameterElement p = (FunctionParameterElement) element;
+			return p.getLabel();
+		}
+		
+		@Override
+		public Color getForeground(Object element) {
+			if (element instanceof FunctionParameterElement) {
+				return contents.getControl().getDisplay().getSystemColor(SWT.COLOR_GRAY);
+			}
+			return null;
 		}
 	}
 	
