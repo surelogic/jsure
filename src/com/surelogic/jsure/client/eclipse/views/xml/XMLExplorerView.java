@@ -129,7 +129,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		Package[] pkgs = noPackages;
 		
 		Provider() {
-			super(true, true);
+			super(true);
 			listenForRefresh(this);
 		}
 		
