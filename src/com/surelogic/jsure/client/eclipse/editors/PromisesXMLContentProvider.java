@@ -64,6 +64,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		try {
 			final File root = JSurePreferencesUtility.getJSureXMLDirectory();
 			File f = new File(root, location.toASCIIString());
+			File dir = f.getParentFile();
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
 			PromisesXMLWriter w = new PromisesXMLWriter(f);
 			w.write(pkg);
 			pkg.markAsClean();
