@@ -97,6 +97,13 @@ abstract class AbstractJavaElement implements IJavaElement {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends IMergeableElement> T merge(T me, T other, MergeType t) {		
+		if (me.isReference()) {
+			return (T) other.cloneMe();
+		}
+		if (other.isReference()) {
+			return me;
+		}
+		
 		final int myRev = me.getRevision();
 		final int otherRev = other.getRevision();
 		if (t == MergeType.MERGE) { // to fluid
