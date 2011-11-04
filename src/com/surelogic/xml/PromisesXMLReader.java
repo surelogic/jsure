@@ -148,7 +148,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		final String uid = n.getAttribute(UID_ATTRB);
 		AnnotationElement a = new AnnotationElement(func, uid, n.getName(), n.getCData(), n.getAttributes());
 		func.addPromise(a);
-		a.addComments(comments);
+		//a.addComments(comments);
 		comments.clear();
 	}
 

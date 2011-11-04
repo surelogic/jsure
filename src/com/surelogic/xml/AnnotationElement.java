@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public final class AnnotationElement extends CommentedJavaElement implements IMergeableElement, TestXMLParserConstants {
+public final class AnnotationElement extends AbstractJavaElement implements IMergeableElement, TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private String contents;
@@ -57,6 +57,11 @@ public final class AnnotationElement extends CommentedJavaElement implements IMe
 	
 	public boolean isBad() {
 		return isBad;
+	}
+	
+	@Override
+	public boolean hasChildren() {
+		return false;
 	}
 	
 	public <T> T visit(IJavaElementVisitor<T> v) {

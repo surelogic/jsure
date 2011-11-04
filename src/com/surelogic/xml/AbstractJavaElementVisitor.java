@@ -67,7 +67,7 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 	}
 
 	public T visit(AnnotationElement annotationElt) {
-		return visitCommented(annotationElt);
+		return defaultValue;//visitCommented(annotationElt);
 	}
 
 	public T visit(CommentElement commentElt) {

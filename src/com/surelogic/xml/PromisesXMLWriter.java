@@ -104,7 +104,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeAnno(int indent, AnnotationElement a) {
-		writeComments(indent, a.getComments());
+		//writeComments(indent, a.getComments());
 		Entities.start(a.getPromise(), b, indent);
 		for(Map.Entry<String,String> attr : a.getAttributes()) {
 			// TODO indent?

@@ -79,7 +79,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 	/**
 	 * Finishes the deep copy
 	 */
-	void copyToClone(CommentedJavaElement clone) {
+	void copyToClone(AbstractJavaElement clone) {
 		// Nothing to do yet
 	}
 	
