@@ -1,14 +1,68 @@
 package com.surelogic.xml;
 
+import java.io.File;
+
+import com.surelogic.common.FileUtility;
+
 public class PromisesXMLMerge implements TestXMLParserConstants {
 	public static final boolean onlyKeepDiffs = false;
+	
+	/**
+	 * @param onlyMerge also copy (to fluid) if false
+	 */
+	public static void merge(final boolean onlyMerge, File to, File from) {
+		if (from.isFile()) {			
+			if (!to.exists()) {
+				// Check if I should copy 
+				if (onlyMerge) {
+					//System.out.println("Ignoring "+from);
+					return; // No need to do anything
+				}
+				// Copy 
+				System.out.println("Copying "+from+" into "+to);
+				to.getParentFile().mkdirs();
+				FileUtility.copy(from, to);
+			} else {
+				try {					
+					// Merge
+					System.out.println("Merging "+from+" into "+to);
+					PackageElement target = PromisesXMLReader.loadRaw(to);
+					PackageElement source = PromisesXMLReader.loadRaw(from);
+					merge_private(onlyMerge, target, source);
+					
+					PromisesXMLWriter w = new PromisesXMLWriter(to);
+					w.write(target);
+					if (!onlyMerge) {
+						// Merging all changes to fluid, so they should both be the same afterward
+						// (or the local one should be deleted/empty)
+						// TODO what about conflicts?
+						if (PromisesXMLMerge.onlyKeepDiffs) {
+							from.delete();
+						} else {
+							w = new PromisesXMLWriter(from);
+							w.write(target);
+						}
+					}
+				} catch (Exception e) {
+					System.err.println("While merging "+from+" into "+to);
+					e.printStackTrace();
+				}
+			}
+		} 
+		else if (from.isDirectory()) {
+			for(File f : from.listFiles(TestXMLParserConstants.XML_FILTER)) {
+				merge(onlyMerge, new File(to, f.getName()), f);
+			}
+		}
+		// 'from' doesn't exist, so nothing to do
+	}
 	
 	/**
 	 * Merge changes into the "original
 	 * 
 	 * @param toClient update if true; merge to fluid otherwise
 	 */
-	public static PackageElement merge(boolean toClient, PackageElement orig, PackageElement changed) {
+	private static PackageElement merge_private(boolean toClient, PackageElement orig, PackageElement changed) {
 		return orig.merge(changed, toClient);
 	}
 	

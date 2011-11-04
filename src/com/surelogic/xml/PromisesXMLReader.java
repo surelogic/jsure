@@ -2,6 +2,7 @@ package com.surelogic.xml;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.xml.sax.Attributes;
 
@@ -184,8 +185,12 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		return pkg;
 	}
 	
-	public static PackageElement load(File f) throws Exception {
+	public static PackageElement loadRaw(File f) throws Exception {
 		InputStream is = new FileInputStream(f);
+		return loadRaw(is);
+	}
+	
+	public static PackageElement loadRaw(InputStream is) throws Exception {
 		try {
 			PromisesXMLReader r = new PromisesXMLReader();
 			r.read(is);
@@ -193,5 +198,55 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		} finally {
 			is.close();
 		}
+	}
+
+	public interface Listener {
+		void refresh(PackageElement e);
+	}
+	
+	private static final Collection<Listener> listeners = new CopyOnWriteArraySet<Listener>();
+	
+	public static void listenForRefresh(Listener l) {
+		listeners.add(l);
+	}
+	
+	public static void refreshAll(PackageElement e) {
+		for(Listener v : listeners) {
+			v.refresh(e);
+		}
+	}
+	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
+	
+	public static PackageElement load(String relativePath, File fluid, File local) {
+		System.out.println("Getting XML for "+relativePath);
+		PackageElement p = cache.get(relativePath);
+		if (p == null) {
+			PackageElement f = loadOrNull(fluid);
+			PackageElement l = loadOrNull(local);
+			if (f == null) {
+				p = l;
+			}
+			else if (l == null) {
+				p = f;
+			}
+			else {
+				p = l.merge(f, true);
+			}
+			cache.put(relativePath, p);			
+		} else {
+			System.out.println("Used cache for "+relativePath);
+		}
+		return p;
+	}
+	
+	private static PackageElement loadOrNull(File f) {
+		if (f != null) {
+			try {
+				return loadRaw(f);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 }
