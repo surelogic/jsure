@@ -4,6 +4,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class FunctionParameterElement extends AnnotatedJavaElement {
+	public static String PREFIX = "Arg #";
 	private final int index;
 	
 	public FunctionParameterElement(int i) {
@@ -19,9 +20,9 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		AbstractFunctionElement parent = (AbstractFunctionElement) getParent();
 		try {
 			final String type = parent.getSplitParams()[index];
-			return "Arg #"+index+" : "+type;
+			return PREFIX+(index+1)+" : "+type;
 		} catch(IndexOutOfBoundsException e) {
-			return "Arg #"+index;
+			return PREFIX+(index+1);
 		}
 	}
 	
