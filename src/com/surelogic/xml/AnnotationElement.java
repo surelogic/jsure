@@ -17,17 +17,24 @@ import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class AnnotationElement extends AbstractJavaElement implements IMergeableElement, TestXMLParserConstants {
+	private static char DASH = '-';
+	public static final String REF_SUFFIX = DASH+"ref";
+	
 	private final String uid;
 	private final String promise;
 	private String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	private boolean isBad;
+	private final boolean isReference;
 	
 	public AnnotationElement(IJavaElement parent, final String id, final String tag, String text, Map<String,String> a) {
 		if (parent != null) {
 			setParent(parent);
 		}
-		final String name = AnnotationVisitor.capitalize(tag);
+		final int dash = tag.indexOf(DASH);
+		isReference = dash >= 0;
+		
+		final String name = AnnotationVisitor.capitalize(isReference ? tag.substring(0, dash) : tag);
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
 		if (storage == null) {
 			System.err.println("Unknown annotation: "+name);
@@ -55,6 +62,10 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		isBad = !parses(promise, contents);
 	}
 	
+	public boolean isReference() {
+		return isReference;
+	}
+ 	
 	public boolean isBad() {
 		return isBad;
 	}

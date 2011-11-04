@@ -9,5 +9,4 @@ public interface IJavaElementVisitor<T> {
 	T visit(FieldElement fieldElement);
 	T visit(ClassInitElement classInitElement);
 	T visit(AnnotationElement annotationElement);
-	T visit(CommentElement commentElement);
 }

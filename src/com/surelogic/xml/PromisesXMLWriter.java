@@ -69,33 +69,6 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		end(0, PACKAGE);
 		pw.close();
 	}
-
-	
-	
-	private void writeComments(int indent, AnnotatedJavaElement e) {
-		//writeComments(indent, e.getComments());
-	}
-	
-	private void writeLastComments(int indent, AnnotatedJavaElement e) {
-		//writeComments(indent, e.getLastComments());
-	}
-	
-	private void writeComments(int indent, Iterable<CommentElement> comments) {
-		for(CommentElement c : comments) {
-			Entities.indent(b, indent);
-			b.append("<!--");
-			b.append(CommentElement.MARKER);
-			b.append(c.getUID().toString());
-			b.append(CommentElement.SEPARATOR);
-			b.append(c.getRevision());
-			b.append(CommentElement.SEPARATOR);
-			b.append(c.getModStatus().name());
-			b.append(CommentElement.END_MARKER);
-			b.append(Entities.unescape(c.getLabel()));
-			b.append("-->\n");
-			flush();
-		}
-	}
 	
 	private void writeAnnos(int indent, AnnotatedJavaElement e) {
 		for(AnnotationElement a : e.getPromises(true)) {
@@ -128,14 +101,11 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (c == null) {
 			return;
 		}
-		writeComments(indent, c);
 		start(indent, CLASS, c);
 		writeAnnos(indent+INCR, c);		
 		if (c.getClassInit() != null) {			
-			writeComments(indent+INCR, c.getClassInit());
 			start(indent+INCR, CLASSINIT, null);
 			writeAnnos(indent+INCR+INCR, c.getClassInit());
-			writeLastComments(indent+INCR+INCR, c.getClassInit());
 			end(indent+INCR, CLASSINIT);
 		}
 		for(FieldElement f : c.getFields()) {
@@ -154,7 +124,6 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 			first = handleFirstElt(first);
 			writeClass(indent+INCR, e);
 		}
-		writeLastComments(indent, c);
 		end(indent, CLASS);
 	}
 	
@@ -168,15 +137,12 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 
 	private void writeField(int indent, FieldElement f) {
-		writeComments(indent, f);
 		start(indent, FIELD, f);
 		writeAnnos(indent+INCR, f);
-		writeLastComments(indent+INCR, f);
 		end(indent, FIELD);
 	}
 	
 	private void writeMethod(int indent, MethodElement m) {
-		writeComments(indent, m);
 		if (m.getParams().length() == 0) {
 			start(indent, METHOD, m);
 		} else {
@@ -184,12 +150,10 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
-		writeLastComments(indent+INCR, m);
 		end(indent, METHOD);
 	}
 	
 	private void writeConstructor(int indent, ConstructorElement m) {
-		writeComments(indent, m);
 		if (m.getParams().length() == 0) {
 			start(indent, CONSTRUCTOR, null);
 		} else {
@@ -197,7 +161,6 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
-		writeLastComments(indent+INCR, m);
 		end(indent, CONSTRUCTOR);
 	}
 	
@@ -213,10 +176,8 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 
 	private void writeParameter(int indent, FunctionParameterElement p) {
-		writeComments(indent, p);
 		start(indent, PARAMETER, null, INDEX_ATTRB, Integer.toString(p.getIndex()));
 		writeAnnos(indent+INCR, p);		
-		writeLastComments(indent+INCR, p);
 		end(indent, PARAMETER);
 	}
 

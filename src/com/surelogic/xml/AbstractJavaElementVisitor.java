@@ -17,11 +17,6 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 		return result;
 	}
 	
-	protected T visitCommented(CommentedJavaElement elt) {
-		T result = visitAll(elt.getComments());
-		return combine(result, visitAll(elt.getLastComments()));
-	}
-	
 	protected T visitAnnotated(AnnotatedJavaElement elt) {
 		T result = defaultValue;//visitCommented(elt);
 		return combine(result, visitAll(elt.getPromises(true)));
@@ -68,9 +63,5 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 
 	public T visit(AnnotationElement annotationElt) {
 		return defaultValue;//visitCommented(annotationElt);
-	}
-
-	public T visit(CommentElement commentElt) {
-		return defaultValue;
 	}
 }

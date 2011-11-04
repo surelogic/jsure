@@ -1,6 +1,7 @@
 package com.surelogic.xml;
 
 public interface IMergeableElement extends IJavaElement {
+	boolean isReference();	
 	boolean isToBeDeleted();
 	boolean isModified();
 	int getRevision();
