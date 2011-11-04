@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider {	
 	private Color colorForModified;
 	private Color colorForBadSyntax;
+	private Color colorForComments;
 	
 	URI location;
 	FileStatus status = null;
@@ -83,6 +84,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		if (colorForModified == null && viewer != null) {
 			colorForModified = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_BLUE);
 			colorForBadSyntax = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
+			colorForComments = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_GRAY);
 		}
 		
 		if (newInput != location) {
@@ -237,6 +239,9 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			if (e.isModified()) {
 				return colorForModified;
 			}			
+			if (e instanceof CommentElement) {
+				return colorForComments;
+			}
 		}
 		return null;
 	}
