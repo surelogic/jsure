@@ -149,8 +149,6 @@ public final class JSurePreferencesUtility {
 	}
 
 	public static File getJSureXMLDirectory() {
-		final String path = EclipseUtility
-		.getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
 		File data = getJSureDataDirectory();
 		return new File(data, DriverConstants.XML_PATH_SEGMENT);
 	}
