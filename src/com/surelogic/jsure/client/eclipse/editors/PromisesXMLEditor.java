@@ -30,7 +30,6 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
@@ -647,7 +646,7 @@ public class PromisesXMLEditor extends EditorPart {
 	private static Map<String,Collection<String>> findLocalPromisesXML(boolean includeFluid) {
 		final XmlMap map = new XmlMap(true);
 		if (includeFluid) {
-			final File xml = PromisesLibMerge.getFluidXMLDir();
+			final File xml = PromisesXMLParser.getFluidXMLDir();
 			PackageAccessor.findPromiseXMLsInDir(map, xml);
 		}		
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
@@ -671,7 +670,7 @@ public class PromisesXMLEditor extends EditorPart {
 			}
 		}
 		// Try fluid
-		final File xml = PromisesLibMerge.getFluidXMLDir();
+		final File xml = PromisesXMLParser.getFluidXMLDir();
 		if (xml != null) {
 			File f = new File(xml, path);
 			if (f.isFile()) {
