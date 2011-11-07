@@ -58,7 +58,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return ide.getBooleanPreference(IDEPreferences.ALLOW_JAVADOC_ANNOS)
 				|| te.getMajorJavaVersion() < 5; // project is Java 1.4 or below
 	}
-
+	
+	public ITypeEnvironment getTypeEnv() {
+		return tEnv;
+	}
+	
 	@Override
 	public Integer visit(IRNode node) {
 		return sum(doAcceptForChildrenWithResults(node));
