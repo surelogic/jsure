@@ -2,7 +2,12 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.xml.Entity;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 
 public abstract class AbstractFunctionElement extends AnnotatedJavaElement 
 implements IClassMember, TestXMLParserConstants
@@ -106,7 +111,9 @@ implements IClassMember, TestXMLParserConstants
 	public void markAsClean() {
 		super.markAsClean();
 		for(FunctionParameterElement p : params) {
-			p.markAsClean();
+			if (p != null) {
+				p.markAsClean();
+			}
 		}
 	}
 	
@@ -128,14 +135,35 @@ implements IClassMember, TestXMLParserConstants
 	void copyToClone(AbstractFunctionElement clone) {
 		super.copyToClone(clone);
 		for(FunctionParameterElement p : params) {
-			clone.setParameter(p.cloneMe());
+			if (p != null) {
+				clone.setParameter(p.cloneMe());
+			}
 		}
 	}
 	
 	void copyIfDirty(AbstractFunctionElement clone) {
 		super.copyIfDirty(clone);
 		for(FunctionParameterElement p : params) {
-			clone.setParameter(p.copyIfDirty());
+			if (p != null) {
+				clone.setParameter(p.copyIfDirty());
+			}
 		}
+	}
+	
+	/**
+	 * @return The number of annotations added
+	 */
+	int applyPromises(final AnnotationVisitor v, final IRNode func) {
+		if (func == null) {
+			return 0;
+		}
+		int added = super.applyPromises(v, func);
+		final IRNode params = SomeFunctionDeclaration.getParams(func);
+		for(FunctionParameterElement p : this.params) {
+			if (p != null) {
+				added += p.applyPromises(v, Parameters.getFormal(params, p.getIndex()));
+			}
+		}
+		return added;
 	}
 }

@@ -2,9 +2,15 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
@@ -290,5 +296,54 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(NestedClassElement n : classes.values()) {
 			clone.addMember(n.copyIfDirty());
 		}
+	}
+	
+	/**
+	 * @return The number of annotations added
+	 */
+	@Override
+	int applyPromises(final AnnotationVisitor v, final IRNode cuOrType) {
+		if (cuOrType == null) {
+			return 0;
+		}
+		final IRNode t = findType(cuOrType, getName());
+		if (t == null) {			
+			return 0;
+		}
+		int added = super.applyPromises(v, t);
+		if (clinit != null) {
+			added += clinit.applyPromises(v, JavaPromise.getClassInitOrNull(t));
+		}
+		for(FieldElement f : fields.values()) {
+			added += f.applyPromises(v, TreeAccessor.findField(f.getName(), t));
+		}
+		for(ConstructorElement c : constructors.values()) {
+			added += c.applyPromises(v, TreeAccessor.findConstructor(c.getParams(), t, v.getTypeEnv()));
+		}
+		for(MethodElement m : methods.elements()) {
+			added += m.applyPromises(v, TreeAccessor.findMethod(t, m.getName(), m.getParams(), v.getTypeEnv()));
+		}
+		for(NestedClassElement n : classes.values()) {
+			added += n.applyPromises(v, TreeAccessor.findNestedClass(n.getName(), t));
+		}
+		return added;
+	}
+
+	private static IRNode findType(final IRNode cuOrType, final String name) {
+		final Operator op = JJNode.tree.getOperator(cuOrType);
+		if (TypeDeclaration.prototype.includes(op)) {
+			final String tName = JJNode.getInfo(cuOrType);
+			if (!tName.equals(name)) {
+				throw new IllegalStateException("Got a type with different name: "+tName+" vs "+name);
+			}
+			return cuOrType;
+		} else {
+			for(IRNode t : VisitUtil.getTypeDecls(cuOrType)) {
+				if (JJNode.getInfo(t).equals(name)) {
+					return t;
+				}
+			}
+		}
+		return null;
 	}
 }

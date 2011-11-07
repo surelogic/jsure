@@ -2,8 +2,10 @@ package com.surelogic.xml;
 
 import java.util.List;
 
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -137,5 +139,17 @@ public class PackageElement extends AnnotatedJavaElement {
 			copyIfDirty(p);
 		}
 		return null;
+	}
+
+	/**
+	 * @return The number of annotations added
+	 */
+	@Override
+	int applyPromises(AnnotationVisitor v, IRNode cu) {
+		int added = super.applyPromises(v, cu);
+		if (clazz != null) {
+			added += clazz.applyPromises(v, cu);
+		}
+		return added;
 	}
 }

@@ -37,7 +37,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		final String name = AnnotationVisitor.capitalize(isReference ? tag.substring(0, dash) : tag);
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
 		if (storage == null) {
-			System.err.println("Unknown annotation: "+name);
+			//System.err.println("Unknown annotation: "+name);
 			uid = name;
 		}
 		else if (storage.type() != StorageType.SEQ) {
@@ -160,6 +160,9 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		attributes.put(DELETE_ATTRB, "true");
 	}
 	
+	/**
+	 * @return true if the promise parses
+	 */
 	private boolean parses(final String promise, final String text/*, final IErrorListener l*/) {
 		final IAnnotationParseRule<?,?> rule = PromiseFramework.getInstance().getParseDropRule(promise);
 		final IAnnotationParsingContext context = new AbstractAnnotationParsingContext(AnnotationSource.XML) {			
@@ -191,7 +194,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 				//l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
 			}						
 		};
-		return rule.parse(context, text) == ParseResult.OK;
+		return rule != null && rule.parse(context, text) == ParseResult.OK;
 	}
 	
 	public Operator getOperator() {
@@ -295,5 +298,21 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	AnnotationElement createRef() {
 		// TODO make factory method?
 		return new AnnotationElement(null, uid, promise+REF_SUFFIX, contents, Collections.<String,String>emptyMap());
+	}
+
+	int applyPromise(final AnnotationVisitor v, final IRNode annotatedNode) {
+		if (isBad || isToBeDeleted()) {
+			return 0;
+		}
+		final boolean implOnly = "true".equals(attributes.get(AnnotationVisitor.IMPLEMENTATION_ONLY));
+		final String rawVerify = attributes.get(AnnotationVisitor.VERIFY);
+		final boolean verify   = rawVerify == null || "true".equals(rawVerify);
+		final boolean allowReturn = "true".equals(attributes.get(AnnotationVisitor.ALLOW_RETURN));
+		final boolean allowRead = "true".equals(attributes.get(AnnotationVisitor.ALLOW_READ));
+
+		boolean added = v.handleXMLPromise(annotatedNode, promise, contents, 
+				AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead),
+				attributes);
+		return added ? 1 : 0;
 	}
 }
