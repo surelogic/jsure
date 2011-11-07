@@ -1,9 +1,6 @@
 package com.surelogic.jsure.core.xml;
 
 import java.io.*;
-import java.net.URISyntaxException;
-
-import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.xml.*;
 
@@ -13,6 +10,7 @@ import com.surelogic.xml.*;
  * @author Edwin
  */
 public final class PromisesLibMerge {
+	/*
 	public static File getFluidXMLDir() {
 		File fluidDir = null;
 		try {
@@ -26,6 +24,7 @@ public final class PromisesLibMerge {
 		}
 		return fLibDir;
 	}
+	*/
 	
 	/**
 	 * @param toClient update if true; merge to fluid otherwise
@@ -35,7 +34,7 @@ public final class PromisesLibMerge {
 	}
 	
 	public static void merge(boolean toClient, String relativePath) {
-		final File fLibRoot = getFluidXMLDir();
+		final File fLibRoot = PromisesXMLParser.getFluidXMLDir();
 		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
 
 		final File fLibPath = new File(fLibRoot, relativePath);
@@ -57,7 +56,7 @@ public final class PromisesLibMerge {
 	 * @return true if there is an update to Fluid
 	 */
 	public static boolean checkForUpdate(String relativePath) {
-		final File fLibRoot = getFluidXMLDir();
+		final File fLibRoot = PromisesXMLParser.getFluidXMLDir();
 		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
 
 		final File fLibPath = new File(fLibRoot, relativePath);
