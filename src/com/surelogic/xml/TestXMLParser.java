@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * TestXMLParser object in a thread safe manner). In addition, this class
  * manipulates the AAST
  */
-public class TestXMLParser extends DefaultHandler implements
+class TestXMLParser extends DefaultHandler implements
 		TestXMLParserConstants {
 	private final ITypeEnvironment tEnv;
 
