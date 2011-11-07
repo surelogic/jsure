@@ -14,8 +14,7 @@ import java.util.logging.Level;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.xml.TestXMLParser;
-import com.surelogic.xml.TestXMLParserConstants;
+import com.surelogic.xml.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
@@ -62,7 +61,7 @@ public class PackageDrop extends CUDrop {
 	// Look for XML annotations
 	final String xmlName = pkgName+'.'+"package-info"+TestXMLParserConstants.SUFFIX;
 	try {
-		int added = TestXMLParser.process(tEnv, root, xmlName);
+		int added = PromisesXMLParser.process(tEnv, root, xmlName);
 		//System.out.println("Added XML annos: "+added);			
 		if (added > 0) {
 		    //System.out.println("Found promises for "+pkgName+": "+added);

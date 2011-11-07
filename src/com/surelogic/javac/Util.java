@@ -1098,6 +1098,7 @@ public class Util {
 				int num = v.doAccept(cu);
 				final JavacProject p = Projects.getProject(cu);
 				int fromXML = 0;
+				/*
 				if (root != null) {
 					// Try from the user-customizable location first
 					try {
@@ -1113,6 +1114,13 @@ public class Util {
 					} catch (Exception e) {
 						handleException(name, e);
 					}
+				}
+				*/
+				try {
+					fromXML = PromisesXMLParser.process(p.getTypeEnv(), cu, 
+							name.replace('.', '/')+TestXMLParserConstants.SUFFIX);				
+				} catch (Exception e) {
+					handleException(name, e);
 				}
 				num += fromXML;
 
