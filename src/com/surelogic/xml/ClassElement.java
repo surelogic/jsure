@@ -275,6 +275,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		if (isDirty()) {
 			ClassElement e = new ClassElement(getName());
 			copyIfDirty(e);
+			return e;
 		}
 		return null;
 	}

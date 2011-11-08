@@ -137,6 +137,7 @@ public class PackageElement extends AnnotatedJavaElement {
 			}
 			PackageElement p = new PackageElement(getName(), revision, c);
 			copyIfDirty(p);
+			return p;
 		}
 		return null;
 	}
