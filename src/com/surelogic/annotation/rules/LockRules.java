@@ -1094,11 +1094,13 @@ public class LockRules extends AnnotationRules {
       if (javaType instanceof IJavaPrimitiveType) {
         context.reportError(a, "Cannot be used on primitively typed field");
         return null;
-      } else if ((javaType instanceof IJavaSourceRefType) && 
-          (getNotThreadSafe(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
-        context.reportError(a, "Cannot be used when the type of field is explicitly @NotThreadSafe");
-        return null;
       }
+// 2011-11-07 Removed this check: Stop gap measure for dealing with thread safe collections;
+//      else if ((javaType instanceof IJavaSourceRefType) && 
+//          (getNotThreadSafe(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
+//        context.reportError(a, "Cannot be used when the type of field is explicitly @NotThreadSafe");
+//        return null;
+//      }
       break;
     case Containable:
       if (javaType instanceof IJavaPrimitiveType) {
