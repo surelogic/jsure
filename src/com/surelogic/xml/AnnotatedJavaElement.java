@@ -66,7 +66,6 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		return sorted;
 	}
 
-	@Override
 	public boolean hasChildren() {
 		return !promises.isEmpty()/* || super.hasChildren()*/;
 	}

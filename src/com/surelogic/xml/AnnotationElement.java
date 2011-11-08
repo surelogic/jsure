@@ -70,7 +70,6 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return isBad;
 	}
 	
-	@Override
 	public boolean hasChildren() {
 		return false;
 	}
