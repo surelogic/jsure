@@ -4,18 +4,26 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.*;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
@@ -37,6 +45,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	PackageElement pkg;
 	Object[] roots;
 	final boolean hideEmpty;
+	String fluidXML = "";
+	URI localXML = null;	
 	
 	protected PromisesXMLContentProvider(boolean hideEmpty) {
 		this.hideEmpty = hideEmpty;
@@ -125,9 +135,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			try {
 				roots = new Object[1];
 				try {
-					InputStream in = location.toURL().openStream();
+					URL url = location.toURL();
+					InputStream in = url.openStream();
 					status = FileStatus.READ_ONLY;
 					roots[0] = pkg = PromisesXMLReader.loadRaw(in);
+					fluidXML = FileUtility.getStreamContentsAsString(location.toString(), url.openStream());
+					localXML = null;
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
 					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
@@ -147,14 +160,39 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 							System.out.println("Added elements to "+location);
 						}
 					}
-					status = rv.first() != null && rv.second() == null ? FileStatus.FLUID : FileStatus.LOCAL;
+					if (rv.first() != null) {
+						status = rv.second() == null ? FileStatus.FLUID : FileStatus.LOCAL;
+						fluidXML = FileUtility.getFileContentsAsStringOrDefaultValue(rv.first(), "");
+					} else {
+						status = FileStatus.LOCAL;
+						fluidXML = "";
+					}
+					if (rv.second() != null) {
+						localXML = rv.second().toURI();
+					} else {
+						localXML = null;
+					}
 				}
 			} catch (Exception e) {
 				pkg = null;
 				roots = ArrayUtil.empty;
+				fluidXML = "";
+				localXML = null;
 			}
 		}
 	}
+	
+	public IDocument getFluidDocument() {
+		return new Document(fluidXML);
+	}
+	
+	public IEditorInput getLocalInput() {
+		if (localXML == null) {
+			return null;
+		}
+		IFileStore fileStore = EFS.getLocalFileSystem().getStore(localXML);
+		return new FileStoreEditorInput(fileStore); 
+ 	}
 	
 	@Override
 	public Object[] getChildren(Object element) {

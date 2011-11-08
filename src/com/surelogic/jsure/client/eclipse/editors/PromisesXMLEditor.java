@@ -5,12 +5,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.ui.ITypeHierarchyViewPart;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.TextViewer;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
@@ -19,14 +22,17 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.part.*;
 
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.FontUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -38,7 +44,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
-public class PromisesXMLEditor extends EditorPart {
+public class PromisesXMLEditor extends MultiPageEditorPart {
 	enum FileStatus { 		
 		READ_ONLY, 
 		/** Mutable, but saves to a local file */
@@ -55,9 +61,27 @@ public class PromisesXMLEditor extends EditorPart {
 	private static final AnnoProvider annoProvider = new AnnoProvider();
     private TreeViewer contents;
     private boolean isDirty = false;
+    private TextViewer fluidXML;
+    private TextEditor localXML;
     
-    @Override
-    public void createPartControl(Composite parent) {
+	@Override
+	protected void createPages() {
+		createContentsPage(getContainer());
+		int index = addPage(contents.getControl());
+		setPageText(index, "Editor");
+		
+		createFluidXMLPage();
+		createLocalXMLPage();
+		updateTitle();
+	}
+
+	private void updateTitle() {
+		IEditorInput input = getEditorInput();
+		setPartName(input.getName());
+		setTitleToolTip(input.getToolTipText());
+	}
+
+	private void createContentsPage(Composite parent) {
        contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
        contents.setContentProvider(provider);
        contents.setLabelProvider(provider);
@@ -122,6 +146,31 @@ public class PromisesXMLEditor extends EditorPart {
        */
     }
     
+	private void createFluidXMLPage() {
+		fluidXML = new TextViewer(getContainer(), SWT.V_SCROLL | SWT.H_SCROLL);
+		fluidXML.setDocument(provider.getFluidDocument());
+		fluidXML.getTextWidget().setFont(JFaceResources.getTextFont());
+		fluidXML.setEditable(false);
+		
+		int index = addPage(fluidXML.getControl());
+		setPageText(index, "Source");
+	}
+	
+	private void createLocalXMLPage() {
+		IEditorInput input = provider.getLocalInput();
+		if (input == null) {
+			return;
+		}
+		try {
+			localXML = new TextEditor();
+			
+			int index = addPage(localXML, provider.getLocalInput());
+			setPageText(index, "Diffs");
+		} catch (PartInitException e) {
+			SLLogger.getLogger().log(Level.WARNING, "Error creating source page for "+getEditorInput().getToolTipText(), e);
+		}
+	}
+	
     @Override
     public void init(IEditorSite site, IEditorInput input) {
        setSite(site);
@@ -145,17 +194,37 @@ public class PromisesXMLEditor extends EditorPart {
     
     @Override
     public void setFocus() {
-       if (contents != null) {
-          contents.getControl().setFocus();
-       }
+    	switch (getActivePage()) {
+    	case 0:
+    		if (contents != null) {
+    			contents.getControl().setFocus();
+    		}
+    		break;
+    	case 1:
+    		if (fluidXML != null) {
+    			fluidXML.getControl().setFocus();
+    		}
+    		break;
+    	case 2:
+    		if (localXML != null) {
+    			localXML.setFocus();
+    		}
+    		break;
+    	}
     }	
 	
+    /* TODO
+    public void gotoMarker(IMarker marker) {
+    }
+    */
+    
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		provider.save(monitor);		
 		if (isDirty) {
 			isDirty = false;
 			fireDirtyProperty();
+			updateTitle(); // does this help refresh?
 			PromisesXMLReader.refreshAll(provider.pkg);
 		}
 	}
