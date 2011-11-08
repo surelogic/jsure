@@ -232,6 +232,9 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			else {
 				p = l.merge(f, true);
 			}
+			if (p == null) {
+				return null;
+			}
 			cache.put(relativePath, p);			
 		} else {
 			System.out.println("Used cache for "+relativePath);
