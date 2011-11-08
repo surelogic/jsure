@@ -58,6 +58,9 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		if (status == null || status == FileStatus.READ_ONLY) {
 			return;
 		}
+		if (!pkg.isDirty()) {
+			return;
+		}
 		try {
 			final File root = JSurePreferencesUtility.getJSureXMLDirectory();
 			File f = new File(root, location.toASCIIString());
@@ -144,6 +147,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 							System.out.println("Added elements to "+location);
 						}
 					}
+					status = rv.first() != null && rv.second() == null ? FileStatus.FLUID : FileStatus.LOCAL;
 				}
 			} catch (Exception e) {
 				pkg = null;
