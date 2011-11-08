@@ -26,9 +26,7 @@ import org.xml.sax.InputSource;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
-import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.PackageAccessor;
@@ -37,7 +35,6 @@ import com.surelogic.xml.PromisesXMLWriter;
 import com.surelogic.xml.TestXMLParserConstants;
 import com.surelogic.xml.XMLGenerator;
 
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -126,7 +123,6 @@ public class EditorUtil {
 	}
 	
 	private static boolean handleIClassFile(final ISrcRef srcRef) throws JavaModelException {
-		final String root = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 		final char slash  = '/'; // File.separatorChar;
 		final String pkg  = srcRef.getPackage().replace('.', slash);
 		String name = srcRef.getCUName();
@@ -137,6 +133,11 @@ public class EditorUtil {
 		else if (name.endsWith(".class")) {
 			name = name.substring(0, name.length() - 6);
 		}
+		if (true) {
+			// Just try to open the editor and let it figure out what to do
+			return PromisesXMLEditor.openInEditor(pkg + slash + name + TestXMLParserConstants.SUFFIX, false) != null;
+		}
+		final String root = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 		final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
 		final File xml = new File(path);
 		if (!xml.exists() || xml.length() == 0) {
