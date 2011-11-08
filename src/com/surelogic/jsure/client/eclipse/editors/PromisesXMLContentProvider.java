@@ -27,6 +27,8 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider {	
+	private static final boolean saveDiff = true;
+	
 	private Color colorForModified;
 	private Color colorForBadSyntax;
 	
@@ -64,7 +66,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				dir.mkdirs();
 			}
 			PromisesXMLWriter w = new PromisesXMLWriter(f);
-			w.write(pkg);
+			if (saveDiff) {
+				PackageElement p = PromisesXMLMerge.diff(pkg);
+				w.write(p);
+			} else {
+				w.write(pkg);
+			}
 			pkg.markAsClean();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -112,7 +119,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
 	private void build() {
 		if (location != null) {
-			try {	
+			try {
 				roots = new Object[1];
 				try {
 					InputStream in = location.toURL().openStream();
@@ -121,11 +128,21 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
 					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
-					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), rv.second());
-				}
-				if (true) {
-					if (PromisesXMLBuilder.updateElements(pkg)) {
-						System.out.println("Added elements");
+					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), rv.second());			
+
+					if (pkg == null) {
+						// No XML at all, so we have to create something
+						final int lastSlash = path.lastIndexOf('/');
+						if (lastSlash >= 0) {
+							String p = path.substring(0, lastSlash).replace('/', '.');
+							String name = path.substring(lastSlash+1, path.length() - TestXMLParserConstants.SUFFIX.length());
+							System.out.println("Making AST for "+p+'.'+name);
+							roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
+						}
+					} else {				
+						if (PromisesXMLBuilder.updateElements(pkg)) {
+							System.out.println("Added elements to "+location);
+						}
 					}
 				}
 			} catch (Exception e) {
