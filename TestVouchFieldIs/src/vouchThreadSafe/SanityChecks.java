@@ -16,7 +16,7 @@ public class SanityChecks {
 	@Vouch("ThreadSafe")
 	private int[] good3;
 	
-	// BAD: class explicitly not thread safe
+	// BAD: class explicitly not thread safe -- 2011-11-08 we allow this now
 	@Vouch("ThreadSafe")
 	private NotThreadSafeClass bad1;
 	
