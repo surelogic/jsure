@@ -1,0 +1,54 @@
+# $Header$
+public operator NewExpression extends AllocationExpression 
+    implements Call, edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  public static IRNode getType(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (!(op instanceof NewExpression)) {
+      throw new IllegalArgumentException("node not NewExpression: "+op);
+    }
+    return ((NewExpression)op).getNewType(node);
+  }
+
+  public static IRNode getArgs(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (!(op instanceof NewExpression)) {
+      throw new IllegalArgumentException("node not NewExpression: "+op);
+    }
+    return ((NewExpression)op).getActuals(node);
+  }
+
+   public IRNode getActuals(IRNode node) {
+    throw new IllegalArgumentException("not a concrete operator");
+  }
+  
+  public IRNode getNewType(IRNode node) {
+    throw new IllegalArgumentException("not a concrete operator");
+  }
+
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+
+  protected Component createComponent(IRNode node, int offset) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,offset+1),1,1,1);
+
+    ControlNode doAlloc = new ComponentFlow(comp,prototype);
+    ControlNode doCall = new ComponentChoice(comp,prototype);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+    // new AddLabel(new CallExceptionLabel(node));
+    ControlNode abruptMerge = new Merge();
+
+    ControlEdge.connect(comp.getEntryPort(),doAlloc);
+    ControlEdge.connect(doAlloc,sub.getEntryPort());
+    ControlEdge.connect(sub.getNormalExitPort(),doCall);
+    ControlEdge.connect(doCall,comp.getNormalExitPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(doCall,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+
+    return comp;
+  }
+}

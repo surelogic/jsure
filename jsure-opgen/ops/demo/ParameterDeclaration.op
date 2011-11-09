@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/opgen/ops/demo/ParameterDeclaration.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator ParameterDeclaration extends VariableDeclaration
+	implements DripOperator 
+{
+  syntax {
+    $mods:Modifiers(final) type:Type $id:Info 
+  }
+}

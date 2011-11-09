@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/opgen/ops/demo/Throws.op,v 1.2 2006/06/15 13:52:48 chance Exp $
+/** List of exceptions thrown by a method or constructor.
+ * (For Drip, the list should be empty.)
+ */
+public operator Throws extends TypeList implements DripOperator {
+  syntax {
+    ( "throws" type:Type +/ ( <comma> "," ) ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

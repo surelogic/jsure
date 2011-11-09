@@ -1,0 +1,5 @@
+# $Header: /cvs/fluid/opgen/ops/demo/ImportDeclaration.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator ImportDeclaration {
+  syntax { "import" item:ImportName <> ";" }
+}
+

@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/opgen/ops/demo/ReturnType.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator ReturnType implements ReturnTypeInterface {
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    return (other instanceof ReturnTypeInterface);
+  }
+}

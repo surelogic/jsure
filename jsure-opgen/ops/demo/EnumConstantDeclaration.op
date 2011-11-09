@@ -1,0 +1,10 @@
+# $Header$
+public operator EnumConstantDeclaration extends ClassBodyDeclaration
+{
+  syntax { 
+    $mods:Modifiers $id:Info args:OptArguments  body:OptClassBody
+  }
+  @Override public Component createComponent(IRNode node) {
+    return null; // TODO
+  }
+}

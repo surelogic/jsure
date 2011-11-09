@@ -1,0 +1,7 @@
+# $Header$
+public operator NestedClassDeclaration extends ClassDeclaration implements ClassBodyDeclInterface
+{
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,3,true);
+  } 
+}

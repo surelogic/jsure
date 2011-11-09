@@ -1,0 +1,6 @@
+# $Header: /cvs/fluid/opgen/ops/demo/ClassType.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+/**
+ * The type of things that can be allocated.
+ */
+public operator ClassType extends Type implements ReferenceType {
+}

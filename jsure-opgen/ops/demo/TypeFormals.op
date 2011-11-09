@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/opgen/ops/demo/TypeFormals.op,v 1.2 2006/06/15 13:52:48 chance Exp $
+public operator TypeFormals {
+  syntax {
+    ( "<" <angle> type:TypeFormal +/ ( <> "," <comma> ) </angle> ">" ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

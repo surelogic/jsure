@@ -1,0 +1,19 @@
+# $Header: /cvs/fluid/opgen/ops/demo2/Initializer.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+/** The class of variable initializers (including all expressions).
+ * By default, any subexpressions are executed in order.
+ * @see Expression
+ */
+public operator Initializer implements edu.cmu.cs.fluid.java.bind.IHasType
+{
+  /** Create a component for this node.  By default we just
+   * execute the children in succession and then have some
+   * operator specific action:
+   */
+  @Override public Component createComponent(IRNode node) {
+    if (variableOperator() != null) {
+      return new SequenceComponent(node, new ComponentFlow(null,this));
+    } else {
+      return new SimpleComponent(node, new ComponentFlow(null,this));
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# $Header: /cvs/fluid/opgen/ops/demo/TypeDeclaration.op,v 1.2 2006/05/19 15:41:01 chance Exp $
+public operator TypeDeclaration extends Declaration implements TypeDeclInterface {
+  // Used as the operator for the NullType, in old type representation
+
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == TypeDeclaration.class)
+      return (other instanceof TypeDeclInterface);
+    else
+      return super.includes(other);
+  }
+  
+  public static String getName(IRNode type) {
+    return JavaNode.getInfo(type);
+  }
+  
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype; // TODO No null type?
+  }  
+}
