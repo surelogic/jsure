@@ -204,11 +204,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return uid;
 	}
 	
-	final String getPromise() {
+	public final String getPromise() {
 		return promise;		
 	}
 	
-	final String getContents() {
+	public final String getContents() {
 		return contents;
 	}
 

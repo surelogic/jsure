@@ -30,10 +30,9 @@ import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.BalloonUtility;
-import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.FontUtility;
+import com.surelogic.common.ui.*;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
@@ -82,7 +81,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	}
 
 	private void createContentsPage(Composite parent) {
-       contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+       contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
        contents.setContentProvider(provider);
        contents.setLabelProvider(provider);
        if (provider.getInput() != null) {
@@ -107,8 +106,55 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     		   }
     	   }
        });
+       /*
+       TreeViewerColumn c = new TreeViewerColumn(contents, SWT.NONE);
+       c.setLabelProvider(new ColumnLabelProvider() {
+    	   @Override
+    	   public Color getForeground(Object element) {
+    		   return provider.getForeground(element);
+    	   }
+    	   @Override
+    	   public Image getImage(Object element) {
+    		   return provider.getImage(element);
+    	   }
+    	   @Override
+    	   public String getText(Object element) {
+    		   return provider.getText(element);
+    	   }
+       });
+       c.setEditingSupport(new EditingSupport(contents) {		
+    	   @Override
+    	   protected void setValue(Object element, Object value) {
+    		   // TODO Auto-generated method stub
 
-       contents.setCellEditors(new CellEditor[] { new TextCellEditor(contents.getTree()) });
+    	   }
+
+    	   @Override
+    	   protected Object getValue(Object element) {
+    		   // TODO Auto-generated method stub
+    		   return null;
+    	   }
+
+    	   @Override
+    	   protected CellEditor getCellEditor(Object element) {
+    		   // TODO Auto-generated method stub
+    		   return null;
+    	   }
+
+    	   @Override
+    	   protected boolean canEdit(Object element) {
+    		   // TODO Auto-generated method stub
+    		   return false;
+    	   }
+       });	
+       */
+       /*
+       for(TreeColumn column : contents.getTree().getColumns()) {
+    	   TreeViewerColumn c = new TreeViewerColumn(contents, column);
+    	   c.setEditingSupport(null);
+       }
+       */       
+       contents.setCellEditors(new CellEditor[] { new AnnotationCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
     	   @Override
@@ -117,7 +163,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     	   }
     	   @Override
         public Object getValue(Object element, String property) {
-    		   return ((IJavaElement) element).getLabel();
+    		   return element;
+    		   //return ((IJavaElement) element).getLabel();
     	   }
     	   @Override
         public void modify(Object element, String property, Object value) {
@@ -150,7 +197,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 		fluidXML = new TextViewer(getContainer(), SWT.V_SCROLL | SWT.H_SCROLL);
 		fluidXML.setDocument(provider.getFluidDocument());
 		fluidXML.getTextWidget().setFont(JFaceResources.getTextFont());
-		fluidXML.setEditable(false);
+		fluidXML.getTextWidget().addLineStyleListener(new XMLLineStyler());
+		fluidXML.setEditable(false);		
 		
 		int index = addPage(fluidXML.getControl());
 		setPageText(index, "Source");
@@ -162,7 +210,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 			return;
 		}
 		try {
-			localXML = new TextEditor();
+			localXML = new TextEditor() {
+				@Override 
+				public void createPartControl(Composite parent) {
+					super.createPartControl(parent);
+					getSourceViewer().getTextWidget().addLineStyleListener(new XMLLineStyler());
+				}
+			};
 			
 			int index = addPage(localXML, provider.getLocalInput());
 			setPageText(index, "Diffs");
@@ -194,6 +248,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     
     @Override
     public void setFocus() {
+    	System.out.println("Focus on "+getActivePage());
     	switch (getActivePage()) {
     	case 0:
     		if (contents != null) {
