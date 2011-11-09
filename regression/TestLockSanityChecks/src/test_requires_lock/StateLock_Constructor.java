@@ -1,0 +1,51 @@
+package test_requires_lock;
+
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.Region;
+import com.surelogic.Regions;
+import com.surelogic.RequiresLock;
+
+/**
+ * Test that constructors cannot require locks on the instance being
+ * constructed.  Static locks on the class can be used.  Instance locks
+ * on parameters can be required.
+ */
+@Regions({
+  @Region("static StaticRegion"),
+  @Region("NonStaticRegion")
+})
+@RegionLocks({
+  @RegionLock("StaticLock is class protects StaticRegion"),
+  @RegionLock("NonStaticLock is this protects NonStaticRegion")})
+public class StateLock_Constructor {
+  /**
+   * BAD: Constructor requires (implicit) instance lock on "this"
+   */
+  @RequiresLock("NonStaticLock" /*is UNASSOCIATED: Constructor requires (implicit) instance lock on "this"*/)
+  public StateLock_Constructor(int x) {}
+  
+  /**
+   * BAD: Constructor requires instance lock on "this"
+   */
+  @RequiresLock("this:NonStaticLock" /* is UNASSOCIATED: Constructor requires instance lock on "this"*/)
+  public StateLock_Constructor(int x, int y) {}
+  
+  /**
+   * GOOD: Constructor requires instance lock on a parameter
+   */
+  @RequiresLock("p:NonStaticLock" /* is CONSISTENT */)
+  public StateLock_Constructor(final StateLock_Constructor p) {}
+  
+  /**
+   * GOOD: Constructor requires static lock of class
+   */
+  @RequiresLock("StaticLock" /* is CONSISTENT */)
+  public StateLock_Constructor(int x, int y, int z) {}
+  
+  /**
+   * GOOD: Constructor requires static lock of class
+   */
+  @RequiresLock("test_requires_lock.StateLock_Constructor:StaticLock" /* is CONSISTENT */)
+  public StateLock_Constructor(int x, int y, int z, int w) {}
+}

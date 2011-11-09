@@ -1,0 +1,9 @@
+--- Test5.java
++++ Test5.java
+@@ -1,5 +1,5 @@
+ package test;
+ 
+ public class Test5 {
+-	int i, j;
++	int i, j, k;
+ }

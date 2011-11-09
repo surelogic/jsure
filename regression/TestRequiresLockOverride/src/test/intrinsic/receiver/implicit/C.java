@@ -1,0 +1,391 @@
+package test.intrinsic.receiver.implicit;
+
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.surelogic.Region;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.Regions;
+import com.surelogic.RequiresLock;
+
+@Regions({
+	@Region("public R"),
+	@Region("public Q"),
+	@Region("public P")
+})
+@RegionLocks({
+	@RegionLock("L is this protects R"),
+	@RegionLock("M is lock protects Q"),
+	@RegionLock("N is lock2 protects P")
+})
+public class C {
+	public final Object lock = new Object();
+	public final Object lock2 = new Object();
+	
+	
+	@RequiresLock("L, M")
+	public void m1(final C a, final C b, final C c) {}
+	
+	@RequiresLock("L")
+	public void m2(final C a, final C b, final C c) {}
+	
+	// Explicit empty
+	@RequiresLock("")
+	public void m3(final C a) {}
+	
+	// Implicit empty
+	public void m4(final C a) {}	
+}
+
+
+
+/* BASIC CHECKS:
+ * (1) Can completely remove requirements
+ * (2) @RequiresLock("") is equivalent to no @RequiresLock
+ */
+class Good1 extends C {
+	// GOOD: Can remove requirements; use implicit empty
+	@Override
+	public void m1(final C a, final C b, final C c) {}
+	
+	// GOOD: Can remove requirements: use explicit empty
+	@Override
+	@RequiresLock("")
+	public void m2(final C a, final C b, final C c) {}
+	
+	// GOOD: Same as explicit empty
+	@Override
+	public void m3(final C a) {}
+	
+	// GOOD: Same as implicit empty
+	@Override
+	@RequiresLock("")
+	public void m4(final C a) {}
+}
+
+
+
+/* BASIC CHECKS: Cannot add requirements
+ */
+class Bad1 extends C {
+	// BAD: Cannot add lock
+	@Override
+	@RequiresLock("L, M, N")
+	public void m1(final C a, final C b, final C c) {}
+	
+	// BAD: Cannot add lock to explicit empty
+	@Override
+	@RequiresLock("L")
+	public void m3(final C a) {}
+	
+	// BAD: Cannot add lock to implicit empty
+	@Override
+	@RequiresLock("M")
+	public void m4(final C a) {}		
+}
+
+
+
+/* Can partially remove requirements */
+class Good2 extends C {
+	// GOOD: Can remove requirements;
+	@Override
+	@RequiresLock("L")
+	public void m1(final C a, final C b, final C c) {}
+}
+
+class Good3 extends C {
+	// GOOD: Can remove requirements
+	@Override
+	@RequiresLock("M")
+	public void m1(final C a, final C b, final C c) {}
+}
+
+class Bad2 extends C {
+	// BAD: Completely different
+	@Override
+	@RequiresLock("N")
+	public void m1(final C a, final C b, final C c) {}
+}
+
+
+// === Test against other ways of naming locks ===
+
+/*
+ * (1) parameter renaming (correct and wrong)
+ * (2) implicit receiver
+ * (3) explicit receiver
+ * (4) 0th-qualified receiver
+ * (6) static locks
+ *
+ * Also, correct name, but wrong lock
+ * 
+ * The above, cross read lock and write lock
+ */
+
+@Regions({
+	@Region("public R"),
+	@Region("public Q"),
+	@Region("public RW"),
+	@Region("public static S"),
+	@Region("public static S_RW")
+})
+@RegionLocks({
+	@RegionLock("L is this protects R"),
+	@RegionLock("M is lock protects Q"),
+	@RegionLock("LL is rwLock protects RW"),
+	@RegionLock("N is class protects S"),
+	@RegionLock("NN is staticRWLock protects S_RW")
+})
+class X {
+	public final Object lock = new Object();
+	public final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+	public final static ReadWriteLock staticRWLock = new ReentrantReadWriteLock();
+	
+	@RequiresLock("L")
+	public void m(final X a, final X b) {}
+}
+
+// ==== Intrinsic Locks ====
+
+// FORMALS
+
+class XBad1 extends X {
+	// BAD: formal argument, correct lock
+	@Override
+	@RequiresLock("a:L")
+	public void m(final X a, final X b) {}
+}
+
+class XBad2 extends X {
+	// BAD: formal argument (renamed), correct lock
+	@Override
+	@RequiresLock("aa:L")
+	public void m(final X aa, final X bb) {}
+}
+
+class XBad3 extends X {
+	// BAD: formal argument, wrong lock
+	@Override
+	@RequiresLock("a:M")
+	public void m(final X a, final X b) {}
+}
+
+class XBad4 extends X {
+	// BAD: formal argument (renamed), wrong lock
+	@Override
+	@RequiresLock("aa:M")
+	public void m(final X aa, final X bb) {}
+}
+
+// RECEIVERS
+
+class XGood1 extends X {
+	// GOOD: implicit receiver, correct lock
+	@Override
+	@RequiresLock("L")
+	public void m(final X a, final X b) {}
+}
+
+class XGood2 extends X {
+	// GOOD: explicit receiver, correct lock
+	@Override
+	@RequiresLock("this:L")
+	public void m(final X a, final X b) {}
+}
+
+class XGood3 extends X {
+	// GOOD: 0th-qualified receiver, correct lock
+	@Override
+	@RequiresLock("XGood3.this:L")
+	public void m(final X a, final X b) {}
+}
+
+class XBad5 extends X {
+	// BAD: implicit receiver, wrong lock
+	@Override
+	@RequiresLock("M")
+	public void m(final X a, final X b) {}
+}
+
+class XBad6 extends X {
+	// BAD: explicit receiver, wrong lock
+	@Override
+	@RequiresLock("this:M")
+	public void m(final X a, final X b) {}
+}
+
+class XBad7 extends X {
+	// BAD: 0th-qualified receiver, wrong lock
+	@Override
+	@RequiresLock("XBad7.this:M")
+	public void m(final X a, final X b) {}
+}
+
+// STATIC LOCK
+
+class XBad8 extends X {
+	// BAD: static lock -- implicit
+	@Override
+	@RequiresLock("N")
+	public void m(final X a, final X b) {}
+}
+
+class XBad9 extends X {
+	// BAD: static lock -- explicit
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.X:N")
+	public void m(final X a, final X b) {}
+}
+
+class XBad10 extends X {
+	// BAD: static lock -- explicit 2
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.XBad10:N")
+	public void m(final X a, final X b) {}
+}
+
+// ==== Read Locks ====
+
+// FORMALS
+
+class XBad11 extends X {
+	// BAD: formal argument, correct lock
+	@Override
+	@RequiresLock("a:LL.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad12 extends X {
+	// BAD: formal argument (renamed), correct lock
+	@Override
+	@RequiresLock("aa:LL.readLock()")
+	public void m(final X aa, final X bb) {
+	}
+}
+
+// RECEIVERS
+
+class XBad13 extends X {
+	// GOOD: implicit receiver
+	@Override
+	@RequiresLock("LL.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad14 extends X {
+	// GOOD: explicit receiver
+	@Override
+	@RequiresLock("this:LL.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad15 extends X {
+	// GOOD: 0th-qualified receiver
+	@Override
+	@RequiresLock("XBad15.this:LL.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+// STATIC LOCK
+
+class XBad16 extends X {
+	// BAD: static lock -- implicit
+	@Override
+	@RequiresLock("NN.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad17 extends X {
+	// BAD: static lock -- explicit
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.X:NN.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad18 extends X {
+	// BAD: static lock -- explicit 2
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.XBad18:NN.readLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+// ==== Write Locks ====
+
+// FORMALS
+
+class XBad19 extends X {
+	// BAD: formal argument, correct lock
+	@Override
+	@RequiresLock("a:LL.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad20 extends X {
+	// BAD: formal argument (renamed), correct lock
+	@Override
+	@RequiresLock("aa:LL.writeLock()")
+	public void m(final X aa, final X bb) {
+	}
+}
+
+// RECEIVERS
+
+class XBad21 extends X {
+	// GOOD: implicit receiver
+	@Override
+	@RequiresLock("LL.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad22 extends X {
+	// GOOD: explicit receiver
+	@Override
+	@RequiresLock("this:LL.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad23 extends X {
+	// GOOD: 0th-qualified receiver
+	@Override
+	@RequiresLock("XBad23.this:LL.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+// STATIC LOCK
+
+class XBad24 extends X {
+	// BAD: static lock -- implicit
+	@Override
+	@RequiresLock("NN.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad25 extends X {
+	// BAD: static lock -- explicit
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.X:NN.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
+
+class XBad26 extends X {
+	// BAD: static lock -- explicit 2
+	@Override
+	@RequiresLock("test.intrinsic.receiver.implicit.XBad26:NN.writeLock()")
+	public void m(final X a, final X b) {
+	}
+}
