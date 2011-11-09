@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JSure Debug Views
+Bundle-SymbolicName: com.surelogic.jsure.views.debug; singleton := true
+Bundle-Version: 4.0.1.qualifier
+Bundle-Activator: com.surelogic.jsure.views.debug.Activator
+Require-Bundle: com.surelogic.common,
+ com.surelogic.common.core,
+ com.surelogic.common.ui,
+ edu.cmu.cs.fluid,
+ com.surelogic.jsure.core,
+ com.surelogic.jsure.client.eclipse,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Vendor: SureLogic, Inc.
