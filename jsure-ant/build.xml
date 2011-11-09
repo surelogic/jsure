@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build-ant-task" default="all">
+	<description>Build for SL Ant tasks</description>
+
+  <target name="all" depends="clean,build,zip"/>
+  
+  <target name="clean-build" depends="clean,build"/>
+  
+  <target name="clean">
+    <delete dir="./lib"/>
+  </target>
+  
+	<target name="build">
+	  <mkdir dir="./lib"/>
+ 
+	  <mkdir dir="./lib/common"/>
+	  <jar destfile="./lib/common/common.jar" basedir="../common/bin" />
+	  <mkdir dir="./lib/common/lib/runtime"/>
+	  <copy todir="./lib/common/lib/runtime">
+	    <fileset dir="../common/lib/runtime"/>
+	  </copy>
+		
+	  <mkdir dir="./lib/fluid"/>
+	  <jar destfile="./lib/fluid/fluid.jar" basedir="../fluid/bin" />
+	  <mkdir dir="./lib/fluid/lib/runtime"/>
+	  <copy todir="./lib/fluid/lib/runtime">
+	    <fileset dir="../fluid/lib/runtime"/>
+	  </copy>	
+	  <mkdir dir="./lib/fluid/lib/promises"/>
+	  <copy todir="./lib/fluid/lib/promises">
+		<fileset dir="../fluid/lib/promises"/>
+	  </copy>		
+	  
+	  <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
+	  
+	</target>
+	  
+	<target name="zip">
+	  <zip destfile="./jsure-ant.zip" basedir=".."
+	       includes="jsure-ant/lib/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**"/>
+	</target>
+</project>
+	  
