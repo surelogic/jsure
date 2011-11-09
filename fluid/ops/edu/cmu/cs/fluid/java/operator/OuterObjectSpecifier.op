@@ -1,0 +1,65 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OuterObjectSpecifier.op,v 1.2 2006/08/23 08:57:07 boyland Exp $
+public operator OuterObjectSpecifier extends PrimaryExpression
+{
+  syntax {
+    <?> object:PrimaryExpression "." </?> call:PrimaryExpression
+  }
+ 
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent obj = 
+      new Subcomponent(comp,tree.childLocation(node,objectLoc),1,1,1);
+    Subcomponent alloc = 
+      new Subcomponent(comp,tree.childLocation(node,callLoc),1,1,1);
+
+    ControlNode merge1 = new Merge();
+    ControlNode merge2 = new Merge();
+    ControlNode throwNull = 
+      new AddLabel(PrimitiveExceptionLabel.primitiveNullPointerException);
+    ControlNode testOK = new ComponentChoice(comp,null);
+
+    // normal control flow:
+    ControlEdge.connect(comp.getEntryPort(),obj.getEntryPort());
+    ControlEdge.connect(obj.getNormalExitPort(),testOK);
+    ControlEdge.connect(testOK,alloc.getEntryPort());
+    ControlEdge.connect(alloc.getNormalExitPort(),comp.getNormalExitPort());
+
+    // exceptions in object, null-ness and in allocation:
+    ControlEdge.connect(obj.getAbruptExitPort(),merge1);
+    ControlEdge.connect(testOK,throwNull);
+    ControlEdge.connect(throwNull,merge1);
+    ControlEdge.connect(merge1,merge2);
+    ControlEdge.connect(alloc.getAbruptExitPort(),merge2);
+    ControlEdge.connect(merge2,comp.getAbruptExitPort());
+
+    return comp;
+  }
+
+  // Changed to call method below
+  public final void unparseWrapper(IRNode node, JavaUnparser u) {
+    OPENTOKEN.emit(u,node);
+    JavaPromise.unparsePromises(node,u);
+    newUnparse(node,u);
+    CLOSETOKEN.emit(u,node);
+  }
+
+  public final void newUnparse(IRNode node, JavaUnparser unparser) {
+    boolean explicit = !JavaNode.wasImplicit(node);
+    if (explicit) {
+      unparse(node, unparser);    
+      return;
+    } 
+    SyntaxTreeInterface tree = unparser.getTree();
+    Operator op = tree.getOperator(node);
+    if (!(op instanceof OuterObjectSpecifier)) {
+      throw new IllegalArgumentException("node not QOuterObjectSpecifier: "+op);
+    }
+    // just unparse the allocation
+    unparser.unparse(tree.getChild(node,1));
+  }
+  
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+}
+

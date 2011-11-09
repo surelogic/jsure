@@ -1,0 +1,7 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator ComplexTarget extends PromiseTarget {
+}

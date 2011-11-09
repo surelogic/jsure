@@ -1,0 +1,22 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NestedEnumDeclaration.op,v 1.1 2007/05/07 15:20:30 chance Exp $
+public operator NestedEnumDeclaration extends EnumDeclaration 
+implements NestedDeclInterface
+{
+  // Exactly like EnumDecl
+  syntax {
+    annos:Annotations
+    $mods:Modifiers(public,protected,private,strictfp) "enum" $id:Info impls:Implements
+    body:ClassBody
+  }
+  properties {
+    typeBinding=Declared
+  }
+  
+  public Operator getResultOp() {
+    return NestedEnumDeclaration.prototype;
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,true);
+  }
+}

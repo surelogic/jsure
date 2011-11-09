@@ -1,0 +1,6 @@
+# $Header$
+public operator TypeList {
+  properties {
+    logicallyInvisible=true 
+  }
+}

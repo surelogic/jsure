@@ -1,0 +1,33 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SimpleEnumConstantDeclaration.op,v 1.3 2006/06/16 16:36:09 chance Exp $
+public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
+{
+  syntax { 
+    $id:Info 
+  }
+  private static final CallInterface.NoArgs noArgs = new CallInterface.NoArgs();
+
+  @Override
+  public IRNode get_Args(IRNode node) throws CallInterface.NoArgs {
+    throw noArgs;
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    /* A() is the same as "public static final E A = new E()",
+     * where E is the enclosing enum type.  So we need to make the
+     * control graph for the call "new E()"
+     */
+    Component comp = new Component(node,1,1,1);
+
+    ControlNode doAlloc = new ComponentFlow(comp,NewExpression.prototype);
+    ControlNode doCall = new ComponentChoice(comp,NewExpression.prototype);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+
+    ControlEdge.connect(comp.getEntryPort(),doAlloc);
+    ControlEdge.connect(doAlloc, doCall);  // No arguments, so connect directly
+    ControlEdge.connect(doCall,comp.getNormalExitPort());
+    ControlEdge.connect(doCall,propagateExceptions);
+    ControlEdge.connect(propagateExceptions, comp.getAbruptExitPort());
+
+    return comp;
+  }
+}

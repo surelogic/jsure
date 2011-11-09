@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="List">
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="iterator">
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="listIterator">
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="listIterator" params="int">
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

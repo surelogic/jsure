@@ -1,0 +1,88 @@
+# $Header$
+public operator Resources {
+  syntax {
+    ( "(" resource:Resource +/ ";" ")" ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  
+  /** Create the control-flow graph component for a (possibly empty)
+   * series of resources.  Each resource is wrapped in a variable
+   * subcomponent.  We need three edges between variable subcomponents: <ul>
+   * <li> 0 - we initialize the resource here
+   * <li> 1 (reverse) we close the resource (no exceptions yet)
+   * <li> 2 (reverse) we close the resource (exceptional path). </ul>
+   * The middle case means there are no exception in CLOSING yet.
+   * It does not refer to whether there are are no exceptions at all.
+   * In order to handle that, we would need to have Triple ports on Resources.
+   * (It would avoid the need to have tracking, however.)
+   */
+  @Override public Component createComponent(IRNode node) {
+    return new ResourcesComponent(node);
+  }
+}
+
+@SuppressWarnings("unused")
+class ResourcesComponent extends VariableComponent {
+  ResourcesComponent(IRNode node) {
+    super(node,3,2,2,1);
+
+    ControlNode never = new Never();
+
+    ControlEdge startInit =
+      new VariableSubcomponentControlEdge(variable,0,false,entryPort);
+    ControlEdge startClose =
+      new VariableSubcomponentControlEdge(variable,1,false,entryPort,true);
+    ControlEdge startErrorClose =
+      new VariableSubcomponentControlEdge(variable,2,false,never,true);
+
+    ControlEdge endInit =
+      new VariableSubcomponentControlEdge(variable,0,true,normalExitPort);
+    ControlEdge execOut =
+      new VariableSubcomponentControlEdge(variable,1,true,normalExitPort,true);
+    ControlEdge abruptOut =
+      new VariableSubcomponentControlEdge(variable,2,true,abruptExitPort,true);
+  }
+
+  @Override protected VariableSubcomponent createVariableSubcomponent(IRLocation loc) {
+    return new ResourceSubcomponent(this,loc);
+  }
+}
+
+@SuppressWarnings("unused")
+class ResourceSubcomponent extends VariableSubcomponent {
+  public ResourceSubcomponent(Component comp, IRLocation loc) {
+    super(comp,loc,3);
+
+    entryPort = new SubcomponentBooleanEntryPort(this);
+    normalExitPort = new SubcomponentBooleanExitPort(this);
+    abruptExitPort = new SubcomponentAbruptExitPort(this);
+
+    ControlNode addTrack = new TrackedMerge();
+    ControlNode checkTrack = new TrackedDemerge();
+    ControlNode stripLabel = new PendingLabelStrip(); //XXX: actually it's more complex
+    ControlNode abruptMerge = new Merge();
+
+    ControlEdge findCatch =
+      new VariableSubcomponentControlEdge(this,0,true,entryPort);
+    ControlEdge inExec =
+      new VariableSubcomponentControlEdge(this,1,true,addTrack,true);
+    ControlEdge inAbrupt =
+      new VariableSubcomponentControlEdge(this,2,true,addTrack,true);
+      
+    ControlEdge.connect(addTrack,entryPort);
+    ControlEdge.connect(abruptExitPort,stripLabel);
+    
+    ControlEdge notCaught =
+      new VariableSubcomponentControlEdge(this,0,false,normalExitPort);
+    ControlEdge outExec =
+      new VariableSubcomponentControlEdge(this,1,false,checkTrack,true);
+    ControlEdge outAbrupt =
+      new VariableSubcomponentControlEdge(this,2,false,abruptMerge,true);
+      
+    ControlEdge.connect(normalExitPort,checkTrack);
+    ControlEdge.connect(checkTrack,abruptMerge);  
+    ControlEdge.connect(stripLabel,abruptMerge);  
+  }
+}

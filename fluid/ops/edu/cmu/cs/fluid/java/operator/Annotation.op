@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Annotation.op,v 1.4 2006/07/03 14:47:51 chance Exp $
+public operator Annotation extends ElementValue
+{
+  syntax {
+    "@" $id:Info
+  }
+  properties {
+    bindsTo=Annotation
+  }
+  public String getName(IRNode n) { return null; }
+  
+  public void unparseWrapper(IRNode node, JavaUnparser unparser) {
+      if (unparser.getStyle().unparsePromises()) {
+          super.unparseWrapper(node, unparser);
+      }
+  }
+}

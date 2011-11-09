@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator FieldDeclPattern extends PromiseTarget {
+  syntax {
+    "field" $mods:Modifiers ftype:Type type:TypeQualifierPattern $name:Info
+  }
+}

@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/BlockStatement.op,v 1.7 2005/05/25 18:03:34 chance Exp $
+public operator BlockStatement extends Statement implements DripOperator {
+  syntax { 
+    "{" <block> stmt:Statement */ <li> </block> "}"
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node,new ComponentFlow(null,Boolean.TRUE),
+                                      new ComponentFlow(null,Boolean.FALSE));
+  } 
+}

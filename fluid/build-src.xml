@@ -1,0 +1,231 @@
+<project name="Fluid" default="build-src">
+
+	<!-- set global properties for this build -->
+	<property name="src" value="${basedir}/src" />
+	<property name="ops" value="${basedir}/ops" />
+	<property name="gensrc" value="${basedir}/gensrc" />
+
+	<!-- Specific target directories needed for JavaCC and ANTLR -->
+	<property name="build-jars-home" value="${src}/../lib/build" />
+	<property name="antlr-lib" value="${basedir}/../common/lib/build" />
+
+	<!-- Target directories that require special handling (older JavaCC) -->
+	<property name="fjp-dir" value="${src}/edu/cmu/cs/fluid/java/parse" />
+	<property name="fpp-dir" value="${src}/edu/cmu/cs/fluid/promise/parse" />
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<!-- Load in the ANTLR Ant task -->
+	<taskdef resource="org/apache/tools/ant/antlr/antlib.xml">
+		<classpath>
+			<pathelement location="${antlr-lib}/antlr-ant-task.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- Runs ANTLR and generates parser code -->
+	<macrodef name="genAntlr">
+		<attribute name="target" />
+		<attribute name="outputdir" />
+		<sequential>
+			<mkdir dir="@{outputdir}" />
+			<antlr3 target="@{target}" outputdirectory="@{outputdir}" libdirectory="@{outputdir}">
+				<classpath>
+					<pathelement location="${antlr-lib}/antlr-3.1.jar" />
+				</classpath>
+				<jvmarg value="-Xmx1024m" />
+			</antlr3>
+		</sequential>
+	</macrodef>
+
+	<!-- Generates all the operators with a strategy class (passed as classname) -->
+	<macrodef name="opgen">
+		<attribute name="classname" />
+		<sequential>
+			<echo message="Starting @{classname}" />
+			<java classname="@{classname}" output="${gensrc}/@{classname}.log.txt">
+				<classpath>
+					<pathelement path="${src}/../../jsure-opgen/bin" />
+					<pathelement path="${build-jars-home}/opgen.jar" />
+					<pathelement path="${java.class.path}" />
+				</classpath>
+				<arg value="-out" />
+				<arg value="${gensrc}" />
+				<arg value="${ops}/edu/cmu/cs/fluid" />
+			</java>
+			<echo message="Done with opgen @{classname}..." />
+		</sequential>
+	</macrodef>
+
+	<!-- Generates the code that lists AST notes that exist for the promise parsers to work -->
+	<macrodef name="gen-factory-refs">
+		<attribute name="parsername" />
+		<attribute name="outputname" />
+		<attribute name="importname" default="promise" />
+		<sequential>
+			<echo message="Starting to generate factory refs" />
+			<java classname="com.surelogic.antlr.GenerateFactoryRefs" output="${gensrc}/com/surelogic/annotation/parse/@{outputname}.java">
+				<classpath>
+					<pathelement path="${src}/../../opgen/bin" />
+					<pathelement path="${build-jars-home}/opgen.jar" />
+					<pathelement path="${java.class.path}" />
+				</classpath>
+				<arg value="${gensrc}/com/surelogic/annotation/parse/@{parsername}.tokens" />
+				<arg value="com/surelogic/annotation/parse" />
+				<arg value="@{importname}" />
+				<arg value="@{outputname}" />
+			</java>
+			<echo message="Done generating factory refs..." />
+		</sequential>
+	</macrodef>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="fluid-java-parse">
+		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/parse -->
+		<jjtree outputdirectory="${fjp-dir}" target="${fjp-dir}/JavaX.jjt" javacchome="${build-jars-home}" />
+		<copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no" />
+		<replaceregexp file="${fjp-dir}/Java.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
+		<!-- Check if we really need to run the JavaCC -->
+		<uptodate property="fjp-uptodate" targetfile="${fjp-dir}/JavaParser.java">
+			<srcfiles dir="${fjp-dir}" includes="Java.jj" />
+		</uptodate>
+	</target>
+
+	<target name="fluid-java-parse-javacc" depends="fluid-java-parse" unless="fjp-uptodate">
+		<javacc outputdirectory="${fjp-dir}" target="${fjp-dir}/Java.jj" javacchome="${build-jars-home}" />
+		<delete quiet="true" file="${fjp-dir}/Node.java" />
+		<delete quiet="true" file="${fjp-dir}/Token.java" />
+		<delete quiet="true" file="${fjp-dir}/ParseException.java" />
+		<replaceregexp file="${fjp-dir}/JavaParser.java" flags="g" match="if \(true\) throw new ParseException" replace="throw new ParseException" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="fluid-promise-parse">
+		<!-- Generate Java source code in /edu/cmu/cs/fluid/promise/parse -->
+		<jjtree outputdirectory="${fpp-dir}" target="${fpp-dir}/PromiseX.jjt" javacchome="${build-jars-home}" />
+		<copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no" />
+		<replaceregexp file="${fpp-dir}/Promise.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
+
+		<!-- Check if we really need to run the JavaCC -->
+		<uptodate property="fep-uptodate" targetfile="${fpp-dir}/PromiseParser.java">
+			<srcfiles dir="${fpp-dir}" includes="Promise.jj" />
+		</uptodate>
+	</target>
+
+	<target name="fluid-promise-parse-javacc" depends="fluid-promise-parse" unless="fep-uptodate">
+		<javacc outputdirectory="${fpp-dir}" target="${fpp-dir}/Promise.jj" javacchome="${build-jars-home}" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="generate-java-antlr">
+		<genAntlr target="${src}/com/surelogic/parse/JavaToken.g" outputdir="${gensrc}/com/surelogic/parse" />
+		<genAntlr target="${src}/com/surelogic/parse/JavaPrimitives.g" outputdir="${gensrc}/com/surelogic/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/ScopedPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/LayerPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/SLThreadRoleAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<gen-factory-refs parsername="SLAnnotations" outputname="FactoryRefs" />
+		<gen-factory-refs parsername="ScopedPromises" outputname="MoreFactoryRefs" />
+		<gen-factory-refs parsername="LayerPromises" outputname="LayerFactoryRefs" importname="layers" />
+		<gen-factory-refs parsername="SLThreadRoleAnnotations" outputname="ThreadRoleFactoryRefs" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="generate-from-operators">
+		<opgen classname="com.surelogic.opgen.OperatorGen" />
+	</target>
+
+	<target name="generate-asts-from-operators">
+		<opgen classname="com.surelogic.opgen.InterfaceGen" />
+	</target>
+
+	<target name="generate-crystal-from-operators">
+		<opgen classname="com.surelogic.opgen.CrystalGen" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="build-src" depends="
+  	generate-from-operators,
+  	generate-asts-from-operators,
+  	generate-crystal-from-operators,
+    generate-java-antlr,
+    fluid-java-parse-javacc,
+    fluid-promise-parse-javacc">
+		<echo message="All source code created..." />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<!-- Expermenatal build-src stuff that is not currently used -->
+
+	<target name="generate-nodes-from-operators">
+		<opgen classname="com.surelogic.opgen.OperatorNodeGen" />
+	</target>
+
+	<target name="generate-proxies-from-operators">
+		<opgen classname="com.surelogic.opgen.OperatorProxyNodeGen" />
+
+	</target>
+
+	<target name="generate-eager-proxies-from-operators">
+		<opgen classname="com.surelogic.opgen.OperatorEagerProxyNodeGen" />
+	</target>
+
+	<target name="generate-syntaxTreeNodes-from-operators">
+		<opgen classname="com.surelogic.opgen.SyntaxTreeNodeGen" />
+	</target>
+
+	<target name="new-build-src" depends="
+  	generate-from-operators,
+  	generate-asts-from-operators,
+  	generate-nodes-from-operators,
+  	generate-proxies-from-operators,
+  	generate-syntaxTreeNodes-from-operators,
+  	generate-crystal-from-operators,
+    fluid-java-parse-javacc,
+    fluid-promise-parse-javacc">
+		<echo message="All source code created..." />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="clean">
+		<!-- Delete generated files in the "gensrc" source folder -->
+		<echo message="Cleaning up in ${gensrc}" />
+		<delete includeemptydirs="true">
+			<fileset dir="${gensrc}" includes="**/*" defaultexcludes="no" excludes=".svn,.svn/**" />
+		</delete>
+
+		<!-- Delete generated files in edu.cmu.cs.fluid.java.parse -->
+		<echo message="Cleaning up in ${fjp-dir}" />
+		<delete quiet="true" file="${fjp-dir}/Java.jj" />
+		<delete quiet="true" file="${fjp-dir}/JavaCharStream.java" />
+		<delete quiet="true" file="${fjp-dir}/JavaParser.java" />
+		<delete quiet="true" file="${fjp-dir}/JavaParserConstants.java" />
+		<delete quiet="true" file="${fjp-dir}/JavaParserTokenManager.java" />
+		<delete quiet="true" file="${fjp-dir}/JavaParserTreeConstants.java" />
+		<delete quiet="true" file="${fjp-dir}/JavaX.jj" />
+		<delete quiet="true" file="${fjp-dir}/TokenMgrError.java" />
+
+		<!-- Delete generated files in edu.cmu.cs.fluid.promise.parse -->
+		<echo message="Cleaning up in ${fpp-dir}" />
+		<delete quiet="true" file="${fpp-dir}/JavaCharStream.java" />
+		<delete quiet="true" file="${fpp-dir}/Node.java" />
+		<delete quiet="true" file="${fpp-dir}/ParseException.java" />
+		<delete quiet="true" file="${fpp-dir}/Promise.jj" />
+		<delete quiet="true" file="${fpp-dir}/PromiseParser.java" />
+		<delete quiet="true" file="${fpp-dir}/PromiseParserConstants.java" />
+		<delete quiet="true" file="${fpp-dir}/PromiseParserTokenManager.java" />
+		<delete quiet="true" file="${fpp-dir}/PromiseParserTreeConstants.java" />
+		<delete quiet="true" file="${fpp-dir}/PromiseX.jj" />
+		<delete quiet="true" file="${fpp-dir}/Token.java" />
+		<delete quiet="true" file="${fpp-dir}/TokenMgrError.java" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+</project>

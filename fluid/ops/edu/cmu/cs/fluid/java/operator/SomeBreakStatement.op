@@ -1,0 +1,6 @@
+# $Header$
+public operator SomeBreakStatement extends Statement {
+  syntax {
+    $@id:Info 
+  }
+}

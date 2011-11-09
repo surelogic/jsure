@@ -1,0 +1,18 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/AssignmentExpression.op,v 1.3 2007/01/15 17:15:23 chance Exp $
+/** 
+ * The abstract parent of AssignExpression and OpAssignExpression
+ */
+public operator AssignmentExpression extends BinopExpression
+    implements AssignmentInterface
+{
+  syntax {
+    @op1:Expression "?=?" @op2:Expression
+  }
+
+  public IRNode getSource(IRNode node) {
+    throw new RuntimeException("Not implemented");
+  }
+  public IRNode getTarget(IRNode node) {
+    throw new RuntimeException("Not implemented");
+  }
+}

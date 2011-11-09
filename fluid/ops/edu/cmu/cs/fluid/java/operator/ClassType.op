@@ -1,0 +1,9 @@
+# $Header$
+/**
+ * The type of things that can be allocated.
+ */
+public operator ClassType extends ReferenceType {
+  properties {
+    bindsToType=SourceRefType
+  }
+}

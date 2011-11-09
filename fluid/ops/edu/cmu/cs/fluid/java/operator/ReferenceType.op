@@ -1,0 +1,6 @@
+// $Header$
+public operator ReferenceType extends Type implements ReferenceTypeInterface {
+  properties {
+    bindsToType=ReferenceType
+  } 
+}

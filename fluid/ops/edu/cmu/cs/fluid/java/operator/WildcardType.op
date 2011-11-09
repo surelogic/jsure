@@ -1,0 +1,18 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/WildcardType.op,v 1.2 2006/05/12 13:51:19 chance Exp $
+public operator WildcardType extends ReferenceType {
+  syntax {
+    "?"
+  }
+  
+  public final Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }
+  
+  public IRNode getLowerBound(IRNode n) {
+    return null;
+  }
+  
+  public IRNode getUpperBound(IRNode n) {
+    return null;
+  }
+}

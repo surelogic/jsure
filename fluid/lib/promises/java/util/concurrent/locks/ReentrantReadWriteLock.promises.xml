@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent.locks">
+    <class name="ReentrantReadWriteLock">
+        <ThreadSafe/>
+        <method name="readLock">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="writeLock">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <class name="ReadLock">
+            <ThreadSafe/>
+            <method name="lock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="lockInterruptibly">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="newCondition">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="tryLock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="tryLock" params="long,java.util.concurrent.TimeUnit">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="unlock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+        </class>
+
+        <class name="WriteLock">
+            <ThreadSafe/>
+            <method name="lock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="lockInterruptibly">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="newCondition">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="tryLock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="tryLock" params="long,java.util.concurrent.TimeUnit">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+
+            <method name="unlock">
+                <RegionEffects>writes Instance</RegionEffects>
+                <!--starts>nothing</starts-->
+            </method>
+        </class>
+    </class>
+</package>

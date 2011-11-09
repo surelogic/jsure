@@ -1,0 +1,6 @@
+# $Header$
+public operator SomeAssertStatement extends Statement implements DripOperator {
+  syntax {
+    @assertion:Expression @message:Expression?
+  }
+}

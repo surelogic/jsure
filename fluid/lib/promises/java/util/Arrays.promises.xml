@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="Arrays">
+        <method name="copyOf" params="boolean[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="byte[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="char[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="double[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="int[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="float[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="long[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="short[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="java.lang.Object[], int">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+
+        <method name="copyOf" params="java.lang.Object[], int, java.lang.Class">
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

@@ -1,0 +1,7 @@
+# $Header$
+/**
+ * For methods and constructors that are intentionally treated as if
+ * they are from a class file
+ */
+public operator OmittedMethodBody extends OptMethodBody {
+}

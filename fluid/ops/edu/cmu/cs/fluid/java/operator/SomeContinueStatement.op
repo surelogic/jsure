@@ -1,0 +1,6 @@
+# $Header$
+public operator SomeContinueStatement extends Statement {
+  syntax {
+    $@id:Info 
+  }
+}

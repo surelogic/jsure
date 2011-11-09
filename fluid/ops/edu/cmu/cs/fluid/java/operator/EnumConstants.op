@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumConstants.op,v 1.6 2006/06/28 16:07:22 chance Exp $
+public operator EnumConstants extends EnumBodyDeclaration
+{
+  syntax {
+    ( constant:EnumConstantDeclaration +/ ( <> "," ) ) ?/ "<missing>"    
+  }
+  properties {
+    logicallyInvisible=true,
+    id="%constant"
+  }  
+  /** Create a component for this node.
+   * Execute the declarators in succession.
+   */
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

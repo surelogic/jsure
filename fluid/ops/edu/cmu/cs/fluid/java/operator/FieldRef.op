@@ -1,0 +1,32 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/FieldRef.op,v 1.17 2006/08/23 08:57:07 boyland Exp $
+public operator FieldRef extends PrimaryExpression implements DripOperator, edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax {
+    <?> object:Expression <> "." <> </?> $id:Info
+  }
+  properties {
+    bindsTo=Variable 
+  }
+  public Operator getResultOp() {
+    return VariableDeclarator.prototype;
+  }
+
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,objectLoc),1,1,1);
+    ControlNode abruptMerge = new Merge();
+    ControlNode throwNull = 
+      new AddLabel(PrimitiveExceptionLabel.primitiveNullPointerException);
+    ControlNode testOK = new ComponentChoice(comp,null);
+    ControlNode useField = new ComponentFlow(comp,null);
+
+    ControlEdge.connect(comp.getEntryPort(),sub.getEntryPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(sub.getNormalExitPort(),testOK);
+    ControlEdge.connect(testOK,useField);
+    ControlEdge.connect(useField,comp.getNormalExitPort());
+    ControlEdge.connect(testOK,throwNull);
+    ControlEdge.connect(throwNull,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    return comp;
+  }
+}

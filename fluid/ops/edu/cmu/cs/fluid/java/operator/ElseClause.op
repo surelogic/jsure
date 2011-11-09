@@ -1,0 +1,6 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ElseClause.op,v 1.2 2003/09/20 02:03:40 thallora Exp $
+public operator ElseClause extends OptElseClause {
+  syntax {
+    "else" <else> elseStmt:Statement </else>
+  }
+}

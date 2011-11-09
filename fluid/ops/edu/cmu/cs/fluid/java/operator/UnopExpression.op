@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/UnopExpression.op,v 1.4 2006/05/26 20:15:36 chance Exp $
+public operator UnopExpression extends Expression {
+  syntax { @op:Expression }
+
+  public Expression getOp() {
+    return (Expression)instantiate(tree.getChild(baseNode,0));
+  }
+  public boolean isPrefix() {
+    return true;
+  }
+  public int childPrecedence(int i) {
+    return unopPrec;
+  }
+}

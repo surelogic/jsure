@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/DemandName.op,v 1.8 2006/05/15 20:04:11 chance Exp $
+public operator DemandName extends ImportName implements edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax { $pkg:Info <> "." <> "*" }
+  
+  public Operator getResultOp() {
+    return PackageDeclaration.prototype;
+  }  
+}

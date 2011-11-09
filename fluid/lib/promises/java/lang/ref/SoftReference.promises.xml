@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.lang.ref">
+    <class name="SoftReference">
+        <constructor params="java.lang.Object,java.lang.ref.ReferenceQueue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+    </class>
+</package>

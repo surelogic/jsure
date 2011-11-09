@@ -1,0 +1,25 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/QualifiedThisExpression.op,v 1.11 2007/06/28 17:15:45 chance Exp $
+public operator QualifiedThisExpression extends SomeThisExpression 
+{
+  syntax {
+    type:ClassType <> "." <> "this"
+  }
+  properties {
+    bindsTo=Variable 
+    bindsToType=SourceRefType 
+  }  
+  /** Create the control-flow graph component for a qualified this 
+   * (e.g. <classname>.this). 
+   * <p>
+   * This code is basically the same as QualifiedSuperExpression.
+   * Please fix both or neither
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlNode n = new ComponentFlow(comp,null);
+    ControlEdge.connect(comp.getEntryPort(),n);
+    ControlEdge.connect(n,comp.getNormalExitPort());
+    
+    return comp;
+  }
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.servlet">
+    <class name="Servlet">
+        <ThreadRoleImport uid="67809513-5263-4aa8-85d6-9c794a11b721">javax.servlet</ThreadRoleImport>
+        <method name="service" params="javax.servlet.ServletRequest,javax.servlet.ServletResponse">
+            <ThreadRole>Servlet</ThreadRole>
+        </method>
+    </class>
+</package>

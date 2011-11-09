@@ -1,0 +1,16 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Declaration.op,v 1.5 2007/06/04 15:30:45 chance Exp $
+public operator Declaration {
+  syntax {
+    $@id:Info
+  }
+  properties {
+    binding=""
+    extendable=true
+  }
+  
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    return super.includes(other) || (getClass() == Declaration.class && other instanceof TypeDeclInterface);
+  }
+}

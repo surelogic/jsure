@@ -1,0 +1,13 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator EmptyThrowsPattern extends OptThrowsPattern {
+  syntax {
+    "throws" "void"
+  }
+  properties {
+    logicallyInvisible=true 
+  }    
+}

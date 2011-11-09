@@ -1,0 +1,14 @@
+# $Header$
+public operator SomeFunctionCall extends PrimaryExpression implements CallInterface
+{
+  syntax {
+    @typeArgs:TypeActuals? @object:Expression @args:Arguments
+  }
+  properties {
+    bindsTo=Function
+  }
+  
+  public Operator getResultOp() {
+    return SomeFunctionDeclaration.prototype;
+  }
+}

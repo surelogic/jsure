@@ -1,0 +1,25 @@
+<body>
+<p> This package implements Hoffman and O'Donnell's tree pattern matching
+algorithm, with Chase's improvements.  The resulting mechanism of this
+algorithm is a bottom-up (deterministic) tree automaton, which when
+run on any valid tree will decide if that tree (or any of its
+subtrees) is a representative of
+any of the given patterns of interest.  
+</p>
+<p>
+The improvements include table compression so that to determine the
+next state for a n-ary operator, we first map each of the states of
+the children through a so-called ``mu'' map to get indices.  Then we take the
+resulting indices and look up the result in the n-dimensional
+``omega'' map.  See page 172 of [Chase87].
+</p>
+<h3>References</h3>
+<p>
+<b>[Chase87]</b> 
+David R. Chase.
+``An improvment to Bottom-up Tree Pattern Matching.''
+In <cite>Conference Record of the Fourteenth ACM Symposium on Principles
+of Programming Languages</cite>, pages 168-177, New York, January
+1987. ACM Press.
+</p>
+</body>

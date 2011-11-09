@@ -1,0 +1,59 @@
+package com.surelogic.analysis.effects.targets;
+
+import com.surelogic.analysis.effects.Messages;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+
+public class EmptyEvidence implements TargetEvidence {
+  public enum Reason {
+    DECLARES_NO_EFFECTS(Messages.REASON_NO_DECLARED_EFFECT),
+    RECEIVER_IS_IMMUTABLE(Messages.REASON_RECEIVER_IS_IMMUTABLE),
+    FINAL_FIELD(Messages.REASON_FINAL_FIELD),
+    NULL_REFERENCE(Messages.REASON_NULL_REFERENCE),
+    NEW_OBJECT(Messages.REASON_NEW_OBJECT);
+    
+    private int msg;
+
+    private Reason(final int m) {
+      msg = m;
+    }
+    
+    public int getMessage() {
+      return msg;
+    }
+  }
+
+  
+  
+  private final Reason reason;
+  
+  // May be null
+  private final Target comesFrom;
+  
+  // May be null
+  private final IRNode link;
+  
+  
+  
+  public EmptyEvidence(final Reason r, final Target t, final IRNode n) {
+    reason = r;
+    comesFrom = t;
+    link = n;
+  }
+  
+  public IRNode getLink() {
+    return link;
+  }
+  
+  public Reason getReason() {
+    return reason;
+  }
+ 
+  public TargetEvidence getMoreEvidence() {
+    return comesFrom == null ? null : comesFrom.getEvidence();
+  }
+  
+  public void visit(final EvidenceVisitor v) {
+    v.visitEmptyEvidence(this);
+  }
+}

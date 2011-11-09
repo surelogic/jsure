@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="Collections">
+        <method name="unmodifiableList" params="java.util.List">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <class name="AsLIFOQueue">
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="iterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+            
+            <method name="remove">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="CheckedList">
+            <method name="listIterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="listIterator" params="int">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="CheckedMap">
+            <method name="clear">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="keySet">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="put" params="java.lang.Object,java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance; reads arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="remove" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="values">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <class name="CheckedEntrySet">
+                <method name="clear">
+                    <Borrowed>this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
+                </method>
+
+                <method name="iterator">
+                    <Borrowed>this</Borrowed>
+                    <!-- not really true -->
+                    <RegionEffects>reads this:Instance</RegionEffects>
+                </method>
+            </class>
+        </class>
+
+        <class name="EmptyMap">
+            <method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="hashCode">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Transparent/>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="keySet">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="values">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="EmptySet">
+            <method name="iterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SetFromMap">
+            <method name="clear">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="iterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SingletonMap">
+            <method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="keySet">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="values">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SingletonSet">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SynchronizedList">
+            <method name="listIterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="listIterator" params="int">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SynchronizedMap">
+            <method name="clear">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="keySet">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="put" params="java.lang.Object,java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance; reads arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="remove" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="values">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="UnmodifiableList">
+            <method name="listIterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="listIterator" params="int">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="UnmodifiableMap">
+            <method name="clear">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="containsKey" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="get" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="keySet">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="put" params="java.lang.Object,java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance; reads arg0:Instance</RegionEffects>
+            </method>
+
+            <method name="remove" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="values">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+        </class>
+    </class>
+</package>

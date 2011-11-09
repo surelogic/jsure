@@ -1,0 +1,6 @@
+// $Header$
+public operator PrimitiveType extends Type {
+  properties {
+    bindsToType=PrimitiveType
+  }
+}

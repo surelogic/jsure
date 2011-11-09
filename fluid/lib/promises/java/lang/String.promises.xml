@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.lang">
+    <class name="String">
+        <Immutable/>
+        
+        <method name="concat" params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="length">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="java.lang.Object">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+    </class>
+</package>

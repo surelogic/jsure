@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/TextFile.op,v 1.2 2006/06/29 19:30:22 chance Exp $
+
+public operator TextFile {
+  syntax { "file" $id:Info }
+  properties {
+    noncanonical=true
+  }
+}

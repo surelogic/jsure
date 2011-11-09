@@ -1,0 +1,15 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/BooleanLiteral.op,v 1.3 2005/05/25 18:03:34 chance Exp $
+public operator BooleanLiteral extends PrimLiteral {
+  /** Create a component for this node.  Control divides to the true
+   * and false branches (if they exist for the parent).
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,2,0);
+    ControlNode evalBool = new ComponentChoice(comp,this);
+    ControlEdge.connect(comp.getEntryPort(),evalBool);
+    // attach to true and false ports:
+    ControlEdge.connect(evalBool,comp.getNormalExitPort());
+    ControlEdge.connect(evalBool,comp.getNormalExitPort());
+    return comp;
+  }
+}

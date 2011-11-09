@@ -1,0 +1,11 @@
+# $Header: $
+
+/** Import color declarations and renames from some other place.
+ */
+ 
+// $modifiers:Modifiers 
+public operator ColorImport {
+  syntax {     
+    "colorImport" item:ImportName <> ";"
+  }
+}

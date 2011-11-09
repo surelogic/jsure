@@ -1,0 +1,62 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ArrayInitializer.op,v 1.7 2006/05/24 15:21:25 chance Exp $
+public operator ArrayInitializer extends Initializer 
+	implements OptArrayInitializerInterface
+{
+  syntax {
+    "{" init:Initializer */ "," "}"
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    return new ArrayInitializerComponent(node);
+  }
+}
+
+@SuppressWarnings("all")
+class ArrayInitializerComponent extends VariableComponent {
+  public ArrayInitializerComponent(IRNode node) {
+    super(node,2,1,1,1);
+    ControlNode maybeAlloc = new ComponentFlow(this,null);
+    ControlNode never = new Never();
+
+    ControlEdge.connect(entryPort,maybeAlloc);
+    
+    ControlEdge startExec =
+      new VariableSubcomponentControlEdge(variable,0,false,maybeAlloc);
+    ControlEdge startAbrupt =
+      new VariableSubcomponentControlEdge(variable,1,false,never);
+    
+    ControlEdge endExec =
+      new VariableSubcomponentControlEdge(variable,0,true,normalExitPort);
+    ControlEdge endAbrupt =
+      new VariableSubcomponentControlEdge(variable,1,true,abruptExitPort);
+  }
+  
+  @Override protected VariableSubcomponent createVariableSubcomponent(IRLocation loc) {
+    return new ArrayInitializerSubcomponent(this,loc);
+  }
+}
+
+@SuppressWarnings("all")
+class ArrayInitializerSubcomponent extends VariableSubcomponent {
+  public ArrayInitializerSubcomponent(Component comp, IRLocation loc) {
+    super(comp,loc,2);
+    entryPort = new SubcomponentEntryPort(this);
+    normalExitPort = new SubcomponentNormalExitPort(this);
+    abruptExitPort = new SubcomponentAbruptExitPort(this);
+    ControlNode merge = new Merge();
+    ControlNode store = new SubcomponentFlow(this,AssignExpression.prototype);
+    
+    ControlEdge.connect(abruptExitPort,merge);
+    ControlEdge.connect(normalExitPort,store);
+
+    ControlEdge normalEntry = 
+      new VariableSubcomponentControlEdge(this,0,true,entryPort);
+    ControlEdge abruptEntry =
+      new VariableSubcomponentControlEdge(this,1,true,merge);
+    ControlEdge normalExit =
+      new VariableSubcomponentControlEdge(this,0,false,store);
+    ControlEdge abruptExit =
+      new VariableSubcomponentControlEdge(this,1,false,merge);
+  }
+}
+

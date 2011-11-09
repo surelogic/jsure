@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OptElseClause.op,v 1.5 2006/06/15 13:53:39 chance Exp $
+public operator OptElseClause {
+  properties {
+    nonnullVariants=ElseClause
+  }
+  /** Create a component that executes the children (if any) in sequence. */
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node);
+  }
+}

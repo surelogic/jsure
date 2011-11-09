@@ -1,0 +1,5 @@
+public operator Resource {
+  properties {
+    bindsTo=Method
+  }
+}

@@ -1,0 +1,16 @@
+# $Header$
+public operator ParenExpression extends PrimaryExpression 
+{
+  syntax {
+    "(" <paren> op:Expression </paren> ")"
+  }
+  properties {
+    logicallyInvisible=dynamic 
+  }
+  /** Create the control-flow graph component for
+   * a parenthesized expression.  We simply execute the expr.
+   */
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node);
+  }
+}

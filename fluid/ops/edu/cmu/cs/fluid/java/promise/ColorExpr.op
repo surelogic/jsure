@@ -1,0 +1,7 @@
+# $Header: $
+
+public operator ColorExpr implements ColorSpecInterface {
+  public boolean includes(Operator other) {
+     return other instanceof ColorExprInterface;
+  }
+}

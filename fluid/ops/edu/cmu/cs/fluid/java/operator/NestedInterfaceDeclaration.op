@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NestedInterfaceDeclaration.op,v 1.11 2006/08/04 19:15:27 chance Exp $
+public operator NestedInterfaceDeclaration extends InterfaceDeclaration implements ClassBodyDeclInterface, NestedTypeDeclInterface
+{
+  syntax {
+    annos:Annotations
+    $mods:Modifiers(public,protected,private,abstract) 
+    "interface" $id:Info types:TypeFormals extensions:Extensions
+    body:ClassBody // sloppy but easier than doing everything over again
+  }
+  properties {
+    typeBinding=Declared
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,true);
+  }
+}

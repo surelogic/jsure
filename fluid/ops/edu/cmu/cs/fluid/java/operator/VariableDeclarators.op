@@ -1,0 +1,15 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VariableDeclarators.op,v 1.6 2006/05/30 14:51:44 chance Exp $
+public operator VariableDeclarators implements DripOperator {
+  syntax {
+    ( var:VariableDeclarator +/ ( <> "," ) ) ?/ "<missing>"
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  /** Create a component for this node.
+   * Execute the declarators in succession.
+   */
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

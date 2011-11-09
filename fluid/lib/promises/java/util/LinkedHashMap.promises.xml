@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="LinkedHashMap">
+        <constructor>
+            <Borrowed>this</Borrowed>
+        </constructor>
+        
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+        </method>
+
+        <method name="get" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+        </method>
+    </class>
+</package>

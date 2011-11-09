@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/TypeActuals.op,v 1.7 2006/07/20 22:35:15 chance Exp $
+public operator TypeActuals extends TypeList {
+  syntax {
+    "<" <angle> type:ReferenceType */ ( <> "," <comma> ) </angle> ">"
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

@@ -1,0 +1,22 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/PolymorphicConstructorCall.op,v 1.4 2007/05/16 20:35:30 chance Exp $
+/** A very special form of call: legal only as the first statement expression
+ * of a constructor.  The object must be "this" or "super".  The type
+ * actuals are for  polymorphism of the constructor, not the class in
+ * which the constructor is defined.  These types are already defined by the
+ * "extends" clause of the class.
+ */
+public operator PolymorphicConstructorCall extends ConstructorCall
+{
+  syntax {
+    typeArgs:TypeActuals object:ConstructionObject args:Arguments <> 
+  }
+
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+  
+  @Override
+  public Component createComponent(IRNode node) {
+    return super.createComponent(node,1);
+  }
+}

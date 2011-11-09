@@ -1,0 +1,33 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/ClassInitDeclaration.op,v 1.5 2006/05/08 20:51:11 chance Exp $
+
+/** An explicit declaration of the initialization method for the class.
+ * @see ClassDeclaration
+ */
+public operator ClassInitDeclaration implements FlowUnit {
+  syntax { "<clinit>" }
+  public static IRNode getClassInitMethod(IRNode classNode) {
+    IRNode node = JavaPromise.getClassInitOrNull(classNode);
+    if (node != null) {
+      return node;
+    }     
+    node = JavaPromise.makeJavaPromise(prototype);
+    JavaNode.setModifier(node, JavaNode.STATIC, true);
+    JavaPromise.setClassInitMethod(classNode,node);
+    return node;
+  }
+  public Source getSource(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
+    return op.getSource(classDecl);
+  }
+  public Sink getNormalSink(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
+    return op.getNormalSink(classDecl);
+  }
+  public Sink getAbruptSink(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
+    return op.getAbruptSink(classDecl);
+  }
+}

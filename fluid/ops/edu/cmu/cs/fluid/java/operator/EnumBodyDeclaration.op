@@ -1,0 +1,13 @@
+# $Header$
+public operator EnumBodyDeclaration extends ClassBodyDeclaration implements EnumBodyDeclInterface {
+  syntax {
+    $@id:Info
+  }
+
+  /** default component -- do nothing */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());
+    return comp;
+  }
+}

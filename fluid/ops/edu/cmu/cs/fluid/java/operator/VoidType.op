@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VoidType.op,v 1.8 2006/07/03 14:47:51 chance Exp $
+public operator VoidType extends ReturnType implements DripOperator {
+  syntax { "void" }
+  properties {
+    bindsToType=VoidType
+  }  
+  public Operator getResultOp() { return VoidType.prototype; }
+}

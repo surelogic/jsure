@@ -1,0 +1,10 @@
+
+/** Require a Thread Color (or colors)
+ */
+ 
+// $modifiers:Modifiers 
+public operator ColorRequire extends ColoringAnnotation {
+  syntax {     
+    "colorConstraint" cSpec:ColorSpec
+  }
+}

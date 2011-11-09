@@ -1,0 +1,58 @@
+<BODY>
+<P>This package contains the basic components for implementing
+models and views.  
+
+<P>A model is a data structure made up of IR structure.  All
+models have a set of highlighters associated with them.  A
+highlighter is a set of nodes along with a role, that describes
+the set. 
+
+<P>A view is a thing that presents a model.  It has the ability
+to hide nodes that make up the model.
+
+<P>All basic kinds of views and models should be declared as
+interfaces.  These interfaces are used when declaring the 
+types of variables and parameters.  The interfaces form a hierarchy
+distinct from the implementation of a model or view.  There are three
+generic interfaces:
+<DL>
+<DT>{@link edu.cmu.cs.fluid.mvc.Model}
+<DD>The root interface for all models.  Defines the basic
+    operations that can be performed on any model.
+
+<DT>{@link edu.cmu.cs.fluid.mvc.View}
+<DD>The root interface for all views.  Defines the basic 
+    operations that can be performed on any view.
+
+<DT>{@link edu.cmu.cs.fluid.mvc.ModelToModelStatefulView}
+<DD>The root interface for views that are also views.
+</DL>
+
+
+<P>Every model interface must inherit from {@link edu.cmu.cs.fluid.mvc.Model},
+every view interface must inherit from {@link edu.cmu.cs.fluid.mvc.View}, and
+every stateful view interface must inherit from
+{@link edu.cmu.cs.fluid.mvc.ModelToModelStatefulView}, and the appropriate view and model
+interfaces.
+
+<p>[Insert fancy figure here.]
+
+<P>Every non-empty model and view interface has a core class 
+implementation.  The core class provides generic implementations
+for as many of the <em>non-inherited</em> methods (that is only the
+new methods added in <code>FooModel</code>, and not those inherited
+from <code>Model</code>) defined in the interface as possible.   A core
+class must not be <code>abstract</code>.  Core class objects are instantiated
+and delegated to from within model/stateful-view impementations.
+Because it must not be abstract, core classes do not declare
+that they implement any particular interface.
+
+<P>A concrete implemenation of a pure model must implement the 
+appropriate model interface.  It need not extend any class, although
+it may be convienent to extend a particular partially implemented abstract class.
+Concrete implementations must be package private in scope, and instances of 
+them are generated using public factory classes.  The convention is for the
+interface of an instantiatable model to contain a <code>Factory</code> 
+nested interface.  Most factory classes use singleton prototype instances.
+
+</BODY>

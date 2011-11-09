@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent">
+    <class name="Exchanger">
+		<class name="Node">
+			<ThreadSafe/>
+		</class>
+		
+		<class name="Slot">
+			<ThreadSafe/>
+		</class>		
+    </class>
+</package>

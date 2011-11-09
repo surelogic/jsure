@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/UnnamedPackageDeclaration.op,v 1.2 2006/06/28 17:39:13 chance Exp $
+public operator UnnamedPackageDeclaration extends PackageDeclaration 
+  implements DripOperator
+{
+  syntax { }
+  properties {
+    id="default"
+  }
+}

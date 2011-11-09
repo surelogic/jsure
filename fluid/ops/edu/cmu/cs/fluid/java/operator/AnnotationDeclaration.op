@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/AnnotationDeclaration.op,v 1.9 2007/05/09 14:24:36 chance Exp $
+public operator AnnotationDeclaration extends TypeDeclaration /* implements FlowUnit */
+{
+  syntax {
+    annos:Annotations
+    $mods:Modifiers(public,abstract) "@interface" $id:Info body:ClassBody
+  }
+  properties {
+    binding=Annotation
+  }
+  // @Override public Component createComponent(IRNode node) {
+  //  return null; // TODO
+  // }
+}

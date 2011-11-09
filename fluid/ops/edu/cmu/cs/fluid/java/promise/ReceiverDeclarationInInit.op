@@ -1,0 +1,15 @@
+/** An explicit declaration of the receiver used (temporarily) for instance initializers
+ */
+public operator ReceiverDeclarationInInit extends ReceiverDeclaration implements IFromInitializer {
+  syntax { "this" }
+
+  public static IRNode makeReceiverNodeForInit(IRNode declNode) {
+    Operator op = tree.getOperator(declNode);
+	if (!InitDeclaration.prototype.includes(op)) {
+	   throw new IllegalStateException();
+	}
+    IRNode node = JavaPromise.makeJavaPromise(prototype);
+    JavaPromise.setReceiverNode(declNode,node);
+    return node;
+  }  
+}

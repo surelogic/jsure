@@ -1,0 +1,107 @@
+OK region public Public extends All
+OK region private Private extends Object:Instance
+OK region protected Protected extends Instance
+OK region Default extends java.lang.Object:All
+OK region static Static extends java.lang.Object:All
+OK mapRegion Mapped into Mappee
+OK mapRegion Object:Mapped into fluid.eclipse.promise:Mappee
+OK mapRegion Field0 into OBJECT.Test:all
+BAD mapRegion Field1 into Object.test:all
+BAD mapRegion Field2 into Object.Test:all
+BAD mapRegion Field3 into Object.TEST:all
+OK aggregate OneField into Aggregate
+OK aggregate RandomFields into Aggregate, MoreRegions into Another
+OK mapFields Foo, Bar, Baz into Region
+OK mapFields A,B,C into Foo
+OK mapInto a.B:Region
+OK writes this.This
+OK writes super.Super
+OK writes any(Object).AnyObject
+OK writes any(java.lang.Object).AnyQualifiedObject
+OK writes parameter.Parameter
+OK writes this.This, super.Super, identifier.identifier
+OK reads nothing
+OK reads Object.Instance
+OK reads Instance, All
+OK reads Foo.this.Region
+OK reads java.lang.Object.All
+OK reads java.lang.Object.Object:All
+OK reads java.lang.Object.java.lang.Object:All
+OK reads Outer.this.Foo
+OK reads pkg.Outer.this.Foo
+OK reads Outer.s1, test.Outer.this.Instance
+OK reads test.Test:R
+OK reads this.test.Test:R
+OK lock Lock is this protects Region
+OK lock Lock2 is Field protects Region2
+OK lock Lock3 is class protects Region3
+OK lock Lock4 is this.class protects Region4
+OK lock StaticLock is test.Test:class protects test.Test:S
+OK policyLock plock is java.util.Collection.this
+OK policyLock plock2 is java.lang.Object:class
+OK policyLock plock3 is java.util.Collection:foo
+OK returnsLock BallOfWax
+OK isLock foo bar
+OK isLock bar
+OK isLock foo
+OK requiresLock Lock1, Lock2
+OK requiresLock foo.Field
+OK requiresLock test.Test:StaticLock 
+OK requiresLock pkg.Type.this:Region
+OK unique Variable
+OK borrowed this
+OK borrowed this, Variable2
+OK color A, B, c.C
+OK colorImport java.awt.Widget;
+OK colorImport a.Ba.*;
+OK colorRename a.b.C for A;
+OK grant a.b.C, d
+OK revoke before, a.Ba.C
+OK incompatibleColors onlyColor
+OK colorContext java.awt.AWT;
+OK colorContext !java.lang.FOO;
+OK colorContext (!Foo | Bar);
+OK colorContext (!Foo & Bar);
+OK colorConstraint ((Foo & !Bar) | !Bar);
+OK colorRename NewName for (Foo | !Bar | (Baz & Baz));
+OK colorCardinality AWT 1
+OK colorCardinality AWT 5
+OK colorCardinality java.lang.AWT *
+OK colorizedRegion Foo
+OK colorizedRegion Bar, Baz
+BAD colorizedRegion java.lang.Object:MUTEX
+OK colorConstrainedRegions (Foo & Bar) for Foo, Bar;
+OK vis 
+OK vis name.Of.Module
+OK export a.b.C
+OK module Foo 
+OK module Bar encloses Foo
+OK module Foo for *
+OK module Baz for * & !(Class)
+OK tainted this, bar
+OK notTainted this, bar
+OK starts nothing
+OK usedBy a.b.C
+OK subtypedBy a.Ba.C
+OK useTypeWherePossible a.b.C
+OK notNull this
+OK promise "unique" for new(*) | *(**)
+OK promise "unique" for **(**) & !(bar())
+OK promise "unique" for new(*)
+OK promise "unique" for boolean equals(java.lang.Object)
+OK promise "unique" for equals(java.lang.Object)
+OK promise "unique" for foo
+OK promise "unique" for Object
+OK promise "unique" for java.lang.Object
+OK assume "unique" for public int Test:foo()
+OK assume "unique" for public Test:foo()
+OK assume "unique" for * Test:bar
+OK assume "unique" for protected Blah:new(**) throws Ah
+OK assume "unique" for Object foo()
+OK assume "unique" for Object foo*()
+OK assume "unique" for Object foo(*Event)
+OK promise "unique" for test:*:new(**) & !(test:Foo:bar()) 
+OK promise "unique" for new(**) throws java.lang.Object, java.lang.Throwable
+OK promise "@vis" for public *
+OK promise "@vis" for public **(**)
+OK promise "@vis" for public * * ;

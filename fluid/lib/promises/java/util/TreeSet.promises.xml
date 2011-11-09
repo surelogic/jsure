@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="Set">
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="iterator">
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

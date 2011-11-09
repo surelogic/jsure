@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.servlet.http">
+    <class name="HttpServlet">
+        <!-- Promise uid="bdfb2479-39a0-44c6-9fa5-49e43f1e8370">@ThreadRole(Servlet) for do*(**)</Promise -->
+        <ThreadRoleImport uid="3783519c-a103-4fcd-b6bf-6bedfeb3d6e8">javax.servlet</ThreadRoleImport>
+    </class>
+</package>

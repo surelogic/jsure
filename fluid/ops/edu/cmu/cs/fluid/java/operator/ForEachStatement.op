@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ForEachStatement.op,v 1.6 2008/07/22 18:18:44 chance Exp $
+/**
+ * use normal for loops and iterators instead.
+ * No CFG.  Hard to analyze.
+ */
+public operator ForEachStatement extends Statement implements IllegalCode {
+  syntax {
+    "for" "(" <paren> var:ParameterDeclaration ":" collection:Expression </paren> ")"
+              <forloop> loop:Statement </forloop>
+  }
+}

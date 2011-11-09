@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="AbstractSequentialList">
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <method name="iterator">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="listIterator" params="int">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

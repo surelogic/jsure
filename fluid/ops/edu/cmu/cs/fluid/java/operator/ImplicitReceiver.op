@@ -1,0 +1,11 @@
+# $Header$
+/**
+ * The receiver set by the parser for a method call when no receiver is given.
+ * This is not the same as ``this'' because with nested classes, "this" has a restricted meaning.
+ */
+public operator ImplicitReceiver extends PrimaryExpression implements IllegalCode {
+  syntax { "<implicit>" }
+  properties {
+    noncanonical=true 
+  }   
+}

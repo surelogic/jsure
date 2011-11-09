@@ -1,0 +1,72 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VariableDeclarator.op,v 1.18 2007/07/03 14:42:59 chance Exp $
+/** A variable or field declaration.  In general this may be one of several
+ * declarators within a larger declaration, e.g. one of x,y,z in the following:
+ * -
+ * int x,y,z;
+ * -
+ * We do not handle the case of [] appended to the end of the name.
+ * <br>
+ * VariableDeclaratorNode represents what we think of as a standard variable
+ *        declaration. It has an optional initialization child node. 
+ *        (e.g., int x = 4;). Another AST node, VariableDeclarationNode
+ *        is actually the supertype of several different types of variable
+ *        declaration, including VariableDeclarator node.
+ *        
+ */
+public operator VariableDeclarator extends VariableDeclaration
+	implements DripOperator 
+{
+  syntax {
+    $id:Info $dims:DimInfo init:OptInitialization
+  }
+  properties {
+    dims="Already_taken_into_account_by_the_resolved_type_binding"  
+    binding=Variable
+    bindsToType=Type 
+  }
+    
+  public static IRNode getType(IRNode node) {
+    if (tree.getOperator(node) instanceof VariableDeclarator) {
+      IRNode gparent = tree.getParent(tree.getParent(node));
+      if (tree.getOperator(gparent) instanceof DeclStatement) {
+        return DeclStatement.getType(gparent);
+      } else {
+        return FieldDeclaration.getType(gparent);
+      }
+    } else {
+      throw new IllegalArgumentException("Not a VariableDeclarator " +
+					 tree.getOperator(node));
+    }
+  }
+  
+  public static int getMods(IRNode node) {
+    if (tree.getOperator(node) instanceof VariableDeclarator) {
+      IRNode gparent = tree.getParent(tree.getParent(node));
+      if (tree.getOperator(gparent) instanceof DeclStatement) {
+        return DeclStatement.getMods(gparent);
+      } else {
+        return FieldDeclaration.getMods(gparent);
+      }
+    } else {
+      throw new IllegalArgumentException("Not a VariableDeclarator " +
+					 tree.getOperator(node));
+    }
+  }
+
+  /** Create the control-flow component for a variable declaration.
+   * Execute the initialization (child #0), and then
+   * perform an initialization flow.
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent subinit = 
+        new Subcomponent(comp,tree.childLocation(node,initLoc),1,1,1);
+    ControlNode performInit = new ComponentFlow(comp,null);
+    
+    ControlEdge.connect(comp.getEntryPort(),subinit.getEntryPort());
+    ControlEdge.connect(subinit.getNormalExitPort(),performInit);
+    ControlEdge.connect(performInit,comp.getNormalExitPort());
+    ControlEdge.connect(subinit.getAbruptExitPort(),comp.getAbruptExitPort());
+    return comp;
+  }
+}

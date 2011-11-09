@@ -1,0 +1,47 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SynchronizedStatement.op,v 1.5 2006/08/23 08:57:07 boyland Exp $
+public operator SynchronizedStatement extends Statement {
+  syntax {
+    "synchronized" "(" <paren> lock:Expression </paren> ")" block:BlockStatement
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sublock = 
+      new Subcomponent(comp,tree.childLocation(node,lockLoc),1,1,1);
+    Subcomponent subbody = 
+      new Subcomponent(comp,tree.childLocation(node,blockLoc),1,1,1);
+    ControlNode checkLock = new ComponentChoice(comp,this);
+    ControlNode throwNPE =
+      new AddLabel(PrimitiveExceptionLabel.primitiveNullPointerException);
+    ControlNode doLock = new ComponentFlow(comp,Boolean.TRUE);
+    ControlNode doUnlock1 = new ComponentFlow(comp,Boolean.FALSE);
+    ControlNode doUnlock2 = new ComponentFlow(comp,Boolean.FALSE);
+    ControlNode abruptMerge1 = new Merge();
+    ControlNode abruptMerge2 = new Merge();
+
+    // connect up the normal control-flow
+    ControlEdge.connect(comp.getEntryPort(),sublock.getEntryPort());
+    ControlEdge.connect(sublock.getNormalExitPort(),checkLock);
+    ControlEdge.connect(checkLock,doLock);
+    ControlEdge.connect(doLock,subbody.getEntryPort());
+    ControlEdge.connect(subbody.getNormalExitPort(),doUnlock1);
+    ControlEdge.connect(doUnlock1,comp.getNormalExitPort());
+
+    // now the problems:
+
+    // the lock expression could terminate abruptly
+    ControlEdge.connect(sublock.getAbruptExitPort(),abruptMerge1);
+
+    // the lock could be null:
+    ControlEdge.connect(checkLock,throwNPE);
+    ControlEdge.connect(throwNPE,abruptMerge1);
+    ControlEdge.connect(abruptMerge1,abruptMerge2);
+
+    // the body could terminate abruptly, in which case we
+    // need to unlock the lock first
+    ControlEdge.connect(subbody.getAbruptExitPort(),doUnlock2);
+    ControlEdge.connect(doUnlock2,abruptMerge2);
+    ControlEdge.connect(abruptMerge2,comp.getAbruptExitPort());
+    return comp;
+  }
+}

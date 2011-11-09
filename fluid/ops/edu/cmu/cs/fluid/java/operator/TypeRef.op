@@ -1,0 +1,15 @@
+# $Header$
+
+/**
+ * A reference to a nested type: a named type inside of
+ * a class or interface.
+ */
+public operator TypeRef extends ClassType implements ImportNameInterface, edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax { base:ClassType "." $id:Info }
+  properties {
+    bindsToType=SourceRefType 
+  }
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }  
+}

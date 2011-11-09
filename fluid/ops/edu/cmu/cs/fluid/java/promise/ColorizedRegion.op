@@ -1,0 +1,7 @@
+# $Header:$
+
+/** 
+ */
+public operator ColorizedRegion extends DataColoringAnnotation {
+  syntax { "colorizedRegion" cRegions:RegionSpecifications }
+}

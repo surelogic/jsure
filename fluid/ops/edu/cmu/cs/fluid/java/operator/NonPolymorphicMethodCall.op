@@ -1,0 +1,29 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NonPolymorphicMethodCall.op,v 1.5 2007/05/18 14:44:11 chance Exp $
+public operator NonPolymorphicMethodCall extends MethodCall
+{
+  syntax { 
+    <?> object:Expression <> "." <> </?> $method:Info <> args:Arguments
+  }
+  
+  public IRNode get_TypeArgs(SyntaxTreeInterface tree, IRNode node) {
+    return null;
+  }
+  
+  @Override
+  public final Component createComponent(IRNode node) {
+    return super.createComponent(node,1);
+  }
+  
+   /* (non-Javadoc)
+   * @see edu.cmu.cs.fluid.java.operator.Expression#unparseWrapper(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.JavaUnparser)
+   */
+  @Override
+  public void unparseWrapper(IRNode node, JavaUnparser u) {
+    if (JavaNode.wasImplicit(getArgs(node))) {
+      // skip this node for implicit toString() calls.
+      u.unparse(getObject(node));
+    } else {
+      super.unparseWrapper(node,u);
+    }
+  }
+}

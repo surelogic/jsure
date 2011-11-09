@@ -1,0 +1,30 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/UnboxExpression.op,v 1.2 2006/08/23 08:57:07 boyland Exp $
+
+/**
+ * The node inserted for implicit unboxing of boxed primitive values.
+ */
+ public operator UnboxExpression extends UnopExpression {
+   syntax { 
+     op:Expression
+   }
+  
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,opLoc),1,1,1);
+    ControlNode abruptMerge = new Merge();
+    ControlNode throwNull = 
+      new AddLabel(PrimitiveExceptionLabel.primitiveNullPointerException);
+    ControlNode testOK = new ComponentChoice(comp,null);
+    ControlNode doUnbox  = new ComponentFlow(comp,null);
+
+    ControlEdge.connect(comp.getEntryPort(),sub.getEntryPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(sub.getNormalExitPort(),testOK);
+    ControlEdge.connect(testOK,doUnbox);
+    ControlEdge.connect(doUnbox,comp.getNormalExitPort());
+    ControlEdge.connect(testOK,throwNull);
+    ControlEdge.connect(throwNull,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    return comp;
+  }
+ }

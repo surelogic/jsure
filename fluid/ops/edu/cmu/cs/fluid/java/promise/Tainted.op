@@ -1,0 +1,11 @@
+# $Header: $
+
+/** Mark a value as being tainted
+ */
+ 
+// $modifiers:Modifiers 
+public operator Tainted {
+  syntax {     
+    "tainted"
+  }
+}

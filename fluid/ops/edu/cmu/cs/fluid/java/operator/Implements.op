@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Implements.op,v 1.6 2006/07/12 19:55:07 chance Exp $
+public operator Implements extends TypeList implements DripOperator {
+  syntax { 
+    ( "implements" intf:ClassType +/ "," ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

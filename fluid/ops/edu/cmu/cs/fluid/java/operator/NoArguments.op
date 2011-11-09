@@ -1,0 +1,7 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NoArguments.op,v 1.2 2006/05/30 14:51:44 chance Exp $
+public operator NoArguments extends OptArguments {
+  syntax { }
+  properties {
+    logicallyInvisible=true 
+  }
+}

@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ParameterizedType.op,v 1.6 2006/05/12 13:51:19 chance Exp $
+public operator ParameterizedType extends ClassType implements edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax {
+    base:Type args:TypeActuals
+  }
+  // base may be a NamedType or a TypeRef
+  
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }
+}

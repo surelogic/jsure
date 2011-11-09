@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/CharType.op,v 1.4 2006/05/12 13:51:19 chance Exp $
+public operator CharType extends IntegralType {
+  syntax { "char" }
+
+  public Operator getResultOp() {
+    return CharType.prototype;
+  }
+}

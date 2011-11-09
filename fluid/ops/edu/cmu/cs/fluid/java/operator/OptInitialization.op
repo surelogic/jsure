@@ -1,0 +1,6 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OptInitialization.op,v 1.5 2006/06/15 13:53:39 chance Exp $
+public operator OptInitialization {
+  properties {
+    nonnullVariants=Initialization
+  }
+}

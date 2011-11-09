@@ -1,0 +1,21 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ClassBodyDeclaration.op,v 1.8 2006/06/27 18:32:55 chance Exp $
+public operator ClassBodyDeclaration extends Declaration implements ClassBodyDeclInterface {
+  syntax {
+    $@id:Info
+  }
+
+  /** default component -- do nothing */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());
+    return comp;
+  }
+
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == ClassBodyDeclaration.class)
+      return (other instanceof ClassBodyDeclInterface);
+    else return super.includes(other);
+  }
+}
