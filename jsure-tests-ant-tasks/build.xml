@@ -1,0 +1,42 @@
+<project name="flashlight-ant" default="build-jars">
+
+	<property environment="env" />
+
+	<property name="src" value="${basedir}/src" />
+	<property name="lib" value="${basedir}/lib" />
+	<property name="classes" value="${basedir}/bin" />
+
+	<property name="ant.jar" value="${lib}/ant.jar" />
+	<property name="tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
+
+
+
+	<target name="compile">
+		<delete dir="${classes}" />
+		<mkdir dir="${classes}" />
+		<javac destdir="${classes}" debug="true" source="1.5" target="1.5">
+			<src path="${src}" />
+			<classpath>
+				<pathelement location="${ant.jar}" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="build-ant-jar">
+		<jar destfile="${tasks.jar}">
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Class-Path" value="org-netbeans-lib-cvsclient.jar" />
+			</manifest>
+			<fileset dir="${classes}" />
+			<fileset file="${basedir}/sl-tasks.properties" />
+		</jar>
+	</target>
+
+	<target name="build-jars" depends="compile, build-ant-jar" />
+
+	<target name="clean">
+		<delete file="${tasks.jar}" />
+	</target>
+
+</project>
