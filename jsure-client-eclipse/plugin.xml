@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+	<extension
+	      id="marker"
+	      name="JSure Marker"
+	      point="org.eclipse.core.resources.markers">
+	   <super
+	         type="org.eclipse.core.resources.textmarker">
+	   </super>
+	</extension>
+
+	<extension point="org.eclipse.ui.editors">
+        <editor	
+           name="Promises XML Editor"
+           icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
+           class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
+           id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
+           default="true"
+           extensions="promises.xml"
+           matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
+	</extension>
+    <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
+    
+    <extension point="org.eclipse.ui.elementFactories">
+        <factory id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLFactory" 
+                 class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLFactory" /> 
+    </extension>
+    
+   	<extension id="editorPopupMenus" point="org.eclipse.ui.popupMenus">
+       <viewerContribution
+             id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup"
+             targetID="#CompilationUnitEditorContext">
+          <menu
+                id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu"
+                label="JSure"
+                path="additions">
+             <groupMarker
+                   name="content">
+             </groupMarker>
+             <separator
+                   name="additions">
+             </separator>
+          </menu>
+          <action
+                class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsAction"
+                id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.showAnnotations"
+                label="Show Annotations"
+                menubarPath="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu/content">
+          </action>
+       </viewerContribution>
+       
+       <objectContribution
+             adaptable="false"
+             id="com.surelogic.jsure.client.eclipse.IMemberPopup"
+             objectClass="org.eclipse.jdt.core.IMember">
+          <menu
+                id="com.surelogic.jsure.client.eclipse.IMemberPopup.menu"
+                label="JSure"
+                path="additions">
+             <groupMarker
+                   name="content">
+             </groupMarker>
+             <separator
+                   name="additions">
+             </separator>
+          </menu>
+          <action
+                class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
+                id="com.surelogic.jsure.client.eclipse.IMemberPopup.showAnnotations"
+                label="Show Annotations"
+                menubarPath="com.surelogic.jsure.client.eclipse.IMemberPopup.menu/content">
+          </action>             
+       </objectContribution>
+	</extension>
+    
+    <extension point="org.eclipse.ui.editors.templates">
+		<!--contextType name="Promises XML Tag Context"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_tag">
+		</contextType -->
+		<include file="lib/templates/default-promises-xml-templates.xml" />
+	</extension>
+    
+	<extension point="org.eclipse.ui.preferencePages">
+		<page name="JSure"
+			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+		</page>
+		<page name="Analyses" class="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
+			id="edu.cmu.cs.fluid.dc.PreferencePage"
+			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+		</page>
+	</extension>
+
+	<extension point="org.eclipse.ui.views">
+		<category name="JSure" id="com.surelogic.jsure"></category>
+		
+		<view name="JSure XML Explorer" allowMultiple="false"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
+			id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView">
+		</view>
+		
+		<view name="JSure Scans" allowMultiple="false"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_drum.gif"
+			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
+		</view>
+
+		<view name="Verification Status" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
+			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
+		</view>
+		
+		<view name="JSure Quick Search" allowMultiple="false"
+		    category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
+		</view>
+
+		<!-- view name="Scan Summary" allowMultiple="false"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_graph.gif"
+			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
+		</view -->
+
+        <view name="JSure Historical Source" allowMultiple="false"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_comp_unit.gif"
+			id="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView">
+		</view>
+
+		<view name="Modeling Problems" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
+			id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
+		</view>
+
+		<view name="Proposed Promises" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
+			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
+		</view>
+		
+	</extension>
+
+	<!-- JSure perspective links and Java perspective links -->
+
+	<extension point="org.eclipse.ui.perspectives">
+		<perspective name="Code Verification"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+			class="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective"
+			id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
+		</perspective>
+	</extension>
+
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+			targetID="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
+			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
+			</perspectiveShortcut>
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
+			</viewShortcut>
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
+			</viewShortcut>
+		</perspectiveExtension>
+	</extension>
+
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+			<perspectiveShortcut
+				id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
+			</perspectiveShortcut>
+
+	        <view id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
+                    relative="org.eclipse.jdt.ui.PackageExplorer"
+                    relationship="stack"
+                    visible="false"/>
+		</perspectiveExtension>
+	</extension>
+
+	<!-- JSure menus -->
+
+	<extension point="org.eclipse.ui.actionSets">
+		<actionSet label="JSure ActionSet" visible="true"
+			id="com.surelogic.jsure.client.eclipse.workbenchActionSet">
+			<menu id="com.surelogic.jsure.client.eclipse.workbenchMenu"
+				label="&amp;JSure" path="additions">
+
+				<groupMarker name="client" />
+				<separator name="service" />
+				<separator name="license" />
+				<separator name="additions" />
+			</menu>
+
+			<!-- action
+				class="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction"
+				label="Test makeModel()"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action -->
+
+	        <action
+				class="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
+				label="Test XML Merge"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+	        <!--action
+				class="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"
+				label="Test XML Editor"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action-->
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+				label="&amp;Open Code Verification Perspective"
+				tooltip="Open the Code Verification perspective to examine JSure tool results"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+			
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
+				label="Save Promises Library As..."
+				tooltip="Save a copy of the promises library to the disk"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
+				label="Add/Update Promises Library in Project"
+				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+				definitionId="com.surelogic.jsure.NewScanAction"
+				label="&amp;Verify Project"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
+				label="Manage SureLogic Licenses"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/license"
+				helpContextId="menu-manage-licenses">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
+				label="Run JSure Tutorials"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-run-jsure-tutorials">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
+				label="Send Problem Report"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-send-problem-report">
+			</action>
+
+			<action class="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
+				label="Send Tip for Improvement"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-send-tip-for-improvement">
+			</action>
+		</actionSet>
+	</extension>
+	
+	<!-- Keyboard shortcut to start a scan: first we associate a command with the "definitionId" above, then we define a key binding -->
+	
+	<extension
+         point="org.eclipse.ui.commands">
+         <command
+            name="Verify Project"
+            id="com.surelogic.jsure.NewScanAction" />
+    </extension>
+
+	<extension point="org.eclipse.ui.bindings">
+		<key
+     	 sequence="Ctrl+Alt+Shift+V"
+     	 commandId="com.surelogic.jsure.NewScanAction"
+     	 schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+	</extension>
+
+	<extension id="dcPopupMenus" point="org.eclipse.ui.popupMenus">
+		<objectContribution id="iprojectContribution"
+			objectClass="org.eclipse.core.resources.IProject" adaptable="true">
+
+			<menu id="jSureMenu" label="JSure">
+				<groupMarker name="nature.grp" />
+			</menu>
+			
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				label="Add/Update Promises Library in Project"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
+				menubarPath="jSureMenu/nature.grp"
+				enablesFor="1">
+			</action>
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				label="Verify Project"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+				menubarPath="jSureMenu/nature.grp"
+				enablesFor="+">
+			</action>
+		</objectContribution>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.templates">
+		<contextType name="JSure Java Context"
+			class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
+			id="java" />
+		<include file="lib/templates/default-jsure-java5-templates.xml" />
+	</extension>	
+</plugin>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+  <!-- Basic promises XML constructs -->
+  <template name="Nested type" description="Nested type" 
+            id="com.surelogic.jsure.xml.templates.nested.type" context="xml_tag" 
+            enabled="true">&lt;class name="${name}"&gt;
+    &lt;/class&gt;</template>   
+  
+  <template name="Constructor" description="Constructor (no-arg)" 
+            id="com.surelogic.jsure.xml.templates.constructor.noarg" context="xml_tag" 
+            enabled="true">&lt;constructor&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/constructor&gt;</template>
+
+  <template name="Method" description="Method (no-arg)" 
+            id="com.surelogic.jsure.xml.templates.method.int.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>   
+
+  <template name="Method" description="Method w/ int parameter" 
+            id="com.surelogic.jsure.xml.templates.method.int.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name}" params="int"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>    
+
+  <template name="Method" description="Method w/ Object parameter" 
+            id="com.surelogic.jsure.xml.templates.method.obj.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name}" params="${javalangObject}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>   
+
+  <template name="Method" description="Method w/ parameters" 
+            id="com.surelogic.jsure.xml.templates.method.params" context="xml_tag" 
+            enabled="true">&lt;method name="${name}" params="${p1},${p2}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>    
+
+  <!-- Region annotations (@Region, @InRegion, @MapFields) -->
+  
+  <!-- Effects annotations (@Reads, @Writes) -->
+  <!-- Lock annotations (@RegionLock, @PolicyLock, @IsLock, @ReturnsLock, @SingleThreaded) -->  
+  <!-- Uniqueness annotations -->
+    
+  <!-- Scoped promises -->
+  <template name="Promise" 
+            description="Scoped promise" 
+            id="com.surelogic.jsure.xml.templates.promise" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise} for ${targets}&lt;/Promise&gt;</template>
+  
+   <template name="Promise" 
+            description="Scoped promise on all fields" 
+            id="com.surelogic.jsure.xml.templates.promise.fields" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;${promise}() for * *&lt;/Promise&gt;</template>
+  
+  <template name="Promise" 
+            description="Scoped promise on all constructors" 
+            id="com.surelogic.jsure.xml.templates.promise.constructors" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise}() for new(**)&lt;/Promise&gt;</template>
+  
+  <template name="Promise" autoinsert="true"
+            description="Scoped promise on all methods" 
+            id="com.surelogic.jsure.xml.templates.promise.methods" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;${promise}() for **(**)&lt;/Promise&gt;</template>
+  
+  <template name="Promise" 
+            description="Scoped promise on all methods and constructors"
+            id="com.surelogic.jsure.xml.templates.promise.methods.all" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise}() for **(**)&lt;/Promise&gt;</template>
+  
+  <template name="Promise" 
+            description="@Unique(return) on the default constructor" 
+            id="com.surelogic.jsure.xml.templates.promise.unique.on.default.constructor" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;Unique(return) for new()&lt;/Promise&gt;</template>  
+  
+  <!-- Starts annotations -->
+  
+  <!-- SubtypedBy annotations -->
+  
+  <!-- UsedBy annotations -->
+  
+  <!-- UseTypeWherePossible annotations -->
+</templates>

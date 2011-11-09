@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+  <!-- Region annotations (@Region, @InRegion, @MapFields) -->
+  <template name="Region" 
+            description="New region with default parent" 
+            id="com.surelogic.jsure.templates.region" context="java" 
+            enabled="true">Region("${accessMod} ${name}")</template>
+            
+  <template name="Region" 
+            description="New region with explicit parent" 
+            id="com.surelogic.jsure.templates.region2" context="java" 
+            enabled="true">Region("${accessMod} ${name} extends ${parentRegion}")</template>
+  
+  <!-- Effects annotations (@Reads, @Writes) -->
+  <!-- Lock annotations (@RegionLock, @PolicyLock, @IsLock, @ReturnsLock, @SingleThreaded) -->
+  <template name="RegionLock" 
+            description="Lock declaration" 
+            id="com.surelogic.jsure.templates.lock" context="java" 
+            enabled="true">RegionLock("${name} is ${lockExpr} protects ${region})"</template>
+  
+  <template name="RegionLock" 
+            description="Lock decl - this protects Instance" 
+            id="com.surelogic.jsure.templates.lock.this" context="java" 
+            enabled="true">RegionLock("${name} is this protects Instance")</template>
+  
+  <template name="RegionLock" 
+            description="Lock decl - this protects all of this Object's fields" 
+            id="com.surelogic.jsure.templates.lock.this.fields" context="java" 
+            enabled="true">Region("${accessMod} ${name}State")
+    @Promise("@InRegion(${name}State) for * *")
+    @RegionLock("${name}Lock is this protects ${name}State")</template>
+  
+  <template name="Region" 
+            description="'State' region and corresponding lock decl" 
+            id="com.surelogic.jsure.templates.region.lock" context="java" 
+            enabled="true">Region("State")
+    @RegionLock("Lock is ${lockExpr} protects State")</template>
+  
+  <template name="Region" 
+            description="Region and corresponding lock decl" 
+            id="com.surelogic.jsure.templates.region.lock" context="java" 
+            enabled="true">Region("${accessMod} ${name}State")
+    @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
+
+  <template name="Regions" 
+            description="Region and corresponding lock decl (out of many)" 
+            id="com.surelogic.jsure.templates.region.locks" context="java" 
+            enabled="true">Regions({
+        @Region("${accessMod} ${name}State"),
+    })
+    @RegionLocks({
+        @RegionLock("${name}Lock is ${lockExpr} protects ${name}State"),
+    })</template>
+
+  <template name="PolicyLock" 
+            description="Policy lock declaration" 
+            id="com.surelogic.jsure.templates.policyLock" context="java" 
+            enabled="true">PolicyLock("${name} is ${lockExpr}")</template>
+  
+  <template name="RequiresLock" 
+            description="Caller need to acquire lock" 
+            id="com.surelogic.jsure.templates.requiresLock" context="java" 
+            enabled="true">RequiresLock("${lock}")</template>
+  
+    <template name="RequiresLock" 
+            description="Caller need to acquire lock in different class" 
+            id="com.surelogic.jsure.templates.requiresLock" context="java" 
+            enabled="true">RequiresLock("${foo}.${Bar}:${lock}")</template>
+  
+  <template name="ThreadConfined" 
+            description="Thread-confined constructor with borrowed this" 
+            id="com.surelogic.jsure.templates.singleThreaded.borrowed" context="java" 
+            enabled="true">Unique("return")</template>
+  
+  <template name="ThreadConfined" 
+            description="Thread-confined constructor writing/starting nothing" 
+            id="com.surelogic.jsure.templates.singleThreaded.nothing" context="java" 
+            enabled="true">RegionEffects("reads All")
+    @Starts("nothing")</template>
+  
+  <!-- Uniqueness annotations -->
+    <template name="Unique" 
+            description="Unique" 
+            id="com.surelogic.jsure.templates.unique" context="java" 
+            enabled="true">Unique</template>  
+  
+  <template name="Unique" 
+            description="Unique Object" 
+            id="com.surelogic.jsure.templates.unique" context="java" 
+            enabled="true">UniqueInRegion("${region}")</template>  
+  
+  <template name="InRegion" 
+            description="Unique Object/array" 
+            id="com.surelogic.jsure.templates.mappedObject" context="java" 
+            enabled="true">InRegion("${region}")
+    @UniqueInRegion("${region}")</template>  
+    
+  <!-- Scoped promises -->
+  <template name="Promise" 
+            description="Scoped promise" 
+            id="com.surelogic.jsure.templates.promise" context="java" 
+            enabled="true">Promise("@${promise} for ${targets}")</template>
+  
+   <template name="Promise" 
+            description="Scoped promise on all fields" 
+            id="com.surelogic.jsure.templates.promise.fields" context="java" 
+            enabled="true">Promise("@${promise} for * *")</template>
+  
+  <template name="Promise" 
+            description="Scoped promise on all constructors" 
+            id="com.surelogic.jsure.templates.promise.constructors" context="java" 
+            enabled="true">Promise("@${promise} for new(**)")</template>
+  
+  <template name="Promise" 
+            description="Scoped promise on all methods" 
+            id="com.surelogic.jsure.templates.promise.methods" context="java" 
+            enabled="true">Promise("@${promise} for *(**)")</template>
+  
+  <template name="Promise" 
+            description="Scoped promise on all methods and constructors"
+            id="com.surelogic.jsure.templates.promise.methods" context="java" 
+            enabled="true">Promise("@${promise} for **(**)")</template>
+  
+  <template name="Promise" 
+            description="unique on the default constructor" 
+            id="com.surelogic.jsure.templates.promise.methods" context="java" 
+            enabled="true">Promises({ @Promise("@Unique(return) for new()"),
+    })</template>  
+  
+  <!-- Starts annotations -->
+  
+  <!-- SubtypedBy annotations -->
+  
+  <!-- UsedBy annotations -->
+  
+  <!-- UseTypeWherePossible annotations -->
+</templates>
