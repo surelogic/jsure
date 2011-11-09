@@ -128,7 +128,7 @@
 		<fail unless="archive.eclipse.test.exists" message="${archive.eclipse.test} does not exist on your machine." />
 
 		<!-- Where the plug-in and feature projects are located -->
-		<property name="user.workspace.dir" value="${antfile.dir}${fs}..${fs}.." />
+		<property name="user.workspace.dir" value="${antfile.dir}${fs}..${fs}..${fs}.." />
 		<echo message=" JSure plug-in/feature projects in ${user.workspace.dir}" />
 
 		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
@@ -188,18 +188,24 @@
 		<mkdir dir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
-		<property name="jsure.plugin.projects" value="common, common-core-eclipse, fluid, jsure-core-eclipse, jsure-tests" />
+		<property name="common.plugin.projects" value="common, common-core-eclipse" />
+		<property name="jsure.plugin.projects" value="fluid, jsure-core-eclipse, jsure-tests" />
 		<property name="jsure.feature.id" value="com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
+		<for list="${common.plugin.projects}" delimiter="," param="plugin" trim="true">
+			<sequential>
+				<copy-project-to-a-dir projectDir="@{plugin}" fromDir="${user.workspace.dir}/common" toDir="${sandbox.jsure.build.plugins.dir}" />
+			</sequential>
+		</for>
 		<for list="${jsure.plugin.projects}" delimiter="," param="plugin" trim="true">
 			<sequential>
-				<copy-project-to-a-dir projectDir="@{plugin}" fromDir="${user.workspace.dir}" toDir="${sandbox.jsure.build.plugins.dir}" />
+				<copy-project-to-a-dir projectDir="@{plugin}" fromDir="${user.workspace.dir}/jsure" toDir="${sandbox.jsure.build.plugins.dir}" />
 			</sequential>
 		</for>
 
 		<!-- Copy JSure feature project (id must match project name for the PDE) for headless build -->
-		<copy-project-to-a-dir projectDir="${jsure.feature.id}" fromDir="${user.workspace.dir}" toDir="${sandbox.jsure.build.features.dir}" />
+		<copy-project-to-a-dir projectDir="${jsure.feature.id}" fromDir="${user.workspace.dir}/release" toDir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- Build necessary source code in common and fluid plug-in projects -->
 		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}common" />

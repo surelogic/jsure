@@ -7,7 +7,8 @@
 
 	<!-- Specific target directories needed for JavaCC and ANTLR -->
 	<property name="build-jars-home" value="${src}/../lib/build" />
-	<property name="antlr-lib" value="${basedir}/../../common/common/lib/build" />
+	<property name="antlr-lib" value="${basedir}/../common/lib/build" />
+	<property name="antlr-lib2" value="${basedir}/../../common/common/lib/build" />
 
 	<!-- Target directories that require special handling (older JavaCC) -->
 	<property name="fjp-dir" value="${src}/edu/cmu/cs/fluid/java/parse" />
@@ -19,6 +20,7 @@
 	<taskdef resource="org/apache/tools/ant/antlr/antlib.xml">
 		<classpath>
 			<pathelement location="${antlr-lib}/antlr-ant-task.jar" />
+			<pathelement location="${antlr-lib2}/antlr-ant-task.jar" />
 		</classpath>
 	</taskdef>
 
