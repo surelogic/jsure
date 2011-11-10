@@ -1,7 +1,9 @@
 package com.surelogic.xml;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 
@@ -19,10 +21,17 @@ import edu.cmu.cs.fluid.util.Pair;
 public final class PromisesXMLParser {
 	public static File getFluidXMLDir() {
 		File fluidDir = null;
-		try {
-			fluidDir = new File(IDE.getInstance().getResourceRoot().toURI());
+		final URL url = IDE.getInstance().getResourceRoot();
+		try {	
+			URI uri = url.toURI();
+			fluidDir = new File(uri);
 		} catch (URISyntaxException e) {
-			throw new IllegalStateException("Bad URL: "+IDE.getInstance().getResourceRoot());
+			if ("file".equals(url.getProtocol())) {
+				final String path = url.getPath();
+				fluidDir = new File(path);
+			} else {
+				throw new IllegalStateException("Bad URI: "+url);
+			}
 		}
 		final File fLibDir = new File(fluidDir, TestXMLParserConstants.PROMISES_XML_PATH);
 		if (!fLibDir.isDirectory()) {
