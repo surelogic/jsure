@@ -12,7 +12,7 @@
 	<property name="build-x" location="${basedir}/build-x" />
 
 	<property name="promises-x-src" location="${basedir}/src" />
-	<property name="production-promises" location="${basedir}/../promises/" />
+	<property name="production-promises" location="${basedir}/../../promises/promises/" />
 	<property name="production-promises-src" location="${production-promises}/src/main/java" />
 
 
