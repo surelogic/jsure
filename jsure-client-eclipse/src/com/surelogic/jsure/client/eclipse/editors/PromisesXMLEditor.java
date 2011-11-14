@@ -216,6 +216,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 					super.createPartControl(parent);
 					getSourceViewer().getTextWidget().addLineStyleListener(new XMLLineStyler());
 				}
+				@Override
+				public boolean isEditable() {
+					return false;
+				}
 			};
 			
 			int index = addPage(localXML, input);
