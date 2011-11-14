@@ -1,8 +1,0 @@
-import /TestScripting/src/test /TestScripting/script/TestScripting/src/test/Test2.java
-#build
-import /TestScripting/src/test /TestScripting/script/TestScripting/src/test/Test4.java
-#build
-patchFile /TestScripting/src/test/Test5.java /TestScripting/script/TestScripting/src/test/Test5.java.patch
-#build
-deleteFile /TestScripting/src/test/Test3.java
-#build
