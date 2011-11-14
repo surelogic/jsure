@@ -276,6 +276,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		provider.save(monitor);		
+		localXML.doRevertToSaved();
+		
 		if (isDirty) {
 			isDirty = false;
 			fireDirtyProperty();
