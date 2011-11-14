@@ -286,7 +286,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 			isDirty = false;
 			fireDirtyProperty();
 			updateTitle(); // does this help refresh?
-			PromisesXMLReader.refreshAll(provider.pkg);
+			PromisesXMLReader.refresh(provider.pkg);
 		}
 	}
 
@@ -500,6 +500,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	            	contents.expandToLevel(me.getParent(), 1);
 		        }
 			});
+			if (me.isModified()) {
+				makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
+			        @Override
+			        public void widgetSelected(SelectionEvent e) {   			        	
+			        	provider.deleteAllChanges();
+			        	contents.refresh();
+			        	contents.expandAll();
+			        	localXML.doRevertToSaved();			        	
+			        }
+				});
+			}
 		}
 	}
 	

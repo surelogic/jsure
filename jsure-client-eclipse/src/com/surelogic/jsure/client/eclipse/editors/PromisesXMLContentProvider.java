@@ -259,4 +259,14 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		}
 		return null;
 	}
+
+	void deleteAllChanges() {
+    	File local = new File(localXML);
+    	local.delete();
+    	
+		final String path = location.toASCIIString();
+		PromisesXMLReader.clear(path);
+		build();
+		PromisesXMLReader.refreshAll();
+	}
 }
