@@ -202,6 +202,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 
 	public interface Listener {
 		void refresh(PackageElement e);
+		void refreshAll();
 	}
 	
 	private static final Collection<Listener> listeners = new CopyOnWriteArraySet<Listener>();
@@ -210,11 +211,18 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		listeners.add(l);
 	}
 	
-	public static void refreshAll(PackageElement e) {
+	public static void refresh(PackageElement e) {
 		for(Listener v : listeners) {
 			v.refresh(e);
 		}
 	}
+	
+	public static void refreshAll() {
+		for(Listener v : listeners) {
+			v.refreshAll();
+		}
+	}
+	
 	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
 	
 	public static PackageElement load(String relativePath, File fluid, File local) {
@@ -251,5 +259,9 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			}
 		}
 		return null;
+	}
+	
+	public static void clear(String relativePath) {
+		cache.remove(relativePath);
 	}
 }

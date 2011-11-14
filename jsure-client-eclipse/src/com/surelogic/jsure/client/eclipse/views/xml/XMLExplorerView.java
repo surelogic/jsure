@@ -133,6 +133,11 @@ public class XMLExplorerView extends AbstractJSureView {
 			f_viewer.refresh();
 		}
 		
+		public void refreshAll() {
+			build();
+			f_viewer.refresh();
+		}
+		
 		public String build() {
 			final List<Package> l = new ArrayList<Package>();
 			final Map<String,Collection<String>> local = PromisesXMLEditor.findLocalPromisesXML();
