@@ -205,7 +205,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	}
 	
 	private void createLocalXMLPage() {
-		IEditorInput input = provider.getLocalInput();
+		final IEditorInput input = provider.getLocalInput();
 		if (input == null) {
 			return;
 		}
@@ -218,10 +218,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 				}
 			};
 			
-			int index = addPage(localXML, provider.getLocalInput());
+			int index = addPage(localXML, input);
 			setPageText(index, "Diffs");
 		} catch (PartInitException e) {
-			SLLogger.getLogger().log(Level.WARNING, "Error creating source page for "+getEditorInput().getToolTipText(), e);
+			SLLogger.getLogger().log(Level.WARNING, "Error creating source page for "+input.getToolTipText(), e);
 		}
 	}
 	
@@ -789,17 +789,23 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			File f = new File(localXml, path);
+			/*
 			if (f.isFile()) {
 				local = f;
 			}
+			*/
+			local = f;
 		}
 		// Try fluid
 		final File xml = PromisesXMLParser.getFluidXMLDir();
 		if (xml != null) {
 			File f = new File(xml, path);
+			/*
 			if (f.isFile()) {
 				fluid = f;
 			}
+			*/
+			fluid = f;
 		}
 		return new Pair<File,File>(fluid, local);	
 	}
@@ -842,7 +848,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 		@Override
 		public boolean exists() {
 			final Pair<File,File> f = findPromisesXML(path);
-			return f.first() != null;
+			return f.first().isFile();
 		}
 
 		@Override

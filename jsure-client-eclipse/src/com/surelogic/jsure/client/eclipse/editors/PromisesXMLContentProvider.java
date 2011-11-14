@@ -138,7 +138,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 					status = FileStatus.READ_ONLY;
 					roots[0] = pkg = PromisesXMLReader.loadRaw(in);
 					fluidXML = FileUtility.getStreamContentsAsString(location.toString(), url.openStream());
-					localXML = null;
+					
+					final File dummy = File.createTempFile("dummy", TestXMLParserConstants.SUFFIX);
+					dummy.deleteOnExit();
+					localXML = dummy.toURI();
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
 					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
@@ -158,18 +161,20 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 							System.out.println("Added elements to "+location);
 						}
 					}
-					if (rv.first() != null) {
-						status = rv.second() == null ? FileStatus.FLUID : FileStatus.LOCAL;
+					if (rv.first().isFile()) {
+						status = rv.second().isFile() ? FileStatus.LOCAL : FileStatus.FLUID;
 						fluidXML = FileUtility.getFileContentsAsStringOrDefaultValue(rv.first(), "");
 					} else {
 						status = FileStatus.LOCAL;
 						fluidXML = "";
 					}
-					if (rv.second() != null) {
+					//if (rv.second() != null) {
 						localXML = rv.second().toURI();
-					} else {
+					/*
+				    } else {
 						localXML = null;
 					}
+					*/
 				}
 			} catch (Exception e) {
 				pkg = null;
