@@ -48,6 +48,12 @@
         </method>
 
         <class name="EntrySet">
+			<method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>        
+        
             <method name="iterator">
                 <Borrowed>this</Borrowed>
                 <!-- not really true -->
@@ -56,6 +62,12 @@
         </class>
 
         <class name="KeySet">
+			<method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>   
+            
             <method name="iterator">
                 <Borrowed>this</Borrowed>
                 <!-- not really true -->
@@ -68,6 +80,12 @@
         </class>
 
         <class name="Values">
+			<method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>   
+            
             <method name="iterator">
                 <Borrowed>this</Borrowed>
                 <!-- not really true -->

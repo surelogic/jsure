@@ -2,6 +2,9 @@
 
 <package name="java.util">
     <class name="Vector">
+    	<Promise>Borrowed(this) for *terator()</Promise>    	
+	    <Promise>RegionEffects(reads this:Instance) for *terator()</Promise>    
+                
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
