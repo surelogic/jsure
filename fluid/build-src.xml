@@ -8,7 +8,8 @@
 	<!-- Specific target directories needed for JavaCC and ANTLR -->
 	<property name="build-jars-home" value="${src}/../lib/build" />
 	<property name="antlr-lib" value="${basedir}/../../common/common/lib/build" />
-	<property name="antlr-lib2" value="${basedir}/../../common/common/lib/build" />
+	<!-- for project structure when building for regression tests -->
+	<property name="antlr-lib2" value="${basedir}/../common/lib/build" />
 
 	<!-- Target directories that require special handling (older JavaCC) -->
 	<property name="fjp-dir" value="${src}/edu/cmu/cs/fluid/java/parse" />
