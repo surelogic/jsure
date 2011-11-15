@@ -132,7 +132,7 @@
 		<echo message=" JSure plug-in/feature projects in ${user.workspace.dir}" />
 
 		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
-		<property name="jsure.tests.suites" value="${user.workspace.dir}" />
+		<property name="jsure.tests.suites" value="${user.workspace.dir}/regression" />
 		<echo message=" jsure.tests.suites=${jsure.tests.suites}" />
 		<!-- Set a default for the test suites that we scan if the user did not explicitly sepecify a list -->
 		<property name="jsure.tests.suites.to-scan" value="regression" />
