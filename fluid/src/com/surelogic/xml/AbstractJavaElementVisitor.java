@@ -12,7 +12,9 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 	protected <E extends IJavaElement> T visitAll(Iterable<E> elts) {
 		T result = defaultValue;
 		for(E e : elts) {
-			result = combine(result, e.visit(this));
+			if (e != null) {
+				result = combine(result, e.visit(this));
+			}
 		}
 		return result;
 	}
@@ -28,7 +30,9 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 
 	public T visit(ClassElement classElt) {
 		T result = defaultValue;
-		result = combine(result, classElt.getClassInit().visit(this));
+		if (classElt.getClassInit() != null) {
+			result = combine(result, classElt.getClassInit().visit(this));
+		}
 		result = combine(result, visitAll(classElt.getFields()));
 		result = combine(result, visitAll(classElt.getMethods()));
 		result = combine(result, visitAll(classElt.getConstructors()));
