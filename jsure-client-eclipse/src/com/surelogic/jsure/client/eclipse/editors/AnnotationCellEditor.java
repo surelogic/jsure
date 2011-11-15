@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -25,7 +26,7 @@ public class AnnotationCellEditor extends TextCellEditor {
 		grid.horizontalSpacing = 0;
 		grid.verticalSpacing = 0;
 		grid.marginWidth = 0;
-		grid.marginHeight = 0;
+		grid.marginHeight = 0;		
 		c.setLayout(grid);
 		return c;
 	}
@@ -44,10 +45,16 @@ public class AnnotationCellEditor extends TextCellEditor {
 		if (value instanceof AnnotationElement) {
 			AnnotationElement a = (AnnotationElement) value;
 			promise.setText(a.getPromise());
-			super.doSetValue(a.getContents());
+			super.doSetValue(a.getContents()+"                    ");
 		} else {
 			promise.setText("");
 			super.doSetValue(value.toString());
-		}
+		}		
+		promise.getParent().layout();
+		/*
+		Rectangle b = promise.getBounds();
+		promise.setBounds(b.x, b.y, b.width+100, b.height);		
+		promise.redraw();
+		*/
 	}
 }
