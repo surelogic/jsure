@@ -32,7 +32,7 @@ import com.surelogic.xml.*;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Pair;
 
-public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider {	
+public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider, ITableLabelProvider {	
 	private static final boolean saveDiff = true;
 	
 	private Color colorForModified;
@@ -246,6 +246,22 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PUBLIC);
 	}
 
+	@Override
+	public Image getColumnImage(Object element, int i) {
+		if (i == 0) {
+			return getImage(element);
+		}
+		return null;
+	}
+
+	@Override
+	public String getColumnText(Object element, int i) {
+		if (i == 0) {
+			return getText(element);
+		}
+		return null;
+	}
+	
 	@Override
 	public Color getForeground(Object element) {
 		if (element instanceof IJavaElement) {
