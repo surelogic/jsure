@@ -22,7 +22,7 @@ import com.surelogic.xml.*;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class XMLExplorerView extends AbstractJSureView {	
-	final IJSureTreeContentProvider f_content = new Provider();
+	final Provider f_content = new Provider();
 	TreeViewer f_viewer;
 	
 	@Override
@@ -67,7 +67,16 @@ public class XMLExplorerView extends AbstractJSureView {
 					@Override
 					public void run() {
 						PromisesLibMerge.merge(hasUpdate, t.getPath());
-						f_viewer.refresh();
+						/*
+						if (!hasUpdate) {
+							Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(t.getPath());
+							if (rv.second().isFile()) {
+								rv.second().delete();
+							}
+						}
+						*/
+						PromisesXMLReader.clear(t.getPath());
+						PromisesXMLReader.refreshAll();		
 					}
 				}); 		
 			}
@@ -112,13 +121,6 @@ public class XMLExplorerView extends AbstractJSureView {
 		return qname.replace('.', '/')+"/package-info"+TestXMLParserConstants.SUFFIX;
 	}
 	
-	/**
-	 * Meant to be called when the editor creates new files
-	 */
-	void refresh() {
-		f_content.build();		
-	}
-	
 	private static final Package[] noPackages = new Package[0];
 	
 	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider, PromisesXMLReader.Listener {
@@ -138,6 +140,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			f_viewer.refresh();
 		}
 		
+		@Override
 		public String build() {
 			final List<Package> l = new ArrayList<Package>();
 			final Map<String,Collection<String>> local = PromisesXMLEditor.findLocalPromisesXML();
@@ -221,7 +224,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		
 		@Override
 		public void dispose() {
-			// TODO Auto-generated method stub
+			PromisesXMLReader.stopListening(this);
 		}
 
 		@Override

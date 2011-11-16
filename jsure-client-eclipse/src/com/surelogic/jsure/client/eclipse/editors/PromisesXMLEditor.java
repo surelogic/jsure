@@ -43,7 +43,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
-public class PromisesXMLEditor extends MultiPageEditorPart {
+public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXMLReader.Listener {
 	enum FileStatus { 		
 		READ_ONLY, 
 		/** Mutable, but saves to a local file */
@@ -62,6 +62,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     private boolean isDirty = false;
     private TextViewer fluidXML;
     private TextEditor localXML;
+    
+    public PromisesXMLEditor() {
+    	PromisesXMLReader.listenForRefresh(this);
+    }
     
 	@Override
 	protected void createPages() {
@@ -297,6 +301,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 			// Nuke changes
 			provider.deleteUnsavedChanges();
 		}
+		PromisesXMLReader.stopListening(this);		
 		super.dispose();
 	}
 	
@@ -952,5 +957,21 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 		public boolean equals(Object a, Object b) {
 			return a == b;
 		}		
+	}
+
+	@Override
+	public void refresh(PackageElement e) {
+		if (e == provider.pkg) {
+			contents.refresh();
+			// Doesn't change what's saved on disk
+		}
+	}
+
+	@Override
+	public void refreshAll() {
+		provider.build();
+		contents.refresh();
+		fluidXML.refresh();
+		localXML.doRevertToSaved();
 	}
 }

@@ -128,7 +128,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		}
 	}
 
-	private void build() {
+	public String build() {
 		if (location != null) {
 			try {
 				roots = new Object[1];
@@ -183,6 +183,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				localXML = null;
 			}
 		}
+		return null;
 	}
 	
 	public IDocument getFluidDocument() {
