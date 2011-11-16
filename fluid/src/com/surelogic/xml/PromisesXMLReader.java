@@ -211,6 +211,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		listeners.add(l);
 	}
 	
+	public static void stopListening(Listener l) {
+		listeners.remove(l);
+	}
+	
 	public static void refresh(PackageElement e) {
 		for(Listener v : listeners) {
 			v.refresh(e);
