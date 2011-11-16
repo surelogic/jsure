@@ -294,6 +294,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getName()+'@'+Integer.toHexString(super.hashCode());
+	}
+	
 	AnnotationElement createRef() {
 		// TODO make factory method?
 		return new AnnotationElement(null, uid, promise+REF_SUFFIX, contents, Collections.<String,String>emptyMap());
