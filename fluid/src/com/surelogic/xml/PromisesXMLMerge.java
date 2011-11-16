@@ -5,7 +5,7 @@ import java.io.File;
 import com.surelogic.common.FileUtility;
 
 public class PromisesXMLMerge implements TestXMLParserConstants {
-	public static final boolean onlyKeepDiffs = false;
+	public static final boolean onlyKeepDiffs = true;
 	
 	/**
 	 * @param onlyMerge also copy (to fluid) if false
@@ -28,10 +28,27 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 					System.out.println("Merging "+from+" into "+to);
 					PackageElement target = PromisesXMLReader.loadRaw(to);
 					PackageElement source = PromisesXMLReader.loadRaw(from);
-					merge_private(onlyMerge, target, source);
-					
+					PackageElement merged;
+					if (onlyKeepDiffs) {
+						if (onlyMerge) {
+							// Updating client
+							PackageElement all = merge_private(onlyMerge, target, source);	
+							merged = diff(all);
+						} else {
+							// Merging to fluid 
+							/* Simulates what we used to do
+							PackageElement all = merge_private(!onlyMerge, source, target);	
+							merged = merge_private(onlyMerge, target, all);
+							*/
+							merged = merge_private(onlyMerge, target, source);	
+							// Need to clear modified bits
+							merged.visit(new Cleaner());
+						}
+					} else {
+						merged = merge_private(onlyMerge, target, source);	
+					}					
 					PromisesXMLWriter w = new PromisesXMLWriter(to);
-					w.write(target);
+					w.write(merged);
 					if (!onlyMerge) {
 						// Merging all changes to fluid, so they should both be the same afterward
 						// (or the local one should be deleted/empty)
@@ -40,7 +57,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 							from.delete();
 						} else {
 							w = new PromisesXMLWriter(from);
-							w.write(target);
+							w.write(merged);
 						}
 					}
 				} catch (Exception e) {
@@ -94,4 +111,28 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			return defaultValue;
 		}
 	}
+	
+	/**
+	 * Bump revision and mark as annos as clean/unmodified
+	 * 
+	 * @author Edwin
+	 */
+	private static class Cleaner extends AbstractJavaElementVisitor<Void> {
+		Cleaner() {
+			super(null);
+		}
+
+		@Override
+		protected Void combine(Void old, Void result) {
+			return null;
+		}
+		
+		public Void visit(AnnotationElement a) {
+			if (a.isModified()) {
+				a.incrRevision();
+			}
+			a.markAsClean();
+			return defaultValue;
+		}
+	}	
 }
