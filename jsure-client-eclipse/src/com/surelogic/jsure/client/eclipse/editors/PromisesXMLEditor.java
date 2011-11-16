@@ -147,13 +147,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     		   return false;
     	   }
        });	
-       */
-       /*
-       for(TreeColumn column : contents.getTree().getColumns()) {
-    	   TreeViewerColumn c = new TreeViewerColumn(contents, column);
-    	   c.setEditingSupport(null);
-       }
-       */       
+       */ 
+       contents.setComparer(new Comparer());
        contents.setCellEditors(new CellEditor[] { new AnnotationCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
@@ -163,6 +158,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
     	   }
     	   @Override
         public Object getValue(Object element, String property) {
+    		   System.out.println("Getting value for "+element);
     		   return element;
     		   //return ((IJavaElement) element).getLabel();
     	   }
@@ -170,18 +166,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
         public void modify(Object element, String property, Object value) {
     		   Item i = (Item) element;
     		   IJavaElement e = (IJavaElement) i.getData();
+    		   System.out.println("Setting value for "+e);
     		   e.modify((String) value, BalloonUtility.errorListener);
     		   contents.update(e, null);
     	   }
-       });
-       
+       });       
        // http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
        TreeViewerEditor.create(contents, null, new ColumnViewerEditorActivationStrategy(contents) {
     	   @Override
-    	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {
-    		   System.out.println("Got eae: "+e);
+    	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {    	
     		   ViewerCell cell = (ViewerCell) e.getSource();
     		   IJavaElement elt = (IJavaElement) cell.getElement();
+    		   System.out.println("Got eae for "+elt);
     		   return elt.canModify();
     	   }
        }, ColumnViewerEditor.DEFAULT);
@@ -579,6 +575,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 					} else {
 						a = new AnnotationElement(j, null, tag, "", attrs);
 					}
+					System.out.println("Created elt: "+a);
 					j.addPromise(a);
 					a.markAsModified();
 					markAsDirty();
@@ -940,5 +937,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	public void focusOn(IJavaElement e) {		
 		contents.setSelection(new StructuredSelection(e));
 		contents.reveal(e);
+	}
+	
+	static class Comparer implements IElementComparer {
+		@Override
+		public int hashCode(Object element) {
+			if (element instanceof AnnotationElement) {
+				return System.identityHashCode(element);
+			}
+			return element.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object a, Object b) {
+			return a == b;
+		}		
 	}
 }
