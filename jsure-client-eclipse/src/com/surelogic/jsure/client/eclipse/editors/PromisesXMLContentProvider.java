@@ -264,9 +264,20 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
     	File local = new File(localXML);
     	local.delete();
     	
-		final String path = location.toASCIIString();
-		PromisesXMLReader.clear(path);
+    	deleteUnsavedChanges(false);
 		build();
 		PromisesXMLReader.refreshAll();
+	}
+
+	void deleteUnsavedChanges() {
+		deleteUnsavedChanges(true);
+	}
+	
+	private void deleteUnsavedChanges(boolean refreshAll) {
+		final String path = location.toASCIIString();
+		PromisesXMLReader.clear(path);
+		if (refreshAll) {
+			PromisesXMLReader.refreshAll();
+		}
 	}
 }

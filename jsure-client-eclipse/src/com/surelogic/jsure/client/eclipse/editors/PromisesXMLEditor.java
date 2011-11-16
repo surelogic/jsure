@@ -296,6 +296,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart {
 	}
 
 	@Override
+	public void dispose() {
+		if (provider.isDirty()) {
+			// Nuke changes
+			provider.deleteUnsavedChanges();
+		}
+		super.dispose();
+	}
+	
+	@Override
 	public boolean isDirty() {
 		return provider.isDirty();
 	}
