@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.editors.*;
 import com.surelogic.jsure.client.eclipse.views.*;
@@ -59,7 +60,7 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		final Object o = s.getFirstElement();
-		if (o instanceof Type) {
+		if (XUtil.useExperimental() && o instanceof Type) {
 			final Type t = (Type) o;
 			if (t.isLocal) {
 				final boolean hasUpdate = t.hasUpdate();			
