@@ -243,6 +243,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			}
 			else {
 				p = l.merge(f, true);
+				p.markAsClean();
 			}
 			if (p == null) {
 				return null;
