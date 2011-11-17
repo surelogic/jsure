@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
+import java.util.Stack;
 import java.util.logging.Level;
 
 import org.eclipse.core.runtime.*;
@@ -808,14 +809,41 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	
 	static class TypeFinder extends ElementFinder<NestedClassElement> {
 		final String[] names;
+		final Stack<String> types = new Stack<String>();
 		
 		TypeFinder(String relativeName) {
 			names = relativeName.split("\\.");
 		}
 		
 		public NestedClassElement visit(NestedClassElement e) {
-			// TODO
-			return null;
+			types.clear();
+			
+			// Find out where this is
+			NestedClassElement here = e;
+			while (here != null) {
+				types.push(here.getName());
+				
+				IJavaElement p = here.getParent();
+				if (p instanceof NestedClassElement) {
+					here = (NestedClassElement) p;
+				} else {
+					break;
+				}
+			}
+			// Compare against names
+			for(String name : names) {
+				if (types.isEmpty()) {
+					return null; // No match
+				}
+				String type = types.pop();
+				if (!name.equals(type)) {
+					return null; // No match
+				}
+			}
+			if (!types.isEmpty()) {
+				return null; // Still something to match
+			}
+			return e;
 		}
 	}
 	
