@@ -32,7 +32,7 @@
 	<!-- Production promises go into '/build' -->
 
 	<target name="build" depends="setup">
-		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" target="1.5" />
+		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" target="1.5" includeantruntime="false" />
 		<jar destfile="${promises-jar}">
 			<fileset dir="${build}/bin" />
 			<manifest />
@@ -66,7 +66,7 @@
 				<exclude name="bin/**,**/.svn/**" />
 			</fileset>
 		</copy>
-		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" />
+		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" includeantruntime="false" />
 		<jar destfile="${promises-x-jar}">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
