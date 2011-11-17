@@ -126,8 +126,15 @@ public class EditorUtil {
 		final char slash  = '/'; // File.separatorChar;
 		final String pkg  = srcRef.getPackage().replace('.', slash);
 		String name = srcRef.getCUName();
+		String nested = null;
 		int dollar = name.indexOf('$');
 		if (dollar >= 0) {
+			if (name.endsWith(".class")) {
+				nested = name.substring(dollar+1, name.length() - 6);
+			} else {
+				nested = name.substring(dollar+1);
+			}
+			nested = nested.replace('$', '.');			
 			name = name.substring(0, dollar);
 		}
 		else if (name.endsWith(".class")) {
@@ -135,7 +142,12 @@ public class EditorUtil {
 		}
 		if (true) {
 			// Just try to open the editor and let it figure out what to do
-			return PromisesXMLEditor.openInEditor(pkg + slash + name + TestXMLParserConstants.SUFFIX, false) != null;
+			PromisesXMLEditor e = (PromisesXMLEditor) 
+			    PromisesXMLEditor.openInEditor(pkg + slash + name + TestXMLParserConstants.SUFFIX, false);
+			if (nested != null) {
+				e.focusOnNestedType(nested);
+			}
+			return e != null;
 		}
 		final String root = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 		final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;

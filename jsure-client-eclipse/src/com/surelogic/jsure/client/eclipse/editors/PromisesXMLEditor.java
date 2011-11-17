@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
+import java.util.Stack;
 import java.util.logging.Level;
 
 import org.eclipse.core.runtime.*;
@@ -447,56 +448,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				for(ScopedTargetType t : ScopedTargetType.values()) {
 					makeMenuItem(menu, "Add scoped promise for "+t.label+"...", new AnnotationCreator(j, t));
 				}
-				makeMenuItem(menu, "Add existing method(s)...", new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						final IType t = findIType(c, "");						
-						if (t == null) {
-							return;
-						}
-						ListSelectionDialog d;
-						try {
-							List<IMethod> methods = new ArrayList<IMethod>();
-							for(IMethod m : t.getMethods()) {
-								if (m.getDeclaringType().equals(t) && !"<clinit>".equals(m.getElementName())) {
-									methods.add(m);
-								}
-							}
-							Collections.sort(methods, new Comparator<IMethod>() {
-								@Override
-								public int compare(IMethod o1, IMethod o2) {
-									int rv = o1.getElementName().compareTo(o2.getElementName());
-									if (rv == 0) {
-										rv = o1.getParameterTypes().length - o2.getParameterTypes().length;
-									}
-									if (rv == 0) {
-										try {
-											rv = o1.getSignature().compareTo(o2.getSignature());
-										} catch (JavaModelException e) {
-											// ignore
-										}
-									}
-									return rv;
-								}
-							});
-							d = new ListSelectionDialog(contents.getTree().getShell(), methods.toArray(), 
-									                    jProvider, jProvider, "Select method(s)");
-							if (d.open() == Window.OK) {
-								for(Object o : d.getResult()) {
-									IMethod m = (IMethod) o;
-									String params = PromisesXMLBuilder.translateParameters(m);									
-									c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
-										                            new MethodElement(m.getElementName(), params));
-									markAsDirty();
-								}
-								contents.refresh();
-								//contents.refresh(c, true);
-							}
-						} catch (JavaModelException e1) {
-							e1.printStackTrace();
-						}															
-					}
-				});
+				addActionsOnClasses(menu, c);
 			}
 		}
 		if (o instanceof IMergeableElement) {
@@ -523,6 +475,110 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 		}
 	}
+
+	private void addActionsOnClasses(final Menu menu, final ClassElement c) {
+		makeMenuItem(menu, "Add existing method(s)...", new ITypeSelector<IMethod>(c, methodComparator) {
+			@Override
+			protected void preselect(IType t) throws JavaModelException {
+				for(IMethod m : t.getMethods()) {
+					if (m.getDeclaringType().equals(t) && !Flags.isSynthetic(m.getFlags()) &&
+							!"<clinit>".equals(m.getElementName())) {
+						// TODO check if already there?
+						if (m.getElementName().startsWith("access")) {
+							System.out.println("Found accessor: "+m.getElementName());
+						}
+						members.add(m);
+					}
+				}
+			}
+			@Override
+			protected void create(IMethod m) throws JavaModelException {
+				String params = PromisesXMLBuilder.translateParameters(m);									
+				c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
+					                            new MethodElement(m.getElementName(), params));
+			}
+		});
+		makeMenuItem(menu, "Add existing nested type(s)...", new ITypeSelector<IType>(c, typeComparator) {
+			@Override
+			protected void preselect(IType t) throws JavaModelException {
+				for(IType nt : t.getTypes()) {
+					// TODO check if already there?
+					members.add(nt);
+				}
+			}
+			@Override
+			protected void create(IType member) throws JavaModelException {
+				c.addMember(new NestedClassElement(member.getElementName()));
+			}
+		});
+	}
+	
+	abstract class ITypeSelector<T extends IMember> extends SelectionAdapter {
+		final ClassElement c;
+		final List<T> members = new ArrayList<T>();
+		final Comparator<T> comparator;
+
+		ITypeSelector(ClassElement cls, Comparator<T> compare) {
+			c = cls;
+			comparator = compare;
+		}
+		
+		@Override
+		public final void widgetSelected(SelectionEvent e) {
+			final IType t = findIType(c, "");						
+			if (t == null) {
+				return;
+			}
+			ListSelectionDialog d;
+			try {		
+				preselect(t);
+				Collections.sort(members, comparator);
+				d = new ListSelectionDialog(contents.getTree().getShell(), members.toArray(), 
+						                    jProvider, jProvider, "Select one or more of these");
+				if (d.open() == Window.OK) {
+					for(Object o : d.getResult()) {
+						@SuppressWarnings("unchecked")
+						T m = (T) o;
+						create(m);
+						markAsDirty();
+					}
+					contents.refresh();
+					//contents.refresh(c, true);
+				}
+			} catch (JavaModelException e1) {
+				e1.printStackTrace();
+			}															
+		}
+
+		protected abstract void preselect(final IType t) throws JavaModelException;
+		protected abstract void create(T member) throws JavaModelException;
+	}
+	
+	private static final Comparator<IMethod> methodComparator = new Comparator<IMethod>() {
+		@Override
+		public int compare(IMethod o1, IMethod o2) {
+			int rv = o1.getElementName().compareTo(o2.getElementName());
+			if (rv == 0) {
+				rv = o1.getParameterTypes().length - o2.getParameterTypes().length;
+			}
+			if (rv == 0) {
+				try {
+					rv = o1.getSignature().compareTo(o2.getSignature());
+				} catch (JavaModelException e) {
+					// ignore
+				}
+			}
+			return rv;
+		}
+	};
+	
+	private static final Comparator<IType> typeComparator = new Comparator<IType>() {
+		@Override
+		public int compare(IType o1, IType o2) {
+			int rv = o1.getElementName().compareTo(o2.getElementName());
+			return rv;
+		}
+	};
 	
 	private void addNavigationActions(Menu menu, IJavaElement o) {
 		if (o instanceof ClassElement) {
@@ -727,21 +783,76 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		}
 	}
 	
-	static class MethodFinder extends AbstractJavaElementVisitor<MethodElement> {
-		final String name, params;
-		
-		MethodFinder(String name, String params) {
-			super(null);
-			this.name = name;
-			this.params = params;
+	public void focusOnNestedType(String relativeName) {
+		PackageElement p = provider.pkg;
+		if (p != null) {
+			final NestedClassElement m = p.visit(new TypeFinder(relativeName));
+			if (m != null) {
+				focusOn(m);
+			}
 		}
-
+	}
+	
+	abstract static class ElementFinder<T> extends AbstractJavaElementVisitor<T> {
+		ElementFinder() {
+			super(null);
+		}
+		
 		@Override
-		protected MethodElement combine(MethodElement old, MethodElement result) {
+		protected T combine(T old, T result) {
 			if (old != null) {
 				return old;
 			}
 			return result;
+		}
+	}
+	
+	static class TypeFinder extends ElementFinder<NestedClassElement> {
+		final String[] names;
+		final Stack<String> types = new Stack<String>();
+		
+		TypeFinder(String relativeName) {
+			names = relativeName.split("\\.");
+		}
+		
+		public NestedClassElement visit(NestedClassElement e) {
+			types.clear();
+			
+			// Find out where this is
+			NestedClassElement here = e;
+			while (here != null) {
+				types.push(here.getName());
+				
+				IJavaElement p = here.getParent();
+				if (p instanceof NestedClassElement) {
+					here = (NestedClassElement) p;
+				} else {
+					break;
+				}
+			}
+			// Compare against names
+			for(String name : names) {
+				if (types.isEmpty()) {
+					return null; // No match
+				}
+				String type = types.pop();
+				if (!name.equals(type)) {
+					return null; // No match
+				}
+			}
+			if (!types.isEmpty()) {
+				return null; // Still something to match
+			}
+			return e;
+		}
+	}
+	
+	static class MethodFinder extends ElementFinder<MethodElement> {
+		final String name, params;
+		
+		MethodFinder(String name, String params) {
+			this.name = name;
+			this.params = params;
 		}
 		
 		@Override

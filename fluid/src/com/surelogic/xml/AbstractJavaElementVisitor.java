@@ -40,6 +40,10 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 		return combine(result, visitAnnotated(classElt));
 	}
 
+	public T visit(NestedClassElement e) {
+		return visit((ClassElement) e);
+	}
+	
 	public T visit(MethodElement methodElt) {
 		return visitFunc(methodElt);	
 	}

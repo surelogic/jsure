@@ -1,10 +1,15 @@
 package com.surelogic.xml;
 
 public class NestedClassElement extends ClassElement implements IClassMember {
-	NestedClassElement(String id) {
+	public NestedClassElement(String id) {
 		super(id);
 	}
 
+	@Override
+	public <T> T visit(IJavaElementVisitor<T> v) {
+		return v.visit(this);
+	}
+	
 	NestedClassElement cloneMe() {
 		NestedClassElement clone = new NestedClassElement(getName());
 		copyToClone(clone);
