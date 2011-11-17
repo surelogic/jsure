@@ -129,13 +129,13 @@ public class EditorUtil {
 		String nested = null;
 		int dollar = name.indexOf('$');
 		if (dollar >= 0) {
-			name = name.substring(0, dollar);
 			if (name.endsWith(".class")) {
 				nested = name.substring(dollar+1, name.length() - 6);
 			} else {
 				nested = name.substring(dollar+1);
 			}
-			nested = nested.replace('$', '.');
+			nested = nested.replace('$', '.');			
+			name = name.substring(0, dollar);
 		}
 		else if (name.endsWith(".class")) {
 			name = name.substring(0, name.length() - 6);
