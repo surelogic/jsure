@@ -144,7 +144,7 @@ public class EditorUtil {
 			// Just try to open the editor and let it figure out what to do
 			PromisesXMLEditor e = (PromisesXMLEditor) 
 			    PromisesXMLEditor.openInEditor(pkg + slash + name + TestXMLParserConstants.SUFFIX, false);
-			if (nested != null) {
+			if (e != null && nested != null) {
 				e.focusOnNestedType(nested);
 			}
 			return e != null;

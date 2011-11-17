@@ -87,11 +87,14 @@ public class PackageElement extends AnnotatedJavaElement {
 	 * @param updateToClient if true; merge to fluid otherwise
 	 */
 	PackageElement merge(PackageElement changed, boolean updateToClient) { 
+		// Needs to sync if the versions are the same due to storing local diffs
+		/*
 		final boolean needsToSync = !updateToClient || this.revision < changed.revision;
 		if (!needsToSync) {
 			// Nothing to do, since I'm updating the client, and the revisions are the same
 			return this;
 		}
+		*/
 		final MergeType type = MergeType.get(updateToClient);
 		
 		if (changed.getName().equals(getName())) {

@@ -480,13 +480,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		makeMenuItem(menu, "Add existing method(s)...", new ITypeSelector<IMethod>(c, methodComparator) {
 			@Override
 			protected void preselect(IType t) throws JavaModelException {
-				for(IMethod m : t.getMethods()) {
-					if (m.getDeclaringType().equals(t) && !Flags.isSynthetic(m.getFlags()) &&
-							!"<clinit>".equals(m.getElementName())) {
+				for(IMethod m : t.getMethods()) {					
+					final boolean omitted = Flags.isSynthetic(m.getFlags()) || 
+						"<clinit>".equals(m.getElementName()) ||
+						m.getElementName().startsWith("access$");						
+					if (m.getDeclaringType().equals(t) && !omitted) {
 						// TODO check if already there?
-						if (m.getElementName().startsWith("access")) {
-							System.out.println("Found accessor: "+m.getElementName());
-						}
 						members.add(m);
 					}
 				}
