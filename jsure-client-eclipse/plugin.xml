@@ -163,10 +163,6 @@
 			targetID="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
 			</perspectiveShortcut>
-			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
-			</viewShortcut>
-			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
-			</viewShortcut>
 		</perspectiveExtension>
 	</extension>
 
@@ -175,11 +171,6 @@
 			<perspectiveShortcut
 				id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			</perspectiveShortcut>
-
-	        <view id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
-                    relative="org.eclipse.jdt.ui.PackageExplorer"
-                    relationship="stack"
-                    visible="false"/>
 		</perspectiveExtension>
 	</extension>
 
