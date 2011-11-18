@@ -26,16 +26,22 @@ import com.surelogic.xml.*;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class XMLExplorerView extends AbstractJSureView {
-	final Provider f_content = new Provider();
-	TreeViewer f_viewer;
-	final Action f_toggleShowDiffs = new Action("Only show user-added library annotations", IAction.AS_CHECK_BOX) {
+
+	private final Provider f_content = new Provider();
+
+	private TreeViewer f_viewer;
+
+	private static final String USER_MODS_ONLY = "Show only user-added/modified library annotations";
+
+	private final Action f_toggleShowDiffs = new Action(USER_MODS_ONLY,
+			IAction.AS_CHECK_BOX) {
 		@Override
 		public void run() {
 			f_content.toggleViewingType();
 			f_viewer.refresh();
 		}
 	};
-	
+
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -56,7 +62,7 @@ public class XMLExplorerView extends AbstractJSureView {
 	protected void makeActions() {
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
-		f_toggleShowDiffs.setToolTipText("Only show user-added library annotations");
+		f_toggleShowDiffs.setToolTipText(USER_MODS_ONLY);
 	}
 
 	@Override
@@ -65,34 +71,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	}
 
 	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {		
+	protected void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(f_toggleShowDiffs);
-		/*
-		boolean first = true;
-		for (Viewing v : Viewing.values()) {
-			Action a = new ViewingAction(v);
-			manager.add(a);
-			if (first) {
-				first = false;
-				a.setChecked(true);
-			}
-		}
-        */
-	}
-
-	class ViewingAction extends Action {
-		final Viewing type;
-
-		public ViewingAction(Viewing v) {
-			super(v.name(), AS_RADIO_BUTTON);
-			type = v;
-		}
-
-		@Override
-		public void run() {
-			f_content.setViewingType(type);
-			f_viewer.refresh();
-		}
 	}
 
 	@Override
@@ -169,15 +149,13 @@ public class XMLExplorerView extends AbstractJSureView {
 			boolean matches(Filterable f) {
 				return f.hasDiffs();
 			}
-		/*
-		},		
-		CONFLICTS() {
-			@Override
-			boolean matches(Filterable f) {
-				return f.hasConflicts();
-			}
-		*/
-		};        
+			/*
+			 * }, CONFLICTS() {
+			 * 
+			 * @Override boolean matches(Filterable f) { return
+			 * f.hasConflicts(); }
+			 */
+		};
 		boolean matches(Filterable f) {
 			return true;
 		}
@@ -196,7 +174,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		void toggleViewingType() {
 			type = (type == Viewing.ALL) ? Viewing.DIFFS : Viewing.ALL;
 		}
-		
+
 		void setViewingType(Viewing v) {
 			if (v != null) {
 				type = v;
@@ -230,7 +208,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public Object[] getElements(Object inputElement) {
 			switch (type) {
-			//case CONFLICTS:
+			// case CONFLICTS:
 			case DIFFS:
 				return filter(type, pkgs);
 			default:
@@ -348,12 +326,12 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			// TODO Auto-generated method stub
+			// Don't do anything on this event
 		}
 
 		@Override
 		public void addListener(ILabelProviderListener listener) {
-			// TODO Auto-generated method stub
+			// Don't do anything on this event
 		}
 
 		@Override
@@ -363,7 +341,7 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public void removeListener(ILabelProviderListener listener) {
-			// TODO Auto-generated method stub
+			// Don't do anything on this event
 		}
 	}
 
