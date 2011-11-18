@@ -15,6 +15,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
@@ -338,13 +339,33 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			fireDirtyProperty();
 		}
 		// otherwise already dirty
-		PromisesXMLReader.refresh(provider.pkg);
+		syncLocalXMLEditor();
+		PromisesXMLReader.refresh(provider.pkg);		
 	}
 	
 	private void markAsClean() {
 		isDirty = false;
 		fireDirtyProperty();
 		PromisesXMLReader.refresh(provider.pkg);
+	}
+	
+	private void syncLocalXMLEditor() {
+		final IURIEditorInput input = (IURIEditorInput) provider.getLocalInput();	
+		final IDocument doc = localXML.getDocumentProvider().getDocument(input);
+		if (doc != null) {
+			System.out.println(doc.get());
+			StringWriter sw = new StringWriter(doc.getLength());
+			PromisesXMLWriter pw = new PromisesXMLWriter(new PrintWriter(sw));
+			PackageElement p = provider.pkg.cloneMe();
+			if (PromisesXMLContentProvider.saveDiff) {
+				p = PromisesXMLMerge.diff(p);
+			}
+			pw.write(p);
+			
+			final String updated = sw.toString();			
+			doc.set(updated);
+			System.out.println(updated);
+		}
 	}
 	
 	/*
