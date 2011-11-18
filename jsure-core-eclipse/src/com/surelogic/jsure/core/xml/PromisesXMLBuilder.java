@@ -104,19 +104,21 @@ public class PromisesXMLBuilder {
 	}
 	
 	public static PackageElement makeModel(IType t) throws JavaModelException {
-		ClassElement c = makeClass(t);
+		ClassElement c = makeClass(t, false);
 		if (c == null) {
 			return null;
 		}
 		return new PackageElement(t.getPackageFragment().getElementName(), 0, c);
 	}
 	
-	private static ClassElement makeClass(IType t) throws JavaModelException {
+	private static ClassElement makeClass(IType t, boolean isNested) throws JavaModelException {
 		if (t == null) {
 			return null;
 		}
-		// TODO not quite right for nested classes
-		final ClassElement c = new ClassElement(t.getElementName());
+		if (t.isMember()) {
+			isNested = true;
+		}
+		final ClassElement c = isNested ? new NestedClassElement(t.getElementName()) : new ClassElement(t.getElementName());
 		for(IMethod m : t.getMethods()) {
 			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags())) {
 				continue;
@@ -125,17 +127,28 @@ public class PromisesXMLBuilder {
 				if ("<clinit>".equals(m.getElementName())) {
 					c.addMember(new ClassInitElement());
 				} else {
-					String params = translateParameters(m);									
-					c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
-						                            new MethodElement(m.getElementName(), params));
+					String params = translateParameters(m);		
+					AbstractFunctionElement func = m.isConstructor() ? new ConstructorElement(params) : 
+                            new MethodElement(m.getElementName(), params);
+					c.addMember(func);
+					makeParameters(m, func);
 				}
 			}
 		}
 		// TODO fields
-		// TODO nested classes -- only public ones?
+		for(IType n : t.getTypes()) {
+			ClassElement ne = makeClass(n, true);
+			c.addMember((IClassMember) ne);
+		}
 		return c;
 	}
 	
+	private static void makeParameters(IMethod m, AbstractFunctionElement func) {
+		for(int i=0; i<m.getNumberOfParameters(); i++) {
+			func.setParameter(new FunctionParameterElement(i));			
+		}		 
+	}
+
 	/**
 	 * Update to add Java elements
 	 * 
@@ -146,7 +159,7 @@ public class PromisesXMLBuilder {
 			return false;
 		}
 		final IType t = JDTUtility.findIType(null, p.getName(), p.getClassElement().getName());
-		final ClassElement c = makeClass(t);
+		final ClassElement c = makeClass(t, false);
 		if (c == null) {
 			return false;
 		}
