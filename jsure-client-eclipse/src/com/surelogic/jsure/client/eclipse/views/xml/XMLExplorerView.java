@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.jface.action.*;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
@@ -286,25 +287,42 @@ public class XMLExplorerView extends AbstractJSureView {
 		 *         <i>not</i> be disposed by the calling code.
 		 */
 		private final Image getCachedImage(String symbolicName, boolean conflict) {
+			return getCachedImage(SLImages.getImageDescriptor(symbolicName),
+					conflict);
+		}
+
+		/**
+		 * Gets a cached image with an optional conflict (warning) decorator.
+		 * 
+		 * @param imageDescriptor
+		 *            an image descriptor.
+		 * @param conflict
+		 *            {@code true} if a promise conflict exists, {@code false}
+		 *            otherwise.
+		 * @return an image that is carefully cached. The image should
+		 *         <i>not</i> be disposed by the calling code.
+		 */
+		private final Image getCachedImage(ImageDescriptor imageDescriptor,
+				boolean conflict) {
 			final int flag = conflict ? CoE_Constants.INFO_WARNING
 					: CoE_Constants.NONE;
 			ResultsImageDescriptor rid = new ResultsImageDescriptor(
-					SLImages.getImageDescriptor(symbolicName), flag, new Point(
-							22, 16));
+					imageDescriptor, flag, new Point(22, 16));
 			return rid.getCachedImage();
 		}
 
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof Filterable) {
+			if (element instanceof Package) {
 				Package p = (Package) element;
-				return getCachedImage(CommonImages.IMG_PACKAGE, p.hasConflicts());
+				return getCachedImage(CommonImages.IMG_PACKAGE,
+						p.hasConflicts());
 			}
 			if (element instanceof Type) {
 				Type t = (Type) element;
 				return getCachedImage(CommonImages.IMG_CLASS, t.hasConflicts());
 			}
-			return super.getImage(element);
+			return getCachedImage(super.getImageDescriptor(element), false);
 		}
 
 		@Override
@@ -430,12 +448,11 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (isLocal) {
-				/* Handled as a decorator
+				/*
+				 * Handled as a decorator
 				 * 
-				if (hasUpdate()) {
-					return "<> " + name;
-				}
-				*/
+				 * if (hasUpdate()) { return "<> " + name; }
+				 */
 				return PromisesXMLContentProvider.DIRTY_PREFIX + name;
 			}
 			return name;
