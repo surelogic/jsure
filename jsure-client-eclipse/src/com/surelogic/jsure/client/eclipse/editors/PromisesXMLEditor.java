@@ -303,11 +303,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 	@Override
 	public void dispose() {
+		PromisesXMLReader.stopListening(this);		
+		
 		if (provider.isDirty()) {
 			// Nuke changes
 			provider.deleteUnsavedChanges();
 		}
-		PromisesXMLReader.stopListening(this);		
 		super.dispose();
 	}
 	
