@@ -35,7 +35,7 @@ import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider, ITableLabelProvider {	
 	public static final String DIRTY_PREFIX = "> "; 
-	private static final boolean saveDiff = true;
+	static final boolean saveDiff = true;
 	
 	private Color colorForModified;
 	private Color colorForBadSyntax;
