@@ -107,7 +107,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     	   public void doubleClick(DoubleClickEvent event) {
     		   if (provider.isMutable()) {
     			   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
-    			   System.out.println("Doubleclik on "+s.getFirstElement());
+    			   //System.out.println("Doubleclik on "+s.getFirstElement());
     			   contents.editElement(s.getFirstElement(), 0);
     		   }
     	   }
@@ -164,7 +164,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     	   }
     	   @Override
         public Object getValue(Object element, String property) {
-    		   System.out.println("Getting value for "+element);
+    		   //System.out.println("Getting value for "+element);
     		   return element;
     		   //return ((IJavaElement) element).getLabel();
     	   }
@@ -172,7 +172,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
         public void modify(Object element, String property, Object value) {
     		   Item i = (Item) element;
     		   IJavaElement e = (IJavaElement) i.getData();
-    		   System.out.println("Setting value for "+e);
+    		   //System.out.println("Setting value for "+e);
     		   e.modify((String) value, BalloonUtility.errorListener);
     		   contents.update(e, null);
     	   }
@@ -183,7 +183,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {    	
     		   ViewerCell cell = (ViewerCell) e.getSource();
     		   IJavaElement elt = (IJavaElement) cell.getElement();
-    		   System.out.println("Got eae for "+elt);
+    		   //System.out.println("Got eae for "+elt);
     		   return elt.canModify();
     	   }
        }, ColumnViewerEditor.DEFAULT);
@@ -254,7 +254,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     
     @Override
     public void setFocus() {
-    	System.out.println("Focus on "+getActivePage());
+    	//System.out.println("Focus on "+getActivePage());
     	switch (getActivePage()) {
     	case 0:
     		if (contents != null) {
@@ -335,6 +335,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			fireDirtyProperty();
 		}
 		// otherwise already dirty
+		PromisesXMLReader.refresh(provider.pkg);
 	}
 	
 	/*
@@ -464,6 +465,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		        }
 			});
 		}
+		new MenuItem(menu, SWT.SEPARATOR);
 		makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
 	        @Override
 	        public void widgetSelected(SelectionEvent e) {   			      
@@ -642,7 +644,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 					} else {
 						a = new AnnotationElement(j, null, tag, "", attrs);
 					}
-					System.out.println("Created elt: "+a);
+					//System.out.println("Created elt: "+a);
 					j.addPromise(a);
 					a.markAsModified();
 					markAsDirty();
