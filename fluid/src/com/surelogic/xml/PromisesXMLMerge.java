@@ -85,6 +85,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	
 	public static PackageElement diff(PackageElement root) {
 		// Ok to modify root, since we'll just mark it as clean afterwards
+		root.markAsClean();
 		root.visit(new Marker());
 		return root.copyIfDirty();
 	}
