@@ -37,7 +37,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	public static final String DIRTY_PREFIX = "> "; 
 	static final boolean saveDiff = true;
 	
-	private Color colorForModified;
+	//private Color colorForModified;
 	private Color colorForBadSyntax;
 	
 	URI location;
@@ -100,8 +100,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
 	@Override
 	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		if (colorForModified == null && viewer != null) {
-			colorForModified = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_BLUE);
+		if (colorForBadSyntax == null && viewer != null) {
+			//colorForModified = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_BLUE);
 			colorForBadSyntax = viewer.getControl().getDisplay().getSystemColor(SWT.COLOR_RED);
 		}
 		
@@ -288,9 +288,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			if (e.isBad()) {
 				return colorForBadSyntax;
 			}
+			/*
 			if (e.isModified()) {
 				return colorForModified;
 			}			
+			*/
 		}
 		return null;
 	}
