@@ -12,7 +12,7 @@
 
 	<extension point="org.eclipse.ui.editors">
         <editor	
-           name="Promises XML Editor"
+           name="Library Annotation Editor"
            icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
            class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
            id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
@@ -20,6 +20,7 @@
            extensions="promises.xml"
            matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
 	</extension>
+	
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
     
     <extension point="org.eclipse.ui.elementFactories">
@@ -96,7 +97,7 @@
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="com.surelogic.jsure"></category>
 		
-		<view name="JSure XML Explorer" allowMultiple="false"
+		<view name="Library Annotation Explorer" allowMultiple="false"
 			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
 			id="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView">

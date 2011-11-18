@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.perspectives;
 
+import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
@@ -10,6 +11,7 @@ import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
+import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
 
 /**
  * Defines the JSure perspective within the workbench.
@@ -23,6 +25,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 		final String proposedPromiseView = ProposedPromiseView.class.getName();
 		final String problemsView = ProblemsView.class.getName();
 		final String histSrcView = HistoricalSourceView.class.getName();
+		final String xmlExplorerView = XMLExplorerView.class.getName();
 		final String editorArea = layout.getEditorArea();
 
 		final IFolderLayout scanMgtArea = layout.createFolder("scanMgtArea",
@@ -40,6 +43,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 		final IFolderLayout rightOfResultsArea = layout.createFolder(
 				"rightOfResultsArea", IPageLayout.RIGHT, 0.6f, "resultsArea");
 		rightOfResultsArea.addView(proposedPromiseView);
+		rightOfResultsArea.addView(xmlExplorerView);
 
 		final IFolderLayout finderArea = layout.createFolder("finderArea",
 				IPageLayout.TOP, 0.6f, editorArea);
