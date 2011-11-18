@@ -93,7 +93,11 @@ implements IClassMember, TestXMLParserConstants
 	@Override
 	protected void collectOtherChildren(List<Object> children) {
 		super.collectOtherChildren(children);
-		children.addAll(params);
+		for(FunctionParameterElement p : params) {
+			if (p != null) {
+				children.add(p);
+			}
+		}
 	}
 	
 	public boolean isDirty() {
@@ -101,7 +105,7 @@ implements IClassMember, TestXMLParserConstants
 			return true;
 		}
 		for(FunctionParameterElement p : params) {
-			if (p.isDirty()) {
+			if (p != null && p.isDirty()) {
 				return true;
 			}
 		}
@@ -120,6 +124,9 @@ implements IClassMember, TestXMLParserConstants
 	boolean merge(AbstractFunctionElement changed, MergeType type) {
 		boolean modified = false;
 		for(FunctionParameterElement p2 : changed.params) {
+			if (p2 == null) {
+				continue;
+			}
 			FunctionParameterElement p0 = getParameter(p2.getIndex());
 			if (p0 != null) {
 				modified |= p0.merge(p2, type);
