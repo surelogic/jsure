@@ -28,7 +28,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class XMLExplorerView extends AbstractJSureView {
 	final Provider f_content = new Provider();
 	TreeViewer f_viewer;
-	final Action f_toggleShowDiffs = new Action("Only show changes", IAction.AS_CHECK_BOX) {
+	final Action f_toggleShowDiffs = new Action("Only show user-added library annotations", IAction.AS_CHECK_BOX) {
 		@Override
 		public void run() {
 			f_content.toggleViewingType();
@@ -55,8 +55,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void makeActions() {
 		f_toggleShowDiffs.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
-		f_toggleShowDiffs.setToolTipText("Only show changed XML");
+				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
+		f_toggleShowDiffs.setToolTipText("Only show user-added library annotations");
 	}
 
 	@Override
