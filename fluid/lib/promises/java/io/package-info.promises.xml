@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <package name="java.io">
-    <Promise uid="cd052818-4bd4-4344-bbe7-623f3f6837fd">@ThreadRoleTransparent for **(**)</Promise>
 </package>

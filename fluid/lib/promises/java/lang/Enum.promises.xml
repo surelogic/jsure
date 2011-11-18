@@ -8,7 +8,6 @@
         <constructor params="java.lang.String,int">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
-            <ThreadRoleTransparent/>
             <Unique>return</Unique>
         </constructor>
     </class>
