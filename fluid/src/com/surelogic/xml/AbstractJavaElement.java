@@ -43,7 +43,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		return false;
 	}
 	
-	public void modify(String value, IErrorListener l) {
+	public boolean modify(String value, IErrorListener l) {
 		throw new UnsupportedOperationException();
 	}
 	

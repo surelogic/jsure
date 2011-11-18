@@ -104,7 +104,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	}
 	
 	@Override
-	public void modify(String value, IErrorListener l) {
+	public boolean modify(String value, IErrorListener l) {
 		value = value.trim();
 				
 		final int paren = value.indexOf('(');
@@ -114,7 +114,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 				// Ignore, since the promise type changed
 				//
 				//l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+value);
-				return;
+				return false;
 			}
 			anno = value;
 			text = "";
@@ -146,8 +146,10 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 			isBad = !parses(promise, text);
 			contents = text;		
 			markAsModified();
+			return true;
 		} else {
 			//l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
+			return false;
 		}
 	}
 

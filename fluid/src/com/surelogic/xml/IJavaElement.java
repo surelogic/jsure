@@ -32,7 +32,7 @@ public interface IJavaElement {
 	 */
 	boolean isModified();
 	boolean canModify();
-	void modify(String value, IErrorListener l);
+	boolean modify(String value, IErrorListener l);
 	Operator getOperator();
 
 
