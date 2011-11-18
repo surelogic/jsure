@@ -12,6 +12,7 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.*;
@@ -245,6 +246,18 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			}
 		}
 		return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PUBLIC);
+	}
+	
+	public ImageDescriptor getImageDescriptor(Object element) {
+		IJavaElement e = (IJavaElement) element;
+		String key = e.getImageKey();
+		if (key != null) {
+			ImageDescriptor i = SLImages.getImageDescriptor(key);
+			if (i != null) {
+				return i;
+			}
+		}
+		return JavaUI.getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_PUBLIC);
 	}
 
 	@Override
