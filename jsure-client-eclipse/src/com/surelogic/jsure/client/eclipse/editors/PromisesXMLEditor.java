@@ -1020,9 +1020,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return path;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
-		public Object getAdapter(Class adapter) {
+		public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 			if (adapter == Object.class) {
 				return this;
 			}
