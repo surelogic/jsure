@@ -324,13 +324,13 @@ public class MethodEffectsRules extends AnnotationRules {
              * method-region combination preserved abstraction.
              */
             if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
-              scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\"",
-                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
+              scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\": Visiblity is {3}",
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor), region.getVisibility());
               good = false;
             }          
             if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, promisedFor, region, typeEnv)) {
-              scrubberContext.reportError(regionSpec, "Region \"{0}\" might not be accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\"",
-                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
+              scrubberContext.reportError(regionSpec, "Region \"{0}\" is not accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\": Region''s visibility is {3}",
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor), region.getVisibility().toString());
               good = false;
             }
           }
