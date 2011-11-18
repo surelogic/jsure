@@ -110,7 +110,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		for(Entity n : c.getReferences()) {
 			if (COMMENT_TAG.equals(n.getName())) {
 				final String comment = n.getAttribute(COMMENT_TAG);
-				System.out.println("Comment: "+comment);
+				//System.out.println("Comment: "+comment);
 				comments.add(comment);
 			} else {
 				handleNestedElement(cl, n, comments);
