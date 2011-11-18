@@ -173,8 +173,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     		   Item i = (Item) element;
     		   IJavaElement e = (IJavaElement) i.getData();
     		   //System.out.println("Setting value for "+e);
-    		   e.modify((String) value, BalloonUtility.errorListener);
-    		   contents.update(e, null);
+    		   boolean changed = e.modify((String) value, BalloonUtility.errorListener);
+    		   if (changed) {
+    			   contents.update(e, null);
+    			   markAsDirty();
+    		   }
     	   }
        });       
        // http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
@@ -338,6 +341,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		PromisesXMLReader.refresh(provider.pkg);
 	}
 	
+	private void markAsClean() {
+		isDirty = false;
+		fireDirtyProperty();
+		PromisesXMLReader.refresh(provider.pkg);
+	}
+	
 	/*
 	private CommentElement makeComment() {
         CommentElement c = CommentElement.make("...");
@@ -429,15 +438,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 								    ListSelectionDialog(contents.getTree().getShell(), newParams.toArray(), 
 								    		paramProvider, paramProvider, "Select parameter(s) to add");
 								if (d.open() == Window.OK) {
+									boolean changed = false;
 									for(Object o : d.getResult()) {
 										if (o instanceof NewParameter) {
 											NewParameter np = (NewParameter) o;
 											FunctionParameterElement p = new FunctionParameterElement(np.index);	
 											f.setParameter(p);
+											changed = true;
 										}
 									}
-									contents.refresh();
-									contents.expandToLevel(f, 1);
+									if (changed) {
+										markAsDirty();
+										contents.refresh();
+										contents.expandToLevel(f, 1);
+									}
 								}
 							}
 						});
@@ -477,6 +491,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	        			contents.refresh();
 	        			contents.expandAll();
 	        			localXML.doRevertToSaved();			        	
+	        			markAsClean();
 	        		}
 	        	} else {
 	        		MessageDialog.openInformation(s, "No Changes", "There are no changes to delete");
@@ -544,14 +559,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				d = new ListSelectionDialog(contents.getTree().getShell(), members.toArray(), 
 						                    jProvider, jProvider, "Select one or more of these");
 				if (d.open() == Window.OK) {
+					boolean changed = false;
 					for(Object o : d.getResult()) {
 						@SuppressWarnings("unchecked")
 						T m = (T) o;
 						create(m);
-						markAsDirty();
+						changed = true;
 					}
-					contents.refresh();
-					//contents.refresh(c, true);
+					if (changed) {
+						markAsDirty();
+						contents.refresh();
+						//contents.refresh(c, true);
+					}
 				}
 			} catch (JavaModelException e1) {
 				e1.printStackTrace();
@@ -635,6 +654,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		    		makeScopedPromise ? "Select scoped promise(s) to add for "+target.label : 
 		    			                "Select annotation(s) to add");
 			if (d.open() == Window.OK) {
+				boolean changed = false;
 				for(Object o : d.getResult()) {
 					final String tag = (String) o;
 					final AnnotationElement a;
@@ -647,10 +667,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 					//System.out.println("Created elt: "+a);
 					j.addPromise(a);
 					a.markAsModified();
+					changed = true;
+				
+				}
+				if (changed) {
+					contents.refresh();
+					contents.expandToLevel(j, 1);
 					markAsDirty();
 				}
-				contents.refresh();
-				contents.expandToLevel(j, 1);
 			}
 		}
 	}
