@@ -14,18 +14,20 @@ import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.editors.*;
 import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.xml.*;
 
 import edu.cmu.cs.fluid.util.Pair;
 
-public class XMLExplorerView extends AbstractJSureView {	
+public class XMLExplorerView extends AbstractJSureView {
 	final Provider f_content = new Provider();
 	TreeViewer f_viewer;
-	
+
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -33,7 +35,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		f_viewer.setContentProvider(f_content);
 		f_viewer.setLabelProvider(f_content);
 		f_content.build();
-		f_viewer.setInput(f_content); // Needed to show something?		
+		f_viewer.setInput(f_content); // Needed to show something?
 		return f_viewer.getControl();
 	}
 
@@ -41,21 +43,21 @@ public class XMLExplorerView extends AbstractJSureView {
 	protected StructuredViewer getViewer() {
 		return f_viewer;
 	}
-	
+
 	@Override
 	protected void makeActions() {
-		// TODO Auto-generated method stub				
+		// TODO Auto-generated method stub
 	}
-	
+
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
-		// TODO Auto-generated method stub		
+		// TODO Auto-generated method stub
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		boolean first = true;
-		for(Viewing v : Viewing.values()) {		
+		for (Viewing v : Viewing.values()) {
 			Action a = new ViewingAction(v);
 			manager.add(a);
 			if (first) {
@@ -63,62 +65,59 @@ public class XMLExplorerView extends AbstractJSureView {
 				a.setChecked(true);
 			}
 		}
-		
+
 	}
-	
-	class ViewingAction extends Action {		
+
+	class ViewingAction extends Action {
 		final Viewing type;
 
 		public ViewingAction(Viewing v) {
 			super(v.name(), AS_RADIO_BUTTON);
 			type = v;
-		}		
+		}
+
 		@Override
 		public void run() {
 			f_content.setViewingType(type);
 			f_viewer.refresh();
 		}
 	}
-	
+
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		final Object o = s.getFirstElement();
 		if (XUtil.useExperimental() && o instanceof Type) {
 			final Type t = (Type) o;
 			if (t.isLocal) {
-				final boolean hasUpdate = t.hasUpdate();			
-				manager.add(new Action(hasUpdate ? "Update local XML" : "Merge changes to JSure") {
+				final boolean hasUpdate = t.hasUpdate();
+				manager.add(new Action(hasUpdate ? "Update local XML"
+						: "Merge changes to JSure") {
 					@Override
 					public void run() {
 						PromisesLibMerge.merge(hasUpdate, t.getPath());
 						/*
-						if (!hasUpdate) {
-							Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(t.getPath());
-							if (rv.second().isFile()) {
-								rv.second().delete();
-							}
-						}
-						*/
+						 * if (!hasUpdate) { Pair<File,File> rv =
+						 * PromisesXMLEditor.findPromisesXML(t.getPath()); if
+						 * (rv.second().isFile()) { rv.second().delete(); } }
+						 */
 						PromisesXMLReader.clear(t.getPath());
-						PromisesXMLReader.refreshAll();		
+						PromisesXMLReader.refreshAll();
 					}
-				}); 		
+				});
 			}
 		}
 	}
-	
+
 	@Override
 	protected void handleDoubleClick(IStructuredSelection selection) {
 		final Object o = selection.getFirstElement();
 		if (o instanceof Type) {
 			Type t = (Type) o;
 			PromisesXMLEditor.openInEditor(t.getPath(), false);
-		}
-		else if (o instanceof Package) {
+		} else if (o instanceof Package) {
 			Package p = (Package) o;
 			PromisesXMLEditor.openInEditor(getPackagePath(p.name), false);
-		}
-		else if (o instanceof IJavaElement) {
+		} else if (o instanceof IJavaElement) {
 			IJavaElement e = (IJavaElement) o;
 			while (e != null) {
 				if (e instanceof PackageElement) {
@@ -127,12 +126,16 @@ public class XMLExplorerView extends AbstractJSureView {
 				e = e.getParent();
 			}
 			PackageElement p = (PackageElement) e;
-			
+
 			if (p.getClassElement() == null) {
-				PromisesXMLEditor.openInEditor(getPackagePath(p.getName()), false);
+				PromisesXMLEditor.openInEditor(getPackagePath(p.getName()),
+						false);
 			} else {
-				final IEditorPart ep = 
-					PromisesXMLEditor.openInEditor(p.getName().replace('.', '/')+'/'+p.getClassElement().getName()+TestXMLParserConstants.SUFFIX, false);
+				final IEditorPart ep = PromisesXMLEditor.openInEditor(p
+						.getName().replace('.', '/')
+						+ '/'
+						+ p.getClassElement().getName()
+						+ TestXMLParserConstants.SUFFIX, false);
 				if (ep instanceof PromisesXMLEditor) {
 					final PromisesXMLEditor xe = (PromisesXMLEditor) ep;
 					xe.focusOn((IJavaElement) o);
@@ -142,60 +145,65 @@ public class XMLExplorerView extends AbstractJSureView {
 	}
 
 	private String getPackagePath(String qname) {
-		return qname.replace('.', '/')+"/package-info"+TestXMLParserConstants.SUFFIX;
+		return qname.replace('.', '/') + "/package-info"
+				+ TestXMLParserConstants.SUFFIX;
 	}
-	
+
 	private static final Package[] noPackages = new Package[0];
-	
+
 	enum Viewing {
-		ALL, 
-		DIFFS() {
-			@Override boolean matches(Filterable f) {
+		ALL, DIFFS() {
+			@Override
+			boolean matches(Filterable f) {
 				return f.hasDiffs();
 			}
-		}, 
+		},
 		CONFLICTS() {
-			@Override boolean matches(Filterable f) {
+			@Override
+			boolean matches(Filterable f) {
 				return f.hasConflicts();
 			}
 		};
-		
+
 		boolean matches(Filterable f) {
 			return true;
 		}
 	}
-	
-	class Provider extends PromisesXMLContentProvider implements IJSureTreeContentProvider, PromisesXMLReader.Listener {
+
+	class Provider extends PromisesXMLContentProvider implements
+			IJSureTreeContentProvider, PromisesXMLReader.Listener {
 		Package[] pkgs = noPackages;
 		Viewing type = Viewing.ALL;
-		
+
 		Provider() {
 			super(true);
 			PromisesXMLReader.listenForRefresh(this);
 		}
-		
+
 		void setViewingType(Viewing v) {
 			if (v != null) {
 				type = v;
 			}
 		}
-		
+
 		public void refresh(PackageElement e) {
 			f_viewer.refresh();
 		}
-		
+
 		public void refreshAll() {
 			build();
 			f_viewer.refresh();
 		}
-		
+
 		@Override
 		public String build() {
 			final List<Package> l = new ArrayList<Package>();
-			final Map<String,Collection<String>> local = PromisesXMLEditor.findLocalPromisesXML();
-			for(Map.Entry<String,Collection<String>> e : PromisesXMLEditor.findAllPromisesXML().entrySet()) {
+			final Map<String, Collection<String>> local = PromisesXMLEditor
+					.findLocalPromisesXML();
+			for (Map.Entry<String, Collection<String>> e : PromisesXMLEditor
+					.findAllPromisesXML().entrySet()) {
 				Package p = new Package(e, local.get(e.getKey()));
-				l.add(p);				
+				l.add(p);
 			}
 			Collections.sort(l);
 			pkgs = l.toArray(noPackages);
@@ -205,14 +213,14 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public Object[] getElements(Object inputElement) {
 			switch (type) {
-			case CONFLICTS:				
+			case CONFLICTS:
 			case DIFFS:
-				return filter(type, pkgs);				
+				return filter(type, pkgs);
 			default:
 				return pkgs;
 			}
 		}
-		
+
 		@Override
 		public boolean hasChildren(Object element) {
 			if (element instanceof Package) {
@@ -225,7 +233,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			return super.hasChildren(element);
 		}
-		
+
 		@Override
 		public Object[] getChildren(Object parent) {
 			if (parent instanceof Package) {
@@ -239,7 +247,7 @@ public class XMLExplorerView extends AbstractJSureView {
 					return super.getChildren(t.root.getClassElement());
 				}
 			}
-			//return noStrings;
+			// return noStrings;
 			return super.getChildren(parent);
 		}
 
@@ -265,18 +273,40 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			return null;
 		}
-		
+
+		/**
+		 * Gets a cached image with an optional conflict (warning) decorator.
+		 * 
+		 * @param symbolicName
+		 *            a name from {@link CommonImages}.
+		 * @param conflict
+		 *            {@code true} if a promise conflict exists, {@code false}
+		 *            otherwise.
+		 * @return an image that is carefully cached. The image should
+		 *         <i>not</i> be disposed by the calling code.
+		 */
+		private final Image getCachedImage(String symbolicName, boolean conflict) {
+			final int flag = conflict ? CoE_Constants.INFO_WARNING
+					: CoE_Constants.NONE;
+			ResultsImageDescriptor rid = new ResultsImageDescriptor(
+					SLImages.getImageDescriptor(symbolicName), flag, new Point(
+							22, 16));
+			return rid.getCachedImage();
+		}
+
 		@Override
 		public Image getImage(Object element) {
 			if (element instanceof Package) {
-				return SLImages.getImage(CommonImages.IMG_PACKAGE);
+				boolean conflict = /* TODO */true;
+				return getCachedImage(CommonImages.IMG_PACKAGE, conflict);
 			}
 			if (element instanceof Type) {
-				return SLImages.getImage(CommonImages.IMG_CLASS);
+				boolean conflict = /* TODO */true;
+				return getCachedImage(CommonImages.IMG_CLASS, conflict);
 			}
 			return super.getImage(element);
 		}
-		
+
 		@Override
 		public void dispose() {
 			PromisesXMLReader.stopListening(this);
@@ -286,7 +316,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			// TODO Auto-generated method stub
 		}
-		
+
 		@Override
 		public void addListener(ILabelProviderListener listener) {
 			// TODO Auto-generated method stub
@@ -300,39 +330,42 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public void removeListener(ILabelProviderListener listener) {
 			// TODO Auto-generated method stub
-		} 
+		}
 	}
-	
+
 	interface Filterable {
 		boolean hasDiffs();
+
 		boolean hasConflicts();
 	}
-	
+
 	static <T extends Filterable> Object[] filter(Viewing type, T[] elements) {
 		if (elements.length == 0) {
 			return elements;
 		}
 		List<T> l = new ArrayList<T>();
-		for(T e : elements) {
+		for (T e : elements) {
 			if (type.matches(e)) {
 				l.add(e);
 			}
 		}
 		return l.toArray();
 	}
-	
+
 	static class Package implements Filterable, Comparable<Package> {
 		final String name;
 		final Type[] types;
 		final boolean hasLocal;
-		
-		public Package(Entry<String, Collection<String>> e, Collection<String> local) {
+
+		public Package(Entry<String, Collection<String>> e,
+				Collection<String> local) {
 			hasLocal = local != null;
 			name = e.getKey();
 			types = new Type[e.getValue().size()];
-			int i=0;
-			for(String type : e.getValue()) {
-				types[i] = new Type(this, type, hasLocal ? local.contains(type) : false);				
+			int i = 0;
+			for (String type : e.getValue()) {
+				types[i] = new Type(this, type, hasLocal ? local.contains(type)
+						: false);
 				i++;
 			}
 			Arrays.sort(types);
@@ -341,11 +374,11 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (hasLocal) {
-				return "> "+name;
+				return "> " + name;
 			}
 			return name;
 		}
-		
+
 		@Override
 		public int compareTo(Package o) {
 			return name.compareTo(o.name);
@@ -354,7 +387,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public boolean hasConflicts() {
 			if (hasLocal) {
-				for(Type t : types) {
+				for (Type t : types) {
 					if (t.hasUpdate()) {
 						return true;
 					}
@@ -366,23 +399,24 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public boolean hasDiffs() {
 			return hasLocal;
-		}		
+		}
 	}
-	
+
 	static class Type implements Filterable, Comparable<Type> {
 		final Package pkg;
 		final String name;
 		final boolean isLocal;
 		PackageElement root;
-		
+
 		Type(Package pkg, String name, boolean isLocal) {
 			this.pkg = pkg;
 			this.name = name;
 			this.isLocal = isLocal;
 		}
-		
+
 		String getPath() {
-			return pkg.name.replace('.', '/')+'/'+name+TestXMLParserConstants.SUFFIX;
+			return pkg.name.replace('.', '/') + '/' + name
+					+ TestXMLParserConstants.SUFFIX;
 		}
 
 		boolean hasChildren() {
@@ -390,37 +424,37 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		boolean hasUpdate() {
-			return PromisesLibMerge.checkForUpdate(getPath());	
+			return PromisesLibMerge.checkForUpdate(getPath());
 		}
-		
+
 		@Override
 		public String toString() {
 			if (isLocal) {
 				if (hasUpdate()) {
-					return "<> "+name;
+					return "<> " + name;
 				}
-				return "> "+name;
+				return "> " + name;
 			}
 			return name;
 		}
-		
+
 		@Override
 		public int compareTo(Type o) {
 			return name.compareTo(o.name);
-		}	
-		
+		}
+
 		void buildChildren() {
 			if (root != null) {
 				return;
 			}
-			final String path = getPath();		
-			final Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);			
+			final String path = getPath();
+			final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
 			try {
 				root = PromisesXMLReader.load(path, rv.first(), rv.second());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}			
+			}
 		}
 
 		@Override
