@@ -123,9 +123,9 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 			return false;
 		}
 		boolean modified = super.mergeThis(changed, type);		
-		
-		// TODO this nukes all of the original annos
-		promises.clear();
+
+		final Set<String> unhandledAnnos = new HashSet<String>(order.keySet());
+		promises.clear();		
 		for(Map.Entry<String, List<AnnotationElement>> e : changed.order.entrySet()) {
 			List<AnnotationElement> l = order.get(e.getKey());
 			if (l == null) {
@@ -141,7 +141,13 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 			for(AnnotationElement a : l) {
 				promises.put(a.getUid(), a);
 			}
+			unhandledAnnos.remove(e.getKey());
 		}		
+		for(String anno : unhandledAnnos) {
+			for(AnnotationElement a : order.get(anno)) {
+				promises.put(a.getUid(), a);
+			}
+		}
 		/*
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
 			// TODO how to merge the ordering?
