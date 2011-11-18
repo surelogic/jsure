@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.ui.ITypeHierarchyViewPart;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.TextViewer;
@@ -462,18 +463,24 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	            	contents.expandToLevel(me.getParent(), 1);
 		        }
 			});
-			if (me.isModified()) {
-				makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
-			        @Override
-			        public void widgetSelected(SelectionEvent e) {   			        	
-			        	provider.deleteAllChanges();
-			        	contents.refresh();
-			        	contents.expandAll();
-			        	localXML.doRevertToSaved();			        	
-			        }
-				});
-			}
 		}
+		makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent e) {   			      
+	        	final Shell s = contents.getTree().getShell();
+	        	if (provider.pkg.isModified()) {	        	
+	        		if (MessageDialog.openQuestion(s, "Delete All Changes?", 
+	        				"Do you really want to delete all changes?")) {
+	        			provider.deleteAllChanges();
+	        			contents.refresh();
+	        			contents.expandAll();
+	        			localXML.doRevertToSaved();			        	
+	        		}
+	        	} else {
+	        		MessageDialog.openInformation(s, "No Changes", "There are no changes to delete");
+	        	}
+	        }
+		});
 	}
 
 	private void addActionsOnClasses(final Menu menu, final ClassElement c) {
