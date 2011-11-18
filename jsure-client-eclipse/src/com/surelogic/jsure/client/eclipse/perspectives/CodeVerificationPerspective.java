@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.perspectives;
 
-import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
