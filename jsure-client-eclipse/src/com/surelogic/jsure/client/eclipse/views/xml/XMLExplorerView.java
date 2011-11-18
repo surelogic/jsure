@@ -296,13 +296,13 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof Package) {
-				boolean conflict = /* TODO */true;
-				return getCachedImage(CommonImages.IMG_PACKAGE, conflict);
+			if (element instanceof Filterable) {
+				Package p = (Package) element;
+				return getCachedImage(CommonImages.IMG_PACKAGE, p.hasConflicts());
 			}
 			if (element instanceof Type) {
-				boolean conflict = /* TODO */true;
-				return getCachedImage(CommonImages.IMG_CLASS, conflict);
+				Type t = (Type) element;
+				return getCachedImage(CommonImages.IMG_CLASS, t.hasConflicts());
 			}
 			return super.getImage(element);
 		}
@@ -374,7 +374,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (hasLocal) {
-				return "> " + name;
+				return PromisesXMLContentProvider.DIRTY_PREFIX + name;
 			}
 			return name;
 		}
@@ -430,10 +430,13 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (isLocal) {
+				/* Handled as a decorator
+				 * 
 				if (hasUpdate()) {
 					return "<> " + name;
 				}
-				return "> " + name;
+				*/
+				return PromisesXMLContentProvider.DIRTY_PREFIX + name;
 			}
 			return name;
 		}

@@ -47,10 +47,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 		throw new UnsupportedOperationException();
 	}
 	
-	boolean isDirty() {
+	public boolean isDirty() {
 		return isDirty;
 	}
-
+	
 	/**
 	 * Here only to be overridden by Comment/AnnotationElement
 	 */

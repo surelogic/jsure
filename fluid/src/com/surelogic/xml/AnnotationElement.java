@@ -1,12 +1,14 @@
 package com.surelogic.xml;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import com.surelogic.aast.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
@@ -193,7 +195,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 				//l.reportError("Problem parsing annotation", msg);
 			}
 			public void reportException(int offset, Exception e) {
-				e.printStackTrace();
+				SLLogger.getLogger().log(Level.WARNING, "Problem parsing annotation", e);
 				//l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
 			}						
 		};

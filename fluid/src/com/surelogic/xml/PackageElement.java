@@ -67,11 +67,19 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 	}
 	
+	@Override
 	public boolean isDirty() {
 		if (clazz != null && clazz.isDirty()) {
 			return true;
 		}
 		return super.isDirty();
+	}
+	@Override
+	public boolean isModified() {
+		if (clazz != null && clazz.isModified()) {
+			return true;
+		}
+		return super.isModified();
 	}
 	
 	public void markAsClean() {

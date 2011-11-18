@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLContentProvider extends AbstractContentProvider implements ITreeContentProvider, ITableLabelProvider {	
+	public static final String DIRTY_PREFIX = "> "; 
 	private static final boolean saveDiff = true;
 	
 	private Color colorForModified;
@@ -232,7 +233,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	
 	@Override
 	public String getText(Object element) {
-		return ((IJavaElement) element).getLabel();
+		IJavaElement e = (IJavaElement) element;
+		if (e.isModified()) {
+			return DIRTY_PREFIX+e.getLabel();
+		}
+		return e.getLabel();
 	}
 
 	@Override
@@ -278,7 +283,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	
 	@Override
 	public Color getForeground(Object element) {
-		if (element instanceof IJavaElement) {
+		if (element instanceof AnnotationElement) {
 			IJavaElement e = (IJavaElement) element;
 			if (e.isBad()) {
 				return colorForBadSyntax;

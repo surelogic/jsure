@@ -18,14 +18,22 @@ public interface IJavaElement {
 	String getLabel();
 	boolean hasChildren();
 	Object[] getChildren();
+	/**
+	 * Has unsaved changes
+	 */
+	boolean isDirty();
 	
 	/**
 	 * e.g. because the syntax is wrong
 	 */
 	boolean isBad();
+	/**
+	 * Has any changes
+	 */
 	boolean isModified();
 	boolean canModify();
 	void modify(String value, IErrorListener l);
 	Operator getOperator();
+
 
 }

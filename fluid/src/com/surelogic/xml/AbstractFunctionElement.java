@@ -100,12 +100,26 @@ implements IClassMember, TestXMLParserConstants
 		}
 	}
 	
+	@Override
 	public boolean isDirty() {
 		if (super.isDirty()) {
 			return true;
 		}
 		for(FunctionParameterElement p : params) {
 			if (p != null && p.isDirty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean isModified() {
+		if (super.isModified()) {
+			return true;
+		}
+		for(FunctionParameterElement p : params) {
+			if (p != null && p.isModified()) {
 				return true;
 			}
 		}
