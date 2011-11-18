@@ -142,6 +142,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 	}
 	
+	@Override
 	public boolean isDirty() {
 		if (super.isDirty()) {
 			return true;
@@ -166,6 +167,37 @@ public class ClassElement extends AnnotatedJavaElement {
 		}
 		for(NestedClassElement n : classes.values()) {
 			if (n.isDirty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean isModified() {
+		if (super.isModified()) {
+			return true;
+		}
+		if (clinit != null && clinit.isModified()) {
+			return true;
+		}
+		for(FieldElement f : fields.values()) {
+			if (f.isModified()) {
+				return true;
+			}
+		}
+		for(ConstructorElement c : constructors.values()) {
+			if (c.isModified()) {
+				return true;
+			}
+		}
+		for(MethodElement m : methods.elements()) {
+			if (m.isModified()) {
+				return true;
+			}
+		}
+		for(NestedClassElement n : classes.values()) {
+			if (n.isModified()) {
 				return true;
 			}
 		}

@@ -88,6 +88,19 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		return false;
 	}
 	
+	@Override
+	public boolean isModified() {
+		if (super.isModified()) {
+			return true;
+		}
+		for(AnnotationElement a : promises.values()) {
+			if (a.isModified()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void markAsClean() {
 		super.markAsClean();
 		for(AnnotationElement a : promises.values()) {
