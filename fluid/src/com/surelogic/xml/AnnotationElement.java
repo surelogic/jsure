@@ -176,7 +176,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 				}
 				return getParent().getOperator();
 			}
-
+			@Override
+			public String getAllText() {
+				return text;
+			}
+			@Override
 			public String getSelectedText(int start, int stop) {
 				return text.substring(start, stop);
 			}			
