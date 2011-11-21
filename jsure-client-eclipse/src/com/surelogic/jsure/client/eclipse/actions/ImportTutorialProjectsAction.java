@@ -29,7 +29,8 @@ public class ImportTutorialProjectsAction implements
 				"/com.surelogic.jsure.client.help/ch01s03.html",
 				loader.getResource("/lib/PlanetBaronJSure.zip"),
 				loader.getResource("/lib/BoundedFIFOJSure.zip"),
-				loader.getResource("/lib/oswego.util.concurrent.zip"));
+				loader.getResource("/lib/oswego.util.concurrent.zip"),
+				loader.getResource("/lib/SimpleVariable.zip"));
 	}
 
 	public void selectionChanged(final IAction action,
