@@ -175,7 +175,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					 * is selected.
 					 */
 					if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
-						final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c.getDropInfo();
+						final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
+								.getDropInfo();
 						if (pp != null) {
 							proposals.add(pp);
 						}
@@ -191,7 +192,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 									.getChildrenAsCollection()) {
 								if (content.getDropInfo().isInstance(
 										ProposedPromiseDrop.class)) {
-									final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c.getDropInfo();
+									final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
+											.getDropInfo();
 									if (pp != null) {
 										proposals.add(pp);
 									}
@@ -377,20 +379,23 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
 		if (!s.isEmpty()) {
-			final AbstractContent c = (AbstractContent) s.getFirstElement();
-			if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
-				manager.add(f_addPromiseToCode);
-				f_addPromiseToCode.setText(I18N
-						.msg("jsure.eclipse.proposed.promise.edit"));
-				manager.add(new Separator());
-			} else {
-				if (c.getMessage()
-						.equals(I18N
-								.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+			final Object first = s.getFirstElement();
+			if (first instanceof AbstractContent) {
+				final AbstractContent c = (AbstractContent) first;
+				if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
 					manager.add(f_addPromiseToCode);
 					f_addPromiseToCode.setText(I18N
-							.msg("jsure.eclipse.proposed.promises.edit"));
+							.msg("jsure.eclipse.proposed.promise.edit"));
 					manager.add(new Separator());
+				} else {
+					if (c.getMessage()
+							.equals(I18N
+									.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+						manager.add(f_addPromiseToCode);
+						f_addPromiseToCode.setText(I18N
+								.msg("jsure.eclipse.proposed.promises.edit"));
+						manager.add(new Separator());
+					}
 				}
 			}
 		}
