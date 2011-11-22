@@ -8,7 +8,7 @@ import org.eclipse.swt.graphics.Point;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
-import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
 
 public final class ResultsViewLabelProvider extends ColumnLabelProvider
 		implements IResultsViewLabelProvider {
@@ -53,7 +53,7 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider
 			ImageDescriptor id = SLImages.getImageDescriptor(c
 					.getBaseImageName());
 			ResultsImageDescriptor rid = new ResultsImageDescriptor(id, flags,
-					AbstractDoubleCheckerView.ICONSIZE);
+					AbstractJSureResultsView.ICONSIZE);
 			return rid.getCachedImage();
 		}
 		return SLImages.getImage(CommonImages.IMG_UNKNOWN);

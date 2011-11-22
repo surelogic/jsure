@@ -3,12 +3,17 @@ package com.surelogic.jsure.client.eclipse.views.results;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -24,10 +29,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
@@ -36,14 +44,20 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.dialogs.ImageDialog;
+import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
+import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -53,10 +67,63 @@ import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
-public class ResultsView extends AbstractDoubleCheckerView {
+public final class ResultsView extends AbstractJSureResultsView implements
+		JSureDataDirHub.CurrentScanChangeListener {
 
-	protected final IResultsViewContentProvider f_contentProvider = makeContentProvider();
+	private static final String VIEW_STATE = "view.state";
+
+	final File f_viewState;
+
+	public ResultsView() {
+		File viewState = null;
+		try {
+			final File jsureData = JSurePreferencesUtility
+					.getJSureDataDirectory();
+			if (jsureData != null) {
+				viewState = new File(jsureData, VIEW_STATE + ".xml");
+			} else {
+				viewState = File.createTempFile(VIEW_STATE, ".xml");
+			}
+			// System.out.println("Using location: "+location);
+		} catch (IOException e) {
+			// Nothing to do
+		}
+		f_viewState = viewState;
+	}
+
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+
+		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+	}
+
+	@Override
+	public void dispose() {
+		try {
+			JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+		} finally {
+			super.dispose();
+		}
+	}
+
+	@Override
+	public void currentScanChanged(JSureScan scan) {
+		final UIJob job = new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				saveViewState();
+				finishCreatePartControl();
+				restoreViewState();
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
+	}
+
+	private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
 	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
 
@@ -166,6 +233,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			final List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
 			for (final Object element : selection.toList()) {
 				if (element instanceof AbstractContent) {
+					@SuppressWarnings({ "unchecked", "rawtypes" })
 					final AbstractContent<IDropInfo, ?> c = (AbstractContent) element;
 					/*
 					 * Deal with the case where a single proposed promise drop
@@ -185,7 +253,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 						if (c.getMessage()
 								.equals(I18N
 										.msg("jsure.eclipse.proposed.promise.content.folder"))) {
-							for (AbstractContent content : c
+							for (@SuppressWarnings("rawtypes")
+							AbstractContent content : c
 									.getChildrenAsCollection()) {
 								if (content.getDropInfo().isInstance(
 										ProposedPromiseDrop.class)) {
@@ -241,14 +310,15 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	 * Changed to not depend on the Viewer
 	 */
 	public static class ContentNameSorter extends ViewerSorter {
-		@SuppressWarnings("unchecked")
 		@Override
 		public int compare(final Viewer viewer, final Object e1, final Object e2) {
 			int result = 0; // = super.compare(viewer, e1, e2);
 			final boolean bothContent = e1 instanceof AbstractContent
 					&& e2 instanceof AbstractContent;
 			if (bothContent) {
+				@SuppressWarnings("rawtypes")
 				final AbstractContent c1 = (AbstractContent) e1;
+				@SuppressWarnings("rawtypes")
 				final AbstractContent c2 = (AbstractContent) e2;
 				final boolean c1IsNonProof = c1.f_isInfo
 						|| c1.f_isPromiseWarning;
@@ -323,11 +393,90 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		}
 	}
 
-	protected IResultsViewContentProvider makeContentProvider() {
-		return new ResultsViewContentProvider();
+	static class Content extends AbstractContent<Info, Content> {
+		Content(String msg, Collection<Content> content, Info drop) {
+			super(msg, content, drop);
+		}
+
+		Content(String msg, ISrcRef ref) {
+			super(msg, ref);
+		}
 	}
 
-	protected IResultsViewLabelProvider makeLabelProvider() {
+	private GenericResultsViewContentProvider<Info, Content> f_provider;
+
+	private IResultsViewContentProvider makeContentProvider() {
+		// return new ResultsViewContentProvider();
+		return new GenericResultsViewContentProvider<Info, Content>(
+				Sea.getDefault()) {
+			{
+				f_provider = this;
+			}
+
+			@Override
+			public IResultsViewContentProvider buildModelOfDropSea() {
+				try {
+					saveViewState(f_viewState);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				try {
+					return super.buildModelOfDropSea_internal();
+				} finally {
+					f_viewerbook.getDisplay().asyncExec(new Runnable() {
+						public void run() {
+							restoreViewState();
+						}
+					});
+				}
+			}
+
+			@Override
+			protected boolean dropsExist(Class<? extends Drop> type) {
+				final JSureScanInfo scan = JSureDataDirHub.getInstance()
+						.getCurrentScanInfo();
+				if (scan != null) {
+					return scan.dropsExist(type);
+				}
+				return false;
+			}
+
+			@Override
+			protected <R extends IDropInfo> Collection<R> getDropsOfType(
+					Class<? extends Drop> type, Class<R> rType) {
+				final JSureScanInfo scan = JSureDataDirHub.getInstance()
+						.getCurrentScanInfo();
+				if (scan != null) {
+					return scan.getDropsOfType(type);
+				}
+				return Collections.emptyList();
+			}
+
+			@Override
+			protected Content makeContent(String msg) {
+				return new Content(msg, Collections.<Content> emptyList(), null);
+			}
+
+			@Override
+			protected Content makeContent(String msg,
+					Collection<Content> contentRoot) {
+				return new Content(msg, contentRoot, null);
+			}
+
+			@Override
+			protected Content makeContent(String msg, Info drop) {
+				return new Content(msg, Collections.<Content> emptyList(), drop);
+			}
+
+			@Override
+			protected Content makeContent(String msg, ISrcRef ref) {
+				return new Content(msg, ref);
+			}
+		};
+	}
+
+	private IResultsViewLabelProvider makeLabelProvider() {
 		return new ResultsViewLabelProvider();
 	}
 
@@ -339,7 +488,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		ColumnViewerToolTipSupport.enableFor(treeViewer);
 	}
 
-	protected ViewerSorter createSorter() {
+	private ViewerSorter createSorter() {
 		return new ContentNameSorter();
 	}
 
@@ -380,6 +529,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		if (!s.isEmpty()) {
 			final Object first = s.getFirstElement();
 			if (first instanceof AbstractContent) {
+				@SuppressWarnings("rawtypes")
 				final AbstractContent c = (AbstractContent) first;
 				final IDropInfo dropInfo = c.getDropInfo();
 				if (dropInfo != null) {
@@ -405,6 +555,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
 		if (!s.isEmpty()) {
+			@SuppressWarnings("rawtypes")
 			final AbstractContent c = (AbstractContent) s.getFirstElement();
 			if (c.cloneOf != null) {
 				manager.add(f_actionLinkToOriginal);
@@ -416,6 +567,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			manager.add(new Separator());
 			manager.add(f_actionShowUnderlyingDropType);
 			if (!s.isEmpty()) {
+				@SuppressWarnings("rawtypes")
 				final AbstractContent c = (AbstractContent) s.getFirstElement();
 				final IDropInfo d = c.getDropInfo();
 				if (d != null) {
@@ -530,6 +682,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		if (obj instanceof AbstractContent) {
 			// try to open an editor at the point this item references
 			// in the code
+			@SuppressWarnings("rawtypes")
 			final AbstractContent c = (AbstractContent) obj;
 			if (c.cloneOf != null) {
 				f_actionLinkToOriginal.run();
@@ -674,5 +827,48 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected void finishCreatePartControl() {
+		final JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
+				.getCurrentScanInfo();
+		if (scanInfo != null) {
+			final long start = System.currentTimeMillis();
+			f_provider.buildModelOfDropSea_internal();
+			final long end = System.currentTimeMillis();
+			setViewerVisibility(true);
+			System.out.println("Loaded snapshot for " + this + ": "
+					+ (end - start) + " ms");
+
+			// Running too early?
+			if (f_viewState != null && f_viewState.exists()) {
+				f_viewerbook.getDisplay().asyncExec(new Runnable() {
+					public void run() {
+						try {
+							loadViewState(f_viewState);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+		} else {
+			// Show no results
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					setViewerVisibility(false);
+				}
+			});
+		}
+	}
+
+	@Override
+	public void saveState(IMemento memento) {
+		try {
+			saveViewState(f_viewState);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
