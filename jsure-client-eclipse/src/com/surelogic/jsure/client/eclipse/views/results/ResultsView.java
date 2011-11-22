@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.Action;
@@ -56,8 +55,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 public class ResultsView extends AbstractDoubleCheckerView {
-
-	private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
 	protected final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
@@ -315,8 +312,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					}
 				}
 			} else {
-				LOG.warning("e1 and e2 are not AbstractContent objects: e1 = \""
-						+ e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
+				SLLogger.getLogger().warning(
+						"e1 and e2 are not AbstractContent objects: e1 = \""
+								+ e1.toString() + "\"; e2 = \"" + e2.toString()
+								+ "\"");
 				return -1;
 			}
 
@@ -599,7 +598,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			try {
 				zipFile = new FileOutputStream(filename);
 			} catch (final FileNotFoundException e) {
-				LOG.log(Level.SEVERE, "Unable to create ZIP file ", e);
+				SLLogger.getLogger().log(Level.SEVERE,
+						"Unable to create ZIP file ", e);
 				MessageDialog.openError(shell, "Error exporting results",
 						"Unable to create ZIP results file");
 				exportZIPForStandAloneResultsViewer(); // try again

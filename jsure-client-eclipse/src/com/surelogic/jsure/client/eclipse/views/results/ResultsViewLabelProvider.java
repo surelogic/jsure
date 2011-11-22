@@ -10,10 +10,9 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
 
-
-public final class ResultsViewLabelProvider extends ColumnLabelProvider implements
-		IResultsViewLabelProvider {
-	//private static final boolean showCustomToolTips = false;
+public final class ResultsViewLabelProvider extends ColumnLabelProvider
+		implements IResultsViewLabelProvider {
+	// private static final boolean showCustomToolTips = false;
 	private boolean m_showInferences = true;
 
 	/**
@@ -24,10 +23,10 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 		m_showInferences = showInferences;
 	}
 
-	@SuppressWarnings("unchecked")
 	public String getText(final Object obj) {
 		if (obj instanceof AbstractContent) {
-			AbstractContent c = (AbstractContent) obj;
+			@SuppressWarnings("rawtypes")
+			final AbstractContent c = (AbstractContent) obj;
 			/*
 			 * if (c.referencedDrop != null) { return
 			 * c.referencedDrop.getClass().getSimpleName()+": "+c.getMessage();
@@ -38,10 +37,10 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 		return "invalid: not of type AbstractContent";
 	}
 
-	@SuppressWarnings("unchecked")
 	public Image getImage(final Object obj) {
 		if (obj instanceof AbstractContent) {
-			AbstractContent c = (AbstractContent) obj;
+			@SuppressWarnings("rawtypes")
+			final AbstractContent c = (AbstractContent) obj;
 			int flags = c.getImageFlags();
 			if (m_showInferences) {
 				if (c.f_isInfoWarningDecorate) {
@@ -62,31 +61,31 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 
 	public Image getToolTipImage(Object element) {
 		return null;
-		//return showCustomToolTips ? getImage(element) : null;
-	}
-	
-	//@Override
-	public String getToolTipText(Object element) {
-		return null;
-		//return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
+		// return showCustomToolTips ? getImage(element) : null;
 	}
 
-	//@Override
+	// @Override
+	public String getToolTipText(Object element) {
+		return null;
+		// return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
+	}
+
+	// @Override
 	public Point getToolTipShift(Object object) {
 		return new Point(5, 5);
 	}
 
-	//@Override
+	// @Override
 	public int getToolTipDisplayDelayTime(Object object) {
 		return 200;
 	}
 
-	//@Override
+	// @Override
 	public int getToolTipTimeDisplayed(Object object) {
 		return 5000;
 	}
 
-	//@Override
+	// @Override
 	public void update(ViewerCell cell) {
 		final Object element = cell.getElement();
 		cell.setText(getText(element));
