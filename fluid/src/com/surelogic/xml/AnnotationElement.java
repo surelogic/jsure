@@ -19,8 +19,9 @@ import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class AnnotationElement extends AbstractJavaElement implements IMergeableElement, TestXMLParserConstants {
-	private static char DASH = '-';
-	public static final String REF_SUFFIX = DASH+"ref";
+	private static final char DASH = '-';
+	private static final String ORIG_CONTENTS = "original-contents";
+	public static final String REF_SUFFIX = DASH+"ref";	
 	
 	private final String uid;
 	private final String promise;
@@ -145,7 +146,13 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		if (!contents.equals(text)) {
 			isBad = !parses(promise, text);
 			contents = text;		
-			markAsModified();
+			
+			final String origContents = attributes.get(ORIG_CONTENTS);
+			if (origContents != null && origContents.equals(text)) {
+				markAsUnmodified(); // TODO is this right with attributes?
+			} else {
+				markAsModified();
+			}
 			return true;
 		} else {
 			//l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
@@ -156,6 +163,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	public void markAsModified() {
 		super.markAsDirty();
 		attributes.put(DIRTY_ATTRB, "true");
+	}
+	
+	void markAsUnmodified() {
+		markAsClean();
+		attributes.remove(DIRTY_ATTRB);
 	}
 	
 	public void delete() {
@@ -275,8 +287,9 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	
 	public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
-		mergeThis((AnnotationElement) other, MergeType.MERGE);
-		// TODO what about attributes?
+		AnnotationElement a = (AnnotationElement) other;
+		mergeThis(a, MergeType.MERGE);
+		stashDiffState(a.getContents());
 	}
 	
 	@Override
@@ -326,5 +339,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 				AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn, allowRead),
 				attributes);
 		return added ? 1 : 0;
+	}
+
+	void stashDiffState(String contents) {
+		if (!attributes.containsKey(ORIG_CONTENTS)) {
+			attributes.put(ORIG_CONTENTS, contents);
+		}
 	}
 }

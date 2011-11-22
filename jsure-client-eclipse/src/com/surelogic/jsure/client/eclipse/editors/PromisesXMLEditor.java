@@ -62,6 +62,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	private final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
     private TreeViewer contents;
+    
+    /**
+     * Really used to check if we deleted all the changes
+     */
     private boolean isDirty = false;
     private TextViewer fluidXML;
     private TextEditor localXML;
@@ -288,7 +292,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		provider.save(monitor);		
 		localXML.doRevertToSaved();
 		
-		if (isDirty) {
+		if (isDirty()) {
 			isDirty = false;
 			fireDirtyProperty();
 			updateTitle(); // does this help refresh?
@@ -335,10 +339,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	}
 	
 	private void markAsDirty() {
-		if (!isDirty) {
-			isDirty = true;
-			fireDirtyProperty();
-		}
+		fireDirtyProperty();
+		
 		// otherwise already dirty
 		syncLocalXMLEditor();
 		PromisesXMLReader.refresh(provider.pkg);		
@@ -516,6 +518,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	        			localXML.doRevertToSaved();			        	
 	        			markAsClean();
 	        			*/
+	        			isDirty = true;
 	        			markAsDirty();
 	        		}
 	        	} else {

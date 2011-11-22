@@ -234,6 +234,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		PackageElement p = cache.get(relativePath);
 		if (p == null) {
 			PackageElement f = loadOrNull(fluid);
+			if (f != null) {
+				// Remember appropriate attributes to diff
+				f.visit(new DiffHelper());
+			}
 			PackageElement l = loadOrNull(local);
 			if (f == null) {
 				p = l;
