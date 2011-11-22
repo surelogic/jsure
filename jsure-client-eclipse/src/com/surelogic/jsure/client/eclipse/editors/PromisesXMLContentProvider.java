@@ -207,7 +207,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			final List<IJavaElement> nonLeaf = new ArrayList<IJavaElement>();
 			for(Object o : children) {
 				IJavaElement c = (IJavaElement) o;
-				if (c.hasChildren() || c instanceof IMergeableElement) {
+				if (c instanceof IMergeableElement || hasChildren(c)) {
 					nonLeaf.add(c);
 				}
 			}
@@ -223,7 +223,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
 	@Override
 	public boolean hasChildren(Object element) {
-		return ((IJavaElement) element).hasChildren();
+		boolean rv = ((IJavaElement) element).hasChildren();
+		if (hideEmpty && rv) {
+			Object[] children = getChildren(element);
+			return children.length > 0;
+		}
+		return rv;
 	}
 
 	@Override
