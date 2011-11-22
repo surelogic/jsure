@@ -170,9 +170,17 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		attributes.remove(DIRTY_ATTRB);
 	}
 	
-	public void delete() {
+	public boolean delete() {
 		markAsModified();
 		attributes.put(DELETE_ATTRB, "true");
+		if (!attributes.containsKey(ORIG_CONTENTS)) {
+			// Delete from parent, since it was newly created
+			AnnotatedJavaElement parent = (AnnotatedJavaElement) getParent();
+		    parent.removePromise(this);		        		
+		    return true;
+		} else {
+			return false;
+		}
 	}
 	
 	/**

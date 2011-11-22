@@ -496,7 +496,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			makeMenuItem(menu, "Delete", new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {          
-		        	me.delete();
+		        	final boolean origDirty = provider.pkg.isDirty();
+		        	final boolean deletedNew = me.delete();
+		        	if (deletedNew && !origDirty) {
+		        		// Probably saved after creation, so we need to save it
+		        		isDirty = true;
+		        	}
 		        	markAsDirty();
 		          	contents.refresh();
 	            	contents.expandToLevel(me.getParent(), 1);
