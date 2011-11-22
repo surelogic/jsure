@@ -182,7 +182,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		public void refresh(PackageElement e) {
-			f_viewer.refresh();
+			refreshAll();
 		}
 
 		public void refreshAll() {
