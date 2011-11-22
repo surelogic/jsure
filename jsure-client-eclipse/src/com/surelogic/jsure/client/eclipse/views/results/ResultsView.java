@@ -111,7 +111,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	};
 
 	private final Action f_actionLinkToOriginal = new Action() {
-		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
 			final ISelection selection = viewer.getSelection();
@@ -121,6 +120,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				final Object obj = ((IStructuredSelection) selection)
 						.getFirstElement();
 				if (obj instanceof AbstractContent) {
+					@SuppressWarnings("rawtypes")
 					final AbstractContent c = (AbstractContent) obj;
 					if (c.cloneOf != null) {
 

@@ -8,8 +8,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -32,12 +30,8 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
@@ -45,16 +39,12 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
-import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
-import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
-import com.surelogic.jsure.core.listeners.NotificationHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
+import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
@@ -62,14 +52,10 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * from analysis, and to show a message otherwise.
  */
 public abstract class AbstractDoubleCheckerView extends ViewPart implements
-		IPersistentDropInfoListener {
-	protected static final Logger LOG = SLLogger
-			.getLogger("AbstractDoubleCheckerView");
-	
+		SeaObserver {
+
 	final public static Point ICONSIZE = new Point(22, 16);
 
-	private static final boolean useFancyWait = false;
-	
 	/**
 	 * leave {@code null} if the subclass doesn't want to use this capability.
 	 */
@@ -136,14 +122,14 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected void subscribe() {
 		// subscribe to listen for analysis notifications
-		NotificationHub.addAnalysisListener(this);
+		// NotificationHub.addAnalysisListener(this);
 		Sea.getDefault().addSeaObserver(this);
 	}
 
 	@Override
 	public void dispose() {
 		try {
-			NotificationHub.unsubscribe(this);
+			// NotificationHub.unsubscribe(this);
 			Sea.getDefault().removeSeaObserver(this);
 		} finally {
 			super.dispose();
@@ -161,63 +147,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected abstract void setupViewer();
 
 	/**
-	 * Used to create a fancy waiting screen while JSure analysis runs. A copy
-	 * of the tree being shown in the display is made into an image. This image
-	 * is then grayed out and displayed. When the analysis is completed this
-	 * image is disposed.
-	 */
-	private Image f_fancyWait = null;
-
-	/**
 	 * Toggles between the empty viewer page and the Fluid results
 	 */
 	protected final void setViewerVisibility(boolean showResults) {
 		if (f_viewerbook.isDisposed())
 			return;
 		if (showResults) {
-			if (f_fancyWait != null) {
-				f_fancyWait.dispose();
-				f_fancyWait = null;
-			}
 			viewer.setInput(getViewSite());
 			f_viewerbook.showPage(viewer.getControl());
 		} else {
-			/*
-			 * Check if there is actually a project before we show grayed view.
-			 * We also need to ensure that there are not compilation errors in
-			 * the project.
-			 */
-			final IIRProjects projects = ProjectsDrop.getProjects();
-			if (useFancyWait && projects != null
-					&& !COMP_ERRORS.equals(f_noResultsToShowLabel.getText())) {
-				final Control c = viewer.getControl();
-				if (c != null && c.isVisible()) {
-					try {
-						final Display display = c.getDisplay();
-						final Point tableSize = c.getSize();
-						if (display != null && tableSize.x > 0
-								&& tableSize.y > 0) {
-							GC gc = new GC(c);
-							final Image image = new Image(display, tableSize.x,
-									tableSize.y);
-							gc.copyArea(image, 0, 0);
-							gc.dispose();
-							f_fancyWait = new Image(display, image,
-									SWT.IMAGE_GRAY);
-							image.dispose();
-							f_noResultsToShowLabel.setImage(f_fancyWait);
-						}
-					} catch (Exception e) {
-						SLLogger.getLogger()
-								.log(Level.SEVERE,
-										"Failure to create gray Verification Status image to show while analysis is running",
-										e);
-					}
-				}
-			}
-			if (projects == null) {
-				viewer.setInput(null);
-			}
 			f_viewerbook.showPage(f_noResultsToShowLabel);
 		}
 	}
@@ -567,49 +505,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	/*
-	 * Implementation of IAnalysisListener
+	 * Implementation of SeaObserver
 	 */
 
-	public void analysisStarting() {
-		LOG.fine("analysisStarting() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					saveViewState();
-					f_noResultsToShowLabel.setText(PLEASE_WAIT);
-					setViewerVisibility(false);
-				}
-			});
-		}
-	}
-
-	public final void analysisCompleted() {
-		LOG.fine("analysisCompleted() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					refreshView();
-					restoreViewState();
-					setViewerVisibility(true);
-				}
-			});
-		}
-	}
-
-	public final void analysisPostponed() {
-		LOG.fine("analysisPostponed() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					f_noResultsToShowLabel.setText(COMP_ERRORS);
-					setViewerVisibility(false);
-				}
-			});
-		}
-	}
-
 	public void seaChanged() {
-		LOG.fine("seaChanged() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {

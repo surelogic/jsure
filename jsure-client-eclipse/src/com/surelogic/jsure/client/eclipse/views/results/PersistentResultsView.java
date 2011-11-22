@@ -9,6 +9,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.progress.UIJob;
 
@@ -69,17 +71,35 @@ public class PersistentResultsView extends ResultsView implements
 
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
+				treeStateSaveIfPossible();
 				seaChanged();
+				treeStateRestoreIfPossible();
 				return Status.OK_STATUS;
 			}
 		};
 		job.schedule();
 	}
 
-	@Override
-	public void analysisStarting() {
-		// Ignore this, so we can continue to look at the old results
+	protected void treeStateRestoreIfPossible() {
+		System.out.println("treeStateRestoreIfPossible()");
+		final Tree tree = treeViewer.getTree();
+		if (tree != null) {
+			TreeItem[] selectedItems = tree.getSelection();
+			for (TreeItem item : selectedItems) {
+				System.out.println(" - " + item.toString());
+			}
+		}
 	}
+
+	protected void treeStateSaveIfPossible() {
+		System.out.println("treeStateSaveIfPossible()");
+		
+	}
+
+//	@Override
+//	public void analysisStarting() {
+//		// Ignore this, so we can continue to look at the old results
+//	}
 
 	@Override
 	public void seaChanged() {
