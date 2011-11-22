@@ -382,19 +382,23 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			final Object first = s.getFirstElement();
 			if (first instanceof AbstractContent) {
 				final AbstractContent c = (AbstractContent) first;
-				if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
-					manager.add(f_addPromiseToCode);
-					f_addPromiseToCode.setText(I18N
-							.msg("jsure.eclipse.proposed.promise.edit"));
-					manager.add(new Separator());
-				} else {
-					if (c.getMessage()
-							.equals(I18N
-									.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+				final IDropInfo dropInfo = c.getDropInfo();
+				if (dropInfo != null) {
+					if (dropInfo.isInstance(ProposedPromiseDrop.class)) {
 						manager.add(f_addPromiseToCode);
 						f_addPromiseToCode.setText(I18N
-								.msg("jsure.eclipse.proposed.promises.edit"));
+								.msg("jsure.eclipse.proposed.promise.edit"));
 						manager.add(new Separator());
+					} else {
+						if (c.getMessage()
+								.equals(I18N
+										.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+							manager.add(f_addPromiseToCode);
+							f_addPromiseToCode
+									.setText(I18N
+											.msg("jsure.eclipse.proposed.promises.edit"));
+							manager.add(new Separator());
+						}
 					}
 				}
 			}
