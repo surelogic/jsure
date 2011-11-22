@@ -372,15 +372,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		}
 	}
 	
-	/*
-	private CommentElement makeComment() {
-        CommentElement c = CommentElement.make("...");
-        c.markAsDirty();
-        markAsDirty();
-        return c;
-	}
-	*/
-	
 	private void setupContextMenu(final Menu menu) {
 		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
 		if (s.size() != 1) {
@@ -392,55 +383,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		if (!provider.isMutable()) {
 			return;
 		}
-		/*
-		if (o instanceof CommentElement) {
-			final CommentElement c0 = (CommentElement) o;
-		    makeMenuItem(menu, "Add comment above this", new SelectionAdapter() {
-		        @Override
-		        public void widgetSelected(SelectionEvent e) {              
-		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = makeComment();
-		            boolean success = cje.addCommentBefore(c, c0);
-		            if (success) {
-		            	contents.refresh();
-		            	contents.expandToLevel(cje, 1);
-		            } else {
-		            	SLLogger.getLogger().warning("Couldn't add comment before '"+c0.getLabel()+"' in "+cje.getLabel());
-		            }
-		        }
-		    });
-		    makeMenuItem(menu, "Add comment below this", new SelectionAdapter() {
-		        @Override
-		        public void widgetSelected(SelectionEvent e) {              
-		        	CommentedJavaElement cje = (CommentedJavaElement) c0.getParent();
-		            CommentElement c = makeComment();
-		            boolean success = cje.addCommentAfter(c, c0);
-		            if (success) {
-		            	contents.refresh();
-		            	contents.expandToLevel(cje, 1);
-		            } else {
-		            	SLLogger.getLogger().warning("Couldn't add comment after '"+c0.getLabel()+"' in "+cje.getLabel());
-		            }
-		        }
-		    });
-		}		
-		if (o instanceof CommentedJavaElement) {
-		    final CommentedJavaElement cje = (CommentedJavaElement) o;
-		    makeMenuItem(menu, "Append comment", new SelectionAdapter() {
-		        @Override
-		        public void widgetSelected(SelectionEvent e) {                
-		            CommentElement c = makeComment();
-		            cje.addComment(c);
-		            contents.refresh();
-		            contents.expandToLevel(cje, 1);
-		        }
-		    });
-		}
-		*/
+
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
 		
+			/*
 			if (o instanceof AbstractFunctionElement) {
 				final AbstractFunctionElement f = (AbstractFunctionElement) o;
 				if (f.getParams().length() > 0) {
@@ -483,7 +431,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 					}
 				}
 			} 
-			else if (o instanceof ClassElement) {
+			else */ 
+			if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
 				
 				for(ScopedTargetType t : ScopedTargetType.values()) {
@@ -535,6 +484,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	}
 
 	private void addActionsOnClasses(final Menu menu, final ClassElement c) {
+		/*
 		makeMenuItem(menu, "Add existing method(s)...", new ITypeSelector<IMethod>(c, methodComparator) {
 			@Override
 			protected void preselect(IType t) throws JavaModelException {
@@ -568,6 +518,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				c.addMember(new NestedClassElement(member.getElementName()));
 			}
 		});
+		*/
 	}
 	
 	abstract class ITypeSelector<T extends IMember> extends SelectionAdapter {
