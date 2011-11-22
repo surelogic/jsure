@@ -23,13 +23,12 @@ import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
-public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
+public class PersistentDropInfo implements SeaObserver {
 	private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
-	public static final boolean useInfo = true;
 
 	private long timestamp = Long.MIN_VALUE;
 	private List<IDropInfo> dropInfo = Collections.emptyList();
-	private final List<IPersistentDropInfoListener> listeners = new CopyOnWriteArrayList<IPersistentDropInfoListener>();
+	private final List<SeaObserver> listeners = new CopyOnWriteArrayList<SeaObserver>();
 	private final File location;
 
 	private PersistentDropInfo() {
@@ -50,7 +49,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 		System.out.println("Drop location = " + location);
 
 		// subscribe to listen for analysis notifications
-		NotificationHub.addAnalysisListener(this);
+		// NotificationHub.addAnalysisListener(this);
 		Sea.getDefault().addSeaObserver(this);
 	}
 
@@ -127,56 +126,26 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	@SuppressWarnings("unchecked")
 	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(
 			Class<T2> dropType) {
-		if (useInfo) {
-			if (!dropInfo.isEmpty()) {
-				final Set<T> result = new HashSet<T>();
-				for (IDropInfo i : dropInfo) {
-					if (i.isInstance(dropType)) {
-						result.add((T) i);
-					}
+		if (!dropInfo.isEmpty()) {
+			final Set<T> result = new HashSet<T>();
+			for (IDropInfo i : dropInfo) {
+				if (i.isInstance(dropType)) {
+					result.add((T) i);
 				}
-				return result;
 			}
-			return Collections.emptySet();
+			return result;
 		}
-		return (Set<T>) Sea.getDefault().getDropsOfType(dropType);
+		return Collections.emptySet();
 	}
 
-	public void addListener(IPersistentDropInfoListener v) {
+	public void addListener(SeaObserver v) {
 		listeners.add(v);
 	}
 
 	@Override
-	public void analysisStarting() {
-		if (!useInfo || location == null || !location.exists()) {
-			for (IPersistentDropInfoListener v : listeners) {
-				v.analysisStarting();
-			}
-		}
-	}
-
-	@Override
-	public void analysisPostponed() {
-		for (IPersistentDropInfoListener v : listeners) {
-			v.analysisPostponed();
-		}
-	}
-
-	@Override
-	public void analysisCompleted() {
-		if (!useInfo || load()) {
-			for (IPersistentDropInfoListener v : listeners) {
-				v.analysisCompleted();
-			}
-		}
-	}
-
-	@Override
 	public void seaChanged() {
-		if (!useInfo) {
-			for (IPersistentDropInfoListener v : listeners) {
-				v.seaChanged();
-			}
+		for (SeaObserver v : listeners) {
+			v.seaChanged();
 		}
 	}
 }

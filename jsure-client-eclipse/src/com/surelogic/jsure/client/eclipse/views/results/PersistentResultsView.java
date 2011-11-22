@@ -66,25 +66,15 @@ public class PersistentResultsView extends ResultsView implements
 	@Override
 	public void currentScanChanged(JSureScan scan) {
 		final UIJob job = new SLUIJob() {
-
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				seaChanged();
+				saveViewState();
+				finishCreatePartControl();
+				restoreViewState();
 				return Status.OK_STATUS;
 			}
 		};
 		job.schedule();
-	}
-
-	@Override
-	public void analysisStarting() {
-		// Ignore this, so we can continue to look at the old results
-	}
-
-	@Override
-	public void seaChanged() {
-		// load it up
-		finishCreatePartControl();
 	}
 
 	@Override

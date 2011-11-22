@@ -8,8 +8,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -18,7 +16,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -26,18 +23,13 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ITreeSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
@@ -45,31 +37,20 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
-import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
-import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
-import com.surelogic.jsure.core.listeners.NotificationHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
  * This class is designed to provide a TreeViewer when results are available
  * from analysis, and to show a message otherwise.
  */
-public abstract class AbstractDoubleCheckerView extends ViewPart implements
-		IPersistentDropInfoListener {
-	protected static final Logger LOG = SLLogger
-			.getLogger("AbstractDoubleCheckerView");
-	
+public abstract class AbstractDoubleCheckerView extends ViewPart {
+
 	final public static Point ICONSIZE = new Point(22, 16);
 
-	private static final boolean useFancyWait = false;
-	
 	/**
 	 * leave {@code null} if the subclass doesn't want to use this capability.
 	 */
@@ -81,27 +62,18 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
-	protected TableViewer tableViewer;
 	protected Clipboard clipboard;
 
 	private Action doubleClickAction;
 
-	private final boolean f_useTable;
-
 	private final int f_extraStyle;
 
 	protected AbstractDoubleCheckerView() {
-		this(false);
+		this(SWT.NONE);
 	}
 
-	protected AbstractDoubleCheckerView(boolean useTable) {
-		this(useTable, SWT.NONE);
-	}
-
-	protected AbstractDoubleCheckerView(boolean useTable, int extraStyle) {
-		f_useTable = useTable;
+	protected AbstractDoubleCheckerView(int extraStyle) {
 		f_extraStyle = extraStyle;
 	}
 
@@ -111,17 +83,12 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
 		f_noResultsToShowLabel.setText(I18N
 				.msg("jsure.eclipse.view.no.scan.msg"));
-		if (f_useTable) {
-			viewer = tableViewer = new TableViewer(f_viewerbook, SWT.H_SCROLL
-					| SWT.V_SCROLL | SWT.FULL_SELECTION | f_extraStyle);
-		} else {
-			viewer = treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL
-					| SWT.V_SCROLL | f_extraStyle);
-		}
+		treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL
+				| f_extraStyle);
 		setupViewer();
 		clipboard = new Clipboard(getSite().getShell().getDisplay());
 
-		viewer.setInput(getViewSite());
+		treeViewer.setInput(getViewSite());
 		makeActions_private();
 		hookContextMenu();
 		hookDoubleClickAction();
@@ -129,25 +96,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		// start empty until the initial build is done
 		setViewerVisibility(false);
 
-		subscribe();
-
 		finishCreatePartControl();
-	}
-
-	protected void subscribe() {
-		// subscribe to listen for analysis notifications
-		NotificationHub.addAnalysisListener(this);
-		Sea.getDefault().addSeaObserver(this);
-	}
-
-	@Override
-	public void dispose() {
-		try {
-			NotificationHub.unsubscribe(this);
-			Sea.getDefault().removeSeaObserver(this);
-		} finally {
-			super.dispose();
-		}
 	}
 
 	protected void finishCreatePartControl() {
@@ -161,63 +110,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected abstract void setupViewer();
 
 	/**
-	 * Used to create a fancy waiting screen while JSure analysis runs. A copy
-	 * of the tree being shown in the display is made into an image. This image
-	 * is then grayed out and displayed. When the analysis is completed this
-	 * image is disposed.
-	 */
-	private Image f_fancyWait = null;
-
-	/**
 	 * Toggles between the empty viewer page and the Fluid results
 	 */
 	protected final void setViewerVisibility(boolean showResults) {
 		if (f_viewerbook.isDisposed())
 			return;
 		if (showResults) {
-			if (f_fancyWait != null) {
-				f_fancyWait.dispose();
-				f_fancyWait = null;
-			}
-			viewer.setInput(getViewSite());
-			f_viewerbook.showPage(viewer.getControl());
+			treeViewer.setInput(getViewSite());
+			f_viewerbook.showPage(treeViewer.getControl());
 		} else {
-			/*
-			 * Check if there is actually a project before we show grayed view.
-			 * We also need to ensure that there are not compilation errors in
-			 * the project.
-			 */
-			final IIRProjects projects = ProjectsDrop.getProjects();
-			if (useFancyWait && projects != null
-					&& !COMP_ERRORS.equals(f_noResultsToShowLabel.getText())) {
-				final Control c = viewer.getControl();
-				if (c != null && c.isVisible()) {
-					try {
-						final Display display = c.getDisplay();
-						final Point tableSize = c.getSize();
-						if (display != null && tableSize.x > 0
-								&& tableSize.y > 0) {
-							GC gc = new GC(c);
-							final Image image = new Image(display, tableSize.x,
-									tableSize.y);
-							gc.copyArea(image, 0, 0);
-							gc.dispose();
-							f_fancyWait = new Image(display, image,
-									SWT.IMAGE_GRAY);
-							image.dispose();
-							f_noResultsToShowLabel.setImage(f_fancyWait);
-						}
-					} catch (Exception e) {
-						SLLogger.getLogger()
-								.log(Level.SEVERE,
-										"Failure to create gray Verification Status image to show while analysis is running",
-										e);
-					}
-				}
-			}
-			if (projects == null) {
-				viewer.setInput(null);
-			}
 			f_viewerbook.showPage(f_noResultsToShowLabel);
 		}
 	}
@@ -227,15 +128,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
-				IStructuredSelection s = (IStructuredSelection) viewer
+				IStructuredSelection s = (IStructuredSelection) treeViewer
 						.getSelection();
 				AbstractDoubleCheckerView.this.fillContextMenu_private(manager,
 						s);
 			}
 		});
-		Menu menu = menuMgr.createContextMenu(viewer.getControl());
-		viewer.getControl().setMenu(menu);
-		getSite().registerContextMenu(menuMgr, viewer);
+		Menu menu = menuMgr.createContextMenu(treeViewer.getControl());
+		treeViewer.getControl().setMenu(menu);
+		getSite().registerContextMenu(menuMgr, treeViewer);
 	}
 
 	private void contributeToActionBars() {
@@ -261,7 +162,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		doubleClickAction = new Action() {
 			@Override
 			public void run() {
-				ISelection selection = viewer.getSelection();
+				ISelection selection = treeViewer.getSelection();
 				handleDoubleClick((IStructuredSelection) selection);
 			}
 		};
@@ -297,7 +198,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	private void hookDoubleClickAction() {
-		viewer.addDoubleClickListener(new IDoubleClickListener() {
+		treeViewer.addDoubleClickListener(new IDoubleClickListener() {
 			public void doubleClick(DoubleClickEvent event) {
 				doubleClickAction.run();
 			}
@@ -305,7 +206,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	protected final void showMessage(String message) {
-		MessageDialog.openInformation(viewer.getControl().getShell(), this
+		MessageDialog.openInformation(treeViewer.getControl().getShell(), this
 				.getClass().getSimpleName(), message);
 	}
 
@@ -315,7 +216,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	@Override
 	public final void setFocus() {
 		setViewState();
-		viewer.getControl().setFocus();
+		treeViewer.getControl().setFocus();
 	}
 
 	/**
@@ -328,14 +229,14 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 * may try while the user has pushed the button.
 	 */
 	protected final synchronized void refreshView() {
-		if (viewer != null) {
+		if (treeViewer != null) {
 			try {
 				edu.cmu.cs.fluid.ide.IDE.runAtMarker(new AbstractRunner() {
 					public void run() {
 						updateView();
 					}
 				});
-				viewer.refresh();
+				treeViewer.refresh();
 			} catch (Exception e) {
 				// @ignore since this SHOULD only happen on shutdown
 			}
@@ -433,7 +334,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			}
 
 			f_selectionPath.clear();
-			final ITreeSelection selection = (ITreeSelection) viewer
+			final ITreeSelection selection = (ITreeSelection) treeViewer
 					.getSelection();
 			if (selection != null) {
 				final TreePath[] paths = selection.getPaths();
@@ -449,7 +350,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	protected final void restoreViewState() {
-		final IContentProvider cp = viewer.getContentProvider();
+		final IContentProvider cp = treeViewer.getContentProvider();
 		if (cp instanceof ITreeContentProvider) {
 			/*
 			 * Restore the state of the tree (as best we can).
@@ -546,7 +447,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					ISelection selection = new TreeSelection(new TreePath(
 							treePath.toArray()));
 					// System.out.println("Selected: "+message);
-					viewer.setSelection(selection);
+					treeViewer.setSelection(selection);
 				} else {
 					restoreSavedSelection(tcp, path, element, treePath);
 				}
@@ -562,60 +463,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (!found && !treePath.isEmpty()) {
 			ISelection selection = new TreeSelection(new TreePath(
 					treePath.toArray()));
-			viewer.setSelection(selection);
-		}
-	}
-
-	/*
-	 * Implementation of IAnalysisListener
-	 */
-
-	public void analysisStarting() {
-		LOG.fine("analysisStarting() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					saveViewState();
-					f_noResultsToShowLabel.setText(PLEASE_WAIT);
-					setViewerVisibility(false);
-				}
-			});
-		}
-	}
-
-	public final void analysisCompleted() {
-		LOG.fine("analysisCompleted() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					refreshView();
-					restoreViewState();
-					setViewerVisibility(true);
-				}
-			});
-		}
-	}
-
-	public final void analysisPostponed() {
-		LOG.fine("analysisPostponed() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					f_noResultsToShowLabel.setText(COMP_ERRORS);
-					setViewerVisibility(false);
-				}
-			});
-		}
-	}
-
-	public void seaChanged() {
-		LOG.fine("seaChanged() called");
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					refreshView();
-				}
-			});
+			treeViewer.setSelection(selection);
 		}
 	}
 
@@ -623,11 +471,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 * For use by view contribution actions in other plug-ins so that they can
 	 * get a pointer to the TreeViewer
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(final Class adapter) {
+	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
 		if (adapter == TreeViewer.class) {
-			return viewer;
+			return treeViewer;
 		} else {
 			return super.getAdapter(adapter);
 		}

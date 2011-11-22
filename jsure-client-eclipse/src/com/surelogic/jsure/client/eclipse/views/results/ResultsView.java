@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.Action;
@@ -57,8 +56,6 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 public class ResultsView extends AbstractDoubleCheckerView {
 
-	private static final Logger LOG = SLLogger.getLogger("ResultsView");
-
 	protected final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
 	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
@@ -70,14 +67,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			f_contentProvider.setShowInferences(toggle);
 			f_labelProvider.setShowInferences(toggle);
 			setViewState();
-			viewer.refresh();
+			treeViewer.refresh();
 		}
 	};
 
 	private final Action f_actionExpand = new Action() {
 		@Override
 		public void run() {
-			final ISelection selection = viewer.getSelection();
+			final ISelection selection = treeViewer.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				treeViewer.expandToLevel(50);
 			} else {
@@ -95,7 +92,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private final Action f_actionCollapse = new Action() {
 		@Override
 		public void run() {
-			final ISelection selection = viewer.getSelection();
+			final ISelection selection = treeViewer.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				treeViewer.collapseAll();
 			} else {
@@ -111,16 +108,16 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	};
 
 	private final Action f_actionLinkToOriginal = new Action() {
-		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
-			final ISelection selection = viewer.getSelection();
+			final ISelection selection = treeViewer.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				treeViewer.collapseAll();
 			} else {
 				final Object obj = ((IStructuredSelection) selection)
 						.getFirstElement();
 				if (obj instanceof AbstractContent) {
+					@SuppressWarnings("rawtypes")
 					final AbstractContent c = (AbstractContent) obj;
 					if (c.cloneOf != null) {
 
@@ -161,7 +158,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			 * tree is selected and (2) a container folder for multiple proposed
 			 * promise drops is selected.
 			 */
-			final IStructuredSelection selection = (IStructuredSelection) viewer
+			final IStructuredSelection selection = (IStructuredSelection) treeViewer
 					.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				return Collections.emptyList();
@@ -315,8 +312,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					}
 				}
 			} else {
-				LOG.warning("e1 and e2 are not AbstractContent objects: e1 = \""
-						+ e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
+				SLLogger.getLogger().warning(
+						"e1 and e2 are not AbstractContent objects: e1 = \""
+								+ e1.toString() + "\"; e2 = \"" + e2.toString()
+								+ "\"");
 				return -1;
 			}
 
@@ -334,10 +333,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void setupViewer() {
-		viewer.setContentProvider(f_contentProvider);
-		viewer.setLabelProvider(f_labelProvider);
-		viewer.setSorter(createSorter());
-		ColumnViewerToolTipSupport.enableFor(viewer);
+		treeViewer.setContentProvider(f_contentProvider);
+		treeViewer.setLabelProvider(f_labelProvider);
+		treeViewer.setSorter(createSorter());
+		ColumnViewerToolTipSupport.enableFor(treeViewer);
 	}
 
 	protected ViewerSorter createSorter() {
@@ -345,7 +344,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	String getSelectedText() {
-		final IStructuredSelection selection = (IStructuredSelection) viewer
+		final IStructuredSelection selection = (IStructuredSelection) treeViewer
 				.getSelection();
 		final StringBuilder sb = new StringBuilder();
 		for (final Object elt : selection.toList()) {
@@ -599,7 +598,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			try {
 				zipFile = new FileOutputStream(filename);
 			} catch (final FileNotFoundException e) {
-				LOG.log(Level.SEVERE, "Unable to create ZIP file ", e);
+				SLLogger.getLogger().log(Level.SEVERE,
+						"Unable to create ZIP file ", e);
 				MessageDialog.openError(shell, "Error exporting results",
 						"Unable to create ZIP results file");
 				exportZIPForStandAloneResultsViewer(); // try again
