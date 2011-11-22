@@ -405,7 +405,7 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public String toString() {
-			if (hasLocal) {
+			if (hasDiffs()) {
 				return PromisesXMLContentProvider.DIRTY_PREFIX + name;
 			}
 			return name;
@@ -418,7 +418,7 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasConflicts() {
-			if (hasLocal) {
+			if (hasDiffs()) {
 				for (Type t : types) {
 					if (t.hasUpdate()) {
 						return true;
@@ -430,7 +430,15 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasDiffs() {
-			return hasLocal;
+			if (hasLocal) {
+				return true;
+			}
+			for (Type t : types) {
+				if (t.hasDiffs()) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 
@@ -461,7 +469,7 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public String toString() {
-			if (isLocal) {
+			if (hasDiffs()) {
 				/*
 				 * Handled as a decorator
 				 * 
@@ -478,22 +486,35 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		void buildChildren() {
+			buildChildren(true);
+		}
+		
+		/**
+		 * @return true if root exists after the call
+		 */
+		private boolean buildChildren(boolean force) {
 			if (root != null) {
-				return;
+				return true;
 			}
 			final String path = getPath();
-			final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
-			try {
-				root = PromisesXMLReader.load(path, rv.first(), rv.second());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (force) {
+				final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
+				try {
+					root = PromisesXMLReader.load(path, rv.first(), rv.second());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return true;
+			} else {
+				root = PromisesXMLReader.get(path);
+				return root != null;
 			}
 		}
 
 		@Override
 		public boolean hasConflicts() {
-			if (isLocal) {
+			if (hasDiffs()) {
 				return hasUpdate();
 			}
 			return false;
@@ -501,7 +522,14 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasDiffs() {
-			return isLocal;
+			if (isLocal) {
+				return true;
+			}
+			// Check if there are any changes
+			if (buildChildren(false)) {
+				return root.isDirty();
+			}
+			return false;
 		}
 	}
 }

@@ -273,4 +273,8 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	public static void clear(String relativePath) {
 		cache.remove(relativePath);
 	}
+	
+	public static PackageElement get(String path) {
+		return cache.get(path);
+	}
 }
