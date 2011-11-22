@@ -5,9 +5,9 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
 import com.surelogic.jsure.client.eclipse.views.finder.FinderView;
-import com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
@@ -19,7 +19,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 
 	public void createInitialLayout(IPageLayout layout) {
 		final String scanMgt = ScanManagerView.class.getName();
-		final String resultsView = PersistentResultsView.class.getName();
+		final String resultsView = ResultsView.class.getName();
 		final String finderView = FinderView.class.getName();
 		final String proposedPromiseView = ProposedPromiseView.class.getName();
 		final String problemsView = ProblemsView.class.getName();
