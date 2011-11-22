@@ -38,7 +38,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.JavacDriver;
 
@@ -54,7 +54,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
-public class ResultsView extends AbstractDoubleCheckerView {
+public class ResultsView extends AbstractJSureResultsView {
 
 	protected final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 

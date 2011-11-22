@@ -47,7 +47,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * This class is designed to provide a TreeViewer when results are available
  * from analysis, and to show a message otherwise.
  */
-public abstract class AbstractDoubleCheckerView extends ViewPart {
+public abstract class AbstractJSureResultsView extends ViewPart {
 
 	final public static Point ICONSIZE = new Point(22, 16);
 
@@ -57,23 +57,22 @@ public abstract class AbstractDoubleCheckerView extends ViewPart {
 	protected PageBook f_viewerbook = null;
 
 	protected Label f_noResultsToShowLabel = null;
+	protected TreeViewer treeViewer;
 
 	protected static final String PLEASE_WAIT = "Performing analysis...please wait";
-
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected TreeViewer treeViewer;
 	protected Clipboard clipboard;
 
 	private Action doubleClickAction;
 
 	private final int f_extraStyle;
 
-	protected AbstractDoubleCheckerView() {
+	protected AbstractJSureResultsView() {
 		this(SWT.NONE);
 	}
 
-	protected AbstractDoubleCheckerView(int extraStyle) {
+	protected AbstractJSureResultsView(int extraStyle) {
 		f_extraStyle = extraStyle;
 	}
 
@@ -130,7 +129,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart {
 			public void menuAboutToShow(IMenuManager manager) {
 				IStructuredSelection s = (IStructuredSelection) treeViewer
 						.getSelection();
-				AbstractDoubleCheckerView.this.fillContextMenu_private(manager,
+				AbstractJSureResultsView.this.fillContextMenu_private(manager,
 						s);
 			}
 		});
