@@ -260,7 +260,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	}
 	
 	private static PackageElement loadOrNull(File f) {
-		if (f != null && f.isFile()) {
+		if (f != null && f.isFile() && f.length() > 0) {
 			try {
 				return loadRaw(f);
 			} catch(Exception e) {

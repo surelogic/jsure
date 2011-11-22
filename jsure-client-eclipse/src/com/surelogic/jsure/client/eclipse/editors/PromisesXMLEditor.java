@@ -31,6 +31,7 @@ import org.eclipse.ui.part.*;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
+import com.surelogic.annotation.rules.*;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.*;
@@ -496,7 +497,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			makeMenuItem(menu, "Delete", new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent e) {          
-		        	me.delete();
+		        	final boolean origDirty = provider.pkg.isDirty();
+		        	final boolean deletedNew = me.delete();
+		        	if (deletedNew && !origDirty) {
+		        		// Probably saved after creation, so we need to save it
+		        		isDirty = true;
+		        	}
 		        	markAsDirty();
 		          	contents.refresh();
 	            	contents.expandToLevel(me.getParent(), 1);
@@ -685,12 +691,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				boolean changed = false;
 				for(Object o : d.getResult()) {
 					final String tag = (String) o;
+					final String contents = getDefaultContents(tag, makeScopedPromise);
 					final AnnotationElement a;
 					final Map<String,String> attrs = Collections.<String,String>emptyMap();
 					if (makeScopedPromise) {
-						a = new AnnotationElement(j, null, ScopedPromiseRules.PROMISE, "@"+tag+" for "+target.target, attrs);
+						a = new AnnotationElement(j, null, ScopedPromiseRules.PROMISE, "@"+tag+contents+
+								                  " for "+target.target, attrs);
 					} else {
-						a = new AnnotationElement(j, null, tag, "", attrs);
+						a = new AnnotationElement(j, null, tag, contents, attrs);
 					}
 					//System.out.println("Created elt: "+a);
 					j.addPromise(a);
@@ -704,6 +712,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 					markAsDirty();
 				}
 			}
+		}
+
+		private String getDefaultContents(String tag, boolean isScopedPromise) {
+			if (ThreadEffectsRules.STARTS.equals(tag)) {
+				return isScopedPromise ? "(nothing)" : "nothing";
+			}
+			return "";
 		}
 	}
 	

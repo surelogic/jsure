@@ -161,6 +161,10 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	}
 
+	static final Object[] noDiffs = new Object[] {
+		"No changes have been made to the standard library annotations"
+	};
+	
 	class Provider extends PromisesXMLContentProvider implements
 			IJSureTreeContentProvider, PromisesXMLReader.Listener {
 		Package[] pkgs = noPackages;
@@ -210,14 +214,18 @@ public class XMLExplorerView extends AbstractJSureView {
 			switch (type) {
 			// case CONFLICTS:
 			case DIFFS:
-				return filter(type, pkgs);
+				Object[] rv = filter(type, pkgs);
+				if (rv.length == 0) {
+					return noDiffs;
+				}
+				return rv;
 			default:
 				return pkgs;
 			}
 		}
 
 		@Override
-		public boolean hasChildren(Object element) {
+		public boolean hasChildren(Object element) {			
 			if (element instanceof Package) {
 				Package p = (Package) element;
 				return p.types.length != 0;
@@ -226,6 +234,9 @@ public class XMLExplorerView extends AbstractJSureView {
 				Type t = (Type) element;
 				return t.hasChildren();
 			}
+			if (element instanceof String) {
+				return false;
+			}				
 			return super.hasChildren(element);
 		}
 
@@ -242,17 +253,23 @@ public class XMLExplorerView extends AbstractJSureView {
 					return super.getChildren(t.root.getClassElement());
 				}
 			}
+			if (parent instanceof String) {
+				return noStrings;
+			}
 			// return noStrings;
 			return super.getChildren(parent);
 		}
 
 		@Override
-		public Object getParent(Object element) {
+		public Object getParent(Object element) {			
 			if (element instanceof Type) {
 				Type t = (Type) element;
 				return t.pkg;
 			}
 			if (element instanceof Package) {
+				return null;
+			}
+			if (element instanceof String) {
 				return null;
 			}
 			return super.getParent(element);
@@ -315,6 +332,9 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (element instanceof Type) {
 				Type t = (Type) element;
 				return getCachedImage(CommonImages.IMG_CLASS, t.hasConflicts());
+			}
+			if (element instanceof String) {
+				return null;
 			}
 			return getCachedImage(super.getImageDescriptor(element), false);
 		}

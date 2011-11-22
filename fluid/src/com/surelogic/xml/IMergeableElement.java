@@ -6,7 +6,7 @@ public interface IMergeableElement extends IJavaElement {
 	boolean isModified();
 	int getRevision();
 	void incrRevision();
-	void delete();
+	boolean delete();
 	
 	/**
 	 * Also include anything attached to me

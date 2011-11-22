@@ -27,13 +27,24 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	}
 	
 	public AnnotationElement addPromise(AnnotationElement a) {
-		markAsDirty();
+		a.markAsDirty();
 		a.setParent(this);
 		AnnotationElement old = promises.put(a.getUid(), a);
 		updateOrder(old, a);
 		return old;
 	}
 
+	/**
+	 * Does not mark this as modified, since the anno should be new
+	 */
+	void removePromise(AnnotationElement a) {
+		AnnotationElement old = promises.remove(a.getUid());
+		if (old == a) {
+			List<AnnotationElement> l = order.get(a.getPromise());
+			l.remove(a);
+		}
+	}
+	
 	AnnotationElement getPromise(String uid) {
 		return promises.get(uid);
 	}
