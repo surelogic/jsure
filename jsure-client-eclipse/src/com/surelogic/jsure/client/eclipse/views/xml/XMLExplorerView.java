@@ -520,12 +520,9 @@ public class XMLExplorerView extends AbstractJSureView {
 		public boolean hasDiffs() {
 			// Check if there are any changes within Eclipse
 			if (buildChildren(false)) {
-				return root.isDirty();
+				return root.isModified();
 			}
-			if (isLocal) {
-				return true;
-			}
-			return false;
+			return isLocal;
 		}
 	}
 }
