@@ -69,19 +69,12 @@ public class PersistentResultsView extends ResultsView implements
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				saveViewState();
-				seaChanged();
+				finishCreatePartControl();
 				restoreViewState();
 				return Status.OK_STATUS;
 			}
 		};
 		job.schedule();
-	}
-
-	@Override
-	public void seaChanged() {
-		System.out.println("****************SEA CHANGED");
-		// load it up
-		finishCreatePartControl();
 	}
 
 	@Override
