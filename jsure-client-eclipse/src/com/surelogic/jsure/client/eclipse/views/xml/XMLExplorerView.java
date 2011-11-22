@@ -387,11 +387,10 @@ public class XMLExplorerView extends AbstractJSureView {
 	static class Package implements Filterable, Comparable<Package> {
 		final String name;
 		final Type[] types;
-		final boolean hasLocal;
 
 		public Package(Entry<String, Collection<String>> e,
 				Collection<String> local) {
-			hasLocal = local != null;
+			final boolean hasLocal = local != null;
 			name = e.getKey();
 			types = new Type[e.getValue().size()];
 			int i = 0;
@@ -430,9 +429,6 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasDiffs() {
-			if (hasLocal) {
-				return true;
-			}
 			for (Type t : types) {
 				if (t.hasDiffs()) {
 					return true;
@@ -522,12 +518,12 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasDiffs() {
-			if (isLocal) {
-				return true;
-			}
-			// Check if there are any changes
+			// Check if there are any changes within Eclipse
 			if (buildChildren(false)) {
 				return root.isDirty();
+			}
+			if (isLocal) {
+				return true;
 			}
 			return false;
 		}
