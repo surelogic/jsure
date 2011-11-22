@@ -30,7 +30,8 @@ public class ImportTutorialProjectsAction implements
 				loader.getResource("/lib/PlanetBaronJSure.zip"),
 				loader.getResource("/lib/BoundedFIFOJSure.zip"),
 				loader.getResource("/lib/oswego.util.concurrent.zip"),
-				loader.getResource("/lib/SimpleVariable.zip"));
+        loader.getResource("/lib/SimpleVariable.zip"),
+        loader.getResource("/lib/AdvancedEffectExamples.zip"));
 	}
 
 	public void selectionChanged(final IAction action,
