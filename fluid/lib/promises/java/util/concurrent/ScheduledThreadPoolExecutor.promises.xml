@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" revision="1">
     <class name="ScheduledThreadPoolExecutor">
-    	<class name="DelayedWorkQueue">
-    		<ThreadSafe/>
-    	
-       		<method name="isEmpty">
-            	<Borrowed>this</Borrowed>
-        	</method>    
-    
-        	<method name="iterator">
-            	<Borrowed>this</Borrowed>
-        	</method>    	
-    	</class>
+        <class name="DelayedWorkQueue">
+            <ThreadSafe/>
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
+
+            <method name="iterator">
+                <Borrowed>this</Borrowed>
+            </method>
+
+            <method name="remove">
+                <Borrowed revision="1">this</Borrowed>
+            </method>
+        </class>
     </class>
 </package>

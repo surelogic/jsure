@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.management.openmbean">
+<package name="javax.management.openmbean" revision="1">
     <class name="TabularDataSupport">
         <method name="clear">
             <Borrowed>this</Borrowed>
@@ -14,8 +14,11 @@
             <Borrowed>this</Borrowed>
         </method>
 
+        <method name="isEmpty">
+            <Borrowed revision="1">this</Borrowed>
+        </method>
+
         <method name="keySet">
-        	<!-- Not quite -->
             <Borrowed>this</Borrowed>
         </method>
 
@@ -32,7 +35,6 @@
         </method>
 
         <method name="values">
-        	<!-- Not quite -->        
             <Borrowed>this</Borrowed>
         </method>
     </class>

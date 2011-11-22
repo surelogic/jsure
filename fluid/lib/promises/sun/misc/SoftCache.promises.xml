@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.misc" revision="1">
+<package name="sun.misc" revision="2">
     <class name="SoftCache">
         <method name="clear">
             <Borrowed>this</Borrowed>
@@ -19,6 +19,7 @@
 
         <method name="isEmpty">
             <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
         </method>
 
         <method name="remove" params="java.lang.Object">
