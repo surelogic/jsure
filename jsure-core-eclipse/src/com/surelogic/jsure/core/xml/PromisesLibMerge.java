@@ -64,6 +64,9 @@ public final class PromisesLibMerge {
 		if (!fLibPath.isFile() || !libPath.isFile()) {		
 			return false;
 		}
+		if (libPath.length() <= 0) {
+			return false;
+		}
 		try {
 			PackageElement fluid = PromisesXMLReader.loadRaw(fLibPath);
 			PackageElement local = PromisesXMLReader.loadRaw(libPath);			
