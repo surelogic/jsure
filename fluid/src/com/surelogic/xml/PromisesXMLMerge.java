@@ -105,6 +105,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			return null;
 		}
 		
+		@Override
 		public Void visit(AnnotationElement a) {
 			if (a.isModified()) {
 				a.markAsDirty();
