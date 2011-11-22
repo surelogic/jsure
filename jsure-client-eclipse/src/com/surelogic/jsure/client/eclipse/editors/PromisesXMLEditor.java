@@ -305,7 +305,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	public void dispose() {
 		PromisesXMLReader.stopListening(this);		
 		
-		if (provider.isDirty()) {
+		if (isDirty()) {
 			// Nuke changes
 			provider.deleteUnsavedChanges();
 		}
@@ -314,7 +314,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	
 	@Override
 	public boolean isDirty() {
-		return provider.isDirty();
+		return isDirty || provider.isDirty();
 	}
 
 	@Override
@@ -512,8 +512,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	        			provider.deleteAllChanges();
 	        			contents.refresh();
 	        			contents.expandAll();
+	        			/*
 	        			localXML.doRevertToSaved();			        	
 	        			markAsClean();
+	        			*/
+	        			markAsDirty();
 	        		}
 	        	} else {
 	        		MessageDialog.openInformation(s, "No Changes", "There are no changes to delete");

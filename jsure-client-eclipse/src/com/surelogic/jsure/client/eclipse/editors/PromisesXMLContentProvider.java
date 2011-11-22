@@ -68,12 +68,17 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		if (status == null || status == FileStatus.READ_ONLY) {
 			return;
 		}
-		if (!pkg.isDirty()) {
-			return;
-		}
 		try {
 			final File root = JSurePreferencesUtility.getJSureXMLDirectory();
 			File f = new File(root, location.toASCIIString());
+			if (!pkg.isDirty()) {
+				// Try to delete any diffs
+				if (f.exists()) {
+					f.delete();
+				}
+				return;
+			}
+			
 			File dir = f.getParentFile();
 			if (!dir.exists()) {
 				dir.mkdirs();
@@ -131,6 +136,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	}
 
 	public String build() {
+		return build(false);
+	}
+	
+	String build(boolean ignoreDiffs) { 
 		if (location != null) {
 			try {
 				roots = new Object[1];
@@ -147,7 +156,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
 					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
-					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), rv.second());			
+					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());			
 
 					if (pkg == null) {
 						// No XML at all, so we have to create something
@@ -303,11 +312,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 	}
 
 	void deleteAllChanges() {
+		/*
     	File local = new File(localXML);
     	local.delete();
-    	
+    	*/
     	deleteUnsavedChanges(false);
-		build();
+		build(true);
 		PromisesXMLReader.refreshAll();
 	}
 
