@@ -55,12 +55,13 @@ public class ExportToSnapshot implements IViewActionDelegate {
     if (scan != null) {
         try {
             IIRProjects projs = scan.getProjects();
+            outer:
             for (final IProject current : projects) {
               if (current.isOpen()) {
             	  for(String p : projs.getProjectNames()) {
             		  if (p.equals(current.getName())) {
             			  resultsBelongTo = current;
-            			  break;
+            			  break outer;
             		  }
             	  }
               }
