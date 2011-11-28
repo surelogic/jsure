@@ -22,9 +22,9 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
@@ -51,7 +51,7 @@ public class ExportToSnapshot implements IViewActionDelegate {
     final IProject[] projects =
       ResourcesPlugin.getWorkspace().getRoot().getProjects();
     
-    final JSureScan scan = JSureDataDirHub.getInstance().getCurrentScan();
+    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
         try {
             IIRProjects projs = scan.getProjects();
@@ -103,7 +103,7 @@ public class ExportToSnapshot implements IViewActionDelegate {
 				             oracleFile.getLocation().toFile());
 				             */
     	SeaSummary.summarize(resultsBelongTo.getName(), 
-    			PersistentDropInfo.getInstance().getRawInfo(), 
+    			scan.getDropInfo(), 
     			oracleFile.getLocation().toFile());
 	} catch (IOException e1) {
 		e1.printStackTrace();
