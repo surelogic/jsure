@@ -19,7 +19,9 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
@@ -48,17 +50,26 @@ public class ExportToSnapshot implements IViewActionDelegate {
     IProject resultsBelongTo = null;
     final IProject[] projects =
       ResourcesPlugin.getWorkspace().getRoot().getProjects();
-    IIRProjects projs = ProjectsDrop.getDrop().getIIRProjects();
-    for (final IProject current : projects) {
-      if (current.isOpen()) {
-    	  for(String p : projs.getProjectNames()) {
-    		  if (p.equals(current.getName())) {
-    			  resultsBelongTo = current;
-    			  break;
-    		  }
-    	  }
-      }
+    
+    final JSureScan scan = JSureDataDirHub.getInstance().getCurrentScan();
+    if (scan != null) {
+        try {
+            IIRProjects projs = scan.getProjects();
+            for (final IProject current : projects) {
+              if (current.isOpen()) {
+            	  for(String p : projs.getProjectNames()) {
+            		  if (p.equals(current.getName())) {
+            			  resultsBelongTo = current;
+            			  break;
+            		  }
+            	  }
+              }
+            }
+        } catch(Exception e) {
+        	e.printStackTrace();
+        }
     }
+
     if (resultsBelongTo == null) {
       MessageDialog.openError(shell, "Couldn't Find Project", 
           "Couldn't determine which project the results belong to.");
