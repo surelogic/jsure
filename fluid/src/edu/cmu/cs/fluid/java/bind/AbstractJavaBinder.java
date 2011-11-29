@@ -1719,13 +1719,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           if (ClassDeclaration.prototype.includes(op)) {
             formals = ClassDeclaration.getTypes(decl);
           }
-          else if (EnumDeclaration.prototype.includes(op) || 
-                   AnnotationDeclaration.prototype.includes(op) ||
-                   EnumConstantClassDeclaration.prototype.includes(op)) {
-            return t; // No type formals possible
-          }
+          else if (InterfaceDeclaration.prototype.includes(op)) {
+              formals = InterfaceDeclaration.getTypes(decl);    
+          } 
           else {
-            formals = InterfaceDeclaration.getTypes(decl);                     
+              return t; // No type formals possible  
           }       
           
           Iteratable<IRNode> tf = TypeFormals.getTypeIterator(formals);
