@@ -127,14 +127,14 @@ public interface IJavaScope {
     
     public static final Selector isTypeDecl = new AbstractSelector("Only type decls") {
       public boolean select(IRNode node) {
-        return JJNode.tree.getOperator(node) instanceof TypeDeclInterface;
+        return isTypeDecl(node);
       }
     };
     
     public static final Selector isPkgTypeDecl = new AbstractSelector("Only type/pkg decls") {
         public boolean select(IRNode node) {
-          return JJNode.tree.getOperator(node) instanceof TypeDeclInterface || 
-                 JJNode.tree.getOperator(node) instanceof PackageDeclaration;
+          final Operator op = JJNode.tree.getOperator(node);
+          return isTypeDecl(op) || op instanceof PackageDeclaration;
         }
     };
     
@@ -271,8 +271,7 @@ public interface IJavaScope {
     
     public static final Selector isntType = new AbstractSelector("Not type decl") {
       public boolean select(IRNode node) {
-        Operator op = JJNode.tree.getOperator(node);
-        return !(op instanceof TypeDeclInterface);
+        return !isTypeDecl(node);
       }      
     };
     public static IBinding lookupNonType(IJavaScope scope, String name, IRNode useSite) {
@@ -301,12 +300,18 @@ public interface IJavaScope {
     public static final Selector isDecl = eitherSelector(isValueDecl, 
     		                                             eitherSelector(isTypeDecl, isMethodDecl));
     
+    public static boolean isTypeDecl(final Operator op) {
+    	return op instanceof TypeDeclInterface && 
+    	// excluded because it really act as a field/constant declaration, despite how it's implemented
+    	!(op instanceof EnumConstantClassDeclaration); 
+    }
+    
     /**
      * @param node
      * @return
      */
     public static boolean isTypeDecl(IRNode node) {
-      return JJNode.tree.getOperator(node) instanceof TypeDeclInterface;
+      return isTypeDecl(JJNode.tree.getOperator(node));
     }
     
     public static boolean isPackageDecl(IRNode node) {
