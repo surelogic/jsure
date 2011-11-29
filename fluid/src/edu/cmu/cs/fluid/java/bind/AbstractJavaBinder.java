@@ -1720,7 +1720,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             formals = ClassDeclaration.getTypes(decl);
           }
           else if (EnumDeclaration.prototype.includes(op) || 
-                   AnnotationDeclaration.prototype.includes(op)) {
+                   AnnotationDeclaration.prototype.includes(op) ||
+                   EnumConstantClassDeclaration.prototype.includes(op)) {
             return t; // No type formals possible
           }
           else {
