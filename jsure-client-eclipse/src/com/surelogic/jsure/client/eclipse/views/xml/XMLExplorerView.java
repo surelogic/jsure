@@ -5,6 +5,9 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
@@ -17,6 +20,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.editors.*;
 import com.surelogic.jsure.client.eclipse.views.*;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
@@ -191,7 +195,16 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		public void refreshAll() {
 			build();
-			f_viewer.refresh();
+
+			// This shouldn't be necessary, but Eclipse doesn't seem to 
+			// realize that the viewer changed
+			new SLUIJob() {
+				@Override
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					f_viewer.refresh();
+					return Status.OK_STATUS;
+				}
+			}.schedule();	
 		}
 
 		@Override
