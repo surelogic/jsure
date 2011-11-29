@@ -2,7 +2,6 @@ package com.surelogic.xml;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
