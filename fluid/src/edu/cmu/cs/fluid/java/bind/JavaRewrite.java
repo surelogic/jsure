@@ -28,6 +28,8 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 @SuppressWarnings("deprecation")
 public class JavaRewrite implements JavaGlobals {
+	private static final String VALUES = "values";
+
 	/**
 	 * Logger for this class
 	 */
@@ -176,12 +178,14 @@ public class JavaRewrite implements JavaGlobals {
 					changed |= ensureConstructorStuffForObject(x);					
 				} else {
 					changed |= ensureConstructorStuff(x);
-					if (EnumDeclaration.prototype.includes(op) && !JavaNode.getModifier(x, JavaNode.AS_BINARY)) {
-						if (debug)
-							LOG.finer("Adding implicit methods for "
-									+ JavaNames.getTypeName(x));
-						addImplicitEnumMethods(x);
-						changed = true;
+					if (EnumDeclaration.prototype.includes(op)) {
+						if (!JavaNode.getModifier(x, JavaNode.AS_BINARY) || missingValuesMethod(x)) {					
+							System.err.println("Adding implicit methods for "+qname);
+							addImplicitEnumMethods(x);
+							changed = true;						
+						} else {
+							System.err.println("Not adding implicit methods to "+qname);
+						}
 					}
 				}
 				//System.out.println("Ensuring defaults for "+qname);
@@ -363,6 +367,21 @@ public class JavaRewrite implements JavaGlobals {
 		return changed;
 	}
 
+	private boolean missingValuesMethod(IRNode t) {
+		for(IRNode m : VisitUtil.getClassMethods(t)) {
+			if (!MethodDeclaration.prototype.includes(m)) {
+				continue;
+			}
+			if (VALUES.equals(JJNode.getInfoOrNull(m))) {			
+				final IRNode params = MethodDeclaration.getParams(m);				
+				if (JJNode.tree.numChildren(params) == 0) {
+					return false;
+				}
+ 			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Add static E[] values() and static E valueOf(String n)
 	 * 
@@ -403,7 +422,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode type = ArrayType.createNode(makeTypeName(ed), 1);
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
-				"values", noNodes, noNodes, body);
+				VALUES, noNodes, noNodes, body);
 		ReturnValueDeclaration.makeReturnNode(rv);
 		return rv;
 	}
