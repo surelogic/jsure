@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.AppendIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -276,10 +277,20 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     {
       Entry entry = direct.get(name);
       if (entry != null) {
-        entry.addUse(useSite);
         IJavaScope scope = entry.getScope();
-        if (scope != null)
-          return scope.lookup(name, useSite, selector);
+        if (scope != null) {
+          IBinding b = scope.lookup(name, useSite, selector);
+          if (b != null) {
+        	  if (!selector.select(b.getNode())) {
+        		  System.out.println("Didn't use selector on "+name);
+        	  }
+              entry.addUse(useSite);
+        	  return b;
+          } else {
+        	  System.out.println("Didn't find "+name+" yet");
+          }
+          // Otherwise, keep looking
+        }
       }
     }
     // next try package
@@ -304,7 +315,9 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
         IBinding x = scope.lookup(name, useSite, selector);
         if (x != null) {
           entry.addUse(useSite);
-          if (BindUtil.isAccessible(binder.getTypeEnvironment(), x.getNode(),useSite)) return x;
+          if (BindUtil.isAccessible(binder.getTypeEnvironment(), x.getNode(),useSite)) {
+        	  return x;
+          }
         }
       }
     }
@@ -324,14 +337,19 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");
     }
+    Iteratable<IBinding> rv = null;
+    
     // first try direct import
     {
       Entry entry = direct.get(name);
       if (entry != null) {
-        entry.addUse(useSite);
         IJavaScope scope = entry.getScope();
-        if (scope != null)
-          return scope.lookupAll(name, useSite, selector);
+        if (scope != null) {
+          rv = scope.lookupAll(name, useSite, selector);
+          if (rv != null && rv.hasNext()) {
+              entry.addUse(useSite);
+          } 
+        }
       }
     }
     // No package level methods/constructors
@@ -348,14 +366,18 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
         Iteratable<IBinding> x = scope.lookupAll(name, useSite, selector);
         if (x != null && x.hasNext()) {
           entry.addUse(useSite);
-          return x;
+          if (rv != null) {
+        	  rv = new AppendIterator<IBinding>(rv, x);
+          } else {
+        	  rv = x;
+          }
         }
       }
     }
     // No outer methods and constructors
     
     // found nothing:
-    return null;
+    return rv;
   }  
   
   public void printTrace(PrintStream out, int indent) {
