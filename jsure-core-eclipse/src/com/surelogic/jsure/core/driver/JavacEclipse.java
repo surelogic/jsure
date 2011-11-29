@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.Resources;
 import com.surelogic.javac.*;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -56,24 +55,22 @@ public class JavacEclipse extends Javac {
     @Override
     public URL getResourceRoot() {
     	try {
-            return Resources.findRoot("edu.cmu.cs.fluid");
-    	} catch(IllegalStateException e) {
-    		URL here = Resources.findRoot("com.surelogic.jsure.client.eclipse");
-    		try {
-    			File f = new File(here.toURI());
-    			System.out.println("j.c.e = "+f);
-    			for(File f2 : f.getParentFile().listFiles()) {
-    				if (f2.getName().startsWith("edu.cmu.cs.fluid_")) {
-    					System.out.println("Found "+f2);
-    					try {
-							return f2.toURI().toURL();
-						} catch (MalformedURLException e1) {
-							e1.printStackTrace();
-						}
+    		File f = new File(EclipseUtility.getDirectoryOf("edu.cmu.cs.fluid"));
+    		return f.toURI().toURL();
+    	} catch(Throwable e) {
+    		// Try to use this plugin to find fluid
+    		String here = EclipseUtility.getDirectoryOf("com.surelogic.jsure.core");
+    		File f = new File(here);
+    		System.out.println("j.core = "+f);
+    		for(File f2 : f.getParentFile().listFiles()) {
+    			if (f2.getName().startsWith("edu.cmu.cs.fluid_")) {
+    				System.out.println("Found "+f2);
+    				try {
+    					return f2.toURI().toURL();
+    				} catch (MalformedURLException e1) {
+    					e1.printStackTrace();
     				}
     			}
-    		} catch (URISyntaxException use) {
-    			e.printStackTrace();
     		}
     	}
     	return null;

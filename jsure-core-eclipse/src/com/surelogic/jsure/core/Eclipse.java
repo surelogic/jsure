@@ -1,5 +1,7 @@
 package com.surelogic.jsure.core;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.Resources;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -354,7 +355,13 @@ public final class Eclipse extends IDE {
 
 	@Override
 	public URL getResourceRoot() {
-		return Resources.findRoot("edu.cmu.cs.fluid");
+		File f = new File(EclipseUtility.getDirectoryOf("edu.cmu.cs.fluid"));
+		try {
+			return f.toURI().toURL();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public static final boolean testing = XUtil.testing;
