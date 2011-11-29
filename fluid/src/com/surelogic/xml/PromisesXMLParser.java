@@ -25,7 +25,7 @@ public final class PromisesXMLParser {
 		try {	
 			URI uri = url.toURI();
 			fluidDir = new File(uri);
-		} catch (URISyntaxException e) {
+		} catch (Exception e) {
 			if ("file".equals(url.getProtocol())) {
 				final String path = url.getPath();
 				fluidDir = new File(path);
