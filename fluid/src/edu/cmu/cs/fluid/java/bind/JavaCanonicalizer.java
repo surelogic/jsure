@@ -516,7 +516,9 @@ public class JavaCanonicalizer {
     			// Check if a local class
     			IRNode enclosing = VisitUtil.getEnclosingClassBodyDecl(tdecl);
     			if (enclosing != null && 
-    				(SomeFunctionDeclaration.prototype.includes(enclosing) || ClassInitializer.prototype.includes(enclosing))) {
+    				(SomeFunctionDeclaration.prototype.includes(enclosing) || 
+    				 ClassInitializer.prototype.includes(enclosing)) ||
+    				 AnonClassExpression.prototype.includes(enclosing)) {
     				//System.out.println("Converting type within a function");
     				return result = NamedType.createNode(name); 
     			}
