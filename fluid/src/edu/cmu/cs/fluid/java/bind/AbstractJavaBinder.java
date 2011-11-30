@@ -2427,8 +2427,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if ("Property".equals(name)) {
     	  System.out.println("Binding 'Property': "+context);
       }
-      */
+      */      
       final IJavaScope.Selector isAccessible = makeAccessSelector(node);
+      /*
+      if ("Lock".equals(JJNode.getInfoOrNull(node))) {
+    	  IRNode parent = JJNode.tree.getParentOrNull(node);
+    	  if (parent != null) {
+    		  IRNode gp =  JJNode.tree.getParentOrNull(parent);
+    		  if (ParameterDeclaration.prototype.includes(gp)) {
+    	    	  System.out.println("Looking for Lock");
+    		  }
+    	  }
+      }
+      */
       boolean success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, context.selector));
       /*
       String unparse = DebugUnparser.toString(node);
