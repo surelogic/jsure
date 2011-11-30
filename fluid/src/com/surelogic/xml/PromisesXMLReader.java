@@ -230,7 +230,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	private static final Map<String,PackageElement> cache = new WeakHashMap<String, PackageElement>();
 	
 	public static PackageElement load(String relativePath, File fluid, File local) {
-		System.out.println("Getting XML for "+relativePath);
+		//System.out.println("Getting XML for "+relativePath);
 		PackageElement p = cache.get(relativePath);
 		if (p == null) {
 			PackageElement f = loadOrNull(fluid);
@@ -252,6 +252,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			if (p == null) {
 				return null;
 			}
+			System.out.println("Loaded XML for "+relativePath);
 			cache.put(relativePath, p);			
 		} else {
 			System.out.println("Used cache for "+relativePath);
