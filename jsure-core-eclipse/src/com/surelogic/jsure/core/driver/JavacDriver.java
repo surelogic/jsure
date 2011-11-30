@@ -1019,6 +1019,7 @@ public class JavacDriver implements IResourceChangeListener {
 					config.addToClassPath(jre.getConfig());
 				}
 			}
+			projects.resetOrdering();
 		}
 
 		private void addSourceFiles(Config config, IClasspathEntry cpe) {
