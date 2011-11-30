@@ -69,6 +69,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return getTypeEnv_cached(type).binder.findClassBodyMembers_javac(type,
 					tvs, throwIfNotFound);
 		}
+		
+		@Override
+		public void reset() {
+			super.reset();
+		}
 	}
 
 	private static final boolean debug = Util.debug;
@@ -283,6 +288,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				throw new IllegalArgumentException(name + " doesn't match "
 						+ DebugUnparser.toString(decl));
 			}
+			/*
+			if (name.endsWith("EventType")) {
+				System.out.println("Adding "+name+" = "+decl);
+			}
+			*/
 			IRNode old = outerClasses.put(name, decl);
 			/*
 			 * if (name.equals(
