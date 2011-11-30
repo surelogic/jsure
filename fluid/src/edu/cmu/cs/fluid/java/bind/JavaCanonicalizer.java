@@ -960,9 +960,11 @@ public class JavaCanonicalizer {
         IRNode paramInit = makeSimpleCall(it, "next");     
         copySrcRef(stmt, paramInit);
 
+        /* TODO is this necessary?
         // Introduce cast to the real type        
         IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), computeIteratorType(binder.getTypeEnvironment(), itTB));
         paramInit = CastExpression.createNode(castType, paramInit);
+        */
         
         IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit); 
         IRNode result    = BlockStatement.createNode(new IRNode[] { /*iterableDecl,*/ itDecl, whileLoop });
