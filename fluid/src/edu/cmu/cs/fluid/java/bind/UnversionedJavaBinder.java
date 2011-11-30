@@ -187,6 +187,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	IJavaMemberTable mt = memberTableCache.get(decl);
     	if (mt == null) {
     		mt = JavaMemberTable.makeBatchTable(type);
+    		//System.err.println("Caching member table for "+type);
     		memberTableCache.put(decl, mt);    		
     	}
     	return mt;    	
