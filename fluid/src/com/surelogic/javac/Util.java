@@ -358,7 +358,7 @@ public class Util {
         temp = null;  // To free up memory
         
         final long parse = System.currentTimeMillis();
-        rewriteCUs(cus.asList(), projects.getMonitor());
+        rewriteCUs(projects, cus.asList(), projects.getMonitor());
         // Really to check if we added type refs via default constructors
 		loader.checkReferences(cus.asList());
 		loader = null; // To free up memory
@@ -860,22 +860,25 @@ public class Util {
 	/**
 	 * Adds default constructors, calls to super(), and implicit Enum methods
 	 */
-	private static void rewriteCUs(List<CodeInfo> cus, SLProgressMonitor monitor) {
+	private static void rewriteCUs(Projects projects, List<CodeInfo> cus, SLProgressMonitor monitor) {
 		final Map<ITypeEnvironment,JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
 		//int binaryRewrites = 0;
 		startSubTask(monitor, "Rewriting CUs");
+		
+		// Init the list of binders
+		final List<JavacTypeEnvironment.Binder> binders = new ArrayList<JavacTypeEnvironment.Binder>();
+		for(JavacProject p : projects) {
+			final JavacTypeEnvironment tEnv = p.getTypeEnv();
+			rewrites.put(tEnv, new JavaRewrite(tEnv));
+			
+			final UnversionedJavaBinder b = tEnv.getBinder();
+			binders.add((JavacTypeEnvironment.Binder) b);
+		}		
+		
 		for(CodeInfo info : cus) {
 			if (monitor.isCanceled()) {
 				throw new CancellationException();
-			}
-			final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-			JavaRewrite rewrite = rewrites.get(tEnv);
-			if (rewrite == null) {
-				rewrite = new JavaRewrite(tEnv);
-				rewrites.put(tEnv, rewrite);
-			}
-			final UnversionedJavaBinder b = tEnv.getBinder();
-			
+			}			
 			//System.out.println("Rewriting "+info.getFileName());			
 			final IRNode cu = info.getNode();
 			IRNode type = VisitUtil.getPrimaryType(cu);
@@ -892,13 +895,23 @@ public class Util {
 					System.out.println("Rewriting "+info.getFileName());
 				}
 			}	
-*/		
+			 */					
+			JavaRewrite rewrite = rewrites.get(info.getTypeEnv());
 			boolean changed = rewrite.ensureDefaultsExist(cu);
 			if (changed) {
 				if (debug) {
 					System.out.println("Rewriting     "+JavaNames.getFullTypeName(type));
 				}
-				b.astChanged(cu);
+				// Need to clear out state from all the binders
+				for(UnversionedJavaBinder b : binders) {
+					b.astChanged(cu);
+				}
+				/* Worst case
+				for(JavacTypeEnvironment.Binder b : binders) {
+					b.reset();
+				}
+				*/
+				
 				/*
 				if (JavaNode.getModifier(cu, JavaNode.AS_BINARY)) {
 					binaryRewrites++;
