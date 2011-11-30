@@ -764,7 +764,7 @@ public class JavaCanonicalizer {
         if (t instanceof IJavaArrayType) {
         	result = createArrayLoopFromForEach(stmt, t);        
         } else { // Assume to be Iterable
-        	result = createIterableLoopFromForEach(stmt, (IJavaDeclaredType) t);
+        	result = createIterableLoopFromForEach(stmt, (IJavaReferenceType) t);
         }
         replaceSubtree(stmt, result);
         return true;
@@ -847,15 +847,15 @@ public class JavaCanonicalizer {
       }
 
       private abstract class MethodBinding implements IBinding {
-    	  IJavaDeclaredType recType;
+    	  IJavaSourceRefType recType;
     	  IJavaTypeSubstitution subst;
-    	  public MethodBinding(IJavaDeclaredType t) {
+    	  public MethodBinding(IJavaSourceRefType t) {
 			recType = t;
     	  }
     	  public IJavaReferenceType getReceiverType() {
     		  return recType;
     	  }
-    	  public void updateRecType(IJavaDeclaredType t) {
+    	  public void updateRecType(IJavaSourceRefType t) {
     		  // FIX check t;
     		  recType = t;
     	  }
@@ -873,10 +873,7 @@ public class JavaCanonicalizer {
     	  }
       }
       
-      private MethodBinding findNoArgMethod(final IJavaDeclaredType type, final String name) {
-        if (type == null) {
-          return null;
-        }       
+      private MethodBinding findNoArgMethodInType(final IJavaDeclaredType type, final String name) {
         IRNode tdecl = type.getDeclaration();
         for (final IRNode m : VisitUtil.getClassMethods(tdecl)) {
           final String id = SomeFunctionDeclaration.getId(m);
@@ -903,26 +900,47 @@ public class JavaCanonicalizer {
         	}
           }
         }
-        for(IJavaType stype : type.getSupertypes(binder.getTypeEnvironment())) {
-          MethodBinding mb = findNoArgMethod((IJavaDeclaredType) stype, name);
-          if (mb != null) {
-        	mb.updateRecType(type);
-        	return mb;
-          }
-        }
         return null;
       }
 
-      private IRNode createIterableLoopFromForEach(IRNode stmt, final IJavaDeclaredType collT) {
+      private MethodBinding findNoArgMethod(final IJavaReferenceType type, final String name) {
+    	  if (type == null) {
+    		  return null;
+    	  }
+    	  final IJavaDeclaredType dType;
+    	  if (type instanceof IJavaDeclaredType) {
+    		  dType = (IJavaDeclaredType) type;
+    	  } else {
+    		  dType = null;
+    	  }
+    	  if (dType != null) {
+    		  MethodBinding mb = findNoArgMethodInType(dType, name);
+    		  if (mb != null) {
+    			  return mb;
+    		  }
+    	  }
+          for(IJavaType stype : type.getSupertypes(binder.getTypeEnvironment())) {
+              MethodBinding mb = findNoArgMethod((IJavaDeclaredType) stype, name);
+              if (mb != null) {
+            	  if (dType != null) {
+            		  mb.updateRecType(dType);
+            	  }
+            	  return mb;
+              }
+          }
+          return null;
+      }
+      
+      private IRNode createIterableLoopFromForEach(IRNode stmt, final IJavaReferenceType collT) {
         //System.out.println("Translating iterable loop: "+stmt.toString());
     	final String unparse = DebugUnparser.toString(stmt);
     	  
     	// Do any analysis before handling children    	
-        IBinding mb         = findNoArgMethod(collT, "iterator");
+        IBinding mb = findNoArgMethod(collT, "iterator");
         if (mb == null) {
-          findNoArgMethod(collT, "iterator");
-          LOG.severe("Unable to find iterator() on "+collT);
-          return null;
+        	findNoArgMethod(collT, "iterator");
+        	LOG.severe("Unable to find iterator() on "+collT);
+        	return null;
         }
         IRNode rtype        = MethodDeclaration.getReturnType(mb.getNode());
         IJavaType rtypeT    = binder.getJavaType(rtype);
