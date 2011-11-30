@@ -199,7 +199,7 @@ public class Projects extends JavaProjects implements IIRProjects,
 			throw new IllegalStateException(
 					"Adding config after run already set: "+f_scan);
 		}
-		ordering.clear();
+		resetOrdering();
 		JavacProject p = new JavacProject(this, cfg, cfg.getProject(), monitor);
 		projects.put(cfg.getProject(), p);
 		return p;
@@ -233,6 +233,10 @@ public class Projects extends JavaProjects implements IIRProjects,
 		return ordering.iterator();
 	}
 
+	public void resetOrdering() {
+		ordering.clear();
+	}
+	
 	private void populateOrdering() {
 		if (ordering.isEmpty()) {
 			// Populate the ordering
@@ -339,10 +343,12 @@ public class Projects extends JavaProjects implements IIRProjects,
 			JavacProject newP = projects.get(old.getName());
 			if (newP == null) {
 				projects.put(old.getName(), old);
+				resetOrdering();
 			} else {
 				// TODO is this right?
 				projects.put(newP.getName(),
 						new JavacProject(this, old, newP.getConfig(), monitor));
+				resetOrdering();
 			}
 		}
 		// lastRun = oldProjects.run;
