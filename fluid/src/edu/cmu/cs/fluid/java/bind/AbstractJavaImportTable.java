@@ -281,13 +281,15 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
         if (scope != null) {
           IBinding b = scope.lookup(name, useSite, selector);
           if (b != null) {
+        	  /*
         	  if (!selector.select(b.getNode())) {
         		  System.out.println("Didn't use selector on "+name);
         	  }
+        	  */
               entry.addUse(useSite);
         	  return b;
           } else {
-        	  System.out.println("Didn't find "+name+" yet");
+        	  //System.out.println("Didn't find "+name+" yet");
           }
           // Otherwise, keep looking
         }
