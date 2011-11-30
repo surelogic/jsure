@@ -327,6 +327,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IBinding b = binder.getIBinding( node );
     if (b == null) return null;
     IRNode n = b.getNode();
+    if (n == null) {
+    	return null;
+    }
     return b.convertType(doAccept( n ));
   }
   
