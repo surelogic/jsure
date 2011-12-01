@@ -247,10 +247,21 @@ annoParameter
 borrowedFunction
     : thisExpr EOF -> thisExpr
     | qualifiedThisExpression EOF -> qualifiedThisExpression
+    /*
     | thisExpr ',' qualifiedThisExpression EOF -> ^(Expressions thisExpr qualifiedThisExpression)
     | qualifiedThisExpression ',' thisExpr EOF -> ^(Expressions thisExpr qualifiedThisExpression)    
+    */
+    | borrowedFuncExprList EOF -> borrowedFuncExprList
+    ;
+
+borrowedFuncExprList
+    : borrowedFuncExpr (',' borrowedFuncExpr)+ -> ^(Expressions borrowedFuncExpr+)
     ;
     
+borrowedFuncExpr
+    : thisExpr | qualifiedThisExpression
+    ;
+
 borrowedList
     : borrowedExpressionList EOF -> borrowedExpressionList
    	| borrowedExpression EOF -> borrowedExpression
