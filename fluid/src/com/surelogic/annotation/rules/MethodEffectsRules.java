@@ -125,6 +125,12 @@ public class MethodEffectsRules extends AnnotationRules {
 				
         @Override
         protected boolean processUnannotatedMethodRelatedDecl(final IRNode decl) {
+          /*
+          String qname = JavaNames.genQualifiedMethodConstructorName(decl);
+          if ("java.util.ArrayList.iterator()".equals(qname)) {
+           	  System.err.println("No declared effects for "+qname+" within "+VisitUtil.findRoot(decl));   
+          }     	
+          */
           boolean allGood = true;
           final IRegion regionAll = RegionModel.getAllRegion(decl);
           for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(decl)) {

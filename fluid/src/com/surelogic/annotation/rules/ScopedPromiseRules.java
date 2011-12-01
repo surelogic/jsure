@@ -385,6 +385,12 @@ public class ScopedPromiseRules extends AnnotationRules {
 		final IRNode promisedFor = scopedPromiseDrop.getAST().getPromisedFor();
 		boolean success = true;
 
+        /*
+		String targets = scopedPromiseDrop.getAST().getTargets().unparse();
+		if (targets.contains("terator")) {
+			System.out.println("Found my target: "+targets);
+		}
+		*/
 		final Operator op = JJNode.tree.getOperator(promisedFor);
 		//If the node this promise is promised for is a class or type declaration,
 	  // pass it on directly
@@ -656,7 +662,12 @@ public class ScopedPromiseRules extends AnnotationRules {
 					context.reportError(offset, msg.toString());
 					return Result.FAILURE;
 				}
-				//System.out.println(scopedPromiseDrop.getMessage()+" on "+DebugUnparser.toString(decl));
+				/*
+				String qname = JavaNames.getFullName(decl);
+				if ("java.util.ArrayList.iterator()".equals(qname)) {
+					System.out.println(scopedPromiseDrop.getMessage()+" on "+qname+" within "+VisitUtil.findRoot(decl));
+				}
+				*/
 				return Result.SUCCESS;
 			}		 
 			return Result.NOT_APPLICABLE;
