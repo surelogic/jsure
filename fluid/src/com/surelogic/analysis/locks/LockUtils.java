@@ -216,14 +216,14 @@ public final class LockUtils {
    * interface.  We look this up once in the type environment during 
    * construction to avoid repeated lookups.
    */
-  private final IJavaDeclaredType lockType;
+  private final IJavaType lockType;
   
   /**
    * The internal representation of the {@link java.util.concurrent.locks.ReadWriteLock}
    * interface.  We look this up once in the type environment during 
    * construction to avoid repeated lookups.
    */
-  private final IJavaDeclaredType readWriteLockType;
+  private final IJavaType readWriteLockType;
 
   /**
    * Cache used to speed up isMethodFrom()
@@ -271,10 +271,10 @@ public final class LockUtils {
     if (binder == null || binder.getTypeEnvironment() == null) {
     	throw new IllegalStateException();
     }
-    lockType = (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
+    lockType = JavaTypeFactory.convertNodeTypeToIJavaType(
           binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_LOCK),
           binder);
-    readWriteLockType = (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
+    readWriteLockType = JavaTypeFactory.convertNodeTypeToIJavaType(
         binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
         binder);
 
@@ -474,16 +474,16 @@ public final class LockUtils {
 	  return rv;
   }
   
-  private boolean isMethodFrom(final IRNode mcall, final IJavaDeclaredType testType) { //final String testClassName) {
+  private boolean isMethodFrom(final IRNode mcall, final IJavaType testType) {
 	  IBinding b = binder.getIBinding(mcall);
 	  if (b == null) {
 		  SLLogger.getLogger().warning("No binding for "+DebugUnparser.toString(mcall));
 		  return false;
 	  }
-	  IJavaDeclaredType context = b.getContextType();
+	  IJavaType context = b.getContextType();
 	  if (context == null) {
 		  IRNode tdecl = VisitUtil.getEnclosingType(b.getNode());
-		  context = (IJavaDeclaredType) binder.getTypeEnvironment().convertNodeTypeToIJavaType(tdecl);
+		  context = binder.getTypeEnvironment().convertNodeTypeToIJavaType(tdecl);
 	  }
 	  return isSubType(context, testType);
   }
@@ -559,10 +559,10 @@ public final class LockUtils {
    *          The java type to test
    */
   public boolean implementsLock(final IJavaType type) {
-	if (lockType == null) {
-	    // Probably running on pre-1.5 code
-		return false;
-	}
+  	if (lockType == null) {
+  	    // Probably running on pre-1.5 code
+  		return false;
+  	}
     if (type instanceof IJavaDeclaredType) {
       return binder.getTypeEnvironment().isRawSubType(type, lockType);
     } else {
@@ -578,10 +578,10 @@ public final class LockUtils {
    *          The java type to test
    */
   public boolean implementsReadWriteLock(final IJavaType type) {
-	if (readWriteLockType == null) {
-	    // Probably running on pre-1.5 code
-		return false;
-	}
+  	if (readWriteLockType == null) {
+  	    // Probably running on pre-1.5 code
+  		return false;
+  	}
     if (type instanceof IJavaDeclaredType) {
       return binder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
     } else {
@@ -650,7 +650,7 @@ public final class LockUtils {
    *         <code>null</code> if the region is unprotected.
    */
   public RegionLockRecord getLockForRegion(
-      final IJavaDeclaredType clazz, final IRegion fieldAsRegion) {
+      final IJavaType clazz, final IRegion fieldAsRegion) {
     final Set<RegionLockRecord> stateLocksInClass = sysLockModelHandle.get().getRegionLocksInClass(clazz);
     for (final RegionLockRecord lr : stateLocksInClass) {
       if (lr.region.ancestorOf(fieldAsRegion)) {
@@ -666,7 +666,7 @@ public final class LockUtils {
    */
   public RegionLockRecord getLockForFieldRef(final IRNode fieldRef) {
     return getLockForRegion(
-        (IJavaDeclaredType) binder.getJavaType(FieldRef.getObject(fieldRef)),
+        binder.getJavaType(FieldRef.getObject(fieldRef)),
         RegionModel.getInstance(binder.getBinding(fieldRef)));
   }
 
@@ -823,29 +823,24 @@ public final class LockUtils {
       /* Final and volatile regions do not need locks */
       if (!region.isFinal() && !region.isVolatile()) {
         final IJavaType lookupRegionInThisType = t.getRelativeClass(binder);
-        /* Arrays aren't classes --- Not sure why this would happen,
-         * but it was a problem in the past. 
-         */
-        if (lookupRegionInThisType instanceof IJavaDeclaredType) {
-          final RegionLockRecord neededLock =
-            getLockForRegion((IJavaDeclaredType) lookupRegionInThisType, region);
-          if (neededLock != null) {
-            final LockModel lm = neededLock.lockDecl;
-            final ILock.Type type = ILock.Type.get(isWrite, lm.isReadWriteLock());
-            if (t instanceof ClassTarget) {
-              final NeededLock l =
-                neededLockFactory.createStaticLock(lm, type);
-              result.add(l);
-            } else { // InstanceTarget
-              final NeededLock l;
-              if (neededLock.lockDecl.isLockStatic()) {
-                l = neededLockFactory.createStaticLock(lm, type);
-              } else {                
-                l = neededLockFactory.createInstanceLock(
-                    t.getReference(), lm, type);
-              }
-              result.add(l);
+        final RegionLockRecord neededLock =
+          getLockForRegion(lookupRegionInThisType, region);
+        if (neededLock != null) {
+          final LockModel lm = neededLock.lockDecl;
+          final ILock.Type type = ILock.Type.get(isWrite, lm.isReadWriteLock());
+          if (t instanceof ClassTarget) {
+            final NeededLock l =
+              neededLockFactory.createStaticLock(lm, type);
+            result.add(l);
+          } else { // InstanceTarget
+            final NeededLock l;
+            if (neededLock.lockDecl.isLockStatic()) {
+              l = neededLockFactory.createStaticLock(lm, type);
+            } else {                
+              l = neededLockFactory.createInstanceLock(
+                  t.getReference(), lm, type);
             }
+            result.add(l);
           }
         }
       }
@@ -1005,108 +1000,105 @@ public final class LockUtils {
       if (FieldRef.prototype.includes(op)) { // lockExpr == 'e.f'
         final IRNode obj = FieldRef.getObject(lockExpr);
         final IJavaType objType = binder.getJavaType(obj);
-        // Arrays cannot declare locks
-        if (objType instanceof IJavaDeclaredType) {
-          final IRNode potentialLockImpl = this.binder.getBinding(lockExpr);
+        final IRNode potentialLockImpl = this.binder.getBinding(lockExpr);
 
-          // see if 'f' is a lock in class typeOf(e)
-          // reminder: lockExpr is a FieldRef; binding it gives the field decl
-          final Set<AbstractLockRecord> records =
-            sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
-                (IJavaDeclaredType) objType, potentialLockImpl);
-          if (TypeUtil.isStatic(potentialLockImpl)) {
-            for (final AbstractLockRecord lr : records) {
-              lockSet.add(heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, type));
-            }
-          } else {
-            for (final AbstractLockRecord lr : records) {
-              // If we only have a fieldRef, then it must a Lock and not a ReadWriteLock, so it is write lock
-              lockSet.add(heldLockFactory.createInstanceLock(obj, lr.lockDecl, src, null, false, type));
-            }
+        // see if 'f' is a lock in class typeOf(e)
+        // reminder: lockExpr is a FieldRef; binding it gives the field decl
+        final Set<AbstractLockRecord> records =
+          sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
+              objType, potentialLockImpl);
+        if (TypeUtil.isStatic(potentialLockImpl)) {
+          for (final AbstractLockRecord lr : records) {
+            lockSet.add(heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, type));
           }
-          
-          if (howTo == HowToProcessLocks.JUC) {
-            /* lockExpr = 'e.f', continued.  Here we try to support a coding
-             * idiom for ReadWriteLocks where the separate read and write lock
-             * references are cached into fields, e.g.,
-             *   final ReadWriteLock rwLock = ...
-             *   final Lock rLock = rwLock.readLock();
-             *   final Lock wLock = rwLock.writeLock();
-             * 
-             * INSTANCE CASE: See if the field 'f' is an final field initialized
-             * with either ReadWriteLock.readLock() or ReadWriteLock.writeLock().
-             * Must be of the form "f = this.g.readLock()" or "this.g.writeLock()",
-             * where 'g' is a final field.  Things like "this.g.h.readLock()" or
-             * "c.readLock()" are no good because we need to be able to understand
-             * the expression in different contexts.
-             * 
-             * STATIC CASE: See if the field 'f' is a final static field initialized
-             * with either ReadWriteLock.readLock() or ReadWriteLock.writeLock().
-             * Must be of the form 'f = C.g.readLock()' or 'f = C.g.writeLock',
-             * where 'g' is a final static field declared in class C, and 'f' is
-             * also declared in class C.
-             */
-            if (TypeUtil.isFinal(potentialLockImpl)) { // Final field, check initialization
-              final IRNode init = VariableDeclarator.getInit(potentialLockImpl);
-              if (Initialization.prototype.includes(init)) {
-                final IRNode initValue = Initialization.getValue(init);
-                final Operator initValueOp = JJNode.tree.getOperator(initValue);
-                if (MethodCall.prototype.includes(initValueOp)) {
-                  final ReadWriteLockMethods whichMethod = whichReadWriteLockMethod(initValue);
-                  if (whichMethod == ReadWriteLockMethods.READLOCK ||
-                      whichMethod == ReadWriteLockMethods.WRITELOCK) {
-                    /* We have 'f = e.readLock()' or 'f = e.writeLock()' */
-                    final Type lockType = Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
-                    final IRNode mcObject = ((MethodCall) initValueOp).get_Object(initValue);
-                    final Operator mcObjectOp = JJNode.tree.getOperator(mcObject);
-                    if (FieldRef.prototype.includes(mcObjectOp)) {
-                      // We have 'f = e.g.readLock()' or 'f = e.g.writeLock()'
-                      final IRNode mcBoundField = binder.getBinding(mcObject);
-                      // Field 'g' must be final
-                      if (TypeUtil.isFinal(mcBoundField)) {
-                        if (TypeUtil.isStatic(mcBoundField)) {
-                          // Check that 'f' and 'g' are both declared in the same class
-                          if (TypeUtil.isStatic(potentialLockImpl)) {
-                            final IRNode fClassBody = VisitUtil.getClosestType(potentialLockImpl);
-                            final IRNode gClassBody = VisitUtil.getClosestType(mcBoundField);
-                            if (fClassBody.equals(gClassBody)) {
-                              final Set<AbstractLockRecord> records2 =
-                                sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
-                                    (IJavaDeclaredType) objType, mcBoundField);
-                              for (final AbstractLockRecord lr : records2) {
-                                lockSet.add(
-                                    heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, lockType));
-                              }
+        } else {
+          for (final AbstractLockRecord lr : records) {
+            // If we only have a fieldRef, then it must a Lock and not a ReadWriteLock, so it is write lock
+            lockSet.add(heldLockFactory.createInstanceLock(obj, lr.lockDecl, src, null, false, type));
+          }
+        }
+        
+        if (howTo == HowToProcessLocks.JUC) {
+          /* lockExpr = 'e.f', continued.  Here we try to support a coding
+           * idiom for ReadWriteLocks where the separate read and write lock
+           * references are cached into fields, e.g.,
+           *   final ReadWriteLock rwLock = ...
+           *   final Lock rLock = rwLock.readLock();
+           *   final Lock wLock = rwLock.writeLock();
+           * 
+           * INSTANCE CASE: See if the field 'f' is an final field initialized
+           * with either ReadWriteLock.readLock() or ReadWriteLock.writeLock().
+           * Must be of the form "f = this.g.readLock()" or "this.g.writeLock()",
+           * where 'g' is a final field.  Things like "this.g.h.readLock()" or
+           * "c.readLock()" are no good because we need to be able to understand
+           * the expression in different contexts.
+           * 
+           * STATIC CASE: See if the field 'f' is a final static field initialized
+           * with either ReadWriteLock.readLock() or ReadWriteLock.writeLock().
+           * Must be of the form 'f = C.g.readLock()' or 'f = C.g.writeLock',
+           * where 'g' is a final static field declared in class C, and 'f' is
+           * also declared in class C.
+           */
+          if (TypeUtil.isFinal(potentialLockImpl)) { // Final field, check initialization
+            final IRNode init = VariableDeclarator.getInit(potentialLockImpl);
+            if (Initialization.prototype.includes(init)) {
+              final IRNode initValue = Initialization.getValue(init);
+              final Operator initValueOp = JJNode.tree.getOperator(initValue);
+              if (MethodCall.prototype.includes(initValueOp)) {
+                final ReadWriteLockMethods whichMethod = whichReadWriteLockMethod(initValue);
+                if (whichMethod == ReadWriteLockMethods.READLOCK ||
+                    whichMethod == ReadWriteLockMethods.WRITELOCK) {
+                  /* We have 'f = e.readLock()' or 'f = e.writeLock()' */
+                  final Type lockType = Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
+                  final IRNode mcObject = ((MethodCall) initValueOp).get_Object(initValue);
+                  final Operator mcObjectOp = JJNode.tree.getOperator(mcObject);
+                  if (FieldRef.prototype.includes(mcObjectOp)) {
+                    // We have 'f = e.g.readLock()' or 'f = e.g.writeLock()'
+                    final IRNode mcBoundField = binder.getBinding(mcObject);
+                    // Field 'g' must be final
+                    if (TypeUtil.isFinal(mcBoundField)) {
+                      if (TypeUtil.isStatic(mcBoundField)) {
+                        // Check that 'f' and 'g' are both declared in the same class
+                        if (TypeUtil.isStatic(potentialLockImpl)) {
+                          final IRNode fClassBody = VisitUtil.getClosestType(potentialLockImpl);
+                          final IRNode gClassBody = VisitUtil.getClosestType(mcBoundField);
+                          if (fClassBody.equals(gClassBody)) {
+                            final Set<AbstractLockRecord> records2 =
+                              sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
+                                  objType, mcBoundField);
+                            for (final AbstractLockRecord lr : records2) {
+                              lockSet.add(
+                                  heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, lockType));
                             }
                           }
-                        } else {
-                          // Check that the FieldRef is "this.g"
-                          final IRNode frObject = FieldRef.getObject(mcObject);
-                          final Operator frObjectOp = JJNode.tree.getOperator(frObject);
-                          if (ThisExpression.prototype.includes(frObjectOp)) {
-                            // We have 'f = this.g.readLock()' or 'f = this.g.writeLock'
-                            final IJavaType frObjectType = binder.getJavaType(frObject);
-                            if (frObjectType instanceof IJavaDeclaredType) { // sanity check
-                              // see if 'g' is a lock in class typeOf(this)
-                              final Set<AbstractLockRecord> records2 =
-                                sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
-                                    (IJavaDeclaredType) frObjectType, mcBoundField);
-                              for (final AbstractLockRecord lr : records2) {
-                                /* NB. Here we use the 'obj', the receiver from
-                                 * the original FieldRef above! We are doing an
-                                 * alpha-renaming of the original receiver
-                                 * expression for 'this'.
-                                 */
-                                lockSet.add(
-                                    heldLockFactory.createInstanceLock(obj, lr.lockDecl, src, null, false, lockType));
-                              }
-                            }
-                          }                      
                         }
+                      } else {
+                        // Check that the FieldRef is "this.g"
+                        final IRNode frObject = FieldRef.getObject(mcObject);
+                        final Operator frObjectOp = JJNode.tree.getOperator(frObject);
+                        if (ThisExpression.prototype.includes(frObjectOp)) {
+                          // We have 'f = this.g.readLock()' or 'f = this.g.writeLock'
+                          final IJavaType frObjectType = binder.getJavaType(frObject);
+                          if (frObjectType instanceof IJavaDeclaredType) { // sanity check
+                            // see if 'g' is a lock in class typeOf(this)
+                            final Set<AbstractLockRecord> records2 =
+                              sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
+                                  frObjectType, mcBoundField);
+                            for (final AbstractLockRecord lr : records2) {
+                              /* NB. Here we use the 'obj', the receiver from
+                               * the original FieldRef above! We are doing an
+                               * alpha-renaming of the original receiver
+                               * expression for 'this'.
+                               */
+                              lockSet.add(
+                                  heldLockFactory.createInstanceLock(obj, lr.lockDecl, src, null, false, lockType));
+                            }
+                          }
+                        }                      
                       }
                     }
-                  }                
-                }
+                  }
+                }                
               }
             }
           }

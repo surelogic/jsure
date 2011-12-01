@@ -988,7 +988,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final Set<PolicyLockRecord> plocksForExprType;
 		if (lockExprType instanceof IJavaDeclaredType) {
 			plocksForExprType = sysLockModel.getPolicyLocksForLockImpl(
-					(IJavaDeclaredType) lockExprType, GlobalLockModel.THIS);
+					lockExprType, GlobalLockModel.THIS);
 		} else {
 			plocksForExprType = Collections.<PolicyLockRecord> emptySet();
 		}
@@ -1014,7 +1014,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			} else if (FieldRef.prototype.includes(op)) { // lockExpr == 'e.f'
 				final IRNode obj = FieldRef.getObject(lockExpr);
 				if (!sysLockModel.getPolicyLocksForLockImpl(
-						(IJavaDeclaredType) binder.getJavaType(obj),
+						binder.getJavaType(obj),
 						this.binder.getBinding(lockExpr)).isEmpty()) {
 					return true;
 				}
@@ -1228,27 +1228,24 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						final IRNode fieldDecl = binder.getBinding(objExpr);
 						final IJavaType rcvrType = binder.getJavaType(FieldRef
 								.getObject(objExpr));
-						if (rcvrType instanceof IJavaDeclaredType) {
-							final Set<AbstractLockRecord> records = sysLockModelHandle
-									.get().getRegionAndPolicyLocksInClass(
-											(IJavaDeclaredType) rcvrType);
-							for (final AbstractLockRecord lockRecord : records) {
-								if (!lockRecord.lockDecl.equals(lockUtils
-										.getMutex())) {
-									info.addDependUponDrop(lockRecord.lockDecl);
+						final Set<AbstractLockRecord> records = sysLockModelHandle
+								.get().getRegionAndPolicyLocksInClass(rcvrType);
+						for (final AbstractLockRecord lockRecord : records) {
+							if (!lockRecord.lockDecl.equals(lockUtils
+									.getMutex())) {
+								info.addDependUponDrop(lockRecord.lockDecl);
 
-									if (lockRecord instanceof RegionLockRecord) {
-                    // Propose the aggregate annotation
-                    final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
-                    if ("Instance".equals(simpleRegionName)) {
-                      info.addProposal(new ProposedPromiseBuilder("Unique",
-                          null, fieldDecl, fieldRef));
-                    } else {
-                      info.addProposal(new ProposedPromiseBuilder(
-                          "UniqueInRegion", simpleRegionName, fieldDecl,
-                          fieldRef));
-                    }
-									}
+								if (lockRecord instanceof RegionLockRecord) {
+                  // Propose the aggregate annotation
+                  final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
+                  if ("Instance".equals(simpleRegionName)) {
+                    info.addProposal(new ProposedPromiseBuilder("Unique",
+                        null, fieldDecl, fieldRef));
+                  } else {
+                    info.addProposal(new ProposedPromiseBuilder(
+                        "UniqueInRegion", simpleRegionName, fieldDecl,
+                        fieldRef));
+                  }
 								}
 							}
 						}
@@ -1379,16 +1376,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 							final IJavaType rcvrType = binder
 									.getJavaType(FieldRef.getObject(actualRcvr));
-							if (rcvrType instanceof IJavaDeclaredType) {
-								final Set<AbstractLockRecord> records = sysLockModelHandle
-										.get().getRegionAndPolicyLocksInClass(
-												(IJavaDeclaredType) rcvrType);
-								for (final AbstractLockRecord lockRecord : records) {
-									if (!lockRecord.lockDecl.equals(lockUtils
-											.getMutex())) {
-										info
-												.addDependUponDrop(lockRecord.lockDecl);
-									}
+							final Set<AbstractLockRecord> records = sysLockModelHandle
+									.get().getRegionAndPolicyLocksInClass(rcvrType);
+							for (final AbstractLockRecord lockRecord : records) {
+								if (!lockRecord.lockDecl.equals(lockUtils
+										.getMutex())) {
+									info
+											.addDependUponDrop(lockRecord.lockDecl);
 								}
 							}
 						}
@@ -1427,20 +1421,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private boolean classDeclaresLocks(final IJavaType type) {
-		if (type instanceof IJavaDeclaredType) {
-			final Set<AbstractLockRecord> records = sysLockModelHandle.get()
-					.getRegionAndPolicyLocksInClass((IJavaDeclaredType) type);
-			final Iterator<AbstractLockRecord> recIter = records.iterator();
-			if (recIter.hasNext()) { // we have at least one lock
-				int numLocks = 0;
-				boolean containsMutex = false;
-				while (recIter.hasNext()) {
-					final AbstractLockRecord lr = recIter.next();
-					numLocks += 1;
-					containsMutex |= lr.lockDecl.equals(lockUtils.getMutex());
-				}
-				return !containsMutex || numLocks > 1;
+		final Set<AbstractLockRecord> records = sysLockModelHandle.get()
+				.getRegionAndPolicyLocksInClass(type);
+		final Iterator<AbstractLockRecord> recIter = records.iterator();
+		if (recIter.hasNext()) { // we have at least one lock
+			int numLocks = 0;
+			boolean containsMutex = false;
+			while (recIter.hasNext()) {
+				final AbstractLockRecord lr = recIter.next();
+				numLocks += 1;
+				containsMutex |= lr.lockDecl.equals(lockUtils.getMutex());
 			}
+			return !containsMutex || numLocks > 1;
 		}
 		return false;
 	}
@@ -2722,8 +2714,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								for (final IRNode varDecl : lockFields) {
 									for (final AbstractLockRecord lockRecord : sysLockModel
 											.getRegionAndPolicyLocksForLockImpl(
-													(IJavaDeclaredType) typeOfLockExpr,
-													varDecl)) {
+													typeOfLockExpr, varDecl)) {
 										final InfoDropBuilder warning = makeWarningDrop(
 												Messages.DSC_MIXED_PARADIGM,
 												lockExpr,

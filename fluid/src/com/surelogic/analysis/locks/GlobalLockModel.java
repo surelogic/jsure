@@ -2,9 +2,7 @@
  */
 package com.surelogic.analysis.locks;
 
-import java.io.PrintStream;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,7 +19,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
-import edu.cmu.cs.fluid.util.SingletonSet;
 
 /**
  * TODO: Write javadoc!
@@ -59,8 +56,8 @@ public final class GlobalLockModel {
    * this map are built by {@link #addRegionLockDeclaration(IBinder, IRNode, IRNode)}
    * and {@link #addPolicyLockDeclaration(IBinder, LockModel, IRNode)}.
    */
-  private final Map<IJavaDeclaredType, ClassRecord> classes =
-    new HashMap<IJavaDeclaredType, ClassRecord>();
+  private final Map<IJavaType, ClassRecord> classes =
+    new HashMap<IJavaType, ClassRecord>();
   
   public GlobalLockModel(final IBinder bind) {
     super();
@@ -68,21 +65,18 @@ public final class GlobalLockModel {
     this.rootRecord = new ClassRecord(null, null);
   }
  
-  private synchronized ClassRecord getClassRecord(final IJavaDeclaredType jt) {
+  private synchronized ClassRecord getClassRecord(final IJavaType jt) {
     /* 2010-11-29: Need to use type erasure because type parameters are mucking
      * up the hierarchy.  In particular a parameterized subtype is showing up
      * as extending from Object instead of from the proper super class.
      */
     final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
-    final IJavaDeclaredType erased =
-      (IJavaDeclaredType) typeEnvironment.computeErasure(jt);
+    final IJavaType erased = typeEnvironment.computeErasure(jt);
     ClassRecord cr = classes.get(erased);
     if (cr == null) {      
       final IJavaType parent = jt.getSuperclass(typeEnvironment);
       if (parent instanceof IJavaDeclaredType) {
-        cr = new ClassRecord(
-            getClassRecord((IJavaDeclaredType) typeEnvironment.computeErasure(parent)),
-            erased);
+        cr = new ClassRecord(getClassRecord(parent),  erased);
       } else {
         cr = new ClassRecord(rootRecord, erased);
       }
@@ -103,7 +97,7 @@ public final class GlobalLockModel {
    *          The lock name.
    * @return The lock record or <code>null</code> if the lock is not found.
    */
-  public RegionLockRecord getRegionLockByName(final IJavaDeclaredType clazz, final String name) {
+  public RegionLockRecord getRegionLockByName(final IJavaType clazz, final String name) {
     return getClassRecord(clazz).getRegionLockByName(name);
   }
   
@@ -117,7 +111,7 @@ public final class GlobalLockModel {
    *          The lock name.
    * @return The lock record or <code>null</code> if the lock is not found.
    */
-  public PolicyLockRecord getPolicyLockByName(final IJavaDeclaredType clazz, final String name) {
+  public PolicyLockRecord getPolicyLockByName(final IJavaType clazz, final String name) {
     return getClassRecord(clazz).getPolicyLockByName(name);
   }
 
@@ -129,7 +123,7 @@ public final class GlobalLockModel {
    *          The type representation of the class.
    * @return The Set of LockRecords.
    */
-  public Set<RegionLockRecord> getRegionLocksInClass(final IJavaDeclaredType clazz) {
+  public Set<RegionLockRecord> getRegionLocksInClass(final IJavaType clazz) {
     return getClassRecord(clazz).getRegionLocksForMyState();
   }
 
@@ -141,7 +135,7 @@ public final class GlobalLockModel {
    *          The type representation of the class
    * @return The Set of PolicyLockRecords.
    */
-  public Set<PolicyLockRecord> getPolicyLocksInClass(final IJavaDeclaredType clazz) {
+  public Set<PolicyLockRecord> getPolicyLocksInClass(final IJavaType clazz) {
     return getClassRecord(clazz).getPolicyLocksForMyState();
   }
 
@@ -153,7 +147,7 @@ public final class GlobalLockModel {
    *          The type representation of the class
    * @return The Set of AbstractLockRecord.
    */
-  public Set<AbstractLockRecord> getRegionAndPolicyLocksInClass(final IJavaDeclaredType clazz) {
+  public Set<AbstractLockRecord> getRegionAndPolicyLocksInClass(final IJavaType clazz) {
     return getClassRecord(clazz).getStateAndPolicyLocksForMyState();
   }
 
@@ -175,7 +169,7 @@ public final class GlobalLockModel {
    *          ClassDeclaration, or the IRNode {@link GlobalLockModel#THIS}.
    * @return An unmodifiable set of LockRecords.
    */
-  public Set<RegionLockRecord> getRegionLocksForLockImpl(final IJavaDeclaredType clazz, final IRNode lockImpl) {
+  public Set<RegionLockRecord> getRegionLocksForLockImpl(final IJavaType clazz, final IRNode lockImpl) {
     return getClassRecord(clazz).getRegionLocksForLockImpl(binder, lockImpl);
   }
 
@@ -198,7 +192,7 @@ public final class GlobalLockModel {
    *          ClassDeclaration, or the IRNode {@link GlobalLockModel#THIS}.
    * @return An unmodifiable set of PolicyLockRecords.
    */
-  public Set<PolicyLockRecord> getPolicyLocksForLockImpl(final IJavaDeclaredType clazz, final IRNode lockImpl) {
+  public Set<PolicyLockRecord> getPolicyLocksForLockImpl(final IJavaType clazz, final IRNode lockImpl) {
     return getClassRecord(clazz).getPolicyLocksForLockImpl(binder, lockImpl);
   }
   
@@ -222,7 +216,7 @@ public final class GlobalLockModel {
    * @return An unmodifiable set of AbstractLockRecord.
    */
   public Set<AbstractLockRecord> getRegionAndPolicyLocksForLockImpl(
-      final IJavaDeclaredType clazz, final IRNode lockImpl) {
+      final IJavaType clazz, final IRNode lockImpl) {
     return getClassRecord(clazz).getStateAndPolicyLocksForLockImpl(binder, lockImpl);
   }
 
@@ -274,7 +268,7 @@ public final class GlobalLockModel {
   
   private final class ClassRecord {
     private final ClassRecord parent;
-    private final IJavaDeclaredType classDecl;
+    private final IJavaType classDecl;
     
     /** Lock map for state locks */
     private final LockMap<RegionLockRecord> lockMap = new LockMap<RegionLockRecord>();
@@ -284,7 +278,7 @@ public final class GlobalLockModel {
 
     
     
-    private ClassRecord(final ClassRecord p, final IJavaDeclaredType cd) {
+    private ClassRecord(final ClassRecord p, final IJavaType cd) {
       parent = p;
       classDecl = cd;
     }
@@ -497,16 +491,8 @@ public final class GlobalLockModel {
    */
   public Set<RegionLockRecord> getRegionLocksForSelf(final IRNode expr) {
     final IJavaType type = binder.getJavaType(expr);
-    if (type instanceof IJavaDeclaredType) {
-      final ClassRecord cr = getClassRecord((IJavaDeclaredType) type);
-      return cr.getRegionLocksForLockImpl(binder, THIS);
-    } else if (type instanceof IJavaArrayType) {
-      final RegionLockRecord r = getRegionLockByName(
-          binder.getTypeEnvironment().getObjectType(), LockVisitor.MUTEX_NAME);
-      return new SingletonSet<RegionLockRecord>(r);
-    } else {
-      return Collections.emptySet();
-    }
+    final ClassRecord cr = getClassRecord(type);
+    return cr.getRegionLocksForLockImpl(binder, THIS);
   }
  
   /**
@@ -522,12 +508,8 @@ public final class GlobalLockModel {
    */
   public Set<PolicyLockRecord> getPolicyLocksForSelf(final IRNode expr) {
     final IJavaType type = binder.getJavaType(expr);
-    if (type instanceof IJavaDeclaredType) {
-      final ClassRecord cr = getClassRecord((IJavaDeclaredType) type);
-      return cr.getPolicyLocksForLockImpl(binder, THIS);
-    } else {
-      return Collections.emptySet();
-    }
+    final ClassRecord cr = getClassRecord(type);
+    return cr.getPolicyLocksForLockImpl(binder, THIS);
   }
   
   /**
@@ -544,18 +526,10 @@ public final class GlobalLockModel {
   public Set<AbstractLockRecord> getRegionAndPolicyLocksForSelf(final IRNode expr) {
     final IJavaType type = binder.getJavaType(expr);
     final Set<AbstractLockRecord> result = new HashSet<AbstractLockRecord>();
-    if (type instanceof IJavaDeclaredType) {
-      final ClassRecord cr = getClassRecord((IJavaDeclaredType) type);
-      result.addAll(cr.getRegionLocksForLockImpl(binder, THIS));
-      result.addAll(cr.getPolicyLocksForLockImpl(binder, THIS));
-      return Collections.unmodifiableSet(result);
-    } else if (type instanceof IJavaArrayType) {
-      final RegionLockRecord r = getRegionLockByName(
-          binder.getTypeEnvironment().getObjectType(), LockVisitor.MUTEX_NAME);
-      return new SingletonSet<AbstractLockRecord>(r);
-    } else {
-      return Collections.emptySet();
-    }
+    final ClassRecord cr = getClassRecord(type);
+    result.addAll(cr.getRegionLocksForLockImpl(binder, THIS));
+    result.addAll(cr.getPolicyLocksForLockImpl(binder, THIS));
+    return Collections.unmodifiableSet(result);
   }
   
   private ClassRecord getClassDefiningLock(final IRNode lockImpl) {
@@ -654,43 +628,6 @@ public final class GlobalLockModel {
     } else {
       final FieldRefNode ref = (FieldRefNode) lockImpl;
       return ref.resolveBinding().getNode();
-    }
-  }
-  
-  
-  /************************************************************************
-   * Dump the map (for debugging)
-   *************************************************************************/
-
-  public void dumpClasses(final PrintStream out) {
-    for (final IJavaDeclaredType n : classes.keySet()) {
-      final ClassRecord cr = classes.get(n);
-      
-      out.println("*** Class Record for class "
-          + (cr.classDecl == null ? "root" : cr.classDecl.getName()));
-      out.println("Protected by: " + cr.getRegionLocksForMyState().toString());
-      out.println("Policy enforced using: " + cr.getPolicyLocksForMyState().toString());
-      
-      final Set<IRNode> fields = new HashSet<IRNode>();
-      fields.add(THIS);
-      fields.add(cr.classDecl.getDeclaration());
-      ClassRecord current = cr;
-      while (current != rootRecord) {
-        for(Iterator<IRNode> e = VisitUtil.getClassFieldDecls(current.classDecl.getDeclaration()); e.hasNext();) {
-          IRNode vars   = FieldDeclaration.getVars(e.next());
-          Iterator<IRNode> vds = VariableDeclarators.getVarIterator(vars);
-          fields.add(vds.next());
-        }
-        current = current.parent;
-      }
-      
-      for (final IRNode lockImpl : fields) {
-        final Set<RegionLockRecord> locks = cr.getRegionLocksForLockImpl(binder, lockImpl);
-        out.println(lockImpl + " is locks " + locks);
-        final Set<PolicyLockRecord> plocks = cr.getPolicyLocksForLockImpl(binder, lockImpl);
-        out.println(lockImpl + " is policy locks " + plocks);
-      }
-      out.println();
     }
   }
 }
