@@ -8,10 +8,12 @@
         
         <method name="clear">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
 
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>

@@ -2,12 +2,12 @@
 
 <package name="java.util">
     <class name="ArrayList">
-    	<Promise>Borrowed(this) for *terator()</Promise>    	
-	    <Promise>RegionEffects(reads this:Instance) for *terator()</Promise>    
+    	<Promise>@Borrowed(this) for *terator(**)</Promise>    	
+	    <Promise>@RegionEffects(reads this:Instance) for *terator(**)</Promise>    
 
 		<class name="SubList">
-			<Promise>Borrowed(this) for *terator()</Promise>    	
-		    <Promise>RegionEffects(reads this:Instance) for *terator()</Promise>   
+			<Promise>@Borrowed(this) for *terator(**)</Promise>    	
+		    <Promise>@RegionEffects(reads this:Instance) for *terator(**)</Promise>   
 		</class>
 
         <constructor>
