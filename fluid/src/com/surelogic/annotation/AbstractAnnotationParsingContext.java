@@ -156,6 +156,10 @@ ITestAnnotationParsingContext {
     		here = type;
     	} 
     	while (here != null && !typeName.equals(pattern));
+    	
+    	if (type == null) {
+    		return null;
+    	}
     	return JavaPromise.getQualifiedReceiverNodeByName(decl, type);
     }
     return null;
