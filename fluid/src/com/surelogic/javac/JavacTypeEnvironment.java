@@ -355,6 +355,14 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return pkg;
 	}
 
+	@Override
+	public void addTypesInCU(IRNode cu) {
+		for(IRNode t : VisitUtil.getTypeDecls(cu)) {
+			final String name = JavaNames.getFullTypeName(t);
+			classes.addOuterClass(name, t);
+		}
+	}
+	
 	/**
 	 * @param addAlways
 	 *            change no matter if it exists here or not; otherwise, just
