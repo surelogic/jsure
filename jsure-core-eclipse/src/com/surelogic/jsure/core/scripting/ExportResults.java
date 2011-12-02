@@ -8,6 +8,8 @@ import java.io.*;
 import org.eclipse.core.resources.*;
 
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.sea.xml.*;
 
@@ -44,8 +46,8 @@ public class ExportResults extends AbstractCommand {
 				}
 				location = new File(workspaceFile, name);
 			}
-			SeaSummary.summarize(PersistentDropInfo.getInstance().findProjectsLabel(), 
-					PersistentDropInfo.getInstance().getRawInfo(), location);
+			final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+			SeaSummary.summarize(info.findProjectsLabel(), info.getDropInfo(), location);
 			System.out.println("Exported: "+location);
 			assert (location.exists());
 		} catch (FileNotFoundException e) {
