@@ -99,6 +99,16 @@
             </class>
         </class>
 
+        <class name="EmptyList">
+    		<Promise>@Borrowed(this) for *terator(**)</Promise>    	
+	    	<Promise>@RegionEffects(reads this:Instance) for *terator(**)</Promise>   
+	    	
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>	    	
+        </class>
+
         <class name="EmptyMap">
             <method name="containsKey" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
@@ -144,6 +154,11 @@
                 <!-- not really true -->
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>            
         </class>
 
         <class name="SetFromMap">
@@ -158,6 +173,15 @@
             </method>
 
             <method name="iterator">
+                <Borrowed>this</Borrowed>
+                <!-- not really true -->
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SingletonList">
+            <method name="iterator">
+                <!--starts>nothing</starts-->
                 <Borrowed>this</Borrowed>
                 <!-- not really true -->
                 <RegionEffects>reads this:Instance</RegionEffects>
