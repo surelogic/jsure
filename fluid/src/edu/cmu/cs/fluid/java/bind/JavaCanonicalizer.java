@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -358,7 +359,17 @@ public class JavaCanonicalizer {
       boolean isStatic = to == null ? isStatic(context, VisitUtil.getEnclosingClassBodyDecl(context)) : 
     	                              isStatic(to, to);            
       if (isStatic) {
-    	IRNode nt = CogenUtil.createNamedType(type.getDeclaration());
+    	  if (tEnv.findNamedType(type.getName()) == null) {
+    		  final ITypeEnvironment tEnv2 = JavaProjects.getEnclosingProject(to).getTypeEnv();
+    		  if (tEnv2 != tEnv) {
+    			  // HACK
+    			  // This may introduce a new static dependency from this file to the referred type
+    			  // so we need to make sure that these types exist in the TEnv
+    			  final IRNode cu = VisitUtil.findCompilationUnit(type.getDeclaration());
+    			  tEnv.addTypesInCU(cu);
+    		  }    	
+    	  }
+    	IRNode nt = CogenUtil.createNamedType(type.getDeclaration());    	
       	return TypeExpression.createNode(nt);
       }
       IRNode thisClass = VisitUtil.getEnclosingType(context);
@@ -486,13 +497,22 @@ public class JavaCanonicalizer {
       IBinding b = binder.getIBinding(nameNode);
       if (b == null) {
         LOG.severe("Found no binding for " + DebugUnparser.toString(nameNode));
-        return NamedType.createNode(DebugUnparser.toString(nameNode));
+        return createNamedType(DebugUnparser.toString(nameNode));
       }
       IRNode namedType = createNamedType(b);
       copySrcRef(namedType, nameNode);
       return namedType;
     }
 
+    private IRNode createNamedType(String name) {
+        /*
+    	if ("javax.swing.WindowConstants".equals(name)) {
+    		System.out.println("Making type for javax.swing.WindowConstants");
+    	}
+        */
+    	return NamedType.createNode(name);
+    }
+    
     /**
      * Derived from CogenUtil.createNamedType();
      */
@@ -520,7 +540,7 @@ public class JavaCanonicalizer {
     				 ClassInitializer.prototype.includes(enclosing)) ||
     				 AnonClassExpression.prototype.includes(enclosing)) {
     				//System.out.println("Converting type within a function");
-    				return result = NamedType.createNode(name); 
+    				return result = createNamedType(name); 
     			}
     			IRNode enclosingT   = VisitUtil.getEnclosingType(tdecl);
     			IBinding enclosingB = makeEnclosingBinding(b, enclosingT); 
@@ -529,11 +549,11 @@ public class JavaCanonicalizer {
     		if (TypeUtil.isOuter(tdecl)) {
     			String qname = TypeUtil.getQualifiedName(tdecl);
     			qname = CommonStrings.intern(qname);
-    			return result = NamedType.createNode(qname);
+    			return result = createNamedType(qname);
     		}
     		//LOG.warning("Creating NamedType: "+name);
     		name = CommonStrings.intern(name);
-    		return result = NamedType.createNode(name);
+    		return result = createNamedType(name);
     	} finally {
     		if (result != null) {
     			addBinding(result, b);
