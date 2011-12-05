@@ -281,9 +281,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		}
 
 		void addOuterClass(String name, IRNode decl) {			
+			/*
 			if (name.endsWith("java.lang.Object")) {
 				System.out.println("Adding: "+name+" to "+JavacTypeEnvironment.this); 
 			}
+			*/
 			if (!name.endsWith(JJNode.getInfo(decl))) {
 				throw new IllegalArgumentException(name + " doesn't match "
 						+ DebugUnparser.toString(decl));
