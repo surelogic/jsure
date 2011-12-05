@@ -74,5 +74,35 @@
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
+
+
+
+        <class name="EmptyIterator">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="Enumerator">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>

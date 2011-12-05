@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="Iterator">
+        <method name="hasNext">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="next">
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="remove">
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>
