@@ -92,5 +92,39 @@
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
+
+
+
+        <class name="HashIterator">
+            <method name="hasMoreElements">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="EntryIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="ValueIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="KeyIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>

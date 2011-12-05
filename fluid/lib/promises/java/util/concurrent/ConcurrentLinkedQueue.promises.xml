@@ -13,5 +13,21 @@
             <!-- not really true -->
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>
+
+
+
+        <class name="Itr">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>
