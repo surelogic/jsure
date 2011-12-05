@@ -365,6 +365,7 @@ public class JavaCanonicalizer {
     			  // HACK
     			  // This may introduce a new static dependency from this file to the referred type
     			  // so we need to make sure that these types exist in the TEnv
+    			  // (esp. if one canonicalized CU needs to be bound for another to be used
     			  final IRNode cu = VisitUtil.findCompilationUnit(type.getDeclaration());
     			  tEnv.addTypesInCU(cu);
     		  }    	
