@@ -19,7 +19,7 @@
 
         <method name="printStackTrace">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <RegionEffects>writes java.lang.Object:All</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>
