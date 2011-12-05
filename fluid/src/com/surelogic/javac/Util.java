@@ -361,10 +361,13 @@ public class Util {
         rewriteCUs(projects, cus.asList(), projects.getMonitor());
         // Really to check if we added type refs via default constructors
 		loader.checkReferences(cus.asList());
-		loader = null; // To free up memory
-        
+		
 		final long canon = System.currentTimeMillis();
 		canonicalizeCUs(cus, projects);    
+        // Checking if we added type refs by canonicalizing implicit refs 
+		loader.checkReferences(cus.asList());
+		loader = null; // To free up memory
+		
 		final long cleanup = System.currentTimeMillis();
 		eliminateDups(cus.asList(), cus.asList());
 		clearCaches(projects);
