@@ -309,7 +309,7 @@
 				label="Add/Update Promises Library in Project"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 				menubarPath="jSureMenu/nature.grp"
-				enablesFor="1">
+				enablesFor="+">
 			</action>
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
