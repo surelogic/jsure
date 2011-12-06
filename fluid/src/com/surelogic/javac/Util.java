@@ -882,7 +882,9 @@ public class Util {
 			if (monitor.isCanceled()) {
 				throw new CancellationException();
 			}			
-			//System.out.println("Rewriting "+info.getFileName());			
+			if (info.getFile().getRelativePath() != null) {
+				System.out.println("Rewriting "+info.getFile().getRelativePath());			
+			}
 			final IRNode cu = info.getNode();
 			IRNode type = VisitUtil.getPrimaryType(cu);
 			if (type == null) {
@@ -1004,6 +1006,9 @@ public class Util {
 		//cus.apply(proc);
 		
 		for (final CodeInfo info : cus) {
+			if (info.getFile().getRelativePath() != null) {
+				System.out.println("Canonicalizing "+info.getFile().getRelativePath());
+			}
 			proc.op(info);
 		}		
 		SlotInfo.gc();
