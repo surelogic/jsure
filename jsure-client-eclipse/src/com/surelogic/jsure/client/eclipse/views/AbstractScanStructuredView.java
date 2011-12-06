@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
@@ -12,7 +13,11 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.*;
 
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+
 import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 /**
  * Uses a StructuredViewer
@@ -23,6 +28,22 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 	private final int f_extraStyle;
 	private StructuredViewer f_viewer;
 	final Class<T> clazz;
+	
+	protected final Action f_annotate = new ProposedPromisesRefactoringAction() {
+		@Override
+		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {
+			return getSelectedProposals();
+		}
+
+		@Override
+		protected String getDialogTitle() {
+			return I18N.msg("jsure.eclipse.proposed.promises.edit");
+		}
+	};
+
+	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+		return Collections.emptyList();
+	}
 	
 	protected AbstractScanStructuredView(Class<T> c) {
 		this(SWT.NONE, c);

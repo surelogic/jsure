@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -17,6 +20,7 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
 import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	private final Action f_copy = makeCopyAction("Copy",
@@ -34,15 +38,31 @@ public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		if (!s.isEmpty()) {
-			manager.add(f_copy);
+			for (Object o : s.toArray()) {
+				final IDropInfo info = (IDropInfo) o;
+				if (!info.getProposals().isEmpty()) {
+					manager.add(f_annotate);
+				}
+			}
+			manager.add(f_copy);			
 		}
 	}
 
 	@Override
 	protected void makeActions() {
-		// nothing to do
+		f_annotate.setText("Fix the problem");
+		f_annotate.setToolTipText("Add a promise to fix the problem");
 	}
 
+	@Override
+	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+		List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
+		for(IDropInfo info : getSelectedRows()) {
+			proposals.addAll(info.getProposals());
+		}
+		return proposals;
+	}
+	
 	private final UIJob f_backgroundColorJob = new SLUIJob() {
 		@Override
 		public IStatus runInUIThread(IProgressMonitor monitor) {

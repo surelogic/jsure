@@ -7,24 +7,12 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.*;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
 public class ProposedPromiseView extends AbstractScanTableView<IProposedPromiseDropInfo> {
-	private final Action f_annotate = new ProposedPromisesRefactoringAction() {
-		@Override
-		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {
-			return getSelectedRows();
-		}
-
-		@Override
-		protected String getDialogTitle() {
-			return I18N.msg("jsure.eclipse.proposed.promises.edit");
-		}
-	};
 
 	public ProposedPromiseView() {
 		super(SWT.MULTI, IProposedPromiseDropInfo.class, new ProposedPromiseContentProvider());
@@ -50,5 +38,10 @@ public class ProposedPromiseView extends AbstractScanTableView<IProposedPromiseD
 				}
 			}
 		}
+	}
+
+	@Override
+	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+		return getSelectedRows();
 	}
 }
