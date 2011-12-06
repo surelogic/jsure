@@ -166,10 +166,19 @@ public abstract class AnnotationRules {
     }
 
     public void reportError(String msg, IAASTNode n) {
-    	reportError(msg+" on "+n, n.getPromisedFor(), n.getOffset());
+    	reportError_private(msg+" on "+n, n.getPromisedFor(), n.getOffset());
     }
     
     public void reportError(IRNode n, String msgTemplate, Object... args) {
+    	reportError_private(n, msgTemplate, args);
+    }
+    
+	public void reportErrorAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args) {
+		PromiseWarningDrop d = reportError_private(p.getNode(), msgTemplate, args);
+		d.addProposal(p);
+	}
+    
+    private PromiseWarningDrop reportError_private(IRNode n, String msgTemplate, Object... args) {
     	final ISrcRef ref = JavaNode.getSrcRef(n);
     	final int offset;
     	if (ref == null) {
@@ -178,15 +187,16 @@ public abstract class AnnotationRules {
     		offset = ref.getOffset();
     	}
         String txt = MessageFormat.format(msgTemplate, args)+" on "+DebugUnparser.toString(n);
-    	reportError(txt, n, offset);
+        return reportError_private(txt, n, offset);
     }
     
-    private void reportError(String txt, IRNode n, int offset) {      
+    private PromiseWarningDrop reportError_private(String txt, IRNode n, int offset) {      
 //      System.out.println("SCRUBBER: "+txt);
       PromiseWarningDrop d = new PromiseWarningDrop(offset);
       d.setMessage(txt);
       d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
       d.setNodeAndCompilationUnitDependency(n);
+      return d;
     }
 
     public void reportWarning(IAASTNode n, String msgTemplate, Object... args) {
