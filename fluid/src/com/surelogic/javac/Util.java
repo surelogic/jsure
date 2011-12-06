@@ -786,6 +786,9 @@ public class Util {
 							try {
 								frame.pushTypeContext(cud.cu);
 								a.doAnalysisOnAFile(env, cud);
+							} catch(RuntimeException e) {
+								System.err.println("Error while processing "+cud.javaOSFileName);
+								throw e;
 							} finally {
 					            frame.popTypeContext();
 							}
@@ -952,7 +955,13 @@ public class Util {
 				for(IRNode n : JJNode.tree.topDown(info.getNode())) {
 					final Operator op = JJNode.tree.getOperator(n);
 					if (AbstractJavaBinder.isGranule(op, n)) {
-						b.ensureBindingsOK(n);
+						try {
+							b.ensureBindingsOK(n);
+						} catch(RuntimeException e) {
+							System.err.println("Error while binding "+DebugUnparser.toString(n));
+							System.err.println("In "+info.getFileName());
+							throw e;
+						}
 					}
 				}
 			}			
