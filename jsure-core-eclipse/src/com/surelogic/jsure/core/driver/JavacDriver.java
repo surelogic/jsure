@@ -96,11 +96,14 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureDataDirHub.CurrentScanChangeListener;
 import com.surelogic.jsure.core.scripting.ExportResults;
 import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
@@ -120,7 +123,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
 import edu.cmu.cs.fluid.util.Pair;
 
-public class JavacDriver implements IResourceChangeListener {
+public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
 	private static final String SEPARATOR = "==================================================================================================";
@@ -309,6 +312,8 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFolder();
+				
+				JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -654,7 +659,9 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
-	public void recordViewUpdate() {
+	// Was public void recordViewUpdate() {
+	@Override
+	public void currentScanChanged(JSureScan scan) {	
 		if (script != null) {
 			// Export results
 			final String prefix = "expectedResults" + getId();
@@ -662,8 +669,9 @@ public class JavacDriver implements IResourceChangeListener {
 			final File location = new File(scriptResourcesDir, name);
 			try {
 				final String path = computePrefix();
-				Sea.getDefault().updateConsistencyProof();
-				SeaSummary.summarize("workspace", Sea.getDefault(), location);
+				final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+				SeaSummary.summarize("workspace", info.getDropInfo(), location);
+				
 				printToScript(ScriptCommands.COMPARE_RESULTS + " workspace "
 						+ path + '/' + name + " " + path + "/../" + prefix
 						+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
@@ -788,7 +796,9 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		if (prototype.script != null) {
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype,
-					IResourceChangeEvent.PRE_BUILD);
+					IResourceChangeEvent.POST_CHANGE);
+			// This only worked in the old world, when I waited for a build
+			//		IResourceChangeEvent.PRE_BUILD);
 			// IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
 		}
 	}
@@ -2318,4 +2328,5 @@ public class JavacDriver implements IResourceChangeListener {
 			return;
 		}
 	}
+
 }
