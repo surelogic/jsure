@@ -180,11 +180,11 @@ public class JavaRewrite implements JavaGlobals {
 					changed |= ensureConstructorStuff(x);
 					if (EnumDeclaration.prototype.includes(op)) {
 						if (!JavaNode.getModifier(x, JavaNode.AS_BINARY) || missingValuesMethod(x)) {					
-							System.err.println("Adding implicit methods for "+qname+" = "+x);
+							//System.err.println("Adding implicit methods for "+qname+" = "+x);
 							addImplicitEnumMethods(x);
 							changed = true;						
 						} else {
-							System.err.println("Not adding implicit methods to "+qname);
+							//System.err.println("Not adding implicit methods to "+qname);
 						}
 					}
 				}
