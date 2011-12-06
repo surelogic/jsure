@@ -82,21 +82,31 @@ public class RegionEffectsNode extends AASTRootNode {
       }    
     } else {
       sb.append(' ');
-      if (getEffectsList().isEmpty()) {
-        sb.append("none");
-      }
-      
-      boolean first = true;
-      for(AASTNode _n : getEffectsList()) {
-        if (first) {
-          first = false;
-        } else {
-          sb.append("; ");
-        }
-        sb.append(_n.unparse(false));
-      }    
+      unparseEffectsList(sb);     
     }
     return sb.toString();
+	}
+	
+	private void unparseEffectsList(StringBuilder sb) {
+		if (getEffectsList().isEmpty()) {
+			sb.append("none");
+			return;
+		} 
+		boolean first = true;
+		for(AASTNode _n : getEffectsList()) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append("; ");
+			}
+			sb.append(_n.unparse(false));
+		} 		
+	}
+	
+	public String unparseEffectsList() {
+	    StringBuilder sb = new StringBuilder();
+	    unparseEffectsList(sb);
+	    return sb.toString();
 	}
 	
 	/**
