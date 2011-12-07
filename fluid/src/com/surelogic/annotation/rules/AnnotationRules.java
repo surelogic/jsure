@@ -453,6 +453,58 @@ public abstract class AnnotationRules {
   
   
   
+  public static final class ParameterMap {
+    private final Map<IRNode, Integer> argPosition;
+    private final List<IRNode> parentArgs;
+    private final List<IRNode> childArgs;
+    
+    
+    
+    public ParameterMap(final IRNode parent, final IRNode child) {
+      argPosition = new HashMap<IRNode, Integer>();
+      parentArgs = new ArrayList<IRNode>();
+      childArgs = new ArrayList<IRNode>();
+      
+      final Iteratable<IRNode> parentParams = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+      final Iteratable<IRNode> childParams = Parameters.getFormalIterator(MethodDeclaration.getParams(child));
+      int count = 0;
+      for (final IRNode parentArg : parentParams) {
+        final IRNode childArg = childParams.next();
+        final Integer idx = Integer.valueOf(count);
+        argPosition.put(parentArg, idx);
+        argPosition.put(childArg, idx);
+        parentArgs.add(parentArg);
+        childArgs.add(childArg);
+        count += 1;
+      }
+    }
+    
+    
+    
+    // Returns -1 if param is not found
+    public int getPositionOf(final IRNode param) {
+      final Integer v = argPosition.get(param);
+      return v == null ? -1 : v.intValue();
+    }
+    
+    // Return null if there is a look up failure
+    private IRNode getParallelArgument(
+        final IRNode arg, final List<IRNode> otherArgs) {
+      final Integer idx = argPosition.get(arg);
+      return idx == null ? null : otherArgs.get(idx.intValue());
+    }
+    
+    public IRNode getCorrespondingChildArg(final IRNode parentArg) {
+      return getParallelArgument(parentArg, childArgs);
+    }
+    
+    public IRNode getCorrespondingParentArg(final IRNode childArg) {
+      return getParallelArgument(childArg, parentArgs);
+    }
+  }
+  
+  
+  @Deprecated // use ParameterMap class instead
   protected static Map<IRNode, Integer> buildParameterMap(
       final IRNode annotatedMethod, final IRNode parent) {
     // Should have the same number of arguments

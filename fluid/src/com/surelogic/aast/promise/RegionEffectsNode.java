@@ -4,7 +4,7 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
 
 /**
  * TODO Fill in purpose.
@@ -48,10 +48,18 @@ public class RegionEffectsNode extends AASTRootNode {
   @Override
   public IAASTNode cloneTree(){
   	List<EffectsSpecificationNode> effectCopy = new ArrayList<EffectsSpecificationNode>(effects.size());
-  	for (EffectsSpecificationNode effectSpecificationNode : effects) {
-			effectCopy.add((EffectsSpecificationNode)effectSpecificationNode.cloneTree());
+  	for (EffectsSpecificationNode effectsSpecificationNode : effects) {
+			effectCopy.add((EffectsSpecificationNode)effectsSpecificationNode.cloneTree());
 		}
   	return new RegionEffectsNode(getOffset(), effectCopy);
+  }
+
+  public final RegionEffectsNode cloneForProposal(final ParameterMap pm) {
+    final List<EffectsSpecificationNode> effectCopy = new ArrayList<EffectsSpecificationNode>(effects.size());
+    for (EffectsSpecificationNode effectsSpecificationNode : effects) {
+      effectCopy.add(effectsSpecificationNode.cloneForProposal(pm));
+    }
+    return new RegionEffectsNode(getOffset(), effectCopy);
   }
 
 	/* (non-Javadoc)
@@ -75,40 +83,49 @@ public class RegionEffectsNode extends AASTRootNode {
       indent(sb, indent); 
     }
     sb.append(name);
+
     if (debug) {
       sb.append('\n');
-      for(AASTNode _n : getEffectsList()) {
+      for(EffectsSpecificationNode _n : effects) {
         sb.append(_n.unparse(debug, indent+2));
       }    
     } else {
       sb.append(' ');
-      unparseEffectsList(sb);     
+      if (effects.isEmpty()) {
+      	sb.append("none");
+      } else { 
+      	boolean first = true;
+      	for(EffectsSpecificationNode _n : effects) {
+      		if (first) {
+      			first = false;
+      		} else {
+      			sb.append("; ");
+      		}
+      		sb.append(_n.unparse(false));
+      	} 		
+      }     
     }
     return sb.toString();
 	}
-	
-	private void unparseEffectsList(StringBuilder sb) {
-		if (getEffectsList().isEmpty()) {
-			sb.append("none");
-			return;
-		} 
-		boolean first = true;
-		for(AASTNode _n : getEffectsList()) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append("; ");
-			}
-			sb.append(_n.unparse(false));
-		} 		
-	}
-	
-	public String unparseEffectsList() {
-	    StringBuilder sb = new StringBuilder();
-	    unparseEffectsList(sb);
+
+	 public final String unparseForPromise() {
+	    final StringBuilder sb = new StringBuilder();
+      if (effects.isEmpty()) {
+        sb.append("none");
+      } else { 
+        boolean first = true;
+        for(final EffectsSpecificationNode _n : effects) {
+          if (first) {
+            first = false;
+          } else {
+            sb.append("; ");
+          }
+          sb.append(_n.unparseForPromise());
+        }     
+      }     
 	    return sb.toString();
-	}
-	
+	  }
+
 	/**
 	 * Returns the list of {@link EffectsSpecificationNode}. This list should never
 	 * exceed the number of possible effects. Currently, this is 2, for {@link ReadsNode}

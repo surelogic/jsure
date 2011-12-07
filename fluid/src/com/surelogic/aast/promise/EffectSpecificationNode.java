@@ -1,7 +1,6 @@
 package com.surelogic.aast.promise;
 
 import java.util.List;
-import java.util.Map;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
@@ -13,11 +12,13 @@ import com.surelogic.aast.java.TypeExpressionNode;
 import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public class EffectSpecificationNode extends AASTNode {
 	// Fields
@@ -163,7 +164,8 @@ public class EffectSpecificationNode extends AASTNode {
    */
   public final boolean satisfiesSpecfication(
       final EffectSpecificationNode ancestor, 
-      final Map<IRNode, Integer> positionMap, 
+      final ParameterMap parameterMap,
+//      final Map<IRNode, Integer> positionMap, 
       final ITypeEnvironment typeEnv) {
     // Must be that the ancestor declares a write, or that both are reads
     if (ancestor.isWrite || !this.isWrite) {
@@ -239,8 +241,8 @@ public class EffectSpecificationNode extends AASTNode {
           if (overridingContext instanceof VariableUseExpressionNode) {
             final IRNode ancestorFormal = ((VariableUseExpressionNode) ancestorContext).resolveBinding().getNode();
             final IRNode overridingFormal = ((VariableUseExpressionNode) overridingContext).resolveBinding().getNode();
-            final int ancestorPos = positionMap.get(ancestorFormal);
-            final int overridingPos = positionMap.get(overridingFormal);
+            final int ancestorPos = parameterMap.getPositionOf(ancestorFormal); //positionMap.get(ancestorFormal);
+            final int overridingPos = parameterMap.getPositionOf(overridingFormal); //positionMap.get(overridingFormal);
             return (ancestorPos == overridingPos);
           }
         }
@@ -263,6 +265,22 @@ public class EffectSpecificationNode extends AASTNode {
       return ((QualifiedThisExpressionNode) overridingContext).namesEnclosingTypeOfAnnotatedMethod();
     }
     return false;
+  }
+  
+  public final EffectSpecificationNode cloneForProposal(final ParameterMap pm) {
+    final RegionSpecificationNode regionNode = 
+        (RegionSpecificationNode) region.cloneTree();
+    final ExpressionNode contextNode;
+    if (context instanceof VariableUseExpressionNode) {
+      contextNode = new VariableUseExpressionNode(
+          context.getOffset(),
+          ParameterDeclaration.getId(pm.getCorrespondingChildArg(
+              ((VariableUseExpressionNode) context).resolveBinding().getNode())));
+    } else {
+      contextNode = (ExpressionNode) context.cloneTree();
+    }
+    return new EffectSpecificationNode(
+        offset, isWrite, contextNode, regionNode);
   }
   
   /**

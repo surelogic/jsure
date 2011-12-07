@@ -41,4 +41,14 @@ public class WritesNode extends EffectsSpecificationNode {
 		}
   	return new WritesNode(getOffset(), effectCopy);
   }
+  
+  @Override
+  WritesNode finishCloneForProposal(final List<EffectSpecificationNode> effects) {
+    return new WritesNode(getOffset(), effects);
+  }
+  
+  @Override
+  public String getLabel() {
+    return "writes";
+  }
 }
