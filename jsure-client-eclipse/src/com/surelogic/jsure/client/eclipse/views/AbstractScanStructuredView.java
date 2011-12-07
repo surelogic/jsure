@@ -129,5 +129,18 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 		return a;
 	}
 	
-	protected abstract String getSelectedText();
+	protected final String getSelectedText() {
+		IStructuredSelection selection = (IStructuredSelection) getViewer()
+				.getSelection();
+		StringBuilder sb = new StringBuilder();
+		for (Object elt : selection.toList()) {
+			if (sb.length() > 0) {
+				sb.append('\n');
+			}
+			appendText(sb, elt);
+		}
+		return sb.toString();
+	}
+	
+	protected abstract void appendText(StringBuilder sb, Object elt);
 }

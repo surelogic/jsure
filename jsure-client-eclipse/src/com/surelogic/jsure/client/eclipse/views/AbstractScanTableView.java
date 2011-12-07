@@ -78,21 +78,12 @@ public abstract class AbstractScanTableView<T> extends
 
 	/********************* Methods to handle selections ******************************/
 
-	protected String getSelectedText() {
-		IStructuredSelection selection = (IStructuredSelection) getViewer()
-				.getSelection();
-		StringBuilder sb = new StringBuilder();
-		for (Object elt : selection.toList()) {
-			if (sb.length() > 0) {
-				sb.append('\n');
+	protected void appendText(StringBuilder sb, Object elt) {
+		for (int i = 0; i < 3; i++) {
+			if (i > 0) {
+				sb.append(' ');
 			}
-			for (int i = 0; i < 3; i++) {
-				if (i > 0) {
-					sb.append(' ');
-				}
-				sb.append(f_content.getColumnText(elt, i));
-			}
+			sb.append(f_content.getColumnText(elt, i));
 		}
-		return sb.toString();
 	}
 }

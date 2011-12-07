@@ -38,16 +38,7 @@ public abstract class AbstractScanTreeView<T> extends
 
 	/********************* Methods to handle selections ******************************/
 
-	protected String getSelectedText() {
-		IStructuredSelection selection = (IStructuredSelection) getViewer()
-				.getSelection();
-		StringBuilder sb = new StringBuilder();
-		for (Object elt : selection.toList()) {
-			if (sb.length() > 0) {
-				sb.append('\n');
-			}
-			sb.append(f_content.getText(elt));
-		}
-		return sb.toString();
+	protected void appendText(StringBuilder sb, Object elt) {
+		sb.append(f_content.getText(elt));
 	}
 }
