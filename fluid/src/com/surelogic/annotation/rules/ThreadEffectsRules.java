@@ -76,7 +76,8 @@ public class ThreadEffectsRules extends AnnotationRules {
             if (startsNothing(parent)) {
               // Ancestor is annotated
               good = false;
-              getContext().reportError(decl,
+              getContext().reportErrorAndProposal(
+                  new ProposedPromiseDrop("Starts", "nothing", decl, parent),
                   "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
                   JavaNames.genQualifiedMethodConstructorName(parent));
             }
