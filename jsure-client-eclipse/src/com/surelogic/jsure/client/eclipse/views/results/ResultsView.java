@@ -716,7 +716,6 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			final long buildEnd = System.currentTimeMillis();
 			System.err.println("Time to build model  = " + (buildEnd - start)
 					+ " ms");
-			JavacDriver.getInstance().recordViewUpdate();
 
 			/*
 			 * if (IJavaFileLocator.testIRPaging) { final EclipseFileLocator loc
