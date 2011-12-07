@@ -32,7 +32,6 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	@Override
 	public void dispose() {
 		JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
-
 		super.dispose();
 	}
 
@@ -78,7 +77,7 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	 */
 	private void updateViewState() {
 		final String label = updateViewer();
-		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+		getCurrentControl().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				if (label != null) {
 					if (getViewer() != null) {
@@ -89,7 +88,7 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 					setViewerVisibility(false);
 				}
 				// TODO is this right?
-				f_viewerControl.redraw();
+				getCurrentControl().redraw();
 			}
 		});
 	}
@@ -98,7 +97,7 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 		if (f_viewerbook.isDisposed())
 			return;
 		if (showResults) {
-			f_viewerbook.showPage(f_viewerControl);
+			f_viewerbook.showPage(getCurrentControl());
 		} else {
 			f_viewerbook.showPage(f_noResultsToShowLabel);
 		}

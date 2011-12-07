@@ -27,13 +27,13 @@ public abstract class AbstractScanTreeView<T> extends
 	}
 
 	@Override
-	protected StructuredViewer newViewer(Composite parent, int extraStyle) {
-		final TreeViewer treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL
+	protected StructuredViewer[] newViewers(Composite parent, int extraStyle) {
+		final TreeViewer treeViewer = new TreeViewer(parent, SWT.H_SCROLL
 				| SWT.V_SCROLL | extraStyle);
 
 		treeViewer.setContentProvider(f_content);
 		treeViewer.setLabelProvider(f_content);
-		return treeViewer;
+		return new StructuredViewer[] { treeViewer };
 	}
 
 	/********************* Methods to handle selections ******************************/

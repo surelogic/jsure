@@ -26,7 +26,7 @@ import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
  */
 public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanView {
 	private final int f_extraStyle;
-	private StructuredViewer f_viewer;
+	private StructuredViewer[] f_viewers;
 	final Class<T> clazz;
 	
 	protected final Action f_annotate = new ProposedPromisesRefactoringAction() {
@@ -56,16 +56,24 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 	
 	@Override
 	protected final StructuredViewer getViewer() {
-		return f_viewer;
+		return f_viewers[getViewIndex()];
+	}
+	
+	protected int getViewIndex() {
+		return 0;
 	}
 	
 	@Override
 	protected Control buildViewer(Composite parent) {
-		f_viewer = newViewer(parent, f_extraStyle);
-		return f_viewer.getControl();
+		f_viewers = newViewers(parent, f_extraStyle);
+
+		if (f_viewers.length == 1) {
+			return f_viewers[0].getControl();
+		}
+		return null;
 	}
 
-	protected abstract StructuredViewer newViewer(Composite parent, int extraStyle);
+	protected abstract StructuredViewer[] newViewers(Composite parent, int extraStyle);
 	
 
 	@Override

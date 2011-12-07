@@ -27,7 +27,7 @@ public abstract class AbstractScanTableView<T> extends
 	}
 
 	@Override
-	protected StructuredViewer newViewer(Composite parent, int extraStyle) {
+	protected StructuredViewer[] newViewers(Composite parent, int extraStyle) {
 		final TableViewer tableViewer = new TableViewer(parent, SWT.H_SCROLL
 				| SWT.V_SCROLL | SWT.FULL_SELECTION | extraStyle);
 		// Setup columns
@@ -47,7 +47,7 @@ public abstract class AbstractScanTableView<T> extends
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().pack();
-		return tableViewer;
+		return new StructuredViewer[] { tableViewer };
 	}
 
 	protected void setupSorter(final TableViewer tViewer,

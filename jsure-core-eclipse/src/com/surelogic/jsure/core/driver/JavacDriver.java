@@ -39,6 +39,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -52,6 +53,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageDeclaration;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -313,6 +315,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFolder();
 				
+				loadFileCache(JDTUtility.getJavaProject(proj));
 				JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -346,6 +349,21 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			info = null;
 			updateScriptJob = null;
 		}
+	}
+
+	private void loadFileCache(IJavaProject proj) {
+		final List<ICompilationUnit> cus = new ArrayList<ICompilationUnit>();
+		try {
+			for(IPackageFragment frag : proj.getPackageFragments()) {
+				for(ICompilationUnit cu : frag.getCompilationUnits()) {
+					cus.add(cu);
+				}
+			}
+			cacheCompUnits(cus);
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	private static void importScriptedProject(final File proj)
@@ -612,15 +630,19 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				System.out.println("Couldn't handle flag: " + p.second());
 			}
 		}
+		/* No longer needed with manual scans
 		if (queue.size() > 1) {
 			printToScript("unset " + ScriptCommands.AUTO_BUILD);
 		}
+		*/
 		for (String line : queue) {
 			printToScript(line);
 		}
+		/*
 		if (queue.size() > 1) {
 			printToScript("set " + ScriptCommands.AUTO_BUILD);
 		}
+		*/
 	}
 
 	public void recordProjectAction(String action, IProject p) {
@@ -2241,7 +2263,18 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		}
 	}
 
+	// Somehow call scriptChanges
 	public void resourceChanged(IResourceChangeEvent event) {
+		if (script != null) {
+			ChangeCollector visitor = new ChangeCollector();
+			try {
+				event.getDelta().accept(visitor);
+				scriptChanges(visitor.getChanges());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+			
 		if (event.getResource() == null) {
 			for (IResourceDelta delta : event.getDelta().getAffectedChildren()) {
 				changed(delta);
@@ -2329,4 +2362,20 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		}
 	}
 
+	static class ChangeCollector implements IResourceDeltaVisitor {
+		private final List<Pair<IResource, Integer>> changes = new ArrayList<Pair<IResource,Integer>>();
+		
+		public List<Pair<IResource, Integer>> getChanges() {
+			return changes;
+		}
+
+		@Override
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			if (delta.getResource().getType() != IResource.FILE) {
+				return true;
+			}
+			changes.add(new Pair<IResource, Integer>(delta.getResource(), delta.getKind()));
+			return false;
+		}
+	}
 }
