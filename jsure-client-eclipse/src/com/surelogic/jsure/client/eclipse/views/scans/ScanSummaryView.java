@@ -107,7 +107,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 
 	@Override
 	public void currentScanChanged(JSureScan scan) {
-		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+		getCurrentControl().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				updateViewState();
@@ -121,14 +121,14 @@ public class ScanSummaryView extends AbstractJSureView implements
 	private void updateViewState() {
 		final String label = updateViewer(true);
 		if (label != null) {
-			f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			getCurrentControl().getDisplay().asyncExec(new Runnable() {
 				public void run() {
 
 					if (getViewer() != null) {
 						getViewer().setInput(getViewSite());
 					}
 					// TODO what else is there to do with the label?
-					f_viewerControl.redraw();
+					getCurrentControl().redraw();
 				}
 			});
 		}
@@ -156,7 +156,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 			}
 			return rv;
 		} finally {
-			f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			getCurrentControl().getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					projectList.refresh();
 					tableViewer.refresh();
