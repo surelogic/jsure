@@ -42,13 +42,13 @@ public class ProposedPromiseView extends AbstractScanPagedTableTreeView<IPropose
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
-		manager.add(f_toggleFilter);
+		//manager.add(f_toggleFilter);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
-		manager.add(f_toggleFilter);
+		//manager.add(f_toggleFilter);
 	}
 	
 	@Override
