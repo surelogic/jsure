@@ -57,7 +57,7 @@ public final class PromisesXMLParser {
 	public static Pair<File,File> findPromisesXML(final String path) {
 		File fluid = null; 
 		File local = null;		
-		File localXml = getFluidXMLDir();
+		File localXml = getLocalXMLDir();
 		if (localXml != null) {
 			File f = new File(localXml, path);
 			if (f.isFile()) {
