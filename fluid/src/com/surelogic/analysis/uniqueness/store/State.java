@@ -9,14 +9,38 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  * of creating PseudoVariable wrappers.
  */
 public enum State {
-  NULL("null"),
-  UNIQUE("@Unique"),
-  UNIQUEWRITE("@Unique(allowRead=true)"),
-  SHARED("nothing"),
-  IMMUTABLE("@Immutable"),
-  READONLY("@ReadOnly"),
-  BORROWED("@Borrowed"),
-  UNDEFINED("undefined");
+  NULL("null") {
+    @Override
+    public String getProposedPromiseName() { return null; }
+  },
+  UNIQUE("@Unique") {
+    @Override
+    public String getProposedPromiseName() { return "Unique"; }
+  },
+  UNIQUEWRITE("@Unique(allowRead=true)") {
+    @Override
+    public String getProposedPromiseName() { return null; }
+  },
+  SHARED("nothing") {
+    @Override
+    public String getProposedPromiseName() { return null; }
+  },
+  IMMUTABLE("@Immutable") {
+    @Override
+    public String getProposedPromiseName() { return "Immutable"; }
+  },
+  READONLY("@ReadOnly") {
+    @Override
+    public String getProposedPromiseName() { return "ReadOnly"; }
+  },
+  BORROWED("@Borrowed") {
+    @Override
+    public String getProposedPromiseName() { return "Borrowed"; }
+  },
+  UNDEFINED("undefined") {
+    @Override
+    public String getProposedPromiseName() { return null; }
+  };
   
   private final String annotation;
   
@@ -27,6 +51,8 @@ public enum State {
   public String getAnnotation() {
     return annotation;
   }
+  
+  public abstract String getProposedPromiseName();
   
   public static class Lattice extends AbstractLattice<State> {
     public boolean lessEq(State v1, State v2) {
