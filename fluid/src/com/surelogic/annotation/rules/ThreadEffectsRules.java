@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class ThreadEffectsRules extends AnnotationRules {
@@ -77,7 +78,7 @@ public class ThreadEffectsRules extends AnnotationRules {
               // Ancestor is annotated
               good = false;
               getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop("Starts", "nothing", decl, parent),
+                  new ProposedPromiseDrop("Starts", "nothing", decl, parent, Origin.PROMISE),
                   "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
                   JavaNames.genQualifiedMethodConstructorName(parent));
             }

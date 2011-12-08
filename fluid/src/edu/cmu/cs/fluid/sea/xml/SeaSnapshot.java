@@ -23,6 +23,7 @@ import static com.surelogic.common.jsure.xml.JSureXMLReader.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
@@ -822,8 +823,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return getAttribute(ProposedPromiseDrop.CONTENTS);
 		}
 
+		public String getReplacedAnnotation() {
+			return getAttribute(ProposedPromiseDrop.REPLACED_ANNO);
+		}
+		
 		public String getReplacedContents() {
 			return getAttribute(ProposedPromiseDrop.REPLACED_CONTENTS);
+		}
+		
+		public Origin getOrigin() {
+			return Origin.valueOf(getAttribute(ProposedPromiseDrop.ORIGIN));
 		}
 		
 		public String getTargetProjectName() {

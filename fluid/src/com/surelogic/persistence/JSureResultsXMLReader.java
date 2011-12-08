@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
@@ -50,13 +51,15 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
 
 	@Override
 	protected void handleAndRef(ResultDrop d, Entity nested, PromiseDrop<?> pd) {
-		if (pd == null) {
+		if (pd == null) {			
 			IRNode location = findPromiseLocation(nested);
-			d.setInconsistent();					
+			d.setInconsistent();
+			// TODO what is this for?
 			d.addProposal(new ProposedPromiseDrop(nested.getAttribute(PROMISE), 
 					                              nested.getAttribute(PROMISE_CONTENTS), 
-					                              location, location));// TODO d.getNode()));
-		} else {
+					                              location, location, 
+					                              Origin.valueOf(nested.getAttribute(ProposedPromiseDrop.ORIGIN))));// TODO d.getNode()));
+		} else { 
 			d.addTrustedPromise(pd);
 		}
 	}

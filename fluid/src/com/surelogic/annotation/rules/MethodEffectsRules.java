@@ -33,6 +33,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
@@ -155,7 +156,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final ProposedPromiseDrop p =
                     new ProposedPromiseDrop(
                         REGIONEFFECTS, cloned.unparseForPromise(),
-                        decl, overriddenMethod);
+                        decl, overriddenMethod, Origin.PROMISE);
                 getContext().reportErrorAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
@@ -388,7 +389,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final ProposedPromiseDrop p = new ProposedPromiseDrop(
                     REGIONEFFECTS, cloned.unparseForPromise(),
                     node.toString().substring("RegionEffects".length()).trim(),
-                    promisedFor, overriddenMethod);
+                    promisedFor, overriddenMethod, Origin.PROMISE);
                 scrubberContext.reportErrorAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),

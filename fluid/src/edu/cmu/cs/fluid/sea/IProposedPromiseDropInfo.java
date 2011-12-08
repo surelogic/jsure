@@ -4,12 +4,15 @@ package edu.cmu.cs.fluid.sea;
 import com.surelogic.common.refactor.IJavaDeclaration;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 public interface IProposedPromiseDropInfo extends IDropInfo {
 	String getAnnotation();
 	String getContents();
+	String getReplacedAnnotation();
 	String getReplacedContents();
 	String getJavaAnnotation();
+	Origin getOrigin();
 	String getTargetProjectName();
 	String getFromProjectName();
 	IJavaDeclaration getTargetInfo();

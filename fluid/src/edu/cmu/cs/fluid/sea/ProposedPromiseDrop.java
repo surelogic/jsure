@@ -34,13 +34,19 @@ public final class ProposedPromiseDrop extends IRReferenceDrop
 implements IResultDrop, IProposedPromiseDropInfo {
 	public static final String ANNOTATION_TYPE = "annotation-type";
 	public static final String CONTENTS = "contents";
+	public static final String REPLACED_ANNO = "replaced-annotation";
 	public static final String REPLACED_CONTENTS = "replaced-contents";
+	public static final String ORIGIN = "origin";
 	public static final String JAVA_ANNOTATION = "java-annotation";
 	public static final String FROM_PROJECT = "from-project";
 	public static final String TARGET_PROJECT = "target-project";
 	public static final String FROM_INFO = "from-info";
 	public static final String TARGET_INFO = "target-info";
 	public static final String FROM_REF = "from-ref";
+	
+	public enum Origin {
+		PROMISE, INFERENCE
+	}
 	
 	/**
 	 * Constructs a new proposed promise. Intended to be called from analysis
@@ -66,8 +72,15 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 *            this proposed promise if the compilation unit is reanalyzed.
 	 */
 	public ProposedPromiseDrop(final String annotation, final String contents,
-			final String replacedContents,
-			final IRNode at, final IRNode from) {
+			final String replacedContents, final IRNode at, final IRNode from, Origin origin) {
+		this(annotation, contents, Collections.<String,String>emptyMap(),
+				replacedContents != null ? annotation : null, replacedContents, Collections.<String,String>emptyMap(),
+				at, from, origin);
+	}
+	
+	public ProposedPromiseDrop(final String annotation, final String contents, final Map<String,String> attrs,
+			final String replacedAnno, final String replacedContents, final Map<String,String> replacedAttrs,
+			final IRNode at, final IRNode from, final Origin src) {
 		if (at == null) {
 			throw new IllegalArgumentException(I18N.err(44, "at"));
 		}
@@ -80,7 +93,9 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		f_requestedFrom = from;
 		f_annotation = annotation;
 		f_contents = contents;
+		f_replacedAnno = replacedAnno;
 		f_replacedContents = replacedContents;
+		f_origin = src;
 		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
 
@@ -94,8 +109,17 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	}
 
 	public ProposedPromiseDrop(final String annotation, final String contents,
-			final IRNode at, final IRNode from) {
-		this(annotation, contents, null, at, from);
+			final IRNode at, final IRNode from, Origin origin) {
+		this(annotation, contents, null, at, from, origin);
+	}
+	
+	/**
+	 * An indication of how this proposal was generated
+	 */
+	private final Origin f_origin;
+	
+	public Origin getOrigin() {
+		return f_origin;
 	}
 	
 	/**
@@ -103,6 +127,8 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 * the value of this string would be {@code "Starts"}.
 	 */
 	private final String f_annotation;
+	
+	private final String f_replacedAnno;
 
 	/**
 	 * Gets the Java annotation being proposed. For
@@ -113,6 +139,10 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 */
 	public String getAnnotation() {
 		return f_annotation;
+	}
+	
+	public String getReplacedAnnotation() {
+		return f_replacedAnno;
 	}
 
 	private final IRNode f_requestedFrom;
@@ -311,7 +341,9 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
 		s.addAttribute(ANNOTATION_TYPE, getAnnotation());
 		s.addAttribute(CONTENTS, getContents());
+		s.addAttribute(REPLACED_ANNO, getReplacedAnnotation());
 		s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
+		s.addAttribute(ORIGIN, getOrigin().toString());
 		s.addAttribute(TARGET_PROJECT, getTargetProjectName());
 		s.addAttribute(FROM_PROJECT, getFromProjectName());
 	}
