@@ -12,10 +12,10 @@ import com.surelogic.jsure.client.eclipse.views.*;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
-public class ProposedPromiseView extends AbstractScanTableView<IProposedPromiseDropInfo> {
+public class ProposedPromiseView extends AbstractScanPagedTableTreeView<IProposedPromiseDropInfo> {
 
 	public ProposedPromiseView() {
-		super(SWT.MULTI, IProposedPromiseDropInfo.class, new ProposedPromiseContentProvider());
+		super(SWT.MULTI, IProposedPromiseDropInfo.class, new ProposedPromiseContentProvider(true));
 	}
 
 	@Override
