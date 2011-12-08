@@ -66,7 +66,11 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewers = newViewers(parent, f_extraStyle);
-
+		// To make sure only one is showing
+		for(StructuredViewer v : f_viewers) {
+			v.getControl().setVisible(false);
+		}
+		
 		if (f_viewers.length == 1) {
 			return f_viewers[0].getControl();
 		}
