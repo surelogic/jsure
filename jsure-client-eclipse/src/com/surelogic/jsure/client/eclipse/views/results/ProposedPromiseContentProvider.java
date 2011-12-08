@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
@@ -59,7 +60,7 @@ implements IJSureTableTreeContentProvider
 				contents.add(id);
 			}
 		}
-		packages = Package.make(proposedPromiseDrops);
+		packages = Package.factory.organize(proposedPromiseDrops);
 		Arrays.sort(packages);		
 		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
@@ -135,26 +136,38 @@ implements IJSureTableTreeContentProvider
 		return null;
 	}
 	
-	interface Treeable {
+	interface Treeable extends Comparable<Treeable> {
 		Image getImage();
 		boolean hasChildren();
 		Object[] getChildren();
 	}
 	
 	static abstract class AbstractTreeable<T> implements Treeable {
-		T[] children;
+		final String id;
+		final T[] children;
 		
-		AbstractTreeable(T[] c) {
-			this(c, true);
+		AbstractTreeable(String id, T[] c) {
+			this(id, c, true);
 		}
 		
-		AbstractTreeable(T[] c, boolean sort) {
+		AbstractTreeable(String id, T[] c, boolean sort) {
+			this.id = id;
 			children = c;
 			if (sort) {
 				Arrays.sort(children);
 			}
 		}
 
+		@Override
+		public final String toString() {
+			return id;
+		}
+		
+		@Override
+		public int compareTo(Treeable o) {
+			return toString().compareTo(o.toString());
+		}
+		
 		public boolean hasChildren() {
 			return children != null && children.length > 0;
 		}
@@ -163,40 +176,32 @@ implements IJSureTableTreeContentProvider
 			return children;
 		}
 	}
-	/*
+	
 	static abstract class Factory<K,T> {
-		T[] build(Collection<IProposedPromiseDropInfo> drops) {
+		@SuppressWarnings("unchecked")
+		T[] organize(Collection<IProposedPromiseDropInfo> drops) {
 			MultiMap<K,IProposedPromiseDropInfo> map = new MultiHashMap<K, IProposedPromiseDropInfo>();
 			for(IProposedPromiseDropInfo d : drops) {
-				map.put(getKey(d), d);
+				K key = getKey(d);
+				if (key == null) {
+					continue;
+				}
+ 				map.put(key, d);
 			}		
 			List<T> things = new ArrayList<T>();
 			for(Map.Entry<K, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
 				things.add(make(e.getKey(), e.getValue()));
 			}
-			T first = things.get(0);
-			return things.toArray(new Object[things.size()]);
+			T first = things.get(0);			
+			return things.toArray((T[]) Array.newInstance(first.getClass(), things.size()));
 		}
 		abstract K getKey(IProposedPromiseDropInfo d);
 		abstract T make(K key, Collection<IProposedPromiseDropInfo> drops);
 	}
-	*/
-	static class Package extends AbstractTreeable<CU> implements Comparable<Package> {
-		final String pkg;
-		
+
+	static class Package extends AbstractTreeable<Type> {		
 		Package(String p, Collection<IProposedPromiseDropInfo> drops) {
-			super(CU.make(drops));
-			pkg = p;
-		}
-		
-		@Override
-		public String toString() {
-			return pkg;
-		}		
-		
-		@Override
-		public int compareTo(Package o) {
-			return pkg.compareTo(o.pkg);
+			super(p, Type.factory.organize(drops));
 		}
 		
 		@Override
@@ -204,6 +209,17 @@ implements IJSureTableTreeContentProvider
 			return SLImages.getImage(CommonImages.IMG_PACKAGE);
 		}
 		
+		static Factory<String,Package> factory = new Factory<String, Package>() {			
+			@Override
+			String getKey(IProposedPromiseDropInfo d) {
+				return d.getSrcRef() == null ? null : d.getSrcRef().getPackage();
+			}
+			@Override
+			Package make(String key, Collection<IProposedPromiseDropInfo> drops) {
+				return new Package(key, drops);
+			}			
+		};
+		/*
 		static Package[] make(List<IProposedPromiseDropInfo> drops) {
 			MultiMap<String,IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
 			for(IProposedPromiseDropInfo d : drops) {
@@ -218,24 +234,18 @@ implements IJSureTableTreeContentProvider
 			}
 			return pkgs.toArray(noPackages);
 		}
+		*/
 	}
 	
-	static class CU extends AbstractTreeable<Line> implements Comparable<CU> {
-		final String type;
-		
-		CU(String t, Collection<IProposedPromiseDropInfo> drops) {
-			super(Line.make(drops));
-			type = t;
+	static abstract class Member extends AbstractTreeable<IProposedPromiseDropInfo> {
+		Member(String id, IProposedPromiseDropInfo[] c, boolean sort) {
+			super(id, c, sort);
 		}
-		
-		@Override
-		public String toString() {
-			return type;
-		}
-
-		@Override
-		public int compareTo(CU o) {
-			return type.compareTo(o.type);
+	}
+	
+	static class Type extends Member {
+		Type(String t, Collection<IProposedPromiseDropInfo> drops) {
+			super(t, /*TODO*/drops.toArray(new IProposedPromiseDropInfo[drops.size()]), false);
 		}		
 		
 		@Override
@@ -243,6 +253,7 @@ implements IJSureTableTreeContentProvider
 			return SLImages.getImage(CommonImages.IMG_CLASS);
 		}
 		
+		/*
 		static CU[] make(Collection<IProposedPromiseDropInfo> drops) {
 			MultiMap<String,IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
 			for(IProposedPromiseDropInfo d : drops) {
@@ -254,42 +265,16 @@ implements IJSureTableTreeContentProvider
 			}
 			return cus.toArray(new CU[cus.size()]);
 		}
-	}
-	
-	static class Line extends AbstractTreeable<IProposedPromiseDropInfo> implements Comparable<Line> {
-		final int num;
-		
-		Line(int num, Collection<IProposedPromiseDropInfo> drops) {
-			super(drops.toArray(new IProposedPromiseDropInfo[drops.size()]), false);
-			this.num = num;
-			Arrays.sort(children, sortByProposal);
-		}
-
-		@Override
-		public String toString() {
-			return "Line "+num;
-		}
-
-		@Override
-		public int compareTo(Line o) {
-			return num - o.num;
-		}	
-		
-		@Override
-		public Image getImage() {
-			return null;
-		}
-		
-		static Line[] make(Collection<IProposedPromiseDropInfo> drops) {
-			MultiMap<Integer,IProposedPromiseDropInfo> map = new MultiHashMap<Integer, IProposedPromiseDropInfo>();
-			for(IProposedPromiseDropInfo d : drops) {
-				map.put(d.getSrcRef().getLineNumber(), d);
-			}		
-			List<Line> lines = new ArrayList<Line>();
-			for(Map.Entry<Integer, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
-				lines.add(new Line(e.getKey(), e.getValue()));
+		*/
+		static Factory<String,Type> factory = new Factory<String, Type>() {			
+			@Override
+			String getKey(IProposedPromiseDropInfo d) {
+				return d.getSrcRef() == null ? null : d.getSrcRef().getCUName();
 			}
-			return lines.toArray(new Line[lines.size()]);
-		}
+			@Override
+			Type make(String key, Collection<IProposedPromiseDropInfo> drops) {
+				return new Type(key, drops);
+			}			
+		};
 	}
 }
