@@ -1,5 +1,9 @@
 package com.surelogic.jsure.client.eclipse.views;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -10,14 +14,23 @@ import org.eclipse.swt.widgets.Composite;
  * @author Edwin
  */
 public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStructuredView<T> {
-	final IJSureTableTreeContentProvider f_content;
+	private static final String TOGGLE_VIEW = "Toggle between tree and table";
+	protected final IJSureTableTreeContentProvider f_content;
+
+	private final Action f_toggleView = new Action(TOGGLE_VIEW, IAction.AS_CHECK_BOX) {
+		@Override
+		public void run() {
+			toggleViewer();
+		}
+	};
 	
 	protected AbstractScanPagedTableTreeView(int style, Class<T> c, 
 			IJSureTableTreeContentProvider content) {
 		super(style, c);
 		f_content = content;
+		f_toggleView.setToolTipText(TOGGLE_VIEW);
 	}
-
+	
 	@Override
 	protected StructuredViewer[] newViewers(Composite parent, int extraStyle) {
 		final TableViewer tableViewer = AbstractScanTableView.makeTableViewer(parent, extraStyle, f_content);		
@@ -34,11 +47,30 @@ public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStru
 		return f_content.showAsTree() ? 1 : 0;
 	}
 	
+	protected void toggleViewer() {		
+		f_content.setAsTree(!f_content.showAsTree());
+		getViewer().refresh();
+		f_viewerbook.showPage(getCurrentControl());
+		getCurrentControl().redraw();
+	}
+	
 	@Override
 	protected String updateViewer() {
 		return f_content.build();
 	}
 
+	@Override
+	protected void fillLocalPullDown(IMenuManager manager) {
+		super.fillLocalPullDown(manager);
+		manager.add(f_toggleView);
+	}
+
+	@Override
+	protected void fillLocalToolBar(IToolBarManager manager) {
+		super.fillLocalToolBar(manager);
+		manager.add(f_toggleView);
+	}
+	
 	@Override
 	protected final void appendText(StringBuilder sb, Object elt) {
 		if (f_content.showAsTree()) {
