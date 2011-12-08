@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Composite;
  */
 public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStructuredView<T> {
 	final IJSureTableTreeContentProvider f_content;
-	boolean asTree = true;
 	
 	protected AbstractScanPagedTableTreeView(int style, Class<T> c, 
 			IJSureTableTreeContentProvider content) {
@@ -32,7 +31,7 @@ public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStru
 
 	@Override
 	protected final int getViewIndex() {
-		return asTree ? 1 : 0;
+		return f_content.showAsTree() ? 1 : 0;
 	}
 	
 	@Override
@@ -42,7 +41,7 @@ public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStru
 
 	@Override
 	protected final void appendText(StringBuilder sb, Object elt) {
-		if (asTree) {
+		if (f_content.showAsTree()) {
 			sb.append(f_content.getText(elt));
 		} else {
 			for(int i=0; i<f_content.getColumnLabels().length; i++) {
