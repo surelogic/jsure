@@ -44,9 +44,11 @@ public final class PromisesXMLParser {
 		if (!local.isDirectory()) {
 			File data = new File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
 			local = new File(data, TestXMLParserConstants.LOCAL_XML_PATH);
+			/*
 			if (!local.isDirectory()) {
 				return null;
 			}
+			*/			
 		}
 		return local;
 	}
@@ -60,19 +62,29 @@ public final class PromisesXMLParser {
 		File localXml = getLocalXMLDir();
 		if (localXml != null) {
 			File f = new File(localXml, path);
-			if (f.isFile()) {
+			//if (f.isFile()) {
 				local = f;
-			}
+			//}
 		}
 		// Try fluid
 		final File xml = getFluidXMLDir();
 		if (xml != null) {
 			File f = new File(xml, path);
-			if (f.isFile()) {
+			//if (f.isFile()) {
 				fluid = f;
-			}
+			//}
 		}
 		return new Pair<File,File>(fluid, local);	
+	}
+	
+	public static PackageElement load(String xmlPath) {
+		return load(xmlPath, false);
+	}
+	
+	public static PackageElement load(String xmlPath, boolean ignoreDiffs) {
+		Pair<File,File> f = findPromisesXML(xmlPath);
+		PackageElement p = PromisesXMLReader.load(xmlPath, f.first(), ignoreDiffs ? null : f.second());	
+		return p;
 	}
 	
 	/**
@@ -89,8 +101,7 @@ public final class PromisesXMLParser {
 		if (root == null) {
 			return 0;
 		}
-		Pair<File,File> f = findPromisesXML(xmlPath);
-		PackageElement p = PromisesXMLReader.load(xmlPath, f.first(), f.second());
+		PackageElement p = load(xmlPath);
 		if (p == null) {
 			return 0;
 		}
