@@ -48,8 +48,11 @@ public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStru
 	}
 	
 	protected void toggleViewer() {		
-		f_content.setAsTree(!f_content.showAsTree());
-		getViewer().refresh();
+		f_content.setAsTree(!f_content.showAsTree());		
+		if (getViewer() != null) {
+			getViewer().setInput(getViewSite());
+			//getViewer().refresh();
+		}
 		f_viewerbook.showPage(getCurrentControl());
 		getCurrentControl().redraw();
 	}
