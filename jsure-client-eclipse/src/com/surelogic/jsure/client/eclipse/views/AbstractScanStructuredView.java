@@ -68,6 +68,7 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 		f_viewers = newViewers(parent, f_extraStyle);
 		// To make sure only one is showing
 		for(StructuredViewer v : f_viewers) {
+			setupViewer(v);
 			v.getControl().setVisible(false);
 		}
 		
