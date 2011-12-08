@@ -948,7 +948,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	/**
 	 * @return non-null Pair of files for fluid and local
 	 */
-	public static Pair<File,File> findPromisesXML(String path) {
+	private static Pair<File,File> findPromisesXML(String path) {
 		File fluid = null; 
 		File local = null;		
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
@@ -1012,7 +1012,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 		@Override
 		public boolean exists() {
-			final Pair<File,File> f = findPromisesXML(path);
+			final Pair<File,File> f = PromisesXMLParser.findPromisesXML(path);
 			return f.first().isFile();
 		}
 
