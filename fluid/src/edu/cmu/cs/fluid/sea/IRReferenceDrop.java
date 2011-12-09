@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -342,7 +345,11 @@ public abstract class IRReferenceDrop extends Drop {
 	@Override
 	public void snapshotRefs(SeaSnapshot s) {
 		super.snapshotRefs(s);
-		s.addSrcRef(getNode(), getSrcRef());
+		try {
+			s.addSrcRef(getNode(), getSrcRef());
+		} catch(SlotUndefinedException e) {
+			SLLogger.getLogger().log(Level.WARNING, "Undefined info for "+getMessage()+" on "+getNode(), e);
+		}
 		for (ISupportingInformation si : getSupportingInformation()) {
 			s.addSupportingInfo(si);
 		}
