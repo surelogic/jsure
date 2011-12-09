@@ -33,6 +33,8 @@ public class ProposedPromiseView extends
 
 	private final Action f_toggleFilter;
 
+	private final Action f_copy = makeCopyAction("Copy", "Copy the selected item to the clipboard");
+	
 	public ProposedPromiseView() {
 		super(SWT.MULTI, IProposedPromiseDropInfo.class);
 		/*
@@ -116,10 +118,11 @@ public class ProposedPromiseView extends
 					ISrcRef ref = p.getSrcRef();
 					if (ref != null) {
 						manager.add(f_annotate);
-						return; // Only needs one
+						break; // Only needs one
 					}
 				}
 			}
+			manager.add(f_copy);
 		}
 	}
 
