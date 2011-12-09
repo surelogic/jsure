@@ -853,7 +853,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		
 		public Origin getOrigin() {
-			return Origin.valueOf(getAttribute(ProposedPromiseDrop.ORIGIN));
+			String origin = getAttribute(ProposedPromiseDrop.ORIGIN);
+			if (origin == null) {
+				return null;
+			}
+			return Origin.valueOf(origin);
 		}
 		
 		public String getTargetProjectName() {
