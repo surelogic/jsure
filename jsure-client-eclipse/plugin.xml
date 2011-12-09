@@ -73,6 +73,29 @@
                 menubarPath="com.surelogic.jsure.client.eclipse.IMemberPopup.menu/content">
           </action>             
        </objectContribution>
+       
+       <objectContribution
+             adaptable="false"
+             id="com.surelogic.jsure.client.eclipse.ITypeRootPopup"
+             objectClass="org.eclipse.jdt.core.ITypeRoot">
+          <menu
+                id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu"
+                label="JSure"
+                path="additions">
+             <groupMarker
+                   name="content">
+             </groupMarker>
+             <separator
+                   name="additions">
+             </separator>
+          </menu>
+          <action
+                class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
+                id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.showAnnotations"
+                label="Show Annotations"
+                menubarPath="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu/content">
+          </action>             
+       </objectContribution>
 	</extension>
     
     <extension point="org.eclipse.ui.editors.templates">

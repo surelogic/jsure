@@ -52,6 +52,17 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 				// TODO find member
 			}	
 		}	
+		else if (o instanceof ICompilationUnit) {
+			ICompilationUnit cu = (ICompilationUnit) o;
+			if (cu != null) {
+				JDTUIUtility.openInEditor(cu, true, true);
+				return;
+			}	
+		}
+		else if (o instanceof IClassFile) {
+			IClassFile c = (IClassFile) o;
+			openInXMLEditor(c.getType());
+		}
 	}
 
 	private IEditorPart openInXMLEditor(final IType t) {
