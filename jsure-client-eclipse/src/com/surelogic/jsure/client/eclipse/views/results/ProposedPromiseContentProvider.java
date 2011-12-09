@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.Method;
@@ -25,11 +27,13 @@ import com.surelogic.common.refactor.TypeContext;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 public final class ProposedPromiseContentProvider extends
 		AbstractResultsTableContentProvider<IProposedPromiseDropInfo> implements
@@ -62,6 +66,17 @@ public final class ProposedPromiseContentProvider extends
 		List<IProposedPromiseDropInfo> proposedPromiseDrops = ProposedPromiseDrop
 				.filterOutDuplicates(info
 						.<IProposedPromiseDropInfo, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
+		final boolean filter = 
+			EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
+		if (filter) {
+			final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops.iterator();
+			while (it.hasNext()) {
+				IProposedPromiseDropInfo p = it.next();
+				if (p.getOrigin() != Origin.PROMISE) {
+					it.remove();
+				}
+			}
+		}		
 		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
 				// TODO omit annotations on implicitly created methods in enums?
@@ -75,7 +90,11 @@ public final class ProposedPromiseContentProvider extends
 				contents.add(id);
 			}
 		}
-		packages = Package.factory.organize(proposedPromiseDrops);
+		if (proposedPromiseDrops.size() == 0) {
+			packages = noPackages;
+		} else {
+			packages = Package.factory.organize(proposedPromiseDrops);
+		}
 		Arrays.sort(packages);
 		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
@@ -210,6 +229,9 @@ public final class ProposedPromiseContentProvider extends
 			for (Map.Entry<K, Collection<IProposedPromiseDropInfo>> e : map
 					.entrySet()) {
 				things.add(make(e.getKey(), e.getValue()));
+			}
+			if (things.size() == 0) {
+				return null;
 			}
 			T first = things.get(0);
 			return things.toArray((T[]) Array.newInstance(first.getClass(),
