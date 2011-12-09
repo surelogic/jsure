@@ -99,6 +99,11 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultBooleanPreference(
 					SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
 
+			EclipseUtility.setDefaultBooleanPreference(
+					PROPOSED_PROMISES_AS_TREE, true);
+			EclipseUtility.setDefaultBooleanPreference(
+					PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY, true);
+
 			/*
 			 * We'll take the default-default for the other preferences.
 			 */
@@ -129,6 +134,11 @@ public final class JSurePreferencesUtility {
 
 	public static final String CURRENT_SCAN = PREFIX + "current.scan";
 
+	public static final String PROPOSED_PROMISES_AS_TREE = PREFIX
+			+ "proposed.promises.as.tree";
+	public static final String PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY = PREFIX
+			+ "proposed.promises.show.abductive.only";
+
 	/**
 	 * Gets the JSure data directory. This method ensures that the directory
 	 * does exist on the disk. It checks that is is there and, if not, tries to
@@ -152,7 +162,7 @@ public final class JSurePreferencesUtility {
 		File data = getJSureDataDirectory();
 		return new File(data, DriverConstants.XML_PATH_SEGMENT);
 	}
-	
+
 	/**
 	 * Gets the switch-to-the-JSure-perspective preferences.
 	 * 

@@ -1,19 +1,28 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.util.*;
+import java.util.List;
 
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
+import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 public class ProposedPromiseView extends
 		AbstractScanStructuredView<IProposedPromiseDropInfo> {
@@ -29,8 +38,10 @@ public class ProposedPromiseView extends
 		/*
 		 * Read persisted state of toggles that control what is displayed.
 		 */
-		boolean persistedAsTree = true; // TODO
-		boolean persistedShowAbductiveOnly = true; // TODO
+		boolean persistedAsTree = EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_AS_TREE);
+		boolean persistedShowAbductiveOnly = EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
 		/*
 		 * Setup toggle to change view from a tree to a table.
 		 */
@@ -60,7 +71,7 @@ public class ProposedPromiseView extends
 				IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
-				setShowAbductiveOnly(f_toggleView.isChecked());
+				setShowAbductiveOnly(f_toggleFilter.isChecked());
 			}
 		};
 		f_toggleFilter.setChecked(persistedShowAbductiveOnly);
@@ -149,6 +160,15 @@ public class ProposedPromiseView extends
 	}
 
 	private void setViewerBeingShown(final boolean asTree) {
+		/*
+		 * Persist user preference
+		 */
+		EclipseUtility.setBooleanPreference(
+				JSurePreferencesUtility.PROPOSED_PROMISES_AS_TREE, asTree);
+
+		/*
+		 * Set the viewer
+		 */
 		f_content.setAsTree(asTree);
 		if (getViewer() != null) {
 			getViewer().setInput(getViewSite());
@@ -158,6 +178,17 @@ public class ProposedPromiseView extends
 	}
 
 	private void setShowAbductiveOnly(final boolean applyFilter) {
+		System.out.println("setShowAbductiveOnly=" + applyFilter);
+		/*
+		 * Persist user preference
+		 */
+		EclipseUtility.setBooleanPreference(
+				JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY,
+				applyFilter);
 
+		/*
+		 * Filter the viewer
+		 */
+		// TODO
 	}
 }
