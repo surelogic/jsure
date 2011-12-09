@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanView {
 	private final int f_extraStyle;
 	private StructuredViewer[] f_viewers;
-	final Class<T> clazz;
+	private final Class<T> f_class;
 	
 	protected final Action f_annotate = new ProposedPromisesRefactoringAction() {
 		@Override
@@ -51,7 +51,7 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 	
 	protected AbstractScanStructuredView(int style, Class<T> c) {
 		f_extraStyle = style;
-		clazz = c;
+		f_class = c;
 	}
 	
 	@Override
@@ -97,8 +97,8 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 		final IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
 		final List<T> result = new ArrayList<T>();
 		for (final Object element : selection.toList()) {
-			if (clazz.isInstance(element)) {
-				result.add(clazz.cast(element));
+			if (f_class.isInstance(element)) {
+				result.add(f_class.cast(element));
 			}
 		}
 		return result;
