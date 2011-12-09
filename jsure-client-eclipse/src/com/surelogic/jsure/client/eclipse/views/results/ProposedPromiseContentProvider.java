@@ -90,11 +90,7 @@ public final class ProposedPromiseContentProvider extends
 				contents.add(id);
 			}
 		}
-		if (proposedPromiseDrops.size() == 0) {
-			packages = noPackages;
-		} else {
-			packages = Package.factory.organize(proposedPromiseDrops);
-		}
+		packages = Package.organize(proposedPromiseDrops);		
 		Arrays.sort(packages);
 		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
@@ -214,38 +210,9 @@ public final class ProposedPromiseContentProvider extends
 		}
 	}
 
-	static abstract class Factory<K, T> {
-		@SuppressWarnings("unchecked")
-		T[] organize(Collection<IProposedPromiseDropInfo> drops) {
-			MultiMap<K, IProposedPromiseDropInfo> map = new MultiHashMap<K, IProposedPromiseDropInfo>();
-			for (IProposedPromiseDropInfo d : drops) {
-				K key = getKey(d);
-				if (key == null) {
-					continue;
-				}
-				map.put(key, d);
-			}
-			List<T> things = new ArrayList<T>();
-			for (Map.Entry<K, Collection<IProposedPromiseDropInfo>> e : map
-					.entrySet()) {
-				things.add(make(e.getKey(), e.getValue()));
-			}
-			if (things.size() == 0) {
-				return null;
-			}
-			T first = things.get(0);
-			return things.toArray((T[]) Array.newInstance(first.getClass(),
-					things.size()));
-		}
-
-		abstract K getKey(IProposedPromiseDropInfo d);
-
-		abstract T make(K key, Collection<IProposedPromiseDropInfo> drops);
-	}
-
 	static class Package extends AbstractTreeable<Type> {
 		Package(String p, Collection<IProposedPromiseDropInfo> drops) {
-			super(p, Type.factory.organize(drops));
+			super(p, Type.organize(drops));
 		}
 
 		@Override
@@ -253,18 +220,26 @@ public final class ProposedPromiseContentProvider extends
 			return SLImages.getImage(CommonImages.IMG_PACKAGE);
 		}
 
-		static final Factory<String, Package> factory = new Factory<String, Package>() {
-			@Override
-			String getKey(IProposedPromiseDropInfo d) {
-				return d.getSrcRef() == null ? null : d.getSrcRef()
-						.getPackage();
+		static Package[] organize(Collection<IProposedPromiseDropInfo> drops) {
+			MultiMap<String, IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
+			for (IProposedPromiseDropInfo d : drops) {
+				if (d.getSrcRef() == null) {
+					continue;
+				}
+				String key = d.getSrcRef().getPackage();
+				map.put(key, d);
 			}
-
-			@Override
-			Package make(String key, Collection<IProposedPromiseDropInfo> drops) {
-				return new Package(key, drops);
+			List<Package> things = new ArrayList<Package>();
+			for (Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
+				things.add(new Package(e.getKey(), e.getValue()));
 			}
-		};
+			if (things.size() == 0) {
+				return null;
+			}
+			Package first = things.get(0);
+			return things.toArray((Package[]) Array.newInstance(first.getClass(),
+					things.size()));
+		}
 	}
 
 	/**
@@ -447,18 +422,9 @@ public final class ProposedPromiseContentProvider extends
 			return SLImages.getImage(CommonImages.IMG_CLASS);
 		}
 
-		static final Factory<String, Type> factory = new Factory<String, Type>() {
-			@Override
-			String getKey(IProposedPromiseDropInfo d) {
-				return d.getSrcRef() == null ? null : d.getSrcRef().getCUName();
-			}
-
-			@Override
-			Type make(String key, Collection<IProposedPromiseDropInfo> proposals) {
-				Decl root = ProposedPromiseContentProvider.organize(proposals);
-				Decl type = root.getDecl(root.types, key);
-				return new Type(key, type.getProposals(), type.getMembers());
-			}
-		};
+		static Type[] organize(Collection<IProposedPromiseDropInfo> proposals) {
+			Decl root = ProposedPromiseContentProvider.organize(proposals);
+			return root.getTypes();
+		}
 	}
 }
