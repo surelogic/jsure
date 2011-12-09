@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,7 +38,10 @@ public final class ProposedPromiseContentProvider extends
 		AbstractResultsTableContentProvider<IProposedPromiseDropInfo> implements
 		IResultsTableContentProvider, IJSureTreeContentProvider {
 	private static final Package[] noPackages = new Package[0];
-
+	private static final String[] nothingToShow = new String[] {
+		"No proposals to show"
+	};
+	
 	private boolean asTree;
 	private Package[] packages = noPackages;
 
@@ -91,7 +93,9 @@ public final class ProposedPromiseContentProvider extends
 			}
 		}
 		packages = Package.organize(proposedPromiseDrops);		
-		Arrays.sort(packages);
+		if (packages != null) {
+			Arrays.sort(packages);
+		} 
 		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
 	}
@@ -139,6 +143,9 @@ public final class ProposedPromiseContentProvider extends
 	@Override
 	public Object[] getElements(Object inputElement) {
 		if (asTree) {
+			if (packages == null || packages.length == 0) {
+				return nothingToShow;
+			}
 			return packages;
 		} else {
 			return super.getElements(inputElement);
@@ -233,12 +240,7 @@ public final class ProposedPromiseContentProvider extends
 			for (Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
 				things.add(new Package(e.getKey(), e.getValue()));
 			}
-			if (things.size() == 0) {
-				return null;
-			}
-			Package first = things.get(0);
-			return things.toArray((Package[]) Array.newInstance(first.getClass(),
-					things.size()));
+			return things.toArray(noPackages);
 		}
 	}
 
