@@ -5,6 +5,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.ui.*;
 
+import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -31,20 +32,26 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 	@Override
 	public void run(IAction action) {
 		final Object o = selection.getFirstElement();
-		if (o instanceof IType) {
-			final IType t = (IType) o;			
-			openInXMLEditor(t);
-		}				
-		else if (o instanceof IMember) {
-			final IMember m = (IMember) o;
-			final IEditorPart e = openInXMLEditor(m.getDeclaringType());
-			if (m instanceof IMethod && e instanceof PromisesXMLEditor) {
-				final IMethod m2 = (IMethod) m;
-				final PromisesXMLEditor xe = (PromisesXMLEditor) e;
-				xe.focusOnMethod(m2.getElementName(), null);
-			}
-			// TODO find member
-		}		
+		if (o instanceof IMember) {
+			IMember m = (IMember) o;
+			ICompilationUnit cu = m.getCompilationUnit();
+			if (cu != null) {
+				JDTUIUtility.openInEditor(m, true, true);
+				return;
+			}	
+			if (o instanceof IType) {
+				final IType t = (IType) o;			
+				openInXMLEditor(t);
+			} else {
+				final IEditorPart e = openInXMLEditor(m.getDeclaringType());			
+				if (m instanceof IMethod && e instanceof PromisesXMLEditor) {
+					final IMethod m2 = (IMethod) m;
+					final PromisesXMLEditor xe = (PromisesXMLEditor) e;
+					xe.focusOnMethod(m2.getElementName(), null);
+				}
+				// TODO find member
+			}	
+		}	
 	}
 
 	private IEditorPart openInXMLEditor(final IType t) {
@@ -53,6 +60,7 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 		if (firstDollar >= 0) {
 			// Eliminate any refs to nested classes
 			qname = qname.substring(0, firstDollar);
+			// TODO find nested classes
 		}
 		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, true);
 	}
