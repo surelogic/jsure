@@ -37,7 +37,7 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 
 		@Override
 		protected String getDialogTitle() {
-			return I18N.msg("jsure.eclipse.proposed.promises.edit");
+			return I18N.msg("jsure.eclipse.proposed.promise.edit");
 		}
 	};
 

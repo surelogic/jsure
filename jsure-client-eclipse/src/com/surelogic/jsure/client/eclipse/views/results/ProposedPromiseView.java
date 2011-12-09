@@ -6,12 +6,15 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Table;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
@@ -33,8 +36,9 @@ public class ProposedPromiseView extends
 
 	private final Action f_toggleFilter;
 
-	private final Action f_copy = makeCopyAction("Copy", "Copy the selected item to the clipboard");
-	
+	private final Action f_copy = makeCopyAction("Copy",
+			"Copy the selected item to the clipboard");
+
 	public ProposedPromiseView() {
 		super(SWT.MULTI, IProposedPromiseDropInfo.class);
 		/*
@@ -84,9 +88,14 @@ public class ProposedPromiseView extends
 
 	@Override
 	protected void makeActions() {
-		f_annotate.setText(I18N.msg("jsure.eclipse.proposed.promises.edit"));
+		f_annotate.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
 		f_annotate.setToolTipText(I18N
-				.msg("jsure.eclipse.proposed.promises.tip"));
+				.msg("jsure.eclipse.proposed.promise.tip"));
+		f_annotate.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_QUICK_ASSIST));
+
+		f_copy.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
 	}
 
 	@Override
@@ -118,6 +127,7 @@ public class ProposedPromiseView extends
 					ISrcRef ref = p.getSrcRef();
 					if (ref != null) {
 						manager.add(f_annotate);
+						manager.add(new Separator());
 						break; // Only needs one
 					}
 				}
@@ -191,7 +201,9 @@ public class ProposedPromiseView extends
 		/*
 		 * Rebuild the content for the viewer
 		 */
+		getViewer().getControl().setRedraw(false);
 		f_content.build();
+		getViewer().getControl().setRedraw(true);
 		getViewer().refresh();
 	}
 }

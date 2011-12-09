@@ -226,7 +226,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		for(Map.Entry<String, String> e : map.entrySet()) {
 			addAttribute(e.getKey(), e.getValue());
 		}
-		b.append("</"+PROPERTIES+">\n");
+		Entities.closeStart(b, true, true);
 	}
 	
 	/*
