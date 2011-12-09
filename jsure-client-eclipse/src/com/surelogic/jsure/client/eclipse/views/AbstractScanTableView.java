@@ -28,10 +28,12 @@ public abstract class AbstractScanTableView<T> extends
 
 	@Override
 	protected StructuredViewer[] newViewers(Composite parent, int extraStyle) {
-		return new StructuredViewer[] { makeTableViewer(parent, extraStyle, f_content) };
+		return new StructuredViewer[] { makeTableViewer(parent, extraStyle,
+				f_content) };
 	}
 
-	static TableViewer makeTableViewer(Composite parent, int extraStyle, IResultsTableContentProvider content) {
+	public static TableViewer makeTableViewer(Composite parent, int extraStyle,
+			IResultsTableContentProvider content) {
 		final TableViewer tableViewer = new TableViewer(parent, SWT.H_SCROLL
 				| SWT.V_SCROLL | SWT.FULL_SELECTION | extraStyle);
 		// Setup columns
@@ -42,7 +44,7 @@ public abstract class AbstractScanTableView<T> extends
 			column.getColumn().setText(label);
 			column.getColumn().setWidth(40 * label.length());
 
-			final boolean intSort = content.isIntSortedColumn(i); 
+			final boolean intSort = content.isIntSortedColumn(i);
 			setupSorter(tableViewer, column, i, intSort);
 			i++;
 		}
@@ -54,9 +56,10 @@ public abstract class AbstractScanTableView<T> extends
 		tableViewer.getTable().pack();
 		return tableViewer;
 	}
-	
-	static <T> void setupSorter(final TableViewer tViewer,
-			final TableViewerColumn column, final int colIdx, final boolean intSort) {
+
+	public static <T> void setupSorter(final TableViewer tViewer,
+			final TableViewerColumn column, final int colIdx,
+			final boolean intSort) {
 		new ColumnViewerSorter<T>(tViewer, column.getColumn()) {
 			@Override
 			protected int doCompare(Viewer viewer, T e1, T e2) {
