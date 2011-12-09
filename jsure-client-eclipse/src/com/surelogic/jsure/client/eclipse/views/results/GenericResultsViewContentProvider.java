@@ -646,12 +646,14 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				int flags = 0; // assume no adornments
 				boolean choiceConsistent = true;
 				boolean choiceUsesRedDot = false;
-				boolean localConsistent = true;
+				//boolean localConsistent = true;
 				for (IProofDropInfo proofDrop : proofDrops) {
 					choiceConsistent &= proofDrop.provedConsistent();
+					/*
 					if (proofDrop.isInstance(ResultDrop.class)) {
 						localConsistent &= proofDrop.isConsistent();
 					}
+					*/
 					if (proofDrop.proofUsesRedDot())
 						choiceUsesRedDot = true;
 				}
