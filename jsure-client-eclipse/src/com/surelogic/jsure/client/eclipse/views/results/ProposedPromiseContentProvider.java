@@ -5,9 +5,12 @@ import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.eclipse.jdt.ui.ISharedImages;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.refactor.*;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.IJSureTableTreeContentProvider;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -195,7 +198,7 @@ implements IJSureTableTreeContentProvider
 			T first = things.get(0);			
 			return things.toArray((T[]) Array.newInstance(first.getClass(), things.size()));
 		}
-		abstract K getKey(IProposedPromiseDropInfo d);
+		abstract K getKey(IProposedPromiseDropInfo d);		
 		abstract T make(K key, Collection<IProposedPromiseDropInfo> drops);
 	}
 
@@ -209,7 +212,7 @@ implements IJSureTableTreeContentProvider
 			return SLImages.getImage(CommonImages.IMG_PACKAGE);
 		}
 		
-		static Factory<String,Package> factory = new Factory<String, Package>() {			
+		static final Factory<String,Package> factory = new Factory<String, Package>() {			
 			@Override
 			String getKey(IProposedPromiseDropInfo d) {
 				return d.getSrcRef() == null ? null : d.getSrcRef().getPackage();
@@ -219,33 +222,153 @@ implements IJSureTableTreeContentProvider
 				return new Package(key, drops);
 			}			
 		};
-		/*
-		static Package[] make(List<IProposedPromiseDropInfo> drops) {
-			MultiMap<String,IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
-			for(IProposedPromiseDropInfo d : drops) {
-				if (d.getSrcRef() == null) {
-					continue;
-				}
-				map.put(d.getSrcRef().getPackage(), d);
-			}		
-			List<Package> pkgs = new ArrayList<Package>();
-			for(Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
-				pkgs.add(new Package(e.getKey(), e.getValue()));
-			}
-			return pkgs.toArray(noPackages);
+	}
+	
+	/**
+	 * A temporary structure to collect data
+	 * 
+	 * @author Edwin
+	 */
+	static class Decl implements Comparable<Decl> {
+		final String id;
+		final Map<String,Decl> types = new HashMap<String, Decl>();
+		final Map<String,Decl> fields = new HashMap<String, Decl>();
+		final Map<String,Decl> methods = new HashMap<String, Decl>();
+		final List<Decl> params = new ArrayList<Decl>();
+		final List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();	
+		
+		Decl(String id) {
+			this.id = id;
+		}		
+		
+		@Override
+		public int compareTo(Decl o) {
+			return id.compareTo(o.id);
 		}
-		*/
+		
+		Decl getDecl(Map<String,Decl> map, String id) {
+			Decl d = map.get(id);
+			if (d == null) {
+				d = new Decl(id);
+				map.put(id, d);
+			}
+			return d;
+		}
+		
+		Decl getParam(int index) {
+			// Make it big enough to avoid an exception
+			while (index >= params.size()) {				
+				params.add(null);
+			}
+			Decl d = params.get(index);
+			if (d == null) {
+				d = new Decl(Integer.toString(index));
+				params.set(index, d);
+			}
+			return d;
+		}
+
+		IProposedPromiseDropInfo[] getProposals() {
+			return proposals.toArray(new IProposedPromiseDropInfo[proposals.size()]);
+		}
+		
+		Decl[] sort(Map<String,Decl> map) {
+			Decl[] decls = map.values().toArray(new Decl[map.size()]);
+			Arrays.sort(decls);
+			return decls;
+		}
+		
+		Member[] getMembers() {
+			List<Member> members = new ArrayList<Member>();
+			for(Decl f : sort(fields)) {
+				// TODO nested?
+				members.add(new FieldMember(f.id, f.getProposals()));
+			}
+			for(Decl m : sort(methods)) {
+				// TODO nested?
+				members.add(new MethodMember(m.id, m.getProposals()));
+			}
+			for(Decl t : sort(types)) {
+				members.add(new Type(t.id, t.getProposals(), t.getMembers()));
+			}
+			return members.toArray(new Member[members.size()]);
+		}
+	}
+	
+	/**
+	 * @return the Decl that the proposal should be added to
+	 */
+	static Decl findDecl(Decl here, IJavaDeclaration decl) {		
+		if (decl instanceof TypeContext) {
+			TypeContext t = decl.getTypeContext();
+			TypeContext p = t.getParent();
+			Method m = t.getMethod();
+			if (p != null) {
+				return findDecl(here, p);
+			}
+			else if (m != null) {
+				return findDecl(here, m);
+			} else { // Top-level
+				return here.getDecl(here.types, t.getName());
+			}
+		}
+		else if (decl instanceof Method) {
+			Method m = (Method) decl;
+			Decl type = findDecl(here, m.getTypeContext());
+			return type.getDecl(type.methods, m.getSignature());
+		}
+		else if (decl instanceof Field) {
+			Field m = (Field) decl;
+			Decl type = findDecl(here, m.getTypeContext());
+			return type.getDecl(type.fields, m.getField());
+		}
+		else if (decl instanceof MethodParameter) {
+			MethodParameter p = (MethodParameter) decl;
+			Decl m = findDecl(here, p.getMethod());
+			return m.getParam(p.getParam());
+		} else {
+			throw new IllegalStateException("Unexpected "+decl);
+		}
+	}
+	
+	static Decl organize(Collection<IProposedPromiseDropInfo> drops) {
+		Decl root = new Decl("/root");
+		for(IProposedPromiseDropInfo p : drops) {
+			Decl d = findDecl(root, p.getTargetInfo());
+			d.proposals.add(p);
+		}
+		return root;
 	}
 	
 	static abstract class Member extends AbstractTreeable<IProposedPromiseDropInfo> {
 		Member(String id, IProposedPromiseDropInfo[] c, boolean sort) {
 			super(id, c, sort);
 		}
+		
+		@Override
+		public Image getImage() {
+			return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PUBLIC);
+		}
+	}
+	
+	static class FieldMember extends Member {
+		FieldMember(String id, IProposedPromiseDropInfo[] c) {
+			super(id, c, false);
+		}
+	}
+	
+	static class MethodMember extends Member {
+		MethodMember(String sig, IProposedPromiseDropInfo[] c) {
+			super(sig, c, false);
+		}
 	}
 	
 	static class Type extends Member {
-		Type(String t, Collection<IProposedPromiseDropInfo> drops) {
-			super(t, /*TODO*/drops.toArray(new IProposedPromiseDropInfo[drops.size()]), false);
+		final Member[] members;
+		
+		Type(String t, IProposedPromiseDropInfo[] drops, Member[] members) {
+			super(t, drops, true);
+			this.members = members;
 		}		
 		
 		@Override
@@ -253,27 +376,38 @@ implements IJSureTableTreeContentProvider
 			return SLImages.getImage(CommonImages.IMG_CLASS);
 		}
 		
-		/*
-		static CU[] make(Collection<IProposedPromiseDropInfo> drops) {
-			MultiMap<String,IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
-			for(IProposedPromiseDropInfo d : drops) {
-				map.put(d.getSrcRef().getCUName(), d);
-			}		
-			List<CU> cus = new ArrayList<CU>();
-			for(Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
-				cus.add(new CU(e.getKey(), e.getValue()));
-			}
-			return cus.toArray(new CU[cus.size()]);
+		@Override
+		public boolean hasChildren() {
+			return (members != null && members.length > 0) || super.hasChildren();
 		}
-		*/
-		static Factory<String,Type> factory = new Factory<String, Type>() {			
+		
+		@Override
+		public Object[] getChildren() {
+			Object[] children = super.getChildren();
+			if (children.length == 0) {
+				return members;
+			} else {				
+				List<Object> temp = new ArrayList<Object>();
+				for(Object o : children) {
+					temp.add(o);
+				}
+				for(Member m : members) {
+					temp.add(m);
+				}
+				return temp.toArray();
+			}
+		}
+		
+		static final Factory<String,Type> factory = new Factory<String, Type>() {			
 			@Override
 			String getKey(IProposedPromiseDropInfo d) {
 				return d.getSrcRef() == null ? null : d.getSrcRef().getCUName();
 			}
 			@Override
-			Type make(String key, Collection<IProposedPromiseDropInfo> drops) {
-				return new Type(key, drops);
+			Type make(String key, Collection<IProposedPromiseDropInfo> proposals) {
+				Decl root = ProposedPromiseContentProvider.organize(proposals);
+				Decl type = root.getDecl(root.types, key);
+				return new Type(key, type.getProposals(), type.getMembers());
 			}			
 		};
 	}
