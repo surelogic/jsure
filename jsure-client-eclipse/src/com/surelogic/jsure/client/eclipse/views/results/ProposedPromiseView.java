@@ -189,8 +189,9 @@ public class ProposedPromiseView extends
 				applyFilter);
 
 		/*
-		 * Filter the viewer
+		 * Rebuild the content for the viewer
 		 */
-		// TODO
+		f_content.build();
+		getViewer().refresh();
 	}
 }
