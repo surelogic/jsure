@@ -56,11 +56,13 @@ public class ProposedPromiseView extends AbstractScanPagedTableTreeView<IPropose
 			final IStructuredSelection s) {
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
-				final IProposedPromiseDropInfo p = (IProposedPromiseDropInfo) o;
-				ISrcRef ref = p.getSrcRef();
-				if (ref != null) {
-					manager.add(f_annotate);
-					return; // Only needs one
+				if (o instanceof IProposedPromiseDropInfo) {
+					final IProposedPromiseDropInfo p = (IProposedPromiseDropInfo) o;
+					ISrcRef ref = p.getSrcRef();
+					if (ref != null) {
+						manager.add(f_annotate);
+						return; // Only needs one
+					}
 				}
 			}
 		}
