@@ -178,7 +178,6 @@ public class ProposedPromiseView extends
 	}
 
 	private void setShowAbductiveOnly(final boolean applyFilter) {
-		System.out.println("setShowAbductiveOnly=" + applyFilter);
 		/*
 		 * Persist user preference
 		 */
