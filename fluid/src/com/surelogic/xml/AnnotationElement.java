@@ -49,7 +49,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 			}
 			uid = name;
 		} else if (id == null) {
-			System.err.println("Creating uid for seq annotation: "+name);
+			//System.err.println("Creating uid for seq annotation: "+name);
 			UUID u = UUID.randomUUID();
 			uid = u.toString();
 		} else {

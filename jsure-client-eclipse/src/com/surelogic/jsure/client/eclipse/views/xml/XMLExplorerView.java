@@ -507,9 +507,9 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			final String path = getPath();
 			if (force) {
-				final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
+				//final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
 				try {
-					root = PromisesXMLReader.load(path, rv.first(), rv.second());
+					root = PromisesXMLParser.load(path);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

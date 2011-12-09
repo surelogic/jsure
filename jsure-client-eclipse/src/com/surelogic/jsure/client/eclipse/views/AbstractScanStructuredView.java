@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
@@ -12,7 +13,11 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.*;
 
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+
 import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 /**
  * Uses a StructuredViewer
@@ -21,8 +26,24 @@ import edu.cmu.cs.fluid.sea.IDropInfo;
  */
 public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanView {
 	private final int f_extraStyle;
-	private StructuredViewer f_viewer;
-	final Class<T> clazz;
+	private StructuredViewer[] f_viewers;
+	private final Class<T> f_class;
+	
+	protected final Action f_annotate = new ProposedPromisesRefactoringAction() {
+		@Override
+		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {
+			return getSelectedProposals();
+		}
+
+		@Override
+		protected String getDialogTitle() {
+			return I18N.msg("jsure.eclipse.proposed.promises.edit");
+		}
+	};
+
+	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+		return Collections.emptyList();
+	}
 	
 	protected AbstractScanStructuredView(Class<T> c) {
 		this(SWT.NONE, c);
@@ -30,21 +51,34 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 	
 	protected AbstractScanStructuredView(int style, Class<T> c) {
 		f_extraStyle = style;
-		clazz = c;
+		f_class = c;
 	}
 	
 	@Override
 	protected final StructuredViewer getViewer() {
-		return f_viewer;
+		return f_viewers[getViewIndex()];
+	}
+	
+	protected int getViewIndex() {
+		return 0;
 	}
 	
 	@Override
 	protected Control buildViewer(Composite parent) {
-		f_viewer = newViewer(parent, f_extraStyle);
-		return f_viewer.getControl();
+		f_viewers = newViewers(parent, f_extraStyle);
+		// To make sure only one is showing
+		for(StructuredViewer v : f_viewers) {
+			setupViewer(v);
+			v.getControl().setVisible(false);
+		}
+		
+		if (f_viewers.length == 1) {
+			return f_viewers[0].getControl();
+		}
+		return null;
 	}
 
-	protected abstract StructuredViewer newViewer(Composite parent, int extraStyle);
+	protected abstract StructuredViewer[] newViewers(Composite parent, int extraStyle);
 	
 
 	@Override
@@ -63,8 +97,8 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 		final IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
 		final List<T> result = new ArrayList<T>();
 		for (final Object element : selection.toList()) {
-			if (clazz.isInstance(element)) {
-				result.add(clazz.cast(element));
+			if (f_class.isInstance(element)) {
+				result.add(f_class.cast(element));
 			}
 		}
 		return result;
@@ -100,5 +134,18 @@ public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanVie
 		return a;
 	}
 	
-	protected abstract String getSelectedText();
+	protected final String getSelectedText() {
+		IStructuredSelection selection = (IStructuredSelection) getViewer()
+				.getSelection();
+		StringBuilder sb = new StringBuilder();
+		for (Object elt : selection.toList()) {
+			if (sb.length() > 0) {
+				sb.append('\n');
+			}
+			appendText(sb, elt);
+		}
+		return sb.toString();
+	}
+	
+	protected abstract void appendText(StringBuilder sb, Object elt);
 }

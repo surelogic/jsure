@@ -155,7 +155,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 					localXML = dummy.toURI();
 				} catch(IllegalArgumentException e) {
 					final String path = location.toASCIIString();
-					Pair<File,File> rv = PromisesXMLEditor.findPromisesXML(path);
+					Pair<File,File> rv = PromisesXMLParser.findPromisesXML(path);
 					roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());			
 
 					if (pkg == null) {

@@ -5,6 +5,7 @@ import com.surelogic.aast.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 /**
  * Context object for 
@@ -15,6 +16,10 @@ public interface IAnnotationScrubberContext {
   
   IBinder getBinder();
   
+  /**
+   * Report error on the same IRNode that the proposal is set for
+   */
+  void reportErrorAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args);
   void reportError(IRNode n, String msgTemplate, Object... args);
   
   void reportError(IAASTNode n, String msgTemplate, Object... args);

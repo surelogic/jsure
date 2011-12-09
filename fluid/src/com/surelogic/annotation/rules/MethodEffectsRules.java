@@ -2,7 +2,6 @@ package com.surelogic.annotation.rules;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -33,6 +32,8 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
@@ -150,7 +151,13 @@ public class MethodEffectsRules extends AnnotationRules {
                 }
               }
               if (!good) {
-                getContext().reportError(decl,
+                final RegionEffectsNode cloned = overriddenFx.cloneForProposal(
+                    new ParameterMap(overriddenMethod, decl));
+                final ProposedPromiseDrop p =
+                    new ProposedPromiseDrop(
+                        REGIONEFFECTS, cloned.unparseForPromise(),
+                        decl, overriddenMethod, Origin.PROMISE);
+                getContext().reportErrorAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
               }          
@@ -359,7 +366,7 @@ public class MethodEffectsRules extends AnnotationRules {
         // Compare against previous method declarations
         for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
           final IRNode overriddenMethod = context.getNode();
-          final Map<IRNode, Integer> positionMap = buildParameterMap(promisedFor, overriddenMethod);
+          final ParameterMap paramMap = new ParameterMap(overriddenMethod, promisedFor);
           
           final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
           if (fxDrop != null) {
@@ -369,7 +376,7 @@ public class MethodEffectsRules extends AnnotationRules {
               boolean found = false;
               outer: for (final EffectsSpecificationNode n1 : overriddenFx.getEffectsList()) {
                 for (final EffectSpecificationNode ancestorSpec : n1.getEffectList()) {
-                  if (overridingSpec.satisfiesSpecfication(ancestorSpec, positionMap, typeEnv)) {
+                  if (overridingSpec.satisfiesSpecfication(ancestorSpec, paramMap, typeEnv)) {
                     found = true;
                     break outer;
                   }
@@ -377,7 +384,13 @@ public class MethodEffectsRules extends AnnotationRules {
               }
               if (!found) {
                 allGood = false;
-                scrubberContext.reportError(node,
+                final RegionEffectsNode cloned =
+                    overriddenFx.cloneForProposal(paramMap);
+                final ProposedPromiseDrop p = new ProposedPromiseDrop(
+                    REGIONEFFECTS, cloned.unparseForPromise(),
+                    node.toString().substring("RegionEffects".length()).trim(),
+                    promisedFor, overriddenMethod, Origin.PROMISE);
+                scrubberContext.reportErrorAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),
                     JavaNames.genQualifiedMethodConstructorName(overriddenMethod));

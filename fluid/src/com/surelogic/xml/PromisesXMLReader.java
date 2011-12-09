@@ -252,10 +252,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			if (p == null) {
 				return null;
 			}
-			System.out.println("Loaded XML for "+relativePath);
+			//System.out.println("Loaded XML for "+relativePath);
 			cache.put(relativePath, p);			
 		} else {
-			System.out.println("Used cache for "+relativePath);
+			//System.out.println("Used cache for "+relativePath);
 		}
 		return p;
 	}

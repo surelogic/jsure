@@ -23,6 +23,7 @@ import static com.surelogic.common.jsure.xml.JSureXMLReader.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
@@ -214,6 +215,18 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			addJavaDeclInfo(JavaDeclInfo.PARENT, info.getParent());		
 		}
 		b.append("</"+JAVA_DECL_INFO+">\n");
+	}
+	
+	public void addProperties(String flavor, Map<String, String> map) {
+		attributes.clear();
+		b.append("    ");
+		Entities.start(PROPERTIES, b);
+		addAttribute(FLAVOR_ATTR, flavor); 
+		
+		for(Map.Entry<String, String> e : map.entrySet()) {
+			addAttribute(e.getKey(), e.getValue());
+		}
+		b.append("</"+PROPERTIES+">\n");
 	}
 	
 	/*
@@ -805,11 +818,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		private JavaDeclInfo fromInfo;
 		private JavaDeclInfo targetInfo;
 		private ISrcRef assumptionRef;
-
+		private Map<String,String> annoAttrs, replacedAttrs;
+		
 		ProposedPromiseInfo(String name, Attributes a) {
 			super(name, a);
 		}
 		 
+		public Map<String,String> getAnnoAttributes() {
+			return annoAttrs;
+		}
+		
+		public Map<String,String> getReplacedAttributes() {
+			return replacedAttrs;
+		}		
+		
 		public String getJavaAnnotation() {
 			return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
 		}
@@ -822,8 +844,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return getAttribute(ProposedPromiseDrop.CONTENTS);
 		}
 
+		public String getReplacedAnnotation() {
+			return getAttribute(ProposedPromiseDrop.REPLACED_ANNO);
+		}
+		
 		public String getReplacedContents() {
 			return getAttribute(ProposedPromiseDrop.REPLACED_CONTENTS);
+		}
+		
+		public Origin getOrigin() {
+			String origin = getAttribute(ProposedPromiseDrop.ORIGIN);
+			if (origin == null) {
+				return null;
+			}
+			return Origin.valueOf(origin);
 		}
 		
 		public String getTargetProjectName() {
@@ -866,7 +900,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 					assumptionRef = makeSrcRef(sr);
 				} else {
 					setSource(sr);
-				}				
+				}
+			} else if (PROPERTIES.equals(name)) {
+				if (ProposedPromiseDrop.ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
+					annoAttrs = e.getAttributes();
+				} else {
+					replacedAttrs = e.getAttributes();
+				}
 			} else {
 				super.addRef(e);
 			}

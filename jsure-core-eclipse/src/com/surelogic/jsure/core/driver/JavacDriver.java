@@ -39,6 +39,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -52,6 +53,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageDeclaration;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -96,11 +98,14 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureDataDirHub.CurrentScanChangeListener;
 import com.surelogic.jsure.core.scripting.ExportResults;
 import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
@@ -120,7 +125,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
 import edu.cmu.cs.fluid.util.Pair;
 
-public class JavacDriver implements IResourceChangeListener {
+public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
 	private static final String SEPARATOR = "==================================================================================================";
@@ -309,6 +314,9 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFolder();
+				
+				loadFileCache(JDTUtility.getJavaProject(proj));
+				JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -341,6 +349,21 @@ public class JavacDriver implements IResourceChangeListener {
 			info = null;
 			updateScriptJob = null;
 		}
+	}
+
+	private void loadFileCache(IJavaProject proj) {
+		final List<ICompilationUnit> cus = new ArrayList<ICompilationUnit>();
+		try {
+			for(IPackageFragment frag : proj.getPackageFragments()) {
+				for(ICompilationUnit cu : frag.getCompilationUnits()) {
+					cus.add(cu);
+				}
+			}
+			cacheCompUnits(cus);
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	private static void importScriptedProject(final File proj)
@@ -607,15 +630,19 @@ public class JavacDriver implements IResourceChangeListener {
 				System.out.println("Couldn't handle flag: " + p.second());
 			}
 		}
+		/* No longer needed with manual scans
 		if (queue.size() > 1) {
 			printToScript("unset " + ScriptCommands.AUTO_BUILD);
 		}
+		*/
 		for (String line : queue) {
 			printToScript(line);
 		}
+		/*
 		if (queue.size() > 1) {
 			printToScript("set " + ScriptCommands.AUTO_BUILD);
 		}
+		*/
 	}
 
 	public void recordProjectAction(String action, IProject p) {
@@ -654,7 +681,9 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
-	public void recordViewUpdate() {
+	// Was public void recordViewUpdate() {
+	@Override
+	public void currentScanChanged(JSureScan scan) {	
 		if (script != null) {
 			// Export results
 			final String prefix = "expectedResults" + getId();
@@ -662,8 +691,9 @@ public class JavacDriver implements IResourceChangeListener {
 			final File location = new File(scriptResourcesDir, name);
 			try {
 				final String path = computePrefix();
-				Sea.getDefault().updateConsistencyProof();
-				SeaSummary.summarize("workspace", Sea.getDefault(), location);
+				final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+				SeaSummary.summarize("workspace", info.getDropInfo(), location);
+				
 				printToScript(ScriptCommands.COMPARE_RESULTS + " workspace "
 						+ path + '/' + name + " " + path + "/../" + prefix
 						+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
@@ -788,7 +818,9 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		if (prototype.script != null) {
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype,
-					IResourceChangeEvent.PRE_BUILD);
+					IResourceChangeEvent.POST_CHANGE);
+			// This only worked in the old world, when I waited for a build
+			//		IResourceChangeEvent.PRE_BUILD);
 			// IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
 		}
 	}
@@ -2231,7 +2263,18 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
+	// Somehow call scriptChanges
 	public void resourceChanged(IResourceChangeEvent event) {
+		if (script != null) {
+			ChangeCollector visitor = new ChangeCollector();
+			try {
+				event.getDelta().accept(visitor);
+				scriptChanges(visitor.getChanges());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+			
 		if (event.getResource() == null) {
 			for (IResourceDelta delta : event.getDelta().getAffectedChildren()) {
 				changed(delta);
@@ -2316,6 +2359,23 @@ public class JavacDriver implements IResourceChangeListener {
 		default:
 			System.out.println("Ignoring change3 to " + delta.getResource());
 			return;
+		}
+	}
+
+	static class ChangeCollector implements IResourceDeltaVisitor {
+		private final List<Pair<IResource, Integer>> changes = new ArrayList<Pair<IResource,Integer>>();
+		
+		public List<Pair<IResource, Integer>> getChanges() {
+			return changes;
+		}
+
+		@Override
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			if (delta.getResource().getType() != IResource.FILE) {
+				return true;
+			}
+			changes.add(new Pair<IResource, Integer>(delta.getResource(), delta.getKind()));
+			return false;
 		}
 	}
 }

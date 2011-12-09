@@ -7,7 +7,7 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
 
 public class EffectsSpecificationNode extends AASTRootNode 
 {  
@@ -52,7 +52,7 @@ public class EffectsSpecificationNode extends AASTRootNode
     sb.append(name);
     if (debug) {
       sb.append('\n');
-      for(AASTNode _n : getEffectList()) {
+      for(EffectSpecificationNode _n : getEffectList()) {
         sb.append(_n.unparse(debug, indent+2));
       }    
     } else {
@@ -62,7 +62,7 @@ public class EffectsSpecificationNode extends AASTRootNode
       }
       
       boolean first = true;
-      for(AASTNode _n : getEffectList()) {
+      for(final EffectSpecificationNode _n : getEffectList()) {
         if (first) {
           first = false;
         } else {
@@ -87,11 +87,47 @@ public class EffectsSpecificationNode extends AASTRootNode
   
   @Override
   public IAASTNode cloneTree(){
-  	List<EffectSpecificationNode> effectsCopy = new ArrayList<EffectSpecificationNode>(effect.size());
+  	final List<EffectSpecificationNode> effectsCopy = new ArrayList<EffectSpecificationNode>(effect.size());
   	for (EffectSpecificationNode effectSpecificationNode : effect) {
 			effectsCopy.add((EffectSpecificationNode)effectSpecificationNode.cloneTree());
 		}
   	return new EffectsSpecificationNode(getOffset(), effectsCopy);
+  }
+  
+  public final EffectsSpecificationNode cloneForProposal(final ParameterMap pm) {
+    final List<EffectSpecificationNode> effectsCopy = new ArrayList<EffectSpecificationNode>(effect.size());
+    for (EffectSpecificationNode effectSpecificationNode : effect) {
+      effectsCopy.add(effectSpecificationNode.cloneForProposal(pm));
+    }
+    return finishCloneForProposal(effectsCopy);
+  }
+  
+  EffectsSpecificationNode finishCloneForProposal(final List<EffectSpecificationNode> effects) {
+    return new EffectsSpecificationNode(getOffset(), effects);
+  }
+  
+  public final String unparseForPromise() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getLabel());
+    sb.append(' ');
+    if (effect.isEmpty()) {
+      sb.append("nothing");
+    } else {
+      boolean first = true;
+      for(final EffectSpecificationNode _n : getEffectList()) {
+        if (first) {
+          first = false;
+        } else {
+          sb.append(", ");
+        }
+        sb.append(_n.unparse(false));
+      }
+    }    
+    return sb.toString();
+  }
+  
+  protected String getLabel() {
+    return "???";
   }
 }
 

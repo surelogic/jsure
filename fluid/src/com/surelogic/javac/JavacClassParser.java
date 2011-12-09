@@ -505,6 +505,7 @@ public class JavacClassParser {
 				} else {
 					//System.out.println("\tCopied "+ref+" from "+info.getTypeEnv().getProject().getName()+": "+jar.getName());
 				}
+				//System.out.println("Looking at "+ref+" ("+project+") via "+jp.getName());
 				if (info != null && jp.getTypeEnv() != srcProject.getTypeEnv()) {
 					jp.getTypeEnv().addCompUnit(info, true);
 					return;
@@ -818,8 +819,10 @@ public class JavacClassParser {
 			s.doAccept(cu);
 			refs.put(cu, r);
 			/*
-        	if (r.contains("com.surelogic.common.i18n.I18N")) {
-        		System.out.println("moreRefs: "+DebugUnparser.toString(cu));
+        	if (r.contains("javax.swing.WindowConstants") && "jEdit-4.1".equals(jp.getName())) {
+        		IRNode type = VisitUtil.getPrimaryType(cu);
+        		String unparse = JavaNames.getFullTypeName(type);
+        		System.out.println("moreRefs: "+unparse);
         	}
         	*/
 			return r;
@@ -1036,7 +1039,8 @@ public class JavacClassParser {
 		@Override
 		public Void visitNamedType(IRNode node) {			
 			String qname = NamedType.getType(node);		
-/*			if (qname.contains("root.Root")) {
+			/*
+			if (qname.contains("javax.swing.WindowConstants") && "jEdit-4.1".equals(jp.getName())) {
 				System.out.println("Checking NT: "+qname);
 			}
 */
@@ -1102,10 +1106,12 @@ public class JavacClassParser {
 		for(CodeInfo info : cus) {
 			final IIRProject p = JavaProjects.getProject(info.getNode());
 			byProject.put(p.getName(), info);
+			//System.out.println(p.getName()+" : "+info.getFileName());
 		}
 		cus.clear();
 		
 		for(String proj : byProject.keySet()) {
+			//System.out.println("Checking refs for "+proj);
 			final Collection<CodeInfo> info = byProject.get(proj);
 		    final BatchParser parser = parsers.get(proj);
 		    final List<CodeInfo> results = new ArrayList<CodeInfo>(info);

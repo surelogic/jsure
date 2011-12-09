@@ -30,7 +30,6 @@ import org.eclipse.ui.part.*;
 
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
-import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
@@ -948,7 +947,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	/**
 	 * @return non-null Pair of files for fluid and local
 	 */
-	public static Pair<File,File> findPromisesXML(String path) {
+	private static Pair<File,File> findPromisesXML(String path) {
 		File fluid = null; 
 		File local = null;		
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
@@ -977,7 +976,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	
 	public static IEditorPart openInEditor(String path, boolean readOnly) {
 		final IEditorInput i = makeInput(path, readOnly);
-		if (i == null || !i.exists()) {
+		if (i == null) {// || !i.exists()) {
 			return null;
 		}
 		return EclipseUIUtility.openInEditor(i, PromisesXMLEditor.class.getName());
@@ -985,6 +984,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	
 	public static IEditorInput makeInput(String relativePath, boolean readOnly) {
 		try {
+			if (!relativePath.endsWith(TestXMLParserConstants.SUFFIX)) {
+				return null;
+			}
 			return new Input(relativePath, readOnly);
 		} catch (URISyntaxException e) {
 			return null;
@@ -1012,7 +1014,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 		@Override
 		public boolean exists() {
-			final Pair<File,File> f = findPromisesXML(path);
+			final Pair<File,File> f = PromisesXMLParser.findPromisesXML(path);
 			return f.first().isFile();
 		}
 

@@ -36,4 +36,14 @@ public class ReadsNode extends EffectsSpecificationNode {
 		}
   	return new ReadsNode(getOffset(), effectsCopy);
   }
+    
+  @Override
+  ReadsNode finishCloneForProposal(final List<EffectSpecificationNode> effects) {
+    return new ReadsNode(getOffset(), effects);
+  }
+
+  @Override
+  public String getLabel() {
+    return "reads";
+  }
 }

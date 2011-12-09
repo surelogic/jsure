@@ -166,10 +166,19 @@ public abstract class AnnotationRules {
     }
 
     public void reportError(String msg, IAASTNode n) {
-    	reportError(msg+" on "+n, n.getPromisedFor(), n.getOffset());
+    	reportError_private(msg+" on "+n, n.getPromisedFor(), n.getOffset());
     }
     
     public void reportError(IRNode n, String msgTemplate, Object... args) {
+    	reportError_private(n, msgTemplate, args);
+    }
+    
+	public void reportErrorAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args) {
+		PromiseWarningDrop d = reportError_private(p.getNode(), msgTemplate, args);
+		d.addProposal(p);
+	}
+    
+    private PromiseWarningDrop reportError_private(IRNode n, String msgTemplate, Object... args) {
     	final ISrcRef ref = JavaNode.getSrcRef(n);
     	final int offset;
     	if (ref == null) {
@@ -178,15 +187,16 @@ public abstract class AnnotationRules {
     		offset = ref.getOffset();
     	}
         String txt = MessageFormat.format(msgTemplate, args)+" on "+DebugUnparser.toString(n);
-    	reportError(txt, n, offset);
+        return reportError_private(txt, n, offset);
     }
     
-    private void reportError(String txt, IRNode n, int offset) {      
+    private PromiseWarningDrop reportError_private(String txt, IRNode n, int offset) {      
 //      System.out.println("SCRUBBER: "+txt);
       PromiseWarningDrop d = new PromiseWarningDrop(offset);
       d.setMessage(txt);
       d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
       d.setNodeAndCompilationUnitDependency(n);
+      return d;
     }
 
     public void reportWarning(IAASTNode n, String msgTemplate, Object... args) {
@@ -443,6 +453,58 @@ public abstract class AnnotationRules {
   
   
   
+  public static final class ParameterMap {
+    private final Map<IRNode, Integer> argPosition;
+    private final List<IRNode> parentArgs;
+    private final List<IRNode> childArgs;
+    
+    
+    
+    public ParameterMap(final IRNode parent, final IRNode child) {
+      argPosition = new HashMap<IRNode, Integer>();
+      parentArgs = new ArrayList<IRNode>();
+      childArgs = new ArrayList<IRNode>();
+      
+      final Iteratable<IRNode> parentParams = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+      final Iteratable<IRNode> childParams = Parameters.getFormalIterator(MethodDeclaration.getParams(child));
+      int count = 0;
+      for (final IRNode parentArg : parentParams) {
+        final IRNode childArg = childParams.next();
+        final Integer idx = Integer.valueOf(count);
+        argPosition.put(parentArg, idx);
+        argPosition.put(childArg, idx);
+        parentArgs.add(parentArg);
+        childArgs.add(childArg);
+        count += 1;
+      }
+    }
+    
+    
+    
+    // Returns -1 if param is not found
+    public int getPositionOf(final IRNode param) {
+      final Integer v = argPosition.get(param);
+      return v == null ? -1 : v.intValue();
+    }
+    
+    // Return null if there is a look up failure
+    private IRNode getParallelArgument(
+        final IRNode arg, final List<IRNode> otherArgs) {
+      final Integer idx = argPosition.get(arg);
+      return idx == null ? null : otherArgs.get(idx.intValue());
+    }
+    
+    public IRNode getCorrespondingChildArg(final IRNode parentArg) {
+      return getParallelArgument(parentArg, childArgs);
+    }
+    
+    public IRNode getCorrespondingParentArg(final IRNode childArg) {
+      return getParallelArgument(childArg, parentArgs);
+    }
+  }
+  
+  
+  @Deprecated // use ParameterMap class instead
   protected static Map<IRNode, Integer> buildParameterMap(
       final IRNode annotatedMethod, final IRNode parent) {
     // Should have the same number of arguments

@@ -95,7 +95,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 		return 10;
 	}
 
-	public final Object[] getElements(Object inputElement) {
+	public Object[] getElements(Object inputElement) {
 		return f_contents.toArray();
 	}
 

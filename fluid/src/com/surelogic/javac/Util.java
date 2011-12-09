@@ -361,10 +361,13 @@ public class Util {
         rewriteCUs(projects, cus.asList(), projects.getMonitor());
         // Really to check if we added type refs via default constructors
 		loader.checkReferences(cus.asList());
-		loader = null; // To free up memory
-        
+		
 		final long canon = System.currentTimeMillis();
 		canonicalizeCUs(cus, projects);    
+        // Checking if we added type refs by canonicalizing implicit refs 
+		loader.checkReferences(cus.asList());
+		loader = null; // To free up memory
+		
 		final long cleanup = System.currentTimeMillis();
 		eliminateDups(cus.asList(), cus.asList());
 		clearCaches(projects);
@@ -783,6 +786,9 @@ public class Util {
 							try {
 								frame.pushTypeContext(cud.cu);
 								a.doAnalysisOnAFile(env, cud);
+							} catch(RuntimeException e) {
+								System.err.println("Error while processing "+cud.javaOSFileName);
+								throw e;
 							} finally {
 					            frame.popTypeContext();
 							}
@@ -879,7 +885,9 @@ public class Util {
 			if (monitor.isCanceled()) {
 				throw new CancellationException();
 			}			
-			//System.out.println("Rewriting "+info.getFileName());			
+			if (info.getFile().getRelativePath() != null) {
+				System.out.println("Rewriting "+info.getFile().getRelativePath());			
+			}
 			final IRNode cu = info.getNode();
 			IRNode type = VisitUtil.getPrimaryType(cu);
 			if (type == null) {
@@ -947,7 +955,13 @@ public class Util {
 				for(IRNode n : JJNode.tree.topDown(info.getNode())) {
 					final Operator op = JJNode.tree.getOperator(n);
 					if (AbstractJavaBinder.isGranule(op, n)) {
-						b.ensureBindingsOK(n);
+						try {
+							b.ensureBindingsOK(n);
+						} catch(RuntimeException e) {
+							System.err.println("Error while binding "+DebugUnparser.toString(n));
+							System.err.println("In "+info.getFileName());
+							throw e;
+						}
 					}
 				}
 			}			
@@ -1001,6 +1015,9 @@ public class Util {
 		//cus.apply(proc);
 		
 		for (final CodeInfo info : cus) {
+			if (info.getFile().getRelativePath() != null) {
+				System.out.println("Canonicalizing "+info.getFile().getRelativePath());
+			}
 			proc.op(info);
 		}		
 		SlotInfo.gc();
