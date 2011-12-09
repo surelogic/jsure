@@ -322,15 +322,21 @@ public final class ProposedPromiseContentProvider extends
 			return decls;
 		}
 
-		Member[] getMembers() {
-			List<Member> members = new ArrayList<Member>();
+		Type[] getTypes() {
+			List<Type> members = new ArrayList<Type>();
+			for (Decl t : sort(types)) {
+				members.add(new Type(t.id, t.getProposals(), t.getMembers()));
+			}
+			return members.toArray(new Type[members.size()]);
+		}
+		
+		Member<?>[] getMembers() {
+			List<Member<?>> members = new ArrayList<Member<?>>();
 			for (Decl f : sort(fields)) {
-				// TODO nested?
-				members.add(new FieldMember(f.id, f.getProposals()));
+				members.add(new FieldMember(f.id, f.getProposals(), f.getTypes()));
 			}
 			for (Decl m : sort(methods)) {
-				// TODO nested?
-				members.add(new MethodMember(m.id, m.getProposals()));
+				members.add(new MethodMember(m.id, m.getProposals(), m.getTypes()));
 			}
 			for (Decl t : sort(types)) {
 				members.add(new Type(t.id, t.getProposals(), t.getMembers()));
@@ -380,10 +386,13 @@ public final class ProposedPromiseContentProvider extends
 		return root;
 	}
 
-	static abstract class Member extends
+	static abstract class Member<T extends Member<?>> extends
 			AbstractTreeable<IProposedPromiseDropInfo> {
-		Member(String id, IProposedPromiseDropInfo[] c, boolean sort) {
+		final T[] members;
+		
+		Member(String id, IProposedPromiseDropInfo[] c, T[] members, boolean sort) {
 			super(id, c, sort);
+			this.members = members;
 		}
 
 		@Override
@@ -391,33 +400,7 @@ public final class ProposedPromiseContentProvider extends
 			return JavaUI.getSharedImages().getImage(
 					ISharedImages.IMG_OBJS_PUBLIC);
 		}
-	}
-
-	static class FieldMember extends Member {
-		FieldMember(String id, IProposedPromiseDropInfo[] c) {
-			super(id, c, false);
-		}
-	}
-
-	static class MethodMember extends Member {
-		MethodMember(String sig, IProposedPromiseDropInfo[] c) {
-			super(sig, c, false);
-		}
-	}
-
-	static class Type extends Member {
-		final Member[] members;
-
-		Type(String t, IProposedPromiseDropInfo[] drops, Member[] members) {
-			super(t, drops, true);
-			this.members = members;
-		}
-
-		@Override
-		public Image getImage() {
-			return SLImages.getImage(CommonImages.IMG_CLASS);
-		}
-
+		
 		@Override
 		public boolean hasChildren() {
 			return (members != null && members.length > 0)
@@ -434,11 +417,34 @@ public final class ProposedPromiseContentProvider extends
 				for (Object o : children) {
 					temp.add(o);
 				}
-				for (Member m : members) {
+				for (T m : members) {
 					temp.add(m);
 				}
 				return temp.toArray();
 			}
+		}
+	}
+
+	static class FieldMember extends Member<Type> {
+		FieldMember(String id, IProposedPromiseDropInfo[] c, Type[] types) {
+			super(id, c, types, false);
+		}
+	}
+
+	static class MethodMember extends Member<Type> {
+		MethodMember(String sig, IProposedPromiseDropInfo[] c, Type[] types) {
+			super(sig, c, types, false);
+		}
+	}
+
+	static class Type extends Member<Member<?>> {
+		Type(String t, IProposedPromiseDropInfo[] drops, Member<?>[] members) {
+			super(t, drops, members, true);
+		}
+
+		@Override
+		public Image getImage() {
+			return SLImages.getImage(CommonImages.IMG_CLASS);
 		}
 
 		static final Factory<String, Type> factory = new Factory<String, Type>() {
