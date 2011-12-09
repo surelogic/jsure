@@ -51,7 +51,7 @@ public class ProposedPromisesRefactoring extends Refactoring {
 
 	@Override
 	public String getName() {
-		return I18N.msg("jsure.eclipse.proposed.promises.edit");
+		return I18N.msg("jsure.eclipse.proposed.promise.edit");
 	}
 
 }

@@ -544,7 +544,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 							manager.add(f_addPromiseToCode);
 							f_addPromiseToCode
 									.setText(I18N
-											.msg("jsure.eclipse.proposed.promises.edit"));
+											.msg("jsure.eclipse.proposed.promise.edit"));
 							manager.add(new Separator());
 						}
 					}

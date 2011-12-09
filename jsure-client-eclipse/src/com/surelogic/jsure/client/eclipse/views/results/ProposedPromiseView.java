@@ -33,8 +33,9 @@ public class ProposedPromiseView extends
 
 	private final Action f_toggleFilter;
 
-	private final Action f_copy = makeCopyAction("Copy", "Copy the selected item to the clipboard");
-	
+	private final Action f_copy = makeCopyAction("Copy",
+			"Copy the selected item to the clipboard");
+
 	public ProposedPromiseView() {
 		super(SWT.MULTI, IProposedPromiseDropInfo.class);
 		/*
@@ -84,9 +85,8 @@ public class ProposedPromiseView extends
 
 	@Override
 	protected void makeActions() {
-		f_annotate.setText(I18N.msg("jsure.eclipse.proposed.promises.edit"));
-		f_annotate.setToolTipText(I18N
-				.msg("jsure.eclipse.proposed.promises.tip"));
+		f_annotate.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
+		f_annotate.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
 	}
 
 	@Override
