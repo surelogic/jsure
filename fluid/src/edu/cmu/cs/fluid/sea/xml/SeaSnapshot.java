@@ -217,6 +217,18 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		b.append("</"+JAVA_DECL_INFO+">\n");
 	}
 	
+	public void addProperties(String flavor, Map<String, String> map) {
+		attributes.clear();
+		b.append("    ");
+		Entities.start(PROPERTIES, b);
+		addAttribute(FLAVOR_ATTR, flavor); 
+		
+		for(Map.Entry<String, String> e : map.entrySet()) {
+			addAttribute(e.getKey(), e.getValue());
+		}
+		b.append("</"+PROPERTIES+">\n");
+	}
+	
 	/*
 	private void outputPromiseDropAttrs(StringBuilder b, PromiseDrop d) {
 		d.isAssumed();
@@ -806,11 +818,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		private JavaDeclInfo fromInfo;
 		private JavaDeclInfo targetInfo;
 		private ISrcRef assumptionRef;
-
+		private Map<String,String> annoAttrs, replacedAttrs;
+		
 		ProposedPromiseInfo(String name, Attributes a) {
 			super(name, a);
 		}
 		 
+		public Map<String,String> getAnnoAttributes() {
+			return annoAttrs;
+		}
+		
+		public Map<String,String> getReplacedAttributes() {
+			return replacedAttrs;
+		}		
+		
 		public String getJavaAnnotation() {
 			return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
 		}
@@ -875,7 +896,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 					assumptionRef = makeSrcRef(sr);
 				} else {
 					setSource(sr);
-				}				
+				}
+			} else if (PROPERTIES.equals(name)) {
+				if (ProposedPromiseDrop.ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
+					annoAttrs = e.getAttributes();
+				} else {
+					replacedAttrs = e.getAttributes();
+				}
 			} else {
 				super.addRef(e);
 			}

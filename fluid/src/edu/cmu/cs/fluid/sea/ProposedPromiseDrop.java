@@ -43,6 +43,8 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	public static final String FROM_INFO = "from-info";
 	public static final String TARGET_INFO = "target-info";
 	public static final String FROM_REF = "from-ref";
+	public static final String ANNO_ATTRS = "annotation-attrs";
+	public static final String REPLACED_ATTRS = "replaced-attrs";
 	
 	public enum Origin {
 		PROMISE, INFERENCE
@@ -93,8 +95,10 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		f_requestedFrom = from;
 		f_annotation = annotation;
 		f_contents = contents;
+		f_attrs = attrs;
 		f_replacedAnno = replacedAnno;
 		f_replacedContents = replacedContents;
+		f_replacedAttrs = replacedAttrs;
 		f_origin = src;
 		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
@@ -111,6 +115,16 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	public ProposedPromiseDrop(final String annotation, final String contents,
 			final IRNode at, final IRNode from, Origin origin) {
 		this(annotation, contents, null, at, from, origin);
+	}
+	
+	private final Map<String,String> f_attrs, f_replacedAttrs;
+
+	public Map<String,String> getAnnoAttributes() {
+		return f_attrs;
+	}
+	
+	public Map<String,String> getReplacedAttributes() {
+		return f_replacedAttrs;
 	}
 	
 	/**
@@ -354,6 +368,8 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		s.addSrcRef(getAssumptionNode(), getAssumptionRef(), FROM_REF);
 		s.addJavaDeclInfo(FROM_INFO, getFromInfo().snapshot());
 		s.addJavaDeclInfo(TARGET_INFO, getTargetInfo().snapshot());
+		s.addProperties(ANNO_ATTRS, f_attrs);
+		s.addProperties(REPLACED_ATTRS, f_replacedAttrs);
 	}
 	
 	public String getTargetProjectName() {
