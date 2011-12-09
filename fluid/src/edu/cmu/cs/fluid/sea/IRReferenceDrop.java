@@ -75,19 +75,15 @@ public abstract class IRReferenceDrop extends Drop {
 		}
 	}
 
-    /*&
-	@Override
-	protected void invalidate_internal() {
-		if (getNode() != null) {
-			if (!AbstractJavaBinder.isBinary(getNode())) {
-				System.err.println("Invalidating "+getMessage());
-			}
-		} else {
-			System.err.println("Invalidating "+getMessage());
-		}
-	}
-	*/
-	
+	/*
+	 * &
+	 * 
+	 * @Override protected void invalidate_internal() { if (getNode() != null) {
+	 * if (!AbstractJavaBinder.isBinary(getNode())) {
+	 * System.err.println("Invalidating "+getMessage()); } } else {
+	 * System.err.println("Invalidating "+getMessage()); } }
+	 */
+
 	/**
 	 * The fAST node that this PromiseDrop is associated with.
 	 */
@@ -144,11 +140,11 @@ public abstract class IRReferenceDrop extends Drop {
 		}
 	}
 
-	public /*final*/ void clearNode() {
+	public/* final */void clearNode() {
 		// lastNonNullNode is not cleared
-		node = null;		
+		node = null;
 	}
-	
+
 	/**
 	 * Used for dependency checking
 	 */
@@ -195,12 +191,6 @@ public abstract class IRReferenceDrop extends Drop {
 		}
 		return cus.iterator().next();
 	}
-
-	private static List<ISupportingInformation> noSupportingInfo = Collections
-			.emptyList();
-
-	private static List<ProposedPromiseDrop> noProposals = Collections
-			.emptyList();
 
 	/**
 	 * A set of supporting information about this drop, all elements are of type
@@ -267,7 +257,7 @@ public abstract class IRReferenceDrop extends Drop {
 	 */
 	public List<ISupportingInformation> getSupportingInformation() {
 		if (supportingInformation == null) {
-			return noSupportingInfo;
+			return Collections.emptyList();
 		}
 		return supportingInformation;
 	}
@@ -301,7 +291,7 @@ public abstract class IRReferenceDrop extends Drop {
 	 */
 	public List<ProposedPromiseDrop> getProposals() {
 		if (proposals == null) {
-			return noProposals;
+			return Collections.emptyList();
 		}
 		return proposals;
 	}
@@ -347,8 +337,10 @@ public abstract class IRReferenceDrop extends Drop {
 		super.snapshotRefs(s);
 		try {
 			s.addSrcRef(getNode(), getSrcRef());
-		} catch(SlotUndefinedException e) {
-			SLLogger.getLogger().log(Level.WARNING, "Undefined info for "+getMessage()+" on "+getNode(), e);
+		} catch (SlotUndefinedException e) {
+			SLLogger.getLogger().log(Level.WARNING,
+					"Undefined info for " + getMessage() + " on " + getNode(),
+					e);
 		}
 		for (ISupportingInformation si : getSupportingInformation()) {
 			s.addSupportingInfo(si);
@@ -373,17 +365,17 @@ public abstract class IRReferenceDrop extends Drop {
 			IRNode type = VisitUtil.getPrimaryType(cu);
 			return new JavaSourceReference(pkg, JavaNames.getTypeName(type));
 		}
-		return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref
-				.getLineNumber(), ref.getOffset());
+		return new JavaSourceReference(ref.getPackage(), ref.getCUName(),
+				ref.getLineNumber(), ref.getOffset());
 	}
-	
+
 	@Override
-	public final Long getTreeHash() {		
+	public final Long getTreeHash() {
 		return SeaSummary.computeHash(getNode(), false);
 	}
-	
+
 	@Override
-	public final Long getContextHash() {		
+	public final Long getContextHash() {
 		return SeaSummary.computeContext(getNode(), false);
 	}
 }

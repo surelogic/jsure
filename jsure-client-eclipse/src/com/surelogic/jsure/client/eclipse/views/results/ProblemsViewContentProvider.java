@@ -40,7 +40,8 @@ public final class ProblemsViewContentProvider extends
 			if (srcRef != null) {
 				final String path = srcRef.getRelativePath();
 				if (path != null) {
-					if (path.endsWith(".java") || path.endsWith(ToolProperties.PROPS_FILE)) {
+					if (path.endsWith(".java")
+							|| path.endsWith(ToolProperties.PROPS_FILE)) {
 						contents.add(id);
 					}
 				}
@@ -54,6 +55,13 @@ public final class ProblemsViewContentProvider extends
 
 	public Image getColumnImage(Object element, int columnIndex) {
 		if (columnIndex == 0) {
+			if (element instanceof IDropInfo) {
+				IDropInfo id = (IDropInfo) element;
+				if (!id.getProposals().isEmpty()) {
+					return SLImages
+							.getImage(CommonImages.IMG_ANNOTATION_ERROR_FIX);
+				}
+			}
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
 		} else {
 			return null;
