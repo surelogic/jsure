@@ -341,6 +341,7 @@ public abstract class IRReferenceDrop extends Drop {
 			SLLogger.getLogger().log(Level.WARNING,
 					"Undefined info for " + getMessage() + " on " + getNode(),
 					e);
+			throw e;
 		}
 		for (ISupportingInformation si : getSupportingInformation()) {
 			s.addSupportingInfo(si);
