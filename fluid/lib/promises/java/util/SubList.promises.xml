@@ -3,12 +3,12 @@
 <package name="java.util">
     <class name="SubList">
         <method name="iterator">
-            <!-- Not quite right -->
-            <Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
         </method>
         <method name="listIterator" params="int">
-            <!-- Not quite right -->
-            <Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
         </method>
     </class>
 </package>

@@ -54,8 +54,8 @@
         <class name="AscendingSubMap">
             <class name="AscendingEntrySetView">
                 <method name="iterator">
-                    <Borrowed>this</Borrowed>
-                    <RegionEffects>reads this:Instance</RegionEffects>
+                    <Borrowed allowReturn="true">this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
                 </method>
             </class>
         </class>
@@ -63,16 +63,16 @@
         <class name="DescendingSubMap">
             <class name="DescendingEntrySetView">
                 <method name="iterator">
-                    <Borrowed>this</Borrowed>
-                    <RegionEffects>reads this:Instance</RegionEffects>
+                    <Borrowed allowReturn="true">this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
                 </method>
             </class>
         </class>
 
         <class name="EntrySet">
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -88,8 +88,8 @@
             </method>
 
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -155,15 +155,16 @@
                 </method>
 
                 <method name="iterator">
-                    <Borrowed>this</Borrowed>
+                    <Borrowed allowReturn="true">this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
                 </method>
             </class>
         </class>
 
         <class name="Values">
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
     </class>
