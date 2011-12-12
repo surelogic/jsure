@@ -63,7 +63,7 @@ public class ProposedPromiseView extends
 		/*
 		 * Set the view to tree or table
 		 */
-		f_toggleView.setChecked(true);
+		f_toggleView.setChecked(persistedAsTree);
 		f_content = new ProposedPromiseContentProvider(persistedAsTree);
 
 		/*
