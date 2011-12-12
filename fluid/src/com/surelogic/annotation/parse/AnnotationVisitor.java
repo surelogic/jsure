@@ -1,5 +1,7 @@
 package com.surelogic.annotation.parse;
 
+import static com.surelogic.common.AnnotationConstants.*;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +35,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	public static final String ALLOW_READ = "allowRead";
 	
 	static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
-	private static final String promisePrefix = "com.surelogic.";
-	private static final String jcipPrefix = "net.jcip.annotations.";
 
 	// private static final boolean allowJavadoc = true;
 	public static final boolean onlyUseAnnotate = true;
@@ -93,8 +93,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 					.getJavaType(anno);
 			id = JavaNames.getQualifiedTypeName(type);
 		}
-		if (id.startsWith(promisePrefix)
-				|| (id.startsWith(jcipPrefix) && (id.endsWith("ThreadSafe") || id
+		if (id.startsWith(PROMISE_PREFIX)
+				|| (id.startsWith(JCIP_PREFIX) && (id.endsWith("ThreadSafe") || id
 						.endsWith(".Immutable")))) {
 			int lastDot = id.lastIndexOf('.');
 			return id.substring(lastDot + 1);
@@ -312,7 +312,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				Map<String,String> props = new HashMap<String, String>();
 				for (IRNode valuePair : pairs) {
 					final String id = ElementValuePair.getId(valuePair);
-					if ("value".equals(id)) {
+					if (VALUE_ATTR.equals(id)) {
 						contents = extractString(valuePair);
 					}
 					else if (ALLOW_READ.equals(id)) {
