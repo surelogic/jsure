@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
@@ -279,10 +280,41 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	}
 	
 	public String getLabel() {
-		if (contents == null || contents.length() == 0) {
+		final Map<String,String> pairs;	
+		Collection<String> attrs = AnnotationRules.getAttributes(promise);
+		if (attrs.isEmpty()) {
+			pairs = Collections.emptyMap();
+		} else {
+			pairs = new HashMap<String,String>(4, 1.0f);
+			for(String attr : AnnotationRules.getAttributes(promise)) {
+				String value = attributes.get(attr);
+				if (value != null) {
+					pairs.put(attr, value);
+				}
+			}
+		}		                                                          		
+		final boolean contentsIsEmpty = contents == null || contents.length() == 0;
+		if (contentsIsEmpty && pairs.isEmpty()) {
 			return promise;
 		}
-		return promise+'('+contents+')';
+		final StringBuilder sb = new StringBuilder(promise);
+		sb.append('(');
+		boolean first = contentsIsEmpty; 
+		if (!contentsIsEmpty) {
+			sb.append(contents);
+		}
+		for(Map.Entry<String,String> e : pairs.entrySet()) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(e.getKey());
+			sb.append('=');
+			sb.append(e.getValue());
+		}
+		sb.append(')');
+		return sb.toString(); // promise+'('+contents+')';
 	}
 
 	public final String getImageKey() {
