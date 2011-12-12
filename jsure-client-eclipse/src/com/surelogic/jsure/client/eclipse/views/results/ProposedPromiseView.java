@@ -7,7 +7,9 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -33,6 +35,61 @@ public class ProposedPromiseView extends
 	private final Action f_toggleView;
 
 	private final Action f_toggleFilter;
+
+	private final Action f_actionExpand = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				final ISelection selection = treeViewer.getSelection();
+				if (selection == null || selection == StructuredSelection.EMPTY) {
+					treeViewer.expandToLevel(50);
+				} else {
+					final Object obj = ((IStructuredSelection) selection)
+							.getFirstElement();
+					if (obj != null) {
+						treeViewer.expandToLevel(obj, 50);
+					} else {
+						treeViewer.expandToLevel(50);
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapse = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				final ISelection selection = treeViewer.getSelection();
+				if (selection == null || selection == StructuredSelection.EMPTY) {
+					treeViewer.collapseAll();
+				} else {
+					final Object obj = ((IStructuredSelection) selection)
+							.getFirstElement();
+					if (obj != null) {
+						treeViewer.collapseToLevel(obj, 1);
+					} else {
+						treeViewer.collapseAll();
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapseAll = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				treeViewer.collapseAll();
+			}
+		}
+	};
 
 	private final Action f_copy = makeCopyAction("Copy",
 			"Copy the selected item to the clipboard");
@@ -82,6 +139,10 @@ public class ProposedPromiseView extends
 		f_toggleFilter.setToolTipText(toggleShowAbductiveOnlyLabel);
 		f_toggleFilter.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_ABDUCTIVE));
+		/*
+		 * Set collapse all toggle button
+		 */
+		f_actionCollapseAll.setEnabled(persistedAsTree);
 	}
 
 	@Override
@@ -94,6 +155,23 @@ public class ProposedPromiseView extends
 
 		f_copy.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
+
+		f_actionExpand.setText("Expand");
+		f_actionExpand
+				.setToolTipText("Expand the current selection or all if none");
+		f_actionExpand.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+		f_actionCollapse.setText("Collapse");
+		f_actionCollapse
+				.setToolTipText("Collapse the current selection or all if none");
+		f_actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+		f_actionCollapseAll.setText("Collapse All");
+		f_actionCollapseAll.setToolTipText("Collapse All");
+		f_actionCollapseAll.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 	}
 
 	@Override
@@ -104,6 +182,8 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
 	}
@@ -111,6 +191,8 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
 	}
@@ -118,6 +200,11 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
+		if (getViewer() instanceof TreeViewer) {
+			manager.add(f_actionExpand);
+			manager.add(f_actionCollapse);
+			manager.add(new Separator());
+		}
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
 				if (o instanceof IProposedPromiseDropInfo) {
@@ -180,6 +267,7 @@ public class ProposedPromiseView extends
 		/*
 		 * Set the viewer
 		 */
+		f_actionCollapseAll.setEnabled(asTree);
 		f_content.setAsTree(asTree);
 		if (getViewer() != null) {
 			getViewer().setInput(getViewSite());
