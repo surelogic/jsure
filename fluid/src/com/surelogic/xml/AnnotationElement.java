@@ -21,7 +21,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public final class AnnotationElement extends AbstractJavaElement implements IMergeableElement, TestXMLParserConstants {
 	private static final char DASH = '-';
-	private static final String ORIG_CONTENTS = "original-contents";
+	private static final String ORIG_PREFIX = "original-";
+	private static final String ORIG_CONTENTS = ORIG_PREFIX+"contents";
 	public static final String REF_SUFFIX = DASH+"ref";	
 	
 	private final String uid;
@@ -251,6 +252,15 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return PromisesXMLWriter.getSortedEntries(attributes);
 	}
 	
+	public String getAttribute(String key) {
+		return attributes.get(key);
+	}
+	
+	public String setAttribute(String key, String value) {
+		markAsModified();
+		return attributes.put(key, value);
+	}
+	
 	public int getRevision() {
 		String value = attributes.get(REVISION_ATTRB);
 		if (value != null) {
@@ -330,7 +340,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		// Merge the comments that are attached
 		AnnotationElement a = (AnnotationElement) other;
 		mergeThis(a, MergeType.MERGE);
-		stashDiffState(a.getContents());
+		stashDiffState(a);
 	}
 	
 	@Override
@@ -382,9 +392,18 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return added ? 1 : 0;
 	}
 
-	void stashDiffState(String contents) {
+	void stashDiffState(AnnotationElement orig) {
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
-			attributes.put(ORIG_CONTENTS, contents);
+			attributes.put(ORIG_CONTENTS, orig.contents);
 		}
+		for(String a : attrDefaults.keySet()) {
+			if (!attributes.containsKey(a)) {
+				attributes.put(ORIG_PREFIX+a, orig.getAttribute(a));
+			}
+		}
+	}
+	
+	public Map<String,String> getAttributeDefaults() {
+		return attrDefaults;
 	}
 }

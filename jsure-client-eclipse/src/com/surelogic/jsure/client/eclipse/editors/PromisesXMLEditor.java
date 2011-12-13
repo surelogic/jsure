@@ -440,22 +440,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				addActionsOnClasses(menu, c);
 			}
 		}
+	
 		if (o instanceof IMergeableElement) {
-			final IMergeableElement me = (IMergeableElement) o;
-			makeMenuItem(menu, "Delete", new SelectionAdapter() {
-		        @Override
-		        public void widgetSelected(SelectionEvent e) {          
-		        	final boolean origDirty = provider.pkg.isDirty();
-		        	final boolean deletedNew = me.delete();
-		        	if (deletedNew && !origDirty) {
-		        		// Probably saved after creation, so we need to save it
-		        		isDirty = true;
-		        	}
-		        	markAsDirty();
-		          	contents.refresh();
-	            	contents.expandToLevel(me.getParent(), 1);
-		        }
-			});
+			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
@@ -479,6 +466,68 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	        		MessageDialog.openInformation(s, "No Changes", "There are no changes to delete");
 	        	}
 	        }
+		});
+	}
+
+	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
+		if (o instanceof AnnotationElement) {
+			final AnnotationElement a = (AnnotationElement) o;
+			if (!a.getAttributeDefaults().isEmpty()) {
+				makeMenuItem(menu, "Edit attributes", new SelectionAdapter() {
+			        @Override
+			        public void widgetSelected(SelectionEvent se) {  
+			        	// TODO Assumes all attributes are boolean
+			        	ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), 
+			        			a.getAttributeDefaults().keySet().toArray(), annoProvider, annoProvider, "");
+			        	final Set<String> initiallySet = new TreeSet<String>();
+			        	for(Map.Entry<String, String> e : a.getAttributeDefaults().entrySet()) {
+			        		String value = a.getAttribute(e.getKey());
+			        		if (value == null) {
+			        			value = e.getValue(); // the default
+			        		}
+			        		if ("true".equals(value)) {
+			        			initiallySet.add(e.getKey());
+			        		}
+			        	}
+			        	d.setInitialSelections(initiallySet.toArray());
+			        	if (d.open() == Window.OK) {
+			        		// Figure out which changed
+			        		Set<String> nowUnset = new TreeSet<String>(initiallySet);
+			        		Set<String> nowSet = new TreeSet<String>();
+			        		for(Object o : d.getResult()) {
+			        			if (!nowUnset.remove(o)) {
+			        				nowSet.add(o.toString());
+			        			}			        			
+			        		}
+			        		// Update the attributes
+			        		for(String s : nowUnset) {
+			        			a.setAttribute(s, "false");
+			        		}
+			        		for(String s : nowSet) {
+			        			a.setAttribute(s, "true");
+			        		}
+			        		if (!nowSet.isEmpty() || !nowUnset.isEmpty()) {
+			        			markAsDirty();
+			        		}
+			        	}
+			        }
+				});
+			}
+		}	
+		final IMergeableElement me = (IMergeableElement) o;
+		makeMenuItem(menu, "Delete", new SelectionAdapter() {
+		    @Override
+		    public void widgetSelected(SelectionEvent e) {          
+		    	final boolean origDirty = provider.pkg.isDirty();
+		    	final boolean deletedNew = me.delete();
+		    	if (deletedNew && !origDirty) {
+		    		// Probably saved after creation, so we need to save it
+		    		isDirty = true;
+		    	}
+		    	markAsDirty();
+		      	contents.refresh();
+		    	contents.expandToLevel(me.getParent(), 1);
+		    }
 		});
 	}
 
