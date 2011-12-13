@@ -83,11 +83,27 @@ public abstract class AnnotationRules {
 	  "toString", "hashCode", "annotationType",  
   };
   
-  public static Collection<String> getAttributes(String tag) {
+  private static final ConcurrentMap<String,Map<String,String>> attrsByPromise = 
+	  new ConcurrentHashMap<String, Map<String,String>>();
+  
+  /**
+   * @return a map of attributes and default values
+   */
+  public static Map<String,String> getAttributes(String tag) {
+	  Map<String,String> m = attrsByPromise.get(tag);
+	  if (m == null) {
+		  // This is idempotent, so it doesn't really matter which gets used
+		  m = computeAttributes(tag);		  
+		  attrsByPromise.putIfAbsent(tag, m);
+	  }
+	  return m;
+  }
+  
+  private static Map<String,String> computeAttributes(String tag) {
 	  final String qname = AnnotationConstants.PROMISE_PREFIX + tag;
 	  try {
 		  Class<?> cls = Class.forName(qname);
-		  List<String> l = new ArrayList<String>();
+		  Map<String,String> l = new HashMap<String, String>();
 		  
 		  outer:
 		  for(Method m : cls.getMethods()) {
@@ -104,13 +120,14 @@ public abstract class AnnotationRules {
 				  continue outer;
 			  }
 			  //System.out.println("Attribute '"+m.getName()+"' can appear on "+tag);
-			  l.add(m.getName());
+			  Object value = m.getDefaultValue();
+			  l.put(m.getName(), value == null ? null : value.toString());
 		  }
 		  return l;
 	  } catch (ClassNotFoundException e) {
 		  // Ignore it
 	  }
-	  return Collections.emptyList();
+	  return Collections.emptyMap();
   }
   
   /* *************************************************

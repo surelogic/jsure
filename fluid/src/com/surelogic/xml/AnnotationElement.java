@@ -28,6 +28,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	private final String promise;
 	private String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
+	private final Map<String,String> attrDefaults;
 	private boolean isBad;
 	private final boolean isReference;
 	
@@ -59,6 +60,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		promise = name;
 		contents = text == null ? "" : text.trim();
 
+		attrDefaults = AnnotationRules.getAttributes(promise);
 		attributes.putAll(a);
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
@@ -281,12 +283,11 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	
 	public String getLabel() {
 		final Map<String,String> pairs;	
-		Collection<String> attrs = AnnotationRules.getAttributes(promise);
-		if (attrs.isEmpty()) {
+		if (attrDefaults.isEmpty()) {
 			pairs = Collections.emptyMap();
 		} else {
 			pairs = new HashMap<String,String>(4, 1.0f);
-			for(String attr : AnnotationRules.getAttributes(promise)) {
+			for(String attr : attrDefaults.keySet()) {
 				String value = attributes.get(attr);
 				if (value != null) {
 					pairs.put(attr, value);
