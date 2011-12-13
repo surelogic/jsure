@@ -7,9 +7,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -42,16 +41,17 @@ public class ProposedPromiseView extends
 			final StructuredViewer viewer = getViewer();
 			if (viewer instanceof TreeViewer) {
 				final TreeViewer treeViewer = (TreeViewer) viewer;
-				final ISelection selection = treeViewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
 					treeViewer.expandToLevel(50);
 				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj != null) {
-						treeViewer.expandToLevel(obj, 50);
-					} else {
-						treeViewer.expandToLevel(50);
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.expandToLevel(obj, 50);
+						} else {
+							treeViewer.expandToLevel(50);
+						}
 					}
 				}
 			}
@@ -64,16 +64,17 @@ public class ProposedPromiseView extends
 			final StructuredViewer viewer = getViewer();
 			if (viewer instanceof TreeViewer) {
 				final TreeViewer treeViewer = (TreeViewer) viewer;
-				final ISelection selection = treeViewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
-					treeViewer.collapseAll();
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
 				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj != null) {
-						treeViewer.collapseToLevel(obj, 1);
-					} else {
-						treeViewer.collapseAll();
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.collapseToLevel(obj, 1);
+						} else {
+							treeViewer.collapseAll();
+						}
 					}
 				}
 			}
@@ -151,7 +152,7 @@ public class ProposedPromiseView extends
 		f_annotate.setToolTipText(I18N
 				.msg("jsure.eclipse.proposed.promise.tip"));
 		f_annotate.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_QUICK_ASSIST));
+				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
 
 		f_copy.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
@@ -200,11 +201,6 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
-		if (getViewer() instanceof TreeViewer) {
-			manager.add(f_actionExpand);
-			manager.add(f_actionCollapse);
-			manager.add(new Separator());
-		}
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
 				if (o instanceof IProposedPromiseDropInfo) {
@@ -216,6 +212,11 @@ public class ProposedPromiseView extends
 						break; // Only needs one
 					}
 				}
+			}
+			if (getViewer() instanceof TreeViewer) {
+				manager.add(f_actionExpand);
+				manager.add(f_actionCollapse);
+				manager.add(new Separator());
 			}
 			manager.add(f_copy);
 		}
