@@ -7,8 +7,10 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -107,9 +109,9 @@ public class ProposedPromiseView extends
 		/*
 		 * Setup toggle to change view from a tree to a table.
 		 */
-		final String toggleTreeToTableLabel = I18N
-				.msg("jsure.eclipse.proposed.promises.showAsTree");
-		f_toggleView = new Action(toggleTreeToTableLabel, IAction.AS_CHECK_BOX) {
+		f_toggleView = new Action(
+				I18N.msg("jsure.eclipse.proposed.promises.showAsTree"),
+				IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				setViewerBeingShown(f_toggleView.isChecked());
@@ -117,7 +119,8 @@ public class ProposedPromiseView extends
 		};
 		f_toggleView.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_JAVA_DECLS_TREE));
-		f_toggleView.setToolTipText(toggleTreeToTableLabel);
+		f_toggleView.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promises.showAsTree.tip"));
 		/*
 		 * Set the view to tree or table
 		 */
@@ -127,9 +130,8 @@ public class ProposedPromiseView extends
 		/*
 		 * Setup toggle to filter list of promises
 		 */
-		final String toggleShowAbductiveOnlyLabel = I18N
-				.msg("jsure.eclipse.proposed.promises.showAbductiveOnly");
-		f_toggleFilter = new Action(toggleShowAbductiveOnlyLabel,
+		f_toggleFilter = new Action(
+				I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly"),
 				IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
@@ -137,7 +139,8 @@ public class ProposedPromiseView extends
 			}
 		};
 		f_toggleFilter.setChecked(persistedShowAbductiveOnly);
-		f_toggleFilter.setToolTipText(toggleShowAbductiveOnlyLabel);
+		f_toggleFilter.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promises.showAbductiveOnly.tip"));
 		f_toggleFilter.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_ABDUCTIVE));
 		/*
@@ -153,6 +156,7 @@ public class ProposedPromiseView extends
 				.msg("jsure.eclipse.proposed.promise.tip"));
 		f_annotate.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
+		f_annotate.setEnabled(false);
 
 		f_copy.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
@@ -185,6 +189,8 @@ public class ProposedPromiseView extends
 		super.fillLocalPullDown(manager);
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
+		manager.add(f_annotate);
+		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
 	}
@@ -193,6 +199,8 @@ public class ProposedPromiseView extends
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
 		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
+		manager.add(f_annotate);
 		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
@@ -236,6 +244,18 @@ public class ProposedPromiseView extends
 
 		treeViewer.setContentProvider(f_content);
 		treeViewer.setLabelProvider(f_content);
+
+		final ISelectionChangedListener listener = new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				final boolean proposalsSelected = !getSelectedProposals()
+						.isEmpty();
+				f_annotate.setEnabled(proposalsSelected);
+			}
+		};
+		tableViewer.addSelectionChangedListener(listener);
+		treeViewer.addSelectionChangedListener(listener);
+
 		return new StructuredViewer[] { tableViewer, treeViewer };
 	}
 

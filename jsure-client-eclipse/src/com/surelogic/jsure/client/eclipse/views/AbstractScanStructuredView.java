@@ -41,6 +41,12 @@ public abstract class AbstractScanStructuredView<T> extends
 		}
 	};
 
+	/**
+	 * Gets the list of selected proposed promises. Must never return
+	 * {@code null}.
+	 * 
+	 * @return the non-{@code null} list of proposed promises.
+	 */
 	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
 		return Collections.emptyList();
 	}
