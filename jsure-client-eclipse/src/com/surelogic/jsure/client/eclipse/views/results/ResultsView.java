@@ -22,6 +22,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
@@ -140,16 +141,17 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	private final Action f_actionExpand = new Action() {
 		@Override
 		public void run() {
-			final ISelection selection = treeViewer.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
+			final ITreeSelection selection = (ITreeSelection) treeViewer
+					.getSelection();
+			if (selection == null || selection.isEmpty()) {
 				treeViewer.expandToLevel(50);
 			} else {
-				final Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof AbstractContent) {
-					treeViewer.expandToLevel(obj, 50);
-				} else {
-					treeViewer.expandToLevel(50);
+				for (Object obj : selection.toList()) {
+					if (obj != null) {
+						treeViewer.expandToLevel(obj, 50);
+					} else {
+						treeViewer.expandToLevel(50);
+					}
 				}
 			}
 		}
@@ -158,16 +160,17 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	private final Action f_actionCollapse = new Action() {
 		@Override
 		public void run() {
-			final ISelection selection = treeViewer.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
-				treeViewer.collapseAll();
+			final ITreeSelection selection = (ITreeSelection) treeViewer
+					.getSelection();
+			if (selection == null || selection.isEmpty()) {
+				treeViewer.expandToLevel(50);
 			} else {
-				final Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof AbstractContent) {
-					treeViewer.collapseToLevel(obj, 1);
-				} else {
-					treeViewer.collapseAll();
+				for (Object obj : selection.toList()) {
+					if (obj != null) {
+						treeViewer.collapseToLevel(obj, 1);
+					} else {
+						treeViewer.collapseAll();
+					}
 				}
 			}
 		}
@@ -190,17 +193,6 @@ public final class ResultsView extends AbstractJSureResultsView implements
 						treeViewer.reveal(c.cloneOf);
 						treeViewer.setSelection(new StructuredSelection(
 								c.cloneOf), true);
-						/*
-						 * { public boolean isEmpty() { return false; } public
-						 * List toList() { return
-						 * Collections.singletonList(c.cloneOf); } public
-						 * Object[] toArray() { final Object[] rv = new
-						 * Object[1]; rv[0] = c.cloneOf; return rv; } public int
-						 * size() { return 1; } public Iterator iterator() {
-						 * return new SingletonIterator(c.cloneOf); } public
-						 * Object getFirstElement() { return c.cloneOf; } },
-						 * true);
-						 */
 					}
 				}
 			}
