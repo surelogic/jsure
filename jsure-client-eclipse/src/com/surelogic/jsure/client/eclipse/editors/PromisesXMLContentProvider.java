@@ -22,6 +22,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -164,8 +165,13 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 						if (lastSlash >= 0) {
 							String p = path.substring(0, lastSlash).replace('/', '.');
 							String name = path.substring(lastSlash+1, path.length() - TestXMLParserConstants.SUFFIX.length());
-							System.out.println("Making AST for "+p+'.'+name);
-							roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
+							if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
+								System.out.println("Making AST for "+p);
+								roots[0] = pkg = PromisesXMLBuilder.makePackageModel(p);
+							} else {
+								System.out.println("Making AST for "+p+'.'+name);
+								roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
+							}
 						}
 					} else {				
 						if (PromisesXMLBuilder.updateElements(pkg)) {
