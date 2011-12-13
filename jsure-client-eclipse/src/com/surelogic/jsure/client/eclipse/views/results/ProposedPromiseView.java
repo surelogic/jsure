@@ -2,6 +2,10 @@ package com.surelogic.jsure.client.eclipse.views.results;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -21,6 +25,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -248,9 +253,7 @@ public class ProposedPromiseView extends
 		final ISelectionChangedListener listener = new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				final boolean proposalsSelected = !getSelectedProposals()
-						.isEmpty();
-				f_annotate.setEnabled(proposalsSelected);
+				selectionChangedHelper();
 			}
 		};
 		tableViewer.addSelectionChangedListener(listener);
@@ -290,11 +293,22 @@ public class ProposedPromiseView extends
 		 */
 		f_actionCollapseAll.setEnabled(asTree);
 		f_content.setAsTree(asTree);
-		if (getViewer() != null) {
-			getViewer().setInput(getViewSite());
-		}
+		getViewer().setInput(getViewSite());
 		f_viewerbook.showPage(getCurrentControl());
-		getCurrentControl().redraw();
+
+		/*
+		 * We need a job to fix the toolbar/view menu because the viewer changed
+		 * and things may or may not be selected in the new view. This will do
+		 * it a bit later when the change settles.
+		 */
+		Job job = new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				selectionChangedHelper();
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
 
 	private void setShowAbductiveOnly(final boolean applyFilter) {
@@ -312,5 +326,10 @@ public class ProposedPromiseView extends
 		f_content.build();
 		getViewer().getControl().setRedraw(true);
 		getViewer().refresh();
+	}
+
+	private void selectionChangedHelper() {
+		final boolean proposalsSelected = !getSelectedProposals().isEmpty();
+		f_annotate.setEnabled(proposalsSelected);
 	}
 }
