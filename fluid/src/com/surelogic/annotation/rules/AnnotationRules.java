@@ -123,7 +123,7 @@ public abstract class AnnotationRules {
 			  Object value = m.getDefaultValue();
 			  l.put(m.getName(), value == null ? null : value.toString());
 		  }
-		  return l;
+		  return Collections.unmodifiableMap(l);
 	  } catch (ClassNotFoundException e) {
 		  // Ignore it
 	  }
