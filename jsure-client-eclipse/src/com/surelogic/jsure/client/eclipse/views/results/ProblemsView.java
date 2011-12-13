@@ -8,8 +8,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
@@ -62,7 +66,31 @@ public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 		f_annotate.setText(I18N.msg("jsure.problems.view.fix"));
 		f_annotate.setToolTipText(I18N.msg("jsure.problems.view.fix.tooltip"));
 		f_annotate.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_QUICK_ASSIST));
+				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
+
+		final StructuredViewer viewer = getViewer();
+		final ISelectionChangedListener listener = new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				final boolean proposalsSelected = !getSelectedProposals()
+						.isEmpty();
+				f_annotate.setEnabled(proposalsSelected);
+			}
+		};
+		viewer.addSelectionChangedListener(listener);
+		f_annotate.setEnabled(false); // wait until something is selected
+	}
+
+	@Override
+	protected void fillLocalPullDown(IMenuManager manager) {
+		super.fillLocalPullDown(manager);
+		manager.add(f_annotate);
+	}
+
+	@Override
+	protected void fillLocalToolBar(IToolBarManager manager) {
+		super.fillLocalToolBar(manager);
+		manager.add(f_annotate);
 	}
 
 	@Override

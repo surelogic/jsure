@@ -161,7 +161,7 @@ public class ProposedPromiseView extends
 				.msg("jsure.eclipse.proposed.promise.tip"));
 		f_annotate.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
-		f_annotate.setEnabled(false);
+		f_annotate.setEnabled(false); // wait until something is selected
 
 		f_copy.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
