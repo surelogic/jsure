@@ -19,6 +19,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -66,16 +67,17 @@ public class XMLExplorerView extends AbstractJSureView {
 		public void run() {
 			if (f_viewer != null) {
 				final TreeViewer treeViewer = f_viewer;
-				final ISelection selection = treeViewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
 					treeViewer.expandToLevel(50);
 				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj != null) {
-						treeViewer.expandToLevel(obj, 50);
-					} else {
-						treeViewer.expandToLevel(50);
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.expandToLevel(obj, 50);
+						} else {
+							treeViewer.expandToLevel(50);
+						}
 					}
 				}
 			}
@@ -87,16 +89,17 @@ public class XMLExplorerView extends AbstractJSureView {
 		public void run() {
 			if (f_viewer != null) {
 				final TreeViewer treeViewer = f_viewer;
-				final ISelection selection = treeViewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
-					treeViewer.collapseAll();
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
 				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj != null) {
-						treeViewer.collapseToLevel(obj, 1);
-					} else {
-						treeViewer.collapseAll();
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.collapseToLevel(obj, 1);
+						} else {
+							treeViewer.collapseAll();
+						}
 					}
 				}
 			}
