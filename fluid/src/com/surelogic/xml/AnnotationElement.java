@@ -151,12 +151,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 			isBad = !parses(promise, text);
 			contents = text;		
 			
-			final String origContents = attributes.get(ORIG_CONTENTS);
-			if (origContents != null && origContents.equals(text)) {
-				markAsUnmodified(); // TODO is this right with attributes?
-			} else {
-				markAsModified();
-			}
+			updateModifiedStatus();
 			return true;
 		} else {
 			//l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
@@ -169,11 +164,41 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		attributes.put(DIRTY_ATTRB, "true");
 	}
 	
-	void markAsUnmodified() {
+	/**
+	 * Only used below
+	 */
+	private void markAsUnmodified() {
 		markAsClean();
 		attributes.remove(DIRTY_ATTRB);
 	}
 	
+	private void updateModifiedStatus() {
+		final String origContents = attributes.get(ORIG_CONTENTS);
+		boolean modified = origContents == null || !origContents.equals(contents);
+		if (!modified) {
+			// Check if attributes are modified 
+			for(String attr : attrDefaults.keySet()) {
+				String value = attributes.get(attr);
+				if (value != null) {
+					// The attr has a value to check
+					String orig = attributes.get(ORIG_PREFIX+attr);
+					if (orig == null || !orig.equals(value)) {
+						modified = true;
+						break;
+					}
+				}
+			}
+		}
+		if (modified) {
+			markAsModified();
+		} else {
+			markAsUnmodified(); 
+		}
+	}
+	
+	/**
+	 * @return true if this was created and then deleted
+	 */
 	public boolean delete() {
 		markAsModified();
 		attributes.put(DELETE_ATTRB, "true");
@@ -256,9 +281,16 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		return attributes.get(key);
 	}
 	
-	public String setAttribute(String key, String value) {
-		markAsModified();
-		return attributes.put(key, value);
+	public String setAttribute(String key, String value) {		
+		String defValue = attrDefaults.get(key);
+		String old;
+		if (defValue == null || !defValue.equals(value)) {			
+			old = attributes.put(key, value);
+		} else {
+			old = attributes.remove(key);
+		}
+		updateModifiedStatus();
+		return old;		
 	}
 	
 	public int getRevision() {
@@ -397,8 +429,9 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 			attributes.put(ORIG_CONTENTS, orig.contents);
 		}
 		for(String a : attrDefaults.keySet()) {
-			if (!attributes.containsKey(a)) {
-				attributes.put(ORIG_PREFIX+a, orig.getAttribute(a));
+			final String origKey = ORIG_PREFIX+a;
+			if (!attributes.containsKey(origKey)) {
+				attributes.put(origKey, orig.getAttribute(a));
 			}
 		}
 	}
