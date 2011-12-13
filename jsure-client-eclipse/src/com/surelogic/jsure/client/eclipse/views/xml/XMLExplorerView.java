@@ -16,7 +16,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,21 +25,18 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
-import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.PackageElement;
@@ -384,42 +380,6 @@ public class XMLExplorerView extends AbstractJSureView {
 				return element.toString();
 			}
 			return null;
-		}
-
-		/**
-		 * Gets a cached image with an optional conflict (warning) decorator.
-		 * 
-		 * @param symbolicName
-		 *            a name from {@link CommonImages}.
-		 * @param conflict
-		 *            {@code true} if a promise conflict exists, {@code false}
-		 *            otherwise.
-		 * @return an image that is carefully cached. The image should
-		 *         <i>not</i> be disposed by the calling code.
-		 */
-		private final Image getCachedImage(String symbolicName, boolean conflict) {
-			return getCachedImage(SLImages.getImageDescriptor(symbolicName),
-					conflict);
-		}
-
-		/**
-		 * Gets a cached image with an optional conflict (warning) decorator.
-		 * 
-		 * @param imageDescriptor
-		 *            an image descriptor.
-		 * @param conflict
-		 *            {@code true} if a promise conflict exists, {@code false}
-		 *            otherwise.
-		 * @return an image that is carefully cached. The image should
-		 *         <i>not</i> be disposed by the calling code.
-		 */
-		private final Image getCachedImage(ImageDescriptor imageDescriptor,
-				boolean conflict) {
-			final int flag = conflict ? CoE_Constants.INFO_WARNING
-					: CoE_Constants.NONE;
-			ResultsImageDescriptor rid = new ResultsImageDescriptor(
-					imageDescriptor, flag, new Point(22, 16));
-			return rid.getCachedImage();
 		}
 
 		@Override
