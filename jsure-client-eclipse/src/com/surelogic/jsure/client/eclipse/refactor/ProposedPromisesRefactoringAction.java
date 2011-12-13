@@ -41,7 +41,7 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 				wizard);
 		try {
 			op.run(EclipseUIUtility.getShell(), getDialogTitle());
-		} catch (final InterruptedException e) {
+		} catch (final InterruptedException canceled) {
 			// Operation was canceled. Whatever floats their boat.
 		}
 	}

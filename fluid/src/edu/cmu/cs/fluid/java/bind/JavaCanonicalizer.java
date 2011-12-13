@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -1448,7 +1449,7 @@ public class JavaCanonicalizer {
       IRNode body = AnnotationDeclaration.getBody(b.getNode());
       for(IRNode m : tree.children(body)) {
     	  String name = AnnotationElement.getId(m);
-    	  if ("value".equals(name)) {
+    	  if (AnnotationConstants.VALUE_ATTR.equals(name)) {
     		  return doAccept(AnnotationElement.getType(m));
     	  }
       }

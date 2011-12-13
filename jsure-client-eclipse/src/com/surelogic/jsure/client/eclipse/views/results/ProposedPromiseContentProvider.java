@@ -331,9 +331,11 @@ public final class ProposedPromiseContentProvider extends
 			TypeContext p = t.getParent();
 			Method m = t.getMethod();
 			if (p != null) {
-				return findDecl(here, p);
+				Decl parent = findDecl(here, p);
+				return parent.getDecl(parent.types, t.getName());
 			} else if (m != null) {
-				return findDecl(here, m);
+				Decl method = findDecl(here, m);
+				return method.getDecl(method.types, t.getName());
 			} else { // Top-level
 				return here.getDecl(here.types, t.getName());
 			}

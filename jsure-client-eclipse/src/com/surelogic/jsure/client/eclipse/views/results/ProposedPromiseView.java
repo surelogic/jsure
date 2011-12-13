@@ -2,12 +2,19 @@ package com.surelogic.jsure.client.eclipse.views.results;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -18,6 +25,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -34,6 +42,63 @@ public class ProposedPromiseView extends
 
 	private final Action f_toggleFilter;
 
+	private final Action f_actionExpand = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
+				} else {
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.expandToLevel(obj, 50);
+						} else {
+							treeViewer.expandToLevel(50);
+						}
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapse = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
+				} else {
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.collapseToLevel(obj, 1);
+						} else {
+							treeViewer.collapseAll();
+						}
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapseAll = new Action() {
+		@Override
+		public void run() {
+			final StructuredViewer viewer = getViewer();
+			if (viewer instanceof TreeViewer) {
+				final TreeViewer treeViewer = (TreeViewer) viewer;
+				treeViewer.collapseAll();
+			}
+		}
+	};
+
 	private final Action f_copy = makeCopyAction("Copy",
 			"Copy the selected item to the clipboard");
 
@@ -49,9 +114,9 @@ public class ProposedPromiseView extends
 		/*
 		 * Setup toggle to change view from a tree to a table.
 		 */
-		final String toggleTreeToTableLabel = I18N
-				.msg("jsure.eclipse.proposed.promises.showAsTree");
-		f_toggleView = new Action(toggleTreeToTableLabel, IAction.AS_CHECK_BOX) {
+		f_toggleView = new Action(
+				I18N.msg("jsure.eclipse.proposed.promises.showAsTree"),
+				IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				setViewerBeingShown(f_toggleView.isChecked());
@@ -59,19 +124,19 @@ public class ProposedPromiseView extends
 		};
 		f_toggleView.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_JAVA_DECLS_TREE));
-		f_toggleView.setToolTipText(toggleTreeToTableLabel);
+		f_toggleView.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promises.showAsTree.tip"));
 		/*
 		 * Set the view to tree or table
 		 */
-		f_toggleView.setChecked(true);
+		f_toggleView.setChecked(persistedAsTree);
 		f_content = new ProposedPromiseContentProvider(persistedAsTree);
 
 		/*
 		 * Setup toggle to filter list of promises
 		 */
-		final String toggleShowAbductiveOnlyLabel = I18N
-				.msg("jsure.eclipse.proposed.promises.showAbductiveOnly");
-		f_toggleFilter = new Action(toggleShowAbductiveOnlyLabel,
+		f_toggleFilter = new Action(
+				I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly"),
 				IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
@@ -79,9 +144,14 @@ public class ProposedPromiseView extends
 			}
 		};
 		f_toggleFilter.setChecked(persistedShowAbductiveOnly);
-		f_toggleFilter.setToolTipText(toggleShowAbductiveOnlyLabel);
+		f_toggleFilter.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promises.showAbductiveOnly.tip"));
 		f_toggleFilter.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_ABDUCTIVE));
+		/*
+		 * Set collapse all toggle button
+		 */
+		f_actionCollapseAll.setEnabled(persistedAsTree);
 	}
 
 	@Override
@@ -90,10 +160,28 @@ public class ProposedPromiseView extends
 		f_annotate.setToolTipText(I18N
 				.msg("jsure.eclipse.proposed.promise.tip"));
 		f_annotate.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_QUICK_ASSIST));
+				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
+		f_annotate.setEnabled(false); // wait until something is selected
 
 		f_copy.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
+
+		f_actionExpand.setText("Expand");
+		f_actionExpand
+				.setToolTipText("Expand the current selection or all if none");
+		f_actionExpand.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+		f_actionCollapse.setText("Collapse");
+		f_actionCollapse
+				.setToolTipText("Collapse the current selection or all if none");
+		f_actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+		f_actionCollapseAll.setText("Collapse All");
+		f_actionCollapseAll.setToolTipText("Collapse All");
+		f_actionCollapseAll.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 	}
 
 	@Override
@@ -104,6 +192,10 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
+		manager.add(f_annotate);
+		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
 	}
@@ -111,6 +203,10 @@ public class ProposedPromiseView extends
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
+		manager.add(f_annotate);
+		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
 	}
@@ -130,6 +226,11 @@ public class ProposedPromiseView extends
 					}
 				}
 			}
+			if (getViewer() instanceof TreeViewer) {
+				manager.add(f_actionExpand);
+				manager.add(f_actionCollapse);
+				manager.add(new Separator());
+			}
 			manager.add(f_copy);
 		}
 	}
@@ -148,6 +249,16 @@ public class ProposedPromiseView extends
 
 		treeViewer.setContentProvider(f_content);
 		treeViewer.setLabelProvider(f_content);
+
+		final ISelectionChangedListener listener = new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				selectionChangedHelper();
+			}
+		};
+		tableViewer.addSelectionChangedListener(listener);
+		treeViewer.addSelectionChangedListener(listener);
+
 		return new StructuredViewer[] { tableViewer, treeViewer };
 	}
 
@@ -180,12 +291,24 @@ public class ProposedPromiseView extends
 		/*
 		 * Set the viewer
 		 */
+		f_actionCollapseAll.setEnabled(asTree);
 		f_content.setAsTree(asTree);
-		if (getViewer() != null) {
-			getViewer().setInput(getViewSite());
-		}
+		getViewer().setInput(getViewSite());
 		f_viewerbook.showPage(getCurrentControl());
-		getCurrentControl().redraw();
+
+		/*
+		 * We need a job to fix the toolbar/view menu because the viewer changed
+		 * and things may or may not be selected in the new view. This will do
+		 * it a bit later when the change settles.
+		 */
+		Job job = new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				selectionChangedHelper();
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
 
 	private void setShowAbductiveOnly(final boolean applyFilter) {
@@ -203,5 +326,10 @@ public class ProposedPromiseView extends
 		f_content.build();
 		getViewer().getControl().setRedraw(true);
 		getViewer().refresh();
+	}
+
+	private void selectionChangedHelper() {
+		final boolean proposalsSelected = !getSelectedProposals().isEmpty();
+		f_annotate.setEnabled(proposalsSelected);
 	}
 }

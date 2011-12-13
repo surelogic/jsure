@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 
 import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -15,6 +16,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.*;
 import com.surelogic.task.*;
@@ -75,6 +77,57 @@ public abstract class AnnotationRules {
   
   public static Operator getOperator(IRNode n) {
     return tree.getOperator(n);
+  }
+  
+  private static final String[] noArgMethods = new String[] {
+	  "toString", "hashCode", "annotationType",  
+  };
+  
+  private static final ConcurrentMap<String,Map<String,String>> attrsByPromise = 
+	  new ConcurrentHashMap<String, Map<String,String>>();
+  
+  /**
+   * @return a map of attributes and default values
+   */
+  public static Map<String,String> getAttributes(String tag) {
+	  Map<String,String> m = attrsByPromise.get(tag);
+	  if (m == null) {
+		  // This is idempotent, so it doesn't really matter which gets used
+		  m = computeAttributes(tag);		  
+		  attrsByPromise.putIfAbsent(tag, m);
+	  }
+	  return m;
+  }
+  
+  private static Map<String,String> computeAttributes(String tag) {
+	  final String qname = AnnotationConstants.PROMISE_PREFIX + tag;
+	  try {
+		  Class<?> cls = Class.forName(qname);
+		  Map<String,String> l = new HashMap<String, String>();
+		  
+		  outer:
+		  for(Method m : cls.getMethods()) {
+			  if (m.getParameterTypes().length > 0) {
+				  // Not an attribute
+				  continue outer;
+			  }
+			  for(String name : noArgMethods) {
+				  if (name.equals(m.getName())) {
+					  continue outer;
+				  }
+			  }
+			  if (AnnotationConstants.VALUE_ATTR.equals(m.getName())) {
+				  continue outer;
+			  }
+			  //System.out.println("Attribute '"+m.getName()+"' can appear on "+tag);
+			  Object value = m.getDefaultValue();
+			  l.put(m.getName(), value == null ? null : value.toString());
+		  }
+		  return l;
+	  } catch (ClassNotFoundException e) {
+		  // Ignore it
+	  }
+	  return Collections.emptyMap();
   }
   
   /* *************************************************

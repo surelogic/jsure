@@ -166,4 +166,8 @@ public class PromisesXMLBuilder {
 		final MergeResult<ClassElement> result = p.getClassElement().merge(c, MergeType.JAVA);
 		return result.isModified;
 	}
+
+	public static PackageElement makePackageModel(String pkg) {
+		return new PackageElement(pkg, 0, null);
+	}
 }

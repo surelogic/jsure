@@ -12,6 +12,7 @@ import com.surelogic.common.xml.*;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.JavaPromiseOpInterface;
@@ -57,29 +58,33 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		}
 		
 		try {
-			final Operator op = JJNode.tree.getOperator(context);
-			boolean onDecl = Declaration.prototype.includes(op);
-			IRNode decl = context;
-			if (!onDecl) {
-				if (op instanceof JavaPromiseOpInterface) {
-					// Deal with promise nodes hanging off of a decl
-					decl = JavaPromise.getPromisedForOrNull(context);
+			if (context instanceof MarkedIRNode) {
+				System.out.println("Skipping decl for "+context);
+			} else {
+				final Operator op = JJNode.tree.getOperator(context);
+				boolean onDecl = Declaration.prototype.includes(op);
+				IRNode decl = context;
+				if (!onDecl) {
+					if (op instanceof JavaPromiseOpInterface) {
+						// Deal with promise nodes hanging off of a decl
+						decl = JavaPromise.getPromisedForOrNull(context);
 
-					if (decl != null && Declaration.prototype.includes(decl)) {
-						onDecl = true;
+						if (decl != null && Declaration.prototype.includes(decl)) {
+							onDecl = true;
+						} else {
+							decl = VisitUtil.getEnclosingDecl(context);
+						}
 					} else {
 						decl = VisitUtil.getEnclosingDecl(context);
 					}
+				}
+				if (onDecl) {
+					addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(decl));
 				} else {
-					decl = VisitUtil.getEnclosingDecl(context);
+					addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
 				}
 			}
-			if (onDecl) {
-				addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(decl));
-			} else {
-				addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
-			}
-			addAttribute(HASH_ATTR, getHash(context));
+			addAttribute(HASH_ATTR, getHash(context));			
 			addAttribute(CUNIT_ATTR, s.getCUName());
 			addAttribute(PKG_ATTR, s.getPackage());
 			addAttribute(PROJECT_ATTR, s.getProject());

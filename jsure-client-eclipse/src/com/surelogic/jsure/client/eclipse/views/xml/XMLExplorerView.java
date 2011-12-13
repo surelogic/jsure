@@ -1,33 +1,47 @@
 package com.surelogic.jsure.client.eclipse.views.xml;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.jsure.client.eclipse.editors.*;
-import com.surelogic.jsure.client.eclipse.views.*;
-import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
+import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
+import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
-import com.surelogic.xml.*;
-
-import edu.cmu.cs.fluid.util.Pair;
+import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.PackageElement;
+import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.PromisesXMLReader;
+import com.surelogic.xml.TestXMLParserConstants;
 
 public class XMLExplorerView extends AbstractJSureView {
 
@@ -43,6 +57,58 @@ public class XMLExplorerView extends AbstractJSureView {
 		public void run() {
 			f_content.toggleViewingType();
 			f_viewer.refresh();
+		}
+	};
+
+	private final Action f_actionExpand = new Action() {
+		@Override
+		public void run() {
+			if (f_viewer != null) {
+				final TreeViewer treeViewer = f_viewer;
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
+				} else {
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.expandToLevel(obj, 50);
+						} else {
+							treeViewer.expandToLevel(50);
+						}
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapse = new Action() {
+		@Override
+		public void run() {
+			if (f_viewer != null) {
+				final TreeViewer treeViewer = f_viewer;
+				final ITreeSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection == null || selection.isEmpty()) {
+					treeViewer.expandToLevel(50);
+				} else {
+					for (Object obj : selection.toList()) {
+						if (obj != null) {
+							treeViewer.collapseToLevel(obj, 1);
+						} else {
+							treeViewer.collapseAll();
+						}
+					}
+				}
+			}
+		}
+	};
+
+	private final Action f_actionCollapseAll = new Action() {
+		@Override
+		public void run() {
+			if (f_viewer != null)
+				f_viewer.collapseAll();
 		}
 	};
 
@@ -67,35 +133,55 @@ public class XMLExplorerView extends AbstractJSureView {
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
 		f_toggleShowDiffs.setToolTipText(USER_MODS_ONLY);
+
+		f_actionExpand.setText("Expand");
+		f_actionExpand
+				.setToolTipText("Expand the current selection or all if none");
+		f_actionExpand.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+		f_actionCollapse.setText("Collapse");
+		f_actionCollapse
+				.setToolTipText("Collapse the current selection or all if none");
+		f_actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+		f_actionCollapseAll.setText("Collapse All");
+		f_actionCollapseAll.setToolTipText("Collapse All");
+		f_actionCollapseAll.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 	}
 
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
 	}
 
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+		manager.add(f_actionExpand);
+		manager.add(f_actionCollapse);
+
 		final Object o = s.getFirstElement();
 		if (XUtil.useExperimental() && o instanceof Type) {
 			final Type t = (Type) o;
 			if (t.isLocal) {
 				final boolean hasUpdate = t.hasUpdate();
+				manager.add(new Separator());
 				manager.add(new Action(hasUpdate ? "Update local XML"
 						: "Merge changes to JSure") {
 					@Override
 					public void run() {
 						PromisesLibMerge.merge(hasUpdate, t.getPath());
-						/*
-						 * if (!hasUpdate) { Pair<File,File> rv =
-						 * PromisesXMLEditor.findPromisesXML(t.getPath()); if
-						 * (rv.second().isFile()) { rv.second().delete(); } }
-						 */
 						PromisesXMLReader.clear(t.getPath());
 						PromisesXMLReader.refreshAll();
 					}
@@ -165,10 +251,8 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	}
 
-	static final Object[] noDiffs = new Object[] {
-		"No changes have been made to the standard library annotations"
-	};
-	
+	static final Object[] noDiffs = new Object[] { "No changes have been made to the standard library annotations" };
+
 	class Provider extends PromisesXMLContentProvider implements
 			IJSureTreeContentProvider, PromisesXMLReader.Listener {
 		Package[] pkgs = noPackages;
@@ -196,7 +280,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		public void refreshAll() {
 			build();
 
-			// This shouldn't be necessary, but Eclipse doesn't seem to 
+			// This shouldn't be necessary, but Eclipse doesn't seem to
 			// realize that the viewer changed
 			new SLUIJob() {
 				@Override
@@ -204,7 +288,7 @@ public class XMLExplorerView extends AbstractJSureView {
 					f_viewer.refresh();
 					return Status.OK_STATUS;
 				}
-			}.schedule();	
+			}.schedule();
 		}
 
 		@Override
@@ -238,7 +322,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		@Override
-		public boolean hasChildren(Object element) {			
+		public boolean hasChildren(Object element) {
 			if (element instanceof Package) {
 				Package p = (Package) element;
 				return p.types.length != 0;
@@ -249,7 +333,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			if (element instanceof String) {
 				return false;
-			}				
+			}
 			return super.hasChildren(element);
 		}
 
@@ -274,7 +358,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		@Override
-		public Object getParent(Object element) {			
+		public Object getParent(Object element) {
 			if (element instanceof Type) {
 				Type t = (Type) element;
 				return t.pkg;
@@ -297,42 +381,6 @@ public class XMLExplorerView extends AbstractJSureView {
 				return element.toString();
 			}
 			return null;
-		}
-
-		/**
-		 * Gets a cached image with an optional conflict (warning) decorator.
-		 * 
-		 * @param symbolicName
-		 *            a name from {@link CommonImages}.
-		 * @param conflict
-		 *            {@code true} if a promise conflict exists, {@code false}
-		 *            otherwise.
-		 * @return an image that is carefully cached. The image should
-		 *         <i>not</i> be disposed by the calling code.
-		 */
-		private final Image getCachedImage(String symbolicName, boolean conflict) {
-			return getCachedImage(SLImages.getImageDescriptor(symbolicName),
-					conflict);
-		}
-
-		/**
-		 * Gets a cached image with an optional conflict (warning) decorator.
-		 * 
-		 * @param imageDescriptor
-		 *            an image descriptor.
-		 * @param conflict
-		 *            {@code true} if a promise conflict exists, {@code false}
-		 *            otherwise.
-		 * @return an image that is carefully cached. The image should
-		 *         <i>not</i> be disposed by the calling code.
-		 */
-		private final Image getCachedImage(ImageDescriptor imageDescriptor,
-				boolean conflict) {
-			final int flag = conflict ? CoE_Constants.INFO_WARNING
-					: CoE_Constants.NONE;
-			ResultsImageDescriptor rid = new ResultsImageDescriptor(
-					imageDescriptor, flag, new Point(22, 16));
-			return rid.getCachedImage();
 		}
 
 		@Override
@@ -497,7 +545,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		void buildChildren() {
 			buildChildren(true);
 		}
-		
+
 		/**
 		 * @return true if root exists after the call
 		 */
@@ -507,7 +555,8 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			final String path = getPath();
 			if (force) {
-				//final Pair<File, File> rv = PromisesXMLEditor.findPromisesXML(path);
+				// final Pair<File, File> rv =
+				// PromisesXMLEditor.findPromisesXML(path);
 				try {
 					root = PromisesXMLParser.load(path);
 				} catch (Exception e) {

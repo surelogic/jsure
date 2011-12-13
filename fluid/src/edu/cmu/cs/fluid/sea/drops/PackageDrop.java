@@ -13,6 +13,7 @@ import java.util.logging.Level;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.*;
 
@@ -59,7 +60,7 @@ public class PackageDrop extends CUDrop {
     //System.out.println("Creating pkg: "+pkgName);
        	
 	// Look for XML annotations
-	final String xmlName = pkgName+'.'+"package-info"+TestXMLParserConstants.SUFFIX;
+	final String xmlName = pkgName+'.'+AnnotationConstants.PACKAGE_INFO+TestXMLParserConstants.SUFFIX;
 	try {
 		int added = PromisesXMLParser.process(tEnv, root, xmlName);
 		//System.out.println("Added XML annos: "+added);			

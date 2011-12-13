@@ -59,7 +59,7 @@ public final class ProblemsViewContentProvider extends
 				IDropInfo id = (IDropInfo) element;
 				if (!id.getProposals().isEmpty()) {
 					return SLImages
-							.getImage(CommonImages.IMG_ANNOTATION_ERROR_FIX);
+							.getImage(CommonImages.IMG_ANNOTATION_ERROR_PROPOSED);
 				}
 			}
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
