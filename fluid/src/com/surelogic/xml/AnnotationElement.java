@@ -147,6 +147,10 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 			return;
 		}
 		*/
+		return modifyContents(text);
+	}
+	
+	public boolean modifyContents(String text) {
 		if (!contents.equals(text)) {
 			isBad = !parses(promise, text);
 			contents = text;		
