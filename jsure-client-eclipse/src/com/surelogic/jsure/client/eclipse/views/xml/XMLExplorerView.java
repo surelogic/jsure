@@ -30,6 +30,7 @@ import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
@@ -49,9 +50,21 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	private TreeViewer f_viewer;
 
-	private static final String USER_MODS_ONLY = "Show only user-added/modified library annotations";
+	private final Action f_open = new Action("Open") {
+		@Override
+		public void run() {
+			final TreeViewer treeViewer = f_viewer;
+			if (treeViewer != null) {
+				IStructuredSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection != null)
+					handleDoubleClick(selection);
+			}
+		}
+	};
 
-	private final Action f_toggleShowDiffs = new Action(USER_MODS_ONLY,
+	private final Action f_toggleShowDiffs = new Action(
+			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
 			IAction.AS_CHECK_BOX) {
 		@Override
 		public void run() {
@@ -63,8 +76,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	private final Action f_actionExpand = new Action() {
 		@Override
 		public void run() {
-			if (f_viewer != null) {
-				final TreeViewer treeViewer = f_viewer;
+			final TreeViewer treeViewer = f_viewer;
+			if (treeViewer != null) {
 				final ITreeSelection selection = (ITreeSelection) treeViewer
 						.getSelection();
 				if (selection == null || selection.isEmpty()) {
@@ -85,8 +98,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	private final Action f_actionCollapse = new Action() {
 		@Override
 		public void run() {
-			if (f_viewer != null) {
-				final TreeViewer treeViewer = f_viewer;
+			final TreeViewer treeViewer = f_viewer;
+			if (treeViewer != null) {
 				final ITreeSelection selection = (ITreeSelection) treeViewer
 						.getSelection();
 				if (selection == null || selection.isEmpty()) {
@@ -132,7 +145,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	protected void makeActions() {
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
-		f_toggleShowDiffs.setToolTipText(USER_MODS_ONLY);
+		f_toggleShowDiffs.setToolTipText(I18N
+				.msg("jsure.eclipse.xml.explorer.only.abductive.tip"));
 
 		f_actionExpand.setText("Expand");
 		f_actionExpand
@@ -168,6 +182,8 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+		manager.add(f_open);
+		manager.add(new Separator());
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
 
