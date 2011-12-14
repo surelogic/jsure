@@ -238,6 +238,19 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action-->
 
+            <action
+               id="openType"
+               toolbarPath="org.eclipse.search.searchActionSet/Search"
+               class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
+               label="Find the XML for a type"
+               menubarPath="navigate/open.ext2"
+               tooltip="Find the promises XML file for a type">
+            <!--                definitionId="org.eclipse.jdt.ui.navigate.open.type"
+               icon="$nl$/icons/full/etool16/opentype.gif"
+               helpContextId="org.eclipse.jdt.ui.open_type_action"
+            -->
+            </action>
+
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
