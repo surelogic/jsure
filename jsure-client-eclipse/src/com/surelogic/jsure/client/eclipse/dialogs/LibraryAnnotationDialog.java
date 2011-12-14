@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -33,7 +35,7 @@ import com.surelogic.xml.AnnotationElement;
  * is used by the library annotation editor to allow the user to change
  * attributes of an annotation shown in the editor.
  */
-public final class LibraryAnnotationDialog extends Dialog {
+public final class LibraryAnnotationDialog extends TitleAreaDialog {
 
 	/**
 	 * Called to open a dialog that edits the passed attributes.
@@ -85,6 +87,8 @@ public final class LibraryAnnotationDialog extends Dialog {
 	private LibraryAnnotationDialog(AnnotationElement annotation,
 			Map<Attribute, String> attributes) {
 		super(EclipseUIUtility.getShell());
+		setShellStyle(getShellStyle() | SWT.RESIZE | SWT.MAX);
+
 		f_annotation = annotation;
 		f_attributes = Collections.unmodifiableMap(attributes);
 		for (Map.Entry<Attribute, String> entry : f_attributes.entrySet()) {
@@ -117,71 +121,79 @@ public final class LibraryAnnotationDialog extends Dialog {
 		GridLayout gridLayout = new GridLayout();
 		panel.setLayout(gridLayout);
 
-		final Label label = new Label(panel, SWT.WRAP);
-		label.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-		label.setText("Select the attributes for this annotation you want to be true");
+		List<Attribute> attributes;
 
-		/*
-		 * String typed attribute editor
-		 */
-		final Composite stringPanel = new Composite(panel, SWT.NONE);
-		stringPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		final GridLayout stringPanelLayout = new GridLayout();
-		stringPanelLayout.numColumns = 2;
-		stringPanel.setLayout(stringPanelLayout);
+		if (!f_stringAttributes.isEmpty()) {
 
-		List<Attribute> attributes = new ArrayList<Attribute>(
-				f_stringAttributes.keySet());
-		Collections.sort(attributes);
+			/*
+			 * String typed attribute editor
+			 */
 
-		for (Attribute a : attributes) {
-			final Label variableLabel = new Label(stringPanel, SWT.NONE);
-			variableLabel.setText(a.getName());
-			variableLabel.setForeground(getShell().getDisplay().getSystemColor(
-					SWT.COLOR_BLUE));
-			variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
-					false, false));
-			final Text variableValue = new Text(stringPanel, SWT.SINGLE);
-			variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
-					false, true));
-			variableValue.setText(f_stringAttributes.get(a));
-		}
+			final Label label = new Label(panel, SWT.WRAP);
+			label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			label.setText(I18N.msg("jsure.dialog.library.xml.string.label"));
 
-		f_projectTable = new Table(panel, SWT.FULL_SELECTION);
-		final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-		data.heightHint = 200;
-		f_projectTable.setLayoutData(data);
+			final Composite stringPanel = new Composite(panel, SWT.NONE);
+			stringPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
+					true));
+			final GridLayout stringPanelLayout = new GridLayout();
+			stringPanelLayout.numColumns = 2;
+			stringPanel.setLayout(stringPanelLayout);
 
-		attributes = new ArrayList<Attribute>(f_booleanAttributes.keySet());
-		Collections.sort(attributes);
+			attributes = new ArrayList<Attribute>(f_stringAttributes.keySet());
+			Collections.sort(attributes);
 
-		for (Attribute a : attributes) {
-			TableItem item = new TableItem(f_projectTable, SWT.NONE);
-			item.setText(a.getName());
-			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
-			item.setChecked(T.equals(f_stringAttributes.get(a)));
-		}
-
-		f_projectTable.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				setOKState();
+			for (Attribute a : attributes) {
+				final Label variableLabel = new Label(stringPanel, SWT.NONE);
+				variableLabel.setText(a.getName());
+				variableLabel.setForeground(getShell().getDisplay()
+						.getSystemColor(SWT.COLOR_BLUE));
+				variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
+						false, false));
+				final Text variableValue = new Text(stringPanel, SWT.SINGLE);
+				variableValue.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
+						true, true));
+				variableValue.setText(f_stringAttributes.get(a));
 			}
-		});
+		}
+
+		if (!f_booleanAttributes.isEmpty()) {
+
+			/*
+			 * boolean typed attributed editor
+			 */
+
+			final Label label = new Label(panel, SWT.WRAP);
+			label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			label.setText(I18N.msg("jsure.dialog.library.xml.boolean.label"));
+
+			f_projectTable = new Table(panel, SWT.FULL_SELECTION | SWT.CHECK);
+			final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
+			data.heightHint = 100;
+			f_projectTable.setLayoutData(data);
+
+			attributes = new ArrayList<Attribute>(f_booleanAttributes.keySet());
+			Collections.sort(attributes);
+
+			for (Attribute a : attributes) {
+				TableItem item = new TableItem(f_projectTable, SWT.NONE);
+				item.setText(a.getName());
+				item.setImage(SLImages.getImage(CommonImages.IMG_GREEN_DOT));
+				item.setChecked(T.equals(f_stringAttributes.get(a)));
+			}
+
+			f_projectTable.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO
+				}
+			});
+		}
+
+		setTitle(I18N.msg("jsure.dialog.library.xml.title"));
+		setMessage(I18N.msg("jsure.dialog.library.xml.msg"),
+				IMessageProvider.INFORMATION);
+		Dialog.applyDialogFont(panel);
+
 		return panel;
-	}
-
-	@Override
-	protected final Control createContents(Composite parent) {
-		final Control contents = super.createContents(parent);
-		setOKState();
-		return contents;
-	}
-
-	private final void setOKState() {
-
-		/*
-		 * Set the state of the OK button.
-		 */
-		// getButton(IDialogConstants.OK_ID).setEnabled(f_focusProject != null);
 	}
 }
