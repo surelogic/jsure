@@ -113,6 +113,9 @@ public abstract class AnnotationRules {
 	public static final class Attribute implements Comparable<Attribute> {
 		private final String f_name;
 		private final Class<?> f_type;
+		/**
+		 * May be null.
+		 */
 		private final String f_defaultValue;
 
 		public String getName() {
@@ -123,7 +126,7 @@ public abstract class AnnotationRules {
 			return f_type;
 		}
 
-		public String getDefaultValue() {
+		public String getDefaultValueOrNull() {
 			return f_defaultValue;
 		}
 
@@ -132,8 +135,7 @@ public abstract class AnnotationRules {
 				throw new IllegalArgumentException(I18N.err(44, "name"));
 			if (type == null)
 				throw new IllegalArgumentException(I18N.err(44, "type"));
-			if (defaultValue == null)
-				throw new IllegalArgumentException(I18N.err(44, "defaultValue"));
+
 			f_name = name;
 			f_type = type;
 			f_defaultValue = defaultValue;

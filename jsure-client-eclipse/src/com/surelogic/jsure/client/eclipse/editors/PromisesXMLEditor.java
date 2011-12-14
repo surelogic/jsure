@@ -1177,8 +1177,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			} else {
 				// TODO push into AnnoElt?
 				String value = a.getAttribute(e.getKey());
-				if (value == null && e.getValue().getDefaultValue() != null) {
-					value = e.getValue().getDefaultValue(); // the default
+				if (value == null
+						&& e.getValue().getDefaultValueOrNull() != null) {
+					value = e.getValue().getDefaultValueOrNull(); // the default
 				}
 				initialAttrs.put(e.getValue(), value);
 			}

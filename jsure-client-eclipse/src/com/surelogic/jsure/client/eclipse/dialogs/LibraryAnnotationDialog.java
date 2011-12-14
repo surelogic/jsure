@@ -3,12 +3,10 @@ package com.surelogic.jsure.client.eclipse.dialogs;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,6 +23,7 @@ import org.eclipse.swt.widgets.Text;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.xml.AnnotationElement;
@@ -61,14 +60,25 @@ public final class LibraryAnnotationDialog extends Dialog {
 		final LibraryAnnotationDialog dialog = new LibraryAnnotationDialog(
 				annotation, attributes);
 		if (dialog.open() == Dialog.OK) {
-			return dialog.f_edits;
+			return null; // TODO
 		}
 		return null;
 	}
 
+	/*
+	 * Immutable input data
+	 */
 	private final Map<Attribute, String> f_attributes;
-	private final Map<Attribute, String> f_edits;
 	private final AnnotationElement f_annotation;
+
+	private final String T = "true";
+	private final String F = "false";
+
+	/*
+	 * Attribute working data.
+	 */
+	private final Map<Attribute, String> f_booleanAttributes = new HashMap<Attribute, String>();
+	private final Map<Attribute, String> f_stringAttributes = new HashMap<Attribute, String>();
 
 	private Table f_projectTable;
 
@@ -77,7 +87,21 @@ public final class LibraryAnnotationDialog extends Dialog {
 		super(EclipseUIUtility.getShell());
 		f_annotation = annotation;
 		f_attributes = Collections.unmodifiableMap(attributes);
-		f_edits = new HashMap<Attribute, String>(attributes);
+		for (Map.Entry<Attribute, String> entry : f_attributes.entrySet()) {
+			if (boolean.class.equals(entry.getKey().getType())) {
+				f_booleanAttributes.put(entry.getKey(), entry.getValue());
+			} else if (String.class.equals(entry.getKey().getType())) {
+				f_stringAttributes.put(entry.getKey(), entry.getValue());
+			} else {
+				/*
+				 * The type is not supported by this dialog, log this as a
+				 * problem.
+				 */
+				SLLogger.getLogger().warning(
+						I18N.err(236, f_annotation.getLabel(), entry.getKey()
+								.getType().getName()));
+			}
+		}
 	}
 
 	@Override
@@ -106,59 +130,43 @@ public final class LibraryAnnotationDialog extends Dialog {
 		stringPanelLayout.numColumns = 2;
 		stringPanel.setLayout(stringPanelLayout);
 
+		List<Attribute> attributes = new ArrayList<Attribute>(
+				f_stringAttributes.keySet());
+		Collections.sort(attributes);
+
+		for (Attribute a : attributes) {
+			final Label variableLabel = new Label(stringPanel, SWT.NONE);
+			variableLabel.setText(a.getName());
+			variableLabel.setForeground(getShell().getDisplay().getSystemColor(
+					SWT.COLOR_BLUE));
+			variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
+					false, false));
+			final Text variableValue = new Text(stringPanel, SWT.SINGLE);
+			variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
+					false, true));
+			variableValue.setText(f_stringAttributes.get(a));
+		}
+
 		f_projectTable = new Table(panel, SWT.FULL_SELECTION);
 		final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		data.heightHint = 200;
 		f_projectTable.setLayoutData(data);
-		
-		/*
-		 * Sort the key set of the properties so we get a dialog in alphabetical
-		 * order. This is annoying, but the keys to Properties are of type
-		 * Object rather than type String so it is necessary.
-		 */
-		List<String> variables = new ArrayList<String>();
-		for (Attribute a : f_attributes.keySet()) {
-			String key = a.getName();
-			variables.add(key);
+
+		attributes = new ArrayList<Attribute>(f_booleanAttributes.keySet());
+		Collections.sort(attributes);
+
+		for (Attribute a : attributes) {
+			TableItem item = new TableItem(f_projectTable, SWT.NONE);
+			item.setText(a.getName());
+			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
+			item.setChecked(T.equals(f_stringAttributes.get(a)));
 		}
-		Collections.sort(variables);
-
-//		for (String variable : variables) {
-//			final Label variableLabel = new Label(panel, SWT.NONE);
-//			variableLabel.setText(variable);
-//			variableLabel.setForeground(getShell().getDisplay().getSystemColor(
-//					SWT.COLOR_BLUE));
-//			variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
-//					false, false));
-//			final Text variableValue = new Text(panel, f_readOnly ? SWT.SINGLE
-//					| SWT.READ_ONLY : SWT.SINGLE);
-//			variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
-//					false, true));
-//			variableValue.setText(f_workValues.get(variable));
-//			f_variableToText.put(variable, variableValue);
-//		}
-
-//		for (Map.Entry<String, String> entry : f_attributes.entrySet()) {
-//			TableItem item = new TableItem(f_projectTable, SWT.NONE);
-//			item.setText(entry.getKey());
-//			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
-//			item.setData(entry.getKey());
-//			item.setChecked("true".equals(entry.getValue()));
-//		}
 
 		f_projectTable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				setOKState();
 			}
 		});
-		f_projectTable.addListener(SWT.MouseDoubleClick, new Listener() {
-			public void handleEvent(Event event) {
-				if (getButton(IDialogConstants.OK_ID).isEnabled()) {
-					okPressed();
-				}
-			}
-		});
-
 		return panel;
 	}
 
