@@ -65,7 +65,7 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 		}
 	}
 
-	private IEditorPart openInXMLEditor(final IType t) {
+	public static IEditorPart openInXMLEditor(final IType t) {
 		String qname = t.getFullyQualifiedName();
 		int firstDollar = qname.indexOf('$');
 		if (firstDollar >= 0) {
