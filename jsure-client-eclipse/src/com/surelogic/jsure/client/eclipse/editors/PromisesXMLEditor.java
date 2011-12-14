@@ -22,6 +22,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
@@ -32,6 +33,7 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.*;
@@ -439,7 +441,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		if (o instanceof AnnotationElement) {
 			final AnnotationElement a = (AnnotationElement) o;
 			if (!a.getAttributeDefaults().isEmpty()) {
-				makeMenuItem(menu, "Edit", new SelectionAdapter() {
+				makeMenuItem(menu, "Edit", SLImages.getImage(CommonImages.IMG_ANNOTATION_DELTA), new SelectionAdapter() {
 			        @Override
 			        public void widgetSelected(SelectionEvent se) {  
 			        	startAnnotationEditDialog(a);
@@ -448,18 +450,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 		}	
 		final IMergeableElement me = (IMergeableElement) o;
-		makeMenuItem(menu, "Delete", new SelectionAdapter() {
+		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X), new SelectionAdapter() {
 		    @Override
 		    public void widgetSelected(SelectionEvent e) {          
-		    	final boolean origDirty = provider.pkg.isDirty();
-		    	final boolean deletedNew = me.delete();
-		    	if (deletedNew && !origDirty) {
-		    		// Probably saved after creation, so we need to save it
-		    		isDirty = true;
+		      	final Shell s = contents.getTree().getShell();		    
+		    	if (MessageDialog.openQuestion(s, "Delete Annotation?", 
+		    	    "Do you really want to delete @"+me.getLabel()+"?")) {
+		    		final boolean origDirty = provider.pkg.isDirty();
+		    		final boolean deletedNew = me.delete();
+		    		if (deletedNew && !origDirty) {
+		    			// Probably saved after creation, so we need to save it
+		    			isDirty = true;
+		    		}
+		    		markAsDirty();
+		    		contents.refresh();
+		    		contents.expandToLevel(me.getParent(), 1);
 		    	}
-		    	markAsDirty();
-		      	contents.refresh();
-		    	contents.expandToLevel(me.getParent(), 1);
 		    }
 		});
 	}
@@ -713,9 +719,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	}
 	
 	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
+		makeMenuItem(menu, label, null, l);
+	}
+	
+	static void makeMenuItem(Menu menu, String label, Image image, SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
 		item1.setText(label);
 		item1.addSelectionListener(l);
+		if (image != null) {
+			item1.setImage(image);
+		}
 	}
 	
 	static class JavaElementProvider extends AbstractContentProvider {
@@ -1104,7 +1117,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		Map<String, String> initialAttrs = new TreeMap<String,String>();
 		initialAttrs.put(AnnotationConstants.VALUE_ATTR, a.getContents());
     	for(Map.Entry<String, String> e : a.getAttributeDefaults().entrySet()) {
-    		// TODO push into AnnoElt
+    		// TODO push into AnnoElt?
     		String value = a.getAttribute(e.getKey());
     		if (value == null) {
     			value = e.getValue(); // the default
@@ -1116,9 +1129,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     		boolean modified = false;
     		// edit contents and attrs
         	for(Map.Entry<String, String> e : changedAttrs.entrySet()) {
-        		if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {        			
-        			// TODO refactor
-        			modified |= a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')', null);
+        		if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {        			        			
+        			//modified |= a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')', null);
+        			modified |= a.modifyContents(changedAttrs.get(AnnotationConstants.VALUE_ATTR));
         		} else {
         			a.setAttribute(e.getKey(), e.getValue());
         			modified = true;
