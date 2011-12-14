@@ -86,7 +86,7 @@ public abstract class AnnotationRules {
   private static final ConcurrentMap<String,Map<String,Attribute>> attrsByPromise = 
 	  new ConcurrentHashMap<String, Map<String,Attribute>>();
   
-  public static final class Attribute {
+  public static final class Attribute implements Comparable<Attribute> {
 	  public final String name;
 	  public final Class<?> type;
 	  public final String defaultValue;
@@ -96,6 +96,11 @@ public abstract class AnnotationRules {
 		  this.type = type;
 		  defaultValue = val;
 	  }
+
+	@Override
+	public int compareTo(Attribute o) {
+		return name.compareTo(o.name);
+	}
   }
   
   /**
