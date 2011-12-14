@@ -83,14 +83,26 @@ public abstract class AnnotationRules {
 	  "toString", "hashCode", "annotationType",  
   };
   
-  private static final ConcurrentMap<String,Map<String,String>> attrsByPromise = 
-	  new ConcurrentHashMap<String, Map<String,String>>();
+  private static final ConcurrentMap<String,Map<String,Attribute>> attrsByPromise = 
+	  new ConcurrentHashMap<String, Map<String,Attribute>>();
+  
+  public static final class Attribute {
+	  public final String name;
+	  public final Class<?> type;
+	  public final String defaultValue;
+	  
+	  public Attribute(String name, Class<?> type, String val) {
+		  this.name = name;
+		  this.type = type;
+		  defaultValue = val;
+	  }
+  }
   
   /**
    * @return a map of attributes and default values
    */
-  public static Map<String,String> getAttributes(String tag) {
-	  Map<String,String> m = attrsByPromise.get(tag);
+  public static Map<String,Attribute> getAttributes(String tag) {
+	  Map<String,Attribute> m = attrsByPromise.get(tag);
 	  if (m == null) {
 		  // This is idempotent, so it doesn't really matter which gets used
 		  m = computeAttributes(tag);		  
@@ -99,11 +111,11 @@ public abstract class AnnotationRules {
 	  return m;
   }
   
-  private static Map<String,String> computeAttributes(String tag) {
+  private static Map<String,Attribute> computeAttributes(String tag) {
 	  final String qname = AnnotationConstants.PROMISE_PREFIX + tag;
 	  try {
 		  Class<?> cls = Class.forName(qname);
-		  Map<String,String> l = new HashMap<String, String>();
+		  Map<String,Attribute> l = new HashMap<String, Attribute>();
 		  
 		  outer:
 		  for(Method m : cls.getMethods()) {
@@ -116,12 +128,15 @@ public abstract class AnnotationRules {
 					  continue outer;
 				  }
 			  }
+			  /*
 			  if (AnnotationConstants.VALUE_ATTR.equals(m.getName())) {
 				  continue outer;
 			  }
+			  */
 			  //System.out.println("Attribute '"+m.getName()+"' can appear on "+tag);
 			  Object value = m.getDefaultValue();
-			  l.put(m.getName(), value == null ? null : value.toString());
+			  l.put(m.getName(), 
+					new Attribute(m.getName(), m.getReturnType(), value == null ? null : value.toString()));
 		  }
 		  return Collections.unmodifiableMap(l);
 	  } catch (ClassNotFoundException e) {

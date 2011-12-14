@@ -32,6 +32,7 @@ import org.eclipse.ui.part.*;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.*;
+import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.JDTUtility;
@@ -1114,26 +1115,29 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return; 
 		}
 		// Collect initial attribute values
-		Map<String, String> initialAttrs = new TreeMap<String,String>();
-		initialAttrs.put(AnnotationConstants.VALUE_ATTR, a.getContents());
-    	for(Map.Entry<String, String> e : a.getAttributeDefaults().entrySet()) {
-    		// TODO push into AnnoElt?
-    		String value = a.getAttribute(e.getKey());
-    		if (value == null) {
-    			value = e.getValue(); // the default
+		Map<Attribute, String> initialAttrs = new TreeMap<Attribute,String>();
+    	for(Map.Entry<String, Attribute> e : a.getAttributeDefaults().entrySet()) {
+    		if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {
+    			initialAttrs.put(e.getValue(), a.getContents());
+    		} else {
+    			// TODO push into AnnoElt?
+    			String value = a.getAttribute(e.getKey());
+    			if (value == null && e.getValue().defaultValue != null) {    			
+    				value = e.getValue().defaultValue; // the default
+    			}
+        		initialAttrs.put(e.getValue(), value);
     		}
-    		initialAttrs.put(e.getKey(), value);
     	}
-    	Map<String, String> changedAttrs = LibraryAnnotationDialog.edit(a, initialAttrs);
+    	Map<Attribute, String> changedAttrs = LibraryAnnotationDialog.edit(a, initialAttrs);
     	if (changedAttrs != null) {
     		boolean modified = false;
     		// edit contents and attrs
-        	for(Map.Entry<String, String> e : changedAttrs.entrySet()) {
+        	for(Map.Entry<Attribute, String> e : changedAttrs.entrySet()) {
         		if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {        			        			
         			//modified |= a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')', null);
         			modified |= a.modifyContents(changedAttrs.get(AnnotationConstants.VALUE_ATTR));
         		} else {
-        			a.setAttribute(e.getKey(), e.getValue());
+        			a.setAttribute(e.getKey().name, e.getValue());
         			modified = true;
         		}
         	}

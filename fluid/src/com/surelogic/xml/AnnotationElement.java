@@ -7,6 +7,7 @@ import com.surelogic.aast.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
@@ -29,7 +30,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	private final String promise;
 	private String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
-	private final Map<String,String> attrDefaults;
+	private final Map<String,Attribute> attrDefaults;
 	private boolean isBad;
 	private final boolean isReference;
 	
@@ -286,7 +287,9 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	}
 	
 	public String setAttribute(String key, String value) {		
-		String defValue = attrDefaults.get(key);
+		Attribute attr = attrDefaults.get(key);
+		String defValue = attr == null ? null : attr.defaultValue;
+				
 		String old;
 		if (defValue == null || !defValue.equals(value)) {			
 			old = attributes.put(key, value);
@@ -440,7 +443,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 		}
 	}
 	
-	public Map<String,String> getAttributeDefaults() {
+	public Map<String,Attribute> getAttributeDefaults() {
 		return attrDefaults;
 	}
 }
