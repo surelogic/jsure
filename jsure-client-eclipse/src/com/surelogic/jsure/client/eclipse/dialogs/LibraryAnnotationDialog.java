@@ -36,7 +36,7 @@ public final class LibraryAnnotationDialog extends Dialog {
 	 * @throws IllegalArgumentException
 	 *             if either of the passed parameters are {@code null}.
 	 */
-	public static boolean edit(AnnotationElement annotation,
+	public static Map<String, String> edit(AnnotationElement annotation,
 			Map<String, String> attributes) {
 		if (annotation == null)
 			throw new IllegalArgumentException(I18N.err(33, "annotation"));
@@ -44,7 +44,10 @@ public final class LibraryAnnotationDialog extends Dialog {
 			throw new IllegalArgumentException(I18N.err(33, "attributes"));
 		final LibraryAnnotationDialog dialog = new LibraryAnnotationDialog(
 				annotation, attributes);
-		return (dialog.open() == Dialog.OK);
+		if (dialog.open() == Dialog.OK) {
+			return dialog.f_edits;
+		}
+		return null;
 	}
 
 	private final Map<String, String> f_attributes;
