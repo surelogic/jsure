@@ -151,8 +151,8 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 				variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
 						false, false));
 				final Text variableValue = new Text(stringPanel, SWT.SINGLE);
-				variableValue.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-						true, true));
+				variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
+						true, false));
 				variableValue.setText(f_stringAttributes.get(a));
 			}
 		}
@@ -195,5 +195,11 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		Dialog.applyDialogFont(panel);
 
 		return panel;
+	}
+
+	@Override
+	protected void okPressed() {
+		super.okPressed();
+		System.out.println("OK");
 	}
 }
