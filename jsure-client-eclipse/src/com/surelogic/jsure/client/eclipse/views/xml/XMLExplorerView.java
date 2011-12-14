@@ -301,7 +301,8 @@ public class XMLExplorerView extends AbstractJSureView {
 			new SLUIJob() {
 				@Override
 				public IStatus runInUIThread(IProgressMonitor monitor) {
-					f_viewer.refresh();
+					if (!f_viewer.getControl().isDisposed())
+						f_viewer.refresh();
 					return Status.OK_STATUS;
 				}
 			}.schedule();

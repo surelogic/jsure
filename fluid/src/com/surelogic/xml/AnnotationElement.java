@@ -288,7 +288,7 @@ public final class AnnotationElement extends AbstractJavaElement implements IMer
 	
 	public String setAttribute(String key, String value) {		
 		Attribute attr = attrDefaults.get(key);
-		String defValue = attr == null ? null : attr.defaultValue;
+		String defValue = attr == null ? null : attr.getDefaultValue();
 				
 		String old;
 		if (defValue == null || !defValue.equals(value)) {			
