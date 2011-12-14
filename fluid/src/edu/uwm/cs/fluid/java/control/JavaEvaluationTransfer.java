@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -187,7 +188,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer evaluation over the storing of finals used in body of
-	 * AnonClassExpression. <strong>leaf</leaf>
+	 * AnonClassExpression. <strong>leaf</strong>
 	 */
   protected T transferAnonClass(IRNode node, T value) {
     return value;
@@ -241,7 +242,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer evaluation over assignment of an array. (assuming array not null
-	 * and index in bounds). <strong>leaf</leaf>
+	 * and index in bounds). <strong>leaf</strong>
 	 */
   protected T transferAssignArray(IRNode aref, T val) {
     return popSecond(popSecond(val)); // pop object and index
@@ -249,14 +250,14 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer evaluation over assignment of a field (assuming object not null).
-	 * <strong>leaf</leaf>
+	 * <strong>leaf</strong>
 	 */
   protected T transferAssignField(IRNode fref, T val) {
     return popSecond(val); // pop object to assign into
   }
 
   /**
-	 * Transfer evaluation over assignment of a variable. <strong>leaf</leaf>
+	 * Transfer evaluation over assignment of a variable. <strong>leaf</strong>
 	 */
   protected T transferAssignVar(IRNode var, T val) {
     return val; // do nothing
@@ -719,7 +720,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer a lattice value over a unary minus operation. <strong>leaf
-	 * </leaf>
+	 * </strong>
 	 */
   protected T transferMinus(IRNode node, T value) {
     return push(pop(value));
@@ -729,7 +730,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 	 * Transfer lattice value over a synchronized statement enter or exit. If
 	 * entering, the lock is on the stack. Otherwise it is not. If the analysis
 	 * wants to keep track of locking, it will need an auxiliary lock stack (not
-	 * the evaluation stack). <strong>leaf</leaf>
+	 * the evaluation stack). <strong>leaf</strong>
 	 * 
 	 * @param node
 	 *          the synchronized statement
@@ -763,7 +764,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer a lattice value over a unary plus operation (that is, widen
-	 * chars, bytes and shorts to ints). <strong>leaf</leaf>
+	 * chars, bytes and shorts to ints). <strong>leaf</strong>
 	 */
   protected T transferPlus(IRNode node, T value) {
     return push(pop(value));
@@ -920,9 +921,20 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     else if (op instanceof ArrayRefExpression)
       return transferUseArray(node, value);
     else if (
-       op instanceof SuperExpression || op instanceof QualifiedThisExpression
-       || op instanceof QualifiedSuperExpression)
+       op instanceof SuperExpression || op instanceof QualifiedSuperExpression)
          return transferUseVar(node,value);
+    else if (op instanceof QualifiedThisExpression) {
+      final IRNode bindsTo = binder.getBinding(node);
+      if (bindsTo == null) {
+        // ERRROR!
+        LOG.warning("Cannot find binding for " + DebugUnparser.toString(node));
+        return push(value);
+      } else if (ReceiverDeclaration.prototype.includes(bindsTo)) {
+        return transferUseVar(node, value);
+      } else {
+        return transferUseQualifiedRcvr(node, bindsTo, value);
+      }
+    }
     else
       throw new FluidError("use is strange: " + op);
   }
@@ -955,7 +967,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   /**
 	 * Transfer evaluation over use of an array. (assuming array not null and
 	 * index in bounds). We must duplicate both array and index. <strong>leaf
-	 * </leaf>
+	 * </strong>
 	 */
   protected T transferUseArray(IRNode aref, T val) {
     if (isBothLhsRhs(aref))
@@ -965,7 +977,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
 	 * Transfer evaluation over use of a field (assuming object not null).
-	 * <strong>leaf</leaf>
+	 * <strong>leaf</strong>
 	 */
   protected T transferUseField(IRNode fref, T val) {
     if (isBothLhsRhs(fref))
@@ -975,7 +987,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
   /**
    * Transfer evaluation over use of a array .length (assuming object not null).
-   * <strong>leaf</leaf>
+   * <strong>leaf</strong>
    */
   protected T transferUseArrayLength(IRNode fref, T val) {
     if (isBothLhsRhs(fref))
@@ -984,12 +996,22 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   }
   
   /**
-	 * Transfer evaluation over use of a variable. <strong>leaf</leaf>
+	 * Transfer evaluation over use of a variable. <strong>leaf</strong>
 	 */
   protected T transferUseVar(IRNode var, T val) {
     return push(val);
   }
 
+  /**
+   * Transfer evaluation over use of a QualifiedThisExpression.  Uses that
+   * are equivalent to a regular ThisExpression (e.g., "C.this" inside of class
+   * C) have already been redirected to {@link #transferUseVar(IRNode, Object)}.
+   * The node has already been bound to the QualifiedReceiverDeclaration.
+   * <strong>leaf</strong>
+   */
+  protected abstract T transferUseQualifiedRcvr(
+      IRNode qThis, IRNode qRcvr, T val);
+  
   /**
    * Transfer a lattice value over ^ connective. <strong>leaf </strong>
    */

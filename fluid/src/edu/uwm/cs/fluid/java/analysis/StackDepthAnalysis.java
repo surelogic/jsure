@@ -86,6 +86,13 @@ public class StackDepthAnalysis extends JavaForwardAnalysis<Object, FlatLattice>
     public Object transferComponentSource(IRNode node) {
       return 0;
     }
+
+    @Override
+    protected Object transferUseQualifiedRcvr(
+        final IRNode qThis, final IRNode qRcvr, final Object val) {
+      // Results in a reference pushed on the stack
+      return push(val);
+    }
   }
   
   public static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<FlatLattice, Object> {

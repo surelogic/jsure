@@ -2,7 +2,6 @@ package com.surelogic.analysis.uniqueness.sideeffecting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,7 +127,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * variables declared in outer scopes, the "return variable" and the
      * receiver.
      */
-    final String fu = DebugUnparser.toString(flowUnit);
+//    final String fu = DebugUnparser.toString(flowUnit);
     
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refLocals = new ArrayList<IRNode>();
@@ -1074,6 +1073,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       } else {
         return lattice.opGet(s, var, decl);
       }
+    }
+    
+    @Override
+    protected Store transferUseQualifiedRcvr(
+        final IRNode var, final IRNode decl, final Store s) {
+      // XXX: WRONG!  Treat as field reference---need to chase all the pointers!
+      return lattice.opGet(s, var, decl);
     }
     
     

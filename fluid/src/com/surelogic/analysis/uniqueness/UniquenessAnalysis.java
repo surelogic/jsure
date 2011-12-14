@@ -2,7 +2,6 @@ package com.surelogic.analysis.uniqueness;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -298,19 +297,19 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store popSecond(final Store s) {
       if (!s.isValid()) return s;
-      return lattice.opSet(s, lattice.getUnderTop(s));
+      return lattice.opSet(s, StoreLattice.getUnderTop(s));
     }
 
     @Override
     protected Store dup(final Store s) {
       if (!s.isValid()) return s;
-      return lattice.opGet(s, lattice.getStackTop(s));
+      return lattice.opGet(s, StoreLattice.getStackTop(s));
     }
     
     /** Remove all pending values from stack */
     @Override
     protected Store popAllPending(Store s) {
-      while (s.isValid() && lattice.getStackTop(s).intValue() > 0) {
+      while (s.isValid() && StoreLattice.getStackTop(s).intValue() > 0) {
         s = pop(s);
       }
       return s;
@@ -415,7 +414,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
         // check for sneaky mutations
-        if (f.isWrite()) s = lattice.opCheckMutable(s, lattice.getStackTop(s));
+        if (f.isWrite()) s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {
@@ -478,7 +477,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      */
     private Store addFromNode(Store s) {
     	if (!s.isValid()) return s;
-    	return lattice.opConnect(s, lattice.getStackTop(s), StoreLattice.fromField, RETURN_VAR);
+    	return lattice.opConnect(s, StoreLattice.getStackTop(s), StoreLattice.fromField, RETURN_VAR);
     }
 
     /**
@@ -639,8 +638,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return popSecond(s);
       } else {
         if (!s.isValid()) return s;
-        final Integer object = lattice.getUnderTop(s);
-        final Integer field = lattice.getStackTop(s);
+        final Integer object = StoreLattice.getUnderTop(s);
+        final Integer field = StoreLattice.getStackTop(s);
         // first copy both onto stack
         s = lattice.opGet(lattice.opGet(s, object), field);
         // now perform assignment
@@ -726,7 +725,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (mcall) {
     	  s = pushReturnValue(mdecl,s);
       } else if (s.isValid()){
-    	  s = lattice.opGet(s,lattice.getStackTop(s)-numActuals);
+    	  s = lattice.opGet(s,StoreLattice.getStackTop(s)-numActuals);
       }
       s = lattice.opSet(s, RETURN_VAR);
       
@@ -756,7 +755,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         /* Handle value under top: (1) copy it onto top; (2) compromise
          * new top and discard it; (3) popSecond
          */
-        s = lattice.opGet(s, lattice.getUnderTop(s));
+        s = lattice.opGet(s, StoreLattice.getUnderTop(s));
         
         s = popQualifiedReceiver(mdecl,s);
         if (!s.isValid()) return s;
@@ -764,7 +763,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
          * and changing the variable just under the top to have the value that 
          * was on the top of the stack.
          */
-        s = lattice.opSet(s, lattice.getUnderTop(s));
+        s = lattice.opSet(s, StoreLattice.getUnderTop(s));
       }
 
       // for method calls (need return value)
@@ -895,7 +894,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return lattice.opNull(s);
       } else if (RefLiteral.prototype.includes(op)) {
   		if (StringLiteral.prototype.includes(op) &&
-  				((String)(JJNode.getInfo(node))).startsWith("\"Unique")) {
+  				JJNode.getInfo(node).startsWith("\"Unique")) {
 			// debugging hook
 			System.out.println("At " + JJNode.getInfo(node) + ": " + lattice.toString(s));
 		}
@@ -1122,6 +1121,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       } else {
         return lattice.opGet(s, decl);
       }
+    }
+    
+    @Override
+    protected Store transferUseQualifiedRcvr(
+        final IRNode use, final IRNode decl, final Store s) {
+      // qualified receivers are more like fields now.
+      // XXX: THis is wrong: need to chase the pointers
+      return lattice.opLoad(lattice.opThis(s), decl);
     }
     
     private IRNode effectformal(Effect x) {
