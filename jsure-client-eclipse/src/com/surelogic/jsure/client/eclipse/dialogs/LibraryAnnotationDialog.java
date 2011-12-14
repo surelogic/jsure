@@ -30,8 +30,8 @@ public final class LibraryAnnotationDialog extends Dialog {
 	 *            by this call (any changes are returned in a new map).
 	 * @return A map, if any user changes were made, containing the modified
 	 *         contents of the passed attributes, {@code null} otherwise. If a
-	 *         map is returned it contains exactly the same keys as the passed
-	 *         attributes map.
+	 *         map is returned it contains only keys with modified values from
+	 *         the values contained in the passed attributes map.
 	 * 
 	 * @throws IllegalArgumentException
 	 *             if either of the passed parameters are {@code null}.
