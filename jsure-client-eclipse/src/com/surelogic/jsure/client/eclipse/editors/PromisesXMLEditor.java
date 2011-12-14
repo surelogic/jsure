@@ -177,7 +177,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					// contents.editElement(s.getFirstElement(), 0);
 					Object o = s.getFirstElement();
 					if (o instanceof AnnotationElement) {
-						startAnnotationEditDialog((AnnotationElement) o);
+						AnnotationElement a = (AnnotationElement) o;
+						if (!a.getAttributeDefaults().isEmpty()) {
+							startAnnotationEditDialog(a);
+						}
 					}
 				}
 			}
