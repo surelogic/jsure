@@ -46,7 +46,7 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsAction"
                 id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
                 menubarPath="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu/content">
           </action>
        </viewerContribution>
@@ -69,7 +69,7 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
                 id="com.surelogic.jsure.client.eclipse.IMemberPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
                 menubarPath="com.surelogic.jsure.client.eclipse.IMemberPopup.menu/content">
           </action>             
        </objectContribution>
@@ -92,7 +92,7 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
                 id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
                 menubarPath="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu/content">
           </action>             
        </objectContribution>
