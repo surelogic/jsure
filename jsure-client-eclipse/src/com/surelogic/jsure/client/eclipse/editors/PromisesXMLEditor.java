@@ -1120,8 +1120,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
         			// TODO refactor
         			modified |= a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')', null);
         		} else {
-        			// TODO check for default?        			
-        			/*modified |=*/ a.setAttribute(e.getKey(), e.getValue());
+        			a.setAttribute(e.getKey(), e.getValue());
         			modified = true;
         		}
         	}
