@@ -31,12 +31,14 @@ import org.eclipse.ui.part.*;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.rules.*;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.*;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
+import com.surelogic.jsure.client.eclipse.dialogs.LibraryAnnotationDialog;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
@@ -113,53 +115,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     		   if (provider.isMutable()) {
     			   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
     			   //System.out.println("Doubleclik on "+s.getFirstElement());
-    			   contents.editElement(s.getFirstElement(), 0);
+    			   // contents.editElement(s.getFirstElement(), 0);
+    			   Object o = s.getFirstElement();
+    			   if (o instanceof AnnotationElement) {
+    				   startAnnotationEditDialog((AnnotationElement) o);
+    			   }
     		   }
     	   }
        });
-       /*
-       TreeViewerColumn c = new TreeViewerColumn(contents, SWT.NONE);
-       c.setLabelProvider(new ColumnLabelProvider() {
-    	   @Override
-    	   public Color getForeground(Object element) {
-    		   return provider.getForeground(element);
-    	   }
-    	   @Override
-    	   public Image getImage(Object element) {
-    		   return provider.getImage(element);
-    	   }
-    	   @Override
-    	   public String getText(Object element) {
-    		   return provider.getText(element);
-    	   }
-       });
-       c.setEditingSupport(new EditingSupport(contents) {		
-    	   @Override
-    	   protected void setValue(Object element, Object value) {
-    		   // TODO Auto-generated method stub
 
-    	   }
-
-    	   @Override
-    	   protected Object getValue(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return null;
-    	   }
-
-    	   @Override
-    	   protected CellEditor getCellEditor(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return null;
-    	   }
-
-    	   @Override
-    	   protected boolean canEdit(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return false;
-    	   }
-       });	
-       */ 
        contents.setComparer(new Comparer());
+       /*
        contents.setCellEditors(new CellEditor[] { new AnnotationCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
@@ -195,14 +161,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     		   return elt.canModify();
     	   }
        }, ColumnViewerEditor.DEFAULT);
-       
+       */
        /*
        //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_render.htm
        contents.setContentProvider(new StandardJavaElementContentProvider(true));
        contents.setLabelProvider(new JavaElementLabelProvider());
        */
     }
-    
+
 	private void createFluidXMLPage() {
 		fluidXML = new TextViewer(getContainer(), SWT.V_SCROLL | SWT.H_SCROLL);
 		fluidXML.setDocument(provider.getFluidDocument());
@@ -473,43 +439,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		if (o instanceof AnnotationElement) {
 			final AnnotationElement a = (AnnotationElement) o;
 			if (!a.getAttributeDefaults().isEmpty()) {
-				makeMenuItem(menu, "Edit attributes", new SelectionAdapter() {
+				makeMenuItem(menu, "Edit", new SelectionAdapter() {
 			        @Override
 			        public void widgetSelected(SelectionEvent se) {  
-			        	// TODO Assumes all attributes are boolean
-			        	ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), 
-			        			a.getAttributeDefaults().keySet().toArray(), annoProvider, annoProvider, "");
-			        	final Set<String> initiallySet = new TreeSet<String>();
-			        	for(Map.Entry<String, String> e : a.getAttributeDefaults().entrySet()) {
-			        		String value = a.getAttribute(e.getKey());
-			        		if (value == null) {
-			        			value = e.getValue(); // the default
-			        		}
-			        		if ("true".equals(value)) {
-			        			initiallySet.add(e.getKey());
-			        		}
-			        	}
-			        	d.setInitialSelections(initiallySet.toArray());
-			        	if (d.open() == Window.OK) {
-			        		// Figure out which changed
-			        		Set<String> nowUnset = new TreeSet<String>(initiallySet);
-			        		Set<String> nowSet = new TreeSet<String>();
-			        		for(Object o : d.getResult()) {
-			        			if (!nowUnset.remove(o)) {
-			        				nowSet.add(o.toString());
-			        			}			        			
-			        		}
-			        		// Update the attributes
-			        		for(String s : nowUnset) {
-			        			a.setAttribute(s, "false");
-			        		}
-			        		for(String s : nowSet) {
-			        			a.setAttribute(s, "true");
-			        		}
-			        		if (!nowSet.isEmpty() || !nowUnset.isEmpty()) {
-			        			markAsDirty();
-			        		}
-			        	}
+			        	startAnnotationEditDialog(a);
 			        }
 				});
 			}
@@ -1160,5 +1093,69 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		contents.refresh();
 		fluidXML.refresh();
 		localXML.doRevertToSaved();
+	}
+	
+	void startAnnotationEditDialog(AnnotationElement a) {
+		if (ThreadEffectsRules.STARTS.equals(a.getPromise())) {
+			// This can't be changed
+			return; 
+		}
+		// Collect initial attribute values
+		Map<String, String> initialAttrs = new TreeMap<String,String>();
+		initialAttrs.put(AnnotationConstants.VALUE_ATTR, a.getContents());
+    	for(Map.Entry<String, String> e : a.getAttributeDefaults().entrySet()) {
+    		// TODO push into AnnoElt
+    		String value = a.getAttribute(e.getKey());
+    		if (value == null) {
+    			value = e.getValue(); // the default
+    		}
+    		initialAttrs.put(e.getKey(), value);
+    	}
+    	Map<String, String> changedAttrs = LibraryAnnotationDialog.edit(a, initialAttrs);
+    	if (changedAttrs != null) {
+    		boolean modified = false;
+    		// edit contents and attrs
+        	for(Map.Entry<String, String> e : changedAttrs.entrySet()) {
+        		if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {        			
+        			// TODO refactor
+        			modified |= a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')', null);
+        		} else {
+        			// TODO check for default?        			
+        			/*modified |=*/ a.setAttribute(e.getKey(), e.getValue());
+        			modified = true;
+        		}
+        	}
+        	if (modified) {
+        		markAsDirty();
+        	}
+    	}
+    	/*
+    	// TODO Assumes all attributes are boolean
+    	ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), 
+    			a.getAttributeDefaults().keySet().toArray(), annoProvider, annoProvider, "");
+    	final Set<String> initiallySet = new TreeSet<String>();
+
+    	d.setInitialSelections(initiallySet.toArray());
+    	if (d.open() == Window.OK) {
+    		// Figure out which changed
+    		Set<String> nowUnset = new TreeSet<String>(initiallySet);
+    		Set<String> nowSet = new TreeSet<String>();
+    		for(Object o : d.getResult()) {
+    			if (!nowUnset.remove(o)) {
+    				nowSet.add(o.toString());
+    			}			        			
+    		}
+    		// Update the attributes
+    		for(String s : nowUnset) {
+    			a.setAttribute(s, "false");
+    		}
+    		for(String s : nowSet) {
+    			a.setAttribute(s, "true");
+    		}
+    		if (!nowSet.isEmpty() || !nowUnset.isEmpty()) {
+    			markAsDirty();
+    		}
+    	}
+    	*/
 	}
 }

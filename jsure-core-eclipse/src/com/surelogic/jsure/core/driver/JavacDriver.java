@@ -315,7 +315,21 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFolder();
 				
-				loadFileCache(JDTUtility.getJavaProject(proj));
+				IJavaProject jp = JDTUtility.getJavaProject(proj);
+				if (jp != null) {
+					loadFileCache(jp);
+				} else {
+					for(IJavaProject p : JDTUtility.getJavaProjects()) {
+						try {
+							String projPath = p.getCorrespondingResource().getLocation().toOSString();
+							if (projPath.contains(proj)) {
+								loadFileCache(p);
+							}
+						} catch (JavaModelException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 				JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -352,6 +366,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	}
 
 	private void loadFileCache(IJavaProject proj) {
+		if (proj == null) {
+			return;
+		}
 		final List<ICompilationUnit> cus = new ArrayList<ICompilationUnit>();
 		try {
 			for(IPackageFragment frag : proj.getPackageFragments()) {
