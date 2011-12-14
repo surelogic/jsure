@@ -5,8 +5,18 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,16 +24,28 @@ import com.surelogic.aast.AASTStatus;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.IAnnotationParseRule;
+import com.surelogic.annotation.scrub.AASTStore;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.promise.*;
-import com.surelogic.task.*;
-import com.surelogic.test.*;
+import com.surelogic.promise.IBooleanPromiseDropStorage;
+import com.surelogic.promise.IPromiseDropSeqStorage;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.ISinglePromiseDropStorage;
+import com.surelogic.promise.PromiseDropStorage;
+import com.surelogic.task.CycleFoundException;
+import com.surelogic.task.DuplicateTaskNameException;
+import com.surelogic.task.TaskManager;
+import com.surelogic.task.UndefinedDependencyException;
+import com.surelogic.test.ITestOutput;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -35,10 +57,15 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
-import edu.cmu.cs.fluid.tree.*;
-import edu.cmu.cs.fluid.util.*;
+import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
+import edu.cmu.cs.fluid.util.EmptyIterator;
+import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * A place for code common across rules packs
@@ -84,31 +111,43 @@ public abstract class AnnotationRules {
 	private static final ConcurrentMap<String, Map<String, Attribute>> attrsByPromise = new ConcurrentHashMap<String, Map<String, Attribute>>();
 
 	public static final class Attribute implements Comparable<Attribute> {
-		private final String name;
-		private final Class<?> type;
-		private final String defaultValue;
+		private final String f_name;
+		private final Class<?> f_type;
+		private final String f_defaultValue;
 
 		public String getName() {
-			return name;
+			return f_name;
 		}
 
 		public Class<?> getType() {
-			return type;
+			return f_type;
 		}
 
 		public String getDefaultValue() {
-			return defaultValue;
+			return f_defaultValue;
 		}
 
-		private Attribute(String name, Class<?> type, String val) {
-			this.name = name;
-			this.type = type;
-			defaultValue = val;
+		private Attribute(String name, Class<?> type, String defaultValue) {
+			if (name == null)
+				throw new IllegalArgumentException(I18N.err(44, "name"));
+			if (type == null)
+				throw new IllegalArgumentException(I18N.err(44, "type"));
+			if (defaultValue == null)
+				throw new IllegalArgumentException(I18N.err(44, "defaultValue"));
+			f_name = name;
+			f_type = type;
+			f_defaultValue = defaultValue;
 		}
 
 		@Override
 		public int compareTo(Attribute o) {
-			return name.compareTo(o.name);
+			return f_name.compareTo(o.f_name);
+		}
+
+		@Override
+		public String toString() {
+			return "Attribute[" + f_name + " : " + f_type.getName() + " = "
+					+ f_defaultValue + "]";
 		}
 	}
 

@@ -1,7 +1,10 @@
 package com.surelogic.jsure.client.eclipse.dialogs;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -17,6 +20,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.CommonImages;
@@ -106,6 +110,33 @@ public final class LibraryAnnotationDialog extends Dialog {
 		final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		data.heightHint = 200;
 		f_projectTable.setLayoutData(data);
+		
+		/*
+		 * Sort the key set of the properties so we get a dialog in alphabetical
+		 * order. This is annoying, but the keys to Properties are of type
+		 * Object rather than type String so it is necessary.
+		 */
+		List<String> variables = new ArrayList<String>();
+		for (Attribute a : f_attributes.keySet()) {
+			String key = a.getName();
+			variables.add(key);
+		}
+		Collections.sort(variables);
+
+//		for (String variable : variables) {
+//			final Label variableLabel = new Label(panel, SWT.NONE);
+//			variableLabel.setText(variable);
+//			variableLabel.setForeground(getShell().getDisplay().getSystemColor(
+//					SWT.COLOR_BLUE));
+//			variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
+//					false, false));
+//			final Text variableValue = new Text(panel, f_readOnly ? SWT.SINGLE
+//					| SWT.READ_ONLY : SWT.SINGLE);
+//			variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
+//					false, true));
+//			variableValue.setText(f_workValues.get(variable));
+//			f_variableToText.put(variable, variableValue);
+//		}
 
 //		for (Map.Entry<String, String> entry : f_attributes.entrySet()) {
 //			TableItem item = new TableItem(f_projectTable, SWT.NONE);
