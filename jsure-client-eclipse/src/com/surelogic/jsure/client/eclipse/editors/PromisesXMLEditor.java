@@ -316,10 +316,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
+		boolean wasDirty = isDirty();
 		provider.save(monitor);
 		localXML.doRevertToSaved();
 
-		if (isDirty()) {
+		if (wasDirty) {
 			isDirty = false;
 			fireDirtyProperty();
 			updateTitle(); // does this help refresh?
