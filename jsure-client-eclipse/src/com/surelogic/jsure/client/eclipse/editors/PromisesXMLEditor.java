@@ -1193,12 +1193,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			boolean modified = false;
 			// edit contents and attrs
 			for (Map.Entry<Attribute, String> e : changedAttrs.entrySet()) {
-				if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {
+				if (AnnotationConstants.VALUE_ATTR.equals(e.getKey().getName())) {
 					// modified |=
 					// a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')',
 					// null);
-					modified |= a.modifyContents(changedAttrs
-							.get(AnnotationConstants.VALUE_ATTR));
+					modified |= a.modifyContents(e.getValue());
 				} else {
 					a.setAttribute(e.getKey().getName(), e.getValue());
 					modified = true;
