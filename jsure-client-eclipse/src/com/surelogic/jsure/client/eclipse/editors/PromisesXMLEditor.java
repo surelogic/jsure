@@ -500,6 +500,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						@Override
 						public void widgetSelected(SelectionEvent se) {
 							a.revert();
+							isDirty = true;
 							markAsDirty();
 						}
 					});			
@@ -1215,6 +1216,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			}
 			if (modified) {
+				isDirty = true;
 				markAsDirty();
 			}
 		}
