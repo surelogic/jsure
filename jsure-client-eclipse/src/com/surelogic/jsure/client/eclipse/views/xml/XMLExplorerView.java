@@ -146,8 +146,8 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void makeActions() {
-		f_findXML.setText("Find XML For Type...");
-		f_findXML.setToolTipText("Find the promises XML file for a type");
+		f_findXML.setText("Open Library Annotations For Type...");
+		f_findXML.setToolTipText("Open the JSure library annotations for a type");
 		f_findXML.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
 		
