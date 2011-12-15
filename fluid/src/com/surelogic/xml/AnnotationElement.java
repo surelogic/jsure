@@ -357,18 +357,19 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 	public String getLabel() {
+		// Preprocess the attributes
 		final Map<String, String> pairs;
 		if (attrDefaults.isEmpty()) {
 			pairs = Collections.emptyMap();
 		} else {
 			pairs = new HashMap<String, String>(4, 1.0f);
-			for (String attr : attrDefaults.keySet()) {
-				if (AnnotationConstants.VALUE_ATTR.equals(attr)) {
+			for (Attribute attr : attrDefaults.values()) {
+				if (AnnotationConstants.VALUE_ATTR.equals(attr.getName())) {
 					continue;
 				}
-				String value = attributes.get(attr);
+				String value = attributes.get(attr.getName());
 				if (value != null) {
-					pairs.put(attr, value);
+					pairs.put(attr.getName(), attr.isTypeString() ? '"'+value+'"' : value);
 				}
 			}
 		}
@@ -392,7 +393,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				sb.append(", ");
 			}
 			sb.append(e.getKey());
-			sb.append('=');
+			sb.append('=');			
 			sb.append(e.getValue());
 		}
 		sb.append(')');
