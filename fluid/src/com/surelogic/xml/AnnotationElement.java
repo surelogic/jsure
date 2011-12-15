@@ -374,7 +374,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		sb.append('(');
 		boolean first = contentsIsEmpty;
 		if (!contentsIsEmpty) {
+			sb.append('"');
 			sb.append(contents);
+			sb.append('"');
 		}
 		for (Map.Entry<String, String> e : pairs.entrySet()) {
 			if (first) {
