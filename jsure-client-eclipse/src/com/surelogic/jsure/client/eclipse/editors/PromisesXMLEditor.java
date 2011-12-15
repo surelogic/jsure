@@ -235,7 +235,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		fluidXML.setEditable(false);
 
 		int index = addPage(fluidXML.getControl());
-		setPageText(index, "Source");
+		setPageText(index, "Baseline");
 	}
 
 	private void createLocalXMLPage() {
@@ -455,13 +455,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
+		makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();
 				if (provider.pkg.isModified()) {
-					if (MessageDialog.openQuestion(s, "Delete All Changes?",
-							"Do you really want to delete all changes?")) {
+					if (MessageDialog.openQuestion(s, "Revert All Changes?",
+							"Do you really want to revert all changes?")) {
 						provider.deleteAllChanges();
 						contents.refresh();
 						contents.expandAll();
@@ -473,7 +473,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					}
 				} else {
 					MessageDialog.openInformation(s, "No Changes",
-							"There are no changes to delete");
+							"There are no changes to revert");
 				}
 			}
 		});
@@ -489,8 +489,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						public void widgetSelected(SelectionEvent se) {
 							startAnnotationEditDialog(a);
 						}
-					});
+					});			
 			m.setEnabled(a.canModify());
+			
+			MenuItem m2 = makeMenuItem(menu, "Revert",
+					SLImages.getImage(CommonImages.IMG_ANNOTATION),
+					new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent se) {
+							a.revert();
+							markAsDirty();
+						}
+					});			
+			m2.setEnabled(a.canRevert());
 		}
 		final IMergeableElement me = (IMergeableElement) o;
 		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X),
