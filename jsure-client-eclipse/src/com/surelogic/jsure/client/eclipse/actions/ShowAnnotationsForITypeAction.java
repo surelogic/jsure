@@ -73,6 +73,6 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 			qname = qname.substring(0, firstDollar);
 			// TODO find nested classes
 		}
-		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, true);
+		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, false);
 	}
 }

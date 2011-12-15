@@ -70,7 +70,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 					IEditorPart editor = EclipseUIUtility.openInEditor(path);
 					*/
 					String path = qname.replace('.', '/')+TestXMLParserConstants.SUFFIX;
-					IEditorPart editor = PromisesXMLEditor.openInEditor(path, true);
+					IEditorPart editor = PromisesXMLEditor.openInEditor(path, false);
 					if (editor instanceof PromisesXMLEditor && v.getMethodName() != null) {
 						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
 						pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					

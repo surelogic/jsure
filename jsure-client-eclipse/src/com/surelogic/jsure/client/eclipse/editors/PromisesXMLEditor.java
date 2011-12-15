@@ -178,8 +178,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					Object o = s.getFirstElement();
 					if (o instanceof AnnotationElement) {
 						AnnotationElement a = (AnnotationElement) o;
-						if (!a.getAttributeDefaults().isEmpty()) {
+						if (a.canModify()) {
 							startAnnotationEditDialog(a);
+						} else {						
+							final Shell shell = contents.getTree().getShell();
+							MessageDialog.openInformation(shell, "Immutable",
+									"There is nothing to edit for @"+a.getLabel());
 						}
 					}
 				}
@@ -480,16 +484,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
 		if (o instanceof AnnotationElement) {
 			final AnnotationElement a = (AnnotationElement) o;
-			if (!a.getAttributeDefaults().isEmpty()) {
-				makeMenuItem(menu, "Edit",
-						SLImages.getImage(CommonImages.IMG_ANNOTATION_DELTA),
-						new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent se) {
-								startAnnotationEditDialog(a);
-							}
-						});
-			}
+			MenuItem m = makeMenuItem(menu, "Edit Annotation...",
+					SLImages.getImage(CommonImages.IMG_ANNOTATION),
+					new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent se) {
+					startAnnotationEditDialog(a);
+				}
+			});
+			m.setEnabled(a.canModify());
 		}
 		final IMergeableElement me = (IMergeableElement) o;
 		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X),
@@ -769,11 +772,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
-	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
-		makeMenuItem(menu, label, null, l);
+	static MenuItem makeMenuItem(Menu menu, String label, SelectionListener l) {
+		return makeMenuItem(menu, label, null, l);
 	}
 
-	static void makeMenuItem(Menu menu, String label, Image image,
+	static MenuItem makeMenuItem(Menu menu, String label, Image image,
 			SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
 		item1.setText(label);
@@ -781,6 +784,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		if (image != null) {
 			item1.setImage(image);
 		}
+		return item1;
 	}
 
 	static class JavaElementProvider extends AbstractContentProvider {
@@ -1167,10 +1171,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	}
 
 	void startAnnotationEditDialog(AnnotationElement a) {
-		if (ThreadEffectsRules.STARTS.equals(a.getPromise())) {
-			// This can't be changed
-			return;
-		}
 		// Collect initial attribute values
 		Map<Attribute, String> initialAttrs = new TreeMap<Attribute, String>();
 		for (Map.Entry<String, Attribute> e : a.getAttributeDefaults()

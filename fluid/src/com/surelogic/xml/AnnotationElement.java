@@ -7,6 +7,7 @@ import com.surelogic.aast.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
@@ -110,7 +111,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 
 	@Override
 	public boolean canModify() {
-		return true;
+		return !attrDefaults.isEmpty() && !ThreadEffectsRules.STARTS.equals(promise);
 	}
 
 	@Override
@@ -373,7 +374,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		sb.append('(');
 		boolean first = contentsIsEmpty;
 		if (!contentsIsEmpty) {
+			sb.append('"');
 			sb.append(contents);
+			sb.append('"');
 		}
 		for (Map.Entry<String, String> e : pairs.entrySet()) {
 			if (first) {

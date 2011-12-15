@@ -238,19 +238,6 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action-->
 
-            <action
-               id="openType"
-               toolbarPath="org.eclipse.search.searchActionSet/Search"
-               class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
-               label="Find the XML for a type"
-               menubarPath="navigate/open.ext2"
-               tooltip="Find the promises XML file for a type">
-            <!--                definitionId="org.eclipse.jdt.ui.navigate.open.type"
-               icon="$nl$/icons/full/etool16/opentype.gif"
-               helpContextId="org.eclipse.jdt.ui.open_type_action"
-            -->
-            </action>
-
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
@@ -259,6 +246,21 @@
 				tooltip="Open the Code Verification perspective to examine JSure tool results"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
+			
+            <action
+               id="openType"
+               class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
+               label="Open Library Annotations..."
+               tooltip="Open the library annotations for a type"
+               icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
+               menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"/>
+            <!-- From "Open Type"               
+               menubarPath="navigate/open.ext2"            
+               toolbarPath="org.eclipse.search.searchActionSet/Search"               
+               definitionId="org.eclipse.jdt.ui.navigate.open.type"
+               icon="$nl$/icons/full/etool16/opentype.gif"
+               helpContextId="org.eclipse.jdt.ui.open_type_action"
+            -->
 			
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"

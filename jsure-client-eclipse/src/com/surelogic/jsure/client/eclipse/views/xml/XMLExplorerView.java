@@ -33,6 +33,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
@@ -125,6 +126,8 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	};
 
+	private final Action f_findXML = new FindXMLForTypeAction();
+	
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -143,6 +146,11 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void makeActions() {
+		f_findXML.setText("Open Library Annotations...");
+		f_findXML.setToolTipText("Open the library annotations for a type");
+		f_findXML.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
+		
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
 		f_toggleShowDiffs.setToolTipText(I18N
@@ -171,6 +179,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
+		manager.add(f_findXML);
 	}
 
 	@Override
@@ -178,6 +187,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
+		manager.add(f_findXML);
 	}
 
 	@Override

@@ -26,6 +26,10 @@ public class FindXMLForTypeAction extends AbstractMainAction {
 	
 	@Override
 	public void run(IAction action) {
+		run();
+	}
+	
+	public void run() {
 		try {
 			final SelectionDialog dialog = 
 				JavaUI.createTypeDialog(EclipseUIUtility.getShell(), f_window, 
@@ -33,6 +37,8 @@ public class FindXMLForTypeAction extends AbstractMainAction {
 						IJavaElementSearchConstants.CONSIDER_ALL_TYPES, 
 						false, "", 
 						f_extension);
+			dialog.setTitle("Open Library Annotations");
+			
 			int result= dialog.open();
 			if (result != IDialogConstants.OK_ID) {
 				return;
