@@ -9,6 +9,7 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
@@ -192,6 +193,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (!modified) {
 			// Check if attributes are modified
 			for (String attr : attrDefaults.keySet()) {
+				if (AnnotationConstants.VALUE_ATTR.equals(attr)) {
+					continue;
+				}
 				String value = attributes.get(attr);
 				if (value != null) {
 					// The attr has a value to check
@@ -359,6 +363,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		} else {
 			pairs = new HashMap<String, String>(4, 1.0f);
 			for (String attr : attrDefaults.keySet()) {
+				if (AnnotationConstants.VALUE_ATTR.equals(attr)) {
+					continue;
+				}
 				String value = attributes.get(attr);
 				if (value != null) {
 					pairs.put(attr, value);
@@ -467,6 +474,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 			attributes.put(ORIG_CONTENTS, orig.contents);
 		}
 		for (String a : attrDefaults.keySet()) {
+			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
+				continue;
+			}
 			final String origKey = ORIG_PREFIX + a;
 			if (!attributes.containsKey(origKey)) {
 				attributes.put(origKey, orig.getAttribute(a));
