@@ -384,7 +384,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				.getLocalInput();
 		final IDocument doc = localXML.getDocumentProvider().getDocument(input);
 		if (doc != null) {
-			System.out.println(doc.get());
+			//System.out.println(doc.get());
 			StringWriter sw = new StringWriter(doc.getLength());
 			PromisesXMLWriter pw = new PromisesXMLWriter(new PrintWriter(sw));
 			PackageElement p = provider.pkg.cloneMe();
