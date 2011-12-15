@@ -1115,9 +1115,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (decl == null) {
         LOG.warning("Cannot find binding for " + DebugUnparser.toString(var));
         return lattice.opNull(s);
-      } else if (QualifiedReceiverDeclaration.prototype.includes(decl)) {
-    	  // qualified receivers are more like fields now.
-    	  return lattice.opLoad(lattice.opThis(s), decl);
       } else {
         return lattice.opGet(s, decl);
       }

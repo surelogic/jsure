@@ -123,12 +123,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   @Override
   protected JavaForwardAnalysis<Store, StoreLattice> createAnalysis(
       final IRNode flowUnit) {
+    
+    System.out.println("***** Create analysis for " + DebugUnparser.toString(flowUnit));
+    
     /* Get all the local variables with reference types, including final
      * variables declared in outer scopes, the "return variable" and the
      * receiver.
      */
-//    final String fu = DebugUnparser.toString(flowUnit);
-    
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refLocals = new ArrayList<IRNode>();
     final List<IRNode> trash = new ArrayList<IRNode>();
@@ -144,56 +145,26 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // Add the receiver
     final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
     if (rcvrNode != null) {
+      System.out.println("*****  receiver is " + rcvrNode);
       refLocals.add(rcvrNode);
     }
-    
-//    /* TODO is this right?     
-//    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
-//      refLocals.add(qrcvr);
-//    }
-//    */
-//    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-//    if (qrcvrNode != null) {
-//    	refLocals.add(qrcvrNode);
-//    }
-    
-    /* Add the qualified receivers (if any) associated with the classes
-     * that enclose this method/constructor (BUG 1712).  Based on 
-     * JavePromise.getQualifiedReceiverNodes().
-     */
-    IRNode currentTypeDecl = VisitUtil.getEnclosingType(flowUnit);
-    final IRNode enclosingQRD = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
-    IRNode qrd = enclosingQRD;
-    while (currentTypeDecl != null) {
-      if (qrd != null) refLocals.add(qrd);
-      currentTypeDecl = VisitUtil.getEnclosingType(currentTypeDecl);
-      qrd = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
+
+    // Add the qualified receiver, if any.  This will only be present on a
+    // constructor.
+    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+    if (qrcvrNode != null) {
+      System.out.println("*****  qualified receiver is " + rcvrNode);
+    	refLocals.add(qrcvrNode);
     }
-    
-    /* If we are a constructor also add the qualified receiver (if any)
-     * associated with the constructor.  (StoreLattice will force this
-     * qualified receiver to be an alias of the one associated with the class
-     * declaration that contains the constructor. (BUG 1712)
-     */
-    final IRNode constructorQRD;
-    if (ConstructorDeclaration.prototype.includes(flowUnit)) {
-      constructorQRD = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-      if (constructorQRD != null) refLocals.add(constructorQRD);
-    } else {
-      constructorQRD = null;
-    }
-    
+        
     /* For each AnonClassExpression that is in the flow unit we add the 
-     * receiver from the <init> method and the QualifiedReceiverDeclaration,
-     * if any, from the anonymous class itself.  (BUG 1612)
+     * receiver from the <init> method  (BUG 1712)
      */
     ReceiverSnatcher.getReceivers(flowUnit, refLocals);
     
-    
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
-    
     final StoreLattice lattice =
-        new StoreLattice(flowUnit, analysis, binder, locals, enclosingQRD, constructorQRD);
+        new StoreLattice(flowUnit, analysis, binder, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
         new UniquenessTransfer(cargo, binder, mayAlias, lattice,
@@ -1378,13 +1349,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected void handleAnonClassExpression(final IRNode anonClass) {
       super.handleAnonClassExpression(anonClass);
+
+      System.out.println("*****  Anon class expr " + DebugUnparser.toString(anonClass));
+      System.out.println("*****    receiver (from <init>) is " + JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
       
       // Add the receiver from <init>
       refs.add(JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
-      
-      // Add the qualified receiver from the anon class, if any
-      final IRNode qrd = JavaPromise.getQualifiedReceiverNodeOrNull(anonClass);
-      if (qrd != null) refs.add(qrd);      
     }
   }
 }
