@@ -212,7 +212,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 		}
 		if (f.isDirectory()) {
 			findPromiseXMLsInDir(qnames, f, computeName(path, f.getName()));
-		} else if (f.getName().endsWith(PROMISES_XML)) {
+		} else if (f.getName().endsWith(PROMISES_XML) && f.length() > 0) {
 			if ("package-info.promises.xml".equals(f.getName())) {
 				qnames.addPackage(path);
 			} else {
