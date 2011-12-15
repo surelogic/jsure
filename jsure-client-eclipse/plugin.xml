@@ -243,7 +243,7 @@
                class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
                label="Find XML For Type..."
                tooltip="Find the promises XML file for a type"
-               icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+               icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
                menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"/>
             <!-- From "Open Type"               
                menubarPath="navigate/open.ext2"            
