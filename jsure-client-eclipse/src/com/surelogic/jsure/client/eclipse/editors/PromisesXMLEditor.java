@@ -1083,7 +1083,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		@Override
 		public boolean exists() {
 			final Pair<File, File> f = PromisesXMLParser.findPromisesXML(path);
-			return f.first().isFile();
+			return f.first().isFile() || f.second().isFile();
 		}
 
 		@Override
