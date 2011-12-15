@@ -456,11 +456,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
+		MenuItem m = makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();
-				if (provider.pkg.isModified()) {
+				if (provider.pkg.isDirty()) {
 					if (MessageDialog.openQuestion(s, "Revert All Changes?",
 							"Do you really want to revert all changes?")) {
 						provider.deleteAllChanges();
@@ -478,6 +478,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			}
 		});
+		m.setEnabled(provider.pkg.isDirty());
 	}
 
 	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
