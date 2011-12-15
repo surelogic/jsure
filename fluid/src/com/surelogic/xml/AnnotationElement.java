@@ -485,6 +485,30 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		}
 	}
 
+	public boolean canRevert() {
+		return isDirty() && attributes.containsKey(ORIG_CONTENTS);
+	}
+	
+	public void revert() {
+		if (!canRevert()) {
+			return;
+		}
+		for (String a : attrDefaults.keySet()) {
+			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
+				continue;
+			}
+			final String origKey = ORIG_PREFIX + a;
+			if (attributes.containsKey(origKey)) {
+				attributes.put(a, attributes.get(origKey));
+			}
+		}
+		/*
+		contents = attributes.get(ORIG_CONTENTS);
+		markAsUnmodified();
+		*/
+		modifyContents(attributes.get(ORIG_CONTENTS));
+	}
+	
 	public Map<String, Attribute> getAttributeDefaults() {
 		return attrDefaults;
 	}
