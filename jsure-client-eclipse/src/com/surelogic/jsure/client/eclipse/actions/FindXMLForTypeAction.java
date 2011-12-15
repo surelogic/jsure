@@ -26,6 +26,10 @@ public class FindXMLForTypeAction extends AbstractMainAction {
 	
 	@Override
 	public void run(IAction action) {
+		run();
+	}
+	
+	public void run() {
 		try {
 			final SelectionDialog dialog = 
 				JavaUI.createTypeDialog(EclipseUIUtility.getShell(), f_window, 
