@@ -520,9 +520,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (hasValue) {
 			String origContents = attributes.get(ORIG_CONTENTS);
 			modifyContents(origContents);
-		} else {
-			markAsUnmodified();
 		}
+		markAsUnmodified();
 	}
 	
 	public Map<String, Attribute> getAttributeDefaults() {
