@@ -395,7 +395,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 			final String updated = sw.toString();
 			doc.set(updated);
-			System.out.println(updated);
+			//System.out.println(updated);
 		}
 	}
 
