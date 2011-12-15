@@ -10,6 +10,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
@@ -63,8 +64,6 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		final LibraryAnnotationDialog dialog = new LibraryAnnotationDialog(
 				annotation, attributes);
 		if (dialog.open() == Dialog.OK) {
-			System.out.println(dialog.f_scratch);
-			System.out.println(dialog.getModifiedAttributes());
 			return dialog.getModifiedAttributes();
 		}
 		return Collections.emptyMap();
@@ -92,6 +91,8 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		super(EclipseUIUtility.getShell());
 		setShellStyle(getShellStyle() | SWT.RESIZE | SWT.MAX);
 
+		setDialogHelpAvailable(false);
+
 		f_annotation = annotation.getPromise();
 		f_attributes = Collections.unmodifiableMap(attributes);
 		f_scratch = new HashMap<Attribute, String>(attributes);
@@ -110,7 +111,7 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		GridLayout gridLayout = new GridLayout();
 		panel.setLayout(gridLayout);
 
-		final int editorHeight = 100;
+		final int editorHeight = 60;
 		GridData data;
 
 		final List<Attribute> stringAttributes = getSortedAttributesOfType(String.class);
@@ -124,9 +125,13 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 			label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 			label.setText(I18N.msg("jsure.dialog.library.xml.string.label"));
 
-			final Composite stringPanel = new Composite(panel, SWT.NONE);
-			stringPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-					true));
+			final ScrolledComposite scroll = new ScrolledComposite(panel,
+					SWT.V_SCROLL);
+			data = new GridData(SWT.FILL, SWT.FILL, true, true);
+			data.heightHint = editorHeight;
+			scroll.setLayoutData(data);
+
+			final Composite stringPanel = new Composite(scroll, SWT.NONE);
 			final GridLayout stringPanelLayout = new GridLayout();
 			stringPanelLayout.numColumns = 2;
 			stringPanel.setLayout(stringPanelLayout);
@@ -150,6 +155,10 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 					}
 				});
 			}
+
+			scroll.setContent(stringPanel);
+			scroll.setExpandHorizontal(true);
+			scroll.setExpandVertical(true);
 		}
 
 		final List<Attribute> booleanAttributes = getSortedAttributesOfType(boolean.class);
