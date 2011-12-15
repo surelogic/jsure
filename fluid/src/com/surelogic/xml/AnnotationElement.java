@@ -470,6 +470,17 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return added ? 1 : 0;
 	}
 
+	void flushDiffState() {
+		attributes.remove(ORIG_CONTENTS);		
+		for (String a : attrDefaults.keySet()) {
+			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
+				continue;
+			}
+			final String origKey = ORIG_PREFIX + a;
+			attributes.remove(origKey);			
+		}
+	}
+	
 	void stashDiffState(AnnotationElement orig) {
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
 			attributes.put(ORIG_CONTENTS, orig.contents);

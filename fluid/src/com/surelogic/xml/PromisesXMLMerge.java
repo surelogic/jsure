@@ -87,7 +87,32 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		// Ok to modify root, since we'll just mark it as clean afterwards
 		root.markAsClean();
 		root.visit(new Marker());
-		return root.copyIfDirty();
+		PackageElement p = root.copyIfDirty();
+		if (p != null) {
+			p.visit(new Flusher());
+		}
+		return p;
+	}
+	
+	/**
+	 * Removed cached attributes used for diffing (not meant to be persisted)
+	 * @author Edwin
+	 */
+	private static class Flusher extends AbstractJavaElementVisitor<Void> {
+		Flusher() {
+			super(null);
+		}
+
+		@Override
+		protected Void combine(Void old, Void result) {
+			return null;
+		}
+		
+		@Override
+		public Void visit(AnnotationElement a) {
+			a.flushDiffState();
+			return defaultValue;
+		}
 	}
 	
 	/**
