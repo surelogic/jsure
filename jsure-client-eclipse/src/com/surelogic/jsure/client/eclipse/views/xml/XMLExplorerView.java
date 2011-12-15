@@ -146,8 +146,8 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void makeActions() {
-		f_findXML.setText("Open Library Annotations For Type...");
-		f_findXML.setToolTipText("Open the JSure library annotations for a type");
+		f_findXML.setText("Open Library Annotations...");
+		f_findXML.setToolTipText("Open the library annotations for a type");
 		f_findXML.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
 		
@@ -177,17 +177,17 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		manager.add(f_actionCollapseAll);
-		manager.add(f_findXML);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
+		manager.add(f_findXML);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(f_actionCollapseAll);
-		manager.add(f_findXML);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
+		manager.add(f_findXML);
 	}
 
 	@Override

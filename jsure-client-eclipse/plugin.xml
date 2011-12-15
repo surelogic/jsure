@@ -250,8 +250,8 @@
             <action
                id="openType"
                class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
-               label="Open Library Annotations For Type..."
-               tooltip="Open the JSure library annotations for a type"
+               label="Open Library Annotations..."
+               tooltip="Open the library annotations for a type"
                icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
                menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"/>
             <!-- From "Open Type"               

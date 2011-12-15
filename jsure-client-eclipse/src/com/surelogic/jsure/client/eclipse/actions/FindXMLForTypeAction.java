@@ -37,7 +37,7 @@ public class FindXMLForTypeAction extends AbstractMainAction {
 						IJavaElementSearchConstants.CONSIDER_ALL_TYPES, 
 						false, "", 
 						f_extension);
-			dialog.setTitle("Open Library Annotations For Type");
+			dialog.setTitle("Open Library Annotations");
 			
 			int result= dialog.open();
 			if (result != IDialogConstants.OK_ID) {
