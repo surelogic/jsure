@@ -180,10 +180,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						AnnotationElement a = (AnnotationElement) o;
 						if (a.canModify()) {
 							startAnnotationEditDialog(a);
-						} else {						
-							final Shell shell = contents.getTree().getShell();
-							MessageDialog.openInformation(shell, "Edit Library Annotation",
-									'@'+a.getLabel()+" has no attributes that may be modified");
+						} else {
+							LibraryAnnotationDialog.cannotEdit(a.getLabel());
 						}
 					}
 				}
@@ -487,11 +485,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			MenuItem m = makeMenuItem(menu, "Edit Annotation...",
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
 					new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent se) {
-					startAnnotationEditDialog(a);
-				}
-			});
+						@Override
+						public void widgetSelected(SelectionEvent se) {
+							startAnnotationEditDialog(a);
+						}
+					});
 			m.setEnabled(a.canModify());
 		}
 		final IMergeableElement me = (IMergeableElement) o;

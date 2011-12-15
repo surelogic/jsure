@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -67,6 +68,21 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 			return dialog.getModifiedAttributes();
 		}
 		return Collections.emptyMap();
+	}
+
+	/**
+	 * Opens a message dialog that informs the user that the annotation does not
+	 * have any attributes that can be modified.
+	 * 
+	 */
+	public static void cannotEdit(String annotation) {
+		final MessageDialog dialog = new MessageDialog(
+				EclipseUIUtility.getShell(),
+				I18N.msg("jsure.dialog.library.xml.title"),
+				SLImages.getImage(CommonImages.IMG_ANNOTATION), I18N.msg(
+						"jsure.dialog.library.xml.noedit.msg", annotation),
+				MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+		dialog.open();
 	}
 
 	/*
