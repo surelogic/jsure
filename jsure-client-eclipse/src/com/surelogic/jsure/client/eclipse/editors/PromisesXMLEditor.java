@@ -182,8 +182,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 							startAnnotationEditDialog(a);
 						} else {						
 							final Shell shell = contents.getTree().getShell();
-							MessageDialog.openInformation(shell, "Immutable",
-									"There is nothing to edit for @"+a.getLabel());
+							MessageDialog.openInformation(shell, "Edit Library Annotation",
+									'@'+a.getLabel()+" has no attributes that may be modified");
 						}
 					}
 				}
