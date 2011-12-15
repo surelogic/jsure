@@ -1189,7 +1189,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 		Map<Attribute, String> changedAttrs = LibraryAnnotationDialog.edit(a,
 				initialAttrs);
-		if (changedAttrs != null) {
+		if (!changedAttrs.isEmpty()) {
 			boolean modified = false;
 			// edit contents and attrs
 			for (Map.Entry<Attribute, String> e : changedAttrs.entrySet()) {

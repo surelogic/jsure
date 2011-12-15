@@ -10,6 +10,8 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -25,7 +27,6 @@ import org.eclipse.swt.widgets.Text;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.xml.AnnotationElement;
@@ -45,10 +46,10 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 	 * @param attributes
 	 *            a map of the annotation's attributes. This map is not modified
 	 *            by this call (any changes are returned in a new map).
-	 * @return A map, if any user changes were made, containing the modified
-	 *         contents of the passed attributes, {@code null} otherwise. If a
-	 *         map is returned it contains only keys with modified values from
-	 *         the values contained in the passed attributes map.
+	 * @return a map, if any user changes were made, containing the modified
+	 *         contents of the passed attributes, an empty map otherwise. If an
+	 *         unempty map is returned it contains only keys with modified
+	 *         values from the values contained in the passed attributes map.
 	 * 
 	 * @throws IllegalArgumentException
 	 *             if either of the passed parameters are {@code null}.
@@ -62,50 +63,38 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		final LibraryAnnotationDialog dialog = new LibraryAnnotationDialog(
 				annotation, attributes);
 		if (dialog.open() == Dialog.OK) {
-			return null; // TODO
+			System.out.println(dialog.f_scratch);
+			System.out.println(dialog.getModifiedAttributes());
+			return dialog.getModifiedAttributes();
 		}
-		return null;
+		return Collections.emptyMap();
 	}
 
 	/*
 	 * Immutable input data
 	 */
 	private final Map<Attribute, String> f_attributes;
-	private final AnnotationElement f_annotation;
+	private final String f_annotation;
 
+	/*
+	 * Boolean true and false strings in XML
+	 */
 	private final String T = "true";
 	private final String F = "false";
 
 	/*
 	 * Attribute working data.
 	 */
-	private final Map<Attribute, String> f_booleanAttributes = new HashMap<Attribute, String>();
-	private final Map<Attribute, String> f_stringAttributes = new HashMap<Attribute, String>();
+	private final Map<Attribute, String> f_scratch;
 
-	private Table f_projectTable;
-
-	private LibraryAnnotationDialog(AnnotationElement annotation,
-			Map<Attribute, String> attributes) {
+	private LibraryAnnotationDialog(final AnnotationElement annotation,
+			final Map<Attribute, String> attributes) {
 		super(EclipseUIUtility.getShell());
 		setShellStyle(getShellStyle() | SWT.RESIZE | SWT.MAX);
 
-		f_annotation = annotation;
+		f_annotation = annotation.getPromise();
 		f_attributes = Collections.unmodifiableMap(attributes);
-		for (Map.Entry<Attribute, String> entry : f_attributes.entrySet()) {
-			if (boolean.class.equals(entry.getKey().getType())) {
-				f_booleanAttributes.put(entry.getKey(), entry.getValue());
-			} else if (String.class.equals(entry.getKey().getType())) {
-				f_stringAttributes.put(entry.getKey(), entry.getValue());
-			} else {
-				/*
-				 * The type is not supported by this dialog, log this as a
-				 * problem.
-				 */
-				SLLogger.getLogger().warning(
-						I18N.err(236, f_annotation.getLabel(), entry.getKey()
-								.getType().getName()));
-			}
-		}
+		f_scratch = new HashMap<Attribute, String>(attributes);
 	}
 
 	@Override
@@ -121,12 +110,14 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		GridLayout gridLayout = new GridLayout();
 		panel.setLayout(gridLayout);
 
-		List<Attribute> attributes;
+		final int editorHeight = 100;
+		GridData data;
 
-		if (!f_stringAttributes.isEmpty()) {
+		final List<Attribute> stringAttributes = getSortedAttributesOfType(String.class);
+		if (!stringAttributes.isEmpty()) {
 
 			/*
-			 * String typed attribute editor
+			 * String attribute editor
 			 */
 
 			final Label label = new Label(panel, SWT.WRAP);
@@ -140,56 +131,66 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 			stringPanelLayout.numColumns = 2;
 			stringPanel.setLayout(stringPanelLayout);
 
-			attributes = new ArrayList<Attribute>(f_stringAttributes.keySet());
-			Collections.sort(attributes);
-
-			for (Attribute a : attributes) {
-				final Label variableLabel = new Label(stringPanel, SWT.NONE);
-				variableLabel.setText(a.getName());
-				variableLabel.setForeground(getShell().getDisplay()
-						.getSystemColor(SWT.COLOR_BLUE));
-				variableLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
-						false, false));
-				final Text variableValue = new Text(stringPanel, SWT.SINGLE);
-				variableValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
-						true, false));
-				variableValue.setText(f_stringAttributes.get(a));
+			for (final Attribute a : stringAttributes) {
+				final Label name = new Label(stringPanel, SWT.NONE);
+				name.setText(a.getName());
+				name.setForeground(getShell().getDisplay().getSystemColor(
+						SWT.COLOR_BLUE));
+				name.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+						false));
+				final Text value = new Text(stringPanel, SWT.SINGLE);
+				value.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+						false));
+				value.setText(f_attributes.get(a));
+				value.addModifyListener(new ModifyListener() {
+					@Override
+					public void modifyText(ModifyEvent e) {
+						f_scratch.put(a, value.getText());
+						updatePreviewAnnotationInDialog();
+					}
+				});
 			}
 		}
 
-		if (!f_booleanAttributes.isEmpty()) {
+		final List<Attribute> booleanAttributes = getSortedAttributesOfType(boolean.class);
+		if (!booleanAttributes.isEmpty()) {
 
 			/*
-			 * boolean typed attributed editor
+			 * boolean attribute editor
 			 */
 
 			final Label label = new Label(panel, SWT.WRAP);
 			label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 			label.setText(I18N.msg("jsure.dialog.library.xml.boolean.label"));
 
-			f_projectTable = new Table(panel, SWT.FULL_SELECTION | SWT.CHECK);
-			final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-			data.heightHint = 100;
-			f_projectTable.setLayoutData(data);
+			final Table table = new Table(panel, SWT.FULL_SELECTION | SWT.CHECK);
+			data = new GridData(SWT.FILL, SWT.FILL, true, true);
+			data.heightHint = editorHeight;
+			table.setLayoutData(data);
 
-			attributes = new ArrayList<Attribute>(f_booleanAttributes.keySet());
-			Collections.sort(attributes);
-
-			for (Attribute a : attributes) {
-				TableItem item = new TableItem(f_projectTable, SWT.NONE);
+			for (Attribute a : booleanAttributes) {
+				TableItem item = new TableItem(table, SWT.NONE);
+				item.setData(a);
 				item.setText(a.getName());
 				item.setImage(SLImages.getImage(CommonImages.IMG_GREEN_DOT));
-				item.setChecked(T.equals(f_stringAttributes.get(a)));
+				item.setChecked(T.equals(f_attributes.get(a)));
 			}
 
-			f_projectTable.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					// TODO
+			table.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					for (final TableItem item : table.getItems()) {
+						if (item.getData() instanceof Attribute) {
+							final Attribute a = (Attribute) item.getData();
+							String value = item.getChecked() ? T : F;
+							f_scratch.put(a, value);
+							updatePreviewAnnotationInDialog();
+						}
+					}
 				}
 			});
 		}
 
-		setTitle(I18N.msg("jsure.dialog.library.xml.title"));
+		updatePreviewAnnotationInDialog();
 		setMessage(I18N.msg("jsure.dialog.library.xml.msg"),
 				IMessageProvider.INFORMATION);
 		Dialog.applyDialogFont(panel);
@@ -197,9 +198,96 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 		return panel;
 	}
 
-	@Override
-	protected void okPressed() {
-		super.okPressed();
-		System.out.println("OK");
+	/**
+	 * Filters {@link #f_attributes} down to a particular type and sorts the
+	 * list returned.
+	 * 
+	 * @param type
+	 *            the type to filter by.
+	 * @return a list of {@link Attribute} objects that is sorted by name.
+	 */
+	private List<Attribute> getSortedAttributesOfType(Class<?> type) {
+		final List<Attribute> result = new ArrayList<Attribute>();
+		for (Attribute a : f_attributes.keySet()) {
+			if (a.getType().equals(type)) {
+				result.add(a);
+			}
+		}
+		Collections.sort(result);
+		return result;
+	}
+
+	/**
+	 * Gets the changes made to the attributes by the user in the dialog.
+	 * 
+	 * @return a map, if any user changes were made, containing the modified
+	 *         contents of the passed attributes, an empty map otherwise. If an
+	 *         unempty map is returned it contains only keys with modified
+	 *         values from the values contained in the passed attributes map.
+	 */
+	private Map<Attribute, String> getModifiedAttributes() {
+		final Map<Attribute, String> result = new HashMap<Attribute, String>();
+		for (Map.Entry<Attribute, String> e : f_scratch.entrySet()) {
+			final String scratchValue = e.getValue();
+			final String originalValue = f_attributes.get(e.getKey());
+			if (!scratchValue.equals(originalValue)) {
+				result.put(e.getKey(), scratchValue);
+			}
+		}
+		return result;
+	}
+
+	private void updatePreviewAnnotationInDialog() {
+		setTitle(getAnnotation());
+	}
+
+	private String getAnnotation() {
+		final StringBuilder b = new StringBuilder();
+		b.append('@').append(f_annotation).append('(');
+		final Attribute value = getValue();
+		boolean showComma = false;
+		if (value != null) {
+			/*
+			 * Show the value attribute first without value=
+			 */
+			final String s = f_scratch.get(value);
+			if (s != null && s.length() > 0) { // should be non-null
+				b.append('\"');
+				b.append(f_scratch.get(value));
+				b.append('\"');
+				showComma = true;
+			}
+		}
+		/*
+		 * Show the rest of the attributes only if they are different than their
+		 * default values.
+		 */
+		for (Map.Entry<Attribute, String> e : f_scratch.entrySet()) {
+			if (e.getKey().equals(value))
+				continue;
+			if (!e.getValue().equals(e.getKey().getDefaultValueOrNull())) {
+				if (showComma)
+					b.append(',');
+				else
+					showComma = true;
+				b.append(e.getKey().getName());
+				b.append('=');
+				if (e.getKey().isTypeString())
+					b.append('\"');
+				b.append(e.getValue());
+				if (e.getKey().isTypeString())
+					b.append('\"');
+			}
+		}
+		b.append(')');
+		return b.toString();
+	}
+
+	private Attribute getValue() {
+		for (Attribute a : f_scratch.keySet()) {
+			if ("value".equals(a.getName()))
+				return a;
+		}
+		return null;
 	}
 }

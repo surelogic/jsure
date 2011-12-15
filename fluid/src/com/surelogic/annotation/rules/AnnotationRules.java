@@ -125,6 +125,10 @@ public abstract class AnnotationRules {
 		public Class<?> getType() {
 			return f_type;
 		}
+		
+		public boolean isTypeString() {
+			return String.class.equals(f_type);
+		}
 
 		public String getDefaultValueOrNull() {
 			return f_defaultValue;
@@ -148,7 +152,7 @@ public abstract class AnnotationRules {
 
 		@Override
 		public String toString() {
-			return "Attribute[" + f_name + " : " + f_type.getName() + " = "
+			return "[Attribute " + f_name + " : " + f_type.getName() + " def "
 					+ f_defaultValue + "]";
 		}
 	}
