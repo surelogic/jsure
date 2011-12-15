@@ -73,6 +73,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		try {
 			final File root = JSurePreferencesUtility.getJSureXMLDirectory();
 			File f = new File(root, location.toASCIIString());
+			/* Maybe saving because the editor is "dirty"
+			 * so we can't do the below anymore
 			if (!pkg.isDirty()) {
 				// Try to delete any diffs
 				if (f.exists()) {
@@ -80,7 +82,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				}
 				return;
 			}
-			
+			*/
 			File dir = f.getParentFile();
 			if (!dir.exists()) {
 				dir.mkdirs();
