@@ -90,7 +90,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 			PromisesXMLWriter w = new PromisesXMLWriter(f);
 			if (saveDiff) {
 				PackageElement p = PromisesXMLMerge.diff(pkg);
-				w.write(p);
+				if (p != null) {
+					w.write(p);
+				} else {
+					// No diffs, so make sure there's no empty file
+					f.delete();
+				}
 			} else {
 				w.write(pkg);
 			}
