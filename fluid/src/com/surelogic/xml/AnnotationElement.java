@@ -493,20 +493,25 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (!canRevert()) {
 			return;
 		}
+		boolean hasValue = false;
 		for (String a : attrDefaults.keySet()) {
 			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
+				hasValue = true;
 				continue;
 			}
 			final String origKey = ORIG_PREFIX + a;
 			if (attributes.containsKey(origKey)) {
 				attributes.put(a, attributes.get(origKey));
+			} else {
+				attributes.remove(a);
 			}
 		}
-		/*
-		contents = attributes.get(ORIG_CONTENTS);
-		markAsUnmodified();
-		*/
-		modifyContents(attributes.get(ORIG_CONTENTS));
+		if (hasValue) {
+			String origContents = attributes.get(ORIG_CONTENTS);
+			modifyContents(origContents);
+		} else {
+			markAsUnmodified();
+		}
 	}
 	
 	public Map<String, Attribute> getAttributeDefaults() {
