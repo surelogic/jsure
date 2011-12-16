@@ -853,11 +853,25 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		
 		public Origin getOrigin() {
-			String origin = getAttribute(ProposedPromiseDrop.ORIGIN);
+			final String origin = getAttribute(ProposedPromiseDrop.ORIGIN);
+			Origin result = Origin.MODEL;
 			if (origin == null) {
-				return null;
+				/*
+				 * The scan is old and doesn't have an origin, just return a default.
+				 */
+				return result;
 			}
-			return Origin.valueOf(origin);
+			try {
+				result = Origin.valueOf(origin);
+			} catch (Exception ignoreTakeDefault) {
+				// Ignore we set a default
+			}
+			return result;
+		}
+		
+		public boolean isAbductivelyInferred() {
+			final Origin origin = getOrigin();
+			return origin != Origin.CODE;
 		}
 		
 		public String getTargetProjectName() {

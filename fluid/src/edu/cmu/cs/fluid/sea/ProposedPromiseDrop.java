@@ -30,8 +30,8 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop 
-implements IResultDrop, IProposedPromiseDropInfo {
+public final class ProposedPromiseDrop extends IRReferenceDrop implements
+		IResultDrop, IProposedPromiseDropInfo {
 	public static final String ANNOTATION_TYPE = "annotation-type";
 	public static final String CONTENTS = "contents";
 	public static final String REPLACED_ANNO = "replaced-annotation";
@@ -45,11 +45,25 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	public static final String FROM_REF = "from-ref";
 	public static final String ANNO_ATTRS = "annotation-attrs";
 	public static final String REPLACED_ATTRS = "replaced-attrs";
-	
+
 	public enum Origin {
-		PROMISE, INFERENCE
+		/**
+		 * This proposal was inferred from code with no model/annotation basis
+		 * for it whatsoever.
+		 */
+		CODE,
+		/**
+		 * This proposal was inferred from code and a model. It could be
+		 * extending or augmenting an existing model based upon the program's
+		 * implementation.
+		 */
+		MODEL,
+		/**
+		 * This proposed promise was created to help fix a modeling problem.
+		 */
+		PROBLEM
 	}
-	
+
 	/**
 	 * Constructs a new proposed promise. Intended to be called from analysis
 	 * code.
@@ -74,15 +88,18 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 *            this proposed promise if the compilation unit is reanalyzed.
 	 */
 	public ProposedPromiseDrop(final String annotation, final String contents,
-			final String replacedContents, final IRNode at, final IRNode from, Origin origin) {
-		this(annotation, contents, Collections.<String,String>emptyMap(),
-				replacedContents != null ? annotation : null, replacedContents, Collections.<String,String>emptyMap(),
-				at, from, origin);
+			final String replacedContents, final IRNode at, final IRNode from,
+			Origin origin) {
+		this(annotation, contents, Collections.<String, String> emptyMap(),
+				replacedContents != null ? annotation : null, replacedContents,
+				Collections.<String, String> emptyMap(), at, from, origin);
 	}
-	
-	public ProposedPromiseDrop(final String annotation, final String contents, final Map<String,String> attrs,
-			final String replacedAnno, final String replacedContents, final Map<String,String> replacedAttrs,
-			final IRNode at, final IRNode from, final Origin src) {
+
+	public ProposedPromiseDrop(final String annotation, final String contents,
+			final Map<String, String> attrs, final String replacedAnno,
+			final String replacedContents,
+			final Map<String, String> replacedAttrs, final IRNode at,
+			final IRNode from, final Origin src) {
 		if (at == null) {
 			throw new IllegalArgumentException(I18N.err(44, "at"));
 		}
@@ -105,10 +122,12 @@ implements IResultDrop, IProposedPromiseDropInfo {
 
 		final String msg;
 		if (contents == null) {
-			msg = Entity.maybeIntern("ProposedPromiseDrop @"+annotation+"()");
+			msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation
+					+ "()");
 		} else {
-			msg = Entity.maybeIntern("ProposedPromiseDrop @"+annotation+'('+contents+')');
-		}		
+			msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + '('
+					+ contents + ')');
+		}
 		setMessage(msg);
 	}
 
@@ -116,45 +135,52 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			final IRNode at, final IRNode from, Origin origin) {
 		this(annotation, contents, null, at, from, origin);
 	}
-	
-	private final Map<String,String> f_attrs, f_replacedAttrs;
 
-	public Map<String,String> getAnnoAttributes() {
+	private final Map<String, String> f_attrs, f_replacedAttrs;
+
+	public Map<String, String> getAnnoAttributes() {
 		return f_attrs;
 	}
-	
-	public Map<String,String> getReplacedAttributes() {
+
+	public Map<String, String> getReplacedAttributes() {
 		return f_replacedAttrs;
 	}
-	
+
 	/**
 	 * An indication of how this proposal was generated
 	 */
 	private final Origin f_origin;
-	
+
 	public Origin getOrigin() {
 		return f_origin;
 	}
 	
+	public boolean isAbductivelyInferred() {
+		/*
+		 * This could change but we take problem and model for now.
+		 */
+		return f_origin != Origin.CODE;
+	}
+
 	/**
 	 * The Java annotation being proposed. For <code>@Starts("nothing")</code>
 	 * the value of this string would be {@code "Starts"}.
 	 */
 	private final String f_annotation;
-	
+
 	private final String f_replacedAnno;
 
 	/**
 	 * Gets the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be {@code
-	 * "Starts"}.
+	 * <code>@Starts("nothing")</code> the value of this string would be
+	 * {@code "Starts"}.
 	 * 
 	 * @return the Java annotation being proposed.
 	 */
 	public String getAnnotation() {
 		return f_annotation;
 	}
-	
+
 	public String getReplacedAnnotation() {
 		return f_replacedAnno;
 	}
@@ -201,9 +227,9 @@ implements IResultDrop, IProposedPromiseDropInfo {
 
 	/**
 	 * The contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be {@code
-	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
-	 * of this string would be {@code null}.
+	 * <code>@Starts("nothing")</code> the value of this string would be
+	 * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+	 * value of this string would be {@code null}.
 	 * <p>
 	 * The contents placed into this string should not be escaped. Any embedded
 	 * quotations or backward slashes will be escaped before output.
@@ -211,11 +237,11 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	private final String f_contents;
 
 	private final String f_replacedContents;
-	
+
 	public String getReplacedContents() {
 		return f_replacedContents;
 	}
-	
+
 	/**
 	 * Checks if the proposed Java annotation has contents.
 	 * 
@@ -228,9 +254,9 @@ implements IResultDrop, IProposedPromiseDropInfo {
 
 	/**
 	 * Gets the raw contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be {@code
-	 * "nothing"} (without quotation marks). For <code>@Borrowed</code>, which
-	 * has no contents, the value of this string would be {@code null}.
+	 * <code>@Starts("nothing")</code> the value of this string would be
+	 * {@code "nothing"} (without quotation marks). For <code>@Borrowed</code>,
+	 * which has no contents, the value of this string would be {@code null}.
 	 * 
 	 * @return the contents of the Java annotation being proposed, or {code
 	 *         null} if none.
@@ -241,9 +267,9 @@ implements IResultDrop, IProposedPromiseDropInfo {
 
 	/**
 	 * Gets the escaped contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be {@code
-	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
-	 * of this string would be {@code null}.
+	 * <code>@Starts("nothing")</code> the value of this string would be
+	 * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+	 * value of this string would be {@code null}.
 	 * 
 	 * @return the contents of the Java annotation being proposed, or {code
 	 *         null} if none.
@@ -274,13 +300,13 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			return true;
 		if (other == null)
 			return false;
-		
-		return isSame(f_annotation, other.getAnnotation()) &&
-		       isSame(f_contents, other.getContents()) &&
-		       isSame(f_replacedContents, other.getReplacedContents()) &&
-		       isSame(getSrcRef(), other.getSrcRef());
+
+		return isSame(f_annotation, other.getAnnotation())
+				&& isSame(f_contents, other.getContents())
+				&& isSame(f_replacedContents, other.getReplacedContents())
+				&& isSame(getSrcRef(), other.getSrcRef());
 	}
-	
+
 	private static <T> boolean isSame(T o1, T o2) {
 		if (o1 == null) {
 			if (o2 != null) {
@@ -291,7 +317,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		}
 		return true;
 	}
-	
+
 	public long computeHash() {
 		long hash = 0;
 		if (f_annotation != null) {
@@ -306,7 +332,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		}
 		return hash;
 	}
-	
+
 	/**
 	 * Filters out duplicate proposals so that they are not listed.
 	 * <p>
@@ -320,20 +346,22 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			Collection<IProposedPromiseDropInfo> proposals) {
 		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
 		// Hash results
-		MultiMap<Long,IProposedPromiseDropInfo> hashed = new MultiHashMap<Long,IProposedPromiseDropInfo>();
-		for(IProposedPromiseDropInfo info : proposals) {
+		MultiMap<Long, IProposedPromiseDropInfo> hashed = new MultiHashMap<Long, IProposedPromiseDropInfo>();
+		for (IProposedPromiseDropInfo info : proposals) {
 			long hash = info.computeHash();
 			hashed.put(hash, info);
 		}
 		// Filter each list the old way
-		for(Map.Entry<Long,Collection<IProposedPromiseDropInfo>> e : hashed.entrySet()) {
+		for (Map.Entry<Long, Collection<IProposedPromiseDropInfo>> e : hashed
+				.entrySet()) {
 			result.addAll(filterOutDuplicates_slow(e.getValue()));
-		}		
+		}
 		return result;
 	}
-	
+
 	// n^2 comparisons
-	private static List<IProposedPromiseDropInfo> filterOutDuplicates_slow(Collection<IProposedPromiseDropInfo> proposals) {
+	private static List<IProposedPromiseDropInfo> filterOutDuplicates_slow(
+			Collection<IProposedPromiseDropInfo> proposals) {
 		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
 		for (IProposedPromiseDropInfo h : proposals) {
 			boolean addToResult = true;
@@ -345,10 +373,10 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			}
 			if (addToResult)
 				result.add(h);
-		}		
+		}
 		return result;
 	}
-	
+
 	@Override
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
@@ -361,7 +389,7 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		s.addAttribute(TARGET_PROJECT, getTargetProjectName());
 		s.addAttribute(FROM_PROJECT, getFromProjectName());
 	}
-	
+
 	@Override
 	public void snapshotRefs(SeaSnapshot s) {
 		super.snapshotRefs(s);
@@ -371,26 +399,26 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		s.addProperties(ANNO_ATTRS, f_attrs);
 		s.addProperties(REPLACED_ATTRS, f_replacedAttrs);
 	}
-	
+
 	public String getTargetProjectName() {
 		return JavaProjects.getEnclosingProject(getNode()).getName();
 	}
-	
+
 	public IJavaDeclaration getTargetInfo() {
 		return makeJavaDecl(getNode());
 	}
-	
+
 	public String getFromProjectName() {
 		return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
 	}
-	
+
 	public IJavaDeclaration getFromInfo() {
 		return makeJavaDecl(f_requestedFrom);
 	}
-	
+
 	private static IJavaDeclaration makeJavaDecl(IRNode node) {
 		final IIRProject proj = JavaProjects.getEnclosingProject(node);
 		final IBinder b = proj.getTypeEnv().getBinder();
-		return IRNodeUtil.convert(b, node);	
+		return IRNodeUtil.convert(b, node);
 	}
 }

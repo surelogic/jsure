@@ -86,6 +86,7 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -144,7 +145,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// ////////////////////////////////////////////////////////////////////////////
 	// D R O P - S E A L O C K R E S U L T C A T E G O R I E S
 
-
 	private final class LVThisExpressionBinder extends
 			AbstractThisExpressionBinder {
 		public LVThisExpressionBinder(final IBinder b) {
@@ -178,7 +178,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private final Effects effects;
-	
+
 	private final ThisExpressionBinder thisExprBinder;
 
 	private final IIRAnalysis analysisRoot;
@@ -729,8 +729,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * @throws SlotAlreadyRegisteredException
 	 */
 	public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
-	    final IMayAlias ma,
-			final BindingContextAnalysis bca,
+			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
 		analysisRoot = a;
 		binder = b;
@@ -746,8 +745,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		heldLockFactory = new HeldLockFactory(thisExprBinder);
 		neededLockFactory = new NeededLockFactory(thisExprBinder);
 
-		lockUtils = new LockUtils(
-		    glmRef, b, e, mayAlias,	neededLockFactory, thisExprBinder);
+		lockUtils = new LockUtils(glmRef, b, e, mayAlias, neededLockFactory,
+				thisExprBinder);
 		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder, bca);
 
 		// Create the subsidiary flow analyses
@@ -761,18 +760,19 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private void updateJUCAnalysisQueries(final IRNode flowUnit) {
-//	  System.out.println(">>>>>>>>>>>>>>>>>>>> Update JUC Queries: " + DebugUnparser.toString(flowUnit));
-//	  System.out.flush();
+		// System.out.println(">>>>>>>>>>>>>>>>>>>> Update JUC Queries: " +
+		// DebugUnparser.toString(flowUnit));
+		// System.out.flush();
 
-    final LockExpressions lockExprs =
-      jucLockUsageManager.getLockExpressionsFor(flowUnit);
-    if (lockExprs.usesJUCLocks()) {
-      ctxtHeldLocksQuery = mustHold.getHeldLocksQuery(flowUnit);
-    } else {
-      ctxtHeldLocksQuery = MustHoldAnalysis.EMPTY_HELD_LOCKS_QUERY;
-    }
-    ctxtLocksForQuery = mustHold.getLocksForQuery(flowUnit);
-    ctxtMustReleaseQuery = mustRelease.getUnlocksForQuery(flowUnit);
+		final LockExpressions lockExprs = jucLockUsageManager
+				.getLockExpressionsFor(flowUnit);
+		if (lockExprs.usesJUCLocks()) {
+			ctxtHeldLocksQuery = mustHold.getHeldLocksQuery(flowUnit);
+		} else {
+			ctxtHeldLocksQuery = MustHoldAnalysis.EMPTY_HELD_LOCKS_QUERY;
+		}
+		ctxtLocksForQuery = mustHold.getLocksForQuery(flowUnit);
+		ctxtMustReleaseQuery = mustRelease.getUnlocksForQuery(flowUnit);
 	}
 
 	public IBinder getBinder() {
@@ -847,17 +847,16 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		if (resultDependUpon != null && resultDependUpon.isValid()) {
 			drop.addDependUponDrop(resultDependUpon);
 		} else {
-			LOG
-					.log(Level.SEVERE,
-							"setLockResultDep found invalid or null resultDependUpon drop");
+			LOG.log(Level.SEVERE,
+					"setLockResultDep found invalid or null resultDependUpon drop");
 		}
 	}
 
 	private InfoDropBuilder makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info =
-		  InfoDropBuilder.create(analysisRoot, Messages.toString(msgTemplate), InfoDrop.factory);
+		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
+				Messages.toString(msgTemplate), InfoDrop.factory);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -945,9 +944,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private void addLockAcquisitionInformation(final AbstractDropBuilder drop,
 			final LockStack intrinsicLocks, final Set<HeldLock> jucLocks) {
 		for (final StackLock has : intrinsicLocks) {
-			addSupportingInformation(drop, has.lock.getSource(), has.lock
-					.isAssumed() ? Messages.LockAnalysis_ds_AssumedHeld
-					: Messages.LockAnalysis_ds_HeldLock, has.lock);
+			addSupportingInformation(drop, has.lock.getSource(),
+					has.lock.isAssumed() ? Messages.LockAnalysis_ds_AssumedHeld
+							: Messages.LockAnalysis_ds_HeldLock, has.lock);
 		}
 		for (final HeldLock lock : jucLocks) {
 			addSupportingInformation(drop, lock.getSource(),
@@ -957,7 +956,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		// for (final HeldLock lock : il) {
 		// addSupportingInformation(drop, lock.getSource(),
 		// (lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_LOCK_HELD_MSG), lock);
-		//      
+		//
 		// }
 	}
 
@@ -1029,24 +1028,27 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private boolean isPolicyLockMethod(final IRNode mdecl) {
 		if (TypeUtil.isStatic(mdecl)) {
 			// Complain if .class is not declared to be a policy lock.
-			return !sysLockModelHandle.get().getPolicyLocksForLockImpl(
-					ctxtJavaType, ctxtTypeDecl).isEmpty();
+			return !sysLockModelHandle.get()
+					.getPolicyLocksForLockImpl(ctxtJavaType, ctxtTypeDecl)
+					.isEmpty();
 		} else {
-			return !sysLockModelHandle.get().getPolicyLocksForLockImpl(
-					ctxtJavaType, GlobalLockModel.THIS).isEmpty();
+			return !sysLockModelHandle
+					.get()
+					.getPolicyLocksForLockImpl(ctxtJavaType,
+							GlobalLockModel.THIS).isEmpty();
 		}
 	}
 
 	private Set<HeldLock> convertLockExpr(final IRNode lockExpr,
-	    final BindingContextAnalysis.Query bcaQuery,
+			final BindingContextAnalysis.Query bcaQuery,
 			final IRNode enclosingDecl, final IRNode src) {
 		final IRNode sync = SynchronizedStatement.prototype
 				.includes(JJNode.tree.getOperator(src)) ? src : null;
-		if (lockUtils.getFinalExpressionChecker(bcaQuery, enclosingDecl, sync).isFinal(
-				lockExpr)) {
+		if (lockUtils.getFinalExpressionChecker(bcaQuery, enclosingDecl, sync)
+				.isFinal(lockExpr)) {
 			final Set<HeldLock> result = new HashSet<HeldLock>();
-			lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory, enclosingDecl, src,
-					result);
+			lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory,
+					enclosingDecl, src, result);
 			return result;
 		}
 		return Collections.emptySet();
@@ -1191,8 +1193,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * protected by a lock or if f is volatile or final. Array reference
 			 * is not protected.
 			 */
-			final boolean unprotected =
-			  !UniquenessUtils.isFieldUnique(this.binder.getBinding(objExpr))
+			final boolean unprotected = !UniquenessUtils
+					.isFieldUnique(this.binder.getBinding(objExpr))
 					&& (isArrayRef || !isFinalOrVolatile(fieldRef)
 							&& lockUtils.getLockForFieldRef(fieldRef) == null);
 			if (unprotected) {
@@ -1236,16 +1238,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								info.addDependUponDrop(lockRecord.lockDecl);
 
 								if (lockRecord instanceof RegionLockRecord) {
-                  // Propose the aggregate annotation
-                  final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
-                  if ("Instance".equals(simpleRegionName)) {
-                    info.addProposal(new ProposedPromiseBuilder("Unique",
-                        null, fieldDecl, fieldRef));
-                  } else {
-                    info.addProposal(new ProposedPromiseBuilder(
-                        "UniqueInRegion", simpleRegionName, fieldDecl,
-                        fieldRef));
-                  }
+									// Propose the aggregate annotation
+									final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
+									if ("Instance".equals(simpleRegionName)) {
+										info.addProposal(new ProposedPromiseBuilder(
+												"Unique", null, fieldDecl,
+												fieldRef, Origin.MODEL));
+									} else {
+										info.addProposal(new ProposedPromiseBuilder(
+												"UniqueInRegion",
+												simpleRegionName, fieldDecl,
+												fieldRef, Origin.MODEL));
+									}
 								}
 							}
 						}
@@ -1273,14 +1277,15 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						final IRNode fieldDecl = binder.getBinding(objExpr);
 						final String simpleRegionName = innerLock.region.simpleName;
-            if ("Instance".equals(simpleRegionName)) {
-              info.addProposal(new ProposedPromiseBuilder("Unique",
-                  null, fieldDecl, fieldRef));
-            } else {
-              info.addProposal(new ProposedPromiseBuilder(
-                  "UniqueInRegion", simpleRegionName, fieldDecl,
-                  fieldRef));
-            }
+						if ("Instance".equals(simpleRegionName)) {
+							info.addProposal(new ProposedPromiseBuilder(
+									"Unique", null, fieldDecl, fieldRef,
+									Origin.MODEL));
+						} else {
+							info.addProposal(new ProposedPromiseBuilder(
+									"UniqueInRegion", simpleRegionName,
+									fieldDecl, fieldRef, Origin.MODEL));
+						}
 					}
 				}
 			}
@@ -1308,8 +1313,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (type instanceof IJavaSourceRefType) {
 				final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
 				final IRNode typeDeclarationNode = srcRefType.getDeclaration();
-				final boolean isThreadSafe = 
-				  LockRules.isThreadSafe(typeDeclarationNode);
+				final boolean isThreadSafe = LockRules
+						.isThreadSafe(typeDeclarationNode);
 				isSafe = isThreadSafe || classDeclaresLocks(type);
 			} else if (type instanceof IJavaIntersectionType) {
 				final IJavaIntersectionType iType = (IJavaIntersectionType) type;
@@ -1340,8 +1345,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * is true
 	 * <ul>
 	 * <li>The expression is a FieldRef and the field is unique
-	 * <li>The type of the expression indicates via <code>ThreadSafe</code>
-	 * that the object protects itself (or otherwise describes how it should be
+	 * <li>The type of the expression indicates via <code>ThreadSafe</code> that
+	 * the object protects itself (or otherwise describes how it should be
 	 * protected).
 	 * </ul>
 	 * <p>
@@ -1357,8 +1362,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final Operator op = JJNode.tree.getOperator(actualRcvr);
 			if (FieldRef.prototype.includes(op)) {
 				// If the field is unique, it is a safe object
-				final boolean isUnique = UniquenessUtils.isFieldUnique(
-				    this.binder.getBinding(actualRcvr));
+				final boolean isUnique = UniquenessUtils
+						.isFieldUnique(this.binder.getBinding(actualRcvr));
 				if (!isUnique) {
 					/*
 					 * See if the field is protected: either directly, or
@@ -1377,12 +1382,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							final IJavaType rcvrType = binder
 									.getJavaType(FieldRef.getObject(actualRcvr));
 							final Set<AbstractLockRecord> records = sysLockModelHandle
-									.get().getRegionAndPolicyLocksInClass(rcvrType);
+									.get().getRegionAndPolicyLocksInClass(
+											rcvrType);
 							for (final AbstractLockRecord lockRecord : records) {
 								if (!lockRecord.lockDecl.equals(lockUtils
 										.getMutex())) {
-									info
-											.addDependUponDrop(lockRecord.lockDecl);
+									info.addDependUponDrop(lockRecord.lockDecl);
 								}
 							}
 						}
@@ -1448,8 +1453,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
 				final ResultDropBuilder result = lv.makeResultDrop(useSite,
-						promise, false, badMsg, lock, DebugUnparser
-								.toString(useSite), altLock);
+						promise, false, badMsg, lock,
+						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(badCategory);
 				return result;
 			}
@@ -1465,8 +1470,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
 				final ResultDropBuilder result = lv.makeResultDrop(useSite,
-						promise, true, goodMsg, lock, DebugUnparser
-								.toString(useSite), altLock);
+						promise, true, goodMsg, lock,
+						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
 				return result;
 			}
@@ -1482,8 +1487,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
 				final ResultDropBuilder result = lv.makeResultDrop(useSite,
-						promise, true, classInitMsg, lock, DebugUnparser
-								.toString(useSite), altLock);
+						promise, true, classInitMsg, lock,
+						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
 				return result;
 			}
@@ -1499,8 +1504,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
 				final ResultDropBuilder result = lv.makeResultDrop(useSite,
-						promise, true, threadConfinedMsg, lock, DebugUnparser
-								.toString(useSite), altLock);
+						promise, true, threadConfinedMsg, lock,
+						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
 				return result;
 			}
@@ -1635,24 +1640,24 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					isBad = true;
 				}
 				if (isBad) {
-					resultDrop =
-					  lhr.getResult(LockVisitor.this, promise,
+					resultDrop = lhr.getResult(LockVisitor.this, promise,
 							badCategory, goodCategory, badMsg, goodMsg,
 							classInitMsg, threadConfinedMsg, neededLock,
 							useSite, alternativeLock);
 
 					/*
 					 * Add proposed promise if we are inside a constructor and
-					 * the constructor is not thread-confined.  ctxtSingleThreadedData
-					 * may be non-null while ctxtInsideConstructor is null when we are
-					 * inside the initializer of an anonymous class expression. 
+					 * the constructor is not thread-confined.
+					 * ctxtSingleThreadedData may be non-null while
+					 * ctxtInsideConstructor is null when we are inside the
+					 * initializer of an anonymous class expression.
 					 */
 					if (ctxtSingleThreadedData != null
 							&& !ctxtSingleThreadedData.isSingleThreaded
 							&& ctxtInsideConstructor != null) {
 						resultDrop.addProposal(new ProposedPromiseBuilder(
 								"Unique", "return", ctxtInsideConstructor,
-								useSite));
+								useSite, Origin.MODEL));
 					}
 
 					/*
@@ -1669,7 +1674,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								&& !"MUTEX".equals(neededLockName)) {
 							resultDrop.addProposal(new ProposedPromiseBuilder(
 									"RequiresLock", neededLockName,
-									ctxtInsideMethod, useSite));
+									ctxtInsideMethod, useSite, Origin.MODEL));
 						}
 					}
 				}
@@ -1773,8 +1778,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * lock <code>L</code> must be held.
 		 */
 		final Set<NeededLock> neededLocks = lockUtils
-				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery, ctxtConflicter,
-						call, enclosingMethod);
+				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery,
+						ctxtConflicter, call, enclosingMethod);
 		final LockChecker indirectAccessChecker = new LockChecker(call) {
 			@Override
 			protected LockModel getPromiseDrop(final NeededLock neededLock) {
@@ -1809,9 +1814,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * {@link PromiseUtil#getEnclosingMethod(IRNode)} because it understands the
 	 * current context, i.e., whether we are analyzing field initializers or
 	 * instance initializer blocks on behalf of a particular constructor. It
-	 * returns that constructor as the enclosing method. Using {@code
-	 * PromiseUtil.getEnclosingMethod} in such cases would return the special
-	 * instance initializer method.
+	 * returns that constructor as the enclosing method. Using
+	 * {@code PromiseUtil.getEnclosingMethod} in such cases would return the
+	 * special instance initializer method.
 	 */
 	private IRNode getEnclosingMethod() {
 		if (ctxtInsideMethod != null) {
@@ -1831,7 +1836,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private MustHoldAnalysis.HeldLocks getHeldJUCLocks(final IRNode node) {
-	  return ctxtHeldLocksQuery.getResultFor(node);
+		return ctxtHeldLocksQuery.getResultFor(node);
 	}
 
 	// private Set<HeldLock> getHeldIntrinsicLocks(final IRNode node) {
@@ -1885,11 +1890,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Don't go inside of annotations
 	@Override
 	public Void visitAnnotation(final IRNode anno) {
-	  return null;
+		return null;
 	}
-	
-	
-	
+
 	@Override
 	public Void visitAnonClassExpression(final IRNode expr) {
 		assureCall(expr);
@@ -1940,8 +1943,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						// Create the substitution map
 						ctxtEnclosingRefs = MethodCallUtils
 								.getEnclosingInstanceReferences(binder,
-										thisExprBinder, expr,
-										binder.getBinding(AnonClassExpression.getType(expr)),
+										thisExprBinder, expr, binder
+												.getBinding(AnonClassExpression
+														.getType(expr)),
 										oldTheReceiverNode,
 										getEnclosingMethod());
 
@@ -1965,8 +1969,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * initialization method for the class. We set the
 						 * receiver accordingly.
 						 */
-						ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
-						
+						ctxtInsideMethod = JavaPromise
+								.getInitMethodOrNull(expr);
+
 						/*
 						 * MUST update receiver node before creating the flow
 						 * analyses because they indirectly use this field via
@@ -1976,11 +1981,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						ctxtTheReceiverNode = JavaPromise
 								.getReceiverNodeOrNull(ctxtInsideMethod);
-						
+
 						ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(expr);
-            ctxtHeldLocksQuery = ctxtHeldLocksQuery.getSubAnalysisQuery(expr);
-            ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(expr);
-            ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(expr);
+						ctxtHeldLocksQuery = ctxtHeldLocksQuery
+								.getSubAnalysisQuery(expr);
+						ctxtLocksForQuery = ctxtLocksForQuery
+								.getSubAnalysisQuery(expr);
+						ctxtMustReleaseQuery = ctxtMustReleaseQuery
+								.getSubAnalysisQuery(expr);
 
 						ctxtConflicter = new ConflictChecker(binder, mayAlias);
 						ctxtOnBehalfOfConstructor = false;
@@ -2005,9 +2013,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtConstructorName = oldConstructorName;
 						ctxtTheReceiverNode = oldTheReceiverNode;
 					}
-					
+
 					public void afterVisit() {
-					  // nothing
+						// nothing
 					}
 				});
 
@@ -2023,8 +2031,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		dereferencesSafeObject(expr);
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
-				effects, ctxtBcaQuery, expr, !isWrite, lockUtils.createInstanceTarget(
-						ArrayRefExpression.getArray(expr), RegionModel.getInstanceRegion(expr))));
+				effects,
+				ctxtBcaQuery,
+				expr,
+				!isWrite,
+				lockUtils.createInstanceTarget(
+						ArrayRefExpression.getArray(expr),
+						RegionModel.getInstanceRegion(expr))));
 		// continue into the expression
 		doAcceptForChildren(expr);
 		return null;
@@ -2104,13 +2117,17 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
 		final MustReleaseAnalysis.Query oldCtxtMustReleaseQuery = ctxtMustReleaseQuery;
 		InstanceInitializationVisitor.processConstructorCall(expr,
-				TypeDeclaration.getBody(ctxtTypeDecl), this, new InstanceInitAction() {
+				TypeDeclaration.getBody(ctxtTypeDecl), this,
+				new InstanceInitAction() {
 					public void tryBefore() {
 						ctxtOnBehalfOfConstructor = true;
 						ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(expr);
-						ctxtHeldLocksQuery = ctxtHeldLocksQuery.getSubAnalysisQuery(expr);
-						ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(expr);
-						ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(expr);
+						ctxtHeldLocksQuery = ctxtHeldLocksQuery
+								.getSubAnalysisQuery(expr);
+						ctxtLocksForQuery = ctxtLocksForQuery
+								.getSubAnalysisQuery(expr);
+						ctxtMustReleaseQuery = ctxtMustReleaseQuery
+								.getSubAnalysisQuery(expr);
 					}
 
 					public void finallyAfter() {
@@ -2120,9 +2137,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtLocksForQuery = oldLocksForQuery;
 						ctxtMustReleaseQuery = oldCtxtMustReleaseQuery;
 					}
-					
+
 					public void afterVisit() {
-					  // nothing
+						// nothing
 					}
 				});
 
@@ -2137,7 +2154,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// First thing: update the receiver node
 			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
 			ctxtInsideConstructor = cdecl;
-			ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(cdecl);
+			ctxtBcaQuery = bindingContextAnalysis
+					.getExpressionObjectsQuery(cdecl);
 			ctxtConflicter = new ConflictChecker(binder, mayAlias);
 			ctxtConstructorName = new Object[] { JavaNames
 					.genMethodConstructorName(cdecl) };
@@ -2206,8 +2224,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (fieldAsRegion.isStatic()) {
 				target = lockUtils.createClassTarget(fieldAsRegion);
 			} else {
-				target = lockUtils.createInstanceTarget(FieldRef
-						.getObject(fieldRef), fieldAsRegion);
+				target = lockUtils.createInstanceTarget(
+						FieldRef.getObject(fieldRef), fieldAsRegion);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
 					effects, ctxtBcaQuery, fieldRef, !isWrite, target));
@@ -2253,18 +2271,19 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// Warn about the use of lock()/unlock() methods that aren't from
 			// the lock class
 			makeWarningDrop(Messages.DSC_NOT_A_LOCK_METHOD, expr,
-					Messages.LockAnalysis_ds_MasqueradingCall, DebugUnparser
-							.toString(expr));
+					Messages.LockAnalysis_ds_MasqueradingCall,
+					DebugUnparser.toString(expr));
 		} else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
 			final IRNode object = call.get_Object(expr);
 			final IRNode enclosingMethod = getEnclosingMethod();
-			if (lockUtils.getFinalExpressionChecker(
-			    ctxtBcaQuery, enclosingMethod, null).isFinal(object)) {
+			if (lockUtils.getFinalExpressionChecker(ctxtBcaQuery,
+					enclosingMethod, null).isFinal(object)) {
 				final Set<HeldLock> lockSet = new HashSet<HeldLock>();
-				lockUtils.convertJUCLockExpr(object, heldLockFactory, enclosingMethod, null,
-						lockSet);
+				lockUtils.convertJUCLockExpr(object, heldLockFactory,
+						enclosingMethod, null, lockSet);
 				if (lockSet.isEmpty()) {
-					makeWarningDrop(Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING, object,
+					makeWarningDrop(Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
+							object,
 							Messages.LockAnalysis_ds_UnidentifiableLock,
 							DebugUnparser.toString(object));
 				}
@@ -2359,8 +2378,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// Warn about the use of lock()/unlock() methods that aren't from
 			// the lock class
 			makeWarningDrop(Messages.DSC_NOT_A_LOCK_METHOD, expr,
-					Messages.LockAnalysis_ds_MasqueradingCall2, DebugUnparser
-							.toString(expr));
+					Messages.LockAnalysis_ds_MasqueradingCall2,
+					DebugUnparser.toString(expr));
 		}
 
 		/* Proceed with normal assurance of the method call */
@@ -2398,8 +2417,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			boolean syncLockIsPolicyLock = false;
 			if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
 				final Set<HeldLock> syncMethodLocks = new HashSet<HeldLock>();
-				lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory, ctxtTheReceiverNode,
-						ctxtJavaType, ctxtTypeDecl, syncMethodLocks);
+				lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory,
+						ctxtTheReceiverNode, ctxtJavaType, ctxtTypeDecl,
+						syncMethodLocks);
 				syncFrame.push(syncMethodLocks);
 				// convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl,
 				// syncFrame);
@@ -2454,8 +2474,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (returnedLockName != null) {
 				ctxtReturnsLockDrop = returnedLockName;
 				ctxtReturnedLock = LockUtils.convertLockNameToMethodContext(
-						mdecl, heldLockFactory, returnedLockName.getAST().getLock(), false,
-						null, ctxtTheReceiverNode);
+						mdecl, heldLockFactory, returnedLockName.getAST()
+								.getLock(), false, null, ctxtTheReceiverNode);
 			}
 			// Analyze the children
 			doAcceptForChildren(mdecl);
@@ -2572,8 +2592,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * method. Furthermore, we can pass null to as the constructor
 			 * context to convertLockExpr(), because we must be inside a method.
 			 */
-			for (final HeldLock lock :
-			    convertLockExpr(expr, ctxtBcaQuery, ctxtInsideMethod,	rstmt)) {
+			for (final HeldLock lock : convertLockExpr(expr, ctxtBcaQuery,
+					ctxtInsideMethod, rstmt)) {
 				correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder,
 						binder);
 			}
@@ -2632,20 +2652,21 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (lockUtils.implementsLock(typeOfLockExpr)
 					|| lockUtils.implementsReadWriteLock(typeOfLockExpr)) {
 				makeWarningDrop(Messages.DSC_MIXED_PARADIGM, lockExpr,
-						Messages.LockAnalysis_ds_SyncedJUCLock, DebugUnparser
-								.toString(lockExpr));
+						Messages.LockAnalysis_ds_SyncedJUCLock,
+						DebugUnparser.toString(lockExpr));
 				lockIsIdentifiable = false;
 			} else { // possible intrinsic lock
 				// Only decode the lock if it is a final expression
 				final IRNode enclosingMethod = getEnclosingMethod();
-				if (lockUtils.getFinalExpressionChecker(
-				    ctxtBcaQuery, enclosingMethod, syncBlock).isFinal(lockExpr)) {
+				if (lockUtils.getFinalExpressionChecker(ctxtBcaQuery,
+						enclosingMethod, syncBlock).isFinal(lockExpr)) {
 					// Push the acquired locks into the lock context
 					// convertLockExpr(lockExpr, getEnclosingMethod(lockExpr),
 					// syncBlock, syncFrame);
 					final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
-					lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory,
-							enclosingMethod, syncBlock, heldLocks);
+					lockUtils.convertIntrinsicLockExpr(lockExpr,
+							heldLockFactory, enclosingMethod, syncBlock,
+							heldLocks);
 					syncFrame.push(heldLocks);
 
 					lockIsPolicyLock = isPolicyLockExpr(lockExpr);
@@ -2724,8 +2745,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 												VariableDeclarator
 														.getId(lockRecord.lockImpl),
 												lockRecord.name);
-										warning
-												.addDependUponDrop(lockRecord.lockDecl);
+										warning.addDependUponDrop(lockRecord.lockDecl);
 									}
 								}
 							}
@@ -2739,17 +2759,19 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						lockIsIdentifiable = false;
 					}
 				} else { // Non-final lock expression -> warning!
-				  // If the expression were final, would we be able to resolve the lock?
-          final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
-          lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory,
-              enclosingMethod, syncBlock, heldLocks);
+					// If the expression were final, would we be able to resolve
+					// the lock?
+					final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
+					lockUtils.convertIntrinsicLockExpr(lockExpr,
+							heldLockFactory, enclosingMethod, syncBlock,
+							heldLocks);
 
-					final InfoDropBuilder warning = 
-					  makeWarningDrop(Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
-					      Messages.LockAnalysis_ds_NonfinalExpression,
-					      DebugUnparser.toString(lockExpr));
+					final InfoDropBuilder warning = makeWarningDrop(
+							Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
+							Messages.LockAnalysis_ds_NonfinalExpression,
+							DebugUnparser.toString(lockExpr));
 					for (final HeldLock l : heldLocks) {
-					  warning.addDependUponDrop(l.getLockPromise());
+						warning.addDependUponDrop(l.getLockPromise());
 					}
 					lockIsIdentifiable = false;
 				}
@@ -2850,12 +2872,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (isStaticDeclaration) {
 						final IRNode classDecl = VisitUtil
 								.getClosestType(varDecl);
-						ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
+						ctxtInsideMethod = JavaPromise
+								.getClassInitOrNull(classDecl);
 						ctxtBcaQuery = bindingContextAnalysis
 								.getExpressionObjectsQuery(ctxtInsideMethod);
 						updateJUCAnalysisQueries(ctxtInsideMethod);
-						ctxtConflicter = new ConflictChecker(binder,
-								mayAlias);
+						ctxtConflicter = new ConflictChecker(binder, mayAlias);
 						ctxtClassInitializationLocks = convertStaticInitializerBlock(
 								varDecl, ctxtJavaType);
 					}
@@ -2880,10 +2902,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								target = lockUtils.createInstanceTarget(
 										ctxtTheReceiverNode, fieldAsRegion);
 							}
-							assureRegionRef(varDecl, lockUtils
-									.getLocksForDirectRegionAccess(
-											effects, ctxtBcaQuery, varDecl, false,
-											target));
+							assureRegionRef(varDecl,
+									lockUtils.getLocksForDirectRegionAccess(
+											effects, ctxtBcaQuery, varDecl,
+											false, target));
 						}
 						// analyze the the RHS of the initialization
 						doAcceptForChildren(varDecl);
@@ -2911,174 +2933,186 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return null;
 	}
 
-  @Override
-  public Void visitEnumConstantDeclaration(final IRNode constDecl) {
-    /* Enumeration constant declarations are sort of like static field
-     * declarations, so we base this off of visitVariableDeclarator assuming
-     * a static field.
-     */
-    final IRNode classDecl = VisitUtil.getClosestType(constDecl);
-    ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
-    ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-    updateJUCAnalysisQueries(ctxtInsideMethod);
-    ctxtConflicter = new ConflictChecker(binder, mayAlias);
-    ctxtClassInitializationLocks =
-      convertStaticInitializerBlock(constDecl, ctxtJavaType);
+	@Override
+	public Void visitEnumConstantDeclaration(final IRNode constDecl) {
+		/*
+		 * Enumeration constant declarations are sort of like static field
+		 * declarations, so we base this off of visitVariableDeclarator assuming
+		 * a static field.
+		 */
+		final IRNode classDecl = VisitUtil.getClosestType(constDecl);
+		ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
+		ctxtBcaQuery = bindingContextAnalysis
+				.getExpressionObjectsQuery(ctxtInsideMethod);
+		updateJUCAnalysisQueries(ctxtInsideMethod);
+		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+		ctxtClassInitializationLocks = convertStaticInitializerBlock(constDecl,
+				ctxtJavaType);
 
-    try {
-      /* Enumeration constant declarations are also like new expressions,
-       * so we assure the call.
-       */
-      assureCall(constDecl);
-      /* Assure the arguments (if any) */
-      doAcceptForChildren(constDecl);
-    } finally {
-      ctxtClassInitializationLocks = null;
-      ctxtInsideMethod = null;
-      ctxtBcaQuery = null;
-      ctxtHeldLocksQuery = null;
-      ctxtLocksForQuery = null;
-      ctxtMustReleaseQuery = null;
-      ctxtConflicter = null;
-    }
-    return null;
-  }	
+		try {
+			/*
+			 * Enumeration constant declarations are also like new expressions,
+			 * so we assure the call.
+			 */
+			assureCall(constDecl);
+			/* Assure the arguments (if any) */
+			doAcceptForChildren(constDecl);
+		} finally {
+			ctxtClassInitializationLocks = null;
+			ctxtInsideMethod = null;
+			ctxtBcaQuery = null;
+			ctxtHeldLocksQuery = null;
+			ctxtLocksForQuery = null;
+			ctxtMustReleaseQuery = null;
+			ctxtConflicter = null;
+		}
+		return null;
+	}
 
-  @Override
-  public Void visitEnumConstantClassDeclaration(final IRNode constDecl) {
-    /* Enumeration constant declarations are sort of like static field
-     * declarations, so we (1) base this off of visitVariableDeclarator assuming
-     * a static field.  (2) This is also like an anonymous class expression.
-     */
-    
-    /* (1) Set up context as if we are entering a static field declaration */
-    final IRNode classDecl = VisitUtil.getEnclosingType(constDecl);
-    ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
-    ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-    updateJUCAnalysisQueries(ctxtInsideMethod);
-    ctxtConflicter = new ConflictChecker(binder, mayAlias);
-    ctxtClassInitializationLocks =
-      convertStaticInitializerBlock(constDecl, ctxtJavaType);
+	@Override
+	public Void visitEnumConstantClassDeclaration(final IRNode constDecl) {
+		/*
+		 * Enumeration constant declarations are sort of like static field
+		 * declarations, so we (1) base this off of visitVariableDeclarator
+		 * assuming a static field. (2) This is also like an anonymous class
+		 * expression.
+		 */
 
-    try {
-      // Assure the constructor call
-      assureCall(constDecl);
-      // Visit the arguments
-      doAccept(EnumConstantClassDeclaration.getArgs(constDecl));
-      
-      /* (2) Now set up context as if we are entering an anonymous class expression
-       * that is being assigned to the field.
-       * 
-       * This is taken from vistAnonClassExpression(), except that we call
-       * processEnumConstantClassDeclaration().
-       */
-      final IRNode oldTypeDecl = ctxtTypeDecl;
-      final IJavaDeclaredType oldJavaType = ctxtJavaType;
-      final IRNode oldInsideMethod = ctxtInsideMethod;
-      final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
-      final JavaFlowAnalysisQuery<HeldLocks> oldHeldLocksQuery = ctxtHeldLocksQuery;
-      final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
-      final MustReleaseAnalysis.Query oldMRQ = ctxtMustReleaseQuery;
-      final ConflictChecker oldConflicter = ctxtConflicter;
-      final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
-      final IRNode oldInsideConstructor = ctxtInsideConstructor;
-      final Object[] oldConstructorName = ctxtConstructorName;
-      final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
-      final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
-      final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
-      InstanceInitializationVisitor.processEnumConstantClassDeclaration(constDecl, this,
-          new InstanceInitAction() {
-            public void tryBefore() {
-              ctxtInsideAnonClassExpr = true;
-              // Create the substitution map
-              ctxtEnclosingRefs = MethodCallUtils
-                  .getEnclosingInstanceReferences(binder,
-                      thisExprBinder, constDecl, oldTypeDecl,
-                      oldTheReceiverNode,
-                      getEnclosingMethod());
+		/* (1) Set up context as if we are entering a static field declaration */
+		final IRNode classDecl = VisitUtil.getEnclosingType(constDecl);
+		ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
+		ctxtBcaQuery = bindingContextAnalysis
+				.getExpressionObjectsQuery(ctxtInsideMethod);
+		updateJUCAnalysisQueries(ctxtInsideMethod);
+		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+		ctxtClassInitializationLocks = convertStaticInitializerBlock(constDecl,
+				ctxtJavaType);
 
-              /*
-               * Update the type being analyzed to be the anonymous
-               * class expression
-               */
-              ctxtTypeDecl = constDecl;
-              ctxtJavaType = JavaTypeFactory
-                  .getMyThisType(ctxtTypeDecl);
+		try {
+			// Assure the constructor call
+			assureCall(constDecl);
+			// Visit the arguments
+			doAccept(EnumConstantClassDeclaration.getArgs(constDecl));
 
-              /*
-               * The information needed for checking returned locks
-               * can be preserved, it is not needed by the recursive
-               * visitation because we will only visit field
-               * initializers and instance initializers.
-               */
-              /* left hand side is irrelevant here. */
-              /*
-               * The recursive visit is analyzing as the implicit
-               * initialization method for the class. We set the
-               * receiver accordingly.
-               */
-              ctxtInsideMethod = JavaPromise.getInitMethodOrNull(constDecl);
-              
-              /*
-               * MUST update receiver node before creating the flow
-               * analyses because they indirectly use this field via
-               * the this expression binder object used by the lock
-               * factories. They have access to this factories via the
-               * lock utils object and the juc lock usage manager.
-               */
-              ctxtTheReceiverNode = JavaPromise
-                  .getReceiverNodeOrNull(ctxtInsideMethod);
-              
-              ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(constDecl);
-              ctxtHeldLocksQuery = ctxtHeldLocksQuery.getSubAnalysisQuery(constDecl);
-              ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(constDecl);
-              ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(constDecl);
+			/*
+			 * (2) Now set up context as if we are entering an anonymous class
+			 * expression that is being assigned to the field.
+			 * 
+			 * This is taken from vistAnonClassExpression(), except that we call
+			 * processEnumConstantClassDeclaration().
+			 */
+			final IRNode oldTypeDecl = ctxtTypeDecl;
+			final IJavaDeclaredType oldJavaType = ctxtJavaType;
+			final IRNode oldInsideMethod = ctxtInsideMethod;
+			final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
+			final JavaFlowAnalysisQuery<HeldLocks> oldHeldLocksQuery = ctxtHeldLocksQuery;
+			final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
+			final MustReleaseAnalysis.Query oldMRQ = ctxtMustReleaseQuery;
+			final ConflictChecker oldConflicter = ctxtConflicter;
+			final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
+			final IRNode oldInsideConstructor = ctxtInsideConstructor;
+			final Object[] oldConstructorName = ctxtConstructorName;
+			final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
+			final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
+			final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
+			InstanceInitializationVisitor.processEnumConstantClassDeclaration(
+					constDecl, this, new InstanceInitAction() {
+						public void tryBefore() {
+							ctxtInsideAnonClassExpr = true;
+							// Create the substitution map
+							ctxtEnclosingRefs = MethodCallUtils
+									.getEnclosingInstanceReferences(binder,
+											thisExprBinder, constDecl,
+											oldTypeDecl, oldTheReceiverNode,
+											getEnclosingMethod());
 
-              ctxtConflicter = new ConflictChecker(binder, mayAlias);
-              ctxtOnBehalfOfConstructor = false;
-              ctxtInsideConstructor = null;
-              ctxtConstructorName = null;
-            }
+							/*
+							 * Update the type being analyzed to be the
+							 * anonymous class expression
+							 */
+							ctxtTypeDecl = constDecl;
+							ctxtJavaType = JavaTypeFactory
+									.getMyThisType(ctxtTypeDecl);
 
-            public void finallyAfter() {
-              // restore the global state
-              ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
-              ctxtEnclosingRefs = oldEnclosingRefs;
-              ctxtTypeDecl = oldTypeDecl;
-              ctxtJavaType = oldJavaType;
-              ctxtInsideMethod = oldInsideMethod;
-              ctxtBcaQuery = oldBcaQuery;
-              ctxtHeldLocksQuery = oldHeldLocksQuery;
-              ctxtLocksForQuery = oldLocksForQuery;
-              ctxtMustReleaseQuery = oldMRQ;
-              ctxtConflicter = oldConflicter;
-              ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
-              ctxtInsideConstructor = oldInsideConstructor;
-              ctxtConstructorName = oldConstructorName;
-              ctxtTheReceiverNode = oldTheReceiverNode;
-            }
-            
-            public void afterVisit() {
-              // nothing
-            }
-          });
+							/*
+							 * The information needed for checking returned
+							 * locks can be preserved, it is not needed by the
+							 * recursive visitation because we will only visit
+							 * field initializers and instance initializers.
+							 */
+							/* left hand side is irrelevant here. */
+							/*
+							 * The recursive visit is analyzing as the implicit
+							 * initialization method for the class. We set the
+							 * receiver accordingly.
+							 */
+							ctxtInsideMethod = JavaPromise
+									.getInitMethodOrNull(constDecl);
 
-    } finally {
-      // End of static field declaration
-      ctxtClassInitializationLocks = null;
-      ctxtInsideMethod = null;
-      ctxtBcaQuery = null;
-      ctxtHeldLocksQuery = null;
-      ctxtLocksForQuery = null;
-      ctxtMustReleaseQuery = null;
-      ctxtConflicter = null;
-    }
-        
+							/*
+							 * MUST update receiver node before creating the
+							 * flow analyses because they indirectly use this
+							 * field via the this expression binder object used
+							 * by the lock factories. They have access to this
+							 * factories via the lock utils object and the juc
+							 * lock usage manager.
+							 */
+							ctxtTheReceiverNode = JavaPromise
+									.getReceiverNodeOrNull(ctxtInsideMethod);
 
+							ctxtBcaQuery = ctxtBcaQuery
+									.getSubAnalysisQuery(constDecl);
+							ctxtHeldLocksQuery = ctxtHeldLocksQuery
+									.getSubAnalysisQuery(constDecl);
+							ctxtLocksForQuery = ctxtLocksForQuery
+									.getSubAnalysisQuery(constDecl);
+							ctxtMustReleaseQuery = ctxtMustReleaseQuery
+									.getSubAnalysisQuery(constDecl);
 
-    return null;
-  } 
-	
+							ctxtConflicter = new ConflictChecker(binder,
+									mayAlias);
+							ctxtOnBehalfOfConstructor = false;
+							ctxtInsideConstructor = null;
+							ctxtConstructorName = null;
+						}
+
+						public void finallyAfter() {
+							// restore the global state
+							ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
+							ctxtEnclosingRefs = oldEnclosingRefs;
+							ctxtTypeDecl = oldTypeDecl;
+							ctxtJavaType = oldJavaType;
+							ctxtInsideMethod = oldInsideMethod;
+							ctxtBcaQuery = oldBcaQuery;
+							ctxtHeldLocksQuery = oldHeldLocksQuery;
+							ctxtLocksForQuery = oldLocksForQuery;
+							ctxtMustReleaseQuery = oldMRQ;
+							ctxtConflicter = oldConflicter;
+							ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
+							ctxtInsideConstructor = oldInsideConstructor;
+							ctxtConstructorName = oldConstructorName;
+							ctxtTheReceiverNode = oldTheReceiverNode;
+						}
+
+						public void afterVisit() {
+							// nothing
+						}
+					});
+
+		} finally {
+			// End of static field declaration
+			ctxtClassInitializationLocks = null;
+			ctxtInsideMethod = null;
+			ctxtBcaQuery = null;
+			ctxtHeldLocksQuery = null;
+			ctxtLocksForQuery = null;
+			ctxtMustReleaseQuery = null;
+			ctxtConflicter = null;
+		}
+
+		return null;
+	}
+
 	// ----------------------------------------------------------------------
 
 	@Override
@@ -3091,6 +3125,3 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return null;
 	}
 }
-
-
-

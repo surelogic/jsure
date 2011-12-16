@@ -43,6 +43,7 @@ import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.InfoDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
@@ -163,13 +164,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 						}
 					}
 				} else {
-				  // Infer effects
-				  final Set<Effect> inferredEffects = 
-				    inferEffects(isConstructor, member, implFx);
-          final ProposedPromiseBuilder pb =
-            new ProposedPromiseBuilder("RegionEffects",
-                Effects.unparseForPromise(inferredEffects), member, member);
-          handleBuilder(pb);
+					// Infer effects
+					final Set<Effect> inferredEffects = inferEffects(
+							isConstructor, member, implFx);
+					final ProposedPromiseBuilder pb = new ProposedPromiseBuilder(
+							"RegionEffects",
+							Effects.unparseForPromise(inferredEffects), member,
+							member, Origin.CODE);
+					handleBuilder(pb);
 				}
 			} else if (TypeUtil.isTypeDecl(member)) {
 			  reportClassInitializationEffects(member);
@@ -360,7 +362,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final Set<Effect> inferred = inferEffects(true, constructor, missing);
       final ProposedPromiseBuilder proposed = 
         new ProposedPromiseBuilder("RegionEffects", 
-            Effects.unparseForPromise(inferred), constructor, constructor);
+            Effects.unparseForPromise(inferred), constructor, constructor, Origin.MODEL);
       for (final ResultDropBuilder r : badDrops) {
         r.addProposal(proposed);
       }
@@ -390,7 +392,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         new ProposedPromiseBuilder("RegionEffects", 
             Effects.unparseForPromise(inferred), 
             declEffDrop.getAST().toString().substring("RegionEffects".length()).trim(), 
-            method, method);
+            method, method, Origin.MODEL);
       for (final ResultDropBuilder r : badDrops) {
         r.addProposal(proposed);
       }

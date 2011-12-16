@@ -38,10 +38,8 @@ public final class ProposedPromiseContentProvider extends
 		AbstractResultsTableContentProvider<IProposedPromiseDropInfo> implements
 		IResultsTableContentProvider, IJSureTreeContentProvider {
 	private static final Package[] noPackages = new Package[0];
-	private static final String[] nothingToShow = new String[] {
-		"No proposals to show"
-	};
-	
+	private static final String[] nothingToShow = new String[] { "No proposals to show" };
+
 	private boolean asTree;
 	private Package[] packages = noPackages;
 
@@ -68,17 +66,17 @@ public final class ProposedPromiseContentProvider extends
 		List<IProposedPromiseDropInfo> proposedPromiseDrops = ProposedPromiseDrop
 				.filterOutDuplicates(info
 						.<IProposedPromiseDropInfo, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
-		final boolean filter = 
-			EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
+		final boolean filter = EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
 		if (filter) {
-			final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops.iterator();
+			final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops
+					.iterator();
 			while (it.hasNext()) {
 				IProposedPromiseDropInfo p = it.next();
-				if (p.getOrigin() != Origin.PROMISE) {
+				if (!p.isAbductivelyInferred())
 					it.remove();
-				}
 			}
-		}		
+		}
 		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
 				// TODO omit annotations on implicitly created methods in enums?
@@ -92,10 +90,10 @@ public final class ProposedPromiseContentProvider extends
 				contents.add(id);
 			}
 		}
-		packages = Package.organize(proposedPromiseDrops);		
+		packages = Package.organize(proposedPromiseDrops);
 		if (packages != null) {
 			Arrays.sort(packages);
-		} 
+		}
 		Collections.sort(contents, sortByProposal);
 		return info.getLabel();
 	}
@@ -237,7 +235,8 @@ public final class ProposedPromiseContentProvider extends
 				map.put(key, d);
 			}
 			List<Package> things = new ArrayList<Package>();
-			for (Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map.entrySet()) {
+			for (Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map
+					.entrySet()) {
 				things.add(new Package(e.getKey(), e.getValue()));
 			}
 			return things.toArray(noPackages);
@@ -306,14 +305,16 @@ public final class ProposedPromiseContentProvider extends
 			}
 			return members.toArray(new Type[members.size()]);
 		}
-		
+
 		Member<?>[] getMembers() {
 			List<Member<?>> members = new ArrayList<Member<?>>();
 			for (Decl f : sort(fields)) {
-				members.add(new FieldMember(f.id, f.getProposals(), f.getTypes()));
+				members.add(new FieldMember(f.id, f.getProposals(), f
+						.getTypes()));
 			}
 			for (Decl m : sort(methods)) {
-				members.add(new MethodMember(m.id, m.getProposals(), m.getTypes()));
+				members.add(new MethodMember(m.id, m.getProposals(), m
+						.getTypes()));
 			}
 			for (Decl t : sort(types)) {
 				members.add(new Type(t.id, t.getProposals(), t.getMembers()));
@@ -368,8 +369,9 @@ public final class ProposedPromiseContentProvider extends
 	static abstract class Member<T extends Member<?>> extends
 			AbstractTreeable<IProposedPromiseDropInfo> {
 		final T[] members;
-		
-		Member(String id, IProposedPromiseDropInfo[] c, T[] members, boolean sort) {
+
+		Member(String id, IProposedPromiseDropInfo[] c, T[] members,
+				boolean sort) {
 			super(id, c, sort);
 			this.members = members;
 		}
@@ -379,7 +381,7 @@ public final class ProposedPromiseContentProvider extends
 			return JavaUI.getSharedImages().getImage(
 					ISharedImages.IMG_OBJS_PUBLIC);
 		}
-		
+
 		@Override
 		public boolean hasChildren() {
 			return (members != null && members.length > 0)

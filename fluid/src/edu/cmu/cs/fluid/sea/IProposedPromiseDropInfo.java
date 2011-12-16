@@ -17,6 +17,7 @@ public interface IProposedPromiseDropInfo extends IDropInfo {
 	Map<String,String> getReplacedAttributes();
 	String getJavaAnnotation();
 	Origin getOrigin();
+	boolean isAbductivelyInferred();
 	String getTargetProjectName();
 	String getFromProjectName();
 	IJavaDeclaration getTargetInfo();

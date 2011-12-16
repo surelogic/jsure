@@ -156,7 +156,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final ProposedPromiseDrop p =
                     new ProposedPromiseDrop(
                         REGIONEFFECTS, cloned.unparseForPromise(),
-                        decl, overriddenMethod, Origin.PROMISE);
+                        decl, overriddenMethod, Origin.PROBLEM);
                 getContext().reportErrorAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
@@ -389,7 +389,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final ProposedPromiseDrop p = new ProposedPromiseDrop(
                     REGIONEFFECTS, cloned.unparseForPromise(),
                     node.toString().substring("RegionEffects".length()).trim(),
-                    promisedFor, overriddenMethod, Origin.PROMISE);
+                    promisedFor, overriddenMethod, Origin.PROBLEM);
                 scrubberContext.reportErrorAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),

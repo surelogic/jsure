@@ -514,7 +514,7 @@ public class UniquenessRules extends AnnotationRules {
                 good = false;
                 if (generateProposal) {
                   getContext().reportErrorAndProposal(
-                      new ProposedPromiseDrop(parentState.getProposedPromiseName(), null, promisedFor, parentP, Origin.PROMISE),
+                      new ProposedPromiseDrop(parentState.getProposedPromiseName(), null, promisedFor, parentP, Origin.PROBLEM),
                       "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                       ParameterDeclaration.getId(p),
                       JavaNames.genQualifiedMethodConstructorName(parentMethod),
@@ -542,7 +542,7 @@ public class UniquenessRules extends AnnotationRules {
             good = false;
             if (generateProposal) {
               getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROMISE),
+                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
                   parentState.getAnnotation(), s.getAnnotation());
@@ -566,7 +566,7 @@ public class UniquenessRules extends AnnotationRules {
             good = false;
             if (generateProposal) {
               getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROMISE),
+                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the return value of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
                   parentState.getAnnotation(), s.getAnnotation());
