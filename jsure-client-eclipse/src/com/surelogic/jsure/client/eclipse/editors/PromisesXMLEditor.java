@@ -415,7 +415,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
-			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
+			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			/*
 			 * if (o instanceof AbstractFunctionElement) { final
@@ -445,7 +445,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				final ClassElement c = (ClassElement) o;
 
 				for (ScopedTargetType t : ScopedTargetType.values()) {
-					makeMenuItem(menu, "Add scoped promise for " + t.label
+					makeMenuItem(menu, "Add Scoped Promise For " + t.label
 							+ "...", new AnnotationCreator(j, t));
 				}
 				addActionsOnClasses(menu, c);
@@ -684,7 +684,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			ListSelectionDialog d = new ListSelectionDialog(contents.getTree()
 					.getShell(), annos.toArray(), annoProvider, annoProvider,
 					makeScopedPromise ? "Select scoped promise(s) to add for "
-							+ target.label : "Select annotation(s) to add");
+							+ target.label.toLowerCase()
+							: "Select annotation(s) to add") {
+
+				@Override
+				protected void configureShell(Shell shell) {
+					super.configureShell(shell);
+					shell.setImage(SLImages
+							.getImage(CommonImages.IMG_ANNOTATION));
+					shell.setText("Add Annotation");
+				}
+			};
 			if (d.open() == Window.OK) {
 				boolean changed = false;
 				for (Object o : d.getResult()) {
