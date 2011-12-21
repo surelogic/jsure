@@ -50,12 +50,15 @@ import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -877,8 +880,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
          */
         final IRNode rcvr;
         final IRNode enclosingType = VisitUtil.getEnclosingType(node);
-        if (AnonClassExpression.prototype.includes(enclosingType) ||
-            EnumConstantClassDeclaration.prototype.includes(enclosingType)) {
+        final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+        if (AnonClassExpression.prototype.includes(enclosingOp) ||
+            EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
           rcvr = JavaPromise.getReceiverNode(
               JavaPromise.getInitMethod(enclosingType));
         } else {
@@ -1047,7 +1051,37 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferUseQualifiedRcvr(
+    protected Store transferUseReceiver(final IRNode use, final Store s) {
+      /* Need to determine if the use is inside a field init or init block
+       * of an anonymous class expression.
+       */
+      IRNode getReceiverFrom = null;
+      for (final IRNode current : VisitUtil.rootWalk(use)) {
+        final Operator op = JJNode.tree.getOperator(current);
+        if (ClassBody.prototype.includes(op)) {
+          // done: skipped past anything potentially interesting
+          getReceiverFrom = flowUnit;
+          break;
+        } else if (FieldDeclaration.prototype.includes(op) ||
+            ClassInitializer.prototype.includes(op)) {
+          /* Have to check against FieldDeclaration to avoid capturing local
+           * variable initializers.  This cannot be used in a static context,
+           * so don't even check for it
+           */
+          final IRNode enclosingType = VisitUtil.getEnclosingType(current);
+          final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+          if (AnonClassExpression.prototype.includes(enclosingOp) ||
+              EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
+            getReceiverFrom = JavaPromise.getInitMethod(enclosingType);
+            break;
+          }
+        }
+      }
+      return lattice.opGet(s, use, JavaPromise.getReceiverNode(getReceiverFrom));
+    }
+    
+    @Override
+    protected Store transferUseQualifiedReceiver(
         final IRNode var, final IRNode decl, final Store s) {
       // XXX: WRONG!  Treat as field reference---need to chase all the pointers!
       return lattice.opGet(s, var, decl);

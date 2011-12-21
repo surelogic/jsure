@@ -19,9 +19,7 @@ import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -486,8 +484,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
       NullInfo ni;
       IRNode var = binder.getIBinding(use).getNode();
-      final Operator op = tree.getOperator(var);
-      if (op instanceof ReceiverDeclaration || val.second().contains(var)) {
+      if (val.second().contains(var)) {
         ni = NullInfo.NOTNULL;
       } else {
         ni = NullInfo.MAYBENULL; // all other literals are not null
@@ -496,7 +493,16 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseQualifiedRcvr(
+    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseReceiver(
+        final IRNode use, 
+        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+      if (!lattice.isNormal(val)) return val;
+      // Receiver is always non-null
+      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+    }
+    
+    @Override
+    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseQualifiedReceiver(
         final IRNode use, final IRNode binding, 
         final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;

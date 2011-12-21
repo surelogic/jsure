@@ -1121,7 +1121,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferUseQualifiedRcvr(
+    protected Store transferUseReceiver(final IRNode use, final Store s) {
+      // XXX: Wrong, but consistent with what used to happen
+      return transferUseVar(use, s);
+    }
+    
+    @Override
+    protected Store transferUseQualifiedReceiver(
         final IRNode use, final IRNode decl, final Store s) {
       // qualified receivers are more like fields now.
       // XXX: THis is wrong: need to chase the pointers

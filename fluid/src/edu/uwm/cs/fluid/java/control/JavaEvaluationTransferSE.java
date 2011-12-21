@@ -912,7 +912,9 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   @Override
   protected T transferUse(IRNode node, Operator op, T value) {
-    if (op instanceof VariableUseExpression || op instanceof ThisExpression)
+    if (op instanceof ThisExpression) {
+      return transferUseReceiver(node, value);
+    } else if (op instanceof VariableUseExpression)
       return transferUseVar(node, value);
     else if (op instanceof FieldRef) 
       return transferUseField(node, value);
@@ -930,9 +932,9 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
          LOG.warning("Cannot find binding for " + DebugUnparser.toString(node));
          return push(value, node);
        } else if (ReceiverDeclaration.prototype.includes(bindsTo)) {
-         return transferUseVar(node, value);
+         return transferUseReceiver(node, value);
        } else {
-         return transferUseQualifiedRcvr(node, bindsTo, value);
+         return transferUseQualifiedReceiver(node, bindsTo, value);
        }
     }
     else
@@ -1003,13 +1005,20 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
+   * Transfer evaluation over use of a ThisExpression or QualifiedThisExpression
+   * that is equivalent to a regular ThisExpression (e.g., "C.this" inside of 
+   * class C).  <strong>leaf</strong>
+   */
+  protected abstract T transferUseReceiver(IRNode use, T val);
+  
+  /**
    * Transfer evaluation over use of a QualifiedThisExpression.  Uses that
    * are equivalent to a regular ThisExpression (e.g., "C.this" inside of class
    * C) have already been redirected to {@link #transferUseVar(IRNode, Object)}.
    * The node has already been bound to the QualifiedReceiverDeclaration.
    * <strong>leaf</strong>
    */
-  protected abstract T transferUseQualifiedRcvr(
+  protected abstract T transferUseQualifiedReceiver(
       IRNode qThis, IRNode qRcvr, T val);
 
   /**

@@ -88,7 +88,14 @@ public class StackDepthAnalysis extends JavaForwardAnalysis<Object, FlatLattice>
     }
 
     @Override
-    protected Object transferUseQualifiedRcvr(
+    protected Object transferUseReceiver(
+        final IRNode qThis, final Object val) {
+      // Results in a reference pushed on the stack
+      return push(val);
+    }
+
+    @Override
+    protected Object transferUseQualifiedReceiver(
         final IRNode qThis, final IRNode qRcvr, final Object val) {
       // Results in a reference pushed on the stack
       return push(val);
