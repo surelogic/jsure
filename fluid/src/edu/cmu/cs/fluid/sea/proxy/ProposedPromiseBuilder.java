@@ -21,7 +21,7 @@ public class ProposedPromiseBuilder implements IDropBuilder {
 	
 	public ProposedPromiseBuilder(String anno, String contents, Map<String,String> attrs,
 			String replacedAnno, String replaced, Map<String,String> replacedAttrs,
-			IRNode at, IRNode from, Origin src) {
+			IRNode at, IRNode from, Origin origin) {
 		annotation = anno;
 		this.contents = contents;
 		this.attrs = attrs;
@@ -33,17 +33,17 @@ public class ProposedPromiseBuilder implements IDropBuilder {
 			throw new IllegalArgumentException();
 		}
 		this.from = from;
-		origin = src;
+		this.origin = origin;
 	}
 	
-	public ProposedPromiseBuilder(String anno, String contents, String replacedContents, IRNode at, IRNode from) {
+	public ProposedPromiseBuilder(String anno, String contents, String replacedContents, IRNode at, IRNode from, Origin origin) {
 		this(anno, contents, Collections.<String,String>emptyMap(), 
-				null, replacedContents, Collections.<String,String>emptyMap(), at, from, Origin.INFERENCE);
+				null, replacedContents, Collections.<String,String>emptyMap(), at, from, origin);
 	}
 	
-	public ProposedPromiseBuilder(String anno, String contents, IRNode at, IRNode from) {
+	public ProposedPromiseBuilder(String anno, String contents, IRNode at, IRNode from, Origin origin) {
 		this(anno, contents, Collections.<String,String>emptyMap(), 
-				null, null, Collections.<String,String>emptyMap(), at, from, Origin.INFERENCE);
+				null, null, Collections.<String,String>emptyMap(), at, from, origin);
 	}
 	
 	public ProposedPromiseDrop buildDrop() {

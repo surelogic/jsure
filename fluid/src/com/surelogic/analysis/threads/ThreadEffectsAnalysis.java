@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
@@ -312,7 +313,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				rd.setInconsistent();
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
 				rd.addProposal(new ProposedPromiseBuilder("Starts", "nothing",
-						declaration, node));
+						declaration, node, Origin.MODEL));
 				success = false;
 			}		
 		} else {

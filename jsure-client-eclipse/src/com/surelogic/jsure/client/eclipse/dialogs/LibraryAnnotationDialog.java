@@ -10,6 +10,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
@@ -64,7 +65,7 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 			throw new IllegalArgumentException(I18N.err(33, "attributes"));
 		final LibraryAnnotationDialog dialog = new LibraryAnnotationDialog(
 				annotation, attributes);
-		if (dialog.open() == Dialog.OK) {
+		if (dialog.open() == Window.OK) {
 			return dialog.getModifiedAttributes();
 		}
 		return Collections.emptyMap();

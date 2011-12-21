@@ -145,7 +145,6 @@ public abstract class AnnotationRules {
 			f_defaultValue = defaultValue;
 		}
 
-		@Override
 		public int compareTo(Attribute o) {
 			return f_name.compareTo(o.f_name);
 		}

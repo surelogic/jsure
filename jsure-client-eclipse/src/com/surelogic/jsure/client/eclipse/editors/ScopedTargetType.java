@@ -4,11 +4,11 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public enum ScopedTargetType {
-	METHOD("methods", MethodDeclaration.prototype, "*(**)"),
-	CONSTRUCTOR("constructors", ConstructorDeclaration.prototype, "new(**)"),
-	FUNC("methods/constructors", SomeFunctionDeclaration.prototype, "**(**)"),
-	TYPE("types", TypeDeclaration.prototype, "*"),
-	FIELD("fields", FieldDeclaration.prototype, "* *");
+	METHOD("Methods", MethodDeclaration.prototype, "*(**)"),
+	CONSTRUCTOR("Constructors", ConstructorDeclaration.prototype, "new(**)"),
+	FUNC("Methods/Constructors", SomeFunctionDeclaration.prototype, "**(**)"),
+	TYPE("Types", TypeDeclaration.prototype, "*"),
+	FIELD("Fields", FieldDeclaration.prototype, "* *");
 	
 	final String label;
 	final Operator op;

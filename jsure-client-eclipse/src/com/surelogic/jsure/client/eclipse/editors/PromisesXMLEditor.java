@@ -149,7 +149,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		setTitleToolTip(input.getToolTipText());
 	}
 
-	private void createContentsPage(Composite parent) {
+	private void createContentsPage(final Composite parent) {
 		contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL
 				| SWT.FULL_SELECTION);
 		contents.setContentProvider(provider);
@@ -159,7 +159,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 		contents.getControl().addMenuDetectListener(new MenuDetectListener() {
 			@Override
-			public void menuDetected(MenuDetectEvent e) {
+			public void menuDetected(final MenuDetectEvent e) {
 				final Menu menu = new Menu(contents.getControl().getShell(),
 						SWT.POP_UP);
 				setupContextMenu(menu);
@@ -169,7 +169,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		// http://bingjava.appspot.com/snippet.jsp?id=2208
 		contents.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
-			public void doubleClick(DoubleClickEvent event) {
+			public void doubleClick(final DoubleClickEvent event) {
 				if (provider.isMutable()) {
 					final IStructuredSelection s = (IStructuredSelection) event
 							.getSelection();
@@ -246,7 +246,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		try {
 			localXML = new TextEditor() {
 				@Override
-				public void createPartControl(Composite parent) {
+				public void createPartControl(final Composite parent) {
 					super.createPartControl(parent);
 					getSourceViewer().getTextWidget().addLineStyleListener(
 							new XMLLineStyler());
@@ -268,7 +268,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput input) {
+	public void init(final IEditorSite site, final IEditorInput input) {
 		setSite(site);
 		setInput(input);
 		if (input instanceof IURIEditorInput) {
@@ -315,7 +315,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	 */
 
 	@Override
-	public void doSave(IProgressMonitor monitor) {
+	public void doSave(final IProgressMonitor monitor) {
 		boolean wasDirty = isDirty();
 		provider.save(monitor);
 		localXML.doRevertToSaved();
@@ -359,7 +359,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		// realize that the editor is dirty otherwise
 		new SLUIJob() {
 			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
+			public IStatus runInUIThread(final IProgressMonitor monitor) {
 				firePropertyChange(IEditorPart.PROP_DIRTY);
 				return Status.OK_STATUS;
 			}
@@ -385,7 +385,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				.getLocalInput();
 		final IDocument doc = localXML.getDocumentProvider().getDocument(input);
 		if (doc != null) {
-			//System.out.println(doc.get());
+			// System.out.println(doc.get());
 			StringWriter sw = new StringWriter(doc.getLength());
 			PromisesXMLWriter pw = new PromisesXMLWriter(new PrintWriter(sw));
 			PackageElement p = provider.pkg.cloneMe();
@@ -396,7 +396,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 			final String updated = sw.toString();
 			doc.set(updated);
-			//System.out.println(updated);
+			// System.out.println(updated);
 		}
 	}
 
@@ -415,7 +415,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
-			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
+			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			/*
 			 * if (o instanceof AbstractFunctionElement) { final
@@ -445,7 +445,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				final ClassElement c = (ClassElement) o;
 
 				for (ScopedTargetType t : ScopedTargetType.values()) {
-					makeMenuItem(menu, "Add scoped promise for " + t.label
+					makeMenuItem(menu, "Add Scoped Promise For " + t.label
 							+ "...", new AnnotationCreator(j, t));
 				}
 				addActionsOnClasses(menu, c);
@@ -456,11 +456,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		MenuItem m = makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
+		makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			public void widgetSelected(final SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();
-				if (provider.pkg.isDirty()) {
+				if (provider.pkg.isModified()) {
 					if (MessageDialog.openQuestion(s, "Revert All Changes?",
 							"Do you really want to revert all changes?")) {
 						provider.deleteAllChanges();
@@ -478,7 +478,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			}
 		});
-		m.setEnabled(provider.pkg.isDirty());
 	}
 
 	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
@@ -488,28 +487,29 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
 					new SelectionAdapter() {
 						@Override
-						public void widgetSelected(SelectionEvent se) {
+						public void widgetSelected(final SelectionEvent se) {
 							startAnnotationEditDialog(a);
 						}
-					});			
+					});
 			m.setEnabled(a.canModify());
-			
+
 			MenuItem m2 = makeMenuItem(menu, "Revert",
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
 					new SelectionAdapter() {
 						@Override
-						public void widgetSelected(SelectionEvent se) {
+						public void widgetSelected(final SelectionEvent se) {
 							a.revert();
+							isDirty = true;
 							markAsDirty();
 						}
-					});			
+					});
 			m2.setEnabled(a.canRevert());
 		}
 		final IMergeableElement me = (IMergeableElement) o;
 		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X),
 				new SelectionAdapter() {
 					@Override
-					public void widgetSelected(SelectionEvent e) {
+					public void widgetSelected(final SelectionEvent e) {
 						final Shell s = contents.getTree().getShell();
 						if (MessageDialog.openQuestion(
 								s,
@@ -566,13 +566,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final List<T> members = new ArrayList<T>();
 		final Comparator<T> comparator;
 
-		ITypeSelector(ClassElement cls, Comparator<T> compare) {
+		ITypeSelector(final ClassElement cls, final Comparator<T> compare) {
 			c = cls;
 			comparator = compare;
 		}
 
 		@Override
-		public final void widgetSelected(SelectionEvent e) {
+		public final void widgetSelected(final SelectionEvent e) {
 			final IType t = findIType(c, "");
 			if (t == null) {
 				return;
@@ -611,7 +611,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	private static final Comparator<IMethod> methodComparator = new Comparator<IMethod>() {
 		@Override
-		public int compare(IMethod o1, IMethod o2) {
+		public int compare(final IMethod o1, final IMethod o2) {
 			int rv = o1.getElementName().compareTo(o2.getElementName());
 			if (rv == 0) {
 				rv = o1.getParameterTypes().length
@@ -630,18 +630,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	private static final Comparator<IType> typeComparator = new Comparator<IType>() {
 		@Override
-		public int compare(IType o1, IType o2) {
+		public int compare(final IType o1, final IType o2) {
 			int rv = o1.getElementName().compareTo(o2.getElementName());
 			return rv;
 		}
 	};
 
-	private void addNavigationActions(Menu menu, IJavaElement o) {
+	private void addNavigationActions(final Menu menu, final IJavaElement o) {
 		if (o instanceof ClassElement) {
 			final ClassElement c = (ClassElement) o;
 			makeMenuItem(menu, "Open Type Hierarchy", new SelectionAdapter() {
 				@Override
-				public void widgetSelected(SelectionEvent e) {
+				public void widgetSelected(final SelectionEvent e) {
 					final IViewPart view = EclipseUIUtility
 							.showView(JavaUI.ID_TYPE_HIERARCHY);
 					if (view instanceof ITypeHierarchyViewPart) {
@@ -661,18 +661,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final ScopedTargetType target;
 		final boolean makeScopedPromise;
 
-		AnnotationCreator(AnnotatedJavaElement aje, ScopedTargetType t) {
+		AnnotationCreator(final AnnotatedJavaElement aje,
+				final ScopedTargetType t) {
 			j = aje;
 			target = t;
 			makeScopedPromise = t != null;
 		}
 
-		AnnotationCreator(AnnotatedJavaElement aje) {
+		AnnotationCreator(final AnnotatedJavaElement aje) {
 			this(aje, null);
 		}
 
 		@Override
-		public void widgetSelected(SelectionEvent e) {
+		public void widgetSelected(final SelectionEvent e) {
 			final List<String> annos;
 			if (!makeScopedPromise) {
 				annos = findMissingAnnos(j);
@@ -683,7 +684,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			ListSelectionDialog d = new ListSelectionDialog(contents.getTree()
 					.getShell(), annos.toArray(), annoProvider, annoProvider,
 					makeScopedPromise ? "Select scoped promise(s) to add for "
-							+ target.label : "Select annotation(s) to add");
+							+ target.label.toLowerCase()
+							: "Select annotation(s) to add") {
+
+				@Override
+				protected void configureShell(Shell shell) {
+					super.configureShell(shell);
+					shell.setImage(SLImages
+							.getImage(CommonImages.IMG_ANNOTATION));
+					shell.setText("Add Annotation");
+				}
+			};
 			if (d.open() == Window.OK) {
 				boolean changed = false;
 				for (Object o : d.getResult()) {
@@ -715,7 +726,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			}
 		}
 
-		private String getDefaultContents(String tag, boolean isScopedPromise) {
+		private String getDefaultContents(final String tag,
+				final boolean isScopedPromise) {
 			if (ThreadEffectsRules.STARTS.equals(tag)) {
 				return isScopedPromise ? "(nothing)" : "nothing";
 			}
@@ -745,12 +757,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return annos;
 	}
 
-	private Set<String> remove(Set<String> s, String elt) {
+	private Set<String> remove(final Set<String> s, final String elt) {
 		s.remove(elt);
 		return s;
 	}
 
-	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
+	private List<String> findMissingAnnos(final AnnotatedJavaElement j) {
 		final Set<String> annos = findApplicableAnnos(j.getOperator());
 
 		// Remove clashes
@@ -765,13 +777,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final int index;
 		final String type;
 
-		NewParameter(int i, String t) {
+		NewParameter(final int i, final String t) {
 			index = i;
 			type = t;
 		}
 	}
 
-	static IType findIType(ClassElement c, String nameSoFar) {
+	static IType findIType(final ClassElement c, final String nameSoFar) {
 		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName() + '.'
 				+ nameSoFar;
 		if (c instanceof NestedClassElement) {
@@ -783,12 +795,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
-	static MenuItem makeMenuItem(Menu menu, String label, SelectionListener l) {
+	static MenuItem makeMenuItem(final Menu menu, final String label,
+			final SelectionListener l) {
 		return makeMenuItem(menu, label, null, l);
 	}
 
-	static MenuItem makeMenuItem(Menu menu, String label, Image image,
-			SelectionListener l) {
+	static MenuItem makeMenuItem(final Menu menu, final String label,
+			final Image image, final SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
 		item1.setText(label);
 		item1.addSelectionListener(l);
@@ -800,12 +813,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	static class JavaElementProvider extends AbstractContentProvider {
 		@Override
-		public Object[] getElements(Object inputElement) {
+		public Object[] getElements(final Object inputElement) {
 			return (Object[]) inputElement;
 		}
 
 		@Override
-		public String getText(Object element) {
+		public String getText(final Object element) {
 			org.eclipse.jdt.core.IJavaElement e = (org.eclipse.jdt.core.IJavaElement) element;
 			if (e instanceof IMethod) {
 				IMethod m = (IMethod) e;
@@ -828,12 +841,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	class ParameterProvider extends AbstractContentProvider {
 		@Override
-		public Object[] getElements(Object inputElement) {
+		public Object[] getElements(final Object inputElement) {
 			return (Object[]) inputElement;
 		}
 
 		@Override
-		public String getText(Object element) {
+		public String getText(final Object element) {
 			if (element instanceof NewParameter) {
 				NewParameter p = (NewParameter) element;
 				return FunctionParameterElement.PREFIX + (p.index + 1) + " : "
@@ -844,7 +857,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		public Color getForeground(Object element) {
+		public Color getForeground(final Object element) {
 			if (element instanceof FunctionParameterElement) {
 				return contents.getControl().getDisplay()
 						.getSystemColor(SWT.COLOR_GRAY);
@@ -855,17 +868,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	static class AnnoProvider extends AbstractContentProvider {
 		@Override
-		public Object[] getElements(Object inputElement) {
+		public Object[] getElements(final Object inputElement) {
 			return (Object[]) inputElement;
 		}
 
 		@Override
-		public String getText(Object element) {
+		public String getText(final Object element) {
 			return element.toString();
 		}
 	}
 
-	public void focusOnMethod(String name, String params) {
+	public void focusOnMethod(final String name, final String params) {
 		PackageElement p = provider.pkg;
 		if (p != null) {
 			final MethodElement m = p.visit(new MethodFinder(name, params));
@@ -875,7 +888,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
-	public void focusOnNestedType(String relativeName) {
+	public void focusOnNestedType(final String relativeName) {
 		PackageElement p = provider.pkg;
 		if (p != null) {
 			final NestedClassElement m = p.visit(new TypeFinder(relativeName));
@@ -892,7 +905,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		protected T combine(T old, T result) {
+		protected T combine(final T old, final T result) {
 			if (old != null) {
 				return old;
 			}
@@ -904,11 +917,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final String[] names;
 		final Stack<String> types = new Stack<String>();
 
-		TypeFinder(String relativeName) {
+		TypeFinder(final String relativeName) {
 			names = relativeName.split("\\.");
 		}
 
-		public NestedClassElement visit(NestedClassElement e) {
+		@Override
+		public NestedClassElement visit(final NestedClassElement e) {
 			types.clear();
 
 			// Find out where this is
@@ -943,13 +957,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	static class MethodFinder extends ElementFinder<MethodElement> {
 		final String name, params;
 
-		MethodFinder(String name, String params) {
+		MethodFinder(final String name, final String params) {
 			this.name = name;
 			this.params = params;
 		}
 
 		@Override
-		public MethodElement visit(MethodElement m) {
+		public MethodElement visit(final MethodElement m) {
 			if (name.equals(m.getName())) {
 				if (params == null || params.equals(m.getParams())) {
 					return m;
@@ -964,11 +978,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		private static final long serialVersionUID = 1L;
 		private final boolean makeUnique;
 
-		XmlMap(boolean makeUnique) {
+		XmlMap(final boolean makeUnique) {
 			this.makeUnique = makeUnique;
 		}
 
-		private Collection<String> getPkg(String qname) {
+		private Collection<String> getPkg(final String qname) {
 			Collection<String> c = get(qname);
 			if (c == null) {
 				c = makeUnique ? new HashSet<String>(4)
@@ -979,12 +993,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		public void addPackage(String qname) {
+		public void addPackage(final String qname) {
 			getPkg(qname);
 		}
 
 		@Override
-		public void addType(String pkg, String name) {
+		public void addType(final String pkg, final String name) {
 			Collection<String> c = getPkg(pkg);
 			c.add(name);
 		}
@@ -1002,7 +1016,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	}
 
 	private static Map<String, Collection<String>> findLocalPromisesXML(
-			boolean includeFluid) {
+			final boolean includeFluid) {
 		final XmlMap map = new XmlMap(true);
 		if (includeFluid) {
 			final File xml = PromisesXMLParser.getFluidXMLDir();
@@ -1018,7 +1032,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	/**
 	 * @return non-null Pair of files for fluid and local
 	 */
-	private static Pair<File, File> findPromisesXML(String path) {
+	private static Pair<File, File> findPromisesXML(final String path) {
 		File fluid = null;
 		File local = null;
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
@@ -1041,7 +1055,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return new Pair<File, File>(fluid, local);
 	}
 
-	public static IEditorPart openInEditor(String path, boolean readOnly) {
+	public static IEditorPart openInEditor(final String path,
+			final boolean readOnly) {
 		final IEditorInput i = makeInput(path, readOnly);
 		if (i == null) {// || !i.exists()) {
 			return null;
@@ -1050,7 +1065,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				PromisesXMLEditor.class.getName());
 	}
 
-	public static IEditorInput makeInput(String relativePath, boolean readOnly) {
+	public static IEditorInput makeInput(final String relativePath,
+			final boolean readOnly) {
 		try {
 			if (!relativePath.endsWith(TestXMLParserConstants.SUFFIX)) {
 				return null;
@@ -1067,7 +1083,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		private final String name;
 		private final URI uri;
 
-		Input(String relativePath, boolean ro) throws URISyntaxException {
+		Input(final String relativePath, final boolean ro)
+				throws URISyntaxException {
 			readOnly = ro;
 			path = relativePath;
 			uri = new URI(path);
@@ -1083,7 +1100,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		@Override
 		public boolean exists() {
 			final Pair<File, File> f = PromisesXMLParser.findPromisesXML(path);
-			return f.first().isFile();
+			return f.first().isFile() || f.second().isFile();
 		}
 
 		@Override
@@ -1100,7 +1117,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		public IPersistableElement getPersistable() {
 			return new IPersistableElement() {
 				@Override
-				public void saveState(IMemento memento) {
+				public void saveState(final IMemento memento) {
 					memento.putString(PromisesXMLFactory.PATH, path);
 					memento.putBoolean(PromisesXMLFactory.READ_ONLY, readOnly);
 				}
@@ -1118,7 +1135,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+		public Object getAdapter(
+				@SuppressWarnings("rawtypes") final Class adapter) {
 			if (adapter == Object.class) {
 				return this;
 			}
@@ -1131,7 +1149,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(final Object o) {
 			if (o instanceof IURIEditorInput) {
 				IURIEditorInput i = (IURIEditorInput) o;
 				return uri.equals(i.getURI());
@@ -1145,14 +1163,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
-	public void focusOn(IJavaElement e) {
+	public void focusOn(final IJavaElement e) {
 		contents.setSelection(new StructuredSelection(e));
 		contents.reveal(e);
 	}
 
 	static class Comparer implements IElementComparer {
 		@Override
-		public int hashCode(Object element) {
+		public int hashCode(final Object element) {
 			if (element instanceof AnnotationElement) {
 				return System.identityHashCode(element);
 			}
@@ -1160,13 +1178,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 
 		@Override
-		public boolean equals(Object a, Object b) {
+		public boolean equals(final Object a, final Object b) {
 			return a == b;
 		}
 	}
 
 	@Override
-	public void refresh(PackageElement e) {
+	public void refresh(final PackageElement e) {
 		if (e == provider.pkg) {
 			contents.refresh();
 			// Doesn't change what's saved on disk
@@ -1181,7 +1199,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		localXML.doRevertToSaved();
 	}
 
-	void startAnnotationEditDialog(AnnotationElement a) {
+	void startAnnotationEditDialog(final AnnotationElement a) {
 		// Collect initial attribute values
 		Map<Attribute, String> initialAttrs = new TreeMap<Attribute, String>();
 		for (Map.Entry<String, Attribute> e : a.getAttributeDefaults()
@@ -1215,6 +1233,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			}
 			if (modified) {
+				isDirty = true;
 				markAsDirty();
 			}
 		}
