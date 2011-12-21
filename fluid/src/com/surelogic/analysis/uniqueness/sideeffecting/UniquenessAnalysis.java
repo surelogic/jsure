@@ -1052,6 +1052,41 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferUseReceiver(final IRNode use, final Store s) {
+      return lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+    }
+    
+    @Override
+    protected Store transferUseQualifiedReceiver(
+        final IRNode use, final IRNode decl, final Store s) {
+      // We start by getting the receiver
+      Store newStore = lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+
+      /* Loop up the nested class hierarchy until we find the class whose
+       * qualified receiver declaration equals 'decl'.  We are guaranteed
+       * by JavaEvaluationTransfer NOT to have a qualified this expression
+       * that binds to a normal receiver expression. 
+       */
+      IRNode currentClass = VisitUtil.getEnclosingType(use);
+      IRNode currentQualifiedReceiverField;
+      do {
+        currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+        // Do the pseudo-field reference
+        newStore = lattice.opLoad(newStore, use, currentQualifiedReceiverField);
+        currentClass = VisitUtil.getEnclosingType(currentClass);
+      } while (currentQualifiedReceiverField != decl);
+      
+      return newStore;
+    }
+
+    /**
+     * Get the receiver node appropriate for use at the given expression.
+     * Normally this is the receiver node from the flow unit being analyzed,
+     * unless the given node is inside a FieldDeclaration or ClassInitializer
+     * that is itself inside an AnonClassExpression or EnumConstantDeclaration.
+     * In that case, we use the receiver node from the InitMethod for the 
+     * class expression.
+     */
+    private IRNode getReceiverNodeAtExpression(final IRNode use) {
       /* Need to determine if the use is inside a field init or init block
        * of an anonymous class expression.
        */
@@ -1077,14 +1112,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
         }
       }
-      return lattice.opGet(s, use, JavaPromise.getReceiverNode(getReceiverFrom));
-    }
-    
-    @Override
-    protected Store transferUseQualifiedReceiver(
-        final IRNode var, final IRNode decl, final Store s) {
-      // XXX: WRONG!  Treat as field reference---need to chase all the pointers!
-      return lattice.opGet(s, var, decl);
+      return JavaPromise.getReceiverNode(getReceiverFrom);
     }
     
     
