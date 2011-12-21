@@ -73,6 +73,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		try {
 			final File root = JSurePreferencesUtility.getJSureXMLDirectory();
 			File f = new File(root, location.toASCIIString());
+			/* Maybe saving because the editor is "dirty"
+			 * so we can't do the below anymore
 			if (!pkg.isDirty()) {
 				// Try to delete any diffs
 				if (f.exists()) {
@@ -80,7 +82,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 				}
 				return;
 			}
-			
+			*/
 			File dir = f.getParentFile();
 			if (!dir.exists()) {
 				dir.mkdirs();
@@ -115,11 +117,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 		if (newInput != location) {
 			if (newInput instanceof URI) {
 				location = (URI) newInput;				
-				System.out.println("Editor got "+location);
+				//System.out.println("Editor got "+location);
 				build();
 			}
 		} else {
-			System.out.println("Ignoring duplicate input");
+			//System.out.println("Ignoring duplicate input");
 			/*
 			IType t = JDTUtility.findIType(null, pkg.getName(), pkg.getClassElement().getName());
 			contents.setInput(t);
@@ -167,16 +169,16 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 							String p = path.substring(0, lastSlash).replace('/', '.');
 							String name = path.substring(lastSlash+1, path.length() - TestXMLParserConstants.SUFFIX.length());
 							if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
-								System.out.println("Making AST for "+p);
+								//System.out.println("Making AST for "+p);
 								roots[0] = pkg = PromisesXMLBuilder.makePackageModel(p);
 							} else {
-								System.out.println("Making AST for "+p+'.'+name);
+								//System.out.println("Making AST for "+p+'.'+name);
 								roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
 							}
 						}
 					} else {				
 						if (PromisesXMLBuilder.updateElements(pkg)) {
-							System.out.println("Added elements to "+location);
+							//System.out.println("Added elements to "+location);
 						}
 					}
 					if (rv.first().isFile()) {

@@ -35,6 +35,7 @@
           <menu
                 id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu"
                 label="JSure"
+                icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
                 path="additions">
              <groupMarker
                    name="content">
@@ -46,7 +47,8 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsAction"
                 id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
+                icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
                 menubarPath="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu/content">
           </action>
        </viewerContribution>
@@ -57,6 +59,7 @@
              objectClass="org.eclipse.jdt.core.IMember">
           <menu
                 id="com.surelogic.jsure.client.eclipse.IMemberPopup.menu"
+                icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
                 label="JSure"
                 path="additions">
              <groupMarker
@@ -69,7 +72,8 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
                 id="com.surelogic.jsure.client.eclipse.IMemberPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
+                icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
                 menubarPath="com.surelogic.jsure.client.eclipse.IMemberPopup.menu/content">
           </action>             
        </objectContribution>
@@ -81,6 +85,7 @@
           <menu
                 id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu"
                 label="JSure"
+                icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
                 path="additions">
              <groupMarker
                    name="content">
@@ -92,7 +97,8 @@
           <action
                 class="com.surelogic.jsure.client.eclipse.actions.ShowAnnotationsForITypeAction"
                 id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.showAnnotations"
-                label="Show Annotations"
+                label="Open Library Annotation Editor"
+                icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
                 menubarPath="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu/content">
           </action>             
        </objectContribution>
@@ -240,6 +246,21 @@
 				tooltip="Open the Code Verification perspective to examine JSure tool results"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
+			
+            <action
+               id="openType"
+               class="com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction"
+               label="Open Library Annotations..."
+               tooltip="Open the library annotations for a type"
+               icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
+               menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"/>
+            <!-- From "Open Type"               
+               menubarPath="navigate/open.ext2"            
+               toolbarPath="org.eclipse.search.searchActionSet/Search"               
+               definitionId="org.eclipse.jdt.ui.navigate.open.type"
+               icon="$nl$/icons/full/etool16/opentype.gif"
+               helpContextId="org.eclipse.jdt.ui.open_type_action"
+            -->
 			
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"

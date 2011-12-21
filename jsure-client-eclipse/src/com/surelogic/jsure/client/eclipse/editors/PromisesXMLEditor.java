@@ -1,15 +1,30 @@
 package com.surelogic.jsure.client.eclipse.editors;
 
-import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.logging.Level;
 
-import org.eclipse.core.runtime.*;
-import org.eclipse.jdt.core.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.ITypeHierarchyViewPart;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -17,69 +32,112 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextViewer;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IElementComparer;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.Window;
-import org.eclipse.swt.*;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.IURIEditorInput;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.MultiPageEditorPart;
 
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
-import com.surelogic.annotation.rules.*;
+import com.surelogic.annotation.rules.AnnotationRules.Attribute;
+import com.surelogic.annotation.rules.ScopedPromiseRules;
+import com.surelogic.annotation.rules.ThreadEffectsRules;
+import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.*;
+import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
+import com.surelogic.jsure.client.eclipse.dialogs.LibraryAnnotationDialog;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
-import com.surelogic.xml.*;
+import com.surelogic.xml.AbstractJavaElementVisitor;
+import com.surelogic.xml.AnnotatedJavaElement;
+import com.surelogic.xml.AnnotationElement;
+import com.surelogic.xml.ClassElement;
+import com.surelogic.xml.FunctionParameterElement;
 import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.IMergeableElement;
+import com.surelogic.xml.IXmlProcessor;
+import com.surelogic.xml.MethodElement;
+import com.surelogic.xml.NestedClassElement;
+import com.surelogic.xml.PackageAccessor;
+import com.surelogic.xml.PackageElement;
+import com.surelogic.xml.PromisesXMLMerge;
+import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.PromisesXMLReader;
+import com.surelogic.xml.PromisesXMLWriter;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
+import edu.cmu.cs.fluid.util.Pair;
 
-public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXMLReader.Listener {
-	enum FileStatus { 		
-		READ_ONLY, 
+public class PromisesXMLEditor extends MultiPageEditorPart implements
+		PromisesXMLReader.Listener {
+	enum FileStatus {
+		READ_ONLY,
 		/** Mutable, but saves to a local file */
-		FLUID, 
+		FLUID,
 		/** Mutable in the usual way */
-		LOCAL 
+		LOCAL
 	}
-	
+
 	public static final boolean hideEmpty = false;
-	
-	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty);
+
+	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(
+			hideEmpty);
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
 	private final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
-    private TreeViewer contents;
-    
-    /**
-     * Really used to check if we deleted all the changes
-     */
-    private boolean isDirty = false;
-    private TextViewer fluidXML;
-    private TextEditor localXML;
-    
-    public PromisesXMLEditor() {
-    	PromisesXMLReader.listenForRefresh(this);
-    }
-    
+	private TreeViewer contents;
+
+	/**
+	 * Really used to check if we deleted all the changes
+	 */
+	private boolean isDirty = false;
+	private TextViewer fluidXML;
+	private TextEditor localXML;
+
+	public PromisesXMLEditor() {
+		PromisesXMLReader.listenForRefresh(this);
+	}
+
 	@Override
 	protected void createPages() {
 		createContentsPage(getContainer());
 		int index = addPage(contents.getControl());
 		setPageText(index, "Editor");
-		
+
 		createFluidXMLPage();
 		createLocalXMLPage();
 		updateTitle();
@@ -92,128 +150,94 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	}
 
 	private void createContentsPage(Composite parent) {
-       contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-       contents.setContentProvider(provider);
-       contents.setLabelProvider(provider);
-       if (provider.getInput() != null) {
-    	   contents.setInput(provider.getInput());
-       }
-       contents.getControl().addMenuDetectListener(new MenuDetectListener() {
-    	   @Override
-    	   public void menuDetected(MenuDetectEvent e) {
-    		   final Menu menu = new Menu(contents.getControl().getShell(), SWT.POP_UP);
-    		   setupContextMenu(menu);
-    		   contents.getTree().setMenu(menu);
-    	   }
-       });
-       // http://bingjava.appspot.com/snippet.jsp?id=2208
-       contents.addDoubleClickListener(new IDoubleClickListener() {
-    	   @Override
-    	   public void doubleClick(DoubleClickEvent event) {
-    		   if (provider.isMutable()) {
-    			   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
-    			   //System.out.println("Doubleclik on "+s.getFirstElement());
-    			   contents.editElement(s.getFirstElement(), 0);
-    		   }
-    	   }
-       });
-       /*
-       TreeViewerColumn c = new TreeViewerColumn(contents, SWT.NONE);
-       c.setLabelProvider(new ColumnLabelProvider() {
-    	   @Override
-    	   public Color getForeground(Object element) {
-    		   return provider.getForeground(element);
-    	   }
-    	   @Override
-    	   public Image getImage(Object element) {
-    		   return provider.getImage(element);
-    	   }
-    	   @Override
-    	   public String getText(Object element) {
-    		   return provider.getText(element);
-    	   }
-       });
-       c.setEditingSupport(new EditingSupport(contents) {		
-    	   @Override
-    	   protected void setValue(Object element, Object value) {
-    		   // TODO Auto-generated method stub
+		contents = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL
+				| SWT.FULL_SELECTION);
+		contents.setContentProvider(provider);
+		contents.setLabelProvider(provider);
+		if (provider.getInput() != null) {
+			contents.setInput(provider.getInput());
+		}
+		contents.getControl().addMenuDetectListener(new MenuDetectListener() {
+			@Override
+			public void menuDetected(MenuDetectEvent e) {
+				final Menu menu = new Menu(contents.getControl().getShell(),
+						SWT.POP_UP);
+				setupContextMenu(menu);
+				contents.getTree().setMenu(menu);
+			}
+		});
+		// http://bingjava.appspot.com/snippet.jsp?id=2208
+		contents.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				if (provider.isMutable()) {
+					final IStructuredSelection s = (IStructuredSelection) event
+							.getSelection();
+					// System.out.println("Doubleclik on "+s.getFirstElement());
+					// contents.editElement(s.getFirstElement(), 0);
+					Object o = s.getFirstElement();
+					if (o instanceof AnnotationElement) {
+						AnnotationElement a = (AnnotationElement) o;
+						if (a.canModify()) {
+							startAnnotationEditDialog(a);
+						} else {
+							LibraryAnnotationDialog.cannotEdit(a.getLabel());
+						}
+					}
+				}
+			}
+		});
 
-    	   }
+		contents.setComparer(new Comparer());
+		/*
+		 * contents.setCellEditors(new CellEditor[] { new
+		 * AnnotationCellEditor(contents.getTree()) });
+		 * contents.setColumnProperties(new String[] { "col1" });
+		 * contents.setCellModifier(new ICellModifier() {
+		 * 
+		 * @Override public boolean canModify(Object element, String property) {
+		 * return provider.isMutable() && ((IJavaElement) element).canModify();
+		 * }
+		 * 
+		 * @Override public Object getValue(Object element, String property) {
+		 * //System.out.println("Getting value for "+element); return element;
+		 * //return ((IJavaElement) element).getLabel(); }
+		 * 
+		 * @Override public void modify(Object element, String property, Object
+		 * value) { Item i = (Item) element; IJavaElement e = (IJavaElement)
+		 * i.getData(); //System.out.println("Setting value for "+e); boolean
+		 * changed = e.modify((String) value, BalloonUtility.errorListener); if
+		 * (changed) { contents.update(e, null); markAsDirty(); } } }); //
+		 * http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
+		 * TreeViewerEditor.create(contents, null, new
+		 * ColumnViewerEditorActivationStrategy(contents) {
+		 * 
+		 * @Override protected boolean
+		 * isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {
+		 * ViewerCell cell = (ViewerCell) e.getSource(); IJavaElement elt =
+		 * (IJavaElement) cell.getElement();
+		 * //System.out.println("Got eae for "+elt); return elt.canModify(); }
+		 * }, ColumnViewerEditor.DEFAULT);
+		 */
+		/*
+		 * //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.
+		 * isv/guide/jdt_api_render.htm contents.setContentProvider(new
+		 * StandardJavaElementContentProvider(true));
+		 * contents.setLabelProvider(new JavaElementLabelProvider());
+		 */
+	}
 
-    	   @Override
-    	   protected Object getValue(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return null;
-    	   }
-
-    	   @Override
-    	   protected CellEditor getCellEditor(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return null;
-    	   }
-
-    	   @Override
-    	   protected boolean canEdit(Object element) {
-    		   // TODO Auto-generated method stub
-    		   return false;
-    	   }
-       });	
-       */ 
-       contents.setComparer(new Comparer());
-       contents.setCellEditors(new CellEditor[] { new AnnotationCellEditor(contents.getTree()) });
-       contents.setColumnProperties(new String[] { "col1" });
-       contents.setCellModifier(new ICellModifier() {
-    	   @Override
-        public boolean canModify(Object element, String property) {    		 
-    		   return provider.isMutable() && ((IJavaElement) element).canModify();
-    	   }
-    	   @Override
-        public Object getValue(Object element, String property) {
-    		   //System.out.println("Getting value for "+element);
-    		   return element;
-    		   //return ((IJavaElement) element).getLabel();
-    	   }
-    	   @Override
-        public void modify(Object element, String property, Object value) {
-    		   Item i = (Item) element;
-    		   IJavaElement e = (IJavaElement) i.getData();
-    		   //System.out.println("Setting value for "+e);
-    		   boolean changed = e.modify((String) value, BalloonUtility.errorListener);
-    		   if (changed) {
-    			   contents.update(e, null);
-    			   markAsDirty();
-    		   }
-    	   }
-       });       
-       // http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
-       TreeViewerEditor.create(contents, null, new ColumnViewerEditorActivationStrategy(contents) {
-    	   @Override
-    	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {    	
-    		   ViewerCell cell = (ViewerCell) e.getSource();
-    		   IJavaElement elt = (IJavaElement) cell.getElement();
-    		   //System.out.println("Got eae for "+elt);
-    		   return elt.canModify();
-    	   }
-       }, ColumnViewerEditor.DEFAULT);
-       
-       /*
-       //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_render.htm
-       contents.setContentProvider(new StandardJavaElementContentProvider(true));
-       contents.setLabelProvider(new JavaElementLabelProvider());
-       */
-    }
-    
 	private void createFluidXMLPage() {
 		fluidXML = new TextViewer(getContainer(), SWT.V_SCROLL | SWT.H_SCROLL);
 		fluidXML.setDocument(provider.getFluidDocument());
 		fluidXML.getTextWidget().setFont(JFaceResources.getTextFont());
 		fluidXML.getTextWidget().addLineStyleListener(new XMLLineStyler());
-		fluidXML.setEditable(false);		
-		
+		fluidXML.setEditable(false);
+
 		int index = addPage(fluidXML.getControl());
-		setPageText(index, "Source");
+		setPageText(index, "Baseline");
 	}
-	
+
 	private void createLocalXMLPage() {
 		final IEditorInput input = provider.getLocalInput();
 		if (input == null) {
@@ -221,78 +245,82 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		}
 		try {
 			localXML = new TextEditor() {
-				@Override 
+				@Override
 				public void createPartControl(Composite parent) {
 					super.createPartControl(parent);
-					getSourceViewer().getTextWidget().addLineStyleListener(new XMLLineStyler());
+					getSourceViewer().getTextWidget().addLineStyleListener(
+							new XMLLineStyler());
 				}
+
 				@Override
 				public boolean isEditable() {
 					return false;
 				}
 			};
-			
+
 			int index = addPage(localXML, input);
 			setPageText(index, "Diffs");
 		} catch (PartInitException e) {
-			SLLogger.getLogger().log(Level.WARNING, "Error creating source page for "+input.getToolTipText(), e);
+			SLLogger.getLogger().log(Level.WARNING,
+					"Error creating source page for " + input.getToolTipText(),
+					e);
 		}
 	}
-	
-    @Override
-    public void init(IEditorSite site, IEditorInput input) {
-       setSite(site);
-       setInput(input);              
-       if (input instanceof IURIEditorInput) {
-    	   IURIEditorInput f = (IURIEditorInput) input;
-    	   if (contents != null) {
-    		   contents.setInput(f.getURI());
-    	   } else {
-    		   provider.inputChanged(contents, null, f.getURI());    		   
-    		   if (f instanceof Input) {
-    			   Input i = (Input) f;
-    			   if (i.readOnly) {
-    				   provider.markAsReadOnly();
-    			   }
-    		   }
-    	   }
-       }
-       setPartName(input.getName());
-    }
-    
-    @Override
-    public void setFocus() {
-    	//System.out.println("Focus on "+getActivePage());
-    	switch (getActivePage()) {
-    	case 0:
-    		if (contents != null) {
-    			contents.getControl().setFocus();
-    		}
-    		break;
-    	case 1:
-    		if (fluidXML != null) {
-    			fluidXML.getControl().setFocus();
-    		}
-    		break;
-    	case 2:
-    		if (localXML != null) {
-    			localXML.setFocus();
-    		}
-    		break;
-    	}
-    }	
-	
-    /* TODO
-    public void gotoMarker(IMarker marker) {
-    }
-    */
-    
+
+	@Override
+	public void init(IEditorSite site, IEditorInput input) {
+		setSite(site);
+		setInput(input);
+		if (input instanceof IURIEditorInput) {
+			IURIEditorInput f = (IURIEditorInput) input;
+			if (contents != null) {
+				contents.setInput(f.getURI());
+			} else {
+				provider.inputChanged(contents, null, f.getURI());
+				if (f instanceof Input) {
+					Input i = (Input) f;
+					if (i.readOnly) {
+						provider.markAsReadOnly();
+					}
+				}
+			}
+		}
+		setPartName(input.getName());
+	}
+
+	@Override
+	public void setFocus() {
+		// System.out.println("Focus on "+getActivePage());
+		switch (getActivePage()) {
+		case 0:
+			if (contents != null) {
+				contents.getControl().setFocus();
+			}
+			break;
+		case 1:
+			if (fluidXML != null) {
+				fluidXML.getControl().setFocus();
+			}
+			break;
+		case 2:
+			if (localXML != null) {
+				localXML.setFocus();
+			}
+			break;
+		}
+	}
+
+	/*
+	 * TODO public void gotoMarker(IMarker marker) { }
+	 */
+
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		provider.save(monitor);		
+		boolean wasDirty = isDirty();
+		provider.save(monitor);
 		localXML.doRevertToSaved();
-		
-		if (isDirty()) {
+
+		if (wasDirty) {
 			isDirty = false;
 			fireDirtyProperty();
 			updateTitle(); // does this help refresh?
@@ -307,15 +335,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 	@Override
 	public void dispose() {
-		PromisesXMLReader.stopListening(this);		
-		
+		PromisesXMLReader.stopListening(this);
+
 		if (isDirty()) {
 			// Nuke changes
 			provider.deleteUnsavedChanges();
 		}
 		super.dispose();
 	}
-	
+
 	@Override
 	public boolean isDirty() {
 		return isDirty || provider.isDirty();
@@ -325,9 +353,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	public boolean isSaveAsAllowed() {
 		return false;
 	}
-	
+
 	private void fireDirtyProperty() {
-		// This shouldn't be necessary, but Eclipse doesn't seem to 
+		// This shouldn't be necessary, but Eclipse doesn't seem to
 		// realize that the editor is dirty otherwise
 		new SLUIJob() {
 			@Override
@@ -335,28 +363,29 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				firePropertyChange(IEditorPart.PROP_DIRTY);
 				return Status.OK_STATUS;
 			}
-		}.schedule();	
+		}.schedule();
 	}
-	
+
 	private void markAsDirty() {
 		fireDirtyProperty();
-		
+
 		// otherwise already dirty
 		syncLocalXMLEditor();
-		PromisesXMLReader.refresh(provider.pkg);		
+		PromisesXMLReader.refresh(provider.pkg);
 	}
-	
+
 	private void markAsClean() {
 		isDirty = false;
 		fireDirtyProperty();
 		PromisesXMLReader.refresh(provider.pkg);
 	}
-	
+
 	private void syncLocalXMLEditor() {
-		final IURIEditorInput input = (IURIEditorInput) provider.getLocalInput();	
+		final IURIEditorInput input = (IURIEditorInput) provider
+				.getLocalInput();
 		final IDocument doc = localXML.getDocumentProvider().getDocument(input);
 		if (doc != null) {
-			System.out.println(doc.get());
+			//System.out.println(doc.get());
 			StringWriter sw = new StringWriter(doc.getLength());
 			PromisesXMLWriter pw = new PromisesXMLWriter(new PrintWriter(sw));
 			PackageElement p = provider.pkg.cloneMe();
@@ -364,21 +393,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				p = PromisesXMLMerge.diff(p);
 			}
 			pw.write(p);
-			
-			final String updated = sw.toString();			
+
+			final String updated = sw.toString();
 			doc.set(updated);
-			System.out.println(updated);
+			//System.out.println(updated);
 		}
 	}
-	
+
 	private void setupContextMenu(final Menu menu) {
-		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
+		final IStructuredSelection s = (IStructuredSelection) contents
+				.getSelection();
 		if (s.size() != 1) {
 			return;
 		}
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
 		addNavigationActions(menu, o);
-		
+
 		if (!provider.isMutable()) {
 			return;
 		}
@@ -386,140 +416,151 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
-		
+
 			/*
-			if (o instanceof AbstractFunctionElement) {
-				final AbstractFunctionElement f = (AbstractFunctionElement) o;
-				if (f.getParams().length() > 0) {
-					// Find out which parameters need to be added
-					final String[] params = f.getSplitParams();
-					final List<Object> newParams = new ArrayList<Object>();
-					for(int i=0; i<params.length; i++) {
-						final FunctionParameterElement p = f.getParameter(i);
-						if (p == null) {
-							newParams.add(new NewParameter(i,params[i]));
-						} else {
-							newParams.add(p);
-						}
-					}
-					if (newParams.size() > 0) {
-						makeMenuItem(menu, "Add parameter...", new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent e) {						
-								ListSelectionDialog d = new 
-								    ListSelectionDialog(contents.getTree().getShell(), newParams.toArray(), 
-								    		paramProvider, paramProvider, "Select parameter(s) to add");
-								if (d.open() == Window.OK) {
-									boolean changed = false;
-									for(Object o : d.getResult()) {
-										if (o instanceof NewParameter) {
-											NewParameter np = (NewParameter) o;
-											FunctionParameterElement p = new FunctionParameterElement(np.index);	
-											f.setParameter(p);
-											changed = true;
-										}
-									}
-									if (changed) {
-										markAsDirty();
-										contents.refresh();
-										contents.expandToLevel(f, 1);
-									}
-								}
-							}
-						});
-					}
-				}
-			} 
-			else */ 
+			 * if (o instanceof AbstractFunctionElement) { final
+			 * AbstractFunctionElement f = (AbstractFunctionElement) o; if
+			 * (f.getParams().length() > 0) { // Find out which parameters need
+			 * to be added final String[] params = f.getSplitParams(); final
+			 * List<Object> newParams = new ArrayList<Object>(); for(int i=0;
+			 * i<params.length; i++) { final FunctionParameterElement p =
+			 * f.getParameter(i); if (p == null) { newParams.add(new
+			 * NewParameter(i,params[i])); } else { newParams.add(p); } } if
+			 * (newParams.size() > 0) { makeMenuItem(menu, "Add parameter...",
+			 * new SelectionAdapter() {
+			 * 
+			 * @Override public void widgetSelected(SelectionEvent e) {
+			 * ListSelectionDialog d = new
+			 * ListSelectionDialog(contents.getTree().getShell(),
+			 * newParams.toArray(), paramProvider, paramProvider,
+			 * "Select parameter(s) to add"); if (d.open() == Window.OK) {
+			 * boolean changed = false; for(Object o : d.getResult()) { if (o
+			 * instanceof NewParameter) { NewParameter np = (NewParameter) o;
+			 * FunctionParameterElement p = new
+			 * FunctionParameterElement(np.index); f.setParameter(p); changed =
+			 * true; } } if (changed) { markAsDirty(); contents.refresh();
+			 * contents.expandToLevel(f, 1); } } } }); } } } else
+			 */
 			if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
-				
-				for(ScopedTargetType t : ScopedTargetType.values()) {
-					makeMenuItem(menu, "Add scoped promise for "+t.label+"...", new AnnotationCreator(j, t));
+
+				for (ScopedTargetType t : ScopedTargetType.values()) {
+					makeMenuItem(menu, "Add scoped promise for " + t.label
+							+ "...", new AnnotationCreator(j, t));
 				}
 				addActionsOnClasses(menu, c);
 			}
 		}
+
 		if (o instanceof IMergeableElement) {
-			final IMergeableElement me = (IMergeableElement) o;
-			makeMenuItem(menu, "Delete", new SelectionAdapter() {
-		        @Override
-		        public void widgetSelected(SelectionEvent e) {          
-		        	final boolean origDirty = provider.pkg.isDirty();
-		        	final boolean deletedNew = me.delete();
-		        	if (deletedNew && !origDirty) {
-		        		// Probably saved after creation, so we need to save it
-		        		isDirty = true;
-		        	}
-		        	markAsDirty();
-		          	contents.refresh();
-	            	contents.expandToLevel(me.getParent(), 1);
-		        }
-			});
+			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Delete All Changes", new SelectionAdapter() {
-	        @Override
-	        public void widgetSelected(SelectionEvent e) {   			      
-	        	final Shell s = contents.getTree().getShell();
-	        	if (provider.pkg.isModified()) {	        	
-	        		if (MessageDialog.openQuestion(s, "Delete All Changes?", 
-	        				"Do you really want to delete all changes?")) {
-	        			provider.deleteAllChanges();
-	        			contents.refresh();
-	        			contents.expandAll();
-	        			/*
-	        			localXML.doRevertToSaved();			        	
-	        			markAsClean();
-	        			*/
-	        			isDirty = true;
-	        			markAsDirty();
-	        		}
-	        	} else {
-	        		MessageDialog.openInformation(s, "No Changes", "There are no changes to delete");
-	        	}
-	        }
+		MenuItem m = makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				final Shell s = contents.getTree().getShell();
+				if (provider.pkg.isDirty()) {
+					if (MessageDialog.openQuestion(s, "Revert All Changes?",
+							"Do you really want to revert all changes?")) {
+						provider.deleteAllChanges();
+						contents.refresh();
+						contents.expandAll();
+						/*
+						 * localXML.doRevertToSaved(); markAsClean();
+						 */
+						isDirty = true;
+						markAsDirty();
+					}
+				} else {
+					MessageDialog.openInformation(s, "No Changes",
+							"There are no changes to revert");
+				}
+			}
 		});
+		m.setEnabled(provider.pkg.isDirty());
+	}
+
+	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
+		if (o instanceof AnnotationElement) {
+			final AnnotationElement a = (AnnotationElement) o;
+			MenuItem m = makeMenuItem(menu, "Edit Annotation...",
+					SLImages.getImage(CommonImages.IMG_ANNOTATION),
+					new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent se) {
+							startAnnotationEditDialog(a);
+						}
+					});			
+			m.setEnabled(a.canModify());
+			
+			MenuItem m2 = makeMenuItem(menu, "Revert",
+					SLImages.getImage(CommonImages.IMG_ANNOTATION),
+					new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent se) {
+							a.revert();
+							markAsDirty();
+						}
+					});			
+			m2.setEnabled(a.canRevert());
+		}
+		final IMergeableElement me = (IMergeableElement) o;
+		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X),
+				new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						final Shell s = contents.getTree().getShell();
+						if (MessageDialog.openQuestion(
+								s,
+								"Delete Annotation?",
+								"Do you really want to delete @"
+										+ me.getLabel() + "?")) {
+							final boolean origDirty = provider.pkg.isDirty();
+							final boolean deletedNew = me.delete();
+							if (deletedNew && !origDirty) {
+								// Probably saved after creation, so we need to
+								// save it
+								isDirty = true;
+							}
+							markAsDirty();
+							contents.refresh();
+							contents.expandToLevel(me.getParent(), 1);
+						}
+					}
+				});
 	}
 
 	private void addActionsOnClasses(final Menu menu, final ClassElement c) {
 		/*
-		makeMenuItem(menu, "Add existing method(s)...", new ITypeSelector<IMethod>(c, methodComparator) {
-			@Override
-			protected void preselect(IType t) throws JavaModelException {
-				for(IMethod m : t.getMethods()) {					
-					final boolean omitted = Flags.isSynthetic(m.getFlags()) || 
-						"<clinit>".equals(m.getElementName()) ||
-						m.getElementName().startsWith("access$");						
-					if (m.getDeclaringType().equals(t) && !omitted) {
-						// TODO check if already there?
-						members.add(m);
-					}
-				}
-			}
-			@Override
-			protected void create(IMethod m) throws JavaModelException {
-				String params = PromisesXMLBuilder.translateParameters(m);									
-				c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
-					                            new MethodElement(m.getElementName(), params));
-			}
-		});
-		makeMenuItem(menu, "Add existing nested type(s)...", new ITypeSelector<IType>(c, typeComparator) {
-			@Override
-			protected void preselect(IType t) throws JavaModelException {
-				for(IType nt : t.getTypes()) {
-					// TODO check if already there?
-					members.add(nt);
-				}
-			}
-			@Override
-			protected void create(IType member) throws JavaModelException {
-				c.addMember(new NestedClassElement(member.getElementName()));
-			}
-		});
-		*/
+		 * makeMenuItem(menu, "Add existing method(s)...", new
+		 * ITypeSelector<IMethod>(c, methodComparator) {
+		 * 
+		 * @Override protected void preselect(IType t) throws JavaModelException
+		 * { for(IMethod m : t.getMethods()) { final boolean omitted =
+		 * Flags.isSynthetic(m.getFlags()) ||
+		 * "<clinit>".equals(m.getElementName()) ||
+		 * m.getElementName().startsWith("access$"); if
+		 * (m.getDeclaringType().equals(t) && !omitted) { // TODO check if
+		 * already there? members.add(m); } } }
+		 * 
+		 * @Override protected void create(IMethod m) throws JavaModelException
+		 * { String params = PromisesXMLBuilder.translateParameters(m);
+		 * c.addMember(m.isConstructor() ? new ConstructorElement(params) : new
+		 * MethodElement(m.getElementName(), params)); } }); makeMenuItem(menu,
+		 * "Add existing nested type(s)...", new ITypeSelector<IType>(c,
+		 * typeComparator) {
+		 * 
+		 * @Override protected void preselect(IType t) throws JavaModelException
+		 * { for(IType nt : t.getTypes()) { // TODO check if already there?
+		 * members.add(nt); } }
+		 * 
+		 * @Override protected void create(IType member) throws
+		 * JavaModelException { c.addMember(new
+		 * NestedClassElement(member.getElementName())); } });
+		 */
 	}
-	
+
 	abstract class ITypeSelector<T extends IMember> extends SelectionAdapter {
 		final ClassElement c;
 		final List<T> members = new ArrayList<T>();
@@ -529,22 +570,23 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			c = cls;
 			comparator = compare;
 		}
-		
+
 		@Override
 		public final void widgetSelected(SelectionEvent e) {
-			final IType t = findIType(c, "");						
+			final IType t = findIType(c, "");
 			if (t == null) {
 				return;
 			}
 			ListSelectionDialog d;
-			try {		
+			try {
 				preselect(t);
 				Collections.sort(members, comparator);
-				d = new ListSelectionDialog(contents.getTree().getShell(), members.toArray(), 
-						                    jProvider, jProvider, "Select one or more of these");
+				d = new ListSelectionDialog(contents.getTree().getShell(),
+						members.toArray(), jProvider, jProvider,
+						"Select one or more of these");
 				if (d.open() == Window.OK) {
 					boolean changed = false;
-					for(Object o : d.getResult()) {
+					for (Object o : d.getResult()) {
 						@SuppressWarnings("unchecked")
 						T m = (T) o;
 						create(m);
@@ -553,24 +595,27 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 					if (changed) {
 						markAsDirty();
 						contents.refresh();
-						//contents.refresh(c, true);
+						// contents.refresh(c, true);
 					}
 				}
 			} catch (JavaModelException e1) {
 				e1.printStackTrace();
-			}															
+			}
 		}
 
-		protected abstract void preselect(final IType t) throws JavaModelException;
+		protected abstract void preselect(final IType t)
+				throws JavaModelException;
+
 		protected abstract void create(T member) throws JavaModelException;
 	}
-	
+
 	private static final Comparator<IMethod> methodComparator = new Comparator<IMethod>() {
 		@Override
 		public int compare(IMethod o1, IMethod o2) {
 			int rv = o1.getElementName().compareTo(o2.getElementName());
 			if (rv == 0) {
-				rv = o1.getParameterTypes().length - o2.getParameterTypes().length;
+				rv = o1.getParameterTypes().length
+						- o2.getParameterTypes().length;
 			}
 			if (rv == 0) {
 				try {
@@ -582,7 +627,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return rv;
 		}
 	};
-	
+
 	private static final Comparator<IType> typeComparator = new Comparator<IType>() {
 		@Override
 		public int compare(IType o1, IType o2) {
@@ -590,17 +635,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return rv;
 		}
 	};
-	
+
 	private void addNavigationActions(Menu menu, IJavaElement o) {
 		if (o instanceof ClassElement) {
 			final ClassElement c = (ClassElement) o;
 			makeMenuItem(menu, "Open Type Hierarchy", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					final IViewPart view = EclipseUIUtility.showView(JavaUI.ID_TYPE_HIERARCHY);
+					final IViewPart view = EclipseUIUtility
+							.showView(JavaUI.ID_TYPE_HIERARCHY);
 					if (view instanceof ITypeHierarchyViewPart) {
 						final ITypeHierarchyViewPart v = (ITypeHierarchyViewPart) view;
-						final IType t = findIType(c, "");	
+						final IType t = findIType(c, "");
 						if (t != null) {
 							v.setInputElement(t);
 						}
@@ -614,47 +660,52 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		final AnnotatedJavaElement j;
 		final ScopedTargetType target;
 		final boolean makeScopedPromise;
-		
-		AnnotationCreator(AnnotatedJavaElement aje, ScopedTargetType t) {		
+
+		AnnotationCreator(AnnotatedJavaElement aje, ScopedTargetType t) {
 			j = aje;
 			target = t;
 			makeScopedPromise = t != null;
 		}
-		
+
 		AnnotationCreator(AnnotatedJavaElement aje) {
 			this(aje, null);
 		}
-		
+
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final List<String> annos;
 			if (!makeScopedPromise) {
 				annos = findMissingAnnos(j);
 			} else {
-				annos = sortSet(remove(findApplicableAnnos(target.op), ScopedPromiseRules.PROMISE));
+				annos = sortSet(remove(findApplicableAnnos(target.op),
+						ScopedPromiseRules.PROMISE));
 			}
-			ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), annos.toArray(), 
-		    		annoProvider, annoProvider, 
-		    		makeScopedPromise ? "Select scoped promise(s) to add for "+target.label : 
-		    			                "Select annotation(s) to add");
+			ListSelectionDialog d = new ListSelectionDialog(contents.getTree()
+					.getShell(), annos.toArray(), annoProvider, annoProvider,
+					makeScopedPromise ? "Select scoped promise(s) to add for "
+							+ target.label : "Select annotation(s) to add");
 			if (d.open() == Window.OK) {
 				boolean changed = false;
-				for(Object o : d.getResult()) {
+				for (Object o : d.getResult()) {
 					final String tag = (String) o;
-					final String contents = getDefaultContents(tag, makeScopedPromise);
+					final String contents = getDefaultContents(tag,
+							makeScopedPromise);
 					final AnnotationElement a;
-					final Map<String,String> attrs = Collections.<String,String>emptyMap();
+					final Map<String, String> attrs = Collections
+							.<String, String> emptyMap();
 					if (makeScopedPromise) {
-						a = new AnnotationElement(j, null, ScopedPromiseRules.PROMISE, "@"+tag+contents+
-								                  " for "+target.target, attrs);
+						a = new AnnotationElement(j, null,
+								ScopedPromiseRules.PROMISE, "@" + tag
+										+ contents + " for " + target.target,
+								attrs);
 					} else {
 						a = new AnnotationElement(j, null, tag, contents, attrs);
 					}
-					//System.out.println("Created elt: "+a);
+					// System.out.println("Created elt: "+a);
 					j.addPromise(a);
 					a.markAsModified();
 					changed = true;
-				
+
 				}
 				if (changed) {
 					contents.refresh();
@@ -671,38 +722,39 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return "";
 		}
 	}
-	
+
 	private List<String> sortSet(final Set<String> s) {
-		List<String> rv = new ArrayList<String>(s);		
+		List<String> rv = new ArrayList<String>(s);
 		Collections.sort(rv);
 		return rv;
 	}
-	
+
 	private Set<String> findApplicableAnnos(final Operator op) {
 		final Set<String> annos = new HashSet<String>();
 		// Get valid/applicable annos
-		for(IAnnotationParseRule<?,?> rule : PromiseFramework.getInstance().getParseDropRules()) {			
-			if (!(rule instanceof NullAnnotationParseRule) &&
-				rule.declaredOnValidOp(op) && 
-				AnnotationElement.isIdentifier(rule.name())) {
+		for (IAnnotationParseRule<?, ?> rule : PromiseFramework.getInstance()
+				.getParseDropRules()) {
+			if (!(rule instanceof NullAnnotationParseRule)
+					&& rule.declaredOnValidOp(op)
+					&& AnnotationElement.isIdentifier(rule.name())) {
 				annos.add(rule.name());
 			}
 		}
 		// These should never appear in XML files
-		annos.remove(ScopedPromiseRules.ASSUME); 
+		annos.remove(ScopedPromiseRules.ASSUME);
 		return annos;
 	}
-	
+
 	private Set<String> remove(Set<String> s, String elt) {
 		s.remove(elt);
 		return s;
 	}
-	
+
 	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
 		final Set<String> annos = findApplicableAnnos(j.getOperator());
-		
+
 		// Remove clashes
-		for(AnnotationElement a : j.getPromises()) {
+		for (AnnotationElement a : j.getPromises()) {
 			// This will remove it if there should only be one of that kind
 			annos.remove(a.getUid());
 		}
@@ -712,15 +764,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	static class NewParameter {
 		final int index;
 		final String type;
-		
+
 		NewParameter(int i, String t) {
 			index = i;
 			type = t;
-		}		
+		}
 	}
-	
+
 	static IType findIType(ClassElement c, String nameSoFar) {
-		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName()+'.'+nameSoFar;
+		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName() + '.'
+				+ nameSoFar;
 		if (c instanceof NestedClassElement) {
 			ClassElement parent = (ClassElement) c.getParent();
 			return findIType(parent, typeName);
@@ -729,13 +782,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return JDTUtility.findIType(null, pkg.getName(), typeName);
 		}
 	}
-	
-	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
+
+	static MenuItem makeMenuItem(Menu menu, String label, SelectionListener l) {
+		return makeMenuItem(menu, label, null, l);
+	}
+
+	static MenuItem makeMenuItem(Menu menu, String label, Image image,
+			SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
 		item1.setText(label);
 		item1.addSelectionListener(l);
+		if (image != null) {
+			item1.setImage(image);
+		}
+		return item1;
 	}
-	
+
 	static class JavaElementProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
@@ -744,23 +806,26 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 		@Override
 		public String getText(Object element) {
-			org.eclipse.jdt.core.IJavaElement e = (org.eclipse.jdt.core.IJavaElement) element; 
+			org.eclipse.jdt.core.IJavaElement e = (org.eclipse.jdt.core.IJavaElement) element;
 			if (e instanceof IMethod) {
 				IMethod m = (IMethod) e;
 				try {
 					if (m.isConstructor()) {
-						return "new "+m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
+						return "new " + m.getElementName() + '('
+								+ PromisesXMLBuilder.translateParameters(m)
+								+ ')';
 					}
-					return m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
+					return m.getElementName() + '('
+							+ PromisesXMLBuilder.translateParameters(m) + ')';
 				} catch (JavaModelException e1) {
 					// ignore
 				}
-				return m.getElementName()+"(???)";
+				return m.getElementName() + "(???)";
 			}
 			return e.getElementName();
 		}
 	}
-	
+
 	class ParameterProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
@@ -771,21 +836,23 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		public String getText(Object element) {
 			if (element instanceof NewParameter) {
 				NewParameter p = (NewParameter) element;
-				return FunctionParameterElement.PREFIX+(p.index+1)+" : "+p.type;
+				return FunctionParameterElement.PREFIX + (p.index + 1) + " : "
+						+ p.type;
 			}
 			FunctionParameterElement p = (FunctionParameterElement) element;
 			return p.getLabel();
 		}
-		
+
 		@Override
 		public Color getForeground(Object element) {
 			if (element instanceof FunctionParameterElement) {
-				return contents.getControl().getDisplay().getSystemColor(SWT.COLOR_GRAY);
+				return contents.getControl().getDisplay()
+						.getSystemColor(SWT.COLOR_GRAY);
 			}
 			return null;
 		}
 	}
-	
+
 	static class AnnoProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
@@ -807,7 +874,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 		}
 	}
-	
+
 	public void focusOnNestedType(String relativeName) {
 		PackageElement p = provider.pkg;
 		if (p != null) {
@@ -817,12 +884,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 		}
 	}
-	
-	abstract static class ElementFinder<T> extends AbstractJavaElementVisitor<T> {
+
+	abstract static class ElementFinder<T> extends
+			AbstractJavaElementVisitor<T> {
 		ElementFinder() {
 			super(null);
 		}
-		
+
 		@Override
 		protected T combine(T old, T result) {
 			if (old != null) {
@@ -831,23 +899,23 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return result;
 		}
 	}
-	
+
 	static class TypeFinder extends ElementFinder<NestedClassElement> {
 		final String[] names;
 		final Stack<String> types = new Stack<String>();
-		
+
 		TypeFinder(String relativeName) {
 			names = relativeName.split("\\.");
 		}
-		
+
 		public NestedClassElement visit(NestedClassElement e) {
 			types.clear();
-			
+
 			// Find out where this is
 			NestedClassElement here = e;
 			while (here != null) {
 				types.push(here.getName());
-				
+
 				IJavaElement p = here.getParent();
 				if (p instanceof NestedClassElement) {
 					here = (NestedClassElement) p;
@@ -856,7 +924,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 				}
 			}
 			// Compare against names
-			for(String name : names) {
+			for (String name : names) {
 				if (types.isEmpty()) {
 					return null; // No match
 				}
@@ -871,43 +939,45 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return e;
 		}
 	}
-	
+
 	static class MethodFinder extends ElementFinder<MethodElement> {
 		final String name, params;
-		
+
 		MethodFinder(String name, String params) {
 			this.name = name;
 			this.params = params;
 		}
-		
+
 		@Override
 		public MethodElement visit(MethodElement m) {
 			if (name.equals(m.getName())) {
 				if (params == null || params.equals(m.getParams())) {
 					return m;
-				}				
+				}
 			}
 			return null;
 		}
 	}
-	
-	static class XmlMap extends HashMap<String,Collection<String>> implements IXmlProcessor {
+
+	static class XmlMap extends HashMap<String, Collection<String>> implements
+			IXmlProcessor {
 		private static final long serialVersionUID = 1L;
 		private final boolean makeUnique;
-		
+
 		XmlMap(boolean makeUnique) {
 			this.makeUnique = makeUnique;
 		}
-		
+
 		private Collection<String> getPkg(String qname) {
 			Collection<String> c = get(qname);
 			if (c == null) {
-				c = makeUnique ? new HashSet<String>(4) : new ArrayList<String>(2);
+				c = makeUnique ? new HashSet<String>(4)
+						: new ArrayList<String>(2);
 				put(qname, c);
 			}
 			return c;
 		}
-		
+
 		@Override
 		public void addPackage(String qname) {
 			getPkg(qname);
@@ -917,47 +987,46 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		public void addType(String pkg, String name) {
 			Collection<String> c = getPkg(pkg);
 			c.add(name);
-		}		
+		}
 	}
-	
+
 	/**
 	 * @return a map of packages to qualified names
 	 */
-	public static Map<String,Collection<String>> findAllPromisesXML() {
+	public static Map<String, Collection<String>> findAllPromisesXML() {
 		return findLocalPromisesXML(true);
 	}
-	
-	public static Map<String,Collection<String>> findLocalPromisesXML() {
+
+	public static Map<String, Collection<String>> findLocalPromisesXML() {
 		return findLocalPromisesXML(false);
 	}
-	
-	private static Map<String,Collection<String>> findLocalPromisesXML(boolean includeFluid) {
+
+	private static Map<String, Collection<String>> findLocalPromisesXML(
+			boolean includeFluid) {
 		final XmlMap map = new XmlMap(true);
 		if (includeFluid) {
 			final File xml = PromisesXMLParser.getFluidXMLDir();
 			PackageAccessor.findPromiseXMLsInDir(map, xml);
-		}		
+		}
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			PackageAccessor.findPromiseXMLsInDir(map, localXml);
 		}
 		return map;
 	}
-	
+
 	/**
 	 * @return non-null Pair of files for fluid and local
 	 */
-	private static Pair<File,File> findPromisesXML(String path) {
-		File fluid = null; 
-		File local = null;		
+	private static Pair<File, File> findPromisesXML(String path) {
+		File fluid = null;
+		File local = null;
 		final File localXml = JSurePreferencesUtility.getJSureXMLDirectory();
 		if (localXml != null) {
 			File f = new File(localXml, path);
 			/*
-			if (f.isFile()) {
-				local = f;
-			}
-			*/
+			 * if (f.isFile()) { local = f; }
+			 */
 			local = f;
 		}
 		// Try fluid
@@ -965,23 +1034,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		if (xml != null) {
 			File f = new File(xml, path);
 			/*
-			if (f.isFile()) {
-				fluid = f;
-			}
-			*/
+			 * if (f.isFile()) { fluid = f; }
+			 */
 			fluid = f;
 		}
-		return new Pair<File,File>(fluid, local);	
+		return new Pair<File, File>(fluid, local);
 	}
-	
+
 	public static IEditorPart openInEditor(String path, boolean readOnly) {
 		final IEditorInput i = makeInput(path, readOnly);
 		if (i == null) {// || !i.exists()) {
 			return null;
 		}
-		return EclipseUIUtility.openInEditor(i, PromisesXMLEditor.class.getName());
+		return EclipseUIUtility.openInEditor(i,
+				PromisesXMLEditor.class.getName());
 	}
-	
+
 	public static IEditorInput makeInput(String relativePath, boolean readOnly) {
 		try {
 			if (!relativePath.endsWith(TestXMLParserConstants.SUFFIX)) {
@@ -992,29 +1060,29 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			return null;
 		}
 	}
-	
+
 	private static class Input implements IURIEditorInput {
 		private final boolean readOnly;
 		private final String path;
 		private final String name;
 		private final URI uri;
-		
+
 		Input(String relativePath, boolean ro) throws URISyntaxException {
 			readOnly = ro;
 			path = relativePath;
 			uri = new URI(path);
-			
+
 			final int lastSlash = path.lastIndexOf('/');
 			if (lastSlash < 0) {
 				name = path;
 			} else {
-				name = path.substring(lastSlash+1);
+				name = path.substring(lastSlash + 1);
 			}
 		}
 
 		@Override
 		public boolean exists() {
-			final Pair<File,File> f = PromisesXMLParser.findPromisesXML(path);
+			final Pair<File, File> f = PromisesXMLParser.findPromisesXML(path);
 			return f.first().isFile();
 		}
 
@@ -1030,13 +1098,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
 		@Override
 		public IPersistableElement getPersistable() {
-			return new IPersistableElement() {				
+			return new IPersistableElement() {
 				@Override
 				public void saveState(IMemento memento) {
-					memento.putString(PromisesXMLFactory.PATH, path);					
+					memento.putString(PromisesXMLFactory.PATH, path);
 					memento.putBoolean(PromisesXMLFactory.READ_ONLY, readOnly);
 				}
-				
+
 				@Override
 				public String getFactoryId() {
 					return PromisesXMLFactory.class.getName();
@@ -1061,7 +1129,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		public URI getURI() {
 			return uri;
 		}
-		
+
 		@Override
 		public boolean equals(Object o) {
 			if (o instanceof IURIEditorInput) {
@@ -1070,18 +1138,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 			return false;
 		}
-		
+
 		@Override
 		public int hashCode() {
 			return path.hashCode();
 		}
 	}
 
-	public void focusOn(IJavaElement e) {		
+	public void focusOn(IJavaElement e) {
 		contents.setSelection(new StructuredSelection(e));
 		contents.reveal(e);
 	}
-	
+
 	static class Comparer implements IElementComparer {
 		@Override
 		public int hashCode(Object element) {
@@ -1090,11 +1158,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 			}
 			return element.hashCode();
 		}
-		
+
 		@Override
 		public boolean equals(Object a, Object b) {
 			return a == b;
-		}		
+		}
 	}
 
 	@Override
@@ -1111,5 +1179,60 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 		contents.refresh();
 		fluidXML.refresh();
 		localXML.doRevertToSaved();
+	}
+
+	void startAnnotationEditDialog(AnnotationElement a) {
+		// Collect initial attribute values
+		Map<Attribute, String> initialAttrs = new TreeMap<Attribute, String>();
+		for (Map.Entry<String, Attribute> e : a.getAttributeDefaults()
+				.entrySet()) {
+			if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {
+				initialAttrs.put(e.getValue(), a.getContents());
+			} else {
+				// TODO push into AnnoElt?
+				String value = a.getAttribute(e.getKey());
+				if (value == null
+						&& e.getValue().getDefaultValueOrNull() != null) {
+					value = e.getValue().getDefaultValueOrNull(); // the default
+				}
+				initialAttrs.put(e.getValue(), value);
+			}
+		}
+		Map<Attribute, String> changedAttrs = LibraryAnnotationDialog.edit(a,
+				initialAttrs);
+		if (!changedAttrs.isEmpty()) {
+			boolean modified = false;
+			// edit contents and attrs
+			for (Map.Entry<Attribute, String> e : changedAttrs.entrySet()) {
+				if (AnnotationConstants.VALUE_ATTR.equals(e.getKey().getName())) {
+					// modified |=
+					// a.modify(a.getPromise()+'('+changedAttrs.get(AnnotationConstants.VALUE_ATTR)+')',
+					// null);
+					modified |= a.modifyContents(e.getValue());
+				} else {
+					a.setAttribute(e.getKey().getName(), e.getValue());
+					modified = true;
+				}
+			}
+			if (modified) {
+				markAsDirty();
+			}
+		}
+		/*
+		 * // TODO Assumes all attributes are boolean ListSelectionDialog d =
+		 * new ListSelectionDialog(contents.getTree().getShell(),
+		 * a.getAttributeDefaults().keySet().toArray(), annoProvider,
+		 * annoProvider, ""); final Set<String> initiallySet = new
+		 * TreeSet<String>();
+		 * 
+		 * d.setInitialSelections(initiallySet.toArray()); if (d.open() ==
+		 * Window.OK) { // Figure out which changed Set<String> nowUnset = new
+		 * TreeSet<String>(initiallySet); Set<String> nowSet = new
+		 * TreeSet<String>(); for(Object o : d.getResult()) { if
+		 * (!nowUnset.remove(o)) { nowSet.add(o.toString()); } } // Update the
+		 * attributes for(String s : nowUnset) { a.setAttribute(s, "false"); }
+		 * for(String s : nowSet) { a.setAttribute(s, "true"); } if
+		 * (!nowSet.isEmpty() || !nowUnset.isEmpty()) { markAsDirty(); } }
+		 */
 	}
 }

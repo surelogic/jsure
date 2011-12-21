@@ -65,7 +65,7 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 		}
 	}
 
-	private IEditorPart openInXMLEditor(final IType t) {
+	public static IEditorPart openInXMLEditor(final IType t) {
 		String qname = t.getFullyQualifiedName();
 		int firstDollar = qname.indexOf('$');
 		if (firstDollar >= 0) {
@@ -73,6 +73,6 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 			qname = qname.substring(0, firstDollar);
 			// TODO find nested classes
 		}
-		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, true);
+		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')+TestXMLParserConstants.SUFFIX, false);
 	}
 }

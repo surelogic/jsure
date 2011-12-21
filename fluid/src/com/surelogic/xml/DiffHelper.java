@@ -17,7 +17,7 @@ class DiffHelper extends AbstractJavaElementVisitor<Void> {
 
 	@Override
 	public Void visit(AnnotationElement a) {
-		a.stashDiffState(a.getContents());
+		a.stashDiffState(a);
 		return null;
 	}
 }
