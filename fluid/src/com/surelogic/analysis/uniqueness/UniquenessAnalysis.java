@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -45,11 +46,14 @@ import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
@@ -70,6 +74,7 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
@@ -115,31 +120,36 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final List<IRNode> trash = new ArrayList<IRNode>();
     LocalVariableDeclarations.separateDeclarations(binder, lvd.getLocal(), refLocals, trash);
     LocalVariableDeclarations.separateDeclarations(binder, lvd.getExternal(), refLocals, trash);
+    
+    // Add the return node
     final IRNode returnNode = JavaPromise.getReturnNodeOrNull(flowUnit);
     if (returnNode != null && LocalVariableDeclarations.hasReferenceType(binder, returnNode)) {
       refLocals.add(returnNode);
     }
 
-    // Add the receiver & any qualified receivers
+    // Add the receiver
     final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
     if (rcvrNode != null) {
       refLocals.add(rcvrNode);
     }
-    /* TODO is this right?     
-    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
-      refLocals.add(qrcvr);
-    }
-    */
+
+    // Add the qualified receiver, if any.  This will only be present on a
+    // constructor.
     final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
     if (qrcvrNode != null) {
-    	refLocals.add(qrcvrNode);
+      refLocals.add(qrcvrNode);
     }
     
+    /* For each AnonClassExpression that is in the flow unit we add the 
+     *  receiver from the <init> method  (BUG 1712)
+     */
+    ReceiverSnatcher.getReceivers(flowUnit, refLocals);
+    
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
-    List<Effect> effects = Effects.getDeclaredMethodEffects(flowUnit, flowUnit);
-	final StoreLattice lattice = new StoreLattice(locals,binder,mayAlias,effects);
+    final List<Effect> effects = Effects.getDeclaredMethodEffects(flowUnit, flowUnit);
+    final StoreLattice lattice = new StoreLattice(locals,binder,mayAlias,effects);
     return new Uniqueness(
-        "Uniqueness Analsys (UWM)", lattice,
+        "Uniqueness Analsys (U+F)", lattice,
         new UniquenessTransfer(binder, lattice, 0, flowUnit, timeOut),
         timeOut);
   }
@@ -871,7 +881,24 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           LOG.fine("initializing static field '" + JJNode.getInfo(node) + "'");
         }
       } else {
-        s = lattice.opThis(s);
+        /* We are either a field of the class that contains the constructor
+         * declaration being analyzed, or we are a field of an anonymous class
+         * nested within the flow unit being analyzed.  In the first case,
+         * we want the the receiver of the constructor, in the second case
+         * we want the receiver of the <init> method of the anonymous class.
+         */
+        final IRNode rcvr;
+        final IRNode enclosingType = VisitUtil.getEnclosingType(node);
+        final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+        if (AnonClassExpression.prototype.includes(enclosingOp) ||
+            EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
+          rcvr = JavaPromise.getReceiverNode(
+              JavaPromise.getInitMethod(enclosingType));
+        } else {
+          rcvr = JavaPromise.getReceiverNode(flowUnit);
+        }
+        s = lattice.opGet(s, rcvr);
+//        s = lattice.opThis(s);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }
@@ -984,42 +1011,43 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	IRNode fqr = getQualifiedReceiver(node);
     	boolean isBorrowed = UniquenessRules.isBorrowed(fqr);
     	*/
-        IRNode classbody = 
-        	AnonClassExpression.prototype.includes(node) ? 
+      final IRNode classbody =           
+          AnonClassExpression.prototype.includes(node) ? 
         			AnonClassExpression.getBody(node) :
         			NestedClassDeclaration.getBody(node);
     	// called on NestedClassDeclaration AND AnonClassExpression
-        final List<IRNode> externalVars = 
-            LocalVariableDeclarations.getExternallyDeclaredVariables(
-                JavaPromise.getInitMethodOrNull(node)); 
-          boolean usedExternal = false;
-    	  for (final IRNode n : tree.bottomUp(classbody)) {
-            if (VariableUseExpression.prototype.includes(n)) {
-              final IRNode decl = binder.getBinding(n);
-              if (externalVars.contains(decl)) {
-            	  if (FieldDeclaration.prototype.includes(decl)) {
-            		  usedExternal = true;
-            	  } else {
-            		  //XXX: Here we compromise.  If we want to
-            		  // be less conservative than this (and this will give errors
-            		  // if the value is ReadOnly), we need to use both the
-            		  // possible borrowed-ness of the local FQR, but also
-            		  // need an annotation on the local specific to the NCD or ACE.
-            		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
-            	  }
-              }
-            } else if (QualifiedThisExpression.prototype.includes(n)) {
-            	usedExternal = true;
-            }
+      final List<IRNode> externalVars =
+          LocalVariableDeclarations.getExternallyDeclaredVariables(
+              JavaPromise.getInitMethodOrNull(node));
+      boolean usedExternal = false;
+  	  for (final IRNode n : tree.bottomUp(classbody)) {
+        if (VariableUseExpression.prototype.includes(n)) {
+          final IRNode decl = binder.getBinding(n);
+          if (externalVars.contains(decl)) {
+        	  if (FieldDeclaration.prototype.includes(decl)) {
+         		  usedExternal = true;
+         	  } else {
+         		  //XXX: Here we compromise.  If we want to
+         		  // be less conservative than this (and this will give errors
+         		  // if the value is ReadOnly), we need to use both the
+         		  // possible borrowed-ness of the local FQR, but also
+         		  // need an annotation on the local specific to the NCD or ACE.
+         		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
+         	  }
           }
+        } else if (QualifiedThisExpression.prototype.includes(n)) {
+         	usedExternal = true;
+        }
+      }
           
-          // If we used outer things and we aren't in a static context then compromise "this"
-          if (usedExternal && JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
-            // Now compromise "this" (this is slightly more conservative than necessary)
-            s = lattice.opCompromise(lattice.opThis(s));
-          }
-          return s;
-	}
+      // If we used outer things and we aren't in a static context then compromise "this"
+      final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
+      if (usedExternal && rcvr != null) { 
+        // Now compromise "this" (this is slightly more conservative than necessary)
+        s = lattice.opCompromise(lattice.opGet(s, rcvr));
+      }
+      return s;
+	  }
 
 
 
@@ -1122,16 +1150,75 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferUseReceiver(final IRNode use, final Store s) {
-      // XXX: Wrong, but consistent with what used to happen
-      return transferUseVar(use, s);
+      return lattice.opGet(s, getReceiverNodeAtExpression(use));
     }
     
     @Override
     protected Store transferUseQualifiedReceiver(
         final IRNode use, final IRNode decl, final Store s) {
-      // qualified receivers are more like fields now.
-      // XXX: THis is wrong: need to chase the pointers
-      return lattice.opLoad(lattice.opThis(s), decl);
+      /* If the qualified receiver is an implicit parameter of a constructor
+       * then we handle it as a local variable.  Otherwise it is series of
+       * field loads.
+       */
+      if (ConstructorDeclaration.prototype.includes(
+          JavaPromise.getPromisedFor(decl))) { // constructor parameter
+        return lattice.opGet(s, decl);
+      } else {
+        Store newStore = lattice.opGet(s, getReceiverNodeAtExpression(use));
+  
+        /* Loop up the nested class hierarchy until we find the class whose
+         * qualified receiver declaration equals 'decl'.  We are guaranteed
+         * by JavaEvaluationTransfer NOT to have a qualified this expression
+         * that binds to a normal receiver expression. 
+         */
+        IRNode currentClass = VisitUtil.getEnclosingType(use);
+        IRNode currentQualifiedReceiverField;
+        do {
+          currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+          // Do the pseudo-field reference
+          newStore = lattice.opLoad(newStore, currentQualifiedReceiverField);
+          currentClass = VisitUtil.getEnclosingType(currentClass);
+        } while (currentQualifiedReceiverField != decl);
+        
+        return newStore;
+      }
+    }
+
+    /**
+     * Get the receiver node appropriate for use at the given expression.
+     * Normally this is the receiver node from the flow unit being analyzed,
+     * unless the given node is inside a FieldDeclaration or ClassInitializer
+     * that is itself inside an AnonClassExpression or EnumConstantDeclaration.
+     * In that case, we use the receiver node from the InitMethod for the 
+     * class expression.
+     */
+    private IRNode getReceiverNodeAtExpression(final IRNode use) {
+      /* Need to determine if the use is inside a field init or init block
+       * of an anonymous class expression.
+       */
+      IRNode getReceiverFrom = null;
+      for (final IRNode current : VisitUtil.rootWalk(use)) {
+        final Operator op = JJNode.tree.getOperator(current);
+        if (ClassBody.prototype.includes(op)) {
+          // done: skipped past anything potentially interesting
+          getReceiverFrom = flowUnit;
+          break;
+        } else if (FieldDeclaration.prototype.includes(op) ||
+            ClassInitializer.prototype.includes(op)) {
+          /* Have to check against FieldDeclaration to avoid capturing local
+           * variable initializers.  This cannot be used in a static context,
+           * so don't even check for it
+           */
+          final IRNode enclosingType = VisitUtil.getEnclosingType(current);
+          final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+          if (AnonClassExpression.prototype.includes(enclosingOp) ||
+              EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
+            getReceiverFrom = JavaPromise.getInitMethod(enclosingType);
+            break;
+          }
+        }
+      }
+      return JavaPromise.getReceiverNode(getReceiverFrom);
     }
     
     private IRNode effectformal(Effect x) {
@@ -1439,6 +1526,27 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected RawQuery newSubAnalysisQuery(
         final Delegate<RawQuery, Store, Store, StoreLattice> delegate) {
       return new RawQuery(delegate);
+    }
+  }
+  
+  private static final class ReceiverSnatcher extends JavaSemanticsVisitor {
+    private final List<IRNode> refs;
+    
+    private ReceiverSnatcher(final IRNode flowUnit, final List<IRNode> refs) {
+      super(false, flowUnit);
+      this.refs = refs;
+    }
+    
+    public static void getReceivers(final IRNode flowUnit, final List<IRNode> refs) {
+      final ReceiverSnatcher rs = new ReceiverSnatcher(flowUnit, refs);
+      rs.doAccept(flowUnit);
+    }
+    
+    @Override
+    protected void handleAnonClassExpression(final IRNode anonClass) {
+      super.handleAnonClassExpression(anonClass);
+      // Add the receiver from <init>
+      refs.add(JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
     }
   }
 }

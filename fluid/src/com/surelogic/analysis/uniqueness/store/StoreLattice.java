@@ -415,22 +415,23 @@ extends TripleLattice<Element<Integer>,
 	  if (!s.isValid()) return s;
 	  return apply(s, new Remove(new ImmutableHashOrderSet<Object>(vars)));
   }
-
-  /**
-   * Special case of {@link #opGet} for the receiver.
-   */
-  public Store opThis(final Store s) {
-    if (!s.isValid()) return s;
-    if (locals == null) {
-      return errorStore("no 'this' (or anything else) in scope");
-    }
-    for (final IRNode l : locals) {
-      if (ReceiverDeclaration.prototype.includes(l)) {
-        return opGet(s, l);
-      }
-    }
-    return errorStore("no 'this' in scope");
-  }
+//
+//  /**
+//   * Special case of {@link #opGet} for the receiver.
+//   */
+//  @Deprecated
+//  public Store opThis(final Store s) {
+//    if (!s.isValid()) return s;
+//    if (locals == null) {
+//      return errorStore("no 'this' (or anything else) in scope");
+//    }
+//    for (final IRNode l : locals) {
+//      if (ReceiverDeclaration.prototype.includes(l)) {
+//        return opGet(s, l);
+//      }
+//    }
+//    return errorStore("no 'this' in scope");
+//  }
   
   /**
    * Duplicate a stack value from further down stack
