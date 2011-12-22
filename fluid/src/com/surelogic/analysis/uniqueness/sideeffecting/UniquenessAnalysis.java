@@ -126,9 +126,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   @Override
   protected JavaForwardAnalysis<Store, StoreLattice> createAnalysis(
       final IRNode flowUnit) {
-    
-    System.out.println("***** Create analysis for " + DebugUnparser.toString(flowUnit));
-    
     /* Get all the local variables with reference types, including final
      * variables declared in outer scopes, the "return variable" and the
      * receiver.
@@ -148,7 +145,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // Add the receiver
     final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
     if (rcvrNode != null) {
-      System.out.println("*****  receiver is " + rcvrNode);
       refLocals.add(rcvrNode);
     }
 
@@ -156,7 +152,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // constructor.
     final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
     if (qrcvrNode != null) {
-      System.out.println("*****  qualified receiver is " + rcvrNode);
     	refLocals.add(qrcvrNode);
     }
         
@@ -832,10 +827,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferCatchClose(final IRNode node, boolean flag, Store s) {
       IRNode var = CatchClause.getParam(node);
-      // System.out.println("before catch close: " + lattice.toString(s));
       s = lattice.opNull(s);
       s = lattice.opSet(s, node, var);
-      // System.out.println("after catch close: " + lattice.toString(s));
       return s;
     }
     
@@ -1411,10 +1404,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected void handleAnonClassExpression(final IRNode anonClass) {
       super.handleAnonClassExpression(anonClass);
-
-      System.out.println("*****  Anon class expr " + DebugUnparser.toString(anonClass));
-      System.out.println("*****    receiver (from <init>) is " + JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
-      
       // Add the receiver from <init>
       refs.add(JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
     }

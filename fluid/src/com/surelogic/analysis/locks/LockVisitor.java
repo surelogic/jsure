@@ -78,7 +78,6 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -761,10 +760,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private void updateJUCAnalysisQueries(final IRNode flowUnit) {
-		// System.out.println(">>>>>>>>>>>>>>>>>>>> Update JUC Queries: " +
-		// DebugUnparser.toString(flowUnit));
-		// System.out.flush();
-
 		final LockExpressions lockExprs = jucLockUsageManager
 				.getLockExpressionsFor(flowUnit);
 		if (lockExprs.usesJUCLocks()) {
@@ -2151,14 +2146,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	@Override
 	public Void visitConstructorDeclaration(final IRNode cdecl) {
-    final IRNode x = JavaPromise.getQualifiedReceiverNodeOrNull(cdecl);
-    if (x != null) {
-      System.out.println("Constructor " +
-          JavaNames.genQualifiedMethodConstructorName(cdecl) +
-          " has qualified receiver node " + x + ": " +
-          QualifiedReceiverDeclaration.getJavaType(binder, x).toString());
-    }
-
     try {
 			// First thing: update the receiver node
 			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
@@ -3133,22 +3120,4 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		this.ctxtIsLHS = false;
 		return null;
 	}
-
-	
-	
-	@Override
-  public Void visitQualifiedThisExpression(final IRNode expr) {
-    final IRNode binding = binder.getBinding(expr);
-    System.out.println("QualifiedThisExpression '" + DebugUnparser.toString(expr) + "' binds to " + binding + ": " + JJNode.tree.getOperator(binding));
-    
-    return null;
-  }
-
-  @Override
-  public Void visitThisExpression(final IRNode expr) {
-    final IRNode binding = binder.getBinding(expr);
-    System.out.println("ThisExpression '" + DebugUnparser.toString(expr) + "' binds to " + binding + ": " + JJNode.tree.getOperator(binding));
-    
-    return null;
-  }
 }

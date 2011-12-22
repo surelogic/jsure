@@ -31,7 +31,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
@@ -109,15 +108,7 @@ public class LockAnalysis
 	private final void actuallyAnalyzeClassBody(
 	    final LockVisitor lv, final Drop rd, 
 	    final IRNode typeDecl, final IRNode typeBody) {
-	  final IRNode x = JavaPromise.getQualifiedReceiverNodeOrNull(typeDecl);
-	  if (x != null) {
-      System.out.println("Class " +
-          JavaNames.genQualifiedMethodConstructorName(typeDecl) +
-          " has qualified receiver node " + x + ": " +
-          QualifiedReceiverDeclaration.getJavaType(getBinder(), x).toString());
-	  }
-
-	   lv.analyzeClass(typeBody, rd);
+	  lv.analyzeClass(typeBody, rd);
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafeImplementation(typeDecl);
