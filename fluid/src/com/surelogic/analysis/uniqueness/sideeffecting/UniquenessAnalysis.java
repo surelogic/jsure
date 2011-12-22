@@ -514,9 +514,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * the receiver.
      */
     private Store popReceiver(final IRNode decl, final IRNode methodCall, final Store s, final IRNode srcOp) {
-//      if (decl == null) {
-//        return lattice.opBorrow(s, srcOp);
-//      }
       if (JavaNode.getModifier(decl, JavaNode.STATIC)) {
         return lattice.opRelease(s, srcOp);
       } else {
@@ -541,19 +538,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
           return lattice.opCompromise(s, srcOp);
         }
-        
-//        else if (UniquenessRules.isBorrowed(recDecl) ||
-//            (isConstructor && UniquenessRules.isUnique(retDecl))) {
-//          return lattice.opBorrow(s, srcOp);
-//        } else {
-//          if (isConstructor) {
-//            if (LOG.isLoggable(Level.FINE)) {
-//              LOG.fine("Receiver is not limited for\n  "
-//                  + DebugUnparser.toString(decl));
-//            }
-//          }
-//          return lattice.opCompromise(s, srcOp);
-//        }
       }
     }
 
@@ -640,7 +624,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
         s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node);
-//        s = lattice.opCompromise(lattice.opThis(s, node), node);
       }
       return s;
     }
@@ -882,7 +865,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           rcvr = JavaPromise.getReceiverNode(flowUnit);
         }
         s = lattice.opGet(s, node, rcvr);
-//        s = lattice.opThis(s, node);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }
@@ -1051,24 +1033,33 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferUseQualifiedReceiver(
         final IRNode use, final IRNode decl, final Store s) {
-      // We start by getting the receiver
-      Store newStore = lattice.opGet(s, use, getReceiverNodeAtExpression(use));
-
-      /* Loop up the nested class hierarchy until we find the class whose
-       * qualified receiver declaration equals 'decl'.  We are guaranteed
-       * by JavaEvaluationTransfer NOT to have a qualified this expression
-       * that binds to a normal receiver expression. 
+      /* If the qualified receiver is an implicit parameter of a constructor
+       * then we handle it as a local variable.  Otherwise it is series of
+       * field loads.
        */
-      IRNode currentClass = VisitUtil.getEnclosingType(use);
-      IRNode currentQualifiedReceiverField;
-      do {
-        currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
-        // Do the pseudo-field reference
-        newStore = lattice.opLoad(newStore, use, currentQualifiedReceiverField);
-        currentClass = VisitUtil.getEnclosingType(currentClass);
-      } while (currentQualifiedReceiverField != decl);
-      
-      return newStore;
+      if (ConstructorDeclaration.prototype.includes(
+          JavaPromise.getPromisedFor(decl))) { // constructor parameter
+        return lattice.opGet(s, use, decl);
+      } else {
+        // We start by getting the receiver
+        Store newStore = lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+
+        /* Loop up the nested class hierarchy until we find the class whose
+         * qualified receiver declaration equals 'decl'.  We are guaranteed
+         * by JavaEvaluationTransfer NOT to have a qualified this expression
+         * that binds to a normal receiver expression. 
+         */
+        IRNode currentClass = VisitUtil.getEnclosingType(use);
+        IRNode currentQualifiedReceiverField;
+        do {
+          currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+          // Do the pseudo-field reference
+          newStore = lattice.opLoad(newStore, use, currentQualifiedReceiverField);
+          currentClass = VisitUtil.getEnclosingType(currentClass);
+        } while (currentQualifiedReceiverField != decl);
+        
+        return newStore;
+      }      
     }
 
     /**
