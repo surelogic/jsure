@@ -64,6 +64,7 @@ import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
@@ -553,9 +554,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     		return transferNestedClassUse(p,pop(s));
     	}
     	
-    	// XXX: The following call does not work: we get the normal receiver
-    	IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(decl, p);
-    	
+    	final IRNode qr = JavaPromise.getQualifiedReceiverNodeOrNull(decl);
     	if (UniquenessRules.isBorrowed(qr) && UniquenessRules.getBorrowed(qr).allowReturn()) {
     		s = addFromNode(s);
     		System.out.println("Found Borrowed(allowReturn) qualified receiver, now " + lattice.toString(s));
@@ -704,30 +703,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         LOG.warning("No binding for method " + DebugUnparser.toString(node));
         formals = null;
       } else {
-    	Operator mop = JJNode.tree.getOperator(mdecl);
-        if (ConstructorDeclaration.prototype.includes(mop)) {
-          formals = ConstructorDeclaration.getParams(mdecl);
-        } else if (AnnotationElement.prototype.includes(mop)) {
-          formals = AnnotationElement.getParams(mdecl);
-        } else {
-          formals = MethodDeclaration.getParams(mdecl);
-        }
+        formals = SomeFunctionDeclaration.getParams(mdecl);
       }
-//      final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
+      // XXX: leave this: will need for side-effecting later
+      // final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       if (mdecl != null) {
-//        /* If the flowunit is a class body then we are dealing with instance 
-//         * initialization and the calls is the <init> method.
-//         */
-//        final IRNode caller;
-//        if (ClassBody.prototype.includes(flowUnit)) {
-//          caller = JavaPromise.getInitMethod(JJNode.tree.getParent(flowUnit));
-//        } else {
-//          caller = flowUnit;
-//        }
-//        s = considerEffects(receiverNode, numActuals, actuals,
-//            effects.getMethodCallEffects(null, node, caller, true), s);
-        s = considerDeclaredEffects(numActuals, formals,
-            effects.getMethodEffects(mdecl, node), s);
+        s = considerDeclaredEffects(
+            numActuals, formals, effects.getMethodEffects(mdecl, node), s);
       }
       
       // we need to set RETURN to the return value,

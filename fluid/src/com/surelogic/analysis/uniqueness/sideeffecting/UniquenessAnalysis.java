@@ -708,13 +708,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         formals = null;
       } else {
         formals = SomeFunctionDeclaration.getParams(mdecl);
-//        if (ConstructorDeclaration.prototype.includes(mdecl)) {
-//          formals = ConstructorDeclaration.getParams(mdecl);
-//        } else if (MethodDeclaration.prototype.includes(mdecl) {
-//          formals = MethodDeclaration.getParams(mdecl);
-//        } else { // AnnotationElement
-//          
-//        }
       }
       final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       
