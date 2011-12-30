@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
@@ -67,6 +68,7 @@ import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
+import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
@@ -722,21 +724,40 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       s = lattice.opSet(s, RETURN_VAR);
       
       // TODO: add code to assign to IFQR from IPQR 
-      /*
-      if (ConstructorCall.prototype.includes(node) && isNestedClassConstructor(thisMethod) &&
-    		  SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
-    	  // get the IFQR and IPQR and do an opStore.
-    	  IRNode pqr = getQualifiedReceiver(thisMethod);
-    	  IRNode fqr = getQualifiedReceiver(thisClass);
-    	  s = lattice.opGet(s,pqr);
-    	  if (UniquenessRules.isBorrowed(fqr)) {
-    		  s = lattice.opReturn(s,fqr);
-    		  s = lattice.opRelease(s);
-    	  } else {
-    		  s = lattice.opCompromise(s);
-    	  }
-      }*/
+//      if (ConstructorCall.prototype.includes(node) && isNestedClassConstructor(thisMethod) &&
+//    		  SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
+//    	  // get the IFQR and IPQR and do an opStore.
+//    	  IRNode pqr = getQualifiedReceiver(thisMethod);
+//    	  IRNode fqr = getQualifiedReceiver(thisClass);
+//    	  s = lattice.opGet(s,pqr);
+//    	  if (UniquenessRules.isBorrowed(fqr)) {
+//    		  s = lattice.opReturn(s,fqr);
+//    		  s = lattice.opRelease(s);
+//    	  } else {
+//    		  s = lattice.opCompromise(s);
+//    	  }
+//      }
       
+      /* If the call is "super(...)" and the flow unit is a constructor
+       * from a nested class, then we have to copy the IPQR to the IFQR.
+       */
+      if (ConstructorCall.prototype.includes(node) &&
+          SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
+        final IRNode enclosingType = VisitUtil.getEnclosingType(flowUnit);
+        if (ConstructorDeclaration.prototype.includes(flowUnit) &&
+            TypeUtil.isNested(enclosingType)) {
+          final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+          final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(enclosingType);
+          s = lattice.opGet(s, ipqr); // read from the parameter
+          if (UniquenessRules.isBorrowed(ifqr)) {
+            s = lattice.opReturn(s, ifqr);
+            s = lattice.opRelease(s);
+          } else {
+            s = lattice.opCompromise(s);
+          }
+        }
+      }
+            
       // We have to possibly compromise arguments
       s = popArguments(numActuals, formals, s);
       if (hasOuterObject(node)) {
@@ -782,7 +803,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return s;
       }
     }
-    
+	
     @Override
 	protected Store transferCast(IRNode node, Store value) {
     	if (lattice.isValueNode(node)) {
