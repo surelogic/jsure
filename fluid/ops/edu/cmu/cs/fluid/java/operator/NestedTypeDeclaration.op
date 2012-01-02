@@ -18,7 +18,8 @@ public operator NestedTypeDeclaration extends ClassBodyDeclaration implements Ty
    */
   public boolean includes(Operator other) {
     if (getClass() == NestedTypeDeclaration.class)
-      return (other instanceof NestedTypeDeclInterface);
+      return (other instanceof NestedTypeDeclInterface || 
+              other instanceof NestedEnumDeclaration);
     else return super.includes(other);
   }
 }
