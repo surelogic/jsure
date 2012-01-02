@@ -275,6 +275,10 @@ borrowedExpression
     : varUse | thisExpr | qualifiedThisExpression
     ;    
 
+borrowedNestedType
+    : qualifiedThisExpression
+    ;
+
 // TODO
 borrowedAllowReturn
     : 'allowReturn' '=' TRUE -> 'allowReturn'

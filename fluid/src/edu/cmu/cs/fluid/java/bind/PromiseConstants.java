@@ -136,6 +136,11 @@ public interface PromiseConstants {
     FieldDeclaration.prototype, ParameterDeclaration.prototype,
     SomeFunctionDeclaration.prototype, };
   
+  public static final Operator[] fieldMethodParamInnerTypeDeclOps = {
+	    FieldDeclaration.prototype, ParameterDeclaration.prototype,
+	    NestedTypeDeclaration.prototype, 
+	    SomeFunctionDeclaration.prototype, };
+  
   public static final Operator[] fieldDeclOp = { FieldDeclaration.prototype, /*VariableDeclarator.prototype*/ };
 
   public static final Operator[] fieldOrTypeOp = { 
