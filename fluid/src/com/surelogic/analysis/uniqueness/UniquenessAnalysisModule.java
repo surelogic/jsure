@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -1020,6 +1021,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       boolean hasBorrowedParam = false;
       boolean hasUniqueParam = false;
       hasBorrowedParam |= UniquenessRules.isBorrowedReceiver(cdecl);
+      hasBorrowedParam |= UniquenessRules.isBorrowed(
+          JavaPromise.getQualifiedReceiverNodeOrNull(cdecl));
       // Cannot have a unique receiver
 
       final IRNode formals = ConstructorDeclaration.getParams(cdecl);
@@ -1028,7 +1031,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         hasBorrowedParam |= UniquenessRules.isBorrowed(param);
         hasUniqueParam |= UniquenessRules.isUnique(param);
       }
-      if (hasBorrowedParam || hasUniqueParam) {
+      
+      /* Also check to see if the class containing the constructor has a 
+       * @Borrowed annotation on the IFQR.
+       */
+      final boolean hasBorrowedIFQR = UniquenessRules.isBorrowed(
+          JavaPromise.getQualifiedReceiverNodeOrNull(getEnclosingType()));
+      
+      if (hasBorrowedParam || hasUniqueParam || hasBorrowedIFQR) {
         results.add(new TypeAndMethod(getEnclosingType(), cdecl));
       }
             
