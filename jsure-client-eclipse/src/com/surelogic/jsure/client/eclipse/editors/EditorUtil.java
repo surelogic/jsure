@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.swt.SWTException;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -82,32 +83,39 @@ public class EditorUtil {
 				if (!file.exists()) {
 					return;
 				}
-				if (elt != null) {					    						
-					IEditorPart ep = JavaUI.openInEditor(elt);						
-
-					IMarker location = null;
+				if (elt != null) {					    					
 					try {
-						location = ResourcesPlugin.getWorkspace().getRoot()
-						.createMarker("edu.cmu.fluid");
-						final int offset = srcRef.getOffset();
-						if (offset >= 0 && offset != Integer.MAX_VALUE
-								&& srcRef.getLength() >= 0) {
-							location.setAttribute(IMarker.CHAR_START,
-									srcRef.getOffset());
-							location.setAttribute(IMarker.CHAR_END, srcRef
-									.getOffset()
-									+ srcRef.getLength());
+						IEditorPart ep = JavaUI.openInEditor(elt);						
+
+						IMarker location = null;
+						try {
+							location = ResourcesPlugin.getWorkspace().getRoot()
+							.createMarker("edu.cmu.fluid");
+							final int offset = srcRef.getOffset();
+							if (offset >= 0 && offset != Integer.MAX_VALUE
+									&& srcRef.getLength() >= 0) {
+								location.setAttribute(IMarker.CHAR_START,
+										srcRef.getOffset());
+								location.setAttribute(IMarker.CHAR_END, srcRef
+										.getOffset()
+										+ srcRef.getLength());
+							}
+							if (srcRef.getLineNumber() > 0) {
+								location.setAttribute(IMarker.LINE_NUMBER,
+										srcRef.getLineNumber());
+							}
+						} catch (org.eclipse.core.runtime.CoreException e) {
+							SLLogger.getLogger().log(Level.SEVERE,
+									"Failure to create an IMarker", e);
 						}
-						if (srcRef.getLineNumber() > 0) {
-							location.setAttribute(IMarker.LINE_NUMBER,
-									srcRef.getLineNumber());
+						if (location != null) {
+							IDE.gotoMarker(ep, location);
 						}
-					} catch (org.eclipse.core.runtime.CoreException e) {
-						SLLogger.getLogger().log(Level.SEVERE,
-								"Failure to create an IMarker", e);
-					}
-					if (location != null) {
-						IDE.gotoMarker(ep, location);
+					} catch(SWTException e) {
+						if (!"Widget is disposed".equals(e.getMessage())) {
+							SLLogger.getLogger().log(Level.WARNING, 
+									"Unexpected SWT exception while opening "+elt.getElementName(), e);
+						}
 					}
 				} else { // try to open as a text file
 					IWorkbench bench = PlatformUI.getWorkbench();
