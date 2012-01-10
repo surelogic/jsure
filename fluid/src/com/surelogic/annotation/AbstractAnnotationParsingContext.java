@@ -141,25 +141,7 @@ ITestAnnotationParsingContext {
         String id = (String) context;
         return BindUtil.findLV(decl, id);
       case QUALIFIED_RECEIVER:    	    	
-    	final String pattern = (String) context;
-    	final boolean isQualified = pattern.indexOf('.') >= 0;
-    	IRNode here = decl;
-    	IRNode type;
-    	String typeName;
-    	do {
-    		type = VisitUtil.getEnclosingType(here);
-    		if (isQualified) {
-    			typeName = JavaNames.getFullTypeName(type);
-    		} else {
-    			typeName = JavaNames.getTypeName(type);
-    		}
-    		here = type;
-    	} 
-    	while (here != null && !typeName.equals(pattern));
-    	
-    	if (type == null) {
-    		return null;
-    	}
+    	IRNode type = (IRNode) context;
     	return JavaPromise.getQualifiedReceiverNodeByName(decl, type);
     }
     return null;

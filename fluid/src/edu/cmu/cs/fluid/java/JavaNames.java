@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -71,7 +72,26 @@ public final class JavaNames {
 			} else if (ReturnValueDeclaration.prototype.includes(op)) {
 				result = "return";
 			} else if (FieldDeclaration.prototype.includes(op)) {
-				result = DebugUnparser.toString(field);
+				//result = DebugUnparser.toString(field);
+				IRNode vdecls = FieldDeclaration.getVars(field);
+				StringBuilder sb = new StringBuilder();
+				// Optimized for the common case of one decl
+				String first = null;
+				int num = 0;
+				for(IRNode vd : VariableDeclarators.getVarIterator(vdecls)) {
+					String id = VariableDeclaration.getId(vd);
+					if (sb.length() == 0) {
+						first = id;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(id);					
+					num++;
+				}
+				if (num == 1) {
+					return first;
+				}
+				return sb.toString();
 			} else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
 				result = DebugUnparser.toString(field);
 			}

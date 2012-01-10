@@ -15,6 +15,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -74,7 +75,23 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     if (ast == null) {
       throw new IllegalArgumentException("Null ast");
     }
-    
+    // Check for qualified receivers
+    if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
+    	final String context = (String) o;
+    	final IRNode referencedType = findEnclosingType(context);
+    	if (referencedType == null) {
+    		reportError(offset, "Cannot find type referenced in qualified receiver: "+context);
+    		return;
+    	}
+    	IRNode closestType = VisitUtil.getClosestType(node);
+    	IRNode nextEnclosingType = VisitUtil.getEnclosingType(closestType);    	
+    	if (referencedType != nextEnclosingType) {
+    		reportError(offset, "Cannot reference the qualified receiver for "+context+" from here");
+    		return;
+    	}
+    	o = referencedType;
+    }
+        
     // In some cases, we need the results of the parse to tell us 
     // what this node should be
     TestResult result = getTestResult();     
@@ -139,6 +156,25 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     }
     clearTestResult();
   }  
+  
+  private IRNode findEnclosingType(String pattern) {
+	final boolean isQualified = pattern.indexOf('.') >= 0;
+	IRNode here = node;
+	IRNode type;
+	String typeName;
+	do {
+		type = VisitUtil.getEnclosingType(here);
+		if (isQualified) {
+			typeName = JavaNames.getFullTypeName(type);
+		} else {
+			typeName = JavaNames.getTypeName(type);
+		}
+		here = type;
+	} 
+	while (here != null && !typeName.equals(pattern));
+	
+	return type;
+  }
   
   public static String getUnit(Operator op) {
 	  if (ConstructorDeclaration.prototype.includes(op)) {

@@ -798,7 +798,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 
 	static class ProposedPromiseInfo extends Info 
-	implements IProposedPromiseDropInfo, IJavaDeclInfoClient {
+	implements IProposedPromiseDropInfo, IJavaDeclInfoClient, Comparable<ProposedPromiseInfo> {
 		static {
 			internString(ProposedPromiseDrop.FROM_INFO);
 			internString(ProposedPromiseDrop.TARGET_INFO);
@@ -968,6 +968,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				hash += ref.getHash(); // Instead of hashCode()?
 			}
 			return hash;
+		}
+
+		public int compareTo(ProposedPromiseInfo o) {
+			return getMessage().compareTo(o.getMessage());		
 		}
 	}
 }

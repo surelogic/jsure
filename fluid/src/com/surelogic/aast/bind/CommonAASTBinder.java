@@ -262,11 +262,22 @@ public class CommonAASTBinder extends AASTBinder {
     if (type == null) {
       return null;
     }
-    final IRNode mdecl = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());
-    final IRNode rv    = JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
+    // Actually, this could be a method or a type
+    final IRNode decl = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());    
+    final IRNode rv    = JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
     if (rv == null) {
-        JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
+        JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
     	return null;
+    /*
+    } else {
+    	// Check for "other" refs to enclosing types
+    	IRNode tdecl = VisitUtil.getClosestType(decl);
+    	IRNode enclosingT = VisitUtil.getEnclosingType(tdecl);
+    	if (type.getNode() != enclosingT && type.getNode() != tdecl) {
+    		// TODO how to explain why this doesn't "bind"?
+    		return null;
+    	}
+    */
     }
     return new IVariableBinding() {
       public IJavaType getJavaType() {

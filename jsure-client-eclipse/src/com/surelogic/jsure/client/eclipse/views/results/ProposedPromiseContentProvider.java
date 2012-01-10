@@ -32,7 +32,6 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 public final class ProposedPromiseContentProvider extends
 		AbstractResultsTableContentProvider<IProposedPromiseDropInfo> implements
