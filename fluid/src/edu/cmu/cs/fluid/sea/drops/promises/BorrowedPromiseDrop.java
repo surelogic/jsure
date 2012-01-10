@@ -33,7 +33,7 @@ implements RegionAggregationDrop {
     final IRNode node = getNode();
     setResultMessage(Messages.UniquenessAnnotation_borrowedDrop, 
                getAST().allowReturn() ? JavaNames.getFieldDecl(node)+", allowReturn=true": JavaNames.getFieldDecl(node), 
-               JavaNames.genMethodConstructorName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
+               JavaNames.getFullName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
   }
   
   public final boolean allowReturn() {

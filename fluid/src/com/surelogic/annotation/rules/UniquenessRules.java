@@ -324,7 +324,7 @@ public class UniquenessRules extends AnnotationRules {
   public static class Borrowed_ParseRule
   extends DefaultBooleanAnnotationParseRule<BorrowedNode,BorrowedPromiseDrop> {
     public Borrowed_ParseRule() {
-      super(BORROWED, fieldMethodParamTypeDeclOps, BorrowedNode.class);
+      super(BORROWED, fieldMethodParamInnerTypeDeclOps, BorrowedNode.class);
     }
    
     @Override
@@ -338,9 +338,10 @@ public class UniquenessRules extends AnnotationRules {
         return parser.nothing().getTree();
       } else if (NestedTypeDeclaration.prototype.includes(context.getOp())) {
         return parser.borrowedType().getTree();
-      } else {
-        return parser.borrowedFunction().getTree();
+      } else if (NestedTypeDeclaration.prototype.includes(context.getOp())) {
+        return parser.borrowedNestedType().getTree();
       }
+      return parser.borrowedFunction().getTree();
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
