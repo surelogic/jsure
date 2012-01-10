@@ -970,7 +970,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return hash;
 		}
 
-		@Override
 		public int compareTo(ProposedPromiseInfo o) {
 			return getMessage().compareTo(o.getMessage());		
 		}
