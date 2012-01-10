@@ -84,6 +84,12 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     		return;
     	}
     	IRNode closestType = VisitUtil.getClosestType(node);
+    	if (referencedType != closestType && TypeUtil.isStatic(closestType)) {
+    		reportError(offset, 
+    				"Cannot refer to qualified receiver from static inner type "+
+    				JavaNames.getRelativeTypeName(closestType));
+    		return;
+    	}
     	IRNode nextEnclosingType = VisitUtil.getEnclosingType(closestType);    	
     	if (referencedType != nextEnclosingType) {
     		reportError(offset, "Cannot reference the qualified receiver for "+context+" from here");
