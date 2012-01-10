@@ -268,14 +268,16 @@ public class CommonAASTBinder extends AASTBinder {
     if (rv == null) {
         JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
     	return null;
+    /*
     } else {
     	// Check for "other" refs to enclosing types
     	IRNode tdecl = VisitUtil.getClosestType(decl);
     	IRNode enclosingT = VisitUtil.getEnclosingType(tdecl);
-    	if (type.getNode() != enclosingT) {
+    	if (type.getNode() != enclosingT && type.getNode() != tdecl) {
     		// TODO how to explain why this doesn't "bind"?
     		return null;
     	}
+    */
     }
     return new IVariableBinding() {
       public IJavaType getJavaType() {
