@@ -134,7 +134,7 @@ public class MethodEffectsRules extends AnnotationRules {
           */
           boolean allGood = true;
           final IRegion regionAll = RegionModel.getAllRegion(decl);
-          for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(decl)) {
+          for (final IBinding context : getContext().getBinder(decl).findOverriddenParentMethods(decl)) {
             final IRNode overriddenMethod = context.getNode();
             final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
             if (fxDrop != null) {
@@ -184,7 +184,7 @@ public class MethodEffectsRules extends AnnotationRules {
 		RegionEffectsPromiseDrop drop = null;
 		final List<EffectsSpecificationNode> readsAndWrites = node.getEffectsList();
 
-    final ITypeEnvironment typeEnv = scrubberContext.getBinder().getTypeEnvironment();
+    final ITypeEnvironment typeEnv = scrubberContext.getBinder(node.getPromisedFor()).getTypeEnvironment();
 		final IRNode promisedFor = node.getPromisedFor();
 		final IRNode enclosingTypeNode = VisitUtil.getEnclosingType(promisedFor);
     final IJavaDeclaredType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
@@ -364,7 +364,7 @@ public class MethodEffectsRules extends AnnotationRules {
 		if (allGood) {
       if (SomeFunctionDeclaration.prototype.includes(promisedFor)) { // Not a class init or other node
         // Compare against previous method declarations
-        for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+        for (final IBinding context : scrubberContext.getBinder(promisedFor).findOverriddenParentMethods(promisedFor)) {
           final IRNode overriddenMethod = context.getNode();
           final ParameterMap paramMap = new ParameterMap(overriddenMethod, promisedFor);
           

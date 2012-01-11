@@ -24,6 +24,8 @@ import com.surelogic.aast.AASTStatus;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -341,8 +343,10 @@ public abstract class AnnotationRules {
 			reportError(msg, n);
 		}
 
-		public IBinder getBinder() {
-			return IDE.getInstance().getTypeEnv().getBinder();
+		public IBinder getBinder(IRNode context) {
+			final IIRProject p = JavaProjects.getEnclosingProject(context);
+			return p.getTypeEnv().getBinder();
+			//return IDE.getInstance().getTypeEnv().getBinder();
 		}
 	};
 

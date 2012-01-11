@@ -72,7 +72,7 @@ public class ThreadEffectsRules extends AnnotationRules {
            * an error. 
            */
           boolean good = true;
-          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(decl)) {
+          for (final IBinding pBinding : getContext().getBinder(decl).findOverriddenParentMethods(decl)) {
             final IRNode parent = pBinding.getNode();
             if (startsNothing(parent)) {
               // Ancestor is annotated

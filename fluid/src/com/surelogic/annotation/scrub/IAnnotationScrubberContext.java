@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
  */
 public interface IAnnotationScrubberContext {
   
-  IBinder getBinder();
+  IBinder getBinder(IRNode context);
   
   /**
    * Report error on the same IRNode that the proposal is set for
