@@ -11,6 +11,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
@@ -246,6 +248,27 @@ public class ProposedPromiseView extends
 				parent, extraStyle, f_content);
 		final TreeViewer treeViewer = new TreeViewer(parent, SWT.H_SCROLL
 				| SWT.V_SCROLL | extraStyle);
+
+		/*
+		 * We want a double-click to also expand the tree if necessary. This
+		 * will take care of that functionality.
+		 */
+		treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				ITreeSelection sel = (ITreeSelection) treeViewer.getSelection();
+				if (sel == null)
+					return;
+				Object obj = sel.getFirstElement();
+				if (obj == null)
+					return;
+				// open up the tree one more level
+				if (!treeViewer.getExpandedState(obj)) {
+					treeViewer.expandToLevel(obj, 1);
+				}
+			}
+		});
 
 		treeViewer.setContentProvider(f_content);
 		treeViewer.setLabelProvider(f_content);
