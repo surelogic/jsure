@@ -45,7 +45,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -397,9 +396,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		/** Method call drops for each invoked method that has effects */
 		public final Set<ResultDropBuilder> calledEffects;
 
-		/** The unique fields accessed */
+		/** The unique and borrowed fields accessed */
 		public final Set<PromiseDrop<? extends IAASTRootNode>> uniqueFields;
-
+		
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
 
@@ -556,6 +555,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
      * ClassInitDeclaration we need to gather up the unique field declarations.
      */		
     if (isConstructorDecl || isInit || isClassInit) {
+      // If constructor or init, add the IFQR if it exists and is borrowed
+      if (!isClassInit) {
+        final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(block.typeDecl);
+        if (UniquenessUtils.isFieldBorrowed(ifqr)) {
+          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(ifqr));
+        }
+      }
+      
 		  for (final IRNode bodyDecl : ClassBody.getDeclIterator(block.getClassBody())) {
 		    if (FieldDeclaration.prototype.includes(bodyDecl)) {
 		      if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
@@ -563,6 +570,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		      for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
   		        if (UniquenessUtils.isFieldUnique(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(varDecl));
+  		        }
+  		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
+  		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
   		        }
   		      }
 		      }
@@ -731,6 +741,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (UniquenessUtils.isFieldUnique(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldUnique(fdecl));
         }
+        if (UniquenessUtils.isFieldBorrowed(fdecl)) {
+          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
+        }
       }
 
       // Is it a method call
@@ -863,7 +876,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					uniqueParams.add(uniqueRcvrDrop);
 				}
 			}
+			
+			// Try for the IPQR (only present on constructors)
+			final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(mdecl);
+			if (ipqr != null) {
+			  final BorrowedPromiseDrop borrowedQRcvrDrop = UniquenessRules.getBorrowed(ipqr);
+			  if (borrowedQRcvrDrop != null) {
+			    borrowedParams.add(borrowedQRcvrDrop);
+			  }
+			}
 		}
+		
 		final IRNode myParams = isConstructor ? ConstructorDeclaration
 				.getParams(mdecl) : MethodDeclaration.getParams(mdecl);
 		for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
@@ -1048,8 +1071,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
     @Override
     public Void visitFieldRef(final IRNode fieldRef) {
-      /* Case (2): A use of a unique field. */
-      if (UniquenessUtils.isFieldUnique(binder.getBinding(fieldRef))) {
+      /* Case (2): A use of a unique or borrowed field. */
+      final IRNode fdecl = binder.getBinding(fieldRef);
+      if (UniquenessUtils.isFieldUnique(fdecl) ||
+          UniquenessUtils.isFieldBorrowed(fdecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       return null;

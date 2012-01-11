@@ -149,11 +149,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     ReceiverSnatcher.getReceivers(flowUnit, refLocals);
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
-    final List<Effect> effects = Effects.getDeclaredMethodEffects(flowUnit, flowUnit);
-    final StoreLattice lattice = new StoreLattice(locals,binder,mayAlias,effects);
+    final Effects effects = new Effects(binder);
+    final List<Effect> methodEffects = effects.getMethodEffects(flowUnit, flowUnit);
+    final StoreLattice lattice = new StoreLattice(locals, binder, mayAlias, methodEffects);
     return new Uniqueness(
         "Uniqueness Analsys (U+F)", lattice,
-        new UniquenessTransfer(binder, lattice, 0, flowUnit, timeOut),
+        new UniquenessTransfer(binder, effects, lattice, 0, flowUnit, timeOut),
         timeOut);
   }
 
@@ -279,12 +280,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // === Constructor 
     // ==================================================================
 
-    public UniquenessTransfer(final IBinder binder,
+    public UniquenessTransfer(final IBinder binder, final Effects fx,
         final StoreLattice lattice, final int floor,
         final IRNode fu, final boolean timeOut) {
       super(binder, lattice, new SubAnalysisFactory(fu, timeOut), floor);
       flowUnit = fu;
-      effects = new Effects(binder);
+      effects = fx;
     }
 
     
@@ -1291,7 +1292,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, timeOut);
+      final UniquenessTransfer transfer = new UniquenessTransfer(binder, new Effects(binder), lattice, floor, flowUnit, timeOut);
       return new Uniqueness("Sub Analysis", lattice, transfer, timeOut);
     }
   }
