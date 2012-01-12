@@ -65,6 +65,8 @@ public final class JSurePreferencesUtility {
 					.getAutoPerspectiveSwitchConstant(), true);
 			EclipseUtility.setDefaultBooleanPreference(
 					ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, true);
+			EclipseUtility.setDefaultBooleanPreference(
+					ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR, true);
 
 			EclipseUtility.setDefaultStringPreference(REGION_MODEL_NAME_SUFFIX,
 					"State");
@@ -114,6 +116,8 @@ public final class JSurePreferencesUtility {
 			+ "show-balloon-notifications";
 	public static final String ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN = PREFIX
 			+ "always.allow.user.to.select.projects.to.scan";
+	public static final String ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR = PREFIX
+			+ "always.allow.user.to.select.projects.to.update.jar";
 	public static final String LAST_TIME_PROJECTS_TO_SCAN = PREFIX
 			+ "last.time.projects.to.scan";
 	public static final String LAST_TIME_PROJECTS_TO_UPDATE_JAR = PREFIX

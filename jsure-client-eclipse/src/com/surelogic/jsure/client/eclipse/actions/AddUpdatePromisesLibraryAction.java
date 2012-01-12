@@ -53,7 +53,7 @@ public class AddUpdatePromisesLibraryAction extends
 				"Add/Update Promises Library",
 				SLImages.getImage(CommonImages.IMG_JSURE_VERIFY),
 				selectedProjects,
-				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
+				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR,
 				JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_UPDATE_JAR);
 	}
 }
