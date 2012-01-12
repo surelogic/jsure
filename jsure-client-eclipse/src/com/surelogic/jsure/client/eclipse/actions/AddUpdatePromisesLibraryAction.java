@@ -21,7 +21,7 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 public class AddUpdatePromisesLibraryAction extends
 		AbstractProjectSelectedMenuAction {
 	@Override
-	protected void runActionOn(final List<IJavaProject> selectedProjects) {
+	public void runActionOn(final List<IJavaProject> selectedProjects) {
 
 		/*
 		 * License check: A hack because JSure is not using SLJobs yet.
