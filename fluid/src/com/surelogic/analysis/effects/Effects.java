@@ -367,20 +367,14 @@ public final class Effects implements IBinderClient {
   public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final IRNode call, final IRNode caller) {
-	  /*
-	   * Changed to lazily compute things, since bindReceiver doesn't get called very often
-	   */
+    /* Used to compute the receiver lazily, but now we need it ahead of time
+     * because we have to pass the receiver to getMethodCallEffects directly.
+     */
+    final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(caller);
     final ThisExpressionBinder teb = new AbstractThisExpressionBinder(binder) {
-      private IRNode receiver;
-      private boolean gotReceiver = false;
-      
       @Override
       protected IRNode bindReceiver(final IRNode node) {
-    	if (!gotReceiver) {
-    		gotReceiver = true;
-    		receiver = JavaPromise.getReceiverNodeOrNull(caller);
-    	}
-        return receiver;
+        return rcvr;
       }
       
       @Override
@@ -389,7 +383,7 @@ public final class Effects implements IBinderClient {
       }
     };
     return getMethodCallEffects(
-        bcaQuery, new ThisBindingTargetFactory(teb), binder,
+        bcaQuery, new ThisBindingTargetFactory(teb), binder, rcvr,
         ElaborationErrorCallback.NullCallback.INSTANCE, call, caller);
   }
   
@@ -419,7 +413,7 @@ public final class Effects implements IBinderClient {
    */
   public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
-      final IBinder binder, final ElaborationErrorCallback callback,
+      final IBinder binder, final IRNode rcvr, final ElaborationErrorCallback callback,
       final IRNode call, final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
@@ -450,7 +444,7 @@ public final class Effects implements IBinderClient {
               targetFactory.createInstanceTarget(val, t.getRegion(),
                   new MappedArgumentEvidence(mdecl, ref, val));
           elaborateInstanceTargetEffects(
-              bcaQuery, targetFactory, binder, call, callback, eff.isRead(),
+              bcaQuery, targetFactory, binder, rcvr, call, callback, eff.isRead(),
               newTarg, methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
@@ -482,19 +476,19 @@ public final class Effects implements IBinderClient {
   /**
    * XXX: Only public so that lock assurance can have access to it.  This itself
    * is questionable.  I really need to replace the lock assurance with a flow
-   * analysis that uses regular effects results, istead of one that duplicates
+   * analysis that uses regular effects results, instead of one that duplicates
    * the work of effects analysis.  This would eliminate the need for this
    * method to be public or even to exist at all.
    */
   public Set<Effect> elaborateEffect(
       final BindingContextAnalysis.Query bcaQuery,
-      final TargetFactory targetFactory,
-      final IBinder binder, final IRNode src, final boolean isRead,
+      final TargetFactory targetFactory, final IBinder binder, 
+      final IRNode rcvr, final IRNode src, final boolean isRead,
       final Target target) {
     if (target instanceof InstanceTarget) {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
       elaborateInstanceTargetEffects(
-          bcaQuery, targetFactory, binder, src,
+          bcaQuery, targetFactory, binder, rcvr, src,
           ElaborationErrorCallback.NullCallback.INSTANCE, isRead,
           target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
@@ -506,11 +500,11 @@ public final class Effects implements IBinderClient {
   private void elaborateInstanceTargetEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
-      final IBinder binder, final IRNode src,
+      final IBinder binder, final IRNode rcvr, final IRNode src,
       final ElaborationErrorCallback callback, final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
     final TargetElaborator te =
-        new TargetElaborator(bcaQuery, targetFactory, binder, callback, !isRead);
+        new TargetElaborator(bcaQuery, targetFactory, binder, rcvr, callback, !isRead);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
@@ -736,7 +730,8 @@ public final class Effects implements IBinderClient {
        */
       context.addEffects(
           effects.getMethodCallEffects(context.bcaQuery,
-              targetFactory, binder, callback, call, getEnclosingDecl()));
+              targetFactory, binder, context.theReceiverNode, 
+              callback, call, getEnclosingDecl()));
     }
 
     //----------------------------------------------------------------------
@@ -804,7 +799,8 @@ public final class Effects implements IBinderClient {
                 final IRNode newRef = enclosing.replace(ref);
                 if (newRef != null) {
                   effects.elaborateInstanceTargetEffects(
-                      context.bcaQuery, targetFactory, binder, expr, 
+                      context.bcaQuery, targetFactory, binder, 
+                      newContext.theReceiverNode, expr, 
                       callback, maskedEffect.isRead(), 
                       targetFactory.createInstanceTarget(
                           newRef, target.getRegion(), 
@@ -835,8 +831,9 @@ public final class Effects implements IBinderClient {
       final IRNode array = ArrayRefExpression.getArray(expr);
       final boolean isRead = context.isRead();
       effects.elaborateInstanceTargetEffects(
-          context.bcaQuery, targetFactory, binder, expr, callback, isRead,
-          targetFactory.createInstanceTarget(array, INSTANCE_REGION, NoEvidence.INSTANCE),
+          context.bcaQuery, targetFactory, binder, context.theReceiverNode,
+          expr, callback, isRead, targetFactory.createInstanceTarget(
+              array, INSTANCE_REGION, NoEvidence.INSTANCE),              
           context.theEffects);
       doAcceptForChildren(expr);
       return null;
@@ -887,8 +884,8 @@ public final class Effects implements IBinderClient {
           final Target initTarget = targetFactory.createInstanceTarget(
               obj, RegionModel.getInstance(id), NoEvidence.INSTANCE);
           effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, expr, callback, 
-              isRead, initTarget, context.theEffects);
+              context.bcaQuery, targetFactory, binder, context.theReceiverNode,
+              expr, callback, isRead, initTarget, context.theEffects);
         }
       } else {
         context.addEffect(
@@ -1052,6 +1049,7 @@ public final class Effects implements IBinderClient {
     private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
+    private final IRNode theReceiver;
     private final boolean isWrite;
     private final ElaborationErrorCallback callback;
     
@@ -1065,10 +1063,12 @@ public final class Effects implements IBinderClient {
     
     public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
         final TargetFactory targetFactory, final IBinder binder,
-        final ElaborationErrorCallback c, final boolean write) {
+        final IRNode rcvr, final ElaborationErrorCallback c,
+        final boolean write) {
       this.bcaQuery = bcaQuery;
       this.targetFactory = targetFactory;
       this.binder = binder;
+      this.theReceiver = rcvr;
       this.callback = c;
       this.isWrite = write;
     }
@@ -1106,6 +1106,8 @@ public final class Effects implements IBinderClient {
           elaborateUseExpression(expr, target, targets, newTargets);
         } else if (FieldRef.prototype.includes(op)) {
           elaborateFieldRef(expr, target, targets, newTargets);
+        } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
+          elaborateQualifiedRcvrRef(expr, target, targets, newTargets);
         } else if (ParameterDeclaration.prototype.includes(op) ||
             ReceiverDeclaration.prototype.includes(op) ||
             MethodCall.prototype.includes(op)) {
@@ -1173,7 +1175,6 @@ public final class Effects implements IBinderClient {
     private void elaborateFieldRef(
         final IRNode expr, final Target target, final Set<Target> targets,
         final Set<Target> newTargets) {
-      final IRegion region = target.getRegion();
       final IRNode fieldID = binder.getBinding(expr);
 
       // If the field is unique or borrowed we can exploit uniqueness aggregation.
@@ -1192,6 +1193,7 @@ public final class Effects implements IBinderClient {
           callback.writeToBorrowedReadOnly(readOnlyPD, expr, target);
         }
         // Aggregate the state
+        final IRegion region = target.getRegion();
         final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
         final AggregationEvidence evidence =
           new AggregationEvidence(target, aggregationMap, newRegion);
@@ -1221,6 +1223,37 @@ public final class Effects implements IBinderClient {
         targets.add(
             targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
         elaborated.add(target);
+      }
+    }
+
+    private void elaborateQualifiedRcvrRef(
+        final IRNode expr, final Target target, final Set<Target> targets,
+        final Set<Target> newTargets) {
+      /* target is "C.this:R" 
+       * 
+       * expr is the QualifiedReceiverDeclaration "C.this" (IFQR), which is 
+       * really a pseudo field of the form this.$QualifiedReceiver, so we 
+       * aggregate into "this".
+       */
+
+      /* If the IFQR is borrowed we can exploit aggregation.
+       */
+      final Map<IRegion, IRegion> aggregationMap = 
+          UniquenessUtils.constructRegionMapping(expr);
+      if (aggregationMap != null) {
+        // Aggregate the state
+        final IRegion region = target.getRegion();
+        final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
+        final AggregationEvidence evidence =
+          new AggregationEvidence(target, aggregationMap, newRegion);
+        // Use Default target factory because the receiver is already bound
+        final Target newTarget =
+            DefaultTargetFactory.PROTOTYPE.createInstanceTarget(
+                theReceiver, newRegion, evidence);
+        if (targets.add(newTarget)) {
+          elaborated.add(target);
+          newTargets.add(newTarget);
+        }
       }
     }
   }

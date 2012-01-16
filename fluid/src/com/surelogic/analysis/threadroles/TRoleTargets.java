@@ -25,6 +25,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
@@ -365,6 +366,7 @@ public class TRoleTargets {
     final Set<Effect> methodFx = eff.getMethodCallEffects(
         bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
         targetFactory, binder,
+        JavaPromise.getReturnNodeOrNull(enclosingMethod),
         Effects.ElaborationErrorCallback.NullCallback.INSTANCE, mcall,
         enclosingMethod);
     final Operator callOp = getOperator(mcall);

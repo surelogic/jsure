@@ -204,42 +204,6 @@ public final class UniquenessUtils {
     if (aggDrop == null) aggDrop = RegionRules.getSimpleBorrowedInRegion(field);
     if (aggDrop == null) aggDrop = RegionRules.getExplicitBorrowedInRegion(field);
     return (aggDrop == null) ? null : aggDrop.getAggregationMap(field);
-    
-//    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(field);
-//    if (uniqueDrop != null) {
-//      /* Aggregates Instance into the field if the field is non-final.
-//       * Aggregates Instance into Instance if the field is final and non-static.
-//       */
-//      final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-//      if (TypeUtil.isFinal(field)) {
-//        return Collections.<IRegion, IRegion>singletonMap(
-//            instanceRegion, instanceRegion);
-//      } else {
-//        return Collections.<IRegion, IRegion>singletonMap(
-//            instanceRegion, new FieldRegion(field));
-//      }
-//    } else {
-//      final SimpleUniqueInRegionPromiseDrop simpleDrop =
-//        RegionRules.getSimpleUniqueInRegion(field);
-//      if (simpleDrop != null) {
-//        final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-//        final IRegion dest = simpleDrop.getAST().getSpec().resolveBinding().getRegion();
-//        return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
-//      } else {
-//        final ExplicitUniqueInRegionPromiseDrop explicitDrop =
-//          RegionRules.getExplicitUniqueInRegion(field);
-//        if (explicitDrop != null) {
-//          final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
-//          for (final RegionMappingNode mapping :
-//              explicitDrop.getAST().getMapping().getMappingList()) {
-//            aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
-//                               mapping.getTo().resolveBinding().getRegion());
-//          }
-//          return Collections.unmodifiableMap(aggregationMap);
-//        }
-//      }
-//    }
-//    return null;
   }
 
   

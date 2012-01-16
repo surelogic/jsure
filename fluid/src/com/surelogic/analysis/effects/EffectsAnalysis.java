@@ -489,13 +489,17 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     @Override
     public void visitAggregationEvidence(final AggregationEvidence e) {
       final IRNode originalExpression = e.getOriginalExpression();
+      /* Original expression is a field ref or a QualifiedReceiverDeclaration.
+       * if it's an IFQR, then the destination of the aggregation is "this"
+       */
       resultDrop.addSupportingInformation(
           e.getLink(), Messages.AGGREGATION_EVIDENCE,
           e.getOriginalRegion().getName(),
           DebugUnparser.toString(originalExpression),
           e.getMappedRegion().getName(),
-          DebugUnparser.toString(FieldRef.getObject(originalExpression)));
-          
+          FieldRef.prototype.includes(originalExpression) ?
+              DebugUnparser.toString(FieldRef.getObject(originalExpression)) : 
+                "this");          
       accept(e.getMoreEvidence());
     }
     
