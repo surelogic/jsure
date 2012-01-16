@@ -31,6 +31,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_selectProjectsToScan;
+	private BooleanFieldEditor f_selectProjectsToUpdateJar;
 	private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
 	private BooleanFieldEditor f_allowJavadocAnnos;
 	private ScaleFieldEditor f_analysisThreadCount;
@@ -68,6 +69,12 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				I18N.msg("jsure.eclipse.preference.page.selectProjectsToScan"),
 				diGroup);
 		setupEditor(diGroup, f_selectProjectsToScan);
+		
+		f_selectProjectsToUpdateJar = new BooleanFieldEditor(
+				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR,
+				I18N.msg("jsure.eclipse.preference.page.selectProjectsToUpdateJar"),
+				diGroup);
+		setupEditor(diGroup, f_selectProjectsToUpdateJar);
 
 		f_autoSaveDirtyEditorsBeforeVerify = new BooleanFieldEditor(
 				JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
@@ -225,6 +232,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	protected void performDefaults() {
 		f_balloonFlag.loadDefault();
 		f_selectProjectsToScan.loadDefault();
+		f_selectProjectsToUpdateJar.loadDefault();
 		f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
 		f_allowJavadocAnnos.loadDefault();
 		f_analysisThreadCount.loadDefault();
@@ -244,6 +252,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	public boolean performOk() {
 		f_balloonFlag.store();
 		f_selectProjectsToScan.store();
+		f_selectProjectsToUpdateJar.store();
 		f_autoSaveDirtyEditorsBeforeVerify.store();
 		f_allowJavadocAnnos.store();
 		f_analysisThreadCount.store();
