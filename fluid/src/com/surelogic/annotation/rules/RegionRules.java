@@ -199,7 +199,7 @@ public class RegionRules extends AnnotationRules {
           annotationIsGood = false;
         } else {
           // The parent region must be accessible
-          if (!parentModel.isAccessibleFromType(context.getBinder().getTypeEnvironment(), promisedFor)) {
+          if (!parentModel.isAccessibleFromType(context.getBinder(promisedFor).getTypeEnvironment(), promisedFor)) {
             context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
                 parentModel.regionName, JavaNames.getQualifiedTypeName(promisedFor));
             annotationIsGood = false;
@@ -334,7 +334,7 @@ public class RegionRules extends AnnotationRules {
           // The parent region must be accessible
           final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
           if (!parentModel.isAccessibleFromType(
-              context.getBinder().getTypeEnvironment(), enclosingType)) {
+              context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
             context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
                 parentModel.regionName, JavaNames.getQualifiedTypeName(enclosingType));
             annotationIsGood = false;
@@ -525,7 +525,7 @@ public class RegionRules extends AnnotationRules {
       // Named region must be accessible
       final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
       if (!destRegion.isAccessibleFromType(
-          context.getBinder().getTypeEnvironment(), enclosingType)) {
+          context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
         context.reportError(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
             name, JavaNames.getQualifiedTypeName(enclosingType));
         good = false;
@@ -593,7 +593,7 @@ public class RegionRules extends AnnotationRules {
     }
         
     // Field must be reference typed
-    final IJavaType type = context.getBinder().getJavaType(promisedFor);
+    final IJavaType type = context.getBinder(promisedFor).getJavaType(promisedFor);
     if (type instanceof IJavaPrimitiveType) {
       context.reportError(a, "Annotated field must have a reference type");
       isGood = false;
@@ -634,7 +634,7 @@ public class RegionRules extends AnnotationRules {
       // Named region must be accessible
       final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
       if (!destRegion.isAccessibleFromType(
-          context.getBinder().getTypeEnvironment(), enclosingType)) {
+          context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
         context.reportError(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
             name, JavaNames.getQualifiedTypeName(enclosingType));
         isGood = false;
@@ -755,7 +755,7 @@ public class RegionRules extends AnnotationRules {
     }
     
     // Field must be reference typed
-    final IJavaType type = context.getBinder().getJavaType(promisedFor);
+    final IJavaType type = context.getBinder(promisedFor).getJavaType(promisedFor);
     if (type instanceof IJavaPrimitiveType) {
       context.reportError(a, "Annotated field must have a reference type");
       isGood = false;
@@ -798,7 +798,7 @@ public class RegionRules extends AnnotationRules {
         }
         // Must be accessible
         if (!fromRegion.isAccessibleFromType(
-            context.getBinder().getTypeEnvironment(), enclosingType)) {
+            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               fromRegion.regionName,
@@ -831,7 +831,7 @@ public class RegionRules extends AnnotationRules {
           isGood = false;
         }
         if (!toRegion.isAccessibleFromType(
-            context.getBinder().getTypeEnvironment(), enclosingType)) {
+            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               toRegion.regionName,
@@ -959,7 +959,7 @@ public class RegionRules extends AnnotationRules {
         }
         // Must be accessible
         if (!fromRegion.isAccessibleFromType(
-            context.getBinder().getTypeEnvironment(), enclosingType)) {
+            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               fromRegion.regionName,
@@ -987,7 +987,7 @@ public class RegionRules extends AnnotationRules {
         }
         
         if (!toRegion.isAccessibleFromType(
-            context.getBinder().getTypeEnvironment(), enclosingType)) {
+            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               toRegion.regionName,

@@ -2067,8 +2067,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			if (XUtil.testing) {
 				if (status.getException() != null) {
 					status.getException().printStackTrace();					
+					throw new RuntimeException(status.getException());
 				} else {
 					System.err.println("CRASH: "+status.getMessage());
+					throw new RuntimeException(status.getMessage());
 				}
 			} else {
 				JSureScanCrashReport.getInstance().getReporter()

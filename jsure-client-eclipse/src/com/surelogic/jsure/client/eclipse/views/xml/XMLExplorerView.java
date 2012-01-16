@@ -16,6 +16,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
@@ -127,10 +129,32 @@ public class XMLExplorerView extends AbstractJSureView {
 	};
 
 	private final Action f_findXML = new FindXMLForTypeAction();
-	
+
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+
+		/*
+		 * We want a double-click to also expand the tree if necessary. This
+		 * will take care of that functionality.
+		 */
+		f_viewer.addDoubleClickListener(new IDoubleClickListener() {
+
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				final TreeViewer treeViewer = f_viewer;
+				ITreeSelection sel = (ITreeSelection) treeViewer.getSelection();
+				if (sel == null)
+					return;
+				Object obj = sel.getFirstElement();
+				if (obj == null)
+					return;
+				// open up the tree one more level
+				if (!treeViewer.getExpandedState(obj)) {
+					treeViewer.expandToLevel(obj, 1);
+				}
+			}
+		});
 
 		f_viewer.setContentProvider(f_content);
 		f_viewer.setLabelProvider(f_content);
@@ -150,7 +174,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		f_findXML.setToolTipText("Open the library annotations for a type");
 		f_findXML.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
-		
+
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
 		f_toggleShowDiffs.setToolTipText(I18N

@@ -19,7 +19,7 @@ public enum State {
   },
   UNIQUEWRITE("@Unique(allowRead=true)") {
     @Override
-    public String getProposedPromiseName() { return null; }
+    public String getProposedPromiseName() { return "Unique"; } // TODO add allowRead property
   },
   SHARED("nothing") {
     @Override

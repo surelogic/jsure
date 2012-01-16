@@ -402,7 +402,7 @@ public class LockRules extends AnnotationRules {
            */
           boolean good = true;
           final IRNode mdecl = JavaPromise.getPromisedFor(returnDecl);
-          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+          for (final IBinding pBinding : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
             final IRNode parent = pBinding.getNode();
             final IRNode parentReturn = JavaPromise.getReturnNode(parent);
             final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
@@ -446,7 +446,7 @@ public class LockRules extends AnnotationRules {
 		
 		/* Check consistency with ancestors */
 		if (okay) {
-      for (final IBinding pBinding : context.getBinder().findOverriddenParentMethods(annotatedMethod)) {
+      for (final IBinding pBinding : context.getBinder(annotatedMethod).findOverriddenParentMethods(annotatedMethod)) {
         final IRNode parent = pBinding.getNode();
         final IRNode parentReturn = JavaPromise.getReturnNode(parent);
         final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
@@ -695,7 +695,7 @@ public class LockRules extends AnnotationRules {
 				}
 				if (lockRefsThis || staticLockFromSameClass) {
 					final Visibility lockViz =
-					  getLockFieldVisibility(lockModel.getAST(), context.getBinder());
+					  getLockFieldVisibility(lockModel.getAST(), context.getBinder(annotatedMethod));
 					final Visibility methodViz = Visibility.getVisibilityOf(annotatedMethod);
 					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
@@ -737,7 +737,7 @@ public class LockRules extends AnnotationRules {
     
     // Check for consistency with ancestors
     if (allGood) {
-      for (final IBinding pBinding : context.getBinder().findOverriddenParentMethods(annotatedMethod)) {
+      for (final IBinding pBinding : context.getBinder(annotatedMethod).findOverriddenParentMethods(annotatedMethod)) {
         final IRNode parent = pBinding.getNode();
         
         // See if the ancestor is annotated
@@ -901,7 +901,7 @@ public class LockRules extends AnnotationRules {
         final boolean declIsGoodIn, final boolean fieldIsStatic,
         final IRNode lockFieldNode) {
       boolean declIsGood = declIsGoodIn;
-      final IBinder binder = context.getBinder();
+      final IBinder binder = context.getBinder(lockDecl.getPromisedFor());
       final ExpressionNode field = lockDecl.getField();
       final RegionNameNode region = lockDecl.getRegion();
       final IRegionBinding regionBinding = region.resolveBinding();
@@ -909,7 +909,7 @@ public class LockRules extends AnnotationRules {
       // Check that the region isn't already associated with a lock
       final String regionName = regionBinding.getModel().regionName;
       if (!protectedRegions.addIfNotAlreadyProtected(
-          context.getBinder().getTypeEnvironment(), regionName, promisedForType)) {
+          context.getBinder(promisedForType.getDeclaration()).getTypeEnvironment(), regionName, promisedForType)) {
         context.reportError(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);
         declIsGood = false;
       }
@@ -1073,7 +1073,7 @@ public class LockRules extends AnnotationRules {
   private static VouchFieldIsPromiseDrop scrubVouchFieldIs(
       final IAnnotationScrubberContext context, final VouchFieldIsNode a) {
     final IRNode promisedFor = a.getPromisedFor();
-    final IJavaType javaType = context.getBinder().getJavaType(promisedFor);
+    final IJavaType javaType = context.getBinder(promisedFor).getJavaType(promisedFor);
     switch (a.getKind()) {
     case Final:
       // Final: Must make sure the field is not actually declared final
@@ -1143,7 +1143,7 @@ public class LockRules extends AnnotationRules {
 			final LockScrubContinuation<T> continuation) {
     boolean declIsGood = true; // assume the best
 
-    final IBinder binder = context.getBinder();
+    final IBinder binder = context.getBinder(lockDecl.getPromisedFor());
 		final IJavaDeclaredType promisedForType =
 		  (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
 		      lockDecl.getPromisedFor(), binder);
@@ -1730,7 +1730,7 @@ public class LockRules extends AnnotationRules {
          * but only if the annotation is not implementationOnly.
          */
         if (!implementationOnly) {
-          for (final IRNode sub : getContext().getBinder().getTypeEnvironment().getRawSubclasses(promisedFor)) {
+          for (final IRNode sub : getContext().getBinder(promisedFor).getTypeEnvironment().getRawSubclasses(promisedFor)) {
             final Operator subOp = JJNode.tree.getOperator(sub);
             if (AnonClassExpression.prototype.includes(subOp) ||
                 EnumConstantClassDeclaration.prototype.includes(subOp)) { // Bug 1705: Not being returned at the moment
@@ -1776,7 +1776,7 @@ public class LockRules extends AnnotationRules {
 	      final IRNode extensions = InterfaceDeclaration.getExtensions(promisedFor);
 	      if (extensions != null) {
 	        for (final IRNode superDecl : Extensions.getSuperInterfaceIterator(extensions)) {
-	          final IRNode bound = context.getBinder().getBinding(superDecl);
+	          final IRNode bound = context.getBinder(superDecl).getBinding(superDecl);
 	          checkAnnotatedInterfaceSuperInterface(node, promisedFor, bound);
 	        }
 	      }
@@ -1784,18 +1784,21 @@ public class LockRules extends AnnotationRules {
 	      final IRNode superDecl;
 	      final Iterable<IRNode> interfaces;
 	      if (EnumDeclaration.prototype.includes(op)) {
-	        superDecl = context.getBinder().getTypeEnvironment().findNamedType(
+	        superDecl = context.getBinder(promisedFor).getTypeEnvironment().findNamedType(
 	            JAVA_LANG_ENUM);
 	        interfaces = Implements.getIntfIterator(EnumDeclaration.getImpls(promisedFor));
+	        if (superDecl == null) {
+	        	context.getBinder(promisedFor).getTypeEnvironment().findNamedType(JAVA_LANG_ENUM);
+	        }
 	      } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
 	        // Get the enclosing EnumDeclaration
 	        superDecl = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
 	        interfaces = null;
 	      } else if (AnonClassExpression.prototype.includes(op)) {
 	        final IRNode superTypeName = AnonClassExpression.getType(promisedFor);
-          final IRNode superType = context.getBinder().getBinding(superTypeName);
+          final IRNode superType = context.getBinder(promisedFor).getBinding(superTypeName);
 	        if (TypeUtil.isInterface(superType)) {
-	          superDecl = context.getBinder().getTypeEnvironment().getObjectType().getDeclaration();
+	          superDecl = context.getBinder(promisedFor).getTypeEnvironment().getObjectType().getDeclaration();
 	          interfaces = new Iterable<IRNode>() {
               public Iterator<IRNode> iterator() {
                 return new SingletonIterator<IRNode>(superTypeName);
@@ -1806,7 +1809,7 @@ public class LockRules extends AnnotationRules {
 	          interfaces = null;
 	        }
 	      } else {
-	        superDecl = context.getBinder().getBinding(
+	        superDecl = context.getBinder(promisedFor).getBinding(
 	            ClassDeclaration.getExtension(promisedFor));
 	        interfaces = Implements.getIntfIterator(ClassDeclaration.getImpls(promisedFor));
 	      }
@@ -1814,7 +1817,7 @@ public class LockRules extends AnnotationRules {
         // Scan each implemented interface for incompatibility
         if (interfaces != null) {
           for (final IRNode intfName : interfaces) {
-            final IRNode bound = context.getBinder().getBinding(intfName);
+            final IRNode bound = context.getBinder(intfName).getBinding(intfName);
             checkAnnotatedClassSuperInterface(node, promisedFor, bound);
           }
         }
@@ -1827,7 +1830,7 @@ public class LockRules extends AnnotationRules {
 	            EnumDeclaration.getImpls(promisedFor) :
 	              ClassDeclaration.getImpls(promisedFor);
 	        for (final IRNode intfName : Implements.getIntfIterator(impls)) {
-	          final IRNode intfDecl = context.getBinder().getBinding(intfName);
+	          final IRNode intfDecl = context.getBinder(intfName).getBinding(intfName);
 	          if (getAnnotation(intfDecl) != null) {
 	            bad = true;
 	            context.reportError(node,
@@ -1892,7 +1895,7 @@ public class LockRules extends AnnotationRules {
       final IRNode typeDecl = dt.getDeclaration();
       final boolean isInterface = TypeUtil.isInterface(typeDecl);
       final Iterable<IJavaType> supers = 
-        dt.getSupertypes(context.getBinder().getTypeEnvironment()) ;
+        dt.getSupertypes(context.getBinder(typeDecl).getTypeEnvironment()) ;
       
       // Are we actually annotated with the NOT form of the annotation?
       final boolean isNOT = getNotAnnotation(typeDecl) != null;
@@ -2374,7 +2377,7 @@ public class LockRules extends AnnotationRules {
       final ExpressionNode field = lockDecl.getField();
       final RegionNameNode region = lockDecl.getRegion();
       final IRegionBinding regionBinding = region.resolveBinding();
-      final Visibility lockViz = getLockFieldVisibility(lockDecl, context.getBinder());
+      final Visibility lockViz = getLockFieldVisibility(lockDecl, context.getBinder(lockDecl.getPromisedFor()));
       final Visibility regionViz = regionBinding.getModel().getVisibility();
       if (!lockViz.atLeastAsVisibleAs(regionViz)) { // (5)
         /* We create this as a warning drop instead of a modeling error because

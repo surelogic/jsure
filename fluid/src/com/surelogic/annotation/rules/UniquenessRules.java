@@ -402,10 +402,10 @@ public class UniquenessRules extends AnnotationRules {
         || ReceiverDeclaration.prototype.includes(promisedForOp)
         || VariableDeclarator.prototype.includes(promisedForOp)
         || QualifiedReceiverDeclaration.prototype.includes(promisedForOp)) {
-      type = context.getBinder().getJavaType(promisedFor);
+      type = context.getBinder(promisedFor).getJavaType(promisedFor);
     } else if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
       final IRNode method = JavaPromise.getPromisedFor(promisedFor);
-      type = context.getBinder().getJavaType(method);
+      type = context.getBinder(method).getJavaType(method);
     } else {
       LOG.log(Level.SEVERE, "Unexpected "+promisedForOp.name()+": "+DebugUnparser.toString(promisedFor), new Throwable());
       return false;
@@ -501,7 +501,7 @@ public class UniquenessRules extends AnnotationRules {
       final Operator op = JJNode.tree.getOperator(promisedFor);
       if (ParameterDeclaration.prototype.includes(op)) {
         final IRNode mdecl = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
-        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
           final IRNode parentMethod = bc.getNode();
           
           // find the same parameter in the original
@@ -536,7 +536,7 @@ public class UniquenessRules extends AnnotationRules {
         }
       } else if (ReceiverDeclaration.prototype.includes(op)) {
         final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
           final IRNode parentMethod = bc.getNode();
           
           // Get the receiver in the original
@@ -560,7 +560,7 @@ public class UniquenessRules extends AnnotationRules {
         }
       } else if (ReturnValueDeclaration.prototype.includes(op)) {
         final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-        for (final IBinding bc : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
           final IRNode parentMethod = bc.getNode();
 
           // Get the return value in the original

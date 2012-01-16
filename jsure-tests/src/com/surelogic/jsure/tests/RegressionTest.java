@@ -370,6 +370,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			output.reportError(currentTest.pop(), ex);
 			output.close();
 			throw ex;
+			//fail(ex+" : "+ex.getMessage());
 		}
 		output.close();
 	}
@@ -399,12 +400,16 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	}
 
 	private void end(String msg) {
-		output.reportSuccess(currentTest.pop(), msg);
+		ITest t = currentTest.pop();
+		System.out.println("Reporting success for "+t+" : "+msg);
+		output.reportSuccess(t, msg);
 		// currentTest = null;
 	}
 
 	private void endError(Throwable t) {
-		output.reportError(currentTest.pop(), t);
+		ITest test = currentTest.pop();
+		System.out.println("Reporting error for "+test+" : "+t);
+		output.reportError(test, t);
 		// currentTest = null;
 	}
 
