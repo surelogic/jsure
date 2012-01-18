@@ -17,6 +17,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
@@ -216,7 +217,7 @@ public final class ProposedPromiseContentProvider extends
 
 	static class Package extends AbstractTreeable<Type> {
 		Package(String p, Collection<IProposedPromiseDropInfo> drops) {
-			super(p, Type.organize(drops));
+			super("".equals(p) ? SLUtility.JAVA_DEFAULT_PACKAGE : p, Type.organize(drops));
 		}
 
 		@Override
