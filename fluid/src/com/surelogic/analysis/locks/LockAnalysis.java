@@ -32,6 +32,7 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil.UpperBoundGetter;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -701,11 +702,13 @@ public class LockAnalysis
 
 	private final class ImmutableProcessor extends TypeImplementationProcessor {
 		private boolean hasFields = false;
-
+		private UpperBoundGetter upperBoundGetter;
+		
 		public ImmutableProcessor(
 				final PromiseDrop<? extends IAASTRootNode> iDrop,
 				final IRNode typeDecl, final IRNode typeBody) {
 			super(LockAnalysis.this, iDrop, typeDecl, typeBody);
+			upperBoundGetter = new UpperBoundGetter(getBinder().getTypeEnvironment());
 		}
 
 		@Override
@@ -763,10 +766,9 @@ public class LockAnalysis
 					}
 				} else {
 					// REFERENCE-TYPED
-					final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type)
-							.getDeclaration() : null;
-					// no @Immutable annotation --> Default "annotation" of
-					// mutable
+				  final IRNode typeDecl =
+				      ((IJavaDeclaredType) upperBoundGetter.getUpperBound(type)).getDeclaration();
+					// no @Immutable annotation --> Default "annotation" of mutable
 					final ImmutablePromiseDrop declImmutableDrop = LockRules
 							.getImmutableType(typeDecl);
 
