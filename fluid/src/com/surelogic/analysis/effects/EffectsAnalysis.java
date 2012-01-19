@@ -362,13 +362,19 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final Set<Effect> inferred = inferEffects(true, constructor, missing);
       final ProposedPromiseBuilder proposed = 
         new ProposedPromiseBuilder("RegionEffects", 
-            Effects.unparseForPromise(inferred), constructor, constructor, Origin.MODEL);
+            Effects.unparseForPromise(inferred), 
+            getPromiseContents(declEffDrop), 
+            constructor, constructor, Origin.MODEL);
       for (final ResultDropBuilder r : badDrops) {
         r.addProposal(proposed);
       }
     }       
 	}
 
+  private String getPromiseContents(final RegionEffectsPromiseDrop declEffDrop) {
+	  return declEffDrop.getAST().toString().substring("RegionEffects".length()).trim();
+  }
+	
 	/**
    * @param report
    * @param method
@@ -391,7 +397,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final ProposedPromiseBuilder proposed = 
         new ProposedPromiseBuilder("RegionEffects", 
             Effects.unparseForPromise(inferred), 
-            declEffDrop.getAST().toString().substring("RegionEffects".length()).trim(), 
+            getPromiseContents(declEffDrop), 
             method, method, Origin.MODEL);
       for (final ResultDropBuilder r : badDrops) {
         r.addProposal(proposed);
