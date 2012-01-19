@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -39,6 +40,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
@@ -81,6 +83,10 @@ public class LockAnalysis
 	private final AtomicReference<GlobalLockModel> lockModelHandle = new AtomicReference<GlobalLockModel>(
 			null);
 
+	private UpperBoundGetter upperBoundGetter = null;
+	
+	
+	
 	public LockAnalysis() {
 		super(willRunInParallel, queueWork ? TypeBodyPair.class : null,
 				"LockAssurance", BindingContextAnalysis.factory);
@@ -147,9 +153,11 @@ public class LockAnalysis
 	}
 
 	@Override
-	public void startAnalyzeBegin(IIRProject p, IBinder binder) {
+	public void startAnalyzeBegin(final IIRProject p, final IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
 
+		upperBoundGetter = new UpperBoundGetter(binder.getTypeEnvironment());
+		
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
 		LockModel.purgeUnusedLocks();
@@ -372,7 +380,8 @@ public class LockAnalysis
 
 				if (isFinal || isVolatile || fieldLock != null) {
 					/* Now check if the referenced object is thread safe */
-					final IJavaType type = getBinder().getJavaType(varDecl);
+					final IJavaType type =
+					    upperBoundGetter.getUpperBound(getBinder().getJavaType(varDecl));
 					final IRNode typeDecl;
 					final boolean isPrimitive = type instanceof IJavaPrimitiveType;
 					final boolean isArray = type instanceof IJavaArrayType;
@@ -702,13 +711,11 @@ public class LockAnalysis
 
 	private final class ImmutableProcessor extends TypeImplementationProcessor {
 		private boolean hasFields = false;
-		private UpperBoundGetter upperBoundGetter;
 		
 		public ImmutableProcessor(
 				final PromiseDrop<? extends IAASTRootNode> iDrop,
 				final IRNode typeDecl, final IRNode typeBody) {
 			super(LockAnalysis.this, iDrop, typeDecl, typeBody);
-			upperBoundGetter = new UpperBoundGetter(getBinder().getTypeEnvironment());
 		}
 
 		@Override
@@ -766,22 +773,28 @@ public class LockAnalysis
 					}
 				} else {
 					// REFERENCE-TYPED
-				  final IRNode typeDecl =
-				      ((IJavaDeclaredType) upperBoundGetter.getUpperBound(type)).getDeclaration();
-					// no @Immutable annotation --> Default "annotation" of mutable
-					final ImmutablePromiseDrop declImmutableDrop = LockRules
-							.getImmutableType(typeDecl);
-
-					if (declImmutableDrop != null) {
+				  final TrackingAnnotationTester<ImmutablePromiseDrop> tester = new TrackingAnnotationTester<ImmutablePromiseDrop>() {
+            @Override
+            protected ImmutablePromiseDrop testTypeDeclImpl(IRNode type) {
+              return LockRules.getImmutableType(type);
+            }				    
+          };
+          
+          final boolean isImmutable = testFieldType(type, tester);
+					if (isImmutable) {
 						// IMMUTABLE REFERENCE TYPE
 						if (isFinal) {
 							result = createResult(varDecl, true,
 									Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
-							result.addTrustedPromise(declImmutableDrop);
+							for (final ImmutablePromiseDrop p : tester.getDrops()) {
+							  result.addTrustedPromise(p);
+							}
 						} else {
 							result = createResult(varDecl, false,
 									Messages.IMMUTABLE_NOT_FINAL, id);
-							result.addTrustedPromise(declImmutableDrop);
+              for (final ImmutablePromiseDrop p : tester.getDrops()) {
+                result.addTrustedPromise(p);
+              }
 							proposeVouch = true;
 						}
 					} else {
@@ -795,13 +808,10 @@ public class LockAnalysis
 									Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE,
 									id);
 						}
-						if (typeDecl != null) {
+						for (final IRNode typeDecl : tester.getTested()) {
 							result.addProposal(new ProposedPromiseBuilder(
 									"Immutable", null, typeDecl, varDecl,
 									Origin.MODEL));
-						} else {
-							// TODO what if this is a type formal, or something
-							// else?
 						}
 					}
 				}
@@ -817,5 +827,77 @@ public class LockAnalysis
 	private static boolean isArrayTypeContainable(final IJavaArrayType aType) {
 		return (aType.getBaseType() instanceof IJavaPrimitiveType)
 				&& (aType.getDimensions() == 1);
+	}
+	
+	
+	
+	private interface TypeDeclAnnotationTester {
+	  public boolean testTypeDecl(final IRNode typeDecl);
+	}
+	
+	private abstract class TrackingAnnotationTester<P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> implements TypeDeclAnnotationTester {
+	  private final Set<IRNode> tested = new HashSet<IRNode>();
+	  protected final Set<P> drops = new HashSet<P>();
+	  
+	  public final boolean testTypeDecl(final IRNode type) {
+	    tested.add(type);
+	    final P drop = testTypeDeclImpl(type);
+	    if (drop != null) {
+	      drops.add(drop);
+	      return true;
+	    } else {
+	      return false;
+	    }
+	  }
+	  
+	  protected abstract P testTypeDeclImpl(IRNode type);
+	  
+	  public Iterable<IRNode> getTested() {
+	    return tested;
+	  }
+	  
+	  public Iterable<P> getDrops() {
+	    return drops;
+	  }
+	}
+	
+	private boolean testFieldType(
+	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+    /* We assume the type is a reference type. The upper bound of the field's
+     * type is thus an IJavaArrayType, IJavaIntersectionType, or
+     * IJavaDeclaredType. (Cannot be null or void in a field declaration).
+     * 
+     * Array type is not immutable.
+     * 
+     * Intersection type is immutable if any one of the conjoined types is
+     * declared to be immutable.
+     * 
+     * Declared type is immutable if the type is declared to be immutable.
+     */
+    final IJavaType upperBound = upperBoundGetter.getUpperBound(type);
+    
+    if (upperBound instanceof IJavaArrayType) {
+      return false;
+    } else { // Declared or intersection type
+      return testDeclaredOrIntersectionType(upperBound, tester);
+    }
+	}
+	
+	private static boolean testDeclaredOrIntersectionType(
+	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+	  // type is IJavaDeclaredType or IJavaIntersectionType
+	  if (type instanceof IJavaDeclaredType) {
+	    return tester.testTypeDecl(((IJavaDeclaredType) type).getDeclaration());
+	  } else {
+	    final IJavaIntersectionType iType = (IJavaIntersectionType) type;
+	    /* Avoid short-circuit evaluation of the disjunciton because we want 
+	     * to visit all the types in the intersection. 
+	     */
+	    final boolean first = 
+	        testDeclaredOrIntersectionType(iType.getPrimarySupertype(), tester);
+	    final boolean second =
+	        testDeclaredOrIntersectionType(iType.getSecondarySupertype(), tester); 
+	    return first || second;
+	  }
 	}
 }
