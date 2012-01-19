@@ -66,6 +66,7 @@ import com.surelogic.common.FileUtility.FileRunner;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.PeriodicUtility;
+import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
@@ -128,8 +129,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
-	private static final String SEPARATOR = "==================================================================================================";
-
+	private static final String SEPARATOR = TextArchiver.SEPARATOR;
 	private static final Logger LOG = SLLogger
 			.getLogger("analysis.JavacDriver");
 
@@ -2198,7 +2198,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			}
 
 			@Override
-			protected void iterate(File f) {
+			protected void iterate(String relativePath, File f) {
 				copyContentsToStream(f, out, target);
 			}
 		};
