@@ -51,6 +51,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public class LockAnalysis
 		extends
@@ -635,38 +636,40 @@ public class LockAnalysis
 							.getFieldUnique(varDecl);
 
 					final boolean isContainable;
-					final ContainablePromiseDrop declContainableDrop;
-					final IRNode typeDecl;
+					final Iterable<IRNode> types;
+					final Iterable<ContainablePromiseDrop> drops;
 					if (isArray) {
-						typeDecl = null;
-						declContainableDrop = null;
-						isContainable = isArrayTypeContainable((IJavaArrayType) type);
-					} else if (type instanceof IJavaDeclaredType) {
-						typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-						declContainableDrop = LockRules
-								.getContainableType(typeDecl);
-						isContainable = declContainableDrop != null;
-					} else {
-						typeDecl = null;
-						declContainableDrop = null;
-						isContainable = false;
-					}
-
+            isContainable = isArrayTypeContainable((IJavaArrayType) type);
+            types = EmptyIterator.prototype();
+            drops = EmptyIterator.prototype();
+					} else { // formal type variable or declared type
+	          final TrackingAnnotationTester<ContainablePromiseDrop> tester =
+	              new TrackingAnnotationTester<ContainablePromiseDrop>() {
+	                @Override
+	                protected ContainablePromiseDrop testTypeDeclImpl(IRNode type) {
+	                  return LockRules.getContainableType(type);
+	                }
+    	          };
+	          
+	          isContainable = testFieldType(type, tester);
+	          types = tester.getTested();
+	          drops = tester.getDrops();
+	        }
+					  
 					if (isContainable && uniqueDrop != null) {
 						final ResultDropBuilder result = createResult(varDecl,
 								true, Messages.FIELD_CONTAINED_OBJECT, id);
 						result.addSupportingInformation(varDecl,
 								Messages.DECLARED_TYPE_IS_CONTAINABLE,
 								type.toString());
-						if (declContainableDrop != null) {
-							result.addTrustedPromise(declContainableDrop);
+						for (final ContainablePromiseDrop p : drops) {
+							result.addTrustedPromise(p);
 						}
-						result.addSupportingInformation(varDecl,
-								Messages.FIELD_IS_UNIQUE);
+						result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
 						result.addTrustedPromise(uniqueDrop);
 					} else {
-						final ResultDropBuilder result = createResult(varDecl,
-								false, Messages.FIELD_BAD, id);
+						final ResultDropBuilder result =
+						    createResult(varDecl, false, Messages.FIELD_BAD, id);
 
 						// Always suggest @Vouch("Containable")
 						result.addProposal(new ProposedPromiseBuilder("Vouch",
@@ -676,19 +679,18 @@ public class LockAnalysis
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_IS_CONTAINABLE,
 									type.toString());
-							if (declContainableDrop != null) {
-								result.addTrustedPromise(declContainableDrop);
-							}
+	            for (final ContainablePromiseDrop p : drops) {
+	              result.addTrustedPromise(p);
+	            }
 						} else {
 							// no @Containable annotation --> Default
 							// "annotation" of not containable
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_NOT_CONTAINABLE,
 									type.toString());
-							if (typeDecl != null) {
+							for (final IRNode t : types) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"Containable", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"Containable", null, t, varDecl, Origin.MODEL));
 							}
 						}
 
