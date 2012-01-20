@@ -52,6 +52,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.EmptyIterator;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class LockAnalysis
 		extends
@@ -359,8 +360,8 @@ public class LockAnalysis
 			final String id = VariableDeclarator.getId(varDecl);
 
 			// Check for vouch
-			final VouchFieldIsPromiseDrop vouchDrop = LockRules
-					.getVouchFieldIs(varDecl);
+			final VouchFieldIsPromiseDrop vouchDrop = 
+			    LockRules.getVouchFieldIs(varDecl);
 			if (vouchDrop != null && vouchDrop.isThreadSafe()) {
 				final String reason = vouchDrop.getReason();
 				final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResult(
@@ -376,73 +377,105 @@ public class LockAnalysis
 				 */
 				final boolean isFinal = TypeUtil.isFinal(varDecl);
 				final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-				final RegionLockRecord fieldLock = getLockForRegion(RegionModel
-						.getInstance(varDecl));
+				final RegionLockRecord fieldLock =
+				    getLockForRegion(RegionModel.getInstance(varDecl));
 
 				if (isFinal || isVolatile || fieldLock != null) {
-					/* Now check if the referenced object is thread safe */
-					final IJavaType type =
-					    upperBoundGetter.getUpperBound(getBinder().getJavaType(varDecl));
-					final IRNode typeDecl;
-					final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-					final boolean isArray = type instanceof IJavaArrayType;
-					final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
-					final boolean usingImplDrop;
-					final ContainablePromiseDrop declContainableDrop;
-
-					if (type instanceof IJavaDeclaredType) {
-						typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-						// Null if no @ThreadSafe ==> not thread safe
-						final PromiseDrop<? extends AbstractModifiedBooleanNode> typePromise = LockRules
-								.getThreadSafeTypePromise(typeDecl);
-						/*
-						 * If the type is not thread safe, we can check to see
-						 * if the implementation assigned to the field is thread
-						 * safe, but only if the field is final.
-						 */
-						if (typePromise == null && isFinal) {
-							final IRNode init = VariableDeclarator
-									.getInit(varDecl);
-							if (Initialization.prototype.includes(init)) {
-								declTSDrop = LockRules
-										.getThreadSafeImplPromise(((IJavaDeclaredType) getBinder()
-												.getJavaType(init))
-												.getDeclaration());
-								usingImplDrop = true;
-							} else {
-								declTSDrop = typePromise;
-								usingImplDrop = false;
-							}
-						} else {
-							declTSDrop = typePromise;
-							usingImplDrop = false;
-						}
-						// Null if no @Containable ==> Default annotation of not
-						// containable
-						declContainableDrop = LockRules
-								.getContainableType(typeDecl);
-					} else {
-						typeDecl = null;
-						declTSDrop = null;
-						declContainableDrop = null;
-						usingImplDrop = false;
-					}
-
-					final boolean isContainable = (declContainableDrop != null)
-							|| (isArray && isArrayTypeContainable((IJavaArrayType) type));
+				  /* Check if the declared type of the field is thread-safe or
+				   * containable.
+				   */
+          final IJavaType type = getBinder().getJavaType(varDecl);
+          final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+          final boolean isArray = type instanceof IJavaArrayType;
+          final boolean testedType;
+          final boolean usingImplDrop;
+          final boolean isThreadSafe;
+          final Iterable<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> tsDrops;
+          final Iterable<IRNode> notThreadSafe;
+          final boolean isDeclaredContainable;
+          final Iterable<ContainablePromiseDrop> cDrops;
+          final Iterable<IRNode> notContainable;
+          
+          if (!isPrimitive && !isArray) { // type formal or declared type
+            final TrackingAnnotationTester<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> tsTester =
+                new TrackingAnnotationTester<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>() {
+                  @Override
+                  protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> testTypeDeclImpl(IRNode type) {
+                    return LockRules.getThreadSafeTypePromise(type);
+                  }
+                };
+            final boolean isTS = testFieldType(type, tsTester);
+            testedType = true;
+            /*
+             * If the type is not thread safe, we can check to see
+             * if the implementation assigned to the field is thread
+             * safe, but only if the field is final.
+             */
+            if (!isTS && isFinal) {
+              final IRNode init = VariableDeclarator.getInit(varDecl);
+              // XXX: This is not right: Should specifically check for NewExpression!
+              if (Initialization.prototype.includes(init)) {
+                final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
+                    LockRules.getThreadSafeImplPromise(
+                        ((IJavaDeclaredType) getBinder().getJavaType(init)).getDeclaration());
+                usingImplDrop = true;
+                if (implTypeTSDrop != null) {
+                  isThreadSafe = true;
+                  tsDrops = new SingletonIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>(implTypeTSDrop);
+                  notThreadSafe = EmptyIterator.prototype();
+                } else {
+                  isThreadSafe = false;
+                  tsDrops = EmptyIterator.prototype();
+                  notThreadSafe = tsTester.getFailed();
+                }
+              } else {
+                usingImplDrop = false;
+                isThreadSafe = false;
+                tsDrops = EmptyIterator.prototype();
+                notThreadSafe = tsTester.getFailed();
+              }
+            } else {
+              usingImplDrop = false;
+              isThreadSafe = isTS;
+              tsDrops = tsTester.getDrops();
+              notThreadSafe = tsTester.getFailed();
+            }
+            
+            final TrackingAnnotationTester<ContainablePromiseDrop> cTester =
+                new TrackingAnnotationTester<ContainablePromiseDrop>() {
+                  @Override
+                  protected ContainablePromiseDrop testTypeDeclImpl(IRNode type) {
+                    return LockRules.getContainableType(type);
+                  }
+                };
+            isDeclaredContainable = testFieldType(type, cTester);
+            cDrops = cTester.getDrops();
+            notContainable = cTester.getFailed();
+          } else {
+            testedType = false;
+            usingImplDrop = false;
+            isThreadSafe = false;
+            tsDrops = EmptyIterator.prototype();
+            notThreadSafe = EmptyIterator.prototype();
+            isDeclaredContainable = false;
+            cDrops = EmptyIterator.prototype();
+            notContainable = EmptyIterator.prototype();
+          }
+          
+          final boolean isContainable = isDeclaredContainable 
+              || (isArray && isArrayTypeContainable((IJavaArrayType) type));
 
 					/*
 					 * @ThreadSafe takes priority over @Containable: If the type
 					 * is threadsafe don't check the aggregation status
 					 */
-					final PromiseDrop<? extends IAASTRootNode> uDrop = UniquenessUtils
-							.getFieldUnique(varDecl);
+					final PromiseDrop<? extends IAASTRootNode> uDrop =
+					    UniquenessUtils.getFieldUnique(varDecl);
 					final Map<IRegion, IRegion> aggMap;
 					boolean isContained = false;
-					if (declTSDrop == null && isContainable) {
+					if (!isThreadSafe && isContainable) {
 						if (uDrop != null) {
-							aggMap = UniquenessUtils
-									.constructRegionMapping(varDecl);
+							aggMap = UniquenessUtils.constructRegionMapping(varDecl);
 							isContained = true;
 							for (final IRegion destRegion : aggMap.values()) {
 								isContained &= (getLockForRegion(destRegion) != null);
@@ -458,39 +491,39 @@ public class LockAnalysis
 					}
 
 					final String typeString = type.toString();
-					if (isPrimitive || declTSDrop != null || isContained) {
+					if (isPrimitive || isThreadSafe || isContained) {
 						final ResultDropBuilder result;
 						if (isFinal) {
-							result = createResult(varDecl, true,
-									Messages.FINAL_AND_THREADSAFE, id);
+							result = createResult(
+							    varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
 						} else if (isVolatile) {
-							result = createResult(varDecl, true,
-									Messages.VOLATILE_AND_THREADSAFE, id);
+							result = createResult(
+							    varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
 						} else { // lock protected
-							result = createResult(varDecl, true,
-									Messages.PROTECTED_AND_THREADSAFE, id,
+							result = createResult(
+							    varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id,
 									fieldLock.name);
 							result.addTrustedPromise(fieldLock.lockDecl);
 						}
 
 						if (isPrimitive) {
-							result.addSupportingInformation(varDecl,
-									Messages.PRIMITIVE_TYPE, typeString);
-						} else if (declTSDrop != null) {
-							result.addSupportingInformation(varDecl,
-									Messages.DECLARED_TYPE_IS_THREAD_SAFE,
-									typeString);
-							result.addTrustedPromise(declTSDrop);
+							result.addSupportingInformation(
+							    varDecl, Messages.PRIMITIVE_TYPE, typeString);
+						} else if (isThreadSafe) {
+							result.addSupportingInformation(
+							    varDecl, Messages.DECLARED_TYPE_IS_THREAD_SAFE,	typeString);
+							for (final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> p : tsDrops) {
+							  result.addTrustedPromise(p);
+							}
 							if (usingImplDrop) {
-								result.addSupportingInformation(varDecl,
-										Messages.THREAD_SAFE_IMPL);
+								result.addSupportingInformation(
+								    varDecl, Messages.THREAD_SAFE_IMPL);
 							}
 						} else { // contained
-							result.addSupportingInformation(varDecl,
-									Messages.DECLARED_TYPE_IS_CONTAINABLE,
-									typeString);
-							if (declContainableDrop != null) {
-								result.addTrustedPromise(declContainableDrop);
+							result.addSupportingInformation(
+							    varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE,	typeString);
+							for (final ContainablePromiseDrop p : cDrops) {
+								result.addTrustedPromise(p);
 							}
 							result.addTrustedPromise(uDrop);
 							for (final IRegion destRegion : aggMap.values()) {
@@ -498,23 +531,21 @@ public class LockAnalysis
 							}
 						}
 					} else {
-						final ResultDropBuilder result = createResult(varDecl,
-								false, Messages.UNSAFE_REFERENCE, id);
+						final ResultDropBuilder result = createResult(
+						    varDecl, false, Messages.UNSAFE_REFERENCE, id);
 						// type could be a non-declared, non-primitive type,
 						// that is, an array
-						if (typeDecl != null) {
+						if (testedType) {
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_IS_NOT_THREAD_SAFE,
 									typeString);
-							if (declTSDrop == null) {
+							for (final IRNode n : notThreadSafe) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"ThreadSafe", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"ThreadSafe", null, n, varDecl,	Origin.MODEL));
 							}
-							if (declContainableDrop == null) {
+							for (final IRNode n : notContainable) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"Containable", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"Containable", null, n, varDecl, Origin.MODEL));
 							}
 						}
 
@@ -839,7 +870,8 @@ public class LockAnalysis
 	
 	private abstract class TrackingAnnotationTester<P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> implements TypeDeclAnnotationTester {
 	  private final Set<IRNode> tested = new HashSet<IRNode>();
-	  protected final Set<P> drops = new HashSet<P>();
+	  private final Set<P> drops = new HashSet<P>();
+	  private final Set<IRNode> failed = new HashSet<IRNode>();
 	  
 	  public final boolean testTypeDecl(final IRNode type) {
 	    tested.add(type);
@@ -848,6 +880,7 @@ public class LockAnalysis
 	      drops.add(drop);
 	      return true;
 	    } else {
+	      failed.add(type);
 	      return false;
 	    }
 	  }
@@ -860,6 +893,10 @@ public class LockAnalysis
 	  
 	  public Iterable<P> getDrops() {
 	    return drops;
+	  }
+	  
+	  public Iterable<IRNode> getFailed() {
+	    return failed;
 	  }
 	}
 	

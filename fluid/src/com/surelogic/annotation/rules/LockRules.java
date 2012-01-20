@@ -303,7 +303,7 @@ public class LockRules extends AnnotationRules {
    * @see getThreadSafeType
    * @see getImmutableType
    */
-  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeTypePromise(final IRNode tdecl) {
+  public static ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeTypePromise(final IRNode tdecl) {
     final ImmutablePromiseDrop immutable = getImmutableType(tdecl);
     return (immutable == null) ? getThreadSafeType(tdecl) : immutable;
   }
@@ -317,7 +317,7 @@ public class LockRules extends AnnotationRules {
    * @see getThreadSafeImplementation
    * @see getImmutableImplementation
    */
-  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeImplPromise(final IRNode tdecl) {
+  public static ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeImplPromise(final IRNode tdecl) {
     final ImmutablePromiseDrop immutable = getImmutableImplementation(tdecl);
     return (immutable == null) ? getThreadSafeImplementation(tdecl) : immutable;
   }
