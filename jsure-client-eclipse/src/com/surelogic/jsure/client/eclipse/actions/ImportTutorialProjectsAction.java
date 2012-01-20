@@ -1,25 +1,13 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.common.ui.dialogs.InstallTutorialProjectsDialog;
 
-public class ImportTutorialProjectsAction implements
-		IWorkbenchWindowActionDelegate {
-
-	public void dispose() {
-		// Do nothing
-	}
-
-	public void init(final IWorkbenchWindow window) {
-		// Do nothing
-
-	}
+public class ImportTutorialProjectsAction extends AbstractMainAction {
 
 	public void run(final IAction action) {
 		final ClassLoader loader = Thread.currentThread()
@@ -34,11 +22,4 @@ public class ImportTutorialProjectsAction implements
         loader.getResource("/lib/UniqueAndEffects.zip"),
         loader.getResource("/lib/AdvancedEffectExamples.zip"));
 	}
-
-	public void selectionChanged(final IAction action,
-			final ISelection selection) {
-		// Do nothing
-
-	}
-
 }
