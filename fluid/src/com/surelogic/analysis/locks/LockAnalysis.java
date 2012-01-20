@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil.UpperBoundGetter;
@@ -415,19 +416,27 @@ public class LockAnalysis
               final IRNode init = VariableDeclarator.getInit(varDecl);
               // XXX: This is not right: Should specifically check for NewExpression!
               if (Initialization.prototype.includes(init)) {
-                final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
-                    LockRules.getThreadSafeImplPromise(
-                        ((IJavaDeclaredType) getBinder().getJavaType(init)).getDeclaration());
-                usingImplDrop = true;
-                if (implTypeTSDrop != null) {
-                  isThreadSafe = true;
-                  tsDrops = new SingletonIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>(implTypeTSDrop);
-                  notThreadSafe = EmptyIterator.prototype();
+                final IRNode initExpr = Initialization.getValue(init);
+                if (NewExpression.prototype.includes(initExpr)) {
+                  final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
+                      LockRules.getThreadSafeImplPromise(
+                          ((IJavaDeclaredType) getBinder().getJavaType(initExpr)).getDeclaration());
+                  usingImplDrop = true;
+                  if (implTypeTSDrop != null) {
+                    isThreadSafe = true;
+                    tsDrops = new SingletonIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>(implTypeTSDrop);
+                    notThreadSafe = EmptyIterator.prototype();
+                  } else {
+                    isThreadSafe = false;
+                    tsDrops = EmptyIterator.prototype();
+                    notThreadSafe = tsTester.getFailed();
+                  }
                 } else {
+                  usingImplDrop = false;
                   isThreadSafe = false;
                   tsDrops = EmptyIterator.prototype();
                   notThreadSafe = tsTester.getFailed();
-                }
+                }                
               } else {
                 usingImplDrop = false;
                 isThreadSafe = false;
