@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
@@ -1915,7 +1916,8 @@ public class LockRules extends AnnotationRules {
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
               } else if (!isMoreSpecific) {
-                context.reportError(typeDecl,
+                context.reportErrorAndProposal(
+                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
               }
@@ -1934,7 +1936,8 @@ public class LockRules extends AnnotationRules {
                     "Class may not be @{0} because it implements a @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
               } else if (!isMoreSpecific) {
-                context.reportError(typeDecl,
+                context.reportErrorAndProposal(
+                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
               }
@@ -1945,7 +1948,8 @@ public class LockRules extends AnnotationRules {
                     "Class may not be @{0} because it extends a @{1} class {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
               } else {
-                context.reportError(typeDecl,
+                context.reportErrorAndProposal(
+                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
               }
