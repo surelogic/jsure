@@ -30,6 +30,9 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 
 	public T visit(ClassElement classElt) {
 		T result = defaultValue;
+		if (classElt == null) {
+			return defaultValue;
+		}
 		if (classElt.getClassInit() != null) {
 			result = combine(result, classElt.getClassInit().visit(this));
 		}

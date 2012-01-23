@@ -16,6 +16,11 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -26,6 +31,11 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.version.VersionedSlotFactory;
 
 public class TypeUtil implements JavaGlobals {
+  // No instances please
+  private TypeUtil() {
+    super();
+  }
+  
   /**
 	 * Logger for this class
 	 */
@@ -412,7 +422,7 @@ public class TypeUtil implements JavaGlobals {
    * @throws IllegalArgumentException
    *           if <code>typeDecl</code> is not one of the above nodes.
    */
-  public static final IRNode getTypeBody(final IRNode typeDecl) {
+  public static IRNode getTypeBody(final IRNode typeDecl) {
     final Operator op = JJNode.tree.getOperator(typeDecl);
     if (AnonClassExpression.prototype.includes(op)) {
       return AnonClassExpression.getBody(typeDecl);
@@ -427,6 +437,43 @@ public class TypeUtil implements JavaGlobals {
     } else {
       throw new IllegalArgumentException(
           "Unknown type declaration " + op.name());
+    }
+  }
+
+  
+  
+  public static final class UpperBoundGetter {
+    private static final String JAVA_LANG_OBJECT = "java.lang.Object";
+
+    private final ITypeEnvironment typeEnv;
+    private final IJavaType javaLangObject;
+    
+    
+    public UpperBoundGetter(final ITypeEnvironment te) {
+      typeEnv = te;
+      javaLangObject = typeEnv.findJavaTypeByName(JAVA_LANG_OBJECT);
+    }
+    
+    
+    
+    public IJavaType getUpperBound(final IJavaType type) {
+      if (type instanceof IJavaTypeFormal) {
+        return getUpperBound(((IJavaTypeFormal) type).getSuperclass(typeEnv));
+      } else if (type instanceof IJavaWildcardType) {
+        /* I think this case is dead because what we are actually going to see is
+         * capture types.
+         */
+        final IJavaType upperBound = ((IJavaWildcardType) type).getUpperBound();
+        return (upperBound == null) ? javaLangObject : getUpperBound(upperBound);
+      } else if (type instanceof IJavaCaptureType) {
+        final IJavaType upperBound = ((IJavaCaptureType) type).getUpperBound();
+        return (upperBound == null) ? javaLangObject : getUpperBound(upperBound);
+      } else {
+        /* IJavaPrimitiveType, IJavaVoidType, IJavaArrayType,
+         * IJavaIntersectionType, IJavaNullType, IJavaDeclaredType.
+         */
+        return type;
+      }
     }
   }
 }

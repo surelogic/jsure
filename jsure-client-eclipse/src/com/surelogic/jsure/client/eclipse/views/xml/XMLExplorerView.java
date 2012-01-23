@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
@@ -517,9 +518,10 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (hasDiffs()) {
-				return PromisesXMLContentProvider.DIRTY_PREFIX + name;
+				return PromisesXMLContentProvider.DIRTY_PREFIX + 
+					(name.length() == 0 ? SLUtility.JAVA_DEFAULT_PACKAGE : name);
 			}
-			return name;
+			return name.length() == 0 ? SLUtility.JAVA_DEFAULT_PACKAGE : name;
 		}
 
 		@Override
@@ -563,6 +565,9 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		String getPath() {
+			if (pkg.name.length() == 0) {
+				return name	+ TestXMLParserConstants.SUFFIX;
+			}
 			return pkg.name.replace('.', '/') + '/' + name
 					+ TestXMLParserConstants.SUFFIX;
 		}

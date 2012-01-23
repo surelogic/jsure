@@ -38,6 +38,7 @@ public final class ProblemsViewContentProvider extends
 			 */
 			final ISrcRef srcRef = id.getSrcRef();
 			if (srcRef != null) {
+				/*
 				final String path = srcRef.getRelativePath();
 				if (path != null) {
 					if (path.endsWith(".java")
@@ -45,6 +46,8 @@ public final class ProblemsViewContentProvider extends
 						contents.add(id);
 					}
 				}
+				*/
+				contents.add(id);
 			} else {
 				contents.add(id);
 			}

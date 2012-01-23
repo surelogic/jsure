@@ -66,6 +66,7 @@ import com.surelogic.common.FileUtility.FileRunner;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.PeriodicUtility;
+import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
@@ -128,7 +129,6 @@ import edu.cmu.cs.fluid.util.Pair;
 public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
-	private static final String SEPARATOR = "==================================================================================================";
 
 	private static final Logger LOG = SLLogger
 			.getLogger("analysis.JavacDriver");
@@ -2133,23 +2133,17 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	public void setArg(String key, Object value) {
 		args.put(key, value);
 	}
-
-	private static void outputMessage(PrintStream out, String msg) {
-		out.println(SEPARATOR);
-		out.println(msg);
-	}
 	
 	private static File collectCrashFiles(Projects projects) {
 		final File crash = new File(projects.getRunDir(), CRASH_FILES);
-		final String target = crash.getAbsolutePath();
 		try {
-			PrintStream out = new PrintStream(crash);
+			PromisesXMLArchiver out = new PromisesXMLArchiver(crash);
 			try {
 				// Get project-specific config
 				for (String name : projects.getProjectNames()) {
 					IProject proj = EclipseUtility.getProject(name);
 					if (proj == null) {
-						outputMessage(out, "Project does not exist: " + name);
+						out.outputWarning("Project does not exist: " + name);
 						continue;
 					}
 					IPath projLocation = proj.getLocation();
@@ -2157,29 +2151,27 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						File projFile = projLocation.toFile();
 						if (projFile != null && projFile.isDirectory()) {
 							for (String config : AbstractJavaZip.CONFIG_FILES) {
-								copyContentsToStream(
-										new File(projFile, config), out, target);
+								out.archive(projFile.getName()+'/'+config, new File(projFile, config));
 							}
 						} else {
-							outputMessage(out, "File could not be created for project location: "
+							out.outputWarning("File could not be created for project location: "
 									+ projLocation);
 							continue;
 						}
 					} else {
-						outputMessage(out, "Project location could not be retrieved: "
-								+ name);
+						out.outputWarning("Project location could not be retrieved: " + name);
 						continue;
 					}
 				}
-				copyContentsToStream(new File(projects.getRunDir(),
-						Javac.JAVAC_PROPS), out, target);
-				copyContentsToStream(new File(projects.getRunDir(),
-						PersistenceConstants.PROJECTS_XML), out, target);
-				copyContentsToStream(new File(projects.getRunDir(),
-						RemoteJSureRun.LOG_TXT), out, target);
+				out.archive(Javac.JAVAC_PROPS, 
+						new File(projects.getRunDir(), Javac.JAVAC_PROPS));
+				out.archive(PersistenceConstants.PROJECTS_XML, 
+						new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
+				out.archive(RemoteJSureRun.LOG_TXT, 
+						new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT));
 				
 				final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
-				FileUtility.recursiveIterate(makePromisesXMLCopier(out, target), libDir);				
+				FileUtility.recursiveIterate(out, libDir);				
 			} finally {
 				out.close();
 			}
@@ -2190,35 +2182,14 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		return crash;
 	}
 
-	private static FileRunner makePromisesXMLCopier(final PrintStream out, final String target) {
-		return new FileRunner() {
-			@Override
-			public boolean accept(File pathname) {
-				return TestXMLParserConstants.XML_FILTER.accept(pathname);
-			}
+	private static class PromisesXMLArchiver extends TextArchiver {
+		public PromisesXMLArchiver(File target) throws IOException {
+			super(target);
+		}
 
-			@Override
-			protected void iterate(File f) {
-				copyContentsToStream(f, out, target);
-			}
-		};
-	}
-	
-	private static void copyContentsToStream(File file, PrintStream out,
-			String target) {
-		final String source = file.getAbsolutePath();
-
-		if (file.isFile()) {
-			outputMessage(out, source);
-			out.println(SEPARATOR);
-			try {
-				FileUtility.copyToStream(false, source, new FileInputStream(
-						file), target, out, false);
-			} catch (IOException e) {
-				e.printStackTrace(out);
-			}
-		} else {
-			outputMessage(out, "File does not exist: " + source);
+		@Override
+		public boolean accept(File pathname) {
+			return TestXMLParserConstants.XML_FILTER.accept(pathname);
 		}
 	}
 

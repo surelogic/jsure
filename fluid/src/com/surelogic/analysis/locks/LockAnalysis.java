@@ -26,18 +26,22 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil.UpperBoundGetter;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
@@ -48,6 +52,8 @@ import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.util.EmptyIterator;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class LockAnalysis
 		extends
@@ -80,6 +86,10 @@ public class LockAnalysis
 	private final AtomicReference<GlobalLockModel> lockModelHandle = new AtomicReference<GlobalLockModel>(
 			null);
 
+	private UpperBoundGetter upperBoundGetter = null;
+	
+	
+	
 	public LockAnalysis() {
 		super(willRunInParallel, queueWork ? TypeBodyPair.class : null,
 				"LockAssurance", BindingContextAnalysis.factory);
@@ -144,9 +154,11 @@ public class LockAnalysis
 	}
 
 	@Override
-	public void startAnalyzeBegin(IIRProject p, IBinder binder) {
+	public void startAnalyzeBegin(final IIRProject p, final IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
 
+		upperBoundGetter = new UpperBoundGetter(binder.getTypeEnvironment());
+		
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
 		LockModel.purgeUnusedLocks();
@@ -347,8 +359,8 @@ public class LockAnalysis
 			final String id = VariableDeclarator.getId(varDecl);
 
 			// Check for vouch
-			final VouchFieldIsPromiseDrop vouchDrop = LockRules
-					.getVouchFieldIs(varDecl);
+			final VouchFieldIsPromiseDrop vouchDrop = 
+			    LockRules.getVouchFieldIs(varDecl);
 			if (vouchDrop != null && vouchDrop.isThreadSafe()) {
 				final String reason = vouchDrop.getReason();
 				final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResult(
@@ -364,72 +376,113 @@ public class LockAnalysis
 				 */
 				final boolean isFinal = TypeUtil.isFinal(varDecl);
 				final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-				final RegionLockRecord fieldLock = getLockForRegion(RegionModel
-						.getInstance(varDecl));
+				final RegionLockRecord fieldLock =
+				    getLockForRegion(RegionModel.getInstance(varDecl));
 
 				if (isFinal || isVolatile || fieldLock != null) {
-					/* Now check if the referenced object is thread safe */
-					final IJavaType type = getBinder().getJavaType(varDecl);
-					final IRNode typeDecl;
-					final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-					final boolean isArray = type instanceof IJavaArrayType;
-					final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
-					final boolean usingImplDrop;
-					final ContainablePromiseDrop declContainableDrop;
-
-					if (type instanceof IJavaDeclaredType) {
-						typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-						// Null if no @ThreadSafe ==> not thread safe
-						final PromiseDrop<? extends AbstractModifiedBooleanNode> typePromise = LockRules
-								.getThreadSafeTypePromise(typeDecl);
-						/*
-						 * If the type is not thread safe, we can check to see
-						 * if the implementation assigned to the field is thread
-						 * safe, but only if the field is final.
-						 */
-						if (typePromise == null && isFinal) {
-							final IRNode init = VariableDeclarator
-									.getInit(varDecl);
-							if (Initialization.prototype.includes(init)) {
-								declTSDrop = LockRules
-										.getThreadSafeImplPromise(((IJavaDeclaredType) getBinder()
-												.getJavaType(init))
-												.getDeclaration());
-								usingImplDrop = true;
-							} else {
-								declTSDrop = typePromise;
-								usingImplDrop = false;
-							}
-						} else {
-							declTSDrop = typePromise;
-							usingImplDrop = false;
-						}
-						// Null if no @Containable ==> Default annotation of not
-						// containable
-						declContainableDrop = LockRules
-								.getContainableType(typeDecl);
-					} else {
-						typeDecl = null;
-						declTSDrop = null;
-						declContainableDrop = null;
-						usingImplDrop = false;
-					}
-
-					final boolean isContainable = (declContainableDrop != null)
-							|| (isArray && isArrayTypeContainable((IJavaArrayType) type));
+				  /* Check if the declared type of the field is thread-safe or
+				   * containable.
+				   */
+          final IJavaType type = getBinder().getJavaType(varDecl);
+          final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+          final boolean isArray = type instanceof IJavaArrayType;
+          final boolean testedType;
+          final boolean usingImplDrop;
+          final boolean isThreadSafe;
+          final Iterable<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> tsDrops;
+          final Iterable<IRNode> notThreadSafe;
+          final boolean isDeclaredContainable;
+          final Iterable<ContainablePromiseDrop> cDrops;
+          final Iterable<IRNode> notContainable;
+          
+          if (!isPrimitive && !isArray) { // type formal or declared type
+            final TrackingAnnotationTester<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> tsTester =
+                new TrackingAnnotationTester<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>() {
+                  @Override
+                  protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> testTypeDeclImpl(IRNode type) {
+                    return LockRules.getThreadSafeTypePromise(type);
+                  }
+                };
+            final boolean isTS = testFieldType(type, tsTester);
+            testedType = true;
+            /*
+             * If the type is not thread safe, we can check to see
+             * if the implementation assigned to the field is thread
+             * safe, but only if the field is final.
+             */
+            if (!isTS && isFinal) {
+              final IRNode init = VariableDeclarator.getInit(varDecl);
+              // XXX: This is not right: Should specifically check for NewExpression!
+              if (Initialization.prototype.includes(init)) {
+                final IRNode initExpr = Initialization.getValue(init);
+                if (NewExpression.prototype.includes(initExpr)) {
+                  final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
+                      LockRules.getThreadSafeImplPromise(
+                          ((IJavaDeclaredType) getBinder().getJavaType(initExpr)).getDeclaration());
+                  usingImplDrop = true;
+                  if (implTypeTSDrop != null) {
+                    isThreadSafe = true;
+                    tsDrops = new SingletonIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>(implTypeTSDrop);
+                    notThreadSafe = EmptyIterator.prototype();
+                  } else {
+                    isThreadSafe = false;
+                    tsDrops = EmptyIterator.prototype();
+                    notThreadSafe = tsTester.getFailed();
+                  }
+                } else {
+                  usingImplDrop = false;
+                  isThreadSafe = false;
+                  tsDrops = EmptyIterator.prototype();
+                  notThreadSafe = tsTester.getFailed();
+                }                
+              } else {
+                usingImplDrop = false;
+                isThreadSafe = false;
+                tsDrops = EmptyIterator.prototype();
+                notThreadSafe = tsTester.getFailed();
+              }
+            } else {
+              usingImplDrop = false;
+              isThreadSafe = isTS;
+              tsDrops = tsTester.getDrops();
+              notThreadSafe = tsTester.getFailed();
+            }
+            
+            final TrackingAnnotationTester<ContainablePromiseDrop> cTester =
+                new TrackingAnnotationTester<ContainablePromiseDrop>() {
+                  @Override
+                  protected ContainablePromiseDrop testTypeDeclImpl(IRNode type) {
+                    return LockRules.getContainableType(type);
+                  }
+                };
+            isDeclaredContainable = testFieldType(type, cTester);
+            cDrops = cTester.getDrops();
+            notContainable = cTester.getFailed();
+          } else {
+            testedType = false;
+            usingImplDrop = false;
+            isThreadSafe = false;
+            tsDrops = EmptyIterator.prototype();
+            notThreadSafe = EmptyIterator.prototype();
+            isDeclaredContainable = false;
+            cDrops = EmptyIterator.prototype();
+            notContainable = EmptyIterator.prototype();
+          }
+          
+          final boolean isContainable = isDeclaredContainable 
+              || (isArray && isArrayTypeContainable((IJavaArrayType) type));
 
 					/*
 					 * @ThreadSafe takes priority over @Containable: If the type
 					 * is threadsafe don't check the aggregation status
 					 */
-					final PromiseDrop<? extends IAASTRootNode> uDrop = UniquenessUtils
-							.getFieldUnique(varDecl);
+					final PromiseDrop<? extends IAASTRootNode> uDrop =
+					    UniquenessUtils.getFieldUnique(varDecl);
 					final Map<IRegion, IRegion> aggMap;
 					boolean isContained = false;
-					if (declTSDrop == null && isContainable) {
+					if (!isThreadSafe && isContainable) {
 						if (uDrop != null) {
-							aggMap = UniquenessUtils
-									.constructRegionMapping(varDecl);
+							aggMap = UniquenessUtils.constructRegionMapping(varDecl);
 							isContained = true;
 							for (final IRegion destRegion : aggMap.values()) {
 								isContained &= (getLockForRegion(destRegion) != null);
@@ -445,39 +498,39 @@ public class LockAnalysis
 					}
 
 					final String typeString = type.toString();
-					if (isPrimitive || declTSDrop != null || isContained) {
+					if (isPrimitive || isThreadSafe || isContained) {
 						final ResultDropBuilder result;
 						if (isFinal) {
-							result = createResult(varDecl, true,
-									Messages.FINAL_AND_THREADSAFE, id);
+							result = createResult(
+							    varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
 						} else if (isVolatile) {
-							result = createResult(varDecl, true,
-									Messages.VOLATILE_AND_THREADSAFE, id);
+							result = createResult(
+							    varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
 						} else { // lock protected
-							result = createResult(varDecl, true,
-									Messages.PROTECTED_AND_THREADSAFE, id,
+							result = createResult(
+							    varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id,
 									fieldLock.name);
 							result.addTrustedPromise(fieldLock.lockDecl);
 						}
 
 						if (isPrimitive) {
-							result.addSupportingInformation(varDecl,
-									Messages.PRIMITIVE_TYPE, typeString);
-						} else if (declTSDrop != null) {
-							result.addSupportingInformation(varDecl,
-									Messages.DECLARED_TYPE_IS_THREAD_SAFE,
-									typeString);
-							result.addTrustedPromise(declTSDrop);
+							result.addSupportingInformation(
+							    varDecl, Messages.PRIMITIVE_TYPE, typeString);
+						} else if (isThreadSafe) {
+							result.addSupportingInformation(
+							    varDecl, Messages.DECLARED_TYPE_IS_THREAD_SAFE,	typeString);
+							for (final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> p : tsDrops) {
+							  result.addTrustedPromise(p);
+							}
 							if (usingImplDrop) {
-								result.addSupportingInformation(varDecl,
-										Messages.THREAD_SAFE_IMPL);
+								result.addSupportingInformation(
+								    varDecl, Messages.THREAD_SAFE_IMPL);
 							}
 						} else { // contained
-							result.addSupportingInformation(varDecl,
-									Messages.DECLARED_TYPE_IS_CONTAINABLE,
-									typeString);
-							if (declContainableDrop != null) {
-								result.addTrustedPromise(declContainableDrop);
+							result.addSupportingInformation(
+							    varDecl, Messages.DECLARED_TYPE_IS_CONTAINABLE,	typeString);
+							for (final ContainablePromiseDrop p : cDrops) {
+								result.addTrustedPromise(p);
 							}
 							result.addTrustedPromise(uDrop);
 							for (final IRegion destRegion : aggMap.values()) {
@@ -485,23 +538,21 @@ public class LockAnalysis
 							}
 						}
 					} else {
-						final ResultDropBuilder result = createResult(varDecl,
-								false, Messages.UNSAFE_REFERENCE, id);
+						final ResultDropBuilder result = createResult(
+						    varDecl, false, Messages.UNSAFE_REFERENCE, id);
 						// type could be a non-declared, non-primitive type,
 						// that is, an array
-						if (typeDecl != null) {
+						if (testedType) {
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_IS_NOT_THREAD_SAFE,
 									typeString);
-							if (declTSDrop == null) {
+							for (final IRNode n : notThreadSafe) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"ThreadSafe", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"ThreadSafe", null, n, varDecl,	Origin.MODEL));
 							}
-							if (declContainableDrop == null) {
+							for (final IRNode n : notContainable) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"Containable", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"Containable", null, n, varDecl, Origin.MODEL));
 							}
 						}
 
@@ -623,38 +674,40 @@ public class LockAnalysis
 							.getFieldUnique(varDecl);
 
 					final boolean isContainable;
-					final ContainablePromiseDrop declContainableDrop;
-					final IRNode typeDecl;
+					final Iterable<IRNode> types;
+					final Iterable<ContainablePromiseDrop> drops;
 					if (isArray) {
-						typeDecl = null;
-						declContainableDrop = null;
-						isContainable = isArrayTypeContainable((IJavaArrayType) type);
-					} else if (type instanceof IJavaDeclaredType) {
-						typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-						declContainableDrop = LockRules
-								.getContainableType(typeDecl);
-						isContainable = declContainableDrop != null;
-					} else {
-						typeDecl = null;
-						declContainableDrop = null;
-						isContainable = false;
-					}
-
+            isContainable = isArrayTypeContainable((IJavaArrayType) type);
+            types = EmptyIterator.prototype();
+            drops = EmptyIterator.prototype();
+					} else { // formal type variable or declared type
+	          final TrackingAnnotationTester<ContainablePromiseDrop> tester =
+	              new TrackingAnnotationTester<ContainablePromiseDrop>() {
+	                @Override
+	                protected ContainablePromiseDrop testTypeDeclImpl(IRNode type) {
+	                  return LockRules.getContainableType(type);
+	                }
+    	          };
+	          
+	          isContainable = testFieldType(type, tester);
+	          types = tester.getTested();
+	          drops = tester.getDrops();
+	        }
+					  
 					if (isContainable && uniqueDrop != null) {
 						final ResultDropBuilder result = createResult(varDecl,
 								true, Messages.FIELD_CONTAINED_OBJECT, id);
 						result.addSupportingInformation(varDecl,
 								Messages.DECLARED_TYPE_IS_CONTAINABLE,
 								type.toString());
-						if (declContainableDrop != null) {
-							result.addTrustedPromise(declContainableDrop);
+						for (final ContainablePromiseDrop p : drops) {
+							result.addTrustedPromise(p);
 						}
-						result.addSupportingInformation(varDecl,
-								Messages.FIELD_IS_UNIQUE);
+						result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
 						result.addTrustedPromise(uniqueDrop);
 					} else {
-						final ResultDropBuilder result = createResult(varDecl,
-								false, Messages.FIELD_BAD, id);
+						final ResultDropBuilder result =
+						    createResult(varDecl, false, Messages.FIELD_BAD, id);
 
 						// Always suggest @Vouch("Containable")
 						result.addProposal(new ProposedPromiseBuilder("Vouch",
@@ -664,19 +717,18 @@ public class LockAnalysis
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_IS_CONTAINABLE,
 									type.toString());
-							if (declContainableDrop != null) {
-								result.addTrustedPromise(declContainableDrop);
-							}
+	            for (final ContainablePromiseDrop p : drops) {
+	              result.addTrustedPromise(p);
+	            }
 						} else {
 							// no @Containable annotation --> Default
 							// "annotation" of not containable
 							result.addSupportingInformation(varDecl,
 									Messages.DECLARED_TYPE_NOT_CONTAINABLE,
 									type.toString());
-							if (typeDecl != null) {
+							for (final IRNode t : types) {
 								result.addProposal(new ProposedPromiseBuilder(
-										"Containable", null, typeDecl, varDecl,
-										Origin.MODEL));
+										"Containable", null, t, varDecl, Origin.MODEL));
 							}
 						}
 
@@ -699,7 +751,7 @@ public class LockAnalysis
 
 	private final class ImmutableProcessor extends TypeImplementationProcessor {
 		private boolean hasFields = false;
-
+		
 		public ImmutableProcessor(
 				final PromiseDrop<? extends IAASTRootNode> iDrop,
 				final IRNode typeDecl, final IRNode typeBody) {
@@ -761,23 +813,28 @@ public class LockAnalysis
 					}
 				} else {
 					// REFERENCE-TYPED
-					final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type)
-							.getDeclaration() : null;
-					// no @Immutable annotation --> Default "annotation" of
-					// mutable
-					final ImmutablePromiseDrop declImmutableDrop = LockRules
-							.getImmutableType(typeDecl);
-
-					if (declImmutableDrop != null) {
+				  final TrackingAnnotationTester<ImmutablePromiseDrop> tester = new TrackingAnnotationTester<ImmutablePromiseDrop>() {
+            @Override
+            protected ImmutablePromiseDrop testTypeDeclImpl(IRNode type) {
+              return LockRules.getImmutableType(type);
+            }				    
+          };
+          
+          final boolean isImmutable = testFieldType(type, tester);
+					if (isImmutable) {
 						// IMMUTABLE REFERENCE TYPE
 						if (isFinal) {
 							result = createResult(varDecl, true,
 									Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
-							result.addTrustedPromise(declImmutableDrop);
+							for (final ImmutablePromiseDrop p : tester.getDrops()) {
+							  result.addTrustedPromise(p);
+							}
 						} else {
 							result = createResult(varDecl, false,
 									Messages.IMMUTABLE_NOT_FINAL, id);
-							result.addTrustedPromise(declImmutableDrop);
+              for (final ImmutablePromiseDrop p : tester.getDrops()) {
+                result.addTrustedPromise(p);
+              }
 							proposeVouch = true;
 						}
 					} else {
@@ -791,13 +848,10 @@ public class LockAnalysis
 									Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE,
 									id);
 						}
-						if (typeDecl != null) {
+						for (final IRNode typeDecl : tester.getTested()) {
 							result.addProposal(new ProposedPromiseBuilder(
 									"Immutable", null, typeDecl, varDecl,
 									Origin.MODEL));
-						} else {
-							// TODO what if this is a type formal, or something
-							// else?
 						}
 					}
 				}
@@ -813,5 +867,83 @@ public class LockAnalysis
 	private static boolean isArrayTypeContainable(final IJavaArrayType aType) {
 		return (aType.getBaseType() instanceof IJavaPrimitiveType)
 				&& (aType.getDimensions() == 1);
+	}
+	
+	
+	
+	private interface TypeDeclAnnotationTester {
+	  public boolean testTypeDecl(final IRNode typeDecl);
+	}
+	
+	private abstract class TrackingAnnotationTester<P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> implements TypeDeclAnnotationTester {
+	  private final Set<IRNode> tested = new HashSet<IRNode>();
+	  private final Set<P> drops = new HashSet<P>();
+	  private final Set<IRNode> failed = new HashSet<IRNode>();
+	  
+	  public final boolean testTypeDecl(final IRNode type) {
+	    tested.add(type);
+	    final P drop = testTypeDeclImpl(type);
+	    if (drop != null) {
+	      drops.add(drop);
+	      return true;
+	    } else {
+	      failed.add(type);
+	      return false;
+	    }
+	  }
+	  
+	  protected abstract P testTypeDeclImpl(IRNode type);
+	  
+	  public Iterable<IRNode> getTested() {
+	    return tested;
+	  }
+	  
+	  public Iterable<P> getDrops() {
+	    return drops;
+	  }
+	  
+	  public Iterable<IRNode> getFailed() {
+	    return failed;
+	  }
+	}
+	
+	private boolean testFieldType(
+	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+    /* We assume the type is a reference type. The upper bound of the field's
+     * type is thus an IJavaArrayType, IJavaIntersectionType, or
+     * IJavaDeclaredType. (Cannot be null or void in a field declaration).
+     * 
+     * Array type is not immutable.
+     * 
+     * Intersection type is immutable if any one of the conjoined types is
+     * declared to be immutable.
+     * 
+     * Declared type is immutable if the type is declared to be immutable.
+     */
+    final IJavaType upperBound = upperBoundGetter.getUpperBound(type);
+    
+    if (upperBound instanceof IJavaArrayType) {
+      return false;
+    } else { // Declared or intersection type
+      return testDeclaredOrIntersectionType(upperBound, tester);
+    }
+	}
+	
+	private static boolean testDeclaredOrIntersectionType(
+	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+	  // type is IJavaDeclaredType or IJavaIntersectionType
+	  if (type instanceof IJavaDeclaredType) {
+	    return tester.testTypeDecl(((IJavaDeclaredType) type).getDeclaration());
+	  } else {
+	    final IJavaIntersectionType iType = (IJavaIntersectionType) type;
+	    /* Avoid short-circuit evaluation of the disjunciton because we want 
+	     * to visit all the types in the intersection. 
+	     */
+	    final boolean first = 
+	        testDeclaredOrIntersectionType(iType.getPrimarySupertype(), tester);
+	    final boolean second =
+	        testDeclaredOrIntersectionType(iType.getSecondarySupertype(), tester); 
+	    return first || second;
+	  }
 	}
 }
