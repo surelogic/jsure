@@ -206,7 +206,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements
 	 *         needed.
 	 */
 	public IRNode getAssumptionNode() {
-		return VisitUtil.getEnclosingType(f_requestedFrom);
+		return VisitUtil.getClosestType(f_requestedFrom);
 	}
 
 	/**
