@@ -9,6 +9,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.xml.PromisesLibMerge;
 
 import edu.cmu.cs.fluid.ide.IDE;
 
@@ -59,6 +60,9 @@ public class Activator extends Plugin {
 		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
 		JavacDriver.getInstance();		
 		//monitor.worked(1);
+		
+		// Try to update the client's XML
+		PromisesLibMerge.updateClient();
 	}
 
 	private void clearJSureData() {
