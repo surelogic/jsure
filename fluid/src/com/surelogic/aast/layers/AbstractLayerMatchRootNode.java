@@ -55,7 +55,7 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
   
   public Iterable<LayerPromiseDrop> getReferencedLayers() {
 	  if (target == null) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<LayerPromiseDrop>();
 	  }
 	  LayerRefVisitor v = new LayerRefVisitor();
 	  target.accept(v);

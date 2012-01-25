@@ -8,9 +8,6 @@ import java.util.*;
  */
 public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements ListIterator<T>
 {
-  @SuppressWarnings("unchecked")
-  public static final EmptyIterator prototype = new EmptyIterator();
-
   public EmptyIterator()
   {
     super();
@@ -26,12 +23,6 @@ public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements L
     throw new NoSuchElementException( "Iterator complete." );
   }
   
-  @SuppressWarnings("unchecked")
-  public static <T> Iteratable<T> prototype() { return prototype; }
-  
-  @SuppressWarnings("unchecked")
-  public static <T> ListIterator<T> listIterator() { return prototype; }
-
   public boolean hasPrevious() {
     return false;
   }
@@ -48,11 +39,11 @@ public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements L
     return -1;
   }
 
-  public void set(T arg0) {
+  public void set(final T arg0) {
     throw new UnsupportedOperationException( "set() not supported" );
   }
 
-  public void add(T arg0) {
+  public void add(final T arg0) {
     throw new UnsupportedOperationException( "add() not supported" );
   }  
 }

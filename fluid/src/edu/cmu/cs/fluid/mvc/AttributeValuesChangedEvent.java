@@ -164,7 +164,7 @@ extends ModelEvent
   public Iterator<ChangeRecord> getChangedNodes()
   {
     if( changedNodes == null ) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<ChangeRecord>();
     } else {
       return new ArrayIterator<ChangeRecord>( changedNodes );
     }
@@ -177,7 +177,7 @@ extends ModelEvent
   public Iterator<AVPair> getChangedAttributes()
   {
     if( changedComponent == null ) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<AVPair>();
     } else {
       return changedComponent.getAVPairs();
     }

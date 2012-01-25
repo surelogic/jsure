@@ -56,7 +56,7 @@ public class SimpleSlotFactory extends AbstractImplicitSlotFactory {
   public static synchronized Iterator<IRState> getChanged() {
     Iterator<IRState> it;
     if (stateChanged == null) {
-      it = EmptyIterator.prototype();
+      it = new EmptyIterator<IRState>();
     } else {
       it = stateChanged.iterator();
     }

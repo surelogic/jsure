@@ -364,7 +364,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     try {
       actuals = Arguments.getArgIterator(((CallInterface) op).get_Args(node));
     } catch(final CallInterface.NoArgs e) {
-      actuals = EmptyIterator.prototype();
+      actuals = new EmptyIterator<IRNode>();
     }
     for (IRNode arg : actuals) {
       if (VarArgsExpression.prototype.includes(arg)) {

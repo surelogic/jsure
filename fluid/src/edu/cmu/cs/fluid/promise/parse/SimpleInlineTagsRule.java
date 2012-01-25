@@ -117,7 +117,7 @@ public abstract class SimpleInlineTagsRule extends AbstractParseRule {
     int start = contents.indexOf("{@");
     if (start < 0) {
       LOG.fine("No inline tags in: " + contents);
-      return EmptyIterator.prototype();
+      return new EmptyIterator<String>();
     }
     return new InlineTagIterator(contents.substring(start));
   }

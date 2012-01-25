@@ -141,7 +141,7 @@ public class ModelUtils {
       final IRSequence seq = (IRSequence) model.getCompAttribute(View.SRC_MODELS).getValue();
       return seq.elements();
     } catch(final UnknownAttributeException e) {
-      return EmptyIterator.prototype(); 
+      return new EmptyIterator<Model>(); 
     }
   }
 }

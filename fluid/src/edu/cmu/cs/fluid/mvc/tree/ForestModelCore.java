@@ -374,7 +374,7 @@ public abstract class ForestModelCore extends AbstractCore {
   /** Return the children of a node in order. */
   public final Iteratable<IRNode> children(final IRNode node) {
     if (!isPresent(node)) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     return forest.children(node);
   }

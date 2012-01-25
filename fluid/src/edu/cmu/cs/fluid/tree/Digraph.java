@@ -484,7 +484,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   public Iteratable<IRNode> children(IRNode node) {
 	final IRSequence<IRNode> seq = getChildren(node);
 	if (seq == null) {
-		return EmptyIterator.prototype();
+		return new EmptyIterator<IRNode>();
 	}
     return mutator.protect(seq.elements());
   }

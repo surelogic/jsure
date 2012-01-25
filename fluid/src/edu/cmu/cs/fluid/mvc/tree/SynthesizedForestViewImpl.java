@@ -119,7 +119,7 @@ public final class SynthesizedForestViewImpl
         final Iterator nodes =
           (srcModel != null)
             ? srcModel.getNodes()
-            : EmptyIterator.prototype();
+            : new EmptyIterator<Object>();
 
         if (attrs.length == 0) {
           LOG.fine("Handling special case of no categorization");
@@ -132,7 +132,7 @@ public final class SynthesizedForestViewImpl
           final Iterator n2 =
             (srcModel != null)
               ? srcModel.getNodes()
-              : EmptyIterator.prototype();
+              : new EmptyIterator<Object>();
           while (n2.hasNext()) {
             forestModCore.initNode((IRNode) n2.next());
           }

@@ -176,7 +176,7 @@ public class MethodCallUtils {
     try {
       actualsEnum = Arguments.getArgIterator(((CallInterface) callOp).get_Args(call));
     } catch(final CallInterface.NoArgs e) {
-      actualsEnum = EmptyIterator.prototype();
+      actualsEnum = new EmptyIterator<IRNode>();
     }
 
     // build a table mapping each formal parameter to its actual

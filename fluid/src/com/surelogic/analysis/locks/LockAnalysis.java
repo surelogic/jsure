@@ -423,22 +423,22 @@ public class LockAnalysis
                   if (implTypeTSDrop != null) {
                     isThreadSafe = true;
                     tsDrops = new SingletonIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>(implTypeTSDrop);
-                    notThreadSafe = EmptyIterator.prototype();
+                    notThreadSafe = new EmptyIterator<IRNode>();
                   } else {
                     isThreadSafe = false;
-                    tsDrops = EmptyIterator.prototype();
+                    tsDrops = new EmptyIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>();
                     notThreadSafe = tsTester.getFailed();
                   }
                 } else {
                   usingImplDrop = false;
                   isThreadSafe = false;
-                  tsDrops = EmptyIterator.prototype();
+                  tsDrops = new EmptyIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>();
                   notThreadSafe = tsTester.getFailed();
                 }                
               } else {
                 usingImplDrop = false;
                 isThreadSafe = false;
-                tsDrops = EmptyIterator.prototype();
+                tsDrops = new EmptyIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>();
                 notThreadSafe = tsTester.getFailed();
               }
             } else {
@@ -462,11 +462,11 @@ public class LockAnalysis
             testedType = false;
             usingImplDrop = false;
             isThreadSafe = false;
-            tsDrops = EmptyIterator.prototype();
-            notThreadSafe = EmptyIterator.prototype();
+            tsDrops = new EmptyIterator<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>>();
+            notThreadSafe = new EmptyIterator<IRNode>();
             isDeclaredContainable = false;
-            cDrops = EmptyIterator.prototype();
-            notContainable = EmptyIterator.prototype();
+            cDrops = new EmptyIterator<ContainablePromiseDrop>();
+            notContainable = new EmptyIterator<IRNode>();
           }
           
           final boolean isContainable = isDeclaredContainable 
@@ -678,8 +678,8 @@ public class LockAnalysis
 					final Iterable<ContainablePromiseDrop> drops;
 					if (isArray) {
             isContainable = isArrayTypeContainable((IJavaArrayType) type);
-            types = EmptyIterator.prototype();
-            drops = EmptyIterator.prototype();
+            types = new EmptyIterator<IRNode>();
+            drops = new EmptyIterator<ContainablePromiseDrop>();
 					} else { // formal type variable or declared type
 	          final TrackingAnnotationTester<ContainablePromiseDrop> tester =
 	              new TrackingAnnotationTester<ContainablePromiseDrop>() {

@@ -26,7 +26,7 @@ public class TreeChangedIterator extends AbstractRemovelessIterator<IRNode>
    * @return iterator over changed nodes. Also legally castable to Enumeration.
    */
   public static Iterator<IRNode> iterator(VersionedChangeRecord rec, TreeInterface tree, final IRNode root, final Version v1, final Version v2) {
-    if (!rec.changed(root, v1, v2)) { return EmptyIterator.prototype(); }
+    if (!rec.changed(root, v1, v2)) { return new EmptyIterator<IRNode>(); }
     // otherwise root has changed, so ...
     return new TreeChangedIterator(rec, tree, root, v1, v2);
   }

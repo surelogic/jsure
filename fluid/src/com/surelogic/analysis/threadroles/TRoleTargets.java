@@ -376,7 +376,7 @@ public class TRoleTargets {
     try {
       actualsEnum = Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
     } catch (final CallInterface.NoArgs e) {
-      actualsEnum = EmptyIterator.prototype();
+      actualsEnum = new EmptyIterator<IRNode>();
     }
     while (actualsEnum.hasNext()) {
       final IRNode actual = actualsEnum.next();

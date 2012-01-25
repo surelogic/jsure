@@ -260,7 +260,7 @@ public class VisitUtil implements JavaGlobals {
   	IRNode body = getClassBody(decl);
   	if (body == null) {
   		// array decl or something else
-  		return EmptyIterator.prototype();
+  		return new EmptyIterator<IRNode>();
   	}
   	return JJNode.tree.children(body);
   }
@@ -448,7 +448,7 @@ public class VisitUtil implements JavaGlobals {
 
   public static Iteratable<IRNode> getMethodLocalClasses(IRNode mbody) {
     if (!MethodBody.prototype.includes(JJNode.tree.getOperator(mbody))) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     final Iterator<IRNode> enm = JJNode.tree.bottomUp(MethodBody.getBlock(mbody));
     return new SimpleRemovelessIterator<IRNode>() {
@@ -521,11 +521,11 @@ public class VisitUtil implements JavaGlobals {
     }
     else if (AnonClassExpression.prototype.includes(op)) {
       superName   = AnonClassExpression.getType(decl);
-      superIfaces = EmptyIterator.prototype();
+      superIfaces = new EmptyIterator<IRNode>();
     }
     else if (AnnotationDeclaration.prototype.includes(op)) {
       // FIX should return the named type for java.lang.annotation.Annotation
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     else if (TypeFormal.prototype.includes(op)) {
       IRNode bounds = TypeFormal.getBounds(decl);
@@ -533,7 +533,7 @@ public class VisitUtil implements JavaGlobals {
     }
     else if (EnumConstantClassDeclaration.prototype.includes(op)) {
       // FIX should return the named type for its enum decl
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     else {
       throw new IllegalArgumentException("Unexpected type decl: "+op.name());

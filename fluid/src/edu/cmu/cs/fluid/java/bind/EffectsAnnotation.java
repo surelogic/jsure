@@ -292,7 +292,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
 
         if (effects == null) {
           // LOG.debug("No effects yet, setting them to empty");
-          setMethodEffects(n, EmptyIterator.<IRNode> prototype());
+          setMethodEffects(n, new EmptyIterator<IRNode>());
         } else {
           // LOG.debug("Some effects already, clearing out the " + keyword + "
           // effects");

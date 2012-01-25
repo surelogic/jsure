@@ -532,13 +532,13 @@ public abstract class AnnotationRules {
 	private static <D extends PromiseDrop> Iterator<D> getIterator(
 			SlotInfo<List<D>> si, IRNode n) {
 		if (n == null) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<D>();
 		}
 		List<D> s = n.getSlotValue(si);
 		if (s != null) {
 			return s.iterator();
 		}
-		return EmptyIterator.prototype();
+		return new EmptyIterator<D>();
 	}
 
 	/**
@@ -547,7 +547,7 @@ public abstract class AnnotationRules {
 	protected static <D extends PromiseDrop> Iterable<D> getDrops(
 			IPromiseDropStorage<D> s, IRNode n) {
 		if (n == null) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<D>();
 		}
 		IPromiseDropSeqStorage<D> storage = (IPromiseDropSeqStorage<D>) s;
 
@@ -556,7 +556,7 @@ public abstract class AnnotationRules {
 		final SlotInfo<List<D>> si = storage.getSeqSlotInfo();
 
 		// Need to merge values if both available
-		Iterator<D> e = EmptyIterator.prototype();
+		Iterator<D> e = new EmptyIterator<D>();
 
 		final boolean tryOrig;
 		// If there's a proxy node
@@ -572,7 +572,7 @@ public abstract class AnnotationRules {
 			e = getIterator(si, n);
 		}
 		if (!e.hasNext()) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<D>();
 		}
 		return new FilterIterator<D, D>(e) {
 			@Override

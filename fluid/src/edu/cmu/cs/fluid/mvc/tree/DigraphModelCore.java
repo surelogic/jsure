@@ -276,7 +276,7 @@ public final class DigraphModelCore extends AbstractCore {
   /** Return the children of a node in order. */
   public Iteratable<IRNode> children(final IRNode node) {
     if (!isPresent(node)) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     return digraph.children(node);
   }
@@ -521,7 +521,7 @@ public final class DigraphModelCore extends AbstractCore {
     if ((nodes != null) && !nodes.isInfinite()) {
       return nodes.iterator();
     } else {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
   }
 

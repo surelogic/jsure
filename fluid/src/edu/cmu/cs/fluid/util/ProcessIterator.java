@@ -13,7 +13,7 @@ public abstract class ProcessIterator<T> extends SimpleRemovelessIterator<T>
   private final Iterator<T> iterator;  /** Iterator to wrap. */
 
   // null means we're done
-  private Iterator<T> nestedIter = EmptyIterator.prototype(); 
+  private Iterator<T> nestedIter = new EmptyIterator<T>(); 
 
   /**
    * Create a new iterator wrapped around an

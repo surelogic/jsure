@@ -93,7 +93,7 @@ public abstract class Predicate {
    */
   public Iterator generate(Predicate other) {
     // default implementation:
-    return EmptyIterator.prototype();
+    return new EmptyIterator<Object>();
   }
 
   /** Return the effects of executing a predicate.

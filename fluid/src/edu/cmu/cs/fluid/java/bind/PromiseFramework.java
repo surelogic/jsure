@@ -551,7 +551,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   public Iterator<TokenInfo> getTokenInfos(Operator op) {
     List<IPromiseStorage> l = (List<IPromiseStorage>) storMap.get(op);
     if (l == null) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<TokenInfo>();
     }
     return new FilterIterator<IPromiseStorage,TokenInfo>(l.iterator()) {
       @Override
@@ -568,7 +568,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   public Iterator<TokenInfo> getTokenInfos() {
     Iterator<IPromiseStorage> it = storSet.iterator();
     if (!it.hasNext()) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<TokenInfo>();
     }
     return new FilterIterator<IPromiseStorage,TokenInfo>(it) {
       @Override protected Object select(IPromiseStorage o) {

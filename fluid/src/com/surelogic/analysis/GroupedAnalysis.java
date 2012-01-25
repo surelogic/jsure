@@ -64,7 +64,7 @@ public class GroupedAnalysis implements IIRAnalysis {
 		for(IIRAnalysis a : analyses) {
 			handleAnalyzeEnd(a, env, p);
 		}
-		return EmptyIterator.prototype();
+		return new EmptyIterator<IRNode>();
 	}
 	
 	public static void handleAnalyzeEnd(IIRAnalysis a, IIRAnalysisEnvironment env, IIRProject project) {

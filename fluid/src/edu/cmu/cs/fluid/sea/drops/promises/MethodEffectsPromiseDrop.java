@@ -88,7 +88,7 @@ public class MethodEffectsPromiseDrop extends PromiseDrop<EffectsSpecificationNo
     if (writes != null) { // only writes
       return writes.getEffectList();
     }
-    return EmptyIterator.prototype();
+    return new EmptyIterator<EffectSpecificationNode>();
   }
   
   @Override

@@ -160,7 +160,7 @@ extends ForestModelCore
     if( root != null ) {
       return forest.topDown( root );
     } else {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
   }
 
@@ -304,7 +304,8 @@ extends ForestModelCore
   public Iteratable<IRNode> getRoots()
   {
     final IRNode root = roots.elementAt( 0 );
-    if( root == null ) return EmptyIterator.prototype();
+    if( root == null )
+      return new EmptyIterator<IRNode>();
     else return new SingletonIterator<IRNode>( root );
   }
 

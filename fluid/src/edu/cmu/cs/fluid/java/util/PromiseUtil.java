@@ -108,7 +108,7 @@ public final class PromiseUtil {
       
       @Override
       public Iterator<IRNode> iterator() {
-        return EmptyIterator.prototype();
+        return new EmptyIterator<IRNode>();
       }
 
       @Override
