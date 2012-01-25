@@ -6,5 +6,12 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
+
+        <method name="iterator">
+            <!--starts>nothing</starts-->
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
+        </method>
     </class>
 </package>
