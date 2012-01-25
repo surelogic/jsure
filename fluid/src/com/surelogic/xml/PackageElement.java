@@ -117,7 +117,7 @@ public class PackageElement extends AnnotatedJavaElement {
 					boolean modified = r.isModified;
 					modified |= mergeThis(changed, type);		
 					if (modified) {
-						revision++;
+						updateRevision(changed, updateToClient);
 					}
 					return this;
 				}
@@ -125,13 +125,21 @@ public class PackageElement extends AnnotatedJavaElement {
 				// neither has a class, so they're both package-info.java files
 				boolean modified = mergeThis(changed, type);								
 				if (modified) {
-					revision++;
+					updateRevision(changed, updateToClient);
 				}
 				return this;
 			}
 		}
 		return null;
 	}	
+	
+	private void updateRevision(PackageElement changed, boolean updateToClient) { 
+		if (updateToClient) {
+			revision = Math.max(revision, changed.revision);
+		} else {
+			revision = Math.max(revision, changed.revision) + 1;
+		}
+	}
 	
 	@Override
 	public PackageElement cloneMe() {
