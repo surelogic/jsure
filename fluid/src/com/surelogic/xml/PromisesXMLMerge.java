@@ -8,6 +8,28 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	public static final boolean onlyKeepDiffs = true;
 	
 	/**
+	 * From fluid to local
+	 * 
+	 * @return true if there is an update to Fluid
+	 */
+	public static boolean checkForUpdate(final File fLibPath, final File libPath) {
+		if (!fLibPath.isFile() || !libPath.isFile()) {		
+			return false;
+		}
+		if (libPath.length() <= 0) {
+			return false;
+		}
+		try {
+			PackageElement fluid = PromisesXMLReader.loadRaw(fLibPath);
+			PackageElement local = PromisesXMLReader.loadRaw(libPath);			
+			return fluid.needsToUpdate(local);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
 	 * @param onlyMerge also copy (to fluid) if false
 	 */
 	public static void merge(final boolean onlyMerge, File to, File from) {
@@ -32,6 +54,11 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 					if (onlyKeepDiffs) {
 						if (onlyMerge) {
 							// Updating client
+							// target from libPath
+							// source from fLibPath
+							if (!source.needsToUpdate(target)) {
+								return;
+							}
 							PackageElement all = merge_private(onlyMerge, target, source);	
 							merged = diff(all);
 						} else {
