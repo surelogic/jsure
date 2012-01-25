@@ -15,16 +15,19 @@
         <method name="iterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
 
         <method name="listIterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
 
         <method name="listIterator" params="int">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

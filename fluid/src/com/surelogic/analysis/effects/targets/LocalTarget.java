@@ -57,11 +57,6 @@ public final class LocalTarget extends AbstractTarget {
   
   
   
-  public boolean isMaskable(final IBinder binder) {
-    // Local targets are always maskable
-    return true;
-  }
-
   public Target mask(final IBinder binder) {
     // Local targets are always ignorable outside the current context
     return null;

@@ -42,11 +42,6 @@ public final class ClassTarget extends AbstractTarget {
   }
   
   
-  
-  public boolean isMaskable(final IBinder binder) {
-    // Class targets are never maskable
-    return false;
-  }
 
   public Target mask(final IBinder binder) {
     // class targets are never maskable

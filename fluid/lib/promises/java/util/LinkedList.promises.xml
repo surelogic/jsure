@@ -20,6 +20,7 @@
         <method name="listIterator" params="int">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
 
 

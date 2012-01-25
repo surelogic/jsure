@@ -40,11 +40,6 @@ public final class EmptyTarget extends AbstractTarget {
 
   
   
-  public boolean isMaskable(final IBinder binder) {
-    // We want this to percolate up to the results, so never mask them
-    return false;
-  }
-
   public Target mask(final IBinder binder) {
     // We want this to percolate up to the results, so never mask them
     return this;

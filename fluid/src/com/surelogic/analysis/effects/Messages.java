@@ -30,6 +30,7 @@ public final class Messages {
   public static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
   public static final int REASON_NULL_REFERENCE = 166;
   public static final int REASON_NEW_OBJECT = 167;
+  public static final int REASON_UNIQUE_RETURN = 168;
   
   
   

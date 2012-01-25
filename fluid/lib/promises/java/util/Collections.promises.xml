@@ -16,6 +16,7 @@
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
             
             <method name="remove">
@@ -28,11 +29,13 @@
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
 
             <method name="listIterator" params="int">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -91,6 +94,7 @@
                 <method name="iterator">
                     <Borrowed allowReturn="true">this</Borrowed>
                     <RegionEffects>writes this:Instance</RegionEffects>
+                    <Unique>return</Unique>
                 </method>
             </class>
         </class>
@@ -148,6 +152,7 @@
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
 
             <method name="isEmpty">
@@ -170,6 +175,7 @@
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -177,6 +183,7 @@
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -216,6 +223,7 @@
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -223,11 +231,13 @@
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
 
             <method name="listIterator" params="int">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -282,11 +292,13 @@
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
 
             <method name="listIterator" params="int">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 

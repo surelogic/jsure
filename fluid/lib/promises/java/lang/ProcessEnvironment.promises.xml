@@ -40,8 +40,9 @@
         	</method>
         	
         	<method name="iterator">	
-        		<!-- not quite -->
-        		<Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         	</method>
         </class>
         
@@ -51,8 +52,9 @@
         	</method>
         	
         	<method name="iterator">	
-        		<!-- not quite -->
-        		<Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         	</method>        
         </class>
         
@@ -62,8 +64,9 @@
         	</method>
         	
         	<method name="iterator">	
-        		<!-- not quite -->
-        		<Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         	</method>
         </class>
     </class>
