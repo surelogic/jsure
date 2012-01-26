@@ -33,6 +33,13 @@ public final class PromisesLibMerge {
 		merge(toClient, "");
 	}
 	
+	/**
+	 * Update "local" XML (deltas) specific to the client
+	 */
+	public static void updateClient() {
+		merge(true, "");
+	}
+	
 	public static void merge(boolean toClient, String relativePath) {
 		final File fLibRoot = PromisesXMLParser.getFluidXMLDir();
 		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
@@ -40,7 +47,7 @@ public final class PromisesLibMerge {
 		final File fLibPath = new File(fLibRoot, relativePath);
 		final File libPath = new File(libRoot, relativePath);
 		if (!fLibPath.exists() || !libPath.exists()) {			
-			System.out.println("Nothing to merge: "+relativePath);
+			//System.out.println("Nothing to merge: "+relativePath);
 			return; // Nothing else to do
 		}		
 		if (toClient) {
@@ -61,19 +68,6 @@ public final class PromisesLibMerge {
 
 		final File fLibPath = new File(fLibRoot, relativePath);
 		final File libPath = new File(libRoot, relativePath);
-		if (!fLibPath.isFile() || !libPath.isFile()) {		
-			return false;
-		}
-		if (libPath.length() <= 0) {
-			return false;
-		}
-		try {
-			PackageElement fluid = PromisesXMLReader.loadRaw(fLibPath);
-			PackageElement local = PromisesXMLReader.loadRaw(libPath);			
-			return fluid.needsToUpdate(local);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+		return PromisesXMLMerge.checkForUpdate(fLibPath, libPath);
 	}
 }
