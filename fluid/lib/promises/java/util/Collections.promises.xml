@@ -7,6 +7,30 @@
             <Unique>return</Unique>
         </method>
 
+        <class name="CheckedCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
+        <class name="SynchronizedCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
+        <class name="UnmodifiableCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
         <class name="AsLIFOQueue">
             <method name="isEmpty">
                 <Borrowed>this</Borrowed>
@@ -303,6 +327,14 @@
         </class>
 
         <class name="UnmodifiableMap">
+            <class name="UnmodifiableEntrySet">
+                <method name="iterator">
+                    <Borrowed allowReturn="true">this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
+                    <Unique>return</Unique>
+                </method>
+            </class>
+            
             <method name="clear">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
