@@ -420,7 +420,9 @@ extends AbstractHierarchyScrubber<A> {
 			}
 			PromiseDrop<? super A> d = makePromiseDrop(cb, a);
 			if (cu != null) {
-				d.setAssumed(true);
+				if (d != null) {
+					d.setAssumed(true);
+				}
 				PromiseFramework.getInstance().popTypeContext();				
 			}			
 			if (d != null) {
