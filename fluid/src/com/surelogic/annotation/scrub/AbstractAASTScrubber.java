@@ -374,6 +374,7 @@ extends AbstractHierarchyScrubber<A> {
 											            ") overridden by explicit annotation "+
 														a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", a2);
 								}
+								markAsUnassociated(a2);
 							}
 						}
 						return;					
@@ -395,9 +396,16 @@ extends AbstractHierarchyScrubber<A> {
 				// Create warning for all ASTs
 				for(A a : l) {
 					getContext().reportError("More than one annotation applies", a);
+					markAsUnassociated(a);
 				}
 			}
 		}
+	}
+	
+	private void markAsUnassociated(A a) {
+		TestResult expected = AASTStore.getTestResult(a);
+		a.markAsUnassociated();
+		TestResult.checkIfMatchesResult(expected, TestResultType.UNASSOCIATED);
 	}
 	
 	/**
