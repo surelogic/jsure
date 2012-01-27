@@ -363,7 +363,7 @@ public class TRoleTargets {
     final IRNode enclosingMethod = PromiseUtil.getEnclosingMethod(mcall);
 
     Effects eff = null;
-    final Set<Effect> methodFx = eff.getMethodCallEffects(
+    final Set<Effect> methodFx = eff.getMethodCallEffects(null,
         bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
         targetFactory, binder,
         JavaPromise.getReturnNodeOrNull(enclosingMethod),

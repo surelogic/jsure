@@ -78,7 +78,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * a dummy value that we use as a set element for a dummy array location.
    * @see #IGNORE_ME_SINGLETON_SET
    */
-  protected static final IRNode IGNORE_ME = new PlainIRNode();
+  private static final IRNode IGNORE_ME = new PlainIRNode();
   static {
     JJNode.setInfo(IGNORE_ME, "<ignore>");
   }
@@ -93,7 +93,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * incorrectly return {@value false}.  So now we have a single bogus set per
    * lattice.
    */
-  protected final ImmutableSet<IRNode> ignoreMeSingletonSet =
+  private final ImmutableSet<IRNode> ignoreMeSingletonSet =
     CachedSet.<IRNode>getEmpty().addElement(IGNORE_ME);
 
   private static final IRNode EXTERNAL_VAR = new PlainIRNode();
@@ -285,13 +285,8 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   ImmutableSet<IRNode>[] updateDeclaration(final ImmutableSet<IRNode>[] oldValue,
       final IRNode decl, ImmutableSet<IRNode> objects) {
-    /* We don't trap for -1 from findLocal.  We want analysis to die if the
-     * variable is not found because it indicates a serious problem.
-     */
     /* If findLocal() == -1, then we have two cases (1) the variables is 
-     * being ignored by analysis, or (2) we have an error.  To rule out (2), 
-     * we really should check if findIgnored() != -1, but this is expensive to
-     * do every time.   We may want to control this with a debug flag. 
+     * being ignored by analysis, or (2) we have an error.
      */
     final int localIdx = findLocal(decl);
     if (localIdx != -1) {

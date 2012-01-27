@@ -14,6 +14,7 @@ import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
@@ -547,6 +548,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    accept(e.getMoreEvidence());
 	  }
     
+	  @Override
+	  public void visitIteratorEvidence(final IteratorEvidence e) {
+	    resultDrop.addSupportingInformation(
+	        e.getLink(), Messages.ITERATOR_EFFECTS_CONVERSION);
+	    accept(e.getMoreEvidence());
+	  }
+	  
     @Override
     public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
       final RegionEffectsPromiseDrop cutpoint =

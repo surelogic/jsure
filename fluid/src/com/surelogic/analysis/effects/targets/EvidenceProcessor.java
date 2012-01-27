@@ -47,6 +47,10 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     visit(e);
   }
 
+  public void visitIteratorEvidence(final IteratorEvidence e) {
+    visit(e);
+  }
+  
   public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
     visitCallEvidence(e);
   }
