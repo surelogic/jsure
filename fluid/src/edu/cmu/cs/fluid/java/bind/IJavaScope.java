@@ -649,30 +649,15 @@ public interface IJavaScope {
       if (bContext == null) {
         // need to find the proper context.
         IRNode node = binding.getNode();
-        IRNode tdecl = context.getDeclaration();
         IRNode bdecl = VisitUtil.getEnclosingType(node);
-        if (tdecl == bdecl) {
+        if (context.getDeclaration() == bdecl) {
           IBinding newBinding = IBinding.Util.makeBinding(node,context,tEnv, context);
           return newBinding;
         }
         //LOG.warning("substBinding didn't expect to get here...");
-        IJavaDeclaredType c = context;
-        while (tdecl != bdecl) {
-        	c = c.getSuperclass(tEnv);
-        	if (c == null) {
-        		break;
-        	}
-        	tdecl = c.getDeclaration();
-        }
-        if (c == null) {        
-        	while (tdecl != bdecl) {        
-        		if (c instanceof IJavaNestedType) {
-        			c = ((IJavaNestedType)c).getOuterType();
-        		} else {
-        			break;
-        		}
-         		tdecl = c.getDeclaration();
-        	}
+        IJavaDeclaredType c = computeContextType(bdecl);
+        if (c == null) {
+        	computeContextType(bdecl);
         }
         return IBinding.Util.makeBinding(node,c, tEnv, context);
       }
@@ -681,6 +666,43 @@ public interface IJavaScope {
         return IBinding.Util.makeBinding(binding.getNode(),bContext, tEnv, context);
       }
       return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, context);
+    }
+    
+    private IJavaDeclaredType computeContextType(final IRNode bdecl) {
+        IJavaDeclaredType c = findContextType(bdecl, context);
+        if (c == null) {
+        	// Reset to look at outer classes
+        	c = context;
+        	
+        	while (c != null) {        
+        		if (c instanceof IJavaNestedType) {
+        			c = ((IJavaNestedType)c).getOuterType();
+        		} else {
+        			break;
+        		}
+        		IJavaDeclaredType rv = findContextType(bdecl, c);
+        		if (rv != null) {
+        			return rv;
+        		}
+        	}
+        }
+        return c;
+    }
+    
+    private IJavaDeclaredType findContextType(final IRNode bdecl, IJavaDeclaredType here) {
+    	if (here.getDeclaration() == bdecl) {
+    		return here;
+    	}
+    	for(IJavaType t : here.getSupertypes(tEnv)) {
+    		if (t instanceof IJavaDeclaredType) {
+    			IJavaDeclaredType dt = (IJavaDeclaredType) t;
+    			IJavaDeclaredType rv = findContextType(bdecl, dt);
+    			if (rv != null) {
+    				return rv;
+    			}
+    		} 
+    	}
+    	return null;
     }
     
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
