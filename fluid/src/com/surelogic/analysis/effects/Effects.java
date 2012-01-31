@@ -48,6 +48,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -760,12 +761,11 @@ public final class Effects implements IBinderClient {
         boolean writtenTo = false;
         final Set<IRNode> calls = getMethodCallsUsingAsReceiver(call);
         for (final IRNode c : calls) {
-          final String name = MethodDeclaration.getId(binder.getBinding(c));
-          if (name.equals("remove")) {
+          if (isMutatingIteratorMethod(c)) {
             writtenTo = true;
           }
-          convertWritesThisInstanceToRead = !writtenTo;
         }
+        convertWritesThisInstanceToRead = !writtenTo;
       }
       
       /* Assumes that the enclosing method/constructor of the call is the
@@ -781,10 +781,40 @@ public final class Effects implements IBinderClient {
     }
 
     private boolean isSpecialIteratorMethod(final IRNode call) {
-      // TODO: Make this more sophisticated --> Check for implementation of Iterable.iterator()
-      final IRNode mDecl = binder.getBinding(call);
-      return MethodDeclaration.prototype.includes(mDecl)
-          && MethodDeclaration.getId(mDecl).equals("iterator");
+      return isCallOfMethod(call, "java.lang.Iterable", "iterator");
+    }
+    
+    private boolean isMutatingIteratorMethod(final IRNode call) {
+      return isCallOfMethod(call, "java.util.Iterator", "remove");
+//      final String name = MethodDeclaration.getId(binder.getBinding(call));
+//      return name.equals("remove");
+    }
+    
+    // Assumption: b is the binding for a method declaration
+    private boolean isDeclarationInType(final IBinding b, final String cName) {
+      final IJavaType erased =
+          binder.getTypeEnvironment().computeErasure(b.getContextType());
+      return erased.getName().equals(cName);
+    }
+    
+    private boolean isCallOfMethod(
+        final IRNode mcall, final String cName, final String mName) {
+      final IBinding ib = binder.getIBinding(mcall);
+      if (MethodDeclaration.prototype.includes(ib.getNode())
+          && MethodCall.getMethod(mcall).equals(mName)) {
+        // First check the declaration of the method being called...
+        if (isDeclarationInType(ib, cName)) {
+          return true;
+        } else {
+          //...then check the declarations of any overridden declarations
+          for (final IBinding ancestor : binder.findOverriddenMethods(ib.getNode())) {
+            if (isDeclarationInType(ancestor, cName)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
     }
     
     private Set<IRNode> getMethodCallsUsingAsReceiver(final IRNode call) {
