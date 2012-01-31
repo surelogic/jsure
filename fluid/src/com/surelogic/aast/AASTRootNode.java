@@ -84,8 +84,8 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   
   public void markAsUnassociated() {
 //    System.out.println("Marked as unassociated: "+this.unparse(true));
-    if (status != AASTStatus.BOUND) {
-      throw new IllegalArgumentException("Can only go from bound to unassociated: "+status);
+    if (status != AASTStatus.BOUND && status != AASTStatus.UNPROCESSED) {
+      throw new IllegalArgumentException("Can only go from unprocessed/bound to unassociated: "+status);
     }
     status = AASTStatus.UNASSOCIATED;
   }
