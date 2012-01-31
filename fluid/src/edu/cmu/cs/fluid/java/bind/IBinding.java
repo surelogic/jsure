@@ -16,13 +16,17 @@ public interface IBinding {
   public IRNode getNode();
   
   /**
-   * Return the type of the object from which this element is taken.
-   * (same as the declaring type
+   * Return the type of the object from which this declaration is taken, with the
+   * appropriate type substitutions (e.g., the declaring type)
+   * 
    * This includes all the actual type parameters.
-   * @return type of the object from which this binding is taken, or null for locals
+   * @return type of the object from which this binding is taken, or null for locals/types
    */
   public IJavaDeclaredType getContextType();
   
+  /**
+   * @return the type of the receiver in the call/field ref being bound
+   */
   public IJavaReferenceType getReceiverType();
   
   public ITypeEnvironment getTypeEnvironment();
