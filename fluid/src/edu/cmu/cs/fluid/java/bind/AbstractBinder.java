@@ -244,7 +244,7 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
 		  IJavaDeclaredType st = (IJavaDeclaredType) stype;
 		  for(IRNode method : VisitUtil.getClassMethods(st.getDeclaration())) {
 			  if (isOverridingMethod(mth, type, method, st)) {
-				  overridden.add(IBinding.Util.makeBinding(method));
+				  overridden.add(IBinding.Util.makeBinding(method, st, tEnv));
 				  break; // At most one such method
 			  }
 		  }
@@ -259,6 +259,7 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
     final IteratableHashSet<IBinding> overridden = new IteratableHashSet<IBinding>();
     for (Iterator<IBinding> it = findOverriddenParentMethods(methodDeclaration); it.hasNext();) {
     	IBinding pm = it.next();      
+      //System.out.println("findOverriddenMethods at "+JavaNames.getFullName(pm.getNode()));
       if (!overridden.contains(pm)) {
     	// Only add/process the method if it hasn't been done before
         overridden.add(pm);

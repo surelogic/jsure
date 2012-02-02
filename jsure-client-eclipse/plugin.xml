@@ -320,6 +320,12 @@
 				helpContextId="menu-send-tip-for-improvement">
 			</action>
 			
+			<action class="com.surelogic.jsure.client.eclipse.actions.MergeLibraryAnnotationsAction"
+				id="com.surelogic.jsure.client.eclipse.actions.MergeLibraryAnnotationsAction"
+				label="Merge Library Annotations"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service">
+			</action>
+			
 			<action class="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationsAction"
 				id="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationsAction"
 				label="Send Library Annotations"

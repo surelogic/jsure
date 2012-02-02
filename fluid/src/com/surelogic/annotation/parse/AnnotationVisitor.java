@@ -525,6 +525,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	}
 
 	public boolean handleXMLPromise(IRNode node, String promise, String c, int modifiers, Map<String,String> props) {
+		/*
+        if (c.contains("CopyOn")) {
+			System.out.println("Visiting @"+promise+" "+c);
+		}
+		*/
 		return createPromise(makeContext(node, capitalize(promise), c,
 				AnnotationSource.XML, Integer.MAX_VALUE, modifiers, props));
 	}

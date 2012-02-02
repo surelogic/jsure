@@ -123,6 +123,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	 *         subsumption, <code>false</code> otherwise
 	 */
 	private boolean doesMethodSubsumeThreadStart(final IRNode methodDeclaration) {
+		System.out.println("doesMethodSubsumeThreadStart() at "+JavaNames.getFullName(methodDeclaration));
+		
 		// add the type we found the method within (could be the promised type)
 		IRNode enclosingType = VisitUtil.getEnclosingType(methodDeclaration);
 		//
@@ -135,6 +137,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		// otherwise see if this method subsumes Thread.start()
 		//
 		for (IBinding m : binder.findOverriddenMethods(methodDeclaration)) {
+			System.out.println("\tGot overridden method: "+JavaNames.getFullName(m.getNode()));
 			IRNode subsumedType = VisitUtil.getEnclosingType(m.getNode());
 			if (subsumedType.equals(getJavaLangThread())) {
 				return true;

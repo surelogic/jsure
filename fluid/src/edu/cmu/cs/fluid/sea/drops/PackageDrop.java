@@ -60,14 +60,20 @@ public class PackageDrop extends CUDrop {
     //System.out.println("Creating pkg: "+pkgName);
        	
 	// Look for XML annotations
-	final String xmlName = pkgName+'.'+AnnotationConstants.PACKAGE_INFO+TestXMLParserConstants.SUFFIX;
+	final String xmlName = pkgName.replace('.', '/')+'/'+
+		AnnotationConstants.PACKAGE_INFO+TestXMLParserConstants.SUFFIX;
 	try {
 		int added = PromisesXMLParser.process(tEnv, root, xmlName);
 		//System.out.println("Added XML annos: "+added);			
 		if (added > 0) {
-		    //System.out.println("Found promises for "+pkgName+": "+added);
+		    System.out.println("Found promises for pkg "+pkgName+": "+added);
 			setHasPromises(true);
 		}
+		/* 
+		else if (pkgName.contains("xmlPromises")) {
+			PromisesXMLParser.process(tEnv, root, xmlName);
+		}
+        */
 	} catch (Exception e) {
 		if (!(e instanceof FileNotFoundException)) {
 			SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+xmlName, e);

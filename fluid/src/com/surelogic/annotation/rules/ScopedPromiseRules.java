@@ -630,6 +630,13 @@ public class ScopedPromiseRules extends AnnotationRules {
 		 * @return false if failed
 		 */
 		Result parseAndApplyPromise(final IRNode decl, Operator op) {			
+			/*
+            String name = JavaNames.getFullName(decl);
+			if (name.contains("util.concurrent")) {
+				System.out.println("Trying to apply scoped promise "+
+						scopedPromiseDrop.getMessage()+" to "+name);
+			}
+			*/
 			if (target.matches(decl)) {
 				final ISrcRef ref = JavaNode.getSrcRef(decl);
 				int offset = -1;
