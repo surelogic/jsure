@@ -761,7 +761,7 @@ public final class Effects implements IBinderClient {
         boolean writtenTo = false;
         final Set<IRNode> calls = getMethodCallsUsingAsReceiver(call);
         for (final IRNode c : calls) {
-          if (isMutatingIteratorMethod(c)) {
+          if (!isReadOnlyIteratorMethod(c)) {
             writtenTo = true;
           }
         }
@@ -781,13 +781,18 @@ public final class Effects implements IBinderClient {
     }
 
     private boolean isSpecialIteratorMethod(final IRNode call) {
-      return isCallOfMethod(call, "java.lang.Iterable", "iterator");
+      return isCallOfMethod(call, "java.lang.Iterable", "iterator") ||
+          isCallOfMethod(call, "java.util.List", "listIterator");
     }
     
-    private boolean isMutatingIteratorMethod(final IRNode call) {
-      return isCallOfMethod(call, "java.util.Iterator", "remove");
-//      final String name = MethodDeclaration.getId(binder.getBinding(call));
-//      return name.equals("remove");
+    private boolean isReadOnlyIteratorMethod(final IRNode call) {
+      return
+          isCallOfMethod(call, "java.util.Iterator", "next") ||
+          isCallOfMethod(call, "java.util.Iterator", "hasNext") ||
+          isCallOfMethod(call, "java.util.ListIterator", "previous") ||
+          isCallOfMethod(call, "java.util.ListIterator", "hasPrevious") ||
+          isCallOfMethod(call, "java.util.ListIterator", "nextIndex") ||
+          isCallOfMethod(call, "java.util.ListIterator", "previousIndex");
     }
     
     // Assumption: b is the binding for a method declaration
