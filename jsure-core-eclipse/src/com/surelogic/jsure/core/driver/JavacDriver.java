@@ -1799,6 +1799,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				 * dependency? } }
 				 */
 			}
+			if (monitor.isCanceled()) {
+				return SLStatus.CANCEL_STATUS;
+			}
 			final boolean runRemote = !XUtil.profile && ignoreNature;
 			doBuild(projects, args, monitor, runRemote);
 			return SLStatus.OK_STATUS;
@@ -1839,6 +1842,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			final long start = System.currentTimeMillis();
 			try {
 				for (Config config : projects.getConfigs()) {
+					if (monitor.isCanceled()) {
+						return SLStatus.CANCEL_STATUS;
+					}
 					config.zipSources(zipDir);
 				}
 			} catch (IOException e) {
@@ -1849,6 +1855,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			final long zip = System.currentTimeMillis();
 			try {
 				for (Config config : projects.getConfigs()) {
+					if (monitor.isCanceled()) {
+						return SLStatus.CANCEL_STATUS;
+					}
 					config.relocateJars(targetDir);
 				}
 			} catch (IOException e) {
@@ -1860,6 +1869,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			System.out.println("Zipping         = " + (zip - start) + " ms");
 			System.out.println("Relocating jars = " + (end - zip) + " ms");
 
+			if (monitor.isCanceled()) {
+				return SLStatus.CANCEL_STATUS;
+			}
 			if (afterJob != null) {
 				if (XUtil.testing) {
 					afterJob.run(monitor);
