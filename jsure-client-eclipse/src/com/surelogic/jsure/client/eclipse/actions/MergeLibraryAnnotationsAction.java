@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 import java.util.logging.Level;
 
 import org.eclipse.jface.action.IAction;
@@ -35,8 +36,16 @@ public class MergeLibraryAnnotationsAction extends AbstractMainAction {
 			// Make a temp directory
 			try {				
 				File destDir = JSurePreferencesUtility.getJSureXMLDirectory();//filter.createTempFolder();
-				TextArchiver.unarchive(srcArchive, destDir);
+				List<String> warnings = TextArchiver.unarchive(srcArchive, destDir);
 				System.out.println("Unarchived to "+destDir);
+				if (!warnings.isEmpty()) {		
+					StringBuilder sb = new StringBuilder();
+					for(String s : warnings) {
+						sb.append(s).append('\n');
+					}
+					MessageDialog.openError(EclipseUIUtility.getShell(), "Warnings from merging library annotations", 
+							sb.toString());
+				}
 			} catch (IOException e) {
 				MessageDialog.openError(EclipseUIUtility.getShell(), "Error while merging library annotations", 
 						e.getMessage());
