@@ -486,7 +486,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	// Added to prevent comod exceptions
     	Iterator<IRNode> it = entry.getDeclarations();
     	if (!it.hasNext()) {
-    		return EmptyIterator.prototype();
+    	  return new EmptyIterator<IRNode>();
     	}
     	List<IRNode> l = new ArrayList<IRNode>();
     	while (it.hasNext()) {
