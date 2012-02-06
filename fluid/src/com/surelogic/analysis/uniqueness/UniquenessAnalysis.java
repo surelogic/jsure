@@ -723,22 +723,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	  s = lattice.opGet(s,StoreLattice.getStackTop(s)-numActuals);
       }
       s = lattice.opSet(s, RETURN_VAR);
-      
-      // TODO: add code to assign to IFQR from IPQR 
-//      if (ConstructorCall.prototype.includes(node) && isNestedClassConstructor(thisMethod) &&
-//    		  SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
-//    	  // get the IFQR and IPQR and do an opStore.
-//    	  IRNode pqr = getQualifiedReceiver(thisMethod);
-//    	  IRNode fqr = getQualifiedReceiver(thisClass);
-//    	  s = lattice.opGet(s,pqr);
-//    	  if (UniquenessRules.isBorrowed(fqr)) {
-//    		  s = lattice.opReturn(s,fqr);
-//    		  s = lattice.opRelease(s);
-//    	  } else {
-//    		  s = lattice.opCompromise(s);
-//    	  }
-//      }
-      
+       
       /* If the call is "super(...)" and the flow unit is a constructor
        * from a nested class, then we have to copy the IPQR to the IFQR.
        */
