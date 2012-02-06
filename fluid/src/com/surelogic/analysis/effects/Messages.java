@@ -54,6 +54,7 @@ public final class Messages {
     code2name.put(UNKNOWN_REF_CONVERSION_EVIDENCE, "EffectAssurance");
     code2name.put(REASON_NULL_REFERENCE, "EffectAssurance");
     code2name.put(REASON_NEW_OBJECT, "EffectAssurance");
+    code2name.put(REASON_UNIQUE_RETURN, "EffectAssurance");
     code2name.put(ITERATOR_EFFECTS_CONVERSION, "EffectsAssurance");
   }
   
