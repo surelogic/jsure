@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop;
 
 /**
  * A superclass specialized to implementing scrubbers that iterate over AASTs.
@@ -426,7 +427,8 @@ extends AbstractHierarchyScrubber<A> {
 				final PromiseFramework frame = PromiseFramework.getInstance();
 				frame.pushTypeContext(cu, true, true); // create one if there isn't one
 			}
-			PromiseDrop<? super A> d = makePromiseDrop(cb, a);
+			final PromiseDrop<?> source = AASTStore.getPromiseSource(a);
+			PromiseDrop<? super A> d = makePromiseDrop(cb, a, source instanceof AssumePromiseDrop);
 			if (cu != null) {
 				if (d != null) {
 					d.setAssumed(true);
@@ -497,7 +499,15 @@ extends AbstractHierarchyScrubber<A> {
 	/**
 	 * Meant to be overridden
 	 */
-	protected PromiseDrop<? super A> makePromiseDrop(IAnnotationTraversalCallback<A> cb, A ast) {
+	protected PromiseDrop<? super A> makePromiseDrop(IAnnotationTraversalCallback<A> cb, 
+			A ast, boolean isAssumption) {
+		return makePromiseDrop(ast, isAssumption);
+	}
+	
+	/**
+	 * Meant to be overridden
+	 */
+	protected PromiseDrop<? super A> makePromiseDrop(A ast, boolean isAssumption) {
 		return makePromiseDrop(ast);
 	}
 	

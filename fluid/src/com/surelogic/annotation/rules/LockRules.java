@@ -1721,8 +1721,8 @@ public class LockRules extends AnnotationRules {
 	  }
 
 	  @Override
-	  protected final P makePromiseDrop(IAnnotationTraversalCallback<A> cb, A a) {
-	    final P originalPromiseDrop = makePromiseDrop(a);
+	  protected final P makePromiseDrop(IAnnotationTraversalCallback<A> cb, A a, boolean isAssumption) {
+	    final P originalPromiseDrop = makePromiseDrop(a, isAssumption);
 	    if (originalPromiseDrop != null) {
         final IRNode promisedFor = a.getPromisedFor();
         final boolean implementationOnly = a.isImplementationOnly();
@@ -1750,11 +1750,15 @@ public class LockRules extends AnnotationRules {
 	  }
 
 	  @Override
-	  protected final P makePromiseDrop(final A a) {
-	    return storeDropIfNotNull(a, scrubAnnotated(a));          
+	  protected final P makePromiseDrop(final A a, boolean isAssumption) {
+	    return storeDropIfNotNull(a, scrubAnnotated(a, isAssumption));          
 	  }
 	  
-	  private P scrubAnnotated(final A node) {
+	  protected final P makePromiseDrop(final A a) {
+	    throw new IllegalStateException("Should not get to here");       
+	  }
+	  
+	  private P scrubAnnotated(final A node, final boolean isAssumption) {
 	    final IAnnotationScrubberContext context = getContext();
 	    final IRNode promisedFor = node.getPromisedFor();
       final Operator op = JJNode.tree.getOperator(promisedFor);
@@ -1845,10 +1849,12 @@ public class LockRules extends AnnotationRules {
 	          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> superAnno = getAnnotation(superDecl);
 	          if (!isLessSpecific(superDecl)) {
   	          if (superAnno == null) {
-  	            bad = true;
-  	            context.reportError(node,
-  	                "Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
-  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	        	if (!isAssumption) {
+  	        		bad = true;
+  	        		context.reportError(node,
+  	        				"Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
+  	        				name, JavaNames.getQualifiedTypeName(superDecl));
+  	        	}
   	          } else if(!superAnno.isImplementationOnly() ) {
   	            bad = true;
   	            context.reportError(node,
@@ -1859,7 +1865,7 @@ public class LockRules extends AnnotationRules {
 	        }
 	      } else { // implementationOnly == false
 	        // java.lang.Object doesn't have a superclass
-	        if (superDecl != promisedFor) {
+	        if (superDecl != promisedFor && !isAssumption) {
 	          if (!isLessSpecific(superDecl) && getAnnotation(superDecl) == null) {
 	            bad = true;
 	            context.reportError(node,
@@ -1910,18 +1916,20 @@ public class LockRules extends AnnotationRules {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
           // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
           if (TypeUtil.isInterface(zuperDecl)) {
-            if (getAnnotation(zuperDecl) != null) {
+        	final ModifiedBooleanPromiseDrop<?> zAnno = getAnnotation(zuperDecl);
+            if (zAnno != null) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
-              } else if (!isMoreSpecific) {
+                result = false;
+              } else if (!isMoreSpecific && !zAnno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
-              }
-              result = false;
+                result = false;
+              }              
             }
           }
         }
@@ -1935,25 +1943,27 @@ public class LockRules extends AnnotationRules {
                 context.reportError(typeDecl,
                     "Class may not be @{0} because it implements a @{1} interface {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
-              } else if (!isMoreSpecific) {
+                result = false;
+              } else if (!isMoreSpecific && !anno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
-              }
-              result = false;
+                result = false;
+              }            
             } else if (!anno.isImplementationOnly()) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Class may not be @{0} because it extends a @{1} class {2}",
                     notName, name, JavaNames.getQualifiedTypeName(zuper));
-              } else {
+                result = false;
+              } else if (!anno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
                     name, JavaNames.getQualifiedTypeName(zuper));
+                result = false;
               }
-              result = false;
             }
           }
         }
@@ -1980,6 +1990,9 @@ public class LockRules extends AnnotationRules {
       return false;
     }
     
+    /**
+     * TODO Note that these currently don't look for supertypes that are missing annotations
+     */
     protected abstract void checkAnnotatedInterfaceSuperInterface(A node, IRNode iDecl, IRNode sDecl);
 
     protected abstract void checkAnnotatedClassSuperInterface(A node, IRNode cDecl, IRNode iDecl);
