@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -363,7 +364,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     try {
       actuals = Arguments.getArgIterator(((CallInterface) op).get_Args(node));
     } catch(final CallInterface.NoArgs e) {
-      actuals = EmptyIterator.prototype();
+      actuals = new EmptyIterator<IRNode>();
     }
     for (IRNode arg : actuals) {
       if (VarArgsExpression.prototype.includes(arg)) {
@@ -911,7 +912,9 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   @Override
   protected T transferUse(IRNode node, Operator op, T value) {
-    if (op instanceof VariableUseExpression || op instanceof ThisExpression)
+    if (op instanceof ThisExpression) {
+      return transferUseReceiver(node, value);
+    } else if (op instanceof VariableUseExpression)
       return transferUseVar(node, value);
     else if (op instanceof FieldRef) 
       return transferUseField(node, value);
@@ -920,9 +923,20 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     else if (op instanceof ArrayRefExpression)
       return transferUseArray(node, value);
     else if (
-       op instanceof SuperExpression || op instanceof QualifiedThisExpression
-       || op instanceof QualifiedSuperExpression)
-         return transferUseVar(node,value);
+        op instanceof SuperExpression || op instanceof QualifiedSuperExpression)
+          return transferUseVar(node,value);
+     else if (op instanceof QualifiedThisExpression) {
+       final IRNode bindsTo = binder.getBinding(node);
+       if (bindsTo == null) {
+         // ERRROR!
+         LOG.warning("Cannot find binding for " + DebugUnparser.toString(node));
+         return push(value, node);
+       } else if (ReceiverDeclaration.prototype.includes(bindsTo)) {
+         return transferUseReceiver(node, value);
+       } else {
+         return transferUseQualifiedReceiver(node, bindsTo, value);
+       }
+    }
     else
       throw new FluidError("use is strange: " + op);
   }
@@ -989,6 +1003,23 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   protected T transferUseVar(IRNode var, T val) {
     return push(val, var);
   }
+
+  /**
+   * Transfer evaluation over use of a ThisExpression or QualifiedThisExpression
+   * that is equivalent to a regular ThisExpression (e.g., "C.this" inside of 
+   * class C).  <strong>leaf</strong>
+   */
+  protected abstract T transferUseReceiver(IRNode use, T val);
+  
+  /**
+   * Transfer evaluation over use of a QualifiedThisExpression.  Uses that
+   * are equivalent to a regular ThisExpression (e.g., "C.this" inside of class
+   * C) have already been redirected to {@link #transferUseVar(IRNode, Object)}.
+   * The node has already been bound to the QualifiedReceiverDeclaration.
+   * <strong>leaf</strong>
+   */
+  protected abstract T transferUseQualifiedReceiver(
+      IRNode qThis, IRNode qRcvr, T val);
 
   /**
    * Transfer a lattice value over ^ connective. <strong>leaf </strong>

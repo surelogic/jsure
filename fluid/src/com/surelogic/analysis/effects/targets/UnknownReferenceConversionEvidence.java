@@ -5,7 +5,7 @@ import com.surelogic.analysis.effects.Effect;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 
-public class UnknownReferenceConversionEvidence extends AnonClassEvidence {
+public final class UnknownReferenceConversionEvidence extends AnonClassEvidence {
   private final IRNode origRef;
   private final IJavaReferenceType type;
 

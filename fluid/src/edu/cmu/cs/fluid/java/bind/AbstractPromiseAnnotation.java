@@ -436,13 +436,13 @@ public abstract class AbstractPromiseAnnotation
   @SuppressWarnings("unchecked")
   protected static Iterator<IRNode> getIterator(SlotInfo<IRSequence<IRNode>> si, IRNode n) {
     if (n == null) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     IRSequence<IRNode> s = n.getSlotValue(si);
     if (s != null) {
       return s.elements();
     }
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }
 
   protected static void addToSeq(SlotInfo<IRSequence<IRNode>> si, IRNode n, IRNode elt) {
@@ -567,7 +567,7 @@ public abstract class AbstractPromiseAnnotation
 
   public static Iteratable<IRNode> getEnum_filtered(SlotInfo<IRSequence<IRNode>> si, IRNode n) {
     final IRNode n2 = frame.getProxyNode(n);
-    Iterator<IRNode> e = EmptyIterator.prototype();
+    Iterator<IRNode> e = new EmptyIterator<IRNode>();
     
     final boolean tryOrig;
     // If there's a proxy node
@@ -583,7 +583,7 @@ public abstract class AbstractPromiseAnnotation
       e = getIterator(si, n);
     }
     if (!e.hasNext()) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
     return new FilterIterator<IRNode,IRNode>(e) {
       @Override

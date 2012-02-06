@@ -336,9 +336,10 @@ public class UniquenessRules extends AnnotationRules {
       if (ParameterDeclaration.prototype.includes(context.getOp()) ||
           FieldDeclaration.prototype.includes(context.getOp())) {
         return parser.nothing().getTree();
-      }
-      if (NestedTypeDeclaration.prototype.includes(context.getOp())) {
-    	return parser.borrowedNestedType().getTree();
+      } else if (NestedTypeDeclaration.prototype.includes(context.getOp())) {
+        return parser.borrowedType().getTree();
+      } else if (NestedTypeDeclaration.prototype.includes(context.getOp())) {
+        return parser.borrowedNestedType().getTree();
       }
       return parser.borrowedFunction().getTree();
     }

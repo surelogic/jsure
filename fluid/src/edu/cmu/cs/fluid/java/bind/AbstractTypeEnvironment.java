@@ -396,7 +396,7 @@ private long parseIntLiteral(String token) {
     //IBinder binder               = getBinder();
     final IJavaType javalangobjectType = getObjectType();
     if (ty == javalangobjectType || !(ty instanceof IJavaReferenceType) || ty instanceof IJavaNullType) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     }
     if (ty instanceof IJavaIntersectionType) {
       IJavaIntersectionType it = (IJavaIntersectionType)ty;
@@ -436,13 +436,13 @@ private long parseIntLiteral(String token) {
     }
     if (!(ty instanceof IJavaDeclaredType)) {
       // TODO not right for null type
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     }
     IJavaDeclaredType dt = ((IJavaDeclaredType)ty);
     IRNode tdecl = dt.getDeclaration(); 
     if (tdecl == null) {
       LOG.severe("declared type is null ? " + ty);
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     }
     IJavaType superclass;
     IRNode superinterfaces;
@@ -491,7 +491,7 @@ private long parseIntLiteral(String token) {
         return new SingletonIterator<IJavaType>(supertype);
       }    
       LOG.severe("Unexpected anon class superclass " + supertype);
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     } else if (op instanceof AnnotationDeclaration) {
       final int version = getMajorJavaVersion();
       IRNode anno     = findNamedType("java.lang.annotation.Annotation");      
@@ -507,7 +507,7 @@ private long parseIntLiteral(String token) {
       return new SingletonIterator<IJavaType>(enumT);
     } else {
       LOG.severe("Unknown type declaration node " + op);
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     }
     Iterator<IRNode> ch = JJNode.tree.children(superinterfaces);
     return new SupertypesIterator(superclass,ch,subst);

@@ -14,6 +14,7 @@ import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
@@ -495,13 +496,17 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     @Override
     public void visitAggregationEvidence(final AggregationEvidence e) {
       final IRNode originalExpression = e.getOriginalExpression();
+      /* Original expression is a field ref or a QualifiedReceiverDeclaration.
+       * if it's an IFQR, then the destination of the aggregation is "this"
+       */
       resultDrop.addSupportingInformation(
           e.getLink(), Messages.AGGREGATION_EVIDENCE,
           e.getOriginalRegion().getName(),
           DebugUnparser.toString(originalExpression),
           e.getMappedRegion().getName(),
-          DebugUnparser.toString(FieldRef.getObject(originalExpression)));
-          
+          FieldRef.prototype.includes(originalExpression) ?
+              DebugUnparser.toString(FieldRef.getObject(originalExpression)) : 
+                "this");          
       accept(e.getMoreEvidence());
     }
     
@@ -543,6 +548,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    accept(e.getMoreEvidence());
 	  }
     
+	  @Override
+	  public void visitIteratorEvidence(final IteratorEvidence e) {
+	    resultDrop.addSupportingInformation(
+	        e.getLink(), Messages.ITERATOR_EFFECTS_CONVERSION);
+	    accept(e.getMoreEvidence());
+	  }
+	  
     @Override
     public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
       final RegionEffectsPromiseDrop cutpoint =

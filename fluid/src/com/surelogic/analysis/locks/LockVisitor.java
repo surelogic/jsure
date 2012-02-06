@@ -760,10 +760,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private void updateJUCAnalysisQueries(final IRNode flowUnit) {
-		// System.out.println(">>>>>>>>>>>>>>>>>>>> Update JUC Queries: " +
-		// DebugUnparser.toString(flowUnit));
-		// System.out.flush();
-
 		final LockExpressions lockExprs = jucLockUsageManager
 				.getLockExpressionsFor(flowUnit);
 		if (lockExprs.usesJUCLocks()) {
@@ -1778,7 +1774,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * lock <code>L</code> must be held.
 		 */
 		final Set<NeededLock> neededLocks = lockUtils
-				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery,
+				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery, ctxtTheReceiverNode,
 						ctxtConflicter, call, enclosingMethod);
 		final LockChecker indirectAccessChecker = new LockChecker(call) {
 			@Override
@@ -2033,6 +2029,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
 				effects,
 				ctxtBcaQuery,
+				ctxtTheReceiverNode,
 				expr,
 				!isWrite,
 				lockUtils.createInstanceTarget(
@@ -2150,7 +2147,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	@Override
 	public Void visitConstructorDeclaration(final IRNode cdecl) {
-		try {
+    try {
 			// First thing: update the receiver node
 			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
 			ctxtInsideConstructor = cdecl;
@@ -2228,7 +2225,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						FieldRef.getObject(fieldRef), fieldAsRegion);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
-					effects, ctxtBcaQuery, fieldRef, !isWrite, target));
+					effects, ctxtBcaQuery, ctxtTheReceiverNode, fieldRef, !isWrite, target));
 		}
 
 		// continue into the expression
@@ -2904,7 +2901,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 							assureRegionRef(varDecl,
 									lockUtils.getLocksForDirectRegionAccess(
-											effects, ctxtBcaQuery, varDecl,
+											effects, ctxtBcaQuery, ctxtTheReceiverNode, varDecl,
 											false, target));
 						}
 						// analyze the the RHS of the initialization

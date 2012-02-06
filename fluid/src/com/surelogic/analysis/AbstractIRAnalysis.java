@@ -148,7 +148,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
 		
 	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
-		return EmptyIterator.prototype();
+		return new EmptyIterator<IRNode>();
 	}
 	
 	public void postAnalysis(IIRProject p) {

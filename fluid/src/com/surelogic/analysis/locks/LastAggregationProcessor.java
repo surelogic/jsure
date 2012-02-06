@@ -5,6 +5,7 @@ import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.BCAEvidence;
 import com.surelogic.analysis.effects.targets.EvidenceProcessor;
+import com.surelogic.analysis.effects.targets.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 
 final class LastAggregationProcessor extends EvidenceProcessor {
@@ -33,6 +34,10 @@ final class LastAggregationProcessor extends EvidenceProcessor {
     accept(e.getElaboratedFrom().getEvidence());
   }
 
+  @Override
+  public void visitIteratorEvidence(final IteratorEvidence e) {
+    accept(e.getMoreEvidence());
+  }
 
 
   public static AggregationEvidence get(final Target target) {

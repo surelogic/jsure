@@ -202,7 +202,7 @@ public class ClassMemberSearch {
     final IRNode bounds            = TypeFormal.getBounds(formal.getDeclaration());
     final Iteratable<IRNode> bIter = MoreBounds.getBoundIterator(bounds);
     if (!bIter.hasNext()) { // empty
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaDeclaredType>();
     }
     final IJavaType temp = binder.getJavaType(bIter.next());
     final IJavaDeclaredType first;

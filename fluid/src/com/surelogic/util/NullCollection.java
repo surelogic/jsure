@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.util.EmptyIterator;
  * when the caller doesn't care about those particular results.
  */
 public class NullCollection<E> implements Collection<E> {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private static final NullCollection prototype = new NullCollection();
   
   
@@ -56,10 +56,8 @@ public class NullCollection<E> implements Collection<E> {
     return true;
   }
 
-  // Don't complain about unchecked type paramteer and the supposedly useless cast
-  @SuppressWarnings({ "unchecked", "cast" })
   public final Iterator<E> iterator() {
-    return (Iterator<E>) EmptyIterator.prototype;
+    return new EmptyIterator<E>();
   }
 
   public final boolean remove(final Object o) {

@@ -19,10 +19,7 @@ import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -317,6 +314,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
      * @param val
      * @return
      */
+    @SuppressWarnings("unused")
     private Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferSetVar(
         IRNode var, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
@@ -418,6 +416,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return val;
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferIsObject(IRNode n, boolean flag, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
@@ -485,13 +484,30 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
       NullInfo ni;
       IRNode var = binder.getIBinding(use).getNode();
-      final Operator op = tree.getOperator(var);
-      if (op instanceof ReceiverDeclaration || op instanceof QualifiedReceiverDeclaration || val.second().contains(var)) {
+      if (val.second().contains(var)) {
         ni = NullInfo.NOTNULL;
       } else {
         ni = NullInfo.MAYBENULL; // all other literals are not null
       }
       return newPair(ll.push(val.first(), ni),val.second());
+    }
+    
+    @Override
+    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseReceiver(
+        final IRNode use, 
+        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+      if (!lattice.isNormal(val)) return val;
+      // Receiver is always non-null
+      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+    }
+    
+    @Override
+    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseQualifiedReceiver(
+        final IRNode use, final IRNode binding, 
+        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+      if (!lattice.isNormal(val)) return val;
+      // Qualified receiver is always non-null
+      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
     }
     
     

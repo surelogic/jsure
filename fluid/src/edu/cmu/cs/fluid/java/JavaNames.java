@@ -452,7 +452,7 @@ public final class JavaNames {
 				}
 			};
 		}
-		return EmptyIterator.prototype();
+		return new EmptyIterator<String>();
 	}
 
 	/**

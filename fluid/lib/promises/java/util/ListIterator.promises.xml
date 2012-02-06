@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util">
+    <class name="ListIterator">
+        <method name="hasNext">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="next">
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="hasPrevious">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="previous">
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="nextIndex">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="previousIndex">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="remove">
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="set" params="java.lang.Object">
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="add" params="java.lang.Object">
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

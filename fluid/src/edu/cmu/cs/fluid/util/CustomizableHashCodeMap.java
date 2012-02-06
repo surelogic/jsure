@@ -753,7 +753,7 @@ public class CustomizableHashCodeMap <K,V> extends AbstractHashMap<K, V> {
      */
     protected Iterator<Map.Entry<K, V>> createEntrySetIterator() {
         if (size() == 0) {
-            return EmptyIterator.prototype();
+            return new EmptyIterator<Entry<K,V>>();
         }
         return new EntrySetIterator<K, V>(this);
     }
@@ -846,7 +846,7 @@ public class CustomizableHashCodeMap <K,V> extends AbstractHashMap<K, V> {
      */
     protected Iterator<K> createKeySetIterator() {
         if (size() == 0) {
-            return EmptyIterator.prototype();
+            return new EmptyIterator<K>();
         }
         return new KeySetIterator<K, V>(this);
     }
@@ -930,7 +930,7 @@ public class CustomizableHashCodeMap <K,V> extends AbstractHashMap<K, V> {
      */
     protected Iterator<V> createValuesIterator() {
         if (size() == 0) {
-            return EmptyIterator.prototype();
+            return new EmptyIterator<V>();
         }
         return new ValuesIterator<K, V>(this);
     }

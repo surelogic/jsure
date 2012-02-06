@@ -65,11 +65,11 @@ implements ISinglePromiseDropStorage<D> {
   
   public Iterable<D> getDrops(IRNode n) {
 	  if (n == null) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<D>();
 	  }
 	  D d = n.getSlotValue(si);
 	  if (d == null || !d.isValid()) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<D>();
 	  }
 	  return new SingletonIterator<D>(d);
   }

@@ -18,9 +18,9 @@
         </method>
 
         <method name="iterator">
-            <Borrowed>this</Borrowed>
-            <!-- not really true -->
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
 
         <method name="remove" params="java.lang.Object">

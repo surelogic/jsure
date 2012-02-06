@@ -199,7 +199,7 @@ public abstract class AbstractBinder implements IBinder {
   public Iteratable<IBinding>  findOverriddenParentMethods(IRNode mth) {
 	  Operator op = JJNode.tree.getOperator(mth);		 
 	  if (ClassInitDeclaration.prototype.includes(op)) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<IBinding>();
 	  }
 	  final ITypeEnvironment tEnv = getTypeEnvironment();
 	  final IRNode typeDecl = VisitUtil.getEnclosingType(mth);
@@ -287,26 +287,26 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
 	  final Operator op = JJNode.tree.getOperator(method);
 	  if (op instanceof ConstructorDeclaration) {
 		  // TODO ignore "overridden methods" of constructors?
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<IRNode>();
 	  } else if (!(op instanceof MethodDeclaration)) {
 		  //if (!warnedSet.contains(method)) {
 			  LOG.warning("findOverriddenMethod: trying to match against "
 					  + op.name() + ": " + DebugUnparser.toString(method));
 		  //  warnedSet.add(method);
 		  //}
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<IRNode>();
 	  }
 
 	  final IRNode methodsTypeD = VisitUtil.getEnclosingType(method);
 	  if (startType == null || methodsTypeD == null) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<IRNode>();
 	  }	  	 
 	  // Need to make sure that startType is a subtype of methodsType
 	  final ITypeEnvironment tEnv = getTypeEnvironment();
 	  final IJavaType methodsType = tEnv.convertNodeTypeToIJavaType(methodsTypeD);
 	  if (!startType.equals(methodsType)
 			  && !tEnv.isSubType(startType, methodsType)) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<IRNode>();
 	  }
 
 	  if (LOG.isLoggable(Level.FINE))

@@ -50,28 +50,55 @@
 
         <class name="EntrySet">
             <method name="iterator">
-                <!--starts>nothing</starts-->
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
         <class name="KeySet">
             <method name="iterator">
-                <!--starts>nothing</starts-->
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
         <class name="ValueCollection">
             <method name="iterator">
-                <!--starts>nothing</starts-->
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
+
+
+        <class name="EmptyIterator">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="Enumerator">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
     </class>

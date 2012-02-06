@@ -118,7 +118,7 @@ public class JSureProperties {
 	 */
 	private static Iteratable<String> getModules(Properties props) {
 		if (props.isEmpty()) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<String>();
 		}
 		final Set<Object> keys = props.keySet();
 		return new FilterIterator<Object, String>(keys.iterator()) {
@@ -141,11 +141,11 @@ public class JSureProperties {
 	private static Iteratable<String> getValues(Properties props, String key) {
 		String prop = props.getProperty(key, "");
 		if (prop.equals("")) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<String>();
 		}
 		final StringTokenizer st = new StringTokenizer(prop, ",");
 		if (!st.hasMoreTokens()) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<String>();
 		}
 		return new SimpleRemovelessIterator<String>() {
 			@Override

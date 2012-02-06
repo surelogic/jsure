@@ -16,11 +16,11 @@ import edu.cmu.cs.fluid.util.*;
  */
 public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
   protected final DigraphInterface digraph;
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected final ArrayStack stack = new ArrayStack();
   private IRNode node = null;
   // private IRLocation loc = null;
-  private Iterator<IRNode> children = EmptyIterator.<IRNode>prototype();
+  private Iterator<IRNode> children = new EmptyIterator<IRNode>();
   
 //  private final SlotInfo<Boolean> markInfo =
 //      SimpleSlotFactory.prototype.newAttribute(Boolean.FALSE);

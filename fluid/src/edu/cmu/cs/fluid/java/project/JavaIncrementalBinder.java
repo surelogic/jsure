@@ -444,7 +444,8 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
   public Iteratable<IBinding> findOverriddenParentMethods(IRNode methodDeclaration) {
     GranuleBindings bindings = ensureBindingsOK(methodDeclaration);
     Collection<IBinding> col = methodDeclaration.getSlotValue(bindings.methodOverridesAttr);
-    if (col == null) return EmptyIterator.prototype();
+    if (col == null)
+      return new EmptyIterator<IBinding>();
     // The filter transforms the IBinding into an IRNode
     return IteratorUtil.makeIteratable(col);
   }

@@ -76,8 +76,6 @@ extends TripleLattice<Element<Integer>,
       addElement(State.SHARED);
 
   private final IRNode[] locals;
-  private final IRNode enclosingTypeQRD; // see bug 1712
-  private final IRNode constructorQRD; // see bug 1712
   
   // for creating drops
   private final IBinder binder;
@@ -268,16 +266,11 @@ extends TripleLattice<Element<Integer>,
   
   public StoreLattice(final IRNode flowUnit,
       final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-      final IBinder binder,
-      final IRNode[] locals,
-      final IRNode enclosingTypeQRD,
-      final IRNode constructorQRD) {
+      final IBinder binder, final IRNode[] locals) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
         new UnionLattice<FieldTriple>());
     this.locals = locals;
-    this.enclosingTypeQRD = enclosingTypeQRD;
-    this.constructorQRD = constructorQRD;
     this.binder = binder;
     this.analysis = analysis;
     this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
@@ -506,16 +499,9 @@ extends TripleLattice<Element<Integer>,
     temp = setObjects(temp, objects);
     
     /* Now add each parameter or local in turn.  Undefined locals are
-     * removed altogether.  If the local is the QualifiedReceiverDeclaration
-     * associated with the flowUnit (and thus the flow unit is a constructor)
-     * we skip it, because we then add it specially so that it always
-     * aliases the QualifiedReceiverDeclaration associated with the 
-     * type declaration that contains the constructor.  (Bug 1612)
+     * removed altogether.
      */
     for (final IRNode local : locals) {
-      // Skip the constructor-associated QualifiedReceiverDeclaration 
-      if (local == constructorQRD) continue;
-      
       final Operator op = JJNode.tree.getOperator(local);
       boolean isReceiverFromUniqueReturningConstructor = false;
       if (ReceiverDeclaration.prototype.includes(op)) {
@@ -549,15 +535,6 @@ extends TripleLattice<Element<Integer>,
         }
         temp = pop(apply(temp, srcOp, new Add(getStackTop(temp), EMPTY.addElement(local))), srcOp);
       } 
-    }
-    
-    /* If we have a constructor-associated QualifiedReceiverDeclaration, add 
-     * it to every object that contains the type-associated declaration.  This
-     * forces the two to be aliases.
-     */
-    if (constructorQRD != null) {
-      temp = apply(temp, srcOp,
-          new Add(enclosingTypeQRD, EMPTY.addElement(constructorQRD)));
     }
     
     return temp;
@@ -1270,7 +1247,7 @@ extends TripleLattice<Element<Integer>,
       } else if (ReceiverDeclaration.prototype.includes(op)) {
         return "this";
       } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
-        final String ss = DebugUnparser.toString(JavaPromise.getPromisedFor(n));
+//        final String ss = DebugUnparser.toString(JavaPromise.getPromisedFor(n));
         return JavaNames.getQualifiedTypeName(QualifiedReceiverDeclaration.getBase(n)) + ".this";
       } else if (ReturnValueDeclaration.prototype.includes(op)) {
         return "return";

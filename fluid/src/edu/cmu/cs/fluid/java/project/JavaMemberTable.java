@@ -641,7 +641,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public Iterator<IRNode> getDeclarations() {
       if (decls == null) {
         if (firstDecl == null) {
-          return EmptyIterator.prototype();
+          return new EmptyIterator<IRNode>();
         }
         return new SingletonIterator<IRNode>(firstDecl);
       }

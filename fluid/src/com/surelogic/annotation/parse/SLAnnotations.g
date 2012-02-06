@@ -244,6 +244,10 @@ annoParameter
  * Uniqueness rules
  *************************************************************************************/	
 	
+borrowedType
+    : qualifiedThisExpression EOF -> qualifiedThisExpression 
+	  ;
+	  
 borrowedFunction
     : thisExpr EOF -> thisExpr
     | qualifiedThisExpression EOF -> qualifiedThisExpression

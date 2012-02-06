@@ -234,7 +234,7 @@ public abstract class AbstractVersionSpaceToVersionTrackerStatefulView
 	 */
   @Override
   public final Iterator<IRNode> getNodes() {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }
 
   /**

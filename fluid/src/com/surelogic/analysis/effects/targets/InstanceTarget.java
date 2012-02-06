@@ -5,14 +5,15 @@ import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
-import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
@@ -81,51 +82,6 @@ public final class InstanceTarget extends AbstractTarget {
   
   
   
-  public boolean isMaskable(final IBinder binder) {
-    IRNode expr = reference;
-    Operator exprOp = JJNode.tree.getOperator(expr);
-    if (Initialization.prototype.includes(exprOp)) {
-      expr = Initialization.getValue(expr);
-      exprOp = JJNode.tree.getOperator(expr);
-    }
-    
-    /* Expression is "unique" if it is a FieldRef (e.f), f is a unique field,
-     * and region mappings exist for the field f.
-     */
-    final boolean isUnique;
-    if (FieldRef.prototype.includes(exprOp)) {
-      final IRNode fieldID = binder.getBinding(expr);
-      isUnique = UniquenessUtils.isFieldUnique(fieldID);
-    } else {
-      isUnique = false;
-    }
-
-    if (isUnique) {
-      // Filter out unique field accesses (handle by elaboration)
-      return true;
-    } else if (VariableUseExpression.prototype.includes(exprOp)) {
-      // Throw out; handled by elaboration
-      return true;
-    } else if (OpUtil.isAllocationExpression(expr)) {
-      /* Filter out instance targets with allocation expressions:
-       * The newly allocated state is unknown in the calling context.
-       */
-      return true;
-    } else if (OpUtil.isOuterObjectSpecifier(expr)) {
-      /* The expression must be of the form "o. new C(...)", which is an
-       * allocation expression, so we can ignore it.  (OuterObjectSpecifier 
-       * could also be "o. super(...)", but that is impossible in this context
-       * because it wouldn't ever be returned by BCA.)
-       */
-      return true;
-    }
-                        
-    /* We leave QualifiedReceiverDeclarations because they do refer to
-     * objects visible outside the context.
-     */
-    return false;
-  }
-  
   public Target mask(final IBinder binder) {
     IRNode expr = reference;
     Operator exprOp = JJNode.tree.getOperator(expr);
@@ -161,6 +117,15 @@ public final class InstanceTarget extends AbstractTarget {
        * because it wouldn't ever be returned by BCA.)
        */
       return new EmptyTarget(new EmptyEvidence(Reason.NEW_OBJECT, this, expr));
+    } else if (MethodCall.prototype.includes(exprOp)) {
+      /* Object returned from a method call: if the method return is @Unique
+       * the result can be masked.
+       */
+      final IRNode methodDecl = binder.getBinding(expr);
+      final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
+      if (UniquenessRules.isUnique(returnNode)) {
+        return new EmptyTarget(new EmptyEvidence(Reason.UNIQUE_RETURN, this, expr));
+      }
     }
                         
     /* We leave QualifiedReceiverDeclarations because they do refer to

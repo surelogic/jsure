@@ -84,7 +84,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     }
     @Override
     public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IJavaType>();
     }    
 
     /*******************************************************
@@ -791,7 +791,7 @@ class JavaPrimitiveType extends JavaType implements IJavaPrimitiveType {
 
   @Override
   public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IJavaType>();
   }
   
   /*******************************************************
@@ -825,7 +825,7 @@ class JavaVoidType extends JavaType implements IJavaVoidType {
 
   @Override
   public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IJavaType>();
   }
 }
 

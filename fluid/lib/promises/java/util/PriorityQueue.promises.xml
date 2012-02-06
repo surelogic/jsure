@@ -3,8 +3,9 @@
 <package name="java.util">
     <class name="PriorityQueue">
         <method name="iterator">
-            <!-- Not quite right -->
-            <Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

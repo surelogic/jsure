@@ -8,7 +8,7 @@ import java.util.*;
 import edu.cmu.cs.fluid.util.*;
 
 public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSequence<T>, List<T> {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   static public final EmptyIRSequence prototype = new EmptyIRSequence();
 
   @SuppressWarnings("unchecked")
@@ -29,7 +29,7 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
     return false;
   }
   public Iteratable<T> elements() {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<T>();
   }
 
   public boolean validAt(int i) {
@@ -146,7 +146,7 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
   }
 
   public Iterator<T> iterator() {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<T>();
   }
   
   public Object[] toArray() {
@@ -214,11 +214,11 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
   }
 
   public ListIterator<T> listIterator() {
-    return EmptyIterator.listIterator();
+    return new EmptyIterator<T>();
   }
 
   public ListIterator<T> listIterator(int arg0) {
-    return EmptyIterator.listIterator();
+    return new EmptyIterator<T>();
   }
 
   public List<T> subList(int i1, int i2) {

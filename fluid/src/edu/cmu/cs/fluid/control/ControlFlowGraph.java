@@ -122,7 +122,7 @@ public class ControlFlowGraph extends DigraphMixin
       return new PairIterator<IRNode>(node1.getOutput1().getSink(),
 				 node1.getOutput2().getSink());
     }
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }
 
   public List<IRNode> childList(IRNode node) {
@@ -204,7 +204,7 @@ public class ControlFlowGraph extends DigraphMixin
       return new PairIterator<IRNode>(node1.getInput1().getSource(),
  				 node1.getInput2().getSource());
     }
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }
 
   public IRNode getSink(IRNode edge) {

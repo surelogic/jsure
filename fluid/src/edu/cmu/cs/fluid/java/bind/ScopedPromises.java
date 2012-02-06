@@ -122,7 +122,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
         }
       };
     }
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }  
   
   /** 
@@ -228,7 +228,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
   
   private static <D extends ScopedPromiseDrop> Iterator<D> getDrops(Map<IRNode,D> drops) {
     if (drops == null) {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<D>();
     }
     final Iterator<Map.Entry<IRNode,D>> it = drops.entrySet().iterator();
     return new SimpleRemovelessIterator<D>() {

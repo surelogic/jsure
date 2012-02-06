@@ -29,7 +29,7 @@ public abstract class AbstractLayerBinding implements ILayerBinding, Iterable<IR
 	}
 	
 	public Iterator<IRNode> iterator() {
-		return EmptyIterator.prototype();
+		return new EmptyIterator<IRNode>();
 	}
 	
 	public IRNode getType() {

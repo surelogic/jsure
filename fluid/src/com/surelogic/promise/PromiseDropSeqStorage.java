@@ -84,11 +84,11 @@ implements IPromiseDropSeqStorage<D> {
   
   public Iterable<D> getDrops(IRNode n) {
 	  if (n == null) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<D>();
 	  }
 	  final List<D> l;
 	  if (!n.valueExists(si) || (l = n.getSlotValue(si)) == null) {
-		  return EmptyIterator.prototype();
+		  return new EmptyIterator<D>();
 	  }
 	  return new ProcessIterator<D>(l.iterator()) {
 		  @SuppressWarnings("unchecked")

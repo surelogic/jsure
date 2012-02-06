@@ -55,22 +55,25 @@
 
         <class name="EntrySet">
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
         <class name="KeySet">
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
         <class name="Values">
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
     </class>

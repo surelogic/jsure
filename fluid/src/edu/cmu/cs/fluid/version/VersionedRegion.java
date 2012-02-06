@@ -480,7 +480,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
       }
       private void initialize() {
         if (version == null) {
-          rest = EmptyIterator.prototype();
+          rest = new EmptyIterator<IRNode>();
         } else if (version.getEra() == null) {
           Vector<IRNode> vc = versionNodes.get(version);
           if (vc == null)

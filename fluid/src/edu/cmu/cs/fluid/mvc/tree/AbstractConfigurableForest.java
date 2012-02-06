@@ -509,7 +509,7 @@ public abstract class AbstractConfigurableForest
     public final Iterator<IRNode> get(final ForestModel fm, final IRNode root) {
       final IRNode parent = fm.getParent(root);
       if (parent == null) {
-        return EmptyIterator.prototype();
+        return new EmptyIterator<IRNode>();
       } else {
         return new FilterIterator<IRNode,IRNode>(fm.children(parent)) {
           final boolean debug = LOG.isLoggable(Level.FINE);

@@ -25,6 +25,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
@@ -362,9 +363,10 @@ public class TRoleTargets {
     final IRNode enclosingMethod = PromiseUtil.getEnclosingMethod(mcall);
 
     Effects eff = null;
-    final Set<Effect> methodFx = eff.getMethodCallEffects(
+    final Set<Effect> methodFx = eff.getMethodCallEffects(null,
         bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
         targetFactory, binder,
+        JavaPromise.getReturnNodeOrNull(enclosingMethod),
         Effects.ElaborationErrorCallback.NullCallback.INSTANCE, mcall,
         enclosingMethod);
     final Operator callOp = getOperator(mcall);
@@ -374,7 +376,7 @@ public class TRoleTargets {
     try {
       actualsEnum = Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
     } catch (final CallInterface.NoArgs e) {
-      actualsEnum = EmptyIterator.prototype();
+      actualsEnum = new EmptyIterator<IRNode>();
     }
     while (actualsEnum.hasNext()) {
       final IRNode actual = actualsEnum.next();

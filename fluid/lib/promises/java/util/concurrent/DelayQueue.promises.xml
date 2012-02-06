@@ -3,7 +3,9 @@
 <package name="java.util.concurrent">
     <class name="DelayQueue">
         <method name="iterator">
-            <Borrowed>this</Borrowed>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

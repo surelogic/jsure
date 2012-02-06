@@ -235,14 +235,15 @@ public class Hashtable2<K1,K2,V> implements Cloneable {
 	return enumerate(keys_selector);
   }
   private <T> Iteratable<T> enumerate(EntrySelector<K1,K2,V,T> selector) {
-    if (size == 0) return EmptyIterator.prototype();
+    if (size == 0)
+      return new EmptyIterator<T>();
     for (int i=0; i<capacity; ++i) {
       if (contents[i] != null) {
         return new SharedIterator<T>(i,selector);
       }
     }
     /*NOTREACHED*/
-    return EmptyIterator.prototype();
+    return new EmptyIterator<T>();
   }
   
   public boolean containsKey1(K1 key1) {

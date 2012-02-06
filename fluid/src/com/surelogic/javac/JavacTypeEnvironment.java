@@ -538,7 +538,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private Iterable<IRNode> getRawSubclasses_javac(IRNode type) {
 		Iterable<IRNode> subs = subtypeMap.get(type);
 		if (subs == null) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<IRNode>();
 		}
 		return subs;
 	}

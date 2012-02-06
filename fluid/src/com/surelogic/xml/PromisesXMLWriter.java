@@ -195,7 +195,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 
 	public static <T> Iteratable<T> getSortedValues(final Map<String,T> map) {
 		if (map.isEmpty()) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<T>();
 		}
 		final List<String> keys = new ArrayList<String>(map.keySet());
 		Collections.sort(keys);
@@ -209,7 +209,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	
 	public static <T> Iterable<Map.Entry<String,T>> getSortedEntries(final Map<String,T> map) {
 		if (map.isEmpty()) {
-			return EmptyIterator.prototype();
+			return new EmptyIterator<Entry<String,T>>();
 		}
 		final List<Map.Entry<String,T>> entries = new ArrayList<Map.Entry<String,T>>(map.entrySet());
 		Collections.sort(entries, new Comparator<Map.Entry<String,T>>() {

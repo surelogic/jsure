@@ -2,7 +2,6 @@ package com.surelogic.analysis.uniqueness.sideeffecting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,12 +50,15 @@ import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -128,8 +130,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * variables declared in outer scopes, the "return variable" and the
      * receiver.
      */
-    final String fu = DebugUnparser.toString(flowUnit);
-    
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refLocals = new ArrayList<IRNode>();
     final List<IRNode> trash = new ArrayList<IRNode>();
@@ -147,54 +147,22 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     if (rcvrNode != null) {
       refLocals.add(rcvrNode);
     }
-    
-//    /* TODO is this right?     
-//    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
-//      refLocals.add(qrcvr);
-//    }
-//    */
-//    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-//    if (qrcvrNode != null) {
-//    	refLocals.add(qrcvrNode);
-//    }
-    
-    /* Add the qualified receivers (if any) associated with the classes
-     * that enclose this method/constructor (BUG 1712).  Based on 
-     * JavePromise.getQualifiedReceiverNodes().
-     */
-    IRNode currentTypeDecl = VisitUtil.getEnclosingType(flowUnit);
-    final IRNode enclosingQRD = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
-    IRNode qrd = enclosingQRD;
-    while (currentTypeDecl != null) {
-      if (qrd != null) refLocals.add(qrd);
-      currentTypeDecl = VisitUtil.getEnclosingType(currentTypeDecl);
-      qrd = JavaPromise.getQualifiedReceiverNodeOrNull(currentTypeDecl);
+
+    // Add the qualified receiver, if any.  This will only be present on a
+    // constructor.
+    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+    if (qrcvrNode != null) {
+    	refLocals.add(qrcvrNode);
     }
-    
-    /* If we are a constructor also add the qualified receiver (if any)
-     * associated with the constructor.  (StoreLattice will force this
-     * qualified receiver to be an alias of the one associated with the class
-     * declaration that contains the constructor. (BUG 1712)
-     */
-    final IRNode constructorQRD;
-    if (ConstructorDeclaration.prototype.includes(flowUnit)) {
-      constructorQRD = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-      if (constructorQRD != null) refLocals.add(constructorQRD);
-    } else {
-      constructorQRD = null;
-    }
-    
+        
     /* For each AnonClassExpression that is in the flow unit we add the 
-     * receiver from the <init> method and the QualifiedReceiverDeclaration,
-     * if any, from the anonymous class itself.  (BUG 1612)
+     * receiver from the <init> method  (BUG 1712)
      */
     ReceiverSnatcher.getReceivers(flowUnit, refLocals);
     
-    
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
-    
     final StoreLattice lattice =
-        new StoreLattice(flowUnit, analysis, binder, locals, enclosingQRD, constructorQRD);
+        new StoreLattice(flowUnit, analysis, binder, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
         new UniquenessTransfer(cargo, binder, mayAlias, lattice,
@@ -546,9 +514,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * the receiver.
      */
     private Store popReceiver(final IRNode decl, final IRNode methodCall, final Store s, final IRNode srcOp) {
-//      if (decl == null) {
-//        return lattice.opBorrow(s, srcOp);
-//      }
       if (JavaNode.getModifier(decl, JavaNode.STATIC)) {
         return lattice.opRelease(s, srcOp);
       } else {
@@ -573,19 +538,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
           return lattice.opCompromise(s, srcOp);
         }
-        
-//        else if (UniquenessRules.isBorrowed(recDecl) ||
-//            (isConstructor && UniquenessRules.isUnique(retDecl))) {
-//          return lattice.opBorrow(s, srcOp);
-//        } else {
-//          if (isConstructor) {
-//            if (LOG.isLoggable(Level.FINE)) {
-//              LOG.fine("Receiver is not limited for\n  "
-//                  + DebugUnparser.toString(decl));
-//            }
-//          }
-//          return lattice.opCompromise(s, srcOp);
-//        }
       }
     }
 
@@ -672,7 +624,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
         s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node);
-//        s = lattice.opCompromise(lattice.opThis(s, node), node);
       }
       return s;
     }
@@ -757,13 +708,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         formals = null;
       } else {
         formals = SomeFunctionDeclaration.getParams(mdecl);
-//        if (ConstructorDeclaration.prototype.includes(mdecl)) {
-//          formals = ConstructorDeclaration.getParams(mdecl);
-//        } else if (MethodDeclaration.prototype.includes(mdecl) {
-//          formals = MethodDeclaration.getParams(mdecl);
-//        } else { // AnnotationElement
-//          
-//        }
       }
       final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       
@@ -859,10 +803,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferCatchClose(final IRNode node, boolean flag, Store s) {
       IRNode var = CatchClause.getParam(node);
-      // System.out.println("before catch close: " + lattice.toString(s));
       s = lattice.opNull(s);
       s = lattice.opSet(s, node, var);
-      // System.out.println("after catch close: " + lattice.toString(s));
       return s;
     }
     
@@ -907,15 +849,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
          */
         final IRNode rcvr;
         final IRNode enclosingType = VisitUtil.getEnclosingType(node);
-        if (AnonClassExpression.prototype.includes(enclosingType) ||
-            EnumConstantClassDeclaration.prototype.includes(enclosingType)) {
+        final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+        if (AnonClassExpression.prototype.includes(enclosingOp) ||
+            EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
           rcvr = JavaPromise.getReceiverNode(
               JavaPromise.getInitMethod(enclosingType));
         } else {
           rcvr = JavaPromise.getReceiverNode(flowUnit);
         }
         s = lattice.opGet(s, node, rcvr);
-//        s = lattice.opThis(s, node);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }
@@ -1074,6 +1016,80 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       } else {
         return lattice.opGet(s, var, decl);
       }
+    }
+    
+    @Override
+    protected Store transferUseReceiver(final IRNode use, final Store s) {
+      return lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+    }
+    
+    @Override
+    protected Store transferUseQualifiedReceiver(
+        final IRNode use, final IRNode decl, final Store s) {
+      /* If the qualified receiver is an implicit parameter of a constructor
+       * then we handle it as a local variable.  Otherwise it is series of
+       * field loads.
+       */
+      if (ConstructorDeclaration.prototype.includes(
+          JavaPromise.getPromisedFor(decl))) { // constructor parameter
+        return lattice.opGet(s, use, decl);
+      } else {
+        // We start by getting the receiver
+        Store newStore = lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+
+        /* Loop up the nested class hierarchy until we find the class whose
+         * qualified receiver declaration equals 'decl'.  We are guaranteed
+         * by JavaEvaluationTransfer NOT to have a qualified this expression
+         * that binds to a normal receiver expression. 
+         */
+        IRNode currentClass = VisitUtil.getEnclosingType(use);
+        IRNode currentQualifiedReceiverField;
+        do {
+          currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+          // Do the pseudo-field reference
+          newStore = lattice.opLoad(newStore, use, currentQualifiedReceiverField);
+          currentClass = VisitUtil.getEnclosingType(currentClass);
+        } while (currentQualifiedReceiverField != decl);
+        
+        return newStore;
+      }      
+    }
+
+    /**
+     * Get the receiver node appropriate for use at the given expression.
+     * Normally this is the receiver node from the flow unit being analyzed,
+     * unless the given node is inside a FieldDeclaration or ClassInitializer
+     * that is itself inside an AnonClassExpression or EnumConstantDeclaration.
+     * In that case, we use the receiver node from the InitMethod for the 
+     * class expression.
+     */
+    private IRNode getReceiverNodeAtExpression(final IRNode use) {
+      /* Need to determine if the use is inside a field init or init block
+       * of an anonymous class expression.
+       */
+      IRNode getReceiverFrom = null;
+      for (final IRNode current : VisitUtil.rootWalk(use)) {
+        final Operator op = JJNode.tree.getOperator(current);
+        if (ClassBody.prototype.includes(op)) {
+          // done: skipped past anything potentially interesting
+          getReceiverFrom = flowUnit;
+          break;
+        } else if (FieldDeclaration.prototype.includes(op) ||
+            ClassInitializer.prototype.includes(op)) {
+          /* Have to check against FieldDeclaration to avoid capturing local
+           * variable initializers.  This cannot be used in a static context,
+           * so don't even check for it
+           */
+          final IRNode enclosingType = VisitUtil.getEnclosingType(current);
+          final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
+          if (AnonClassExpression.prototype.includes(enclosingOp) ||
+              EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
+            getReceiverFrom = JavaPromise.getInitMethod(enclosingType);
+            break;
+          }
+        }
+      }
+      return JavaPromise.getReceiverNode(getReceiverFrom);
     }
     
     
@@ -1372,13 +1388,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected void handleAnonClassExpression(final IRNode anonClass) {
       super.handleAnonClassExpression(anonClass);
-      
       // Add the receiver from <init>
       refs.add(JavaPromise.getReceiverNode(JavaPromise.getInitMethod(anonClass)));
-      
-      // Add the qualified receiver from the anon class, if any
-      final IRNode qrd = JavaPromise.getQualifiedReceiverNodeOrNull(anonClass);
-      if (qrd != null) refs.add(qrd);      
     }
   }
 }

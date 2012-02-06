@@ -11,10 +11,9 @@
         </method>
 
         <method name="iterator">
-            <!--starts>nothing</starts-->
-            <Borrowed>this</Borrowed>
-            <!-- not really true -->
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>       
     </class>
 </package>

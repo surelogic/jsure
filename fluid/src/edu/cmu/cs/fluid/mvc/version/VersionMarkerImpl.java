@@ -100,7 +100,7 @@ implements VersionMarkerModel
   @Override
   public Iterator<IRNode> getNodes()
   {
-    return EmptyIterator.prototype();
+    return new EmptyIterator<IRNode>();
   }
 
   /**

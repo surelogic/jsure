@@ -154,7 +154,7 @@ extends AbstractCore
     if( (nodes != null) && !nodes.isInfinite() ) {
       return nodes.iterator();
     } else {
-      return EmptyIterator.prototype();
+      return new EmptyIterator<IRNode>();
     }
   }
 

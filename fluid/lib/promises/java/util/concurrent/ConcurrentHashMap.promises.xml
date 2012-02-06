@@ -55,9 +55,9 @@
             </method>        
         
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+              <Borrowed allowReturn="true">this</Borrowed>
+              <RegionEffects>writes this:Instance</RegionEffects>
+              <Unique>return</Unique>
             </method>
         </class>
 
@@ -69,9 +69,9 @@
             </method>   
             
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -87,9 +87,43 @@
             </method>   
             
             <method name="iterator">
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
+
+
+        <class name="HashIterator">
+            <method name="hasMoreElements">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="EntryIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="ValueIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="KeyIterator">
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
             </method>
         </class>
     </class>

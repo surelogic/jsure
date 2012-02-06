@@ -184,7 +184,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
-		return EmptyIterator.prototype();
+		return new EmptyIterator<String>();
 	}
 	
 	private static XmlCollector findPromiseXMLsInDir(File dir, boolean makeUnique) {

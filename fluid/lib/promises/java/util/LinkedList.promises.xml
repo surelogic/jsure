@@ -18,10 +18,63 @@
         </method>
 
         <method name="listIterator" params="int">
-            <!--starts>nothing</starts-->
-            <Borrowed>this</Borrowed>
-            <!-- not really true -->
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
+
+
+
+        <class name="DescendingIterator">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+        
+        <class name="ListItr">
+            <method name="hasNext">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="hasPrevious">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="previous">
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="nextIndex">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="previousIndex">
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="set" params="java.lang.Object">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="add" params="java.lang.Object">
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>
