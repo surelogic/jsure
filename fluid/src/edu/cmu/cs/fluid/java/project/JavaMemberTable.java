@@ -482,7 +482,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     if (useNode != null) {
       entry.addUse(useNode);
     }
-    return entry.getDeclarations();
+    synchronized (this) {
+    	// Added to prevent comod exceptions
+    	Iterator<IRNode> it = entry.getDeclarations();
+    	if (!it.hasNext()) {
+    		return EmptyIterator.prototype();
+    	}
+    	List<IRNode> l = new ArrayList<IRNode>();
+    	while (it.hasNext()) {
+    		l.add(it.next());
+    	}
+    	return l.iterator();
+    }
   }
 
   /**
