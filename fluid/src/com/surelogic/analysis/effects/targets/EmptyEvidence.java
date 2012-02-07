@@ -11,7 +11,8 @@ public final class EmptyEvidence implements TargetEvidence {
     FINAL_FIELD(Messages.REASON_FINAL_FIELD),
     NULL_REFERENCE(Messages.REASON_NULL_REFERENCE),
     NEW_OBJECT(Messages.REASON_NEW_OBJECT),
-    UNIQUE_RETURN(Messages.REASON_UNIQUE_RETURN);
+    UNIQUE_RETURN(Messages.REASON_UNIQUE_RETURN),
+    UNIQUE_PARAMETER(Messages.REASON_UNIQUE_PARAM);
     
     private int msg;
 

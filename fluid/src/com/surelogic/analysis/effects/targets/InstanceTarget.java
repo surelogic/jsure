@@ -126,6 +126,12 @@ public final class InstanceTarget extends AbstractTarget {
       if (UniquenessRules.isUnique(returnNode)) {
         return new EmptyTarget(new EmptyEvidence(Reason.UNIQUE_RETURN, this, expr));
       }
+    } else if (ParameterDeclaration.prototype.includes(exprOp) &&
+        UniquenessRules.isUnique(expr)) {
+      /* Unique parameter.  Caller no longer has access to this object so any
+       * effects on it are not interesting to the caller.
+       */
+      return new EmptyTarget(new EmptyEvidence(Reason.UNIQUE_PARAMETER, this, expr));
     }
                         
     /* We leave QualifiedReceiverDeclarations because they do refer to
