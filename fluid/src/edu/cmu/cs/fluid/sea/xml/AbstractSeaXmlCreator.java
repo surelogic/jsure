@@ -13,6 +13,7 @@ import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.JavaPromiseOpInterface;
@@ -83,6 +84,7 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 				} else {
 					addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
 				}
+				//addAttribute("unparse", DebugUnparser.unparseCode(context));
 			}
 			addAttribute(HASH_ATTR, getHash(context));			
 			addAttribute(CUNIT_ATTR, s.getCUName());
