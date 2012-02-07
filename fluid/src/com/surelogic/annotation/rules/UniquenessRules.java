@@ -42,6 +42,7 @@ import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.Pair;
 
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
@@ -436,13 +437,13 @@ public class UniquenessRules extends AnnotationRules {
 
     @Override
     protected void processDrop(PromiseDrop<? extends IAASTRootNode> a) {
-      checkConsistency(a.getPromisedFor(), getState(a), false);
+      checkConsistency(a.getPromisedFor(), getState(a), StateSource.getSource(a), false);
     }
     
     @Override
     protected boolean processUnannotatedMethodRelatedDecl(
         final IRNode unannotatedNode) {
-      return checkConsistency(unannotatedNode, State.SHARED, true);
+      return checkConsistency(unannotatedNode, State.SHARED, StateSource.NO_PROMISE, true);
     }
     
     @Override
@@ -454,8 +455,28 @@ public class UniquenessRules extends AnnotationRules {
     protected void finishRun() {
       uniquenessTags.clear();
     }
-    
-    
+      
+    enum StateSource { 
+    	NO_PROMISE(0), ASSUMPTION(1), PROMISE(2);
+    	
+    	private final int value;
+    	
+    	StateSource(int v) {
+    		value = v;
+    	}
+    	
+    	static StateSource getSource(PromiseDrop<? extends IAASTRootNode> a) {
+    		return a.isAssumed() ? StateSource.ASSUMPTION : StateSource.PROMISE;
+    	}
+
+    	/**
+    	 * @return true if we should check consistency between the two promises
+    	 */
+		boolean check(StateSource parent) {
+			// At least one promise, or two assumptions
+			return value + parent.value > 1;
+		}
+    }
     
     private State getState(final PromiseDrop<? extends IAASTRootNode> a) {
       if (a instanceof UniquePromiseDrop) {
@@ -472,24 +493,31 @@ public class UniquenessRules extends AnnotationRules {
       }
     }
 
-    private State getState(final IRNode n) {
-      final UniquePromiseDrop uDrop = getUnique(n);
-      if (uDrop != null) {
-        return uDrop.allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
-      } else if (LockRules.getImmutableRef(n) != null) {
-        return State.IMMUTABLE;
-      } else if (getReadOnly(n) != null) {
-        return State.READONLY; 
-      } else if (getBorrowed(n) != null) {
-        return State.BORROWED;
-      } else {
-        return State.SHARED;
+    private static Pair<State,StateSource> SHARED = 
+    	new Pair<State,StateSource>(State.SHARED, StateSource.NO_PROMISE);
+    
+    private Pair<State,StateSource> getState(final IRNode n) {
+      PromiseDrop<?> d = getUnique(n);
+      if (d == null) {
+    	  d = LockRules.getImmutableRef(n);
+    	  if (d == null) {
+    		  d = getReadOnly(n);    		
+    		  if (d == null) {
+    			  d = getBorrowed(n);
+    			  if (d == null) {
+    				  return SHARED;
+    			  }
+    		  }
+    	  }
       }
+      // d should be non-null;
+      return new Pair<State,StateSource>(getState(d), StateSource.getSource(d));
     }
     
     
     
-    private boolean checkConsistency(final IRNode promisedFor, final State s, final boolean generateProposal) {
+    private boolean checkConsistency(final IRNode promisedFor, final State s, 
+    		final StateSource src, final boolean generateProposal) {
       /* 3 cases, return value, parameter, receiver.
        * 
        * TODO: Do not yet handle the special case of moving from SHARED
@@ -513,22 +541,23 @@ public class UniquenessRules extends AnnotationRules {
             final IRNode p = paramsIter.next();
             final IRNode parentP = parentParamsIter.next();
             if (p == promisedFor) { // found the original param
-              final State parentState = getState(parentP);
-              if (!State.lattice.lessEq(parentState, s)) {
+              final Pair<State,StateSource> parentState = getState(parentP);
+              if (src.check(parentState.second()) && 
+            	  !State.lattice.lessEq(parentState.first(), s)) {
                 good = false;
                 if (generateProposal) {
                   getContext().reportErrorAndProposal(
-                      new ProposedPromiseDrop(parentState.getProposedPromiseName(), null, promisedFor, parentP, Origin.PROBLEM),
+                      new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), null, promisedFor, parentP, Origin.PROBLEM),
                       "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                       ParameterDeclaration.getId(p),
                       JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                      parentState.getAnnotation(), s.getAnnotation());
+                      parentState.first().getAnnotation(), s.getAnnotation());
                 } else {
                   getContext().reportError(promisedFor,
                       "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                       ParameterDeclaration.getId(p),
                       JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                      parentState.getAnnotation(), s.getAnnotation());
+                      parentState.first().getAnnotation(), s.getAnnotation());
                 }
               }
             }
@@ -541,20 +570,20 @@ public class UniquenessRules extends AnnotationRules {
           
           // Get the receiver in the original
           final IRNode rcvr = JavaPromise.getReceiverNode(parentMethod);
-          final State parentState = getState(rcvr);          
-          if (!State.lattice.lessEq(parentState, s)) {
+          final Pair<State,StateSource> parentState = getState(rcvr);  
+          if (src.check(parentState.second()) && !State.lattice.lessEq(parentState.first(), s)) {
             good = false;
             if (generateProposal) {
               getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROBLEM),
+                  new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                  parentState.getAnnotation(), s.getAnnotation());
+                  parentState.first().getAnnotation(), s.getAnnotation());
             } else {
               getContext().reportError(promisedFor,
                   "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                  parentState.getAnnotation(), s.getAnnotation());
+                  parentState.first().getAnnotation(), s.getAnnotation());
             }
           }
         }
@@ -565,20 +594,20 @@ public class UniquenessRules extends AnnotationRules {
 
           // Get the return value in the original
           final IRNode rcvr = JavaPromise.getReturnNode(parentMethod);
-          final State parentState = getState(rcvr);          
-          if (!State.lattice.lessEq(s, parentState)) {
+          final Pair<State,StateSource> parentState = getState(rcvr);        
+          if (src.check(parentState.second()) && !State.lattice.lessEq(s, parentState.first())) {
             good = false;
             if (generateProposal) {
               getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROBLEM),
+                  new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the return value of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                  parentState.getAnnotation(), s.getAnnotation());
+                  parentState.first().getAnnotation(), s.getAnnotation());
             } else {
               getContext().reportError(promisedFor,
                   "The annotation on the return value of {0} cannot be changed from {1} to {2}",
                   JavaNames.genQualifiedMethodConstructorName(parentMethod),
-                  parentState.getAnnotation(), s.getAnnotation());
+                  parentState.first().getAnnotation(), s.getAnnotation());
             }
           }
         }

@@ -136,8 +136,12 @@ public class MethodEffectsRules extends AnnotationRules {
           final IRegion regionAll = RegionModel.getAllRegion(decl);
           for (final IBinding context : getContext().getBinder(decl).findOverriddenParentMethods(decl)) {
             final IRNode overriddenMethod = context.getNode();
-            final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
+            final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);            
             if (fxDrop != null) {
+              if (fxDrop.isAssumed()) {
+            	  // Don't try to check consistency since it's an assumption
+            	  continue;
+              }
               final RegionEffectsNode overriddenFx = fxDrop.getAST();
               // Each overridden effect must be satisfied by write(All)
               boolean good = true;
