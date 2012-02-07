@@ -32,6 +32,7 @@ public final class Messages {
   public static final int REASON_NEW_OBJECT = 167;
   public static final int REASON_UNIQUE_RETURN = 168;
   public static final int ITERATOR_EFFECTS_CONVERSION = 169;
+  public static final int REASON_UNIQUE_PARAM = 170;
   
   
   
@@ -56,6 +57,7 @@ public final class Messages {
     code2name.put(REASON_NEW_OBJECT, "EffectAssurance");
     code2name.put(REASON_UNIQUE_RETURN, "EffectAssurance");
     code2name.put(ITERATOR_EFFECTS_CONVERSION, "EffectsAssurance");
+    code2name.put(REASON_UNIQUE_PARAM, "EffectsAssurance");
   }
   
   public static String toString(int code) {
