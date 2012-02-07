@@ -36,40 +36,49 @@
 
         <class name="Itr">
             <method name="hasNext">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="next">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
 
             <method name="remove">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
         
         <class name="ListItr">
             <method name="hasPrevious">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="previous">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
 
             <method name="nextIndex">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="previousIndex">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="set" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
 
             <method name="add" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>

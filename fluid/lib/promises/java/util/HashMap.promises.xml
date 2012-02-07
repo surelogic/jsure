@@ -85,28 +85,33 @@
 
         <class name="HashIterator">
             <method name="hasNext">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="remove">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
 
         <class name="EntryIterator">
             <method name="next">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
         </class>
 
         <class name="KeyIterator">
             <method name="next">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
         </class>
 
         <class name="ValueIterator">
             <method name="next">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
         </class>
