@@ -407,7 +407,7 @@ public class LockRules extends AnnotationRules {
             final IRNode parent = pBinding.getNode();
             final IRNode parentReturn = JavaPromise.getReturnNode(parent);
             final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
-            if (superDrop != null) {
+            if (superDrop != null && !superDrop.isAssumed()) {
               // Ancestor is annotated
               good = false;
               getContext().reportError(mdecl,
@@ -572,8 +572,8 @@ public class LockRules extends AnnotationRules {
 					POLICY_LOCK, RETURNS_LOCK) {
 				@Override
         protected PromiseDrop<RequiresLockNode> makePromiseDrop(
-						RequiresLockNode a) {
-					return storeDropIfNotNull(a, scrubRequiresLock(getContext(), a));
+						RequiresLockNode a, boolean isAssumption) {
+					return storeDropIfNotNull(a, scrubRequiresLock(getContext(), a, isAssumption));
 				}
         
         @Override
@@ -597,7 +597,7 @@ public class LockRules extends AnnotationRules {
 	 * @return A new RequiresLockPromise drop if it is a valid annotation, null otherwise
 	 */
 	static RequiresLockPromiseDrop scrubRequiresLock(
-			IAnnotationScrubberContext context, RequiresLockNode node) {
+			IAnnotationScrubberContext context, RequiresLockNode node, final boolean isAssumption) {
 		final IRNode annotatedMethod = node.getPromisedFor();
 		final Operator promisedForOp = JJNode.tree.getOperator(annotatedMethod);
 
@@ -749,7 +749,7 @@ public class LockRules extends AnnotationRules {
            * 
            * But, okay if the current annotation is the empty set of locks.
            */
-          if (!locks.isEmpty()) {
+          if (!locks.isEmpty() && !isAssumption) {
             allGood = false;
             context.reportError(node, "Overridden method {0} is not annotated with @RequiresLock",
                 JavaNames.genQualifiedMethodConstructorName(parent));

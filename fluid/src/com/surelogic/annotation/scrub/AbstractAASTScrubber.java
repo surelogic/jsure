@@ -512,5 +512,7 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	// Only called by the method above
-	protected abstract PromiseDrop<? super A> makePromiseDrop(A ast);
+	protected PromiseDrop<? super A> makePromiseDrop(A ast) {
+		throw new UnsupportedOperationException();
+	}
 }

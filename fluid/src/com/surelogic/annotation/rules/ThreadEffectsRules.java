@@ -74,7 +74,8 @@ public class ThreadEffectsRules extends AnnotationRules {
           boolean good = true;
           for (final IBinding pBinding : getContext().getBinder(decl).findOverriddenParentMethods(decl)) {
             final IRNode parent = pBinding.getNode();
-            if (startsNothing(parent)) {
+            StartsPromiseDrop d = getStartsSpec(parent);
+            if (d != null && !d.isAssumed()) {
               // Ancestor is annotated
               good = false;
               getContext().reportErrorAndProposal(
