@@ -22,7 +22,6 @@ import com.surelogic.analysis.testing.NonNullModule;
 import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
-import com.surelogic.analysis.uniqueness.NewBenchmarkingUAM;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -51,10 +50,12 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 		init(LockAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy");
-		init(com.surelogic.analysis.uniqueness.UniquenessAnalysisModule.class,
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
+    init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
+        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
+    init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysisModule.class,
+        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", false, "Uniqueness + From (Side-effecting)");
 
-		init(com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysisModule.class,
+		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness");
 
 		init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
@@ -63,9 +64,11 @@ public class Javac extends IDE {
 		init(BCAModule.class, "com.surelogic.jsure.client.eclipse.BCA", false, "BCA");
 		init(CollectMethodCallsModule.class,
 				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls");
-		init(NewBenchmarkingUAM.class,
-				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking");
-		init(com.surelogic.analysis.uniqueness.sideeffecting.NewBenchmarkingUAM.class,
+    init(com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM.class,
+        "com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking (U+F)");
+    init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.NewBenchmarkingUAM.class,
+        "com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew_SE", false, "Uniqueness Benchmarking (U+F SE)");
+		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.NewBenchmarkingUAM.class,
 				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
 		init(TypeBasedAliasModule.class,
 		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Test Type-Based Alias Analysis");
@@ -341,7 +344,7 @@ public class Javac extends IDE {
 				switch (b) {
 				case UAM:
 					return Collections
-							.<IIRAnalysis> singletonList(new NewBenchmarkingUAM());
+							.<IIRAnalysis> singletonList(new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
 				default:
 				}
 			}

@@ -5,6 +5,9 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 import java.net.URL;
 
 import com.surelogic.analysis.IAnalysisInfo;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.Store;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.StoreLattice;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
