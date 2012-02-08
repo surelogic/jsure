@@ -682,6 +682,7 @@ extends TripleLattice<Element<Integer>,
     	if (!isFinalField(fieldDecl)) return errorStore("borrowed field must be final");
     	// perform remaining checks
     	s = opReturn(s, fieldDecl);
+      if (!s.isValid()) return s;
     	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
     	{
     			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
