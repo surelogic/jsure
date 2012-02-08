@@ -381,8 +381,13 @@ public class UniquenessRules extends AnnotationRules {
           context.reportError(a, "@Borrowed fields must not be static");
           good = false;
         }
+      } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
+        if (a.allowReturn() && !TypeUtil.isFinal(promisedFor)) {
+          context.reportError(a, "@Borrowed(allowReturn=true) parameters must be final");
+          good = false;
+        }
       }
-
+      
       if (good) {
         final BorrowedPromiseDrop borrowedPromiseDrop = new BorrowedPromiseDrop(a);
         if (!fromField) addUniqueAnnotation(borrowedPromiseDrop);        
