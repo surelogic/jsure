@@ -54,6 +54,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
@@ -756,17 +757,8 @@ public final class Effects implements IBinderClient {
        * is ever used to invoke remove().  If not, we can convert the 
        * declared writes("this:Instance") effect to reads("this:Instance").
        */
-      boolean convertWritesThisInstanceToRead = false;      
-      if (isSpecialIteratorMethod(call)) {
-        boolean writtenTo = false;
-        final Set<IRNode> calls = getMethodCallsUsingAsReceiver(call);
-        for (final IRNode c : calls) {
-          if (!isReadOnlyIteratorMethod(c)) {
-            writtenTo = true;
-          }
-        }
-        convertWritesThisInstanceToRead = !writtenTo;
-      }
+      final boolean convertWritesThisInstanceToRead =
+          shouldConvertToReadEffect(call);
       
       /* Assumes that the enclosing method/constructor of the call is the
        * method/constructor declaration represented by
@@ -778,6 +770,66 @@ public final class Effects implements IBinderClient {
               convertWritesThisInstanceToRead ? call : null,
               context.bcaQuery, targetFactory, binder, context.theReceiverNode, 
               callback, call, getEnclosingDecl()));
+    }
+
+
+
+    private boolean shouldConvertToReadEffect(final IRNode call) {
+      class Finder extends JavaSemanticsVisitor {
+        private final Set<IRNode> calls = new HashSet<IRNode>();
+        private boolean passedOff = false;
+        
+        public Finder() {
+          super(false, context.enclosingMethod);
+        }
+        
+        public Set<IRNode> getCalls() {
+          return calls;
+        }
+        
+        public boolean isPassedOff() {
+          return passedOff;
+        }
+        
+        @Override
+        public Void visitVariableUseExpression(final IRNode use) {
+          boolean isUseOfResult = false;
+          for (final IRNode origin : context.bcaQuery.getResultFor(use)) {
+            if (origin.equals(call)) {
+              isUseOfResult = true;
+              break;
+            }
+          }
+          
+          if (isUseOfResult) {
+            final IRNode parent = JJNode.tree.getParent(use);
+            if (MethodCall.prototype.includes(parent)) {
+              if (MethodCall.getObject(parent).equals(use)) {
+                calls.add(parent);
+              }
+            } else if (Arguments.prototype.includes(parent)) {
+              passedOff = true;
+            }
+          }
+          return null;
+        }
+      }
+
+      boolean convertWritesThisInstanceToRead = false;
+      if (isSpecialIteratorMethod(call)) {
+        final Finder f = new Finder();
+        f.doAccept(context.enclosingMethod);
+        if (!f.isPassedOff()) {
+          boolean writtenTo = false;
+          for (final IRNode c : f.getCalls()) {
+            if (!isReadOnlyIteratorMethod(c)) {
+              writtenTo = true;
+            }
+          }
+          convertWritesThisInstanceToRead = !writtenTo;
+        }
+      }
+      return convertWritesThisInstanceToRead;
     }
 
     private boolean isSpecialIteratorMethod(final IRNode call) {
@@ -820,39 +872,6 @@ public final class Effects implements IBinderClient {
         }
       }
       return false;
-    }
-    
-    private Set<IRNode> getMethodCallsUsingAsReceiver(final IRNode call) {
-      class Finder extends JavaSemanticsVisitor {
-        private final Set<IRNode> calls = new HashSet<IRNode>();
-        
-        public Finder() {
-          super(false, context.enclosingMethod);
-        }
-        
-        public Set<IRNode> getCalls() {
-          return calls;
-        }
-        
-        @Override
-        public Void visitVariableUseExpression(final IRNode use) {
-          final IRNode parent = JJNode.tree.getParent(use);
-          if (MethodCall.prototype.includes(parent)
-              && MethodCall.getObject(parent).equals(use)) {
-            for (final IRNode origin : context.bcaQuery.getResultFor(use)) {
-              if (origin.equals(call)) {
-                calls.add(parent);
-                break;
-              }
-            }
-          }
-          return null;
-        }
-      }
-      
-      final Finder f = new Finder();
-      f.doAccept(context.enclosingMethod);
-      return f.getCalls();
     }
     
     //----------------------------------------------------------------------
