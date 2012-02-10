@@ -179,6 +179,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				}
 				else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
 					loc = AnnotationLocation.QUALIFIED_RECEIVER;
+					// Need to check if this is on a constructor on not?
 				}
 				else {
 					throw new IllegalStateException("Unexpected decl: "+op.name());
@@ -186,6 +187,13 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				
 				// Find the decls to visit
 				final IRNode enclosingFunc = VisitUtil.getClosestClassBodyDecl(promisedFor);
+				if (!SomeFunctionDeclaration.prototype.includes(enclosingFunc)) {
+					if (loc != AnnotationLocation.QUALIFIED_RECEIVER) {
+						SLLogger.getLogger().warning("Got a method-related decl within "+
+								JavaNames.getFullName(enclosingFunc)+" on a "+loc);
+					}
+					continue;
+				}
 				IRNode type = VisitUtil.getEnclosingType(enclosingFunc);
 				if (type == null) {
 					type = VisitUtil.getEnclosingCompilationUnit(enclosingFunc);
