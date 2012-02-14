@@ -20,7 +20,9 @@ import com.surelogic.xml.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -60,8 +62,7 @@ public class PackageDrop extends CUDrop {
     //System.out.println("Creating pkg: "+pkgName);
        	
 	// Look for XML annotations
-	final String xmlName = pkgName.replace('.', '/')+'/'+
-		AnnotationConstants.PACKAGE_INFO+TestXMLParserConstants.SUFFIX;
+	final String xmlName = computeXMLPath(pkgName);
 	try {
 		int added = PromisesXMLParser.process(tEnv, root, xmlName);
 		//System.out.println("Added XML annos: "+added);			
@@ -82,6 +83,11 @@ public class PackageDrop extends CUDrop {
 		}
 	}
 	JavaProjects.setProject(root, tEnv.getProject());
+  }
+  
+  public static String computeXMLPath(String pkgName) {
+	  return pkgName.replace('.', '/')+'/'+
+		AnnotationConstants.PACKAGE_INFO+TestXMLParserConstants.SUFFIX;
   }
   
   private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n) {
@@ -166,6 +172,7 @@ public class PackageDrop extends CUDrop {
     	} else {
     		n = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), name);
     	}
+    	JavaNode.setSrcRef(n, makeSrcRef(proj, name));
     	LOG.fine("Creating IR for package "+name);
 
     	// Just to make it into a complete CU
@@ -205,6 +212,10 @@ public class PackageDrop extends CUDrop {
     return pkg;
   }
   
+  private static ISrcRef makeSrcRef(IIRProject proj, String name) {
+	return new NamedSrcRef(proj.getName(), name, name, name);
+  }
+
   public static PackageDrop findPackage(String name) {
     return packageMap.get(name);
   }

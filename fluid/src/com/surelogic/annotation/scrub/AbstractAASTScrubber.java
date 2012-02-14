@@ -369,7 +369,7 @@ extends AbstractHierarchyScrubber<A> {
 								if (sp != null) {
 									getContext().reportError(sp.getMessage()+" ("+JavaNames.getFullName(sp.getNode())+
 											") overridden by explicit annotation "+
-											a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", a2);
+											a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", sp.getAST());
 								} else {
 									getContext().reportError(a2+" ("+JavaNames.getFullName(a2.getPromisedFor())+
 											            ") overridden by explicit annotation "+

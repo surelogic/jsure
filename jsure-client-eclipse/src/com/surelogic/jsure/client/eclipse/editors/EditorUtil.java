@@ -38,6 +38,7 @@ import com.surelogic.xml.XMLGenerator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class EditorUtil {
 	/**
@@ -57,7 +58,9 @@ public class EditorUtil {
 			} else if (f instanceof String) {
 				String s = (String) f;
 				if (s.indexOf('/') < 0) {
-					return; // probably not a file
+					// probably not a file, but see if it's a package
+					handlePackage(s);
+					return; 
 				}
 				s = HistoricalSourceView.tryToMapPath(s);
 				file = EclipseUtility.resolveIFile(s);
@@ -130,6 +133,10 @@ public class EditorUtil {
 		}
 	}
 	
+	private static void handlePackage(String pkg) {
+		PromisesXMLEditor.openInEditor(PackageDrop.computeXMLPath(pkg), false);
+	}
+
 	private static boolean handleIClassFile(final ISrcRef srcRef) throws JavaModelException {
 		final char slash  = '/'; // File.separatorChar;
 		final String pkg  = srcRef.getPackage().replace('.', slash);
