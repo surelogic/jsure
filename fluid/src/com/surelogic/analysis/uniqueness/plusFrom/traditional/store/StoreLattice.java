@@ -162,6 +162,12 @@ extends TripleLattice<Element<Integer>,
     }
     return m;
   }
+  
+  @Override
+  public Store meet(final Store s1, final Store s2) {
+    Store m = super.meet(s1, s2);
+    return m;
+  }
 
   
   
@@ -175,16 +181,16 @@ extends TripleLattice<Element<Integer>,
     return setStackSize(s, n+1);
   }
   
-  private Store pop(final Store s) {
+  private Store pop(Store s) {
     if (!s.isValid()) return s;
     final Integer topOfStack = getStackTop(s);
     final int n = topOfStack.intValue();
     if (n == 0) {
       return errorStore("stack underflow");
     }
-    return setStackSize(
-        apply(s, new Remove(EMPTY.addElement(topOfStack))),
-        Integer.valueOf(n-1));
+    s = apply(s, new Remove(EMPTY.addElement(topOfStack)));
+    if (!s.isValid()) return s;
+    return setStackSize(s, Integer.valueOf(n-1));
   }
   
   /**
@@ -679,7 +685,9 @@ extends TripleLattice<Element<Integer>,
     	// (2) every object aliased to the top includes a borrowed(allowReturn) parameter/receiver
     	// (3) this variable is final
     	// (4) we have effects "writes v:Instance" for that variable (v).
-    	if (!isFinalField(fieldDecl)) return errorStore("borrowed field must be final");
+      
+      // Used to check that the borrowed field is final, but the sanity checker already does that.
+
     	// perform remaining checks
     	s = opReturn(s, fieldDecl);
       if (!s.isValid()) return s;
@@ -723,8 +731,7 @@ extends TripleLattice<Element<Integer>,
 				  }
 			  }
 			  if (auth == null) return errorStore("no allowReturn even though returned");
-			  if (!isFinalParam(auth)) 
-				  return errorStore("allowReturn must be final");
+			  // used to check that the @Borrowed(allowReturn=true) parameter is final, but the sanity checker already does that.
 			  boolean found = false;
 			  // TODO: I think with the new BorrowedReadOnly, we might be able to avoid this looking
 			  // around.  Especially if we distinguished USELESS from BORROWEDREADONLY
@@ -745,17 +752,6 @@ extends TripleLattice<Element<Integer>,
 		  }
 	  }
 	  return s;
-  }
-
-  private boolean isFinalParam(IRNode auth) {
-	  Operator op = JJNode.tree.getOperator(auth);
-	  return JavaNode.getModifier(auth, JavaNode.FINAL) ||
-	  (op instanceof ReceiverDeclaration) ||
-	  (op instanceof QualifiedReceiverDeclaration);
-  }
-
-  private boolean isFinalField(IRNode fdecl) {
-	  return JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree.getParent(fdecl)),JavaNode.FINAL);
   }
 
   /**
