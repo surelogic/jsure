@@ -488,6 +488,9 @@ public final class JavaNames {
 		if (op instanceof TypeDeclInterface) {
 			return getFullTypeName(node);
 		}
+		if (NamedPackageDeclaration.prototype.includes(op)) {
+			return NamedPackageDeclaration.getId(node);
+		}
 		final IRNode type = VisitUtil.getEnclosingType(node);
 		if (type == null) {
 			return getFieldDecl(node);
