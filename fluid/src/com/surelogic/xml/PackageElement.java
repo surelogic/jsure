@@ -144,7 +144,11 @@ public class PackageElement extends AnnotatedJavaElement {
 	
 	@Override
 	public PackageElement cloneMe() {
-		PackageElement e = new PackageElement(getName(), revision, clazz.cloneMe());
+		ClassElement cl = null;
+		if (clazz != null) {
+			cl = clazz.cloneMe();
+		}
+		PackageElement e = new PackageElement(getName(), revision, cl);
 		copyToClone(e);
 		return e;
 	}

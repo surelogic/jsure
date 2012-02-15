@@ -25,7 +25,9 @@ public abstract class AbstractJavaElementVisitor<T> implements IJavaElementVisit
 	}
 	
 	public T visit(PackageElement packageElt) {
-		return visit(packageElt.getClassElement());
+		T result = visit(packageElt.getClassElement());
+		result = combine(result, visitAnnotated(packageElt));
+		return result;
 	}
 
 	public T visit(ClassElement classElt) {

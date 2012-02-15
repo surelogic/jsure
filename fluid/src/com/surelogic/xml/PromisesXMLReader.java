@@ -186,7 +186,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	}
 	
 	public static PackageElement loadRaw(File f) throws Exception {
-		if (!f.isFile()) {
+		if (!f.isFile() || f.length() == 0) {
 			return null;
 		}
 		InputStream is = new FileInputStream(f);
