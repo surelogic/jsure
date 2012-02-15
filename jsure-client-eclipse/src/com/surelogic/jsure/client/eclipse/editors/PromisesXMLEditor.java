@@ -994,7 +994,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 		@Override
 		public void addPackage(final String qname) {
-			getPkg(qname);
+			Collection<String> c = getPkg(qname);
+			c.add(qname);
 		}
 
 		@Override
