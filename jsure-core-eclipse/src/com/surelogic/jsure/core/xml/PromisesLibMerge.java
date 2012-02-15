@@ -46,7 +46,7 @@ public final class PromisesLibMerge {
 
 		final File fLibPath = new File(fLibRoot, relativePath);
 		final File libPath = new File(libRoot, relativePath);
-		if (!fLibPath.exists() || !libPath.exists()) {			
+		if (!libPath.exists()) {			
 			//System.out.println("Nothing to merge: "+relativePath);
 			return; // Nothing else to do
 		}		

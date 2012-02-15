@@ -48,6 +48,8 @@ import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.PromisesXMLReader;
 import com.surelogic.xml.TestXMLParserConstants;
 
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
+
 public class XMLExplorerView extends AbstractJSureView {
 
 	private final Provider f_content = new Provider();
@@ -66,6 +68,16 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 		}
 	};
+	
+	/*
+	private final Action f_new = new Action("New ...") {
+		@Override
+		public void run() {
+			//TypeSelectionDialog
+			PromisesXMLEditor.openInEditor("", false);
+		}
+	};
+    */
 
 	private final Action f_toggleShowDiffs = new Action(
 			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
@@ -218,14 +230,15 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(f_open);
+		//manager.add(f_new);
 		manager.add(new Separator());
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
 
 		final Object o = s.getFirstElement();
-		if (XUtil.useExperimental() && o instanceof Type) {
-			final Type t = (Type) o;
-			if (t.isLocal) {
+		if (XUtil.useExperimental() && o instanceof Filterable) {
+			final Filterable t = (Filterable) o;
+			if (t.hasLocal()) {
 				final boolean hasUpdate = t.hasUpdate();
 				manager.add(new Separator());
 				manager.add(new Action(hasUpdate ? "Update local XML"
@@ -479,8 +492,11 @@ public class XMLExplorerView extends AbstractJSureView {
 	}
 
 	interface Filterable {
+		boolean hasLocal();
+		boolean hasUpdate();
+		String getPath();
+		
 		boolean hasDiffs();
-
 		boolean hasConflicts();
 	}
 
@@ -500,18 +516,24 @@ public class XMLExplorerView extends AbstractJSureView {
 	static class Package implements Filterable, Comparable<Package> {
 		final String name;
 		final Type[] types;
+		final boolean isLocal;
 
 		public Package(Entry<String, Collection<String>> e,
 				Collection<String> local) {
 			final boolean hasLocal = local != null;
 			name = e.getKey();
-			types = new Type[e.getValue().size()];
+			// Adjust for package-info XML
+			types = new Type[e.getValue().size() - (e.getValue().contains(name) ? 1 : 0)];
 			int i = 0;
 			for (String type : e.getValue()) {
+				if (name.equals(type)) {
+					continue;
+				}
 				types[i] = new Type(this, type, hasLocal ? local.contains(type)
 						: false);
 				i++;
 			}
+			isLocal = hasLocal && local.contains(name);
 			Arrays.sort(types);
 		}
 
@@ -543,6 +565,10 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public boolean hasDiffs() {
+			if (isLocal) {
+				return true;
+			}
+			// TODO check for mods in the package
 			for (Type t : types) {
 				if (t.hasDiffs()) {
 					return true;
@@ -550,6 +576,22 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			return false;
 		}
+
+		@Override
+		public String getPath() {
+			return PackageDrop.computeXMLPath(name);
+		}
+
+		@Override
+		public boolean hasLocal() {
+			return isLocal;
+		}
+
+		@Override
+		public boolean hasUpdate() {
+			return PromisesLibMerge.checkForUpdate(getPath());
+		}
+		
 	}
 
 	static class Type implements Filterable, Comparable<Type> {
@@ -564,7 +606,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			this.isLocal = isLocal;
 		}
 
-		String getPath() {
+		public String getPath() {
 			if (pkg.name.length() == 0) {
 				return name	+ TestXMLParserConstants.SUFFIX;
 			}
@@ -576,7 +618,11 @@ public class XMLExplorerView extends AbstractJSureView {
 			return true;
 		}
 
-		boolean hasUpdate() {
+		public boolean hasLocal() {
+			return isLocal;
+		}
+		
+		public boolean hasUpdate() {
 			return PromisesLibMerge.checkForUpdate(getPath());
 		}
 

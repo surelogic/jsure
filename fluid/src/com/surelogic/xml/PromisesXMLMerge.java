@@ -2,8 +2,6 @@ package com.surelogic.xml;
 
 import java.io.File;
 
-import com.surelogic.common.FileUtility;
-
 public class PromisesXMLMerge implements TestXMLParserConstants {
 	public static final boolean onlyKeepDiffs = true;
 	
@@ -40,57 +38,9 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 					//System.out.println("Ignoring "+from);
 					return; // No need to do anything
 				}
-				// Copy 
-				System.out.println("Copying "+from+" into "+to);
-				to.getParentFile().mkdirs();
-				FileUtility.copy(from, to);
+				copy(to, from);
 			} else {
-				try {					
-					// Merge
-					System.out.println("Merging "+from+" into "+to);
-					PackageElement target = PromisesXMLReader.loadRaw(to);
-					PackageElement source = PromisesXMLReader.loadRaw(from);
-					PackageElement merged;
-					if (onlyKeepDiffs) {
-						if (onlyMerge) {
-							// Updating client
-							// target from libPath
-							// source from fLibPath
-							if (!source.needsToUpdate(target)) {
-								return;
-							}
-							PackageElement all = merge_private(onlyMerge, target, source);	
-							merged = diff(all);
-						} else {
-							// Merging to fluid 
-							/* Simulates what we used to do
-							PackageElement all = merge_private(!onlyMerge, source, target);	
-							merged = merge_private(onlyMerge, target, all);
-							*/
-							merged = merge_private(onlyMerge, target, source);	
-							// Need to clear modified bits
-							merged.visit(new Cleaner());
-						}
-					} else {
-						merged = merge_private(onlyMerge, target, source);	
-					}					
-					PromisesXMLWriter w = new PromisesXMLWriter(to);
-					w.write(merged);
-					if (!onlyMerge) {
-						// Merging all changes to fluid, so they should both be the same afterward
-						// (or the local one should be deleted/empty)
-						// TODO what about conflicts?
-						if (PromisesXMLMerge.onlyKeepDiffs) {
-							from.delete();
-						} else {
-							w = new PromisesXMLWriter(from);
-							w.write(merged);
-						}
-					}
-				} catch (Exception e) {
-					System.err.println("While merging "+from+" into "+to);
-					e.printStackTrace();
-				}
+				merge2(onlyMerge, to, from);
 			}
 		} 
 		else if (from.isDirectory()) {
@@ -99,6 +49,83 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			}
 		}
 		// 'from' doesn't exist, so nothing to do
+	}
+	
+	private static void copy(File to, File from) {		
+		System.out.println("Copying "+from+" into "+to);
+		to.getParentFile().mkdirs();
+		/*
+		FileUtility.copy(from, to);
+		*/
+		// Can't just copy, due to dirty bits
+		try {
+			PackageElement cleaned = PromisesXMLReader.loadRaw(from);
+			cleaned.visit(new Cleaner());
+			
+			PromisesXMLWriter w = new PromisesXMLWriter(to);
+			w.write(cleaned);
+			if (onlyKeepDiffs) {
+				from.delete();
+			} else {
+				w = new PromisesXMLWriter(from);
+				w.write(cleaned);
+			}
+		} catch (Exception e) {
+			System.err.println("While copying "+from+" into "+to);
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Merge from a file to another (both exist)
+	 */
+	private static void merge2(final boolean onlyMerge, File to, File from) {
+		try {					
+			// Merge
+			System.out.println("Merging "+from+" into "+to);
+			PackageElement target = PromisesXMLReader.loadRaw(to);
+			PackageElement source = PromisesXMLReader.loadRaw(from);
+			PackageElement merged;
+			if (onlyKeepDiffs) {
+				if (onlyMerge) {
+					// Updating client
+					// target from libPath
+					// source from fLibPath
+					if (!source.needsToUpdate(target)) {
+						return;
+					}
+					PackageElement all = merge_private(onlyMerge, target, source);	
+					merged = diff(all);
+				} else {
+					// Merging to fluid 
+					/* Simulates what we used to do
+					PackageElement all = merge_private(!onlyMerge, source, target);	
+					merged = merge_private(onlyMerge, target, all);
+					*/
+					merged = merge_private(onlyMerge, target, source);	
+					// Need to clear modified bits
+					merged.visit(new Cleaner());
+				}
+			} else {
+				merged = merge_private(onlyMerge, target, source);	
+			}					
+			PromisesXMLWriter w = new PromisesXMLWriter(to);
+			w.write(merged);
+			if (!onlyMerge) {
+				// Merging all changes to fluid, so they should both be the same afterward
+				// (or the local one should be deleted/empty)
+				// TODO what about conflicts?
+				if (PromisesXMLMerge.onlyKeepDiffs) {
+					from.delete();
+				} else {
+					w = new PromisesXMLWriter(from);
+					w.write(merged);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("While merging "+from+" into "+to);
+			e.printStackTrace();
+		}
 	}
 	
 	/**
