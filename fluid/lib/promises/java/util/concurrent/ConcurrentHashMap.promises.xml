@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" revision="1">
     <class name="ConcurrentHashMap">
+        <ThreadSafe revision="1"/>
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
@@ -47,53 +48,25 @@
             <RegionEffects>reads Instance</RegionEffects>
         </method>
 
+        <class name="EntryIterator">
+            <method name="next">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
         <class name="EntrySet">
-			<method name="isEmpty">
+            <method name="isEmpty">
                 <Borrowed>this</Borrowed>
-                <!-- not really true -->
                 <RegionEffects>reads this:Instance</RegionEffects>
-            </method>        
-        
-            <method name="iterator">
-              <Borrowed allowReturn="true">this</Borrowed>
-              <RegionEffects>writes this:Instance</RegionEffects>
-              <Unique>return</Unique>
             </method>
-        </class>
 
-        <class name="KeySet">
-			<method name="isEmpty">
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
-            </method>   
-            
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
         </class>
-
-        <class name="Segment">
-            <ThreadSafe/>
-        </class>
-
-        <class name="Values">
-			<method name="isEmpty">
-                <Borrowed>this</Borrowed>
-                <!-- not really true -->
-                <RegionEffects>reads this:Instance</RegionEffects>
-            </method>   
-            
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
-        </class>
-
-
 
         <class name="HashIterator">
             <method name="hasMoreElements">
@@ -112,11 +85,28 @@
             </method>
         </class>
 
-        <class name="EntryIterator">
+        <class name="KeyIterator">
             <method name="next">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
+        </class>
+
+        <class name="KeySet">
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
+        <class name="Segment">
+            <ThreadSafe/>
         </class>
 
         <class name="ValueIterator">
@@ -126,10 +116,16 @@
             </method>
         </class>
 
-        <class name="KeyIterator">
-            <method name="next">
+        <class name="Values">
+            <method name="isEmpty">
                 <Borrowed>this</Borrowed>
-                <RegionEffects>writes Instance</RegionEffects>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
     </class>

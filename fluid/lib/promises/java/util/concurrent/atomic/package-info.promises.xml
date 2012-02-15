@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic">
-    <Promise uid="b24c5c23-de32-4441-bf2f-a030c95ee3c7">@ThreadSafe for * &amp; !(*FieldUpdater)</Promise>
+<package name="java.util.concurrent.atomic" revision="1">
+    <Promise delete="true" revision="2" uid="b24c5c23-de32-4441-bf2f-a030c95ee3c7">@ThreadSafe for * &amp; !(*FieldUpdater)</Promise>
 </package>

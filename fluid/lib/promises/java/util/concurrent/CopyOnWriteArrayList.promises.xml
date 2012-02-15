@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" revision="1">
     <class name="CopyOnWriteArrayList">
         <Promise uid="4406f305-41e5-4b64-a1ca-1c4180b245aa">@Unique(return) for new(**)</Promise>
         <Promise uid="7e0fb993-d77e-45db-9117-912040378930">@RegionEffects(reads arg0:Instance) for new(*)</Promise>
-
+        <ThreadSafe revision="1"/>
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
@@ -15,7 +15,7 @@
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
-        
+
         <method name="listIterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
@@ -27,13 +27,13 @@
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
-        
+
         <class name="COWSubList">
-            <constructor params="java.util.CopyOnWriteArrayList, int, int">
-                <borrowed>this</borrowed>
+            <constructor params="java.util.CopyOnWriteArrayList,int,int">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>reads arg0:Instance</RegionEffects>
             </constructor>
-            
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>

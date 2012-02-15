@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic">
+<package name="java.util.concurrent.atomic" revision="1">
     <class name="AtomicReference">
+        <ThreadSafe revision="1"/>
         <constructor>
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>

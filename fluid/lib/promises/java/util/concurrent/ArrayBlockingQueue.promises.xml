@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" revision="1">
     <class name="ArrayBlockingQueue">
+        <ThreadSafe revision="1"/>
         <method name="iterator">
-            <!--starts>nothing</starts-->
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>

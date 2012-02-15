@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent" revision="0">
+    <class name="ConcurrentMap">
+        <ThreadSafe revision="1"/>
+    </class>
+</package>
