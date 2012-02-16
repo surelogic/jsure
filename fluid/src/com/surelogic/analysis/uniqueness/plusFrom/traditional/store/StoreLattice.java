@@ -643,7 +643,7 @@ extends TripleLattice<Element<Integer>,
 	  
 	  if (!State.lattice.lessEq(localStatus,State.SHARED)) {
 		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
-		  return errorStore("mutation not legal on this reference: ");
+		  return errorStore("mutation not legal on this reference");
 	  }
 	  return s;
   }
