@@ -418,6 +418,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		/** The unique and borrowed fields accessed */
 		public final Set<PromiseDrop<? extends IAASTRootNode>> uniqueFields;
 		
+		public final Set<ImmutableRefPromiseDrop> usedImmutableFields;
+		public final Set<ReadOnlyPromiseDrop> usedReadOnlyFields;
+		
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
 
@@ -468,7 +471,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       calledBorrowedReceiverAsUniqueReturn = new HashSet<ResultDropBuilder>();
 			calledEffects = new HashSet<ResultDropBuilder>();
 			uniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-
+			usedImmutableFields = new HashSet<ImmutableRefPromiseDrop>();
+			usedReadOnlyFields = new HashSet<ReadOnlyPromiseDrop>();
+			
 			callsToDrops = new HashMap<IRNode, Set<ResultDropBuilder>>();
 			
 			// Create the control flow drop for the block
@@ -599,6 +604,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
   		        }
+  		        final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(varDecl);
+  		        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(varDecl);
+  		        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
+  		        if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
   		      }
 		      }
 		    }
@@ -642,6 +651,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     addDependencies(pr.calledImmtuableReturns, fooSet);
     addDependencies(pr.calledReadOnlyReturns, fooSet);
+    
+    addDependencies(pr.usedImmutableFields, fooSet);
+    addDependencies(pr.usedReadOnlyFields, fooSet);
     
     /*
      * Set up the borrowed dependencies. Each parameter of the method that is
@@ -782,6 +794,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (UniquenessUtils.isFieldBorrowed(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
         }
+        final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(fdecl);
+        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(fdecl);
+        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
+        if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
       }
 
       // Is it a method call
@@ -1152,12 +1168,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     public Void visitFieldRef(final IRNode fieldRef) {
       /* Case (2): A use of a UNIQUE, BORROWED, READ-ONLY, or IMMUTABLE field. */
       final IRNode fdecl = binder.getBinding(fieldRef);
-      if (UniquenessUtils.isFieldUnique(fdecl)
+      if (
+          UniquenessUtils.isFieldUnique(fdecl)
           || UniquenessUtils.isFieldBorrowed(fdecl)
           || UniquenessRules.isReadOnly(fdecl)
           || LockRules.isImmutableRef(fdecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
+      doAcceptForChildren(fieldRef);
       return null;
     }
     
