@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" revision="1">
     <class name="ConcurrentSkipListSet">
-        <Promise>@Unique(return) for new(**)</Promise>
-        <Promise>@RegionEffects(writes arg0:Instance) for new(*)</Promise>
-
+        <Promise uid="e4388036-bc88-4b95-8884-e513c4fdf781">@Unique(return) for new(**)</Promise>
+        <Promise uid="5212c6c8-0548-433b-bb50-070f83f512e9">@RegionEffects(writes arg0:Instance) for new(*)</Promise>
+        <ThreadSafe revision="1"/>
         <method name="clear">
-        	<Borrowed>this</Borrowed>
+            <Borrowed>this</Borrowed>
         </method>
 
         <method name="isEmpty">
-        	<Borrowed>this</Borrowed>
+            <Borrowed>this</Borrowed>
         </method>
-        
+
         <method name="iterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
-        </method>    
+        </method>
     </class>
 </package>
