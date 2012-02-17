@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="2">
     <class name="ArrayList">
         <constructor>
             <Borrowed>this</Borrowed>
@@ -21,25 +21,21 @@
         </constructor>
 
         <method name="add" params="java.lang.Object">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="clear">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="ensureCapacity" params="int">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="get" params="int">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
@@ -49,27 +45,94 @@
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>
 
+        <method name="iterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="listIterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="listIterator" params="int">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
         <method name="remove" params="int">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="set" params="int,java.lang.Object">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="size">
-            <!--starts>nothing</starts-->
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="toArray" params="java.lang.Object[]">
-            <!--starts>nothing</starts-->
             <RegionEffects>reads Instance</RegionEffects>
         </method>
+
+        <class name="Itr">
+            <method name="hasNext">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="ListItr">
+            <method name="hasPrevious">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="nextIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="previous">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+
+            <method name="previousIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="SubList">
+            <method name="iterator">
+                <Borrowed allowReturn="true" revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+                <Unique revision="1">return</Unique>
+            </method>
+
+            <method name="listIterator" params="int">
+                <Borrowed allowReturn="true" revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+                <Unique revision="1">return</Unique>
+            </method>
+        </class>
     </class>
 </package>
