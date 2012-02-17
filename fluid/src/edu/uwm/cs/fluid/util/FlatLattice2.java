@@ -23,6 +23,16 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     public T getValue() {
       throw new UnsupportedOperationException();
     }
+    
+    // Force equals, toString, and hashCode to be overridden
+    @Override
+    public abstract String toString();
+    
+    @Override
+    public abstract boolean equals(Object other);
+
+    @Override
+    public abstract int hashCode();
   }
   
   private final static class Bottom<T> extends Element<T> {
@@ -129,12 +139,8 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
   
   @Override
   public boolean equals(final Element<T> v1, final Element<T> v2) {
-//    if (v1 == null) {
-//      return v2 == null;
-//    } else {
-      if (v1.height != v2.height) return false;
-      return v1.height != 0 || v1.getValue().equals(v2.getValue());
-//    }
+    if (v1.height != v2.height) return false;
+    return v1.height != 0 || v1.getValue().equals(v2.getValue());
   }
   
   public boolean lessEq(final Element<T> v1, final Element<T> v2) {
