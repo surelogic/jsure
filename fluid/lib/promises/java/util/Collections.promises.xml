@@ -1,35 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="2">
     <class name="Collections">
         <method name="unmodifiableList" params="java.util.List">
             <RegionEffects>none</RegionEffects>
             <Unique>return</Unique>
         </method>
-
-        <class name="CheckedCollection">
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
-        </class>
-
-        <class name="SynchronizedCollection">
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
-        </class>
-
-        <class name="UnmodifiableCollection">
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
-        </class>
 
         <class name="AsLIFOQueue">
             <method name="isEmpty">
@@ -42,10 +18,18 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
-            
+
             <method name="remove">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="CheckedCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
             </method>
         </class>
 
@@ -123,14 +107,62 @@
             </class>
         </class>
 
+        <class name="EmptyIterator">
+            <method name="hasNext">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+        </class>
+
         <class name="EmptyList">
-    		<Promise>@Borrowed(this) for *terator(**)</Promise>    	
-	    	<Promise>@RegionEffects(reads this:Instance) for *terator(**)</Promise>   
-	    	
+            <Promise delete="true" revision="2" uid="6aa75e45-db5d-443e-9421-8cd07952855e">@Borrowed(this) for *terator(**)</Promise>
+            <Promise uid="1a5961bc-62f8-4a02-90c5-90414c44da8e">@RegionEffects(reads this:Instance) for *terator(**)</Promise>
             <method name="isEmpty">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
-            </method>	    	
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true" revision="1">this</Borrowed>
+                <Unique revision="1">return</Unique>
+            </method>
+
+            <method name="listIterator">
+                <Borrowed allowReturn="true" revision="1">this</Borrowed>
+                <Unique revision="1">return</Unique>
+            </method>
+        </class>
+
+        <class name="EmptyListIterator">
+            <method name="hasPrevious">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="nextIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="previous">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="previousIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="EmptyMap">
@@ -145,7 +177,6 @@
             </method>
 
             <method name="hashCode">
-                <!--starts>nothing</starts-->
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
                 <Transparent/>
@@ -173,16 +204,16 @@
         </class>
 
         <class name="EmptySet">
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
-
-            <method name="isEmpty">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
-            </method>            
         </class>
 
         <class name="SetFromMap">
@@ -251,6 +282,14 @@
             </method>
         </class>
 
+        <class name="SynchronizedCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
         <class name="SynchronizedList">
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
@@ -312,6 +351,14 @@
             </method>
         </class>
 
+        <class name="UnmodifiableCollection">
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
+
         <class name="UnmodifiableList">
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
@@ -327,14 +374,6 @@
         </class>
 
         <class name="UnmodifiableMap">
-            <class name="UnmodifiableEntrySet">
-                <method name="iterator">
-                    <Borrowed allowReturn="true">this</Borrowed>
-                    <RegionEffects>writes this:Instance</RegionEffects>
-                    <Unique>return</Unique>
-                </method>
-            </class>
-            
             <method name="clear">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
@@ -379,6 +418,14 @@
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
+
+            <class name="UnmodifiableEntrySet">
+                <method name="iterator">
+                    <Borrowed allowReturn="true">this</Borrowed>
+                    <RegionEffects>writes this:Instance</RegionEffects>
+                    <Unique>return</Unique>
+                </method>
+            </class>
         </class>
     </class>
 </package>

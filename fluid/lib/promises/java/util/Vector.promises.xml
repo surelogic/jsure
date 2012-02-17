@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="2">
     <class name="Vector">
-    	<Promise>@Borrowed(this) for *terator(**)</Promise>    	
-	    <Promise>@RegionEffects(reads this:Instance) for *terator(**)</Promise>    
-                
+        <Promise delete="true" revision="2" uid="0e188642-e7bd-4867-bbbc-5e03abc99332">@Borrowed(this) for *terator(**)</Promise>
+        <Promise delete="true" revision="2" uid="fd6ca6cc-4613-4f6a-9368-17996e9505a6">@RegionEffects(reads this:Instance) for *terator(**)</Promise>
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
@@ -14,5 +13,62 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>
+
+        <method name="iterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="listIterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="listIterator" params="int">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <class name="Itr">
+            <method name="hasNext">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+        </class>
+
+        <class name="ListItr">
+            <method name="hasPrevious">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="nextIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+
+            <method name="previous">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">writes Instance</RegionEffects>
+            </method>
+
+            <method name="previousIndex">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads Instance</RegionEffects>
+            </method>
+        </class>
     </class>
 </package>
