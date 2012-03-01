@@ -68,6 +68,9 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		}
 	}
 	
+	/**
+	 * Find projects that don't have the promises jar
+	 */
 	private List<IJavaProject> findProjectsWithoutPromises(List<? extends IProposedPromiseDropInfo> proposals) {
 		final Set<String> projects = new HashSet<String>();
 		for(IProposedPromiseDropInfo p : proposals) {
@@ -77,6 +80,9 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		final List<IJavaProject> missing = new ArrayList<IJavaProject>();
 		for(String name : projects) {		
 			final IJavaProject proj = JDTUtility.getJavaProject(name);
+			if (proj == null) {
+				continue; // Skip this since it's the JRE
+			}
 			if (!JSureUtility.checkForRegionLockPromiseOnClasspathOf(proj)) {
 				missing.add(proj);
 			}			
