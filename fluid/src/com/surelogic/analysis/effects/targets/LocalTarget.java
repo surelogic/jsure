@@ -110,6 +110,15 @@ public final class LocalTarget extends AbstractTarget {
       final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
     return TargetRelationship.newUnrelated();
   }
+  
+  public boolean mayTargetStateOfReference(
+      final IBinder binder, final IRNode formal) {
+    /* Doesn't make sense because we should not have a local target in the 
+     * declared effects.
+     */
+    throw new UnsupportedOperationException(
+        "Doesn't make sense to use this method on a local target");
+  }
 
   
 

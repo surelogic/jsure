@@ -67,14 +67,24 @@ public interface Target {
       IMayAlias mayAlias, IBinder binder, Target t);
   
   /**
+   * Does an effect on this target have the potential to affect the state of an
+   * object referenced by given formal parameter or receiver?
+   */
+  public boolean mayTargetStateOfReference(IBinder b, IRNode formal);
+  
+  /**
    * The checkTgt relationship from Chapter 4 of Aaron's dissertation. The
    * receiver must be a target from an effect that has been through elaboration
    * and masking. The parameter <code>declaredTarget</code> must be a target from an
    * effect declared on a method. (This is related to the old includes relationship, but
    * that was semantically suspect, and this operation is more narrowly scoped.)
+   * 
+   * <p>For <code>x.checkTarget(binder, y)</code> we have that <code>x</code>
+   * is a target from an implementation effect, and that <code>y</code> is a 
+   * target from a method's declared effects.
    */
   public boolean checkTarget(IBinder b, Target declaredTarget);
-
+  
   
   
   /**
@@ -96,7 +106,7 @@ public interface Target {
    * Add the string representation of the target to the given StringBuilder.
    * 
    * @param sb
-   *          The StringBuilder to add the string representatin to.
+   *          The StringBuilder to add the string representation to.
    * @return Returns <code>sb</code>.
    */
   public StringBuilder toString(StringBuilder sb);

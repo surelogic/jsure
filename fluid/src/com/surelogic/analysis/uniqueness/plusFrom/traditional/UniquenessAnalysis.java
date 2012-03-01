@@ -276,6 +276,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final Effects effects;
     
     
+    
     // ==================================================================
     // === Constructor 
     // ==================================================================
@@ -343,6 +344,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(
+        final IRNode call, final IRNode mdecl,
         final int numFormals, final IRNode formals,
         final List<Effect> declEffects, Store s) {
       for (final Effect f : declEffects) {
@@ -428,7 +430,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
         // check for sneaky mutations
-        if (f.isWrite()) s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
+//        if (f.isWrite()) s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {
@@ -441,10 +443,44 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	s = lattice.opLoad(s, r.getNode());
         	s = lattice.opRelease(s);
         }
+        
+        if (f.isWrite()) {
+          /* Loop over each formal (including the receiver) (qualified receivers
+           * cannot be @Immutable or @ReadOnly) and see if the effect covers
+           * an effect on the state of the object referenced by the formal
+           * parameter.
+           */
+          if (!TypeUtil.isStatic(mdecl)) {
+            final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
+            final int depth = hasOuterObject(call) ? numFormals + 1 : numFormals;
+            s = checkMutationOfParameters(s, t, rcvr, depth);
+          }
+          
+          for (int i = 0; i < numFormals; ++i) {
+            // Create "writes(p:Instance)"
+            final IRNode formal = tree.getChild(formals, i);
+            s = checkMutationOfParameters(
+                s, t, formal, computeDepthOfFormal(numFormals, i));
+          }
+        }
       }
       return s;
     }
 
+    private Store checkMutationOfParameters(
+        Store s, final Target declaredTarget,
+        final IRNode formal, final int stackDepth) {
+      if (declaredTarget.mayTargetStateOfReference(binder, formal)) {
+        // State of the object passed as a parameter may be affected
+        s = lattice.opDup(s, stackDepth);
+        if (!s.isValid()) return s;
+        // check for sneaky mutations
+        s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
+        s = pop(s);
+      }
+      return s;
+    }
+    
 	/**
 	 * Get the stack depth of the actual parameter connected to this
 	 * formal parameter (or receiver or qualified receiver).
@@ -463,12 +499,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	
     	for (int i = 0; i < numFormals; ++i) {
     		if (tree.getChild(formals, i).equals(formal)) {
-    			return numFormals - i - 1;  // was + 1; fixed 2011-01-07
+    			return computeDepthOfFormal(numFormals, i);
     		}
     	}
 
     	return null;
     }
+
+  private static int computeDepthOfFormal(final int numFormals, final int i) {
+    return numFormals - i - 1;  // was + 1; fixed 2011-01-07
+  }
 
 //    /**
 //     * Return true if the given region may have a field in the given class that is
@@ -711,7 +751,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       // XXX: leave this: will need for side-effecting later
       // final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       if (mdecl != null) {
-        s = considerDeclaredEffects(
+        s = considerDeclaredEffects(node, mdecl,
             numActuals, formals, effects.getMethodEffects(mdecl, node), s);
       }
       
@@ -887,7 +927,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           rcvr = JavaPromise.getReceiverNode(flowUnit);
         }
         s = lattice.opGet(s, rcvr);
-//        s = lattice.opThis(s);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }

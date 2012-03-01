@@ -385,6 +385,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       if (uDrop != null) {
         addField(getEnclosingDecl(), uDrop);
       }
+      doAcceptForChildren(fieldRef);
       return null;
     }
     

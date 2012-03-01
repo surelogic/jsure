@@ -176,6 +176,11 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  public boolean mayTargetStateOfReference(
+      final IBinder binder, final IRNode formal) {
+    return areDirectlyRelated(binder, binder.getJavaType(formal), this.clazz);
+  }
+
   
   
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
@@ -220,7 +225,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
 
-  
+ 
   
   public AnyInstanceTarget changeEvidence(final TargetEvidence e) {
     return new AnyInstanceTarget(clazz, region, e);

@@ -238,6 +238,11 @@ public final class InstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  public boolean mayTargetStateOfReference(
+      final IBinder binder, final IRNode formal) {
+    return this.reference.equals(formal);
+  }
+
   
   
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {

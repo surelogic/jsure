@@ -138,6 +138,16 @@ public final class ClassTarget extends AbstractTarget {
     }
   }
 
+  public boolean mayTargetStateOfReference(
+      final IBinder binder, final IRNode formal) {
+    /* This is too conservative.  I should really check to see if any of the
+     * instance regions in the referenced object are a subregion of the region
+     * in this target.
+     */
+    return areDirectlyRelated(
+        binder, binder.getJavaType(formal), getRelativeClass(binder));
+  }
+
   
   
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {

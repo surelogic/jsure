@@ -88,6 +88,11 @@ public final class EmptyTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  public boolean mayTargetStateOfReference(
+      final IBinder binder, final IRNode formal) {
+    return false;
+  }
+
 
   
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
@@ -105,28 +110,28 @@ public final class EmptyTarget extends AbstractTarget {
   @Override
   boolean checkTargetAgainstLocal(
       final IBinder b, final LocalTarget actualTarget) {
-    return true;
+    return false;
   }
 
   // Receiver is the target from the declared effect
   @Override
   boolean checkTargetAgainstAnyInstance(
       final IBinder b, final AnyInstanceTarget actualTarget) {
-    return true;
+    return false;
   }
 
   // Receiver is the target from the declared effect
   @Override
   boolean checkTargetAgainstClass(
       final IBinder b, final ClassTarget actualTarget) {
-    return true;
+    return false;
   }
   
   // Receiver is the target from the declared effect
   @Override
   boolean checkTargetAgainstInstance(
       final IBinder b, final InstanceTarget actualTarget) {
-    return true;
+    return false;
   }
   
   

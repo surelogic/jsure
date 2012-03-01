@@ -1078,6 +1078,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           UniquenessUtils.isFieldBorrowed(fdecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
+      doAcceptForChildren(fieldRef);
       return null;
     }
     
