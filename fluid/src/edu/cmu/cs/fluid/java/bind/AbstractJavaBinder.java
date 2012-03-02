@@ -1140,6 +1140,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  return false; // skip the work   
       }
       */
+      /*
+      if (name.equals("toArray")) {
+    	  System.out.println("Binding call: "+DebugUnparser.toString(call));
+      }
+      */
       final IJavaType[] argTypes = getArgTypes(args);
       if (debug) {
         StringBuilder sb = buildStringOfArgTypes(argTypes);
@@ -1773,6 +1778,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
       IRNode formals = isConstructor ?
           ConstructorDeclaration.getParams(node) : MethodDeclaration.getParams(node);
+      /*
+      if ("of".equals(JJNode.getInfoOrNull(node))) {
+    	  System.out.println("Debugging "+JavaNames.getFullName(node));
+      }
+      */
       addDeclsToScope(tformals, sc);
       addDeclsToScope(formals, sc);
       
@@ -1910,6 +1920,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         }
         */
         IBinding b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
+        /*
+        if (name.equals("E")) {
+          	IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
+          	if (method != null && "of".equals(JJNode.getInfoOrNull(method))) {          	
+          		System.out.println("Binding E in "+JavaNames.getFullName(method)+" to "+
+          				JavaNames.getFullName(b.getNode()));
+          		IRNode enclosing = VisitUtil.getEnclosingDecl(b.getNode());
+          		System.out.println("\t = "+DebugUnparser.toString(enclosing));
+          		System.out.println();
+          	}
+        }
+        */
         // Added for debugging
         if (b == null && !isBinary(node)) {
           scope.printTrace(System.out, 0);
