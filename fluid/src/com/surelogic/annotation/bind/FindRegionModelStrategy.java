@@ -61,25 +61,25 @@ public class FindRegionModelStrategy extends AbstractSuperTypeSearchStrategy<IRe
           }
         }
       }	  
-		  if (reg == null) { 
-        //LOG.info("Couldn't find "+name+" as region, looking for field"); 
-        IRNode body = VisitUtil.getClassBody(type);
-        IRNode decl = BindUtil.findFieldInBody(body, name); 
-        if (decl != null) {
-          reg = RegionModel.getInstance(decl);          
-        } else if (LOG.isLoggable(Level.FINER)) {
-          LOG.finer("Couldn't find "+qname);
-        }
-		  }		         
-			searchAfterLastType = (reg == null);
-			
-			if (result == null) {
-				// Nothing found yet
-				result = reg;
-			} else if (!result.equals(reg)) {
-				// Found more than one distinct region
-				LOG.warning("Found a duplicate region: "+reg);
-			}
+      if (reg == null) { 
+    	  //LOG.info("Couldn't find "+name+" as region, looking for field"); 
+    	  IRNode body = VisitUtil.getClassBody(type);
+    	  IRNode decl = BindUtil.findFieldInBody(body, name); 
+    	  if (decl != null) {
+    		  reg = RegionModel.getInstance(decl);          
+    	  } else if (LOG.isLoggable(Level.FINER)) {
+    		  LOG.finer("Couldn't find "+qname);
+    	  }
+      }		         
+      searchAfterLastType = (reg == null);
+
+      if (result == null) {
+    	  // Nothing found yet
+    	  result = reg;
+      } else if (reg != null && !result.equals(reg)) {
+    	  // Found more than one distinct region
+    	  LOG.warning("Found a duplicate region: "+reg);
+      }
 		}
 	}
 }
