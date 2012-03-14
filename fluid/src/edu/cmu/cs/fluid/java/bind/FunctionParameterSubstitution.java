@@ -21,11 +21,8 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
 	  return actuals.isEmpty();
   }
   
-  /**
-   * Search for the substitution corresponding to the given type formal
-   * (if any)
-   */
-  public IJavaType get(IJavaTypeFormal jtf) {
+  @Override
+  protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
     IRNode decl = jtf.getDeclaration();
     IRNode parent = JJNode.tree.getParent(decl);
     IRNode md = JJNode.tree.getParent(parent);
@@ -33,11 +30,11 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
       Iterator<IRNode> ch = JJNode.tree.children(parent);
       for (IJavaType jt : actuals) {
         if (decl.equals(ch.next())) {
-            return captureWildcardType(jtf, decl, jt);
+            return processor.process(jtf, decl, jt);
         }
       }      
     }
-    return jtf;
+    return null;
   }
   
   public static IJavaTypeSubstitution create(IBinder b, IRNode md, Map<IJavaType, IJavaType> map) {    

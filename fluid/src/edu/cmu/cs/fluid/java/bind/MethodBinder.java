@@ -127,9 +127,22 @@ public class MethodBinder {
       Map<IJavaType,IJavaType> map;
       if (numTypeFormals != 0) {
         map = new HashMap<IJavaType,IJavaType>();
+        int i = 0;
         for(IRNode tf : JJNode.tree.children(typeFormals)) {
     		IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(tf);
-    		map.put(jtf, numTypeArgs == 0 ? jtf : mSubst.get(jtf)); // FIX slow lookup
+    		/*
+    		System.out.println("Mapping "+jtf+" within "+
+    				JavaNames.getFullName(VisitUtil.getEnclosingDecl(jtf.getDeclaration())));
+			*/
+    		if (numTypeArgs == 0) {    		
+    			IJavaType subst = mbind.convertType(jtf); 
+    			map.put(jtf, subst); // FIX slow lookup
+    		} else {
+    			IRNode targ = TypeActuals.getType(targs, i);
+    			IJavaType targT = binder.getJavaType(targ);
+    			map.put(jtf, targT);    			
+    		}
+    		i++;
         }
       } else {
         map = Collections.emptyMap();
@@ -274,6 +287,7 @@ System.out.println("matching against "+tmpTypes);
 
     	final IJavaTypeSubstitution subst;
     	if (!map.isEmpty() && mSubst == IJavaTypeSubstitution.NULL) {
+    		//System.out.println("Making method subst for "+JavaNames.getFullName(mbind.getNode()));
     		subst = 
     			FunctionParameterSubstitution.create(binder, mbind.getNode(), map);
     	} else {
@@ -403,10 +417,15 @@ System.out.println("matching against "+tmpTypes);
       
       // Check case 1
       if (fty instanceof IJavaTypeFormal) {
-        IJavaType rv = map.get(fty);        
-        if (rv == fty) { // no substitution yet
+    	IJavaTypeFormal tf = (IJavaTypeFormal) fty;
+    	/*
+        System.out.println("Trying to capture "+fty+" within "+
+        		JavaNames.getFullName(VisitUtil.getEnclosingDecl(tf.getDeclaration())));
+        */
+    	final IJavaType mapping = map.get(fty);        
+        if (mapping instanceof IJavaTypeFormal/*== fty*/) { // no substitution yet
           // Add mapping temporarily to do substitution on extends bound
-          IJavaType extendsT = fty.getSuperclass(typeEnvironment);          
+          IJavaType extendsT = mapping.getSuperclass(typeEnvironment);          
           map.put(fty, argType);
           capture(map, extendsT, argType);
           
@@ -415,7 +434,7 @@ System.out.println("matching against "+tmpTypes);
           } else {
 //            System.out.println("Couldn't quite match "+fty+", "+argType);
             // restore previous mapping
-            map.put(fty, fty);
+            map.put(fty, mapping);
           }
         } else {
           // FIX What if it's not the identity mapping?

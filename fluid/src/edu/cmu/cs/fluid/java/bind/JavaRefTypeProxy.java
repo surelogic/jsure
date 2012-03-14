@@ -57,6 +57,11 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	}
 
 	@Override
+	public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+		return type.isEqualTo(env, t2);
+	}
+	
+	@Override
 	public boolean isAssignmentCompatible(ITypeEnvironment env, IJavaType t2,
 			IRNode e2) {
 		return type.isAssignmentCompatible(env, t2, e2);

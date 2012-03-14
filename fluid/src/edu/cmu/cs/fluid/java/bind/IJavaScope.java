@@ -162,28 +162,16 @@ public interface IJavaScope {
         return JJNode.tree.getOperator(node) instanceof ConstructorDeclaration;
       }
     };
-    public static Iterator<IBinding> lookupConstructor(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookupAll(name,useSite,isConstructorDecl);
-    }
     
     public static final Selector isMethodDecl = new AbstractSelector("Only methods") {
       public boolean select(IRNode node) {
         return JJNode.tree.getOperator(node) instanceof MethodDeclaration;
       }      
     };
-    public static Iterator<IBinding> lookupMethod(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookupAll(name,useSite,isMethodDecl);
-    }
     
-    public static final Selector isCallable = new AbstractSelector("Only callable") {
-      public boolean select(IRNode node) {
-        Operator op = JJNode.tree.getOperator(node);
-        return op instanceof MethodDeclaration || op instanceof ConstructorDeclaration;
-      }      
-    };
     public static Iterator<IBinding> lookupCallable(IJavaScope scope, String name, IRNode useSite, 
-    		                                        Selector isAccessible) {
-      return scope.lookupAll(name,useSite, combineSelectors(isCallable, isAccessible));
+    		                                        Selector isAccessible, boolean needMethod) {
+      return scope.lookupAll(name,useSite, combineSelectors(needMethod ? isMethodDecl : isConstructorDecl, isAccessible));
     }
     
     public static final Selector isValueDecl = new AbstractSelector("Only value decls") {

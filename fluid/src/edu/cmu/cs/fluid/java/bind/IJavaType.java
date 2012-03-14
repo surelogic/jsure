@@ -16,6 +16,10 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * Use <tt>instanceof</tt> to determine what class something is of.
  * Use the factory to get instances.  This interface should
  * not be implemented by any class unknown to the factory.
+ * 
+ * Must use isEqualTo() for comparison
+ * equals() by type formals is used to facilitate capture of type formals
+ * 
  * @author chance
  * @see IJavaPrimitiveType
  * @see IJavaReferenceType
@@ -50,4 +54,5 @@ public interface IJavaType extends IType {
    */
   public boolean isValid();
   public void printStructure(PrintStream out, int indent);
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2);
 }

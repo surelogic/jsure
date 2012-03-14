@@ -2,7 +2,6 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
-import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -13,6 +12,48 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
   AbstractTypeSubstitution(IBinder b) {
     binder = b;
   }
+  
+  @Override
+  public final ITypeEnvironment getTypeEnv() {
+	  return binder.getTypeEnvironment();
+  }
+  
+  abstract class Process<V> {
+	  abstract V process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt);
+  }
+  
+  protected final Process<Boolean> isApplicable = new Process<Boolean>() {
+	@Override
+	Boolean process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
+		return Boolean.TRUE;
+	}
+  };
+  
+  public final boolean isApplicable(IJavaTypeFormal jtf) {
+	  if (isNull()) {
+		  return false;
+	  }
+	  return process(jtf, isApplicable) == Boolean.TRUE;
+  }
+  
+  /**
+   * Search for the substitution corresponding to the given type formal
+   * (if any)
+   */
+  public IJavaType get(IJavaTypeFormal jtf) {
+	  IJavaType rv = process(jtf, new Process<IJavaType>() {
+		@Override
+		IJavaType process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
+			return captureWildcardType(jtf, decl, jt);
+		}		  
+	  });
+	  if (rv == null) {
+		  return jtf;
+	  }
+	  return rv;
+  } 
+  
+  protected abstract <V> V process(IJavaTypeFormal jtf, Process<V> processor);
   
   /**
    * Capture the wildcard type, if any
@@ -84,5 +125,28 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     }
     if (!changed) return types;
     return res; //? new ImmutableList(res.toArray())
+  }
+  
+  public IJavaTypeSubstitution combine(final IJavaTypeSubstitution other) {
+	  final IJavaTypeSubstitution me = this;
+	  return new AbstractTypeSubstitution(binder) {
+		@Override
+		public boolean isNull() {
+			return me.isNull() && other.isNull();
+		}
+
+		@Override
+		public IJavaType get(IJavaTypeFormal jtf) {
+			// TODO is this in the right order?
+			IJavaType rv = me.get(jtf);
+			return rv.subst(other);
+		}
+
+		@Override
+		protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	  };
   }
 }

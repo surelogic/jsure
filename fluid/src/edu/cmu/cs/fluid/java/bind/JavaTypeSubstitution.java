@@ -7,6 +7,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -38,6 +39,9 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 		  
 		  private void ensureSubst() {
 			  if (realSubst == IJavaTypeSubstitution.NULL) {
+				  if (jt.getName().contains("java.util.EnumSet")) {
+					  System.out.println("Making subst for "+jt);
+				  }
 				  realSubst = JavaTypeSubstitution.createReal(tEnv, jt);
 			  }
 		  }
@@ -45,6 +49,11 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 		  public boolean isNull() {
 			  ensureSubst();
 			  return realSubst == null;
+		  }
+		  
+		  public boolean isApplicable(IJavaTypeFormal jtf) {
+			  ensureSubst();
+			  return realSubst != null && realSubst.isApplicable(jtf);				
 		  }
 		  
 		  public IJavaType get(IJavaTypeFormal jtf) {
@@ -61,6 +70,24 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 				  return types;
 			  }
 			  return realSubst.substTypes(types);
+		  }
+
+		  @Override
+		  public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
+			  ensureSubst();
+			  if (realSubst == null) {
+				  return NULL.combine(other);
+			  }
+			  return realSubst.combine(other);
+		  }
+
+		  @Override
+		  public ITypeEnvironment getTypeEnv() {
+			  ensureSubst();
+			  if (realSubst == null) {
+				  return null;
+			  }
+			  return realSubst.getTypeEnv();
 		  }
 	  };
   }
@@ -125,25 +152,38 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 	  return false; // FIX?
   }
   
-  /**
-   * Search for the substitution corresponding to the given type formal
-   * (if any)
-   */
-  public IJavaType get(IJavaTypeFormal jtf) {
-    IRNode decl = jtf.getDeclaration();
-    IRNode parent = JJNode.tree.getParent(decl);
-    IRNode td = JJNode.tree.getParent(parent);
+  @Override
+  protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
+	// Not right for generic methods/constructors
+	final IRNode decl = jtf.getDeclaration();
+    final IRNode parent = JJNode.tree.getParent(decl);
+    
+    final IRNode enclosingDecl = JJNode.tree.getParent(parent);
+    final IRNode enclosingType;
+    if (TypeDeclaration.prototype.includes(enclosingDecl)) {
+    	enclosingType = enclosingDecl;
+    } else {
+    	enclosingType = VisitUtil.getEnclosingType(enclosingDecl);
+    }
+    final IRNode typeFormals;
+    if (InterfaceDeclaration.prototype.includes(enclosingType)) {
+    	typeFormals = InterfaceDeclaration.getTypes(enclosingType);
+    } else {
+    	typeFormals = ClassDeclaration.getTypes(enclosingType);
+    }    		
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {
-      if (s.declaration.equals(td)) {
-        Iterator<IRNode> ch = JJNode.tree.children(parent);
+      if (s.declaration.equals(enclosingType)) {
+    	// Try to match up with the right formal/actual pair
+        Iterator<IRNode> ch = JJNode.tree.children(typeFormals); 
         for (IJavaType jt : s.actuals) {
           if (decl.equals(ch.next())) {
-            return captureWildcardType(jtf, decl, jt);
+            return processor.process(jtf, decl, jt);
           }
         }
       }
     }
-    return jtf;
+    // TODO what if we need to substitute for the supertype?
+    return null;
   }
   
   /*public static JavaTypeSubstitution combine(JavaTypeSubstitution around, JavaTypeSubstitution inner) {

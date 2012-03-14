@@ -12,12 +12,16 @@ import java.util.*;
 public interface IJavaTypeSubstitution {
   boolean isNull();
 	
+  boolean isApplicable(IJavaTypeFormal jtf);
+  
   /**
    * Search for the substitution corresponding to the given type formal
    * (if any)
    */
   IJavaType get(IJavaTypeFormal jtf);
 
+  ITypeEnvironment getTypeEnv();
+  
   /**
    * Apply this substitution to all types in the input list
    * (which is not modified).  If there are no changes, the result
@@ -27,10 +31,15 @@ public interface IJavaTypeSubstitution {
    * @return immutable list of substituted types.
    */
   List<IJavaType> substTypes(List<IJavaType> types);
+
+  IJavaTypeSubstitution combine(IJavaTypeSubstitution other);
   
   static final IJavaTypeSubstitution NULL = new IJavaTypeSubstitution() {
 	public boolean isNull() {
 	  return true;
+	}
+	public boolean isApplicable(IJavaTypeFormal jtf) {
+		return false;
 	}
     public IJavaType get(IJavaTypeFormal jtf) {
       return jtf;
@@ -42,5 +51,13 @@ public interface IJavaTypeSubstitution {
     public String toString() {
     	return "NULL SUBST";
     }
+	@Override
+	public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
+		return (other == null) ? this : other;
+	}
+	@Override
+	public ITypeEnvironment getTypeEnv() {
+		return null;
+	}
   };
 }

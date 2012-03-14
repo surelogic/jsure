@@ -468,8 +468,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
   
   /**
    * Like convertNodeTypeToIJavaType, but primarily handles type declarations.
-   * This function does not require an IBinder.  This method has confused
-   * purpose and will be removed since we have replaced its functionality.
+   * This method has confused purpose and will be removed since we have replaced its functionality.
    * @deprecated use convertNodeTypeToIJavaType
    */
   @Deprecated
@@ -628,7 +627,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
   public static int doCleanup() {
     return
        //convertedTypeCache.cleanup() +
-       typeFormals.cleanup() +
+       //typeFormals.cleanup() +
        arrayTypes.cleanup() +
        captureTypes.cleanup() +
        upperBounded.cleanup() +
@@ -687,6 +686,17 @@ abstract class JavaType implements IJavaType {
   
   public void printStructure(PrintStream out, int indent) {
     DebugUtil.println(out, indent, this.getClass().getSimpleName()+": "+this.toString());
+  }
+  
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (this == t2) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaTypeFormal) {
+		  IJavaTypeFormal tf = (IJavaTypeFormal) t2;
+		  return tf.isEqualTo(env, this);
+	  }
+	  return false;
   }
   
   /*******************************************************
@@ -829,7 +839,10 @@ class JavaVoidType extends JavaType implements IJavaVoidType {
   }
 }
 
-abstract class JavaReferenceType extends JavaType implements IJavaReferenceType {
+abstract class JavaReferenceType extends JavaType implements IJavaReferenceType {	  
+	public boolean equalInTEnv(IJavaReferenceType other, ITypeEnvironment t) {
+		return this == other;
+	}
 }
 
 class JavaNullType extends JavaReferenceType implements IJavaNullType {
@@ -859,9 +872,18 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   }
   
   @Override
-  public IJavaType subst(IJavaTypeSubstitution s) {
+  public IJavaType subst(final IJavaTypeSubstitution s) {
     if (s == null || s.isNull()) return this;
-    return s.get(this);
+    
+	String unparse = toString();
+	if (unparse.contains("in java.util.List.toArray")) {
+		System.out.println("Subst for "+unparse);
+	}
+    IJavaType rv = s.get(this);
+    if (rv != this) {
+    	return rv;
+    }
+    return new BoundedTypeFormal(this, s);
   }
   
   @Override
@@ -872,8 +894,8 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   
   @Override
   public String toString() {
-    IRNode tdecl = VisitUtil.getEnclosingType(declaration);
-    return JavaNames.getTypeName(declaration)+" in "+JavaNames.getTypeName(tdecl);
+    IRNode decl = VisitUtil.getEnclosingDecl(declaration);
+    return JavaNames.getTypeName(declaration)+" in "+JavaNames.getFullName(decl);
   }
   
   @Override
@@ -884,6 +906,19 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   @Override
   public boolean isValid() {
     return !AbstractIRNode.isDestroyed(declaration);
+  }
+  
+  @Override
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (this == t2) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaTypeFormal) {
+		  IJavaTypeFormal tf = (IJavaTypeFormal) t2;
+		  return declaration.equals(tf.getDeclaration()) &&
+				  getSuperclass(env).isEqualTo(env, tf.getSuperclass(env));
+	  }
+	  return false;
   }
   
   /*******************************************************
@@ -907,7 +942,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     }
     else if (num == 1) {        
     	IRNode first = MoreBounds.getBound(bounds, 0);
-    	return (IJavaReferenceType)tEnv.convertNodeTypeToIJavaType(first);
+    	return (IJavaReferenceType) tEnv.convertNodeTypeToIJavaType(first);
     } 
     else {
     	return (IJavaReferenceType) 
@@ -920,6 +955,47 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     DebugUtil.println(out, indent, "TypeFormal: "); 
     JavaNode.dumpTree(out, declaration, indent+2);
   }
+}
+
+class BoundedTypeFormal extends JavaTypeFormal {
+	final JavaTypeFormal source;
+	final IJavaTypeSubstitution subst;
+	
+	BoundedTypeFormal(JavaTypeFormal src, IJavaTypeSubstitution s) {
+		super(src.declaration);		
+		String unparse = src.toString();
+		if (unparse.contains("in java.util.List.toArray")) {
+			System.out.println("Creating bound for "+unparse);
+		}
+		subst = s;
+		source = src;
+	}
+	
+	@Override
+	public IJavaReferenceType getExtendsBound(ITypeEnvironment tEnv) {
+		IJavaReferenceType bound = super.getExtendsBound(tEnv);
+		return (IJavaReferenceType) bound.subst(subst);
+	}
+	
+	@Override
+	public String toString() {
+	    IRNode decl = VisitUtil.getEnclosingDecl(declaration);
+		return JavaNames.getTypeName(declaration)+" ..."+subst+"... in "+JavaNames.getFullName(decl);
+	}
+	
+	/**
+	 * FIX Is this right?
+	 * Set to compare properly in maps for capture
+	 */
+	@Override
+	public int hashCode() {
+		return source.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return source.equals(o);
+	}
 }
 
 class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectionType {
@@ -962,6 +1038,32 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   @Override
   public String toString() {
 	return primaryBound+" & "+secondaryBound;
+  }
+  
+  @Override
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (super.isEqualTo(env, t2)) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaIntersectionType) {
+		  IJavaIntersectionType other = (IJavaIntersectionType) t2;
+		  if (primaryBound != null) {
+			  if (!primaryBound.isEqualTo(env, other.getPrimarySupertype())) {
+				  return false;
+			  }
+		  } else if (other.getPrimarySupertype() != null) {
+			  return false;
+		  }
+		  if (secondaryBound != null) {
+			  if (!secondaryBound.isEqualTo(env, other.getSecondarySupertype())) {
+				  return false;
+			  } 		  
+		  } else if (other.getSecondarySupertype() != null) {
+			  return false;
+		  }
+		  return true;
+	  }
+	  return false;
   }
 }
 
@@ -1047,6 +1149,32 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
     if (lowerBound != null) {
       lowerBound.printStructure(out, indent+2);
     }
+  }
+  
+  @Override
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (super.isEqualTo(env, t2)) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaWildcardType) {
+		  IJavaWildcardType other = (IJavaWildcardType) t2;
+		  if (lowerBound != null) {
+			  if (!lowerBound.isEqualTo(env, other.getLowerBound())) {
+				  return false;
+			  }
+		  } else if (other.getLowerBound() != null) {
+			  return false;
+		  }
+		  if (upperBound != null) {
+			  if (!upperBound.isEqualTo(env, other.getUpperBound())) {
+				  return false;
+			  } 		  
+		  } else if (other.getUpperBound() != null) {
+			  return false;
+		  }
+		  return true;
+	  }
+	  return false;
   }
 }
 
@@ -1134,6 +1262,35 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
     	upperBound.printStructure(out, indent+2);
     }
   }
+  
+  @Override
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (super.isEqualTo(env, t2)) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaCaptureType) {
+		  IJavaCaptureType other = (IJavaCaptureType) t2;
+		  if (!wildcard.isEqualTo(env, other.getWildcard())) {
+			  return false;
+		  }
+		  if (lowerBound != null) {
+			  if (!lowerBound.isEqualTo(env, other.getLowerBound())) {
+				  return false;
+			  }
+		  } else if (other.getLowerBound() != null) {
+			  return false;
+		  }
+		  if (upperBound != null) {
+			  if (!upperBound.isEqualTo(env, other.getUpperBound())) {
+				  return false;
+			  } 		  
+		  } else if (other.getUpperBound() != null) {
+			  return false;
+		  }
+		  return true;
+	  }
+	  return false;
+  }
 }
 
 class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
@@ -1194,6 +1351,19 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   public void printStructure(PrintStream out, int indent) {    
     super.printStructure(out, indent);
     elementType.printStructure(out, indent+2);
+  }
+  
+  @Override
+  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (super.isEqualTo(env, t2)) {
+		  return true;
+	  }
+	  if (t2 instanceof IJavaArrayType) {
+		  IJavaArrayType other = (IJavaArrayType) t2;
+		  return getDimensions() == other.getDimensions() &&
+				  getBaseType().isEqualTo(env, other.getBaseType());
+	  }
+	  return false;
   }
 }
 

@@ -1152,14 +1152,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       
       final IRNode from;
-      Operator callOp = JJNode.tree.getOperator(call);
+      final Operator callOp = JJNode.tree.getOperator(call);
+      final boolean needMethod;
       if (AnonClassExpression.prototype.includes(callOp)) {
     	  from = AnonClassExpression.getBody(call);
+    	  needMethod = false;
       } else {
     	  from = call;
+    	  needMethod = MethodCall.prototype.includes(callOp);
       }
+      
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
-      Iterator<IBinding> methods = IJavaScope.Util.lookupCallable(sc,name,call,isAccessible);
+      Iterator<IBinding> methods = IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
       BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
       /*
       if (bestMethod != null && AnonClassExpression.prototype.includes(call)) {
@@ -1209,6 +1213,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           // Use the type name for constructors
           tname = JJNode.getInfo(tdecl);
         }
+        /*
+        if (tname.contains("CheckStartedThread")) {
+        	System.out.println("Binding newE: "+DebugUnparser.toString(node));
+        }
+        */
         boolean success = bindCall(node,targs,args,tname, recType);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type     
@@ -1484,10 +1493,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (ty instanceof IJavaDeclaredType) {
         IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
         IRNode targs = call.get_TypeArgs(node);
-        boolean success = bindCall(node,targs,call.get_Args(node),
-                                   JJNode.getInfo(tdecl), ty);
+        String tname = JJNode.getInfo(tdecl);
+        boolean success = bindCall(node,targs,call.get_Args(node), tname, ty);
         if (!success) {
-        	bindCall(node,targs,call.get_Args(node), JJNode.getInfo(tdecl), ty);
+        	bindCall(node,targs,call.get_Args(node), tname, ty);
         }
       } else {
         LOG.warning("super/this has non-class type! " + DebugUnparser.toString(node));
@@ -2746,7 +2755,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
 			  new IJavaScope.SubstScope(typeMemberTable((IJavaDeclaredType) st).asScope(this), getTypeEnvironment(), t);	  
-		  BindingInfo best = mb.findBestMethod(superScope.lookupAll(name, mth, IJavaScope.Util.isCallable), null, null, 
+		  BindingInfo best = mb.findBestMethod(superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl), null, null, 
 				                               mb.getFormalTypes(t, mth));
 		  if (best != null) {
 			  methods.add(best.method);

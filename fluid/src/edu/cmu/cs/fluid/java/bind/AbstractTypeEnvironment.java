@@ -184,7 +184,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isAssignmentCompatible(edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.ir.IRNode)
    */
   public boolean isAssignmentCompatible(IJavaType t1, IJavaType t2, IRNode n2) {
-    if (t1 == t2) return true;
+    if (t1.isEqualTo(this, t2)) return true;
     if (t2 == JavaTypeFactory.anyType) {
       return true;
     }
@@ -240,7 +240,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isCallCompatible(edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.java.bind.IJavaType)
    */  
   public boolean isCallCompatible(IJavaType t1, IJavaType t2) {
-    if (t1 == t2) return true;
+    if (t1.isEqualTo(this, t2)) return true; 
     if (t2 == JavaTypeFactory.anyType) {
       return true;
     }
@@ -595,14 +595,14 @@ private long parseIntLiteral(String token) {
 		// LOG.severe("isSubType() s = "+s+", t = "+t);
 		return false; // nonsense
 	}
-	if (s == t || s == JavaTypeFactory.anyType) {
+	if (s.isEqualTo(this, t) || s == JavaTypeFactory.anyType) {
 		return true;
 	}
 	// subtyping is only true for reference types.
 	if (!(s instanceof IJavaReferenceType) || !(t instanceof IJavaReferenceType)) {
 		return false;
 	}
-	if (s == t || s instanceof IJavaNullType || t == getObjectType()) {
+	if (s instanceof IJavaNullType || t == getObjectType()) { 
 		return true;
 	}
 	
@@ -717,7 +717,7 @@ private long parseIntLiteral(String token) {
      * 
      * Note from Edwin: added 1a and 2a to match apparently legal code
      */
-    if (ss == tt) return true; // (3)
+    if (ss.isEqualTo(this, tt)) return true; // (3)
     if (ss instanceof IJavaWildcardType) {
       IJavaWildcardType sw = (IJavaWildcardType) ss;
       if (tt instanceof IJavaWildcardType) {
@@ -743,6 +743,7 @@ private long parseIntLiteral(String token) {
         return (ss instanceof IJavaReferenceType); // Anything matches ?
       }
     }
+    //return false;
   }
   
   public IJavaClassTable getClassTable() {
