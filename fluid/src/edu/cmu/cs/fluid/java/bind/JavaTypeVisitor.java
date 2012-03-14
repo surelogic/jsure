@@ -435,6 +435,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
         
       }
       */
+      /*
+      if (MethodDeclaration.getId(n).equals("toArray")) {
+    	  System.out.println("Getting return type for call: "+DebugUnparser.toString(node));
+      }
+      */
       IRNode returnType = MethodDeclaration.getReturnType( n );      
       return b.convertType(binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
     } else if (op instanceof AnnotationElement) {
