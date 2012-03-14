@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -166,11 +167,17 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     	enclosingType = VisitUtil.getEnclosingType(enclosingDecl);
     }
     final IRNode typeFormals;
-    if (InterfaceDeclaration.prototype.includes(enclosingType)) {
+    Operator typeOp = JJNode.tree.getOperator(enclosingType);
+    if (InterfaceDeclaration.prototype.includes(typeOp)) {
     	typeFormals = InterfaceDeclaration.getTypes(enclosingType);
-    } else {
+    } 
+    else if (ClassDeclaration.prototype.includes(typeOp)) {
     	typeFormals = ClassDeclaration.getTypes(enclosingType);
-    }    		
+    }   
+    else { // Cannot be a generic type
+    	System.out.println("No subst for "+DebugUnparser.toString(enclosingType));
+    	return null;
+    }
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {
       if (s.declaration.equals(enclosingType)) {
     	// Try to match up with the right formal/actual pair
