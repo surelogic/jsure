@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.java.adapter.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode,CodeContext> {
@@ -274,7 +275,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 		case SUPER_WILDCARD:
 		case UNBOUNDED_WILDCARD:
 			return visitWildcard((WildcardTree) t, context);
-		default:
+		default:			
 			throw new IllegalArgumentException("Unknown type: "+t.getKind());
 		}
 	}
@@ -361,6 +362,10 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 		public IRNode callFunc(Tree t, CodeContext context) {
 			switch (t.getKind()) {
 			case CLASS:			
+			// Needed for the Java 7 javac
+			case INTERFACE: 
+			case ENUM:
+			case ANNOTATION_TYPE:
 				return adaptClass((ClassTree) t, context, true);
 			case BLOCK:				
 				boolean isStatic = t.toString().startsWith("static");
@@ -499,9 +504,11 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         return results;
     }
     
+    /*
     public IRNode visitAnnotatedType(AnnotatedTypeTree node, CodeContext context) {
     	throw new UnsupportedOperationException();
     }
+    */
     
     public IRNode visitArrayAccess(ArrayAccessTree node, CodeContext context)
     {
@@ -662,7 +669,13 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         IRNode[] impl  = map(adaptTypes, node.getImplementsClause(), context);
         IRNode[] mbrs  = map(new AdaptMembers(id, kind), node.getMembers(), context); 
         IRNode formals = TypeFormals.createNode(types);
-        IRNode body    = ClassBody.createNode(mbrs);
+        IRNode body;
+        try {
+        	body = ClassBody.createNode(mbrs);
+        } catch(IllegalChildException e) {
+        	body = null;
+        	map(new AdaptMembers(id, kind), node.getMembers(), context); 
+        }
         IRNode rv;
         if (context.fromInterface()) {
         	// JLS 9.5
@@ -1523,4 +1536,28 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     		throw new UnsupportedOperationException(node.getBound().toString()); 
     	}
     }
+
+    // needed for Java 7
+	@Override
+	public IRNode visitUnionType(UnionTypeTree u, CodeContext c) {
+		throw new UnsupportedOperationException("Union type: "+u);
+	}
+
+	// needed for Java 8?
+	@Override
+	public IRNode visitAnnotatedType(AnnotatedTypeTree arg0, CodeContext c) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IRNode visitLambdaExpression(LambdaExpressionTree arg0,
+			CodeContext c) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IRNode visitMemberReference(MemberReferenceTree arg0,
+			CodeContext c) {
+		throw new UnsupportedOperationException();
+	}
 }
