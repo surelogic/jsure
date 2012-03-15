@@ -51,11 +51,11 @@ public interface IJavaTypeSubstitution {
     public String toString() {
     	return "NULL SUBST";
     }
-	@Override
+
 	public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
 		return (other == null) ? this : other;
 	}
-	@Override
+
 	public ITypeEnvironment getTypeEnv() {
 		return null;
 	}

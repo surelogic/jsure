@@ -13,7 +13,6 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     binder = b;
   }
   
-  @Override
   public final ITypeEnvironment getTypeEnv() {
 	  return binder.getTypeEnvironment();
   }
@@ -130,7 +129,6 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
   public IJavaTypeSubstitution combine(final IJavaTypeSubstitution other) {
 	  final IJavaTypeSubstitution me = this;
 	  return new AbstractTypeSubstitution(binder) {
-		@Override
 		public boolean isNull() {
 			return me.isNull() && other.isNull();
 		}

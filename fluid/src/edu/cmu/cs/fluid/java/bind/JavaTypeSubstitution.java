@@ -73,7 +73,6 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.substTypes(types);
 		  }
 
-		  @Override
 		  public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
 			  ensureSubst();
 			  if (realSubst == null) {
@@ -82,7 +81,6 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.combine(other);
 		  }
 
-		  @Override
 		  public ITypeEnvironment getTypeEnv() {
 			  ensureSubst();
 			  if (realSubst == null) {

@@ -1538,24 +1538,20 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
 
     // needed for Java 7
-	@Override
 	public IRNode visitUnionType(UnionTypeTree u, CodeContext c) {
 		throw new UnsupportedOperationException("Union type: "+u);
 	}
 
 	// needed for Java 8?
-	@Override
 	public IRNode visitAnnotatedType(AnnotatedTypeTree arg0, CodeContext c) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
 	public IRNode visitLambdaExpression(LambdaExpressionTree arg0,
 			CodeContext c) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
 	public IRNode visitMemberReference(MemberReferenceTree arg0,
 			CodeContext c) {
 		throw new UnsupportedOperationException();
