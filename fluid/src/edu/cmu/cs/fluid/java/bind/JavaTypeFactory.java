@@ -874,11 +874,12 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   @Override
   public IJavaType subst(final IJavaTypeSubstitution s) {
     if (s == null || s.isNull()) return this;
-    
+    /*
 	String unparse = toString();
 	if (unparse.contains("in java.util.List.toArray")) {
 		System.out.println("Subst for "+unparse);
 	}
+	*/
     IJavaType rv = s.get(this);
     if (rv != this) {
     	return rv;
@@ -963,10 +964,12 @@ class BoundedTypeFormal extends JavaTypeFormal {
 	
 	BoundedTypeFormal(JavaTypeFormal src, IJavaTypeSubstitution s) {
 		super(src.declaration);		
+		/*
 		String unparse = src.toString();
 		if (unparse.contains("in java.util.List.toArray")) {
 			System.out.println("Creating bound for "+unparse);
 		}
+		*/
 		subst = s;
 		source = src;
 	}
