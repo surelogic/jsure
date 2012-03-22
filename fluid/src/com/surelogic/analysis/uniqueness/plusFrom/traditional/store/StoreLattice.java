@@ -30,7 +30,9 @@ import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -1198,8 +1200,22 @@ extends TripleLattice<Element<Integer>,
   public static String tripleToString(final FieldTriple t) {
     IRNode field = t.second();
 	return nodeToString(t.first()) + "." +
-      (field == null ? "*" : VariableDeclarator.getId(field)) + " = " +
+//      (field == null ? "*" : VariableDeclarator.getId(field)) + " = " +
+      (field == null ? "*" : fieldToString(field)) + " = " +
       nodeToString(t.third());
+  }
+  
+  private static String fieldToString(final IRNode fieldDecl) {
+    if (VariableDeclarator.prototype.includes(fieldDecl)) {
+      return VariableDeclarator.getId(fieldDecl);
+    } else { // QualifiedReceiverDecl
+      final IRNode base = QualifiedReceiverDeclaration.getBase(fieldDecl);
+      if (TypeRef.prototype.includes(base)) {
+        return "this[" + TypeRef.getId(base) + "]";
+      } else {
+        return "this[" + NamedType.getType(base) + "]";
+      }
+    }
   }
   
   public static String nodeToString(final ImmutableHashOrderSet<Object> node) {

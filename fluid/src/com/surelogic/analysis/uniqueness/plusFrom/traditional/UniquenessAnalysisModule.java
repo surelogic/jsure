@@ -42,11 +42,13 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -609,6 +611,16 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
   		        if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
   		      }
+  		      
+  		      // Also check if the class has an IFQR that is borrowed
+  		      final IRNode ifqr =
+  		          JavaPromise.getQualifiedReceiverNodeOrNull(
+  		              TypeDeclaration.getBody(JJNode.tree.getParentOrNull(
+  		                  block.getClassBody())));
+  		      if (ifqr != null) {
+  		        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(ifqr);
+  		        if (bDrop != null) pr.uniqueFields.add(bDrop);
+  		      }
 		      }
 		    }
 		  }
@@ -798,6 +810,30 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(fdecl);
         if (iDrop != null) pr.usedImmutableFields.add(iDrop);
         if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
+      }
+      
+      if (QualifiedThisExpression.prototype.includes(op)) {
+        /* See if any of the qualified receiver fields that we implicitly
+         * access are borrowed.  If so, add the containing method as interesting.
+         */
+        final IRNode ifqr = getBinder().getBinding(currentNode);
+        // make sure it's an IFQR and not an IPQR
+        if (!ConstructorDeclaration.prototype.includes(
+            JavaPromise.getPromisedFor(ifqr))) {
+          /* Loop up the nested class hierarchy until we find the class whose
+           * qualified receiver declaration equals 'decl'. 
+           */
+          IRNode currentClass = VisitUtil.getEnclosingType(currentNode);
+          IRNode currentQualifiedReceiverField;
+          do {
+            currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+            // check for @Borrowed
+            final BorrowedPromiseDrop bDrop = 
+                UniquenessRules.getBorrowed(currentQualifiedReceiverField);
+            if (bDrop != null) pr.uniqueFields.add(bDrop);
+            currentClass = VisitUtil.getEnclosingType(currentClass);
+          } while (currentQualifiedReceiverField != ifqr);
+        }
       }
 
       // Is it a method call
@@ -1176,6 +1212,35 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       doAcceptForChildren(fieldRef);
+      return null;
+    }
+    
+    @Override
+    public Void visitQualifiedThisExpression(final IRNode qthis) {
+      /* See if any of the qualified receiver fields that we implicitly
+       * access are borrowed.  If so, add the containing method as interesting.
+       */
+      final IRNode ifqr = binder.getBinding(qthis);
+      // make sure it's an IFQR and not an IPQR
+      if (!ConstructorDeclaration.prototype.includes(
+          JavaPromise.getPromisedFor(ifqr))) {
+        /* Loop up the nested class hierarchy until we find the class whose
+         * qualified receiver declaration equals 'decl'. 
+         */
+        IRNode currentClass = VisitUtil.getEnclosingType(qthis);
+        IRNode currentQualifiedReceiverField;
+        do {
+          currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+          // check for @Borrowed
+          if (UniquenessRules.isBorrowed(currentQualifiedReceiverField)) {
+            results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+            // quit early
+            break;
+          }
+          currentClass = VisitUtil.getEnclosingType(currentClass);
+        } while (currentQualifiedReceiverField != ifqr);
+      }
+      doAcceptForChildren(qthis);
       return null;
     }
     
