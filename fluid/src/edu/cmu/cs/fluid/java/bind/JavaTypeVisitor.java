@@ -650,7 +650,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitSuperExpression(IRNode node) {
-    IJavaDeclaredType dt = JavaTypeFactory.getThisType(node);
+    IJavaSourceRefType dt = JavaTypeFactory.getThisType(node);
     return dt.getSuperclass(binder.getTypeEnvironment());
   }
   

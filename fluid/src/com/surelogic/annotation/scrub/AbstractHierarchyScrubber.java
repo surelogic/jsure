@@ -67,7 +67,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	 * 
 	 * @return true if okay
 	 */
-	protected boolean processUnannotatedType(IJavaDeclaredType dt) {
+	protected boolean processUnannotatedType(IJavaSourceRefType dt) {
 		return true;
 	}
 	
@@ -262,12 +262,12 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		 */
 		void walkHierarchy() {
 			for (IRNode type : byType.keySet()) {
-				IJavaDeclaredType dt = JavaTypeFactory.getMyThisType(type);
+				IJavaSourceRefType dt = JavaTypeFactory.getMyThisType(type);
 				walkHierarchy(dt);
 			}
 		}
 
-		private void walkHierarchy(final IJavaDeclaredType dt) {
+		private void walkHierarchy(final IJavaSourceRefType dt) {
 			final IRNode decl = dt.getDeclaration();
 			if (done.contains(decl)) {
 				return;
@@ -333,7 +333,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
 			if (!byType.isEmpty()) {
 				for (IRNode type : byType.keySet()) {
-					final IJavaDeclaredType dt = JavaTypeFactory.getMyThisType(type);
+					final IJavaSourceRefType dt = JavaTypeFactory.getMyThisType(type);
 					final IIRProject p = JavaProjects.getEnclosingProject(type);
 					// get super types
 					for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {

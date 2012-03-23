@@ -37,7 +37,7 @@ public class ClassMemberSearch {
     if (isFormal) {
       findXinTypeFormal_up(tvs, JavaTypeFactory.getTypeFormal(type));
     } else {
-      IJavaDeclaredType startT = tEnv.getMyThisType(type);
+      IJavaDeclaredType startT = (IJavaDeclaredType) tEnv.getMyThisType(type);
       findXinAncestors(tvs, startT);
     }
     
@@ -52,7 +52,7 @@ public class ClassMemberSearch {
       if (isFormal) {
         findXinTypeFormal_up(tvs, JavaTypeFactory.getTypeFormal(type));
       } else {
-        IJavaDeclaredType startT = tEnv.getMyThisType(type);
+        IJavaDeclaredType startT = (IJavaDeclaredType) tEnv.getMyThisType(type);
         findXinAncestors(tvs, startT);
       }
     }

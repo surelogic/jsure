@@ -355,7 +355,7 @@ final class LockExpressions {
       singleThreadedData = lockUtils.isConstructorSingleThreaded(cdecl, rcvr);
       if (singleThreadedData.isSingleThreaded) {
         final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
-        final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+        final IJavaDeclaredType clazz = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl);
         /* TODO: LockUtils method needs to make one pass through the 
          * locks and output to two sets: JUC and intrinsic. 
          */
@@ -380,7 +380,7 @@ final class LockExpressions {
       
       if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
         final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
-        final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+        final IJavaDeclaredType clazz = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl);
         lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory, rcvr, clazz, classDecl, intrinsicAssumedLocks);
       }
       
@@ -392,7 +392,7 @@ final class LockExpressions {
         final IRNode classBody, final IRNode classInitDecl) {
       // Get the locks held due to class initialization assumptions
       final IRNode classDecl = JavaPromise.getPromisedFor(classInitDecl);
-      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+      final IJavaDeclaredType clazz = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl);
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */

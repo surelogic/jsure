@@ -434,9 +434,10 @@ public class JavaCanonicalizer {
     }
 
     protected IRNode getImplicitSource(IRNode from, IRNode to) {
-      IRNode thisExpr = createThisExpression(from,JavaTypeFactory.getThisType(to), to);
+      IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.getThisType(to);
+      IRNode thisExpr = createThisExpression(from, type, to);
       if (thisExpr == null) {
-        createThisExpression(from,JavaTypeFactory.getThisType(to), to);
+        createThisExpression(from, type, to);
       } else {
         JavaNode.setImplicit(thisExpr);
       }

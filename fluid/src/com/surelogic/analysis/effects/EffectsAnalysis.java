@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
@@ -267,13 +268,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  if (region.getVisibility() == Visibility.PROTECTED) {
       final ITypeEnvironment typeEnvironment = getBinder().getTypeEnvironment();
 	    final IRNode enclosingTypeNode = VisitUtil.getEnclosingType(mdecl);
-	    final IJavaDeclaredType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
+	    final IJavaSourceRefType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
 	    final String enclosingPackageName = JavaNames.getPackageName(enclosingTypeNode);
 	    boolean good = false;
 	    while (region.getVisibility() == Visibility.PROTECTED && !good) {
 	      final IRNode regionClassNode = VisitUtil.getClosestType(region.getNode());
 	      final String regionPackageName = JavaNames.getPackageName(regionClassNode);
-	      final IJavaDeclaredType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
+	      final IJavaSourceRefType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
         if (methodInType.isSubtype(typeEnvironment, regionClass)
             && !equals(enclosingPackageName, regionPackageName)) {
           region = region.getParentRegion();

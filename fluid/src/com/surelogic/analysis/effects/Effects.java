@@ -45,6 +45,7 @@ import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -857,6 +858,9 @@ public final class Effects implements IBinderClient {
     private boolean isCallOfMethod(
         final IRNode mcall, final String cName, final String mName) {
       final IBinding ib = binder.getIBinding(mcall);
+      if (ib == null) {
+    	  System.out.println("Couldn't get binding for "+DebugUnparser.toString(mcall));
+      }
       if (MethodDeclaration.prototype.includes(ib.getNode())
           && MethodCall.getMethod(mcall).equals(mName)) {
         // First check the declaration of the method being called...

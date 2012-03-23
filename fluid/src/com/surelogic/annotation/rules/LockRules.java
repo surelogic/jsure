@@ -1897,7 +1897,7 @@ public class LockRules extends AnnotationRules {
 	  }
     
     @Override 
-    protected final boolean processUnannotatedType(final IJavaDeclaredType dt) {
+    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
       final IAnnotationScrubberContext context = getContext();
       final IRNode typeDecl = dt.getDeclaration();
       final boolean isInterface = TypeUtil.isInterface(typeDecl);

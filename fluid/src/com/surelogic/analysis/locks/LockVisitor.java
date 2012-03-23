@@ -817,7 +817,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		if (ClassBody.prototype.includes(op)) {
 			resultDependUpon = rd;
 			ctxtTypeDecl = JJNode.tree.getParentOrNull(node);
-			ctxtJavaType = binder.getTypeEnvironment().getMyThisType(
+			ctxtJavaType = (IJavaDeclaredType) binder.getTypeEnvironment().getMyThisType(
 					ctxtTypeDecl);
 			ctxtTheHeldLocks = new LockStack();
 			this.doAccept(node);
@@ -1950,7 +1950,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * class expression
 						 */
 						ctxtTypeDecl = expr;
-						ctxtJavaType = JavaTypeFactory
+						ctxtJavaType = (IJavaDeclaredType) JavaTypeFactory
 								.getMyThisType(ctxtTypeDecl);
 
 						/*
@@ -3028,7 +3028,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							 * anonymous class expression
 							 */
 							ctxtTypeDecl = constDecl;
-							ctxtJavaType = JavaTypeFactory
+							ctxtJavaType = (IJavaDeclaredType) JavaTypeFactory
 									.getMyThisType(ctxtTypeDecl);
 
 							/*

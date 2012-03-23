@@ -504,9 +504,12 @@ public class JavaTypeFactory implements IRType, Cleanable {
    * @param tdecl type declaration node
    * @return type of "this" within this class/interface.
    */
-  public static IJavaDeclaredType getMyThisType(IRNode tdecl) {
-    TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);
-    IJavaDeclaredType outer = getThisType(tdecl);
+  public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
+    TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);    
+    if (op instanceof TypeFormal) {
+      return JavaTypeFactory.getTypeFormal(tdecl); 
+    }    
+    IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
     IRNode typeFormals = null;
     if (op instanceof ClassDeclaration) {
       typeFormals = ClassDeclaration.getTypes(tdecl);
@@ -532,7 +535,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
    * @param n a node in an AST.
    * @return type of this at this point.
    */
-  public static IJavaDeclaredType getThisType(IRNode n) {
+  public static IJavaSourceRefType getThisType(IRNode n) {
     IRNode p = VisitUtil.getEnclosingTypeForPromise(n);
     if (p == null) {
     	return null;

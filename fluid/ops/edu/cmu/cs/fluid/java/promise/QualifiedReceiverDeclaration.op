@@ -73,7 +73,7 @@ public operator QualifiedReceiverDeclaration implements edu.cmu.cs.fluid.java.bi
     if (decl == null) {
       throw new NullPointerException();
     }
-    return JavaTypeFactory.getMyThisType(decl);
+    return (IJavaDeclaredType) JavaTypeFactory.getMyThisType(decl);
   }
   
   private static void assertIsEnclosingType(IRNode enclosing, IRNode start) {

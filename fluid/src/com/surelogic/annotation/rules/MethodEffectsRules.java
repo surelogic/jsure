@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
@@ -191,7 +192,7 @@ public class MethodEffectsRules extends AnnotationRules {
     final ITypeEnvironment typeEnv = scrubberContext.getBinder(node.getPromisedFor()).getTypeEnvironment();
 		final IRNode promisedFor = node.getPromisedFor();
 		final IRNode enclosingTypeNode = VisitUtil.getEnclosingType(promisedFor);
-    final IJavaDeclaredType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
+    final IJavaSourceRefType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
     final String enclosingPackageName = JavaNames.getPackageName(enclosingTypeNode);
 		final boolean isConstructor =
 		  ConstructorDeclaration.prototype.includes(promisedFor);
@@ -418,7 +419,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	
 	
 	private static boolean isAccessibleToAllCallers(
-	    final String packageName, final IJavaDeclaredType type,
+	    final String packageName, final IJavaSourceRefType type,
 	    final IRNode methodDecl, final IRegion region,
 	    final ITypeEnvironment typeEnv) {
 	  final Visibility methodViz = Visibility.getVisibilityOf(methodDecl);
@@ -434,7 +435,7 @@ public class MethodEffectsRules extends AnnotationRules {
          */
 	      final IRNode regionClassNode = VisitUtil.getClosestType(region.getNode());
         final String regionPackageName = JavaNames.getPackageName(regionClassNode);
-	      final IJavaDeclaredType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
+	      final IJavaSourceRefType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
 	      if (type.isSubtype(typeEnv, regionClass) && !packageName.equals(regionPackageName)) {
 	        return false;
 	      } else {

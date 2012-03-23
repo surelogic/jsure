@@ -195,10 +195,10 @@ public class LockAnalysis
 					continue;
 				}
 				globalLockModel.addRegionLockDeclaration(binder, lockDrop,
-						JavaTypeFactory.getMyThisType(classDecl));
+						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			} else {
 				globalLockModel.addPolicyLockDeclaration(binder, lockDrop,
-						JavaTypeFactory.getMyThisType(classDecl));
+						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			}
 		}
 

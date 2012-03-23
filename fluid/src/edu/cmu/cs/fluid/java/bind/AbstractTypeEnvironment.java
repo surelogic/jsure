@@ -99,11 +99,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return result;
   }
   
-  public IJavaDeclaredType getMyThisType(IRNode typeDecl) {
+  public IJavaSourceRefType getMyThisType(IRNode typeDecl) {
 	  if (typeDecl == null) {
 		  return null;
 	  }
-	  IJavaDeclaredType result = (IJavaDeclaredType) convertedTypeCache.get(typeDecl);
+	  IJavaSourceRefType result = (IJavaSourceRefType) convertedTypeCache.get(typeDecl);
 	  if (result == null) {
 		  result = JavaTypeFactory.getMyThisType(typeDecl);
 		  if (result != null) {
@@ -206,24 +206,24 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   
   /**
    * Method invocation conversion is applied to each argument value in
-   * a method or constructor invocation (§8.8.7.1, §15.9, §15.12): 
+   * a method or constructor invocation (ï¿½8.8.7.1, ï¿½15.9, ï¿½15.12): 
    * the type of the argument expression must be converted to the type 
    * of the corresponding parameter. Method invocation contexts allow 
    * the use of one of the following:
    * 
-   * an identity conversion (§5.1.1)
-   * a widening primitive conversion (§5.1.2)
-   * a widening reference conversion (§5.1.5)
-   * a boxing conversion (§5.1.7) optionally followed by widening reference conversion
-   * an unboxing conversion (§5.1.8) optionally followed by a widening primitive conversion. 
+   * an identity conversion (ï¿½5.1.1)
+   * a widening primitive conversion (ï¿½5.1.2)
+   * a widening reference conversion (ï¿½5.1.5)
+   * a boxing conversion (ï¿½5.1.7) optionally followed by widening reference conversion
+   * an unboxing conversion (ï¿½5.1.8) optionally followed by a widening primitive conversion. 
    * 
    * If, after the conversions listed above have been applied, the resulting type is a raw type
-   * (§4.8), an unchecked conversion (§5.1.9) may then be applied. It is a compile time error 
+   * (ï¿½4.8), an unchecked conversion (ï¿½5.1.9) may then be applied. It is a compile time error 
    * if the chain of conversions contains two parameterized types that are not not in the subtype
    * relation.
    * 
    * If the type of an argument expression is either float or double, then value set conversion 
-   * (§5.1.13) is applied after the type conversion:
+   * (ï¿½5.1.13) is applied after the type conversion:
    * 
    * If an argument value of type float is an element of the float-extended-exponent value set, 
    * then the implementation must map the value to the nearest element of the float value set. 

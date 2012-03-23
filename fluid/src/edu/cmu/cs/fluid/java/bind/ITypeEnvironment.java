@@ -215,7 +215,7 @@ public interface ITypeEnvironment {
 	IJavaType computeErasure(IJavaType t);
 
 	IJavaType convertNodeTypeToIJavaType(IRNode nodeType);
-	IJavaDeclaredType getMyThisType(IRNode typeDecl);
+	IJavaSourceRefType getMyThisType(IRNode typeDecl);
 	void clearCaches(boolean clearAll);
 	
 	IIRProject getProject();
