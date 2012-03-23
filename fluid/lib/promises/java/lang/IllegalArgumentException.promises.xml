@@ -7,5 +7,23 @@
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </constructor>
+
+        <constructor params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </constructor>
+
+        <constructor params="java.lang.String, java.lang.Throwable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </constructor>
+
+        <constructor params="java.lang.Throwable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </constructor>
     </class>
 </package>

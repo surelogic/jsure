@@ -7,6 +7,11 @@
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
         <method name="iterator">
             <!--starts>nothing</starts-->
             <Borrowed allowReturn="true">this</Borrowed>

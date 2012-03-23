@@ -8,6 +8,12 @@
             <RegionEffects>none</RegionEffects>
         </constructor>
 
+        
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>

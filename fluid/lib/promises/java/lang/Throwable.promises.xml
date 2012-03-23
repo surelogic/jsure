@@ -3,18 +3,27 @@
 <package name="java.lang">
     <class name="Throwable">
         <constructor>
-            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="java.lang.String">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String, java.lang.Throwable">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="java.lang.Throwable">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <method name="printStackTrace">

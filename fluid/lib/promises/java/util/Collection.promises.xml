@@ -8,5 +8,10 @@
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
+        
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
     </class>
 </package>

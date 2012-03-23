@@ -12,6 +12,11 @@
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
+        
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
 
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
@@ -26,6 +31,11 @@
         </class>
 
         <class name="CheckedCollection">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -94,6 +104,11 @@
             </method>
 
             <class name="CheckedEntrySet">
+                <method name="size">
+                    <Borrowed>this</Borrowed>
+                    <RegionEffects>reads this:Instance</RegionEffects>
+                </method>
+
                 <method name="clear">
                     <Borrowed>this</Borrowed>
                     <RegionEffects>writes this:Instance</RegionEffects>
@@ -105,6 +120,13 @@
                     <Unique>return</Unique>
                 </method>
             </class>
+        </class>
+
+        <class name="CopiesList">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="EmptyIterator">
@@ -130,6 +152,11 @@
             <method name="isEmpty">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
 
             <method name="iterator">
@@ -209,6 +236,11 @@
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -220,6 +252,11 @@
             <method name="clear">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
 
             <method name="isEmpty">
@@ -239,6 +276,11 @@
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -280,6 +322,11 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="SynchronizedCollection">
@@ -287,6 +334,11 @@
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -356,6 +408,11 @@
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 

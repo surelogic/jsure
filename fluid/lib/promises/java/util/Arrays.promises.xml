@@ -2,6 +2,15 @@
 
 <package name="java.util">
     <class name="Arrays">
+        <class name="ArrayList">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+        </class>
+        
+        
+        
         <method name="copyOf" params="boolean[], int">
             <parameter index="0">
                 <Borrowed/>

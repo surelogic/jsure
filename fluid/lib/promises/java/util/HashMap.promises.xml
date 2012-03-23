@@ -58,6 +58,11 @@
         </method>
 
         <class name="EntrySet">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -66,6 +71,11 @@
         </class>
 
         <class name="KeySet">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -74,6 +84,11 @@
         </class>
 
         <class name="Values">
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>

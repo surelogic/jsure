@@ -2,6 +2,11 @@
 
 <package name="sun.awt.util">
     <class name="IdentityArrayList">
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>

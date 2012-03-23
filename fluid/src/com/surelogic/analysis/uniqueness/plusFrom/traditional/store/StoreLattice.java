@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -655,7 +656,7 @@ extends TripleLattice<Element<Integer>,
     s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
     // avoid checking assignment of final fields in "Immutable" constructors:
-    if (!JavaNode.getModifier(fieldDecl, JavaNode.FINAL)) s = opCheckMutable(s,getUnderTop(s));
+    if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isFieldUnique(fieldDecl)) {
