@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Void> {
+public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Unused> {
 	public BCAModule() {
 		super("BCACategory");
 	}

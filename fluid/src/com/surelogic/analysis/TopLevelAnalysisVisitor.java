@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.util.Pair;
 
 public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
@@ -101,13 +102,17 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   
   // ----------------------------------------------------------------------
 
-  public final static class TypeBodyPair extends Pair<IRNode, IRNode> {
+  public final static class TypeBodyPair extends Pair<IRNode, IRNode> implements ICompUnitContext {
     public TypeBodyPair(final IRNode td, final IRNode cb) {
       super(td, cb);
     }
     
     public IRNode typeDecl() { return first(); }
     public IRNode classBody() { return second(); }
+
+	public IRNode getCompUnit() {
+		return VisitUtil.getEnclosingCompilationUnit(first());
+	}
   }
 
   

@@ -4,6 +4,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.Unused;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -19,7 +20,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.TypesVisitor, Void> {
+public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.TypesVisitor, Unused> {
 	public TypesModule() {
 		super("BCACategory");
 	}

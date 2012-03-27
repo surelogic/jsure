@@ -4,6 +4,7 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
 
@@ -16,7 +17,7 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Void> {
+public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Unused> {
 	public CollectMethodCallsModule() {
 		super("CMCategory");
 	}

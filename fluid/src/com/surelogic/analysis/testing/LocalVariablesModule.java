@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Void> {
+public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
 	public LocalVariablesModule() {
 		super("LVCategory");
 	}

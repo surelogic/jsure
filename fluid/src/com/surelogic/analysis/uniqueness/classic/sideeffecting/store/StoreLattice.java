@@ -79,7 +79,7 @@ extends TripleLattice<Element<Integer>,
   
   // for creating drops
   private final IBinder binder;
-  private final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis;
+  private final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis;
   
   /**
    * Should we create drops at all.  This is set by the analysis using
@@ -265,7 +265,7 @@ extends TripleLattice<Element<Integer>,
   // ==================================================================
   
   public StoreLattice(final IRNode flowUnit,
-      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final IBinder binder, final IRNode[] locals) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
@@ -755,7 +755,7 @@ extends TripleLattice<Element<Integer>,
         recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_UNIQUE,
             new InfoAdder() {
               public void addSupportingInformation(
-                  final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                  final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                   final IBinder binder, final ResultDropBuilder resultDrop) {
                 final IRNode rhs;
                 if (VariableDeclarator.prototype.includes(srcOp)) {
@@ -993,7 +993,7 @@ extends TripleLattice<Element<Integer>,
               Messages.RETURN_IS_UNIQUE, Messages.ASSIGN_IS_UNIQUE),
               new InfoAdder() {
                 public void addSupportingInformation(
-                    final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                    final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                     final IBinder binder, final ResultDropBuilder resultDrop) {
                   if (msg == MessageChooser.ACTUAL) {
                     for (final IRNode n : bcaQuery.getResultFor(srcOp)) {
@@ -1585,7 +1585,7 @@ extends TripleLattice<Element<Integer>,
           Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
           new InfoAdder() {
             public void addSupportingInformation(
-                final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+                final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
                 final IBinder binder, final ResultDropBuilder resultDrop) {
               resultDrop.addTrustedPromise(uDrop);
             }
@@ -1600,7 +1600,7 @@ extends TripleLattice<Element<Integer>,
       recordBadUnique(srcOp, uDrop, Messages.ACTUAL_IS_UNDEFINED,
           new InfoAdder() {
             public void addSupportingInformation(
-                final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                 final IBinder binder, final ResultDropBuilder resultDrop) {
               final Set<IRNode> undefinedAt = stackUndefinedAt.get(topOfStack);
               if (undefinedAt != null) {
@@ -1665,7 +1665,7 @@ extends TripleLattice<Element<Integer>,
   }
   
   private ResultDropBuilder createResultDrop(
-      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops, final boolean addToControlFlow,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
@@ -1694,7 +1694,7 @@ extends TripleLattice<Element<Integer>,
   }
 
   private ResultDropBuilder createResultDrop(
-      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
@@ -1897,7 +1897,7 @@ extends TripleLattice<Element<Integer>,
     }
     
     public final ResultDropBuilder createDrop(
-        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
         final IBinder binder) {
       final ResultDropBuilder result = createResultDrop(
           analysis, isAbrupt, promiseDrop, srcOp, isGood(), msg);
@@ -1939,7 +1939,7 @@ extends TripleLattice<Element<Integer>,
 
   private static interface InfoAdder {
     public void addSupportingInformation(
-        AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
         IBinder binder, ResultDropBuilder resultDrop);
   }
   

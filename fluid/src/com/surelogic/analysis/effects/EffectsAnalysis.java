@@ -55,7 +55,7 @@ import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,IRNode> {	
+public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,CompUnitPair> {	
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = false;
 
@@ -70,12 +70,12 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   private final Effects.ElaborationErrorCallback callback;
   
 	public EffectsAnalysis() {
-		super(willRunInParallel, IRNode.class, "EffectAssurance2", BindingContextAnalysis.factory);
+		super(willRunInParallel, CompUnitPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
 		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			setWorkProcedure(new Procedure<IRNode>() {
-				public void op(IRNode compUnit) {
-					checkEffectsForFile(compUnit);
+			setWorkProcedure(new Procedure<CompUnitPair>() {
+				public void op(CompUnitPair compUnit) {
+					checkEffectsForFile(compUnit.getNode());
 				}				
 			});
 		}
@@ -110,7 +110,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			queueWork(compUnit);
+			queueWork(new CompUnitPair(cud.cu, compUnit));
 		} else {
 			checkEffectsForFile(compUnit);
 		}

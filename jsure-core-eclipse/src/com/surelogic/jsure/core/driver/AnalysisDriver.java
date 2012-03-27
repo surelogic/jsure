@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.PromiseMatcher;
 import com.surelogic.javac.Util;
@@ -18,7 +19,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.util.*;
 
-public class AnalysisDriver extends AbstractAnalysisModule<Void> {
+public class AnalysisDriver extends AbstractAnalysisModule<Unused> {
 	public static final String ID = "com.surelogic.jsure.client.eclipse.AnalysisDriver";
 	
 	private IProject project;

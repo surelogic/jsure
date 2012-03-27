@@ -15,9 +15,11 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.ICompUnitContext;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.IsInvalidQuery;
@@ -64,7 +66,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
+public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Unused> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   
@@ -1044,13 +1046,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	
 	
 	
-	private static final class TypeAndMethod {
+	private static final class TypeAndMethod implements ICompUnitContext {
 	  public final IRNode typeDecl;
 	  public final IRNode methodDecl;
 	  
 	  public TypeAndMethod(final IRNode td, final IRNode md) {
 	    typeDecl = td;
 	    methodDecl = md;
+	  }
+	  
+	  public IRNode getCompUnit() {
+		  return VisitUtil.getEnclosingCompilationUnit(typeDecl);
 	  }
 	  
     public IRNode getClassBody() {
