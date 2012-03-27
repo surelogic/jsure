@@ -23,7 +23,6 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
@@ -261,12 +260,22 @@ extends TripleLattice<Element<Integer>,
 		  if (drop.allowRead()) return State.UNIQUEWRITE;
 		  return State.UNIQUE;
 	  }
-	  if (UniquenessUtils.isFieldUnique(node)) return State.UNIQUE;
+	  if (UniquenessUtils.isFieldUnique(node)) {
+	    return State.UNIQUE;
+	  }
 	  // TODO: BorrowedReadOnly
-	  if (UniquenessUtils.isFieldBorrowed(node)) return State.BORROWED;
-	  if (UniquenessRules.isReadOnly(node)) return State.READONLY;
-	  if (LockRules.isImmutableRef(node)) return State.IMMUTABLE;
-	  if (isValueNode(node)) return State.IMMUTABLE;
+	  if (UniquenessUtils.isFieldBorrowed(node)) {
+	    return State.BORROWED;
+	  }
+	  if (UniquenessRules.isReadOnly(node)) {
+	    return State.READONLY;
+	  }
+	  if (LockRules.isImmutableRef(node)) {
+	    return State.IMMUTABLE;
+	  }
+	  if (isValueNode(node)) {
+	    return State.IMMUTABLE;
+	  }
 	  return State.SHARED;
   }
 
