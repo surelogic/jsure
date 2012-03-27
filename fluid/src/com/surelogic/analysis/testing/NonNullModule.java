@@ -5,6 +5,7 @@ import java.util.Set;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.Unused;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -17,7 +18,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.Query;
 
-public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAnalysis, Void>{
+public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAnalysis, Unused>{
   public NonNullModule() {
     super("Non Null");
   }

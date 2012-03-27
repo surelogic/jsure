@@ -9,8 +9,9 @@ import jsr166y.forkjoin.Ops.Procedure;
 import org.apache.commons.lang3.SystemUtils;
 
 import edu.cmu.cs.fluid.ide.*;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 
-public class ConcurrentAnalysis<Q> {
+public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 	public static final int threadCount = IDE.getInstance().getIntPreference(
 			IDEPreferences.ANALYSIS_THREAD_COUNT);
 	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
@@ -98,8 +99,11 @@ public class ConcurrentAnalysis<Q> {
 		}
 	}
 
-	protected <E> void runInParallel(Class<E> type, Collection<E> c,
-			Procedure<E> proc) {
+	/**
+	 * Used by various analyses to handle concurrency themselves
+	 */
+	protected <E extends ICompUnitContext> void runInParallel(Class<E> type, Collection<E> c,
+			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
 		}
@@ -108,7 +112,17 @@ public class ConcurrentAnalysis<Q> {
 		/*
 		 * for(Procedure<E> p : procs) { array.apply(p); }
 		 */
-		array.apply(proc);
+		final PromiseFramework frame = PromiseFramework.getInstance();
+		array.apply(new Procedure<E>() {
+			public void op(E arg) {
+				try {
+					frame.pushTypeContext(arg.getCompUnit());
+					proc.op(arg);
+				} finally {
+		            frame.popTypeContext();
+				}
+			}
+		});
 	}
 
 	public ConcurrencyType runInParallel() {

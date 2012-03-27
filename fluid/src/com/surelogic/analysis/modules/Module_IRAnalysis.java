@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAndVisitor, Void> {
+public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAndVisitor, Unused> {
 	public  Module_IRAnalysis() {
 		super("Module");
 	}

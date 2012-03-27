@@ -2,7 +2,7 @@ package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public abstract class AbstractAnalysisSharingAnalysis<S, T extends IBinderClient, Q> extends AbstractWholeIRAnalysis<T, Q> {
+public abstract class AbstractAnalysisSharingAnalysis<S, T extends IBinderClient, Q extends ICompUnitContext> extends AbstractWholeIRAnalysis<T, Q> {
 	protected final SharedAnalysisFactory<S> factory;
 	private S sharedAnalysis;
 	

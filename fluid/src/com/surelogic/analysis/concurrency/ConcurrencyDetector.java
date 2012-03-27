@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 
-public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,IRNode> {
+public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
 		InfoDropBuilder id = InfoDropBuilder.create(this, Messages.toString(number), InfoDrop.factory);
 		// rd.addCheckedPromise(pd);

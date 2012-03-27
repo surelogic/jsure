@@ -10,12 +10,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Void> {
+public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Unused> {
 	private static final Logger LOG = SLLogger
       .getLogger("analysis.threadroles.managethreadroleannos");
 	
 	public ThreadRoleZerothPass() {
-		super(false, Void.class);
+		super(false, Unused.class);
 	}
 
 	public boolean analyzeAll() {

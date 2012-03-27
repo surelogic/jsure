@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.util.CachedSet;
 
-public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
+public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends AbstractIRAnalysis<T,Q> {
 	public static final boolean useDependencies = System.getProperty("SureLogic.useDependencies", "false").equals("true");
 	public static final boolean debugDependencies = useDependencies && false;
 	

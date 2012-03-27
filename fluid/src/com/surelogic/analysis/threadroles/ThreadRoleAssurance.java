@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass,Void>{	
+public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass,Unused>{	
 	private int cuCount = 0;
 	  
 	public ThreadRoleAssurance() {

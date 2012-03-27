@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -32,7 +33,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 
-public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis,Void> {
+public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, Unused> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   
@@ -258,21 +259,22 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	  return visitor.getResults();
 	}
 
-	
+	private static class MethodRecord implements ICompUnitContext {
+		public final IRNode mdecl;
+		public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
 
-	
-	private static class MethodRecord {
-	  public final IRNode mdecl;
-	  public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
-	  
-	  public MethodRecord(final IRNode m) {
-	    mdecl = m;
-	    usedUniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-	  }
-	  
-	  public void addField(final PromiseDrop<? extends IAASTRootNode> uDrop) {
-	    usedUniqueFields.add(uDrop);
-	  }
+		public MethodRecord(final IRNode m) {
+			mdecl = m;
+			usedUniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+		}
+
+		public void addField(final PromiseDrop<? extends IAASTRootNode> uDrop) {
+			usedUniqueFields.add(uDrop);
+		}
+
+		public IRNode getCompUnit() {
+			return VisitUtil.getEnclosingCompilationUnit(mdecl);
+		}
 	}
 	
 	

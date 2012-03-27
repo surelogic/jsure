@@ -99,7 +99,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   
 
   // for creating drops
-  private final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis;
+  private final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis;
   
   
   // ==================================================================
@@ -107,7 +107,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // ==================================================================
   
   public UniquenessAnalysis(
-      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> a,
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> a,
       final IBinder binder, final boolean to,
       final BindingContextAnalysis bca) {
     super(new FixBinder(binder)); // avoid crashes.

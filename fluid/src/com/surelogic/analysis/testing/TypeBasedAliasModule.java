@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderClient, Void> {
+public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
 	public TypeBasedAliasModule() {
 		super("TypeBasedAliasCategory");
 	}
