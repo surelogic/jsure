@@ -71,6 +71,7 @@ import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
+import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -541,10 +542,41 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * The formals may be null only if there is some sort of error.
      * This error is logged as a warning already.
      */
+    // Only called with numActuals > 0
     private Store popArguments(
-        final int numActuals, final IRNode formals, Store s) {
+        final int numActuals, final IRNode actuals, final IRNode formals, Store s) {
       if (formals != null && numActuals != tree.numChildren(formals)) {
         throw new FluidError("#formals != #actuals");
+      }
+      
+      /* Handle varargs: If the last actual argument is a VarArgsExpression, we 
+       * have to deal with the fact that in reality the final argument is a 
+       * an array: That is, if the called method is 
+       * 
+       *   void foo(int x, Object... y) { ... }
+       *   
+       * and the call is "foo(a, b, c, d)", we really have the call
+       * "foo(a, new Object[] { b, c, d, })".  So we need to simulate the 
+       * array assignments for the last 3 arguments, and then push a new 
+       * object on the stack to account for the array.  Then we check that 
+       * new object against the last declared formal parameter.
+       */
+      final IRNode lastActual = JJNode.tree.getChild(actuals, numActuals - 1);
+      if (VarArgsExpression.prototype.includes(lastActual)) {
+        // compromise each actual argument that is part of the var args expression
+        final int numActualsInArray = JJNode.tree.numChildren(lastActual);
+        for (int count = 0; count < numActualsInArray; count++) {
+          if (!s.isValid()) return s;
+          s = lattice.opCompromise(s);
+        }
+        if (!s.isValid()) return s;
+        // push a new object to represent the array
+        s = lattice.opNew(s);
+      } else {
+        /* Make sure we have a valid store below; we have a valid store coming
+         * out of the true branch already.
+         */
+        if (!s.isValid()) return s;
       }
       for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
@@ -785,7 +817,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
             
       // We have to possibly compromise arguments
-      s = popArguments(numActuals, formals, s);
+      if (numActuals > 0) {
+        s = popArguments(numActuals, actuals, formals, s);
+      }
       if (hasOuterObject(node)) {
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("Popping qualifier");
