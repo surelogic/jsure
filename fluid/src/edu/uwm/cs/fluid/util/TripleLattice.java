@@ -77,7 +77,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
         lattice3.meet(v1.third(), v2.third()));
   }
 
-  public final V widen(
+  public V widen(
       final V v1, final V v2) {
     return newTriple(
         lattice1.widen(v1.first(), v2.first()),

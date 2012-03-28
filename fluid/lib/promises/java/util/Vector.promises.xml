@@ -36,6 +36,11 @@
             <RegionEffects revision="1">writes Instance</RegionEffects>
             <Unique revision="1">return</Unique>
         </method>
+        
+        <method name="set" params="int, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
 
         <class name="Itr">
             <method name="hasNext">

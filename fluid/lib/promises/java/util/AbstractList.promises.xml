@@ -31,6 +31,11 @@
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
+        
+        <method name="set" params="int, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
 
 
 

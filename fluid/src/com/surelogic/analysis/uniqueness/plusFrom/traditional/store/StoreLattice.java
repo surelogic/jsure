@@ -166,8 +166,18 @@ extends TripleLattice<Element<Integer>,
   }
   
   @Override
-  public Store meet(final Store s1, final Store s2) {
-    Store m = super.meet(s1, s2);
+  public Store widen(final Store s1, final Store s2) {
+    Store m = super.widen(s1, s2);
+    if (!m.isValid() && !equals(m, bottom())) {
+      // try to preserve cause
+      if (!s1.isValid() && !equals(s1, bottom())) {
+        return s1;
+      }
+      if (!s2.isValid() && !equals(s2, bottom())) {
+        return s2;
+      }
+      return errorStore("stacksize mismatch");
+    }
     return m;
   }
 
