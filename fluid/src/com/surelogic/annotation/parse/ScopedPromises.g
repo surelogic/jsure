@@ -343,21 +343,19 @@ wildcardIdentifier
 */
 
 modifierPattern
-  : accessModPattern staticPattern? finalPattern?
+  : (modPattern)*
+  ;
+
+modPattern
+  : PUBLIC | PROTECTED | PRIVATE
+  | STATIC 
+  | '!' STATIC -> INSTANCE
+  | FINAL 
+  | '!' FINAL -> MUTABLE
   ;
 
 accessModPattern
-  : (PUBLIC | PROTECTED | PRIVATE)? 
-  ;
-	
-staticPattern
-  : STATIC 
-  | '!' STATIC -> INSTANCE
-  ;
-
-finalPattern
-  : FINAL 
-  | '!' FINAL -> MUTABLE
+  : (PUBLIC | PROTECTED | PRIVATE)?
   ;
  
 /*************************************************************************************

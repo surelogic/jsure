@@ -31,12 +31,21 @@ public class AASTAdaptor extends AbstractNodeAdaptor {
           dims++;    
           return false;
         case SLAnnotationsParser.PUBLIC:
+          if (JavaNode.isSet(mods, JavaNode.PRIVATE) || JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+        	  throw new BadTokenException(tt, "Access modifier already set before 'public'");
+          }
           mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true);
           return true;
         case SLAnnotationsParser.PROTECTED:
+          if (JavaNode.isSet(mods, JavaNode.PRIVATE) || JavaNode.isSet(mods, JavaNode.PUBLIC)) {
+        	  throw new BadTokenException(tt, "Access modifier already set before 'protected'");
+          }
           mods = JavaNode.setModifier(mods, JavaNode.PROTECTED, true);
           return true;
         case SLAnnotationsParser.PRIVATE:
+          if (JavaNode.isSet(mods, JavaNode.PUBLIC) || JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+        	  throw new BadTokenException(tt, "Access modifier already set before 'private'");
+          }
           mods = JavaNode.setModifier(mods, JavaNode.PRIVATE, true);
           return true;
         case SLAnnotationsParser.STATIC:

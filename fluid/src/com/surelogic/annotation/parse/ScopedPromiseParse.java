@@ -88,7 +88,8 @@ public class ScopedPromiseParse extends AbstractParse<ScopedPromisesParser> {
     
     printAST(initParser("public **(**) & !(getSource(**))").andTarget().tree);
     printAST(initParser("new(**)").andTarget().tree);
-        
+    
+    printAST(initParser("private public *(**)").andTarget().tree);    
     printAST(initParser("*(**)").promiseTarget().tree);
     printAST(initParser("intValue(**) in foo").promiseTarget().tree);
     printAST(initParser("intValue(**) in foo & intValue(int) in foo").promiseTarget().tree, false);

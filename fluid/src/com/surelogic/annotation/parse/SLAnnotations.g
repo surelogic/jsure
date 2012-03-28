@@ -458,15 +458,11 @@ region
 	;
 	
 regionDecl
-  : /* FIX This next line shouldn't be necessary */
-	  identifier -> ^(NewRegionDeclaration identifier)  
-  | accessModifiers identifier -> ^(NewRegionDeclaration accessModifiers identifier)
+  : accessModifiers identifier -> ^(NewRegionDeclaration accessModifiers identifier)
   ;
 	
 fullRegionDecl
-  /* FIX This next line shouldn't be necessary */
-  : identifier EXTENDS regionSpecification -> ^(NewRegionDeclaration identifier regionSpecification)
-  | accessModifiers identifier EXTENDS regionSpecification -> ^(NewRegionDeclaration accessModifiers identifier regionSpecification)
+  : accessModifiers identifier EXTENDS regionSpecification -> ^(NewRegionDeclaration accessModifiers identifier regionSpecification)
   ;
 	
 inRegion
@@ -691,7 +687,7 @@ nothing
     ;		
 
 accessModifiers
-	: (PUBLIC | PROTECTED | PRIVATE)? STATIC?
+	: (PUBLIC | PROTECTED | PRIVATE | STATIC)*
 	;
 
 /*************************************************************************************
