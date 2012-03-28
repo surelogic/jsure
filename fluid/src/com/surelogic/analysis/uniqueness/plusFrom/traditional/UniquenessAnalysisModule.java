@@ -36,13 +36,17 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -57,6 +61,7 @@ import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutableRefPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
@@ -424,10 +429,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		
 		public final Set<ImmutableRefPromiseDrop> usedImmutableFields;
 		public final Set<ReadOnlyPromiseDrop> usedReadOnlyFields;
-		
+    
+    /** Immutable types that have instances that are passed as actual arguments
+     * to methods.
+     */
+    private final Set<ImmutablePromiseDrop> immutableActuals;
+
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
-
+  
     /**
      * Result drop that aggregates together all the unique field promise drops.
      * Created lazily.
@@ -447,7 +457,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     /** Need a separate flag because aggregatedUniqueParams is allowed to be null;
      */
     private boolean isAggregatedUniqueParamsSet = false;
-		
+    
 		/**
 		 * Map from method/constructor calls to the set of result drops that
 		 * represent the calls.
@@ -477,6 +487,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			uniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			usedImmutableFields = new HashSet<ImmutableRefPromiseDrop>();
 			usedReadOnlyFields = new HashSet<ReadOnlyPromiseDrop>();
+			immutableActuals = new HashSet<ImmutablePromiseDrop>();
 			
 			callsToDrops = new HashMap<IRNode, Set<ResultDropBuilder>>();
 			
@@ -669,6 +680,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     addDependencies(pr.usedImmutableFields, fooSet);
     addDependencies(pr.usedReadOnlyFields, fooSet);
     
+    addDependencies(pr.immutableActuals, fooSet);
+    
     /*
      * Set up the borrowed dependencies. Each parameter of the method that is
      * declared to be borrowed trusts the @borrowed annotations (including
@@ -845,6 +858,37 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
           continue;
         }
+
+        /* Look at the call site and see if there are actual expressions whose
+         * type is @Immutable.
+         */
+        // check the receiver, if any (non-static method calls)
+        if (MethodCall.prototype.includes(currentNode) && !TypeUtil.isStatic(declNode)) {
+          final IRNode rcvr = MethodCall.getObject(currentNode);
+          final IJavaType type = getBinder().getJavaType(rcvr);
+          if (type instanceof IJavaSourceRefType) {
+            final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+            final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+            final ImmutablePromiseDrop iDrop = LockRules.getImmutableType(typeDeclarationNode);
+            if (iDrop != null) pr.immutableActuals.add(iDrop);
+          }
+        }
+        // check the params
+        try {
+          final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(currentNode)).get_Args(currentNode);
+          for (final IRNode arg : Arguments.getArgIterator(actuals)) {
+            final IJavaType type = getBinder().getJavaType(arg);
+            if (type instanceof IJavaSourceRefType) {
+              final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+              final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+              final ImmutablePromiseDrop iDrop = LockRules.getImmutableType(typeDeclarationNode);
+              if (iDrop != null) pr.immutableActuals.add(iDrop);
+            }
+          }
+        } catch (final CallInterface.NoArgs e) {
+          // do nothing
+        }
+
         final boolean isConstructorCall = 
           ConstructorDeclaration.prototype.includes(declNode);
         
@@ -1163,8 +1207,39 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
         }
       }
+      
+      /* Look at the call site and see if there are actual expressions whose
+       * type is @Immutable.
+       */
+      // check the receiver, if any (non-static method calls)
+      if (MethodCall.prototype.includes(call) && !TypeUtil.isStatic(declNode)) {
+        final IRNode rcvr = MethodCall.getObject(call);
+        if (isValueNode(rcvr)) {
+          results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+        }
+      }
+      // check the params
+      try {
+        final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(call)).get_Args(call);
+        for (final IRNode arg : Arguments.getArgIterator(actuals)) {
+          if (isValueNode(arg)) {
+            results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+          }
+        }
+      } catch (final CallInterface.NoArgs e) {
+        // do nothing
+      }
     }
     
+    private boolean isValueNode(final IRNode node) {
+      IJavaType type = binder.getJavaType(node);
+      if (type instanceof IJavaSourceRefType) {
+        final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+        final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+        return LockRules.isImmutableType(typeDeclarationNode);
+      }
+      return false;
+    }
     
     
     @Override
