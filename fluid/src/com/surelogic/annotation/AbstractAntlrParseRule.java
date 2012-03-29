@@ -14,6 +14,7 @@ import org.antlr.runtime.Parser;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.*;
+import com.surelogic.annotation.parse.BadTokenException;
 import com.surelogic.parse.AbstractNodeAdaptor;
 
 import edu.cmu.cs.fluid.parse.ParseException;
@@ -99,6 +100,10 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		catch (RecognitionException e) {
 		  handleRecognitionException(context, contents, e);
 		  return ParseResult.FAIL;
+		}
+		catch (BadTokenException e) {
+			context.reportError(e.getCharLocation(), e.getMessage()+" : @"+name()+' '+contents); 
+			return ParseResult.FAIL;
 		}
 		catch (ParseException e) {
 			context.reportError(IAnnotationParsingContext.UNKNOWN, e.getMessage());

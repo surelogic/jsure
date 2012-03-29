@@ -44,7 +44,7 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
     printAST(initParser(" java.lang.Object  ").namedType().tree);
     
     printAST(initParser(" Instance  ").regionName().tree);
-    printAST(initParser(" [ ]  ").regionSpecification().tree);
+    //printAST(initParser(" [ ]  ").regionSpecification().tree);
     printAST(initParser(" Instance  ").regionSpecification().tree);
     
     printAST(initParser(" java.lang.Object:Instance  ").regionSpecification().tree);
@@ -61,12 +61,14 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
     printAST(initParser("  Yo  ").returnsLock().tree);    
     //printAST(initParser("  Foo.Bar:Baz  ").returnsLock().tree);    
     
-    printAST(initParser("  [] into Instance  ").uniqueInRegion().tree); 
+    //printAST(initParser("  [] into Instance  ").uniqueInRegion().tree); 
+    printAST(initParser(" public Foo   ").region().tree); 
     printAST(initParser(" public static Foo   ").region().tree); 
+    printAST(initParser(" public private Foo   ").region().tree); 
     printAST(initParser(" private Bar extends Foo ").region().tree); 
     printAST(initParser("  bar:Instance  ").inRegion().tree); 
     printAST(initParser("  foo, Bar into Instance  ").mapFields().tree); 
-    printAST(initParser("  [] into Instance  ").mapRegion().tree); 
+    //printAST(initParser("  [] into Instance  ").mapRegion().tree); 
     
     printAST(initParser("   Lock is last  ").policyLock().tree);
     
