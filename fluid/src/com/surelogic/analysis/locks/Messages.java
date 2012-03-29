@@ -154,7 +154,8 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_VOUCHED = 485;
   public static final int TRIVIALLY_IMMUTABLE = 486;
   public static final int IMMUTABLE_VOUCHED_WITH_REASON = 487;
- 
+  public static final int IMMUTABLE_IMPL = 488;
+
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 
   /** To support JSure-Sierra integration

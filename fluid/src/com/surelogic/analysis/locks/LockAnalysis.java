@@ -412,7 +412,6 @@ public class LockAnalysis
              */
             if (!isTS && isFinal) {
               final IRNode init = VariableDeclarator.getInit(varDecl);
-              // XXX: This is not right: Should specifically check for NewExpression!
               if (Initialization.prototype.includes(init)) {
                 final IRNode initExpr = Initialization.getValue(init);
                 if (NewExpression.prototype.includes(initExpr)) {
@@ -838,21 +837,50 @@ public class LockAnalysis
 							proposeVouch = true;
 						}
 					} else {
-						// MUTABLE REFERENCE TYPE
-						proposeVouch = true;
-						if (isFinal) {
-							result = createResult(varDecl, false,
-									Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
-						} else {
-							result = createResult(varDecl, false,
-									Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE,
-									id);
-						}
-						for (final IRNode typeDecl : tester.getTested()) {
-							result.addProposal(new ProposedPromiseBuilder(
-									"Immutable", null, typeDecl, varDecl,
-									Origin.MODEL));
-						}
+            /*
+             * If the type is not immutable, we can check to see
+             * if the implementation assigned to the field is immutable,
+             * but only if the field is final.
+             */
+					  boolean stillBad = true;
+            if (isFinal) {
+              final IRNode init = VariableDeclarator.getInit(varDecl);
+              if (Initialization.prototype.includes(init)) {
+                final IRNode initExpr = Initialization.getValue(init);
+                if (NewExpression.prototype.includes(initExpr)) {
+                  final ImmutablePromiseDrop implTypeIDrop =
+                      LockRules.getImmutableImplementation(
+                          ((IJavaDeclaredType) getBinder().getJavaType(initExpr)).getDeclaration());
+                  if (implTypeIDrop != null) {
+                    // we have an instance of an immutable implementation
+                    stillBad = false;
+                    result = createResult(varDecl, true,
+                        Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
+                    result.addTrustedPromise(implTypeIDrop);
+                    result.addSupportingInformation(
+                        varDecl, Messages.IMMUTABLE_IMPL);
+                  }
+                }
+              }
+            }
+					  
+            if (stillBad) {
+  						// MUTABLE REFERENCE TYPE
+  						proposeVouch = true;
+  						if (isFinal) {
+  							result = createResult(varDecl, false,
+  									Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
+  						} else {
+  							result = createResult(varDecl, false,
+  									Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE,
+  									id);
+  						}
+  						for (final IRNode typeDecl : tester.getTested()) {
+  							result.addProposal(new ProposedPromiseBuilder(
+  									"Immutable", null, typeDecl, varDecl,
+  									Origin.MODEL));
+  						}
+            }
 					}
 				}
 
