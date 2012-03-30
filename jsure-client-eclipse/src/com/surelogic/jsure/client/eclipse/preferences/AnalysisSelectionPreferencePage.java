@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -27,13 +26,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.driver.DoubleChecker;
 import com.surelogic.jsure.core.driver.IAnalysisContainer;
@@ -48,16 +47,10 @@ import edu.cmu.cs.fluid.java.CommonStrings;
 public final class AnalysisSelectionPreferencePage extends
 		org.eclipse.jface.preference.PreferencePage implements
 		IWorkbenchPreferencePage {
-	public static final boolean showPrivate = XUtil.useExperimental();
-	// public static final boolean showPrivate = QuickProperties.getInstance()
-	// .getProperties().getProperty("dc.show.private", "false").equals(
-	// "true");
 
-	private static IAnalysisContainer container = DoubleChecker.getDefault();
+	private CheckboxTreeViewer checktree;
 
-	CheckboxTreeViewer checktree;
-
-	AnalysisModuleContentProvider analysisModuleContentProvider;
+	private AnalysisModuleContentProvider analysisModuleContentProvider;
 
 	public void init(IWorkbench workbench) {
 		// do nothing
@@ -70,7 +63,8 @@ public final class AnalysisSelectionPreferencePage extends
 		gridLayout.numColumns = 2;
 		composite.setLayout(gridLayout);
 		Label label1 = new Label(composite, SWT.NONE);
-		label1.setText("Analysis modules invoked on verified projects:");
+		label1.setText(I18N
+				.msg("jsure.eclipse.preference.page.analysis.selection.title.msg"));
 		GridData data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
 		data.horizontalSpan = 2;
@@ -188,7 +182,8 @@ public final class AnalysisSelectionPreferencePage extends
 			m_checktreeContents = new HashSet<PreferenceTreeNode>();
 			m_originalMap = new HashMap<IAnalysisInfo, PreferenceTreeNode>();
 			// Create core contents (ones we care about)
-			for (IAnalysisInfo am : container.getAllAnalysisInfo()) {
+			for (IAnalysisInfo am : DoubleChecker.getDefault()
+					.getAllAnalysisInfo()) {
 				PreferenceTreeNode node = new PreferenceTreeNode();
 				node.am = am;
 				node.original = node;
@@ -216,7 +211,7 @@ public final class AnalysisSelectionPreferencePage extends
 		 */
 		private Set<PreferenceTreeNode> addPrereqs(IAnalysisInfo extension) {
 			Set<PreferenceTreeNode> result = new HashSet<PreferenceTreeNode>();
-			Set<IAnalysisInfo> prereqs = container
+			Set<IAnalysisInfo> prereqs = DoubleChecker.getDefault()
 					.getPrerequisiteAnalysisExtensionPoints(extension);
 			for (IAnalysisInfo prereq : prereqs) {
 				PreferenceTreeNode node = new PreferenceTreeNode();
@@ -234,7 +229,7 @@ public final class AnalysisSelectionPreferencePage extends
 		 * @return false if not production, or if category=required
 		 */
 		private boolean computeVisibility(IAnalysisInfo am) {
-			if (showPrivate) {
+			if (XUtil.useExperimental()) {
 				return true;
 			}
 			return am.isProduction() && !isRequired(am);
@@ -246,7 +241,7 @@ public final class AnalysisSelectionPreferencePage extends
 
 		private PreferenceTreeNode[] filterNodes(Set<PreferenceTreeNode> nodes) {
 			int numVisible = 0;
-			if (showPrivate) {
+			if (XUtil.useExperimental()) {
 				numVisible = nodes.size();
 			} else {
 				for (PreferenceTreeNode n : nodes) {
@@ -388,23 +383,14 @@ public final class AnalysisSelectionPreferencePage extends
 			return result;
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
-		 */
 		public Object getParent(Object element) {
 			return null;
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
-		 */
 		public boolean hasChildren(Object element) {
 			return (this.getChildren(element).length > 0);
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
-		 */
 		public Object[] getElements(Object inputElement) {
 			PreferenceTreeNode[] result = filterNodes(m_checktreeContents);
 			Arrays.sort(result, new Comparator<PreferenceTreeNode>() {
@@ -418,17 +404,10 @@ public final class AnalysisSelectionPreferencePage extends
 			return result;
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer,
-		 *      java.lang.Object, java.lang.Object)
-		 */
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			// nothing to do
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ICheckStateListener#checkStateChanged(org.eclipse.jface.viewers.CheckStateChangedEvent)
-		 */
 		public void checkStateChanged(CheckStateChangedEvent event) {
 			PreferenceTreeNode node = (PreferenceTreeNode) event.getElement();
 			node.original.isOn = event.getChecked();
@@ -439,9 +418,6 @@ public final class AnalysisSelectionPreferencePage extends
 			setState();
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ILabelProvider#getText(java.lang.Object)
-		 */
 		@Override
 		public String getText(Object element) {
 			PreferenceTreeNode node = (PreferenceTreeNode) element;
@@ -463,9 +439,6 @@ public final class AnalysisSelectionPreferencePage extends
 					+ label + ")";
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ILabelProvider#getImage(java.lang.Object)
-		 */
 		@Override
 		public Image getImage(Object element) {
 			PreferenceTreeNode node = (PreferenceTreeNode) element;
@@ -481,47 +454,26 @@ public final class AnalysisSelectionPreferencePage extends
 			return SLImages.getImage(CommonImages.IMG_EMPTY_DOT);
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ITreeViewerListener#treeCollapsed(org.eclipse.jface.viewers.TreeExpansionEvent)
-		 */
 		public void treeCollapsed(TreeExpansionEvent event) {
 			setState();
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ITreeViewerListener#treeExpanded(org.eclipse.jface.viewers.TreeExpansionEvent)
-		 */
 		public void treeExpanded(TreeExpansionEvent event) {
 			setState();
 		}
 	}
 
-	/**
-	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
-	 */
 	@Override
 	protected void performDefaults() {
 		super.performDefaults();
 		analysisModuleContentProvider.restoreDefaults();
 	}
 
-	/**
-	 * @see org.eclipse.jface.preference.IPreferencePage#performOk()
-	 */
 	@Override
 	public boolean performOk() {
 		final Set<String> onIds = analysisModuleContentProvider.getOnIds();
+		final IAnalysisContainer container = DoubleChecker.getDefault();
 		if (container.isIncludedExtensionsChanged(onIds)) {
-			// save the excluded list from the dialog into the main plugin
-			MessageDialog
-					.openInformation(
-							(Shell) null,
-							"Analysis Set Change Warning",
-							"For production work, it is recommended that you restart Eclipse"
-									+ " when changing the set of JSure analyses.  Especially if you"
-									+ " turned something off.  If you ignore this warning (i.e.,"
-									+ " for testing), please perform \"Project | Clean...\" for "
-									+ "all open projects");
 			container.updateIncludedExtensions(onIds);
 		}
 		return true;

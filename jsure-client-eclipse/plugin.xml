@@ -117,7 +117,7 @@
 			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
-		<page name="Analyses" class="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
+		<page name="Verifying Analysis Selection" class="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
 			id="edu.cmu.cs.fluid.dc.PreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
