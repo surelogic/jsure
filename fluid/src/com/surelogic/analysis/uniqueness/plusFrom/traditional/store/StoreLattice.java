@@ -443,23 +443,6 @@ extends TripleLattice<Element<Integer>,
 	  if (!s.isValid()) return s;
 	  return apply(s, new Remove(new ImmutableHashOrderSet<Object>(vars)));
   }
-//
-//  /**
-//   * Special case of {@link #opGet} for the receiver.
-//   */
-//  @Deprecated
-//  public Store opThis(final Store s) {
-//    if (!s.isValid()) return s;
-//    if (locals == null) {
-//      return errorStore("no 'this' (or anything else) in scope");
-//    }
-//    for (final IRNode l : locals) {
-//      if (ReceiverDeclaration.prototype.includes(l)) {
-//        return opGet(s, l);
-//      }
-//    }
-//    return errorStore("no 'this' in scope");
-//  }
   
   /**
    * Duplicate a stack value from further down stack
@@ -664,6 +647,14 @@ extends TripleLattice<Element<Integer>,
 	  if (localStatus == State.BORROWED) return s; // XXX: defer to effects analysis (UNSOUND!)
 	  
 	  if (!State.lattice.lessEq(localStatus,State.SHARED)) {
+	    /* If the object is a VALUE object (instance of an @Immutable type) there
+	     * is no error because it is not possible to ever mutate such an object. 
+	     */
+	     // kludge to permit VALUE objects to be shared:
+      for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+        if (obj.contains(var) && obj.contains(VALUE)) return s;
+      }
+
 		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
 		  return errorStore("mutation not legal on this reference");
 	  }
@@ -904,7 +895,7 @@ extends TripleLattice<Element<Integer>,
 	  if (isValueNode(exprORdecl)) return opValue(s);
 	  switch (required) {
 	  case UNDEFINED:
-		  throw new FluidError("should not generate undefiend things");
+		  throw new FluidError("should not generate undefined things");
 		  
 	  // TODO: BorrowedReadOnly
 		  

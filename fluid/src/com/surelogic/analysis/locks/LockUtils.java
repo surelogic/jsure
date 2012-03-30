@@ -820,8 +820,8 @@ public final class LockUtils {
       t = UndoBCAProcessor.undo(t);
       
       final IRegion region = t.getRegion();
-      /* Final and volatile regions do not need locks */
-      if (!region.isFinal() && !region.isVolatile()) {
+      /* Final regions do not need locks --- VOLATILE ones do! (changes this on 2012-03-30) */
+      if (!region.isFinal()) {
         final IJavaType lookupRegionInThisType = t.getRelativeClass(binder);
         final RegionLockRecord neededLock =
           getLockForRegion(lookupRegionInThisType, region);
