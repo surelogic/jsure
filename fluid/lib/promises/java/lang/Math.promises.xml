@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" revision="1">
     <class name="Math">
+        <Promise revision="1" uid="7e18ad06-3783-4875-b8d1-9b471069f51c">@RegionEffects(none) for *(**)</Promise>
         <method name="max" params="long,long">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects delete="true" revision="2">none</RegionEffects>
         </method>
 
         <method name="min" params="long,long">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects delete="true" revision="2">none</RegionEffects>
         </method>
     </class>
 </package>

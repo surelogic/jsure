@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="1">
+<package name="java.util.concurrent" revision="2">
     <class name="CopyOnWriteArrayList">
         <Promise uid="4406f305-41e5-4b64-a1ca-1c4180b245aa">@Unique(return) for new(**)</Promise>
         <Promise uid="7e0fb993-d77e-45db-9117-912040378930">@RegionEffects(reads arg0:Instance) for new(*)</Promise>
         <ThreadSafe revision="1"/>
-        <method name="isEmpty">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
-        </method>
-
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>
 
-        <method name="size">
+        <method name="get" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>
@@ -38,20 +38,77 @@
             <Unique>return</Unique>
         </method>
 
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <class name="COWIterator">
+            <constructor params="java.lang.Object[],int">
+                <Borrowed allowReturn="true">arg0</Borrowed>
+                <RegionEffects>writes arg0:Instance</RegionEffects>
+            </constructor>
+
+            <method name="add" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="hasNext">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="hasPrevious">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="next">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="nextIndex">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="previous">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="previousIndex">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
+            <method name="set" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+        </class>
+
         <class name="COWSubList">
             <constructor params="java.util.CopyOnWriteArrayList,int,int">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads arg0:Instance</RegionEffects>
             </constructor>
-        
+
             <method name="clear">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
-        
-            <method name="size">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
+
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
             </method>
 
             <method name="iterator">
@@ -71,67 +128,30 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
-        </class>
 
-        <class name="COWIterator">
-            <constructor params="java.lang.Object[], int">
-                <Borrowed allowReturn="true">arg0</Borrowed>
-                <RegionEffects>writes arg0:Instance</RegionEffects>
-            </constructor>
-            
-            <method name="hasNext">
+            <method name="size">
                 <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
-            </method>
-
-            <method name="next">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes Instance</RegionEffects>
-            </method>
-
-            <method name="hasPrevious">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
-            </method>
-
-            <method name="previous">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes Instance</RegionEffects>
-            </method>
-
-            <method name="nextIndex">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
-            </method>
-
-            <method name="previousIndex">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
-            </method>
-
-            <method name="remove">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-            </method>
-
-            <method name="set" params="java.lang.Object">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-            </method>
-
-            <method name="add" params="java.lang.Object">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 
         <class name="COWSubListIterator">
-            <constructor params="java.util.List, int, int, int">
+            <constructor params="java.util.List,int,int,int">
                 <Borrowed allowReturn="true">arg0</Borrowed>
                 <RegionEffects>writes arg0:Instance</RegionEffects>
             </constructor>
-            
+
+            <method name="add" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
             <method name="hasNext">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="hasPrevious">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
@@ -141,7 +161,7 @@
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
 
-            <method name="hasPrevious">
+            <method name="nextIndex">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
@@ -149,11 +169,6 @@
             <method name="previous">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
-            </method>
-
-            <method name="nextIndex">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="previousIndex">
@@ -167,11 +182,6 @@
             </method>
 
             <method name="set" params="java.lang.Object">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-            </method>
-
-            <method name="add" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>

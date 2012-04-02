@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.awt.util">
+<package name="sun.awt.util" revision="1">
     <class name="IdentityArrayList">
-        <method name="size">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
-        </method>
-
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>
 
+        <method name="get" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads this:Instance</RegionEffects>
+        </method>
+
         <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="size">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>

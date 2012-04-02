@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="1">
     <class name="LinkedList">
         <constructor>
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
         </constructor>
-        
-        <method name="size">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
-        </method>
 
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
@@ -22,9 +17,9 @@
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>
 
-        <method name="remove">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+        <method name="get" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads this:Instance</RegionEffects>
         </method>
 
         <method name="listIterator" params="int">
@@ -32,13 +27,21 @@
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
-        
-        <method name="set" params="int, java.lang.Object">
+
+        <method name="remove">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="set" params="int,java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>
 
-
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
 
         <class name="DescendingIterator">
             <method name="hasNext">
@@ -56,9 +59,19 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>
         </class>
-        
+
         <class name="ListItr">
+            <method name="add" params="java.lang.Object">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+            </method>
+
             <method name="hasNext">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="hasPrevious">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
@@ -68,7 +81,7 @@
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
 
-            <method name="hasPrevious">
+            <method name="nextIndex">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
@@ -76,11 +89,6 @@
             <method name="previous">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
-            </method>
-
-            <method name="nextIndex">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance</RegionEffects>
             </method>
 
             <method name="previousIndex">
@@ -94,11 +102,6 @@
             </method>
 
             <method name="set" params="java.lang.Object">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-            </method>
-
-            <method name="add" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
             </method>

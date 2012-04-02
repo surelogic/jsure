@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="1">
     <class name="AbstractSequentialList">
         <constructor>
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
         </constructor>
 
+        <method name="get" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads this:Instance</RegionEffects>
+        </method>
+
         <method name="iterator">
-            <!--starts>nothing</starts-->
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
 
         <method name="listIterator" params="int">
-            <!--starts>nothing</starts-->
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
-        
-        <method name="set" params="int, java.lang.Object">
+
+        <method name="set" params="int,java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>
