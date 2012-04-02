@@ -209,6 +209,10 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		}
 		
 		public Void visit(AnnotationElement a) {
+			if (a.isToBeDeleted()) {
+				a.removeFromParent();
+				return defaultValue;
+			}
 			if (a.isModified()) {
 				a.incrRevision();
 			}
