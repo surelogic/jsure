@@ -647,14 +647,8 @@ extends TripleLattice<Element<Integer>,
 	  if (localStatus == State.BORROWED) return s; // XXX: defer to effects analysis (UNSOUND!)
 	  
 	  if (!State.lattice.lessEq(localStatus,State.SHARED)) {
-	    /* If the object is a VALUE object (instance of an @Immutable type) there
-	     * is no error because it is not possible to ever mutate such an object. 
-	     */
-	     // kludge to permit VALUE objects to be shared:
-      for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
-        if (obj.contains(var) && obj.contains(VALUE)) return s;
-      }
-
+     // kludge to permit VALUE objects to be shared:
+	    if (isVariableSharable(s, var)) return s;
 		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
 		  return errorStore("mutation not legal on this reference");
 	  }
@@ -929,6 +923,24 @@ extends TripleLattice<Element<Integer>,
   }
   
   /**
+   * Return whether the variable 'n' is sharable.  A variable is sharable if
+   * every object that it could refer to has a state less than SHARED or is a 
+   * VALUE object.
+   */
+  private boolean isVariableSharable(final Store s, final Object n) {
+    boolean sharable = true;
+    for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+      if (obj.contains(n)) {
+        if (!obj.contains(VALUE) && 
+            !State.lattice.lessEq(nodeStatus(obj), State.SHARED)) {
+          sharable = false;
+        }
+      }
+    }
+    return sharable;
+  }
+  
+  /**
    * Check that the top element has the required state
    * @param s state before
    * @param required state required
@@ -940,9 +952,7 @@ extends TripleLattice<Element<Integer>,
 	  final State localStatus = localStatus(s, n);
 	  if (localStatus == State.IMMUTABLE && required == State.SHARED) {
 		  // kludge to permit VALUE objects to be shared:
-		  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
-			  if (obj.contains(n) && obj.contains(VALUE)) return s;
-		  }
+	    if (isVariableSharable(s, n)) return s;
 	  }
 	  if (!State.lattice.lessEq(localStatus, required)) {
 		  System.out.println("Value flow error: Required: " + required + ", actual: " + localStatus);
