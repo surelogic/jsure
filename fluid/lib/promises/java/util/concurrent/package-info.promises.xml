@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="1">
-    <Promise delete="true" revision="2" uid="5ae8e746-87fa-42db-9d9b-9ce38499358c">@ThreadSafe for CountDownLatch | CyclicBarrier | Exchanger | Semaphore</Promise>
-    <Promise delete="true" revision="2" uid="6f5e2b62-9334-4e96-ad90-9e32e04db348">@ThreadSafe for DelayQueue | SynchronousQueue</Promise>
-    <Promise delete="true" revision="2" uid="b268d369-5e71-4226-ab31-29faffdd94da">@ThreadSafe for Concurrent* | CopyOnWrite* | *Blocking*ue</Promise>
+<package name="java.util.concurrent" revision="2">
 </package>

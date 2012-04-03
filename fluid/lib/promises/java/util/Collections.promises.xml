@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="2">
+<package name="java.util" revision="3">
     <class name="Collections">
         <method name="unmodifiableList" params="java.util.List">
             <RegionEffects>none</RegionEffects>
@@ -9,11 +9,6 @@
 
         <class name="AsLIFOQueue">
             <method name="isEmpty">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
-            </method>
-        
-            <method name="size">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
@@ -28,22 +23,32 @@
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
             </method>
-        </class>
 
-        <class name="CheckedCollection">
             <method name="size">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
             </method>
+        </class>
 
+        <class name="CheckedCollection">
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="CheckedList">
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -104,11 +109,6 @@
             </method>
 
             <class name="CheckedEntrySet">
-                <method name="size">
-                    <Borrowed>this</Borrowed>
-                    <RegionEffects>reads this:Instance</RegionEffects>
-                </method>
-
                 <method name="clear">
                     <Borrowed>this</Borrowed>
                     <RegionEffects>writes this:Instance</RegionEffects>
@@ -119,10 +119,20 @@
                     <RegionEffects>writes this:Instance</RegionEffects>
                     <Unique>return</Unique>
                 </method>
+
+                <method name="size">
+                    <Borrowed>this</Borrowed>
+                    <RegionEffects>reads this:Instance</RegionEffects>
+                </method>
             </class>
         </class>
 
         <class name="CopiesList">
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="size">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>
@@ -147,16 +157,15 @@
         </class>
 
         <class name="EmptyList">
-            <Promise delete="true" revision="2" uid="6aa75e45-db5d-443e-9421-8cd07952855e">@Borrowed(this) for *terator(**)</Promise>
             <Promise uid="1a5961bc-62f8-4a02-90c5-90414c44da8e">@RegionEffects(reads this:Instance) for *terator(**)</Promise>
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="isEmpty">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>reads Instance</RegionEffects>
-            </method>
-
-            <method name="size">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
 
             <method name="iterator">
@@ -167,6 +176,11 @@
             <method name="listIterator">
                 <Borrowed allowReturn="true" revision="1">this</Borrowed>
                 <Unique revision="1">return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -236,15 +250,15 @@
                 <RegionEffects>reads Instance</RegionEffects>
             </method>
 
-            <method name="size">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
-            </method>
-
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
 
@@ -252,11 +266,6 @@
             <method name="clear">
                 <Borrowed>this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
-            </method>
-
-            <method name="size">
-                <Borrowed>this</Borrowed>
-                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
 
             <method name="isEmpty">
@@ -269,9 +278,19 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="SingletonList">
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="iterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -343,6 +362,11 @@
         </class>
 
         <class name="SynchronizedList">
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
@@ -417,6 +441,11 @@
         </class>
 
         <class name="UnmodifiableList">
+            <method name="get" params="int">
+                <Borrowed revision="1">this</Borrowed>
+                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            </method>
+
             <method name="listIterator">
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>reads this:Instance</RegionEffects>

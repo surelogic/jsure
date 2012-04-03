@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="2">
+<package name="java.util" revision="3">
     <class name="Vector">
-        <Promise delete="true" revision="2" uid="0e188642-e7bd-4867-bbbc-5e03abc99332">@Borrowed(this) for *terator(**)</Promise>
-        <Promise delete="true" revision="2" uid="fd6ca6cc-4613-4f6a-9368-17996e9505a6">@RegionEffects(reads this:Instance) for *terator(**)</Promise>
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
