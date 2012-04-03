@@ -222,14 +222,21 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		attributes.put(DELETE_ATTRB, "true");
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
 			// Delete from parent, since it was newly created
-			AnnotatedJavaElement parent = (AnnotatedJavaElement) getParent();
-			parent.removePromise(this);
+			removeFromParent();
 			return true;
 		} else {
 			return false;
 		}
 	}
 
+	/**
+	 * Note that this does not set the modified bits in the parent
+	 */
+	void removeFromParent() {
+		AnnotatedJavaElement parent = (AnnotatedJavaElement) getParent();
+		parent.removePromise(this);
+	}
+	
 	/**
 	 * @return true if the promise parses
 	 */
