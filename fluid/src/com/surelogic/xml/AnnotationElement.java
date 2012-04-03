@@ -424,7 +424,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 
 	@Override
 	public AnnotationElement cloneMe() {
-		AnnotationElement clone = new AnnotationElement(getParent(), uid,
+		AnnotationElement clone = new AnnotationElement(null, uid,
 				promise, contents, attributes);
 		copyToClone(clone);
 		return clone;

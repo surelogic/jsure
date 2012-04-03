@@ -151,7 +151,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 	/**
 	 * @return true if changed
 	 */
-	protected <T extends IMergeableElement> boolean mergeList(List<T> orig, List<T> other, MergeType type) {
+	protected <T extends IMergeableElement> 
+	boolean mergeList(IJavaElement parent, List<T> orig, List<T> other, MergeType type) {
 		if (orig.isEmpty() && other.isEmpty()) {
 			return false;
 		}
@@ -205,6 +206,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 		orig.clear();
 		orig.addAll(baseline);
 		// TODO does this include deletes?
+		for(T e : orig) {
+			e.setParent(parent);
+		}
 		return changed;
 	}
 	

@@ -143,7 +143,7 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 				l = new ArrayList<AnnotationElement>();
 				order.put(e.getKey(), l);
 			}
-			modified |= mergeList(l, e.getValue(), type);
+			modified |= mergeList(this, l, e.getValue(), type);
 			if (l.isEmpty()) {
 				// delete if empty
 				order.remove(e.getKey());
