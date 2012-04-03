@@ -136,45 +136,58 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
        * native.)
        */
 			if ((isConstructor || isMethod)
-			    && !JavaNode.getModifier(member, JavaNode.ABSTRACT)
 			    && !JavaNode.getModifier(member, JavaNode.NATIVE)) {
-			  // NULL if there are no declared effects
-        final List<Effect> declFx =
-          Effects.getDeclaredMethodEffects(member, member);
-        final Set<Effect> implFx = getAnalysis().getImplementationEffects(
-            member, getSharedAnalysis(), callback);
-				// only assure if there is declared intent
-				if (declFx != null) {
-					final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
+			  if (JavaNode.getModifier(member, JavaNode.ABSTRACT)) {
+			    /* Abstract methods with effects annotation trivially assure. */
+          final RegionEffectsPromiseDrop declaredEffectsDrop =
+              MethodEffectsRules.getRegionEffectsDrop(member);
+          if (declaredEffectsDrop != null) {
+            final ResultDropBuilder rd = ResultDropBuilder.create(
+                this, Messages.toString(Messages.EMPTY_EFFECTS));
+            rd.addCheckedPromise(declaredEffectsDrop);
+            setResultDependUponDrop(rd, member);
+            rd.setConsistent();
+            rd.setResultMessage(Messages.EMPTY_EFFECTS);
+          }
+			  } else {
+	        // NULL if there are no declared effects
+	        final List<Effect> declFx =
+	          Effects.getDeclaredMethodEffects(member, member);
+	        final Set<Effect> implFx = getAnalysis().getImplementationEffects(
+	            member, getSharedAnalysis(), callback);
+	        // only assure if there is declared intent
+	        if (declFx != null) {
+	          final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
 
-					// This won't be null because we know we have declared effects
-					final RegionEffectsPromiseDrop declaredEffectsDrop =
-						MethodEffectsRules.getRegionEffectsDrop(member);
+	          // This won't be null because we know we have declared effects
+	          final RegionEffectsPromiseDrop declaredEffectsDrop =
+	            MethodEffectsRules.getRegionEffectsDrop(member);
 
-					if (maskedFx.isEmpty()) {
-						final ResultDropBuilder rd = ResultDropBuilder.create(
-						    this, Messages.toString(Messages.EMPTY_EFFECTS));
-						rd.addCheckedPromise(declaredEffectsDrop);
-						setResultDependUponDrop(rd, member);
-						rd.setConsistent();
-						rd.setResultMessage(Messages.EMPTY_EFFECTS);
-					} else {
-						if (isConstructor) {
-							checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
-						} else {
-							checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
-						}
-					}
-				} else {
-					// Infer effects
-					final Set<Effect> inferredEffects = inferEffects(
-							isConstructor, member, implFx);
-					final ProposedPromiseBuilder pb = new ProposedPromiseBuilder(
-							"RegionEffects",
-							Effects.unparseForPromise(inferredEffects), member,
-							member, Origin.CODE);
-					handleBuilder(pb);
-				}
+	          if (maskedFx.isEmpty()) {
+	            final ResultDropBuilder rd = ResultDropBuilder.create(
+	                this, Messages.toString(Messages.EMPTY_EFFECTS));
+	            rd.addCheckedPromise(declaredEffectsDrop);
+	            setResultDependUponDrop(rd, member);
+	            rd.setConsistent();
+	            rd.setResultMessage(Messages.EMPTY_EFFECTS);
+	          } else {
+	            if (isConstructor) {
+	              checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
+	            } else {
+	              checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
+	            }
+	          }
+	        } else {
+	          // Infer effects
+	          final Set<Effect> inferredEffects = inferEffects(
+	              isConstructor, member, implFx);
+	          final ProposedPromiseBuilder pb = new ProposedPromiseBuilder(
+	              "RegionEffects",
+	              Effects.unparseForPromise(inferredEffects), member,
+	              member, Origin.CODE);
+	          handleBuilder(pb);
+	        }
+			  }
 			} else if (TypeUtil.isTypeDecl(member)) {
 			  reportClassInitializationEffects(member);
 			}			  
