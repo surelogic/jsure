@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" revision="2">
     <class name="Iterator">
         <method name="hasNext">
             <Borrowed>this</Borrowed>
@@ -9,12 +9,12 @@
 
         <method name="next">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">reads All; writes Instance</RegionEffects>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
         </method>
 
         <method name="remove">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">reads All; writes this:Instance</RegionEffects>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
         </method>
     </class>
 </package>
