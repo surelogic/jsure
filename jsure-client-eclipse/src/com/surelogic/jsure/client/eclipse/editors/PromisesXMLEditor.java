@@ -388,7 +388,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			// System.out.println(doc.get());
 			StringWriter sw = new StringWriter(doc.getLength());
 			PromisesXMLWriter pw = new PromisesXMLWriter(new PrintWriter(sw));
-			PackageElement p = provider.pkg.cloneMe();
+			PackageElement p = provider.pkg.cloneMe(null);
 			if (PromisesXMLContentProvider.saveDiff) {
 				p = PromisesXMLMerge.diff(p);
 			}
