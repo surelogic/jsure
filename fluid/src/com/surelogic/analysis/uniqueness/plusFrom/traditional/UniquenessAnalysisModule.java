@@ -834,9 +834,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
          * access are borrowed.  If so, add the containing method as interesting.
          */
         final IRNode ifqr = getBinder().getBinding(currentNode);
-        // make sure it's an IFQR and not an IPQR
-        if (!ConstructorDeclaration.prototype.includes(
-            JavaPromise.getPromisedFor(ifqr))) {
+        /* Make sure
+         * (1) it's not the regular receiver ("C.this" used inside of class "C")
+         * (2) it's an IFQR and not an IPQR
+         */
+        if (!ReceiverDeclaration.prototype.includes(ifqr) &&
+            !ConstructorDeclaration.prototype.includes(
+                JavaPromise.getPromisedFor(ifqr))) {
           /* Loop up the nested class hierarchy until we find the class whose
            * qualified receiver declaration equals 'decl'. 
            */
