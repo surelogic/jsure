@@ -53,6 +53,7 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -172,6 +173,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
           }
           System.out.println("Sequential: " + methodName);
+          System.out.flush();
           analzyePseudoMethodDeclaration(node);
         }
         ImmutableHashOrderSet.clearCaches();
@@ -1302,9 +1304,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
        * access are borrowed.  If so, add the containing method as interesting.
        */
       final IRNode ifqr = binder.getBinding(qthis);
-      // make sure it's an IFQR and not an IPQR
-      if (!ConstructorDeclaration.prototype.includes(
-          JavaPromise.getPromisedFor(ifqr))) {
+      /* Make sure
+       * (1) it's not the regular receiver ("C.this" used inside of class "C")
+       * (2) it's an IFQR and not an IPQR
+       */
+      if (!ReceiverDeclaration.prototype.includes(ifqr) &&
+          !ConstructorDeclaration.prototype.includes(
+              JavaPromise.getPromisedFor(ifqr))) {
         /* Loop up the nested class hierarchy until we find the class whose
          * qualified receiver declaration equals 'decl'. 
          */

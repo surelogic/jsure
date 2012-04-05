@@ -430,8 +430,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	s = lattice.opDup(s, actualStackDepth); 
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
-        // check for sneaky mutations
-//        if (f.isWrite()) s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {
