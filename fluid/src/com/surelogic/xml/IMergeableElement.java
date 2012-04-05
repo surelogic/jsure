@@ -11,7 +11,7 @@ public interface IMergeableElement extends IJavaElement {
 	/**
 	 * Also include anything attached to me
 	 */
-	IMergeableElement cloneMe();
+	IMergeableElement cloneMe(IJavaElement parent);
 	
 	/**
 	 * Merge anything attached to either,

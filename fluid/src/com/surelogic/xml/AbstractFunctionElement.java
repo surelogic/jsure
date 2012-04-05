@@ -145,7 +145,7 @@ implements IClassMember, TestXMLParserConstants
 			if (p0 != null) {
 				modified |= p0.merge(p2, type);
 			} else {
-				setParameter(p2.cloneMe());
+				setParameter(p2.cloneMe(this));
 				modified = true;
 			}
 		}
@@ -157,7 +157,7 @@ implements IClassMember, TestXMLParserConstants
 		super.copyToClone(clone);
 		for(FunctionParameterElement p : params) {
 			if (p != null) {
-				clone.setParameter(p.cloneMe());
+				clone.setParameter(p.cloneMe(clone));
 			}
 		}
 	}

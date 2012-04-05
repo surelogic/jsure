@@ -22,7 +22,7 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	}
 
 	@Override
-	FieldElement cloneMe() {
+	FieldElement cloneMe(IJavaElement parent) {
 		FieldElement clone = new FieldElement(getName());
 		copyToClone(clone);
 		return clone;

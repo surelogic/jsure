@@ -86,7 +86,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 	/**
 	 * Do a deep copy
 	 */
-	abstract AbstractJavaElement cloneMe();
+	abstract AbstractJavaElement cloneMe(IJavaElement parent);
 	
 	/**
 	 * If one is modified or has a higher revision, take everything on that one
@@ -96,9 +96,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 	 * @return Either me, or a new element
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends IMergeableElement> T merge(T me, T other, MergeType t) {		
+	static <T extends IMergeableElement> T merge(IJavaElement parent, T me, T other, MergeType t) {		
 		if (me.isReference()) {
-			return (T) other.cloneMe();
+			return (T) other.cloneMe(parent);
 		}
 		if (other.isReference()) {
 			return me;
@@ -119,7 +119,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			// Same revision, and the other's modified, so			
 			// update and use the other
 			other.incrRevision();
-			T updated = (T) other.cloneMe();			
+			T updated = (T) other.cloneMe(parent);			
 			//updated.incrRevision();
 			// TODO what about attached stuff?
 			return updated;
@@ -137,7 +137,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			checkIf(myRev > otherRev, "Updating with "+myRev+" > "+otherRev);
 			// Use other, since the other's a newer	revision
 			// TODO what about attached stuff?
-			return (T) other.cloneMe(); 
+			return (T) other.cloneMe(parent); 
 		}
 		throw new IllegalStateException("Unexpected merge type: "+t);		
 	}
@@ -169,7 +169,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		else if (type == MergeType.UPDATE) {
 			if (orig.isEmpty()) {
 				// Take everything in the other, since there's nothing to conflict with
-				copyList(other, orig);
+				copyList(parent, other, orig);
 				return false;
 			} 
 		}
@@ -196,7 +196,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			} else {
 				o2 = other.get(i2);
 			}
-			T syncd = (T) merge(o0, o2, type);
+			T syncd = (T) merge(parent, o0, o2, type);
 			if (syncd != e) {
 				baseline.set(i, syncd);
 				changed = true;
@@ -265,10 +265,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 	}
 	
-	private <T extends IMergeableElement> void copyList(List<T> src, List<T> dest) {
+	private <T extends IMergeableElement> void copyList(IJavaElement parent, List<T> src, List<T> dest) {
 		for(T e : src) {
 			@SuppressWarnings("unchecked")
-			T c = (T) e.cloneMe();
+			T c = (T) e.cloneMe(parent);
 			dest.add(c);
 			c.setParent(this);
 		}

@@ -10,7 +10,8 @@ public class NestedClassElement extends ClassElement implements IClassMember {
 		return v.visit(this);
 	}
 	
-	NestedClassElement cloneMe() {
+	@Override
+	NestedClassElement cloneMe(IJavaElement parent) {
 		NestedClassElement clone = new NestedClassElement(getName());
 		copyToClone(clone);
 		return clone;

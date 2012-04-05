@@ -179,7 +179,7 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		for(Map.Entry<String,List<AnnotationElement>> e : order.entrySet()) {
 			// Reconstituted in the same order in the clone
 			for(AnnotationElement a : e.getValue()) {
-				clone.addPromise(a.cloneMe());
+				clone.addPromise(a.cloneMe(clone));
 			}
 		}
 	}
@@ -191,7 +191,7 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 				if (a.isDirty()) {
 					// Reconstituted in the same order in the clone
 					for(AnnotationElement a2 : e.getValue()) {
-						copy.addPromise(a2.isDirty() ? a2.cloneMe() : a2.createRef());
+						copy.addPromise(a2.isDirty() ? a2.cloneMe(copy) : a2.createRef());
 					}
 				}
 			}

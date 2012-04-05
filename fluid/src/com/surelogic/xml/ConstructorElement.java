@@ -24,7 +24,7 @@ public class ConstructorElement extends AbstractFunctionElement {
 	}
 
 	@Override
-	ConstructorElement cloneMe() {
+	ConstructorElement cloneMe(IJavaElement parent) {
 		ConstructorElement clone = new ConstructorElement(getParams());
 		copyToClone(clone);
 		return clone;

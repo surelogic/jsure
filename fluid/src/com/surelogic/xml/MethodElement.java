@@ -23,7 +23,7 @@ public class MethodElement extends AbstractFunctionElement {
 	}
 	
 	@Override
-	MethodElement cloneMe() {
+	MethodElement cloneMe(IJavaElement parent) {
 		MethodElement clone = new MethodElement(getName(), getParams());
 		copyToClone(clone);
 		return clone;

@@ -471,7 +471,12 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		for (IRNode n : VisitUtil.getAllTypeDecls(top)) {
 			if (debug) {
 				String name = JavaNames.getFullTypeName(n);
-				LOG.finer("Putting in " + name + " for " + project.getName());
+				System.out.println("Putting in " + name + " for " + project.getName());
+				/*
+				if (name.endsWith("AbstractSet")) {
+					System.out.println("Looking at AbstractSet");
+				}
+				*/
 			}			
 			/*
             boolean print = false;
@@ -499,7 +504,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 					//
 					// List<IRNode> oldL = subtypeMap.putIfAbsent(s.getDeclaration(), newL);
 					final JavacTypeEnvironment tEnv = getTypeEnv_cached(s.getDeclaration());
-					if (LOG.isLoggable(Level.FINE) && tEnv != this) {
+					if (debug && tEnv != this) {
 						if (tEnv.getProject().getName().contains("org.eclipse.jdt.launching.JRE_CONTAINER")) {
 							System.out.println("JRE adding supertype: "+s+" <--- "+t);
 						} else {
@@ -515,7 +520,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 					// TODO this could be really slow (n^2) for types like j.l.Object
 					else if (oldL.contains(t.getDeclaration())) {
 						// Skip, otherwise we would end up with duplicate mappings, due to 'type' being in both TypeEnvs
-						if (LOG.isLoggable(Level.FINE)) {
+						if (debug) {
 							System.out.println("Duplicate subtype info for "+t);
 						}
 						continue supers;

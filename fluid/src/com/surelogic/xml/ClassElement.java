@@ -230,7 +230,7 @@ public class ClassElement extends AnnotatedJavaElement {
 			if (clinit != null) {
 				modified |= clinit.merge(changed.clinit, type);
 			} else if (changed.clinit != null) {
-				clinit = changed.clinit.cloneMe();
+				clinit = changed.clinit.cloneMe(this);
 				modified = true;
 			}
 			for(FieldElement f2 : changed.fields.values()) {
@@ -238,7 +238,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				if (f0 != null) {
 					modified |= f0.merge(f2, type);
 				} else {
-					addMember(f2.cloneMe());
+					addMember(f2.cloneMe(this));
 					modified = true;
 				}
 			}
@@ -247,7 +247,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				if (c0 != null) {
 					modified |= c0.merge(c2, type);
 				} else {
-					addMember(c2.cloneMe());
+					addMember(c2.cloneMe(this));
 					modified = true;
 				}
 			}
@@ -257,7 +257,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				if (m0 != null) {
 					modified |= m0.merge(m2, type);
 				} else {
-					addMember(m2.cloneMe());
+					addMember(m2.cloneMe(this));
 					modified = true;
 				}
 			}
@@ -267,7 +267,7 @@ public class ClassElement extends AnnotatedJavaElement {
 					final MergeResult<?> r = n0.merge(n2, type);
 					modified |= r.isModified;
 				} else {
-					addMember(n2.cloneMe());
+					addMember(n2.cloneMe(this));
 					modified = true;
 				}
 			}
@@ -280,24 +280,24 @@ public class ClassElement extends AnnotatedJavaElement {
 	void copyToClone(ClassElement clone) {
 		super.copyToClone(clone);
 		if (clinit != null) {
-			clone.addMember(clinit.cloneMe());
+			clone.addMember(clinit.cloneMe(clone));
 		}
 		for(FieldElement f : fields.values()) {
-			clone.addMember(f.cloneMe());
+			clone.addMember(f.cloneMe(clone));
 		}
 		for(ConstructorElement c : constructors.values()) {
-			clone.addMember(c.cloneMe());
+			clone.addMember(c.cloneMe(clone));
 		}
 		for(MethodElement m : methods.elements()) {
-			clone.addMember(m.cloneMe());
+			clone.addMember(m.cloneMe(clone));
 		}
 		for(NestedClassElement n : classes.values()) {
-			clone.addMember(n.cloneMe());
+			clone.addMember(n.cloneMe(clone));
 		}
 	}
 	
 	@Override
-	ClassElement cloneMe() {
+	ClassElement cloneMe(IJavaElement parent) {
 		ClassElement e = new ClassElement(getName());
 		copyToClone(e);
 		return e;

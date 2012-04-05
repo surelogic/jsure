@@ -29,7 +29,7 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 	}
 
 	@Override
-	ClassInitElement cloneMe() {
+	ClassInitElement cloneMe(IJavaElement parent) {
 		ClassInitElement clone = new ClassInitElement();
 		copyToClone(clone);
 		return clone;

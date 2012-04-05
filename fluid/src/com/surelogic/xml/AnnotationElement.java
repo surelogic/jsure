@@ -288,7 +288,12 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				// e.getMessage()+" at "+e.getStackTrace()[0]);
 			}
 		};
-		return rule != null && rule.parse(context, text) == ParseResult.OK;
+		boolean ok = rule != null && rule.parse(context, text) == ParseResult.OK;
+		if (!ok && rule != null) {
+			System.out.println("Couldn't parse @"+promise+" "+text);
+			rule.parse(context, text);
+		}
+		return ok;
 	}
 
 	public Operator getOperator() {
@@ -411,9 +416,11 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return CommonImages.IMG_ANNOTATION;
 	}
 
-	final AnnotationElement merge(AnnotationElement other, MergeType type) {
-		return merge(this, other, type);
+	/*
+	final AnnotationElement merge(IJavaElement parent, AnnotationElement other, MergeType type) {
+		return merge(parent, this, other, type);
 	}
+	*/
 
 	public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
@@ -423,8 +430,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 	@Override
-	public AnnotationElement cloneMe() {
-		AnnotationElement clone = new AnnotationElement(null, uid,
+	public AnnotationElement cloneMe(IJavaElement parent) {
+		AnnotationElement clone = new AnnotationElement(parent, uid,
 				promise, contents, attributes);
 		copyToClone(clone);
 		return clone;

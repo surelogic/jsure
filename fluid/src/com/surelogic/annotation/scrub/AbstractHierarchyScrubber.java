@@ -229,7 +229,15 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 					}
 				}				
 			}
-			// Remove decls that we'll already look at
+            /*
+			final Set<IRNode> removed = new HashSet<IRNode>(declsToCheck);
+			removed.retainAll(hasAASTs);
+			for(IRNode r : removed) {
+				IRNode f = VisitUtil.getClosestClassBodyDecl(r);
+				System.out.println("Removed "+JavaNames.getFullName(f));
+			}
+			*/
+			// Remove decls that we'll already look at			
 			declsToCheck.removeAll(hasAASTs);
 			hasAASTs.clear(); 
 			methodRelatedDeclsToCheck.clear();
@@ -283,6 +291,9 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			final String name = dt.getName();
 			if (name().equals(UniquenessRules.CONSISTENCY) && !name.startsWith("java")) {
 				System.out.println(name()+" scrubbing promises for "+name);//+" -- "+decl);
+			}
+			if (name.startsWith("java.util.concurrent.CopyOnWriteArraySet")) {
+				System.out.println("Processing CopyOnWriteArraySet");
 			}
             */
 			List<A> l = byType.get(decl);
