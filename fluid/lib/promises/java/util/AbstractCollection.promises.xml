@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="1">
     <class name="AbstractCollection">
         <ThreadSafe implementationOnly="true"/>
         <constructor>
@@ -8,10 +8,9 @@
             <RegionEffects>none</RegionEffects>
         </constructor>
 
-        
-        <method name="size">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
+        <method name="add" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes this:Instance</RegionEffects>
         </method>
 
         <method name="isEmpty">
@@ -20,10 +19,14 @@
         </method>
 
         <method name="iterator">
-            <!--starts>nothing</starts-->
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
             <Unique>return</Unique>
+        </method>
+
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>
