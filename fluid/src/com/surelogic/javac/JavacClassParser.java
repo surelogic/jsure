@@ -28,6 +28,8 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
@@ -41,7 +43,8 @@ public class JavacClassParser {
 	}; 
 	
 	private static final boolean debug = Util.debug;
-	private final boolean loadAllLibraries = XUtil.loadAllLibs;
+	private final boolean loadAllLibraries = XUtil.loadAllLibs ||
+		IDE.getInstance().getBooleanPreference(IDEPreferences.LOAD_ALL_CLASSES);
 	
 	//ToolProvider.getSystemJavaCompiler();
 	//private static final JavaCompiler compiler = JavacTool.create();
