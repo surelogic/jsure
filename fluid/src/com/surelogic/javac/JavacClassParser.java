@@ -41,7 +41,7 @@ public class JavacClassParser {
 	}; 
 	
 	private static final boolean debug = Util.debug;
-	private final boolean loadAllLibraries = false;
+	private final boolean loadAllLibraries = XUtil.loadAllLibs;
 	
 	//ToolProvider.getSystemJavaCompiler();
 	//private static final JavaCompiler compiler = JavacTool.create();
