@@ -127,5 +127,8 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 			cmdj.createVmArgument().setValue("-Xdebug");
 			cmdj.createVmArgument().setValue("-Xrunjdwp:transport=dt_socket,address=8000,suspend=y"); // Connect to Eclipse		
 		}
+		if (XUtil.loadAllLibs) {
+			cmdj.createVmArgument().setValue("-D"+XUtil.LOAD_ALL_LIBS+"=true");
+		}
 	}
 }
