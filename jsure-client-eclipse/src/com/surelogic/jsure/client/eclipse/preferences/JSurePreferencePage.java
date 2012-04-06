@@ -39,6 +39,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	private ScaleFieldEditor f_timeoutWarningSec;
 	private BooleanFieldEditor f_timeoutFlag;
 	private ScaleFieldEditor f_timeoutSec;
+	private BooleanFieldEditor f_loadAllClassesFlag;
 	private BooleanFieldEditor f_regionModelCap;
 	private BooleanFieldEditor f_regionModelCommonString;
 	private StringFieldEditor f_regionModelSuffix;
@@ -69,7 +70,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				I18N.msg("jsure.eclipse.preference.page.selectProjectsToScan"),
 				diGroup);
 		setupEditor(diGroup, f_selectProjectsToScan);
-		
+
 		f_selectProjectsToUpdateJar = new BooleanFieldEditor(
 				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR,
 				I18N.msg("jsure.eclipse.preference.page.selectProjectsToUpdateJar"),
@@ -105,6 +106,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				analysisSettingsGroup);
 		setupEditor(analysisSettingsGroup, f_timeoutFlag);
 		setupTimeout(analysisSettingsGroup);
+		f_loadAllClassesFlag = new BooleanFieldEditor(
+				IDEPreferences.LOAD_ALL_CLASSES,
+				I18N.msg("jsure.eclipse.preference.page.loadAllClasses"),
+				analysisSettingsGroup);
+		setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
 
 		final Group modelNamingGroup = createGroup(panel,
 				"preference.page.group.modelNaming");
@@ -245,6 +251,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_timeoutWarningSec.loadDefault();
 		f_timeoutFlag.loadDefault();
 		f_timeoutSec.loadDefault();
+		f_loadAllClassesFlag.loadDefault();
 		super.performDefaults();
 	}
 
@@ -265,6 +272,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_timeoutWarningSec.store();
 		f_timeoutFlag.store();
 		f_timeoutSec.store();
+		f_loadAllClassesFlag.store();
 		return super.performOk();
 	}
 }

@@ -56,6 +56,8 @@ public final class JSurePreferencesUtility {
 			}
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.TOOL_MEMORY_MB, mem);
+			EclipseUtility.setBooleanPreference(
+					IDEPreferences.LOAD_ALL_CLASSES, false);
 
 			EclipseUtility.setDefaultBooleanPreference(
 					SHOW_BALLOON_NOTIFICATIONS, true);
