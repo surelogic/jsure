@@ -56,7 +56,7 @@ public final class JSurePreferencesUtility {
 			}
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.TOOL_MEMORY_MB, mem);
-			EclipseUtility.setBooleanPreference(
+			EclipseUtility.setDefaultBooleanPreference(
 					IDEPreferences.LOAD_ALL_CLASSES, false);
 
 			EclipseUtility.setDefaultBooleanPreference(
