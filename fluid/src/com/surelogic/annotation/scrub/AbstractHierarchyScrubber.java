@@ -308,14 +308,14 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 					}
 					if (l == Collections.emptyList()) {
 						if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(otherDeclsToCheck);
+							processUnannotatedDeclsForType(dt, otherDeclsToCheck);
 						} else {
 							processUnannotatedType(dt);
 						}
 					} else {
 						processAASTsForType(this, dt.getDeclaration(), l);
 						if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(otherDeclsToCheck);
+							processUnannotatedDeclsForType(dt, otherDeclsToCheck);
 						}
 					}
 				} finally {
@@ -326,7 +326,9 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			done.add(decl);
 		}
 		
-		private void processUnannotatedDeclsForType(List<IRNode> declsToCheck) {
+		private void processUnannotatedDeclsForType(IJavaSourceRefType dt, List<IRNode> declsToCheck) {
+			//int size = declsToCheck == null ? 0 : declsToCheck.size();
+			//System.out.println("Looking at "+size+" unannot decls for "+dt);
 			if (declsToCheck == null) {
 				return;
 			}	

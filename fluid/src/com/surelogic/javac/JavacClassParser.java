@@ -366,6 +366,7 @@ public class JavacClassParser {
 			for(Pair<String,String> keys : classToFile.keys()) {
 				// Only look at ones from this project
 				if (parser.jp.getName().equals(keys.first())) {
+					//System.out.println("Force-loading: "+keys.second());
 					refs.add(keys.second());
 				}
 			}
