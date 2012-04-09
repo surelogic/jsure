@@ -65,6 +65,12 @@ public class FindOverriddenMethodsStrategy extends FindMethodsStrategy implement
 			searchAfterLastType = true;
 			return;
 		}
+        /*
+		String name = JJNode.getInfoOrNull(type);
+		if ("CopyOnWriteArraySet".equals(name)) {
+			System.out.println("Looking at method for CopyOnWriteArraySet");
+		}
+		*/
 		super.visitClass_internal(type);
 		if (findAll) {
       LOG.fine("Still searching after "+JavaNames.getTypeName(type));

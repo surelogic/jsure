@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -81,6 +82,13 @@ public class FindMethodsStrategy
         if (p.hasNext()) { // this method has more params than what I'm trying to match
           continue loop;
         }
+        /*
+		String name = JJNode.getInfoOrNull(type);
+		if ("CopyOnWriteArraySet".equals(name)) {
+			System.out.println("Looking at CopyOnWriteArraySet."+this.name+"["+paramTypes.length+"]");
+		}
+		*/
+        
         //System.out.println("Added "+DebugUnparser.toString(method));
         this.methods.add(method);
         if (fineIsLoggable) {
