@@ -623,8 +623,13 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 	private static final long serialVersionUID = 1L;
 	
 	boolean f_createIfNone = false;
-	  boolean f_onlyAssume = false;
+	boolean f_onlyAssume = false;
+	final IRNode compUnit;
 
+	MyMap(IRNode cu) {
+		compUnit = cu;
+	}
+	  
 	  synchronized boolean createIfNone() {
 		  return f_createIfNone;
 	  }
@@ -639,7 +644,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 	  }
   }
 
-  private static final MyMap EMPTY = new MyMap() {
+  private static final MyMap EMPTY = new MyMap(null) {
 	private static final long serialVersionUID = 1L;
 	
 	@Override
@@ -667,7 +672,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     if (context == null) {
       if (createIfNone) {
         LOG.info("Creating new type context for " + type);
-        context = new MyMap();
+        context = new MyMap(type);
         MyMap existing = contextMap.putIfAbsent(type, context);
         if (existing != null) {
         	// Use whatever's present
@@ -736,6 +741,13 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return m;
   }
 
+  /**
+   * Get the CompUnit node for the current type context
+   */
+  public IRNode getCurrentContextType() {
+	  return getCurrentTypeContext().compUnit;
+  }
+  
   /**
    * Get a proxy node if any
    * 
