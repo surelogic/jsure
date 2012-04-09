@@ -59,7 +59,7 @@ public class JavaProjects {
 			cu.setSlotValue(projectSI, p);
 		} 
 		else if (old != p) {
-			SLLogger.getLogger().warning("Resetting project from "+old.getName()+" to "+p.getName()+" for "+DebugUnparser.toString(cu));
+			SLLogger.getLogger().warning("Ignored attempt to reset project from "+old.getName()+" to "+p.getName()+" for "+DebugUnparser.toString(cu));
 		}
 	}
 }
