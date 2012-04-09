@@ -844,7 +844,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     		  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
     		  if (selector.select(n) && 
     				  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
-    			  return IBinding.Util.makeBinding(n);
+    			  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) JavaMemberTable.this.type, tEnv);
     		  }
     	  }
       }
@@ -892,6 +892,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	  tempMembers = copyIterator(members);
       }
       if (!tempMembers.isEmpty()) {
+          /*
+          if ("getCurrentKey".equals(name)) {
+        	  System.out.println("Found getCurrentKey");
+          }
+          */
     	  return new FilterIterator<IRNode, IBinding>(tempMembers.iterator()) {
     		  @Override
     		  public Object select(IRNode n) {
