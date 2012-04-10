@@ -66,6 +66,11 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="HashIterator">
@@ -103,6 +108,11 @@
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
             </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
+            </method>
         </class>
 
         <class name="Segment">
@@ -126,6 +136,11 @@
                 <Borrowed allowReturn="true">this</Borrowed>
                 <RegionEffects>writes this:Instance</RegionEffects>
                 <Unique>return</Unique>
+            </method>
+
+            <method name="size">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
         </class>
     </class>
