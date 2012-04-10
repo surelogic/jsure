@@ -1084,16 +1084,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
           if (externalVars.contains(decl)) {
-        	  if (FieldDeclaration.prototype.includes(decl)) {
-         		  usedExternal = true;
-         	  } else {
-         		  //XXX: Here we compromise.  If we want to
-         		  // be less conservative than this (and this will give errors
-         		  // if the value is ReadOnly), we need to use both the
-         		  // possible borrowed-ness of the local FQR, but also
-         		  // need an annotation on the local specific to the NCD or ACE.
-         		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
-         	  }
+            usedExternal = true;
+       		  //XXX: Here we compromise.  If we want to
+       		  // be less conservative than this (and this will give errors
+       		  // if the value is ReadOnly), we need to use both the
+       		  // possible borrowed-ness of the local FQR, but also
+       		  // need an annotation on the local specific to the NCD or ACE.
+       		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
           }
         } else if (QualifiedThisExpression.prototype.includes(n)) {
          	usedExternal = true;
