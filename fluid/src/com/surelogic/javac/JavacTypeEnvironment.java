@@ -400,6 +400,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			if (pkgNode == null || Projects.getProject(pkgNode) == newProj) {
 				final IRNode root = info.getFileName().endsWith(Util.PACKAGE_INFO_JAVA) ? info.getNode() : null;
 				changed = classes.addPackage(project, pkg, root, !addAlways);
+				if (root != null) {
+					infos.put(pkg+".package-info", info);
+				}
 			}
 		}
 
