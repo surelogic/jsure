@@ -9,6 +9,11 @@
             <Unique>return</Unique>
         </method>
 
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
         <class name="Itr">
             <method name="hasNext">
                 <Borrowed>this</Borrowed>
