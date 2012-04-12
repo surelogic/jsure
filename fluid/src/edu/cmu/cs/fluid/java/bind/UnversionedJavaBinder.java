@@ -175,6 +175,13 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     JavaTypeFactory.clearCaches();
   }
   
+  private boolean hasNoTypeParameters(IJavaDeclaredType t) {
+	  if (t.getOuterType() != null) {
+		  return t.getTypeParameters().isEmpty() && hasNoTypeParameters(t.getOuterType());
+	  }
+	  return t.getTypeParameters().isEmpty();
+  }
+  
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
     if (type instanceof IJavaDeclaredType) {
@@ -182,7 +189,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	  return objectTable.get();
       }
       IJavaDeclaredType jt = (IJavaDeclaredType) type;
-      if (jt.getTypeParameters().isEmpty()) {
+      if (hasNoTypeParameters(jt)) {
     	IRNode decl = jt.getDeclaration();
     	IJavaMemberTable mt = memberTableCache.get(decl);
     	if (mt == null) {
