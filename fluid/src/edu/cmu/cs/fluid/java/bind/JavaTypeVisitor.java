@@ -474,11 +474,30 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitNameType(IRNode node) {
-    return binder.getTypeEnvironment().convertNodeTypeToIJavaType( node );
+	/*
+    String unparse = DebugUnparser.toString(node);
+	if (unparse.contains("DelegationTokenRenewer.Renewable")) {
+		System.out.println("Computing type for DelegationTokenRenewer.Renewable");
+	}
+	
+	try {
+	*/
+		return binder.getTypeEnvironment().convertNodeTypeToIJavaType( node );
+	/*
+	} catch(StackOverflowError e) {
+		System.out.println("Stack overflow on "+unparse);
+		throw e;
+	}
+	*/
   }
   
   @Override
   public IJavaType visitNamedType(IRNode node) {
+    /*
+	if (DebugUnparser.toString(node).contains("Context")) {
+		System.out.println("Computing type for NamedType Context");
+	}
+    */
     return binder.getTypeEnvironment().convertNodeTypeToIJavaType( node );
   }
   
@@ -490,7 +509,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if (n == null) return null;
     /*
     String unparse = DebugUnparser.toString(node);
-    if (unparse.contains("lattice")) {
+    if (unparse.contains("context")) {
+    	System.out.println("Getting type for context");
+    }
   	  IRNode eT  = VisitUtil.getEnclosingType(node);
   	  if ("MustHoldTransfer".equals(JavaNames.getTypeName(eT))) {
   		if (VariableDeclarator.prototype.includes(n)) {
