@@ -627,6 +627,10 @@ public class JavaCanonicalizer {
     		IRNode base = createType(a.getBaseType());
     		return ArrayType.createNode(base, a.getDimensions());
     	}
+    	if (t instanceof IJavaPrimitiveType) {
+    		IJavaPrimitiveType p = (IJavaPrimitiveType) t;
+    		return p.getOp().createNode();
+    	}
     	throw new IllegalStateException("Unexpected type: "+t);
     }
     
