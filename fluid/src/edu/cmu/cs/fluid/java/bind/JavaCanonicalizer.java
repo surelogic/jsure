@@ -594,6 +594,9 @@ public class JavaCanonicalizer {
     
     // What if I have wildcards and other sorts of types?
     private IRNode createType(IJavaType t) {
+    	if (t == null) {
+    		return null;
+    	}
     	if (t instanceof IJavaDeclaredType) {
     		return createDeclaredType((IJavaDeclaredType) t);
     	}
@@ -601,6 +604,18 @@ public class JavaCanonicalizer {
     		IJavaTypeFormal f = (IJavaTypeFormal) t;
     		String name = JJNode.getInfoOrNull(f.getDeclaration());
     		return createNamedType(name);
+    	}
+    	if (t instanceof IJavaWildcardType) {
+    		IJavaWildcardType w = (IJavaWildcardType) t;
+    		IRNode lower = createType(w.getLowerBound());
+    		if (lower != null) {
+    			return WildcardExtendsType.createNode(lower);
+    		}
+    		IRNode upper = createType(w.getUpperBound());
+    		if (upper != null) {
+    			return WildcardSuperType.createNode(upper);
+    		}
+    		return WildcardType.prototype.jjtCreate();
     	}
     	throw new IllegalStateException("Unexpected type: "+t);
     }
