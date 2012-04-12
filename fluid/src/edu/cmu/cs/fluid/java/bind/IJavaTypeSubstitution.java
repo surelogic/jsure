@@ -10,10 +10,6 @@ import java.util.*;
  * @author Edwin.Chan
  */
 public interface IJavaTypeSubstitution {
-  boolean isNull();
-	
-  boolean isApplicable(IJavaTypeFormal jtf);
-  
   /**
    * Search for the substitution corresponding to the given type formal
    * (if any)
@@ -30,21 +26,15 @@ public interface IJavaTypeSubstitution {
    * @param types list of types to substitute
    * @return immutable list of substituted types.
    */
-  List<IJavaType> substTypes(List<IJavaType> types);
+  List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types);
 
   IJavaTypeSubstitution combine(IJavaTypeSubstitution other);
   
   static final IJavaTypeSubstitution NULL = new IJavaTypeSubstitution() {
-	public boolean isNull() {
-	  return true;
-	}
-	public boolean isApplicable(IJavaTypeFormal jtf) {
-		return false;
-	}
     public IJavaType get(IJavaTypeFormal jtf) {
       return jtf;
     }
-    public List<IJavaType> substTypes(List<IJavaType> types) {
+    public List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
       return types;
     }
     @Override
