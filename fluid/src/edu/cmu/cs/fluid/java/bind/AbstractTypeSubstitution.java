@@ -28,13 +28,6 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 	}
   };
   
-  public final boolean isApplicable(IJavaTypeFormal jtf) {
-	  if (isNull()) {
-		  return false;
-	  }
-	  return process(jtf, isApplicable) == Boolean.TRUE;
-  }
-  
   /**
    * Search for the substitution corresponding to the given type formal
    * (if any)
@@ -113,7 +106,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    * @param types list of types to substitute
    * @return immutable list of substituted types.
    */
-  public final List<IJavaType> substTypes(List<IJavaType> types) {
+  public final List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
     if (types.isEmpty()) return types;
     boolean changed = false; // FIX unused?
     List<IJavaType> res = new ArrayList<IJavaType>();
@@ -129,10 +122,6 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
   public IJavaTypeSubstitution combine(final IJavaTypeSubstitution other) {
 	  final IJavaTypeSubstitution me = this;
 	  return new AbstractTypeSubstitution(binder) {
-		public boolean isNull() {
-			return me.isNull() && other.isNull();
-		}
-
 		@Override
 		public IJavaType get(IJavaTypeFormal jtf) {
 			// TODO is this in the right order?

@@ -348,11 +348,21 @@ public class JavaTypeFactory implements IRType, Cleanable {
       IJavaType bt = convertNodeTypeToIJavaType(ArrayType.getBase(nodeType),binder);
       return getArrayType(bt, ArrayType.getDims(nodeType));
     } else if (op instanceof NamedType || op instanceof NameType) {
-      IRNode decl = binder.getBinding(nodeType);
-      if (decl == null) {
-    	  binder.getBinding(nodeType);
+      IBinding b = binder.getIBinding(nodeType);
+      if (b == null) {
+    	  binder.getIBinding(nodeType);
     	  return null; // program may have binding error
-      }
+      } 
+      IRNode decl = b.getNode();
+      if (true) {
+          /*
+    	  String name = DebugUnparser.toString(nodeType);
+    	  if ("Context".equals(name)) {
+    		  System.out.println("Converting Context");
+    	  }
+          */
+    	  return b.convertType(convertNodeTypeToIJavaType(decl, binder));
+      }      
       if (TypeFormal.prototype.includes(decl)) {
         return getTypeFormal(decl);
       }
@@ -365,11 +375,11 @@ public class JavaTypeFactory implements IRType, Cleanable {
       return getDeclaredType(decl,null,null);
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
-      IRNode decl = binder.getBinding(nodeType);
-      if (decl == null) {
+      IBinding b = binder.getIBinding(nodeType);
+      if (b == null) {
     	  return null;
       }
-      return getDeclaredType(decl,null,(IJavaDeclaredType)outer);
+      return b.convertType(getDeclaredType(b.getNode(),null,(IJavaDeclaredType)outer));
     } else if (op instanceof TypeFormal) {
       return getTypeFormal(nodeType);      
     } else if (op instanceof TypeDeclInterface) {
@@ -378,7 +388,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
       IJavaType bt = convertNodeTypeToIJavaType(ArrayDeclaration.getBase(nodeType),binder);
       return getArrayType(bt, ArrayDeclaration.getDims(nodeType));
     } else if (op instanceof ParameterizedType) {
-      IJavaType bt = convertNodeTypeToIJavaType(ParameterizedType.getBase(nodeType),binder);
+      IRNode baseNode = ParameterizedType.getBase(nodeType);
+      IJavaType bt = convertNodeTypeToIJavaType(baseNode, binder);
       List<IJavaType> typeActuals = new ArrayList<IJavaType>();
       IRNode args = ParameterizedType.getArgs(nodeType);
       for (Iterator<IRNode> ch = JJNode.tree.children(args); ch.hasNext();) {
@@ -394,10 +405,12 @@ public class JavaTypeFactory implements IRType, Cleanable {
         return bt;
       }
       JavaDeclaredType base = (JavaDeclaredType)bt;
+      /* Check unneeded due to changes for NamedType
       if (base.getTypeParameters().size() > 0) {
         LOG.severe("Already has parameters! " + bt);
         return bt;
       }
+      */
       IJavaDeclaredType outer = null;
       if (base instanceof JavaDeclaredType.Nested) {
         outer = ((JavaDeclaredType.Nested)base).getOuterType();
@@ -409,6 +422,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
     	  } else {
     		  throw new IllegalStateException("Couldn't create IJavaType for "+DebugUnparser.toString(nodeType));
     	  }
+      }
+      IBinding baseB = binder.getIBinding(baseNode);
+      if (baseB != null) {
+    	  return baseB.convertType(rv);
       }
       return rv;
     } else if (op instanceof WildcardSuperType) {
@@ -496,6 +513,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
     }
   }
   
+  public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
+	  return getMyThisType(tdecl, false);
+  }
+  
   /**
    * Return the "this" type for this declaration, what "this"
    * means inside this class.  The correct type actuals and
@@ -504,7 +525,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
    * @param tdecl type declaration node
    * @return type of "this" within this class/interface.
    */
-  public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
+  public static IJavaSourceRefType getMyThisType(IRNode tdecl, boolean raw) {
     TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);    
     if (op instanceof TypeFormal) {
       return JavaTypeFactory.getTypeFormal(tdecl); 
@@ -517,7 +538,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
       typeFormals = InterfaceDeclaration.getTypes(tdecl);
     }
     List<IJavaType> tactuals = null;
-    if (typeFormals != null) {
+    if (!raw && typeFormals != null) {
       int num = JJNode.tree.numChildren(typeFormals);
       tactuals = new ArrayList<IJavaType>(num);
       for (Iterator<IRNode> tfs = JJNode.tree.children(typeFormals); tfs.hasNext();) {
@@ -876,7 +897,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   
   @Override
   public IJavaType subst(final IJavaTypeSubstitution s) {
-    if (s == null || s.isNull()) return this;
+    if (s == null) return this;
     /*
 	String unparse = toString();
 	if (unparse.contains("in java.util.List.toArray")) {
@@ -1098,7 +1119,7 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   
   @Override
   public IJavaType subst(IJavaTypeSubstitution s) {
-	if (s == null || s.isNull()) {
+	if (s == null) {
 		return this;
 	}	
     IJavaReferenceType newUpperBound = upperBound == null ? null : (IJavaReferenceType) upperBound.subst(s);
@@ -1208,7 +1229,7 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
   
   @Override public IJavaType subst(IJavaTypeSubstitution s) {
-	if (s == null || s.isNull()) {
+	if (s == null) {
 	  return this;
 	}	
 	IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
@@ -1327,7 +1348,7 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   
   @Override
   public IJavaType subst(IJavaTypeSubstitution s) {
-    if (s == null || s.isNull()) return this;
+    if (s == null) return this;
     return JavaTypeFactory.getArrayType(elementType.subst(s),1);
   }
 
@@ -1390,8 +1411,8 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   
   @Override
   public IJavaDeclaredType subst(IJavaTypeSubstitution s) {
-    if (s == null || s.isNull()) return this;
-    List<IJavaType> newParams = s.substTypes(parameters);
+    if (s == null) return this;
+    List<IJavaType> newParams = s.substTypes(this, parameters);
     if (newParams == parameters) return this;
     return JavaTypeFactory.getDeclaredType(declaration,newParams,null);
   }
@@ -1555,11 +1576,11 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
     
     @Override public IJavaDeclaredType subst(IJavaTypeSubstitution s) {
-      if (s == null || s.isNull()) {
+      if (s == null) {
         //System.out.println("null subst");
         return this;
       }
-      List<IJavaType> newParams = s.substTypes(parameters);
+      List<IJavaType> newParams = s.substTypes(this, parameters);
       JavaDeclaredType newOuter = (JavaDeclaredType) getOuterType().subst(s);
       if (newParams == parameters && newOuter == getOuterType()) return this;
       return JavaTypeFactory.getDeclaredType(declaration,newParams,newOuter);

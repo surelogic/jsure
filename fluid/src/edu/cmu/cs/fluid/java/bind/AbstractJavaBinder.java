@@ -1173,6 +1173,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (bestMethod == null) {
     	  return bind(call, (IBinding) null);
       }
+      /*
+      if ("getCurrentKey".equals(name)) {      	
+      	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
+      }
+      */
       return bind(call, bestMethod.method);
     }
 
@@ -1660,6 +1665,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode targs      = call.get_TypeArgs(node);
       IJavaScope toUse  = null;
       IJavaType recType = null;
+      final String name = MethodCall.getMethod(node);  
+      /*       
+      if ("getCurrentKey".equals(name)) {
+      	System.out.println("getCurrentKey: "+DebugUnparser.toString(node));
+      }      
+      */
       if (JJNode.tree.getOperator(receiver) instanceof ImplicitReceiver) {
         toUse = scope;
       } else {
@@ -1670,7 +1681,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (recType != null) toUse = typeScope(recType);
       }
       if (toUse != null) {        
-        final String name = MethodCall.getMethod(node);            
         /*
         if ("toArray".equals(name)) {
         	System.out.println("toArray: "+DebugUnparser.toString(node));
@@ -1883,13 +1893,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitNameType(IRNode node) {
       /*
-      if ("String".equals(DebugUnparser.toString(node))) {
-    	  System.out.println("NameType String");
+      if (DebugUnparser.toString(node).contains("Context")) {
+    	  System.out.println("NameType Context");
       }
       */
       if (bindForType(node)) {
     	  visit(node);
-    	  bind(node,getBinding(NameType.getName(node)));
+    	  bind(node,getIBinding(NameType.getName(node)));
       } else if (!isFullPass) {
     	  System.out.println("Ignoring NameType: "+DebugUnparser.toString(node));
       }
@@ -1902,6 +1912,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       	  return null;
       }
       String name = JJNode.getInfo(node);
+      if (name.endsWith("Reducer")) {
+    	  System.out.println("Binding type Reducer");
+      }
       if (debug) {    	  
     	  LOG.finer("Got a named type " + name);
       }
@@ -2042,6 +2055,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitParameterDeclaration(IRNode node) {
+      /*
+      final String name = JJNode.getInfo(node);
+      if ("context".equals(name)) {
+    	 System.out.println("Binding param: "+DebugUnparser.toString(node)); 
+      }
+      */
       IJavaScope.NestedScope sc = (IJavaScope.NestedScope)scope;
       sc.add(node); 
       if (!isBatch && nodeHasChanged(node)) isBatch = true;
@@ -2186,7 +2205,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       Operator bbop = JJNode.tree.getOperator(baseBinding.getNode());
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
-        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode());
+        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true);
         scope = typeScope(baseBinding.convertType(baseType));
       } else if (bbop instanceof VariableDeclarator || bbop instanceof ParameterDeclaration) {
         scope = typeScope(getType(baseBinding));
@@ -2455,8 +2474,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       final NameContext context = computeNameContext(node);
       /*
       final String name = JJNode.getInfo(node);
-      if ("Property".equals(name)) {
-    	  System.out.println("Binding 'Property': "+context);
+      if ("Inner".equals(name)) {
+    	  System.out.println("Binding 'Inner': "+context);
       }
       */      
       final IJavaScope.Selector isAccessible = makeAccessSelector(node);

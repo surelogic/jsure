@@ -23,13 +23,13 @@ import edu.cmu.cs.fluid.util.*;
  * @author boyland
  */
 public class JavaTypeSubstitution extends AbstractTypeSubstitution {
-  private final IRNode declaration;
+  private final IJavaDeclaredType declaredType;
   private final List<IJavaType> actuals;
   private final JavaTypeSubstitution context;
   
-  private JavaTypeSubstitution(IBinder b, IRNode decl, List<IJavaType> as, JavaTypeSubstitution c) {
+  private JavaTypeSubstitution(IBinder b, IJavaDeclaredType dt, List<IJavaType> as, JavaTypeSubstitution c) {
     super(b);
-    declaration = decl;
+    declaredType = dt;
     actuals = as;
     context = c;
   }
@@ -47,16 +47,6 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  }
 		  }
 		  
-		  public boolean isNull() {
-			  ensureSubst();
-			  return realSubst == null;
-		  }
-		  
-		  public boolean isApplicable(IJavaTypeFormal jtf) {
-			  ensureSubst();
-			  return realSubst != null && realSubst.isApplicable(jtf);				
-		  }
-		  
 		  public IJavaType get(IJavaTypeFormal jtf) {
 			  ensureSubst();
 			  if (realSubst == null) {
@@ -65,12 +55,19 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.get(jtf);
 		  }
 
-		  public List<IJavaType> substTypes(List<IJavaType> types) {
+		  public List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
+			  if (types.isEmpty()) {
+				  return types;
+			  }
+			  if (jt.equals(context) /* || 
+				  jt.getDeclaration().equals(context.getDeclaration()) && jt.getTypeParameters().isEmpty()*/) {
+				  return types;
+			  }
 			  ensureSubst();
 			  if (realSubst == null) {
 				  return types;
 			  }
-			  return realSubst.substTypes(types);
+			  return realSubst.substTypes(context, types);
 		  }
 
 		  public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
@@ -118,7 +115,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
         tactuals = new ArrayList<IJavaType>(1);
         for(IRNode formal : it) {
           IJavaTypeFormal tf = JavaTypeFactory.getTypeFormal(formal);
-          tactuals.add(tf.getSuperclass(tEnv));
+          //tactuals.add(tf.getSuperclass(tEnv));
+          tactuals.add(tf);
         }
       } else {
         // Not generic, so nothing to substitute
@@ -133,7 +131,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
       nesting = null;
     }
     */
-    return new JavaTypeSubstitution(tEnv.getBinder(), jt.getDeclaration(),tactuals,nesting);
+    return new JavaTypeSubstitution(tEnv.getBinder(), jt, tactuals, nesting);
   }
   
   /**
@@ -177,7 +175,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     	return null;
     }
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {
-      if (s.declaration.equals(enclosingType)) {
+      if (s.declaredType.getDeclaration().equals(enclosingType)) {
     	// Try to match up with the right formal/actual pair
         Iterator<IRNode> ch = JJNode.tree.children(typeFormals); 
         for (IJavaType jt : s.actuals) {
@@ -208,11 +206,11 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
   @Deprecated
   public JavaTypeSubstitution subst(JavaTypeSubstitution s) {
     if (s == null) return this;
-    List<IJavaType> newActuals = s.substTypes(actuals);
+    List<IJavaType> newActuals = s.substTypes(declaredType, actuals);
     JavaTypeSubstitution newContext = context;
     if (newContext != null) newContext = newContext.subst(s);
     if (newActuals == actuals && newContext == context) return this;
-    return new JavaTypeSubstitution(this.binder, declaration,newActuals,newContext);
+    return new JavaTypeSubstitution(this.binder, declaredType, newActuals, newContext);
   }
   
   @Override
@@ -229,9 +227,11 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
       args.append(t);
     }
     args.append(']');
+    
+    final String name = JJNode.getInfo(declaredType.getDeclaration());
     if (context == null) {
-      return JJNode.getInfo(declaration) + args;
+      return name + args;
     }
-    return context + "." + JJNode.getInfo(declaration) + args;
+    return context + "." + name + args;
   }
 }

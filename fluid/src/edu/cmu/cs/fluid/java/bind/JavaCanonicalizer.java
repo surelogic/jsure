@@ -108,6 +108,9 @@ public class JavaCanonicalizer {
   }
   
   private void map(IRNode old, IRNode now) {
+	  if (old.equals(now)) {
+		  return;
+	  }
 	  if (bindCache != null) {
 		  bindCache.map(old, now);
 	  }
@@ -372,10 +375,11 @@ public class JavaCanonicalizer {
     		  }    	
     	  }
     	IRNode nt = CogenUtil.createNamedType(type.getDeclaration());    	
+    	addBinding(nt, IBinding.Util.makeBinding(type.getDeclaration(), tEnv));
       	return TypeExpression.createNode(nt);
       }
       IRNode thisClass = VisitUtil.getEnclosingType(context);
-      IJavaType thisClassType = JavaTypeFactory.getMyThisType(thisClass);
+      IJavaType thisClassType = JavaTypeFactory.getMyThisType(thisClass, true);
       if (tEnv.isRawSubType(thisClassType,type)) {
         return ThisExpression.prototype.createNode();
       }
@@ -502,7 +506,7 @@ public class JavaCanonicalizer {
         LOG.severe("Found no binding for " + DebugUnparser.toString(nameNode));
         return createNamedType(DebugUnparser.toString(nameNode));
       }
-      IRNode namedType = createNamedType(b);
+      IRNode namedType = createNamedType(nameNode, b);
       copySrcRef(namedType, nameNode);
       return namedType;
     }
@@ -519,7 +523,7 @@ public class JavaCanonicalizer {
     /**
      * Derived from CogenUtil.createNamedType();
      */
-    private IRNode createNamedType(final IBinding b) {
+    private IRNode createNamedType(IRNode nameNode, final IBinding b) {
     	final IRNode tdecl = b.getNode();    	
     	Operator op        = JJNode.tree.getOperator(tdecl);
     	IRNode result      = null;
@@ -545,9 +549,33 @@ public class JavaCanonicalizer {
     				//System.out.println("Converting type within a function");
     				return result = createNamedType(name); 
     			}
-    			IRNode enclosingT   = VisitUtil.getEnclosingType(tdecl);
-    			IBinding enclosingB = makeEnclosingBinding(b, enclosingT); 
-    			return result = TypeRef.createNode(createNamedType(enclosingB), name);    		
+    			// Check if inside of an OOS expr
+    			/*
+    			if ("Inner".equals(name)) {
+    				System.out.println("Looking at name Inner");
+    			}
+                */
+    			IRNode parent = JJNode.tree.getParentOrNull(nameNode);
+    			if (NameType.prototype.includes(parent)) {
+    				IRNode gparent = JJNode.tree.getParentOrNull(parent);
+    				if (NewExpression.prototype.includes(gparent)) {
+    					IRNode ggparent = JJNode.tree.getParentOrNull(gparent);
+    					if (OuterObjectSpecifier.prototype.includes(ggparent)) {
+    						// No need to qualify this name then
+    						return result = createNamedType(name); 
+    					}
+    				}
+    			}
+    			IJavaDeclaredType enclosingT = b.getContextType();
+    			IRNode baseType;
+    			if (enclosingT == null) { 
+    				IRNode enclosingType = VisitUtil.getEnclosingType(tdecl);
+    				baseType = CogenUtil.createNamedType(enclosingType);
+    				addBinding(baseType, IBinding.Util.makeBinding(enclosingType, tEnv));
+    			} else {
+    				baseType = createDeclaredType(enclosingT);
+    			}
+    			return result = TypeRef.createNode(baseType, name);    
     		}
     		if (TypeUtil.isOuter(tdecl)) {
     			String qname = TypeUtil.getQualifiedName(tdecl);
@@ -564,18 +592,37 @@ public class JavaCanonicalizer {
     	}
     }
     
-    /**
-     * @param b The IBinding for the nested type
-     */
-    private IBinding makeEnclosingBinding(IBinding b, IRNode enclosingT) {
-    	IJavaDeclaredType dt    = b.getContextType();    	
-    	/*
-    	if (dt == null) {
-    		System.out.println("null context type");
+    // What if I have wildcards and other sorts of types?
+    private IRNode createType(IJavaType t) {
+    	if (t instanceof IJavaDeclaredType) {
+    		return createDeclaredType((IJavaDeclaredType) t);
     	}
-    	*/
-    	IJavaDeclaredType outer = dt == null ? null : dt.getOuterType();
-    	return IBinding.Util.makeBinding(enclosingT, outer, tEnv);
+    	if (t instanceof IJavaTypeFormal) {
+    		IJavaTypeFormal f = (IJavaTypeFormal) t;
+    		String name = JJNode.getInfoOrNull(f.getDeclaration());
+    		return createNamedType(name);
+    	}
+    	throw new IllegalStateException("Unexpected type: "+t);
+    }
+    
+    private IRNode createDeclaredType(IJavaDeclaredType dt) {
+    	IRNode enclosingT = dt.getDeclaration();
+		IBinding b;
+		if (dt.getOuterType() != null) {
+			b = IBinding.Util.makeBinding(enclosingT, dt.getOuterType(), tEnv);
+		} else {
+			b = IBinding.Util.makeBinding(enclosingT);
+		}
+    	IRNode result = createNamedType(null, b);
+		addBinding(result, b);
+    	if (dt.getTypeParameters().isEmpty()) {
+    		return result;
+    	}
+    	IRNode[] args = new IRNode[dt.getTypeParameters().size()];
+    	for(int i=0; i<args.length; i++) {
+    		args[i] = createType(dt.getTypeParameters().get(i));
+    	}
+    	return ParameterizedType.createNode(result, TypeActuals.createNode(args));
 	}
 
 	@Override
@@ -1071,8 +1118,16 @@ public class JavaCanonicalizer {
     @Override
     public Boolean visitNewExpression(IRNode node) {
       IRNode old      = NewExpression.getType(node);
+      /*
+      String unparse  = DebugUnparser.toString(old);
+      if ("Inner".equals(unparse)) {
+    	  System.out.println("Found Inner: "+DebugUnparser.toString(node));
+      }
+      */
       boolean changed = doAcceptForChildren_rev(node);
-      map(old, NewExpression.getType(node));
+      if (changed) {
+    	  map(old, NewExpression.getType(node));
+      }
       changed |= addImplicitOuterSpecifier(node);
       return changed;
     }
