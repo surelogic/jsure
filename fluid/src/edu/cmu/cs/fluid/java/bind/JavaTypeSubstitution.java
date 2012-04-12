@@ -40,9 +40,11 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 		  
 		  private void ensureSubst() {
 			  if (realSubst == IJavaTypeSubstitution.NULL) {
+				  /*
 				  if (jt.getName().contains("java.util.EnumSet")) {
 					  System.out.println("Making subst for "+jt);
 				  }
+				  */
 				  realSubst = JavaTypeSubstitution.createReal(tEnv, jt);
 			  }
 		  }

@@ -1919,9 +1919,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       	  return null;
       }
       String name = JJNode.getInfo(node);
+      /*
       if (name.endsWith("Reducer")) {
     	  System.out.println("Binding type Reducer");
       }
+      */
       if (debug) {    	  
     	  LOG.finer("Got a named type " + name);
       }
