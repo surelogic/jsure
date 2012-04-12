@@ -1678,6 +1678,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 //        if (recType instanceof IJavaDeclaredType) {
 //          System.out.println(DebugUnparser.toString(((IJavaDeclaredType) recType).getDeclaration()));
 //        }
+        String recName = recType.toString();
+        /*
+        if (recName.startsWith("org.apache.hadoop.mapreduce.Mapper") && recName.endsWith(">.Context")) {
+        	System.out.println("Binding call for "+recName);
+        }
+        */
         if (recType != null) toUse = typeScope(recType);
       }
       if (toUse != null) {        
@@ -1710,6 +1716,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             }
             if (!success && pathToTarget == null) {
               IJavaType temp = getJavaType(receiver);
+              typeScope(temp);
               bindCall(node,targs,args,name, toUse);
             }
           }
