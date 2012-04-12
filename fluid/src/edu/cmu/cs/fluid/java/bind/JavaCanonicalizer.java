@@ -618,11 +618,26 @@ public class JavaCanonicalizer {
     	if (dt.getTypeParameters().isEmpty()) {
     		return result;
     	}
+    	// Don't keep parameters if all formals
+    	if (allTypeFormals(dt.getTypeParameters())) {
+    		return result;
+    	}
+    	
     	IRNode[] args = new IRNode[dt.getTypeParameters().size()];
     	for(int i=0; i<args.length; i++) {
     		args[i] = createType(dt.getTypeParameters().get(i));
     	}
     	return ParameterizedType.createNode(result, TypeActuals.createNode(args));
+	}
+
+	private boolean allTypeFormals(List<IJavaType> typeParameters) {
+    	for(IJavaType tp : typeParameters) {
+    		if (tp instanceof IJavaTypeFormal) {
+    			continue;
+    		}
+    		return false;
+    	}
+    	return true;
 	}
 
 	@Override
