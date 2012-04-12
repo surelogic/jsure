@@ -465,7 +465,8 @@ public interface IJavaScope {
       return outer.lookup(name,useSite,selector);
     }
     
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    @SuppressWarnings("unchecked")
+	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
       List<IBinding> l = locals.get(name);
       if (l == null) return outer.lookupAll(name,useSite,selector);
       Vector<IBinding> selected = null;
@@ -476,7 +477,7 @@ public interface IJavaScope {
         }
       }
       Iteratable<IBinding> outerResult = outer.lookupAll(name,useSite,selector);
-      if (selected == null) return outerResult;
+      if (selected == null || selected.isEmpty()) return outerResult;
       return (Iteratable<IBinding>) AppendIterator.append(selected.iterator(),outerResult);
     }
     
@@ -545,7 +546,8 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    @SuppressWarnings("unchecked")
+	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
       Iteratable<IBinding> result1 = scope1.lookupAll(name,useSite,selector);
       Iteratable<IBinding> result2 = scope2.lookupAll(name,useSite,selector);
       if (result1.hasNext()) {
@@ -632,8 +634,8 @@ public interface IJavaScope {
      * @param binding binding to substitute for
      * @return new binding using substitution
      */
-    private IBinding substBinding(IBinding binding) {
-      IJavaDeclaredType bContext = binding.getContextType();
+    private IBinding substBinding(final IBinding binding) {
+      final IJavaDeclaredType bContext = binding.getContextType();
       if (bContext == null) {
         // need to find the proper context.
         IRNode node = binding.getNode();
@@ -649,11 +651,50 @@ public interface IJavaScope {
         }
         return IBinding.Util.makeBinding(node,c, tEnv, context);
       }
+      if (context == bContext) {
+    	  // No need to do substitution, since we're talking about a binding from the same type
+    	  return binding; 
+      }
       if (subst == null) {
         // return binding;
         return IBinding.Util.makeBinding(binding.getNode(),bContext, tEnv, context);
       }
       return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, context);
+      /* To delay the substitution until later
+      return new IBinding.Util.NodeBinding(binding.getNode()) {
+    	  IBinding real = null;
+    	  
+    	  private void computeBinding() {
+    		  if (real != null) {
+    			  return;
+    		  }
+    		  real = IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, context);
+    	  }
+
+    	  @Override
+    	  public ITypeEnvironment getTypeEnvironment() {
+    		  return tEnv;
+    	  }
+    	  
+    	  @Override
+    	  public IJavaType convertType(IJavaType ty) {
+    		  computeBinding();
+    		  return real.convertType(ty);
+    	  }
+
+    	  @Override
+    	  public IJavaDeclaredType getContextType() {
+    		  computeBinding();
+    		  return real.getContextType();
+    	  }
+
+    	  @Override
+    	  public IJavaReferenceType getReceiverType() {
+    		  computeBinding();
+    		  return real.getReceiverType();
+    	  }
+      };
+      */
     }
     
     private IJavaDeclaredType computeContextType(final IRNode bdecl) {
