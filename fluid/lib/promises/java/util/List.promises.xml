@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" revision="2">
     <class name="List">
+        <method name="add" params="int,java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes this:Instance</RegionEffects>
+        </method>
+
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects revision="1">writes this:Instance</RegionEffects>
         </method>
 
         <method name="clear">
