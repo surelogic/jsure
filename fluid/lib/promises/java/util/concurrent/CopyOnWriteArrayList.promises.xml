@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="2">
+<package name="java.util.concurrent" revision="3">
     <class name="CopyOnWriteArrayList">
         <Promise uid="4406f305-41e5-4b64-a1ca-1c4180b245aa">@Unique(return) for new(**)</Promise>
         <Promise uid="7e0fb993-d77e-45db-9117-912040378930">@RegionEffects(reads arg0:Instance) for new(*)</Promise>
         <ThreadSafe revision="1"/>
+        <method name="add" params="int,java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes this:Instance</RegionEffects>
+        </method>
+
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
