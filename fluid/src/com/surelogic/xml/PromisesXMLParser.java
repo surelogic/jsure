@@ -95,9 +95,11 @@ public final class PromisesXMLParser {
 	 * @return The number of annotations added
 	 */	
 	public static int process(ITypeEnvironment tEnv, IRNode root, String xmlPath) {
+		/*
 		if (xmlPath.startsWith("java/lang/Object")) {
 			System.out.println("Looking up "+xmlPath);
 		}
+		*/
 		if (root == null) {
 			return 0;
 		}
