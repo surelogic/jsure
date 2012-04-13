@@ -404,6 +404,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		public final Set<ResultDropBuilder> calledUniqueParams;
 
 		/**
+		 * Promise drops for each formal parameter of a called method that is 
+		 * Borrowed(allowReturn=true).
+		 */
+		public final Set<BorrowedPromiseDrop> calledBorrowedAllowReturn;
+		
+		/**
 		 * Method call drops for each invoked method that has unique return;
 		 * Map from the method call drop to the unique promise about the return value.
 		 */
@@ -490,6 +496,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			usedImmutableFields = new HashSet<ImmutableRefPromiseDrop>();
 			usedReadOnlyFields = new HashSet<ReadOnlyPromiseDrop>();
 			immutableActuals = new HashSet<ImmutablePromiseDrop>();
+			calledBorrowedAllowReturn = new HashSet<BorrowedPromiseDrop>();
 			
 			callsToDrops = new HashMap<IRNode, Set<ResultDropBuilder>>();
 			
@@ -683,6 +690,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     addDependencies(pr.usedReadOnlyFields, fooSet);
     
     addDependencies(pr.immutableActuals, fooSet);
+    
+    addDependencies(pr.calledBorrowedAllowReturn, fooSet);
     
     /*
      * Set up the borrowed dependencies. Each parameter of the method that is
@@ -939,6 +948,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             // Borrowed receivers is a singleton set
             pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
           }
+          
+          for (final BorrowedPromiseDrop bDrop : borrowedParams) {
+            if (bDrop.allowReturn()) {
+              pr.calledBorrowedAllowReturn.add(bDrop);
+            }
+          }
         }
         if (!uniqueParams.isEmpty()) {
           /* Here we hold off setting the message and category until the 
@@ -1173,6 +1188,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     /* Case (4): invoking method with UNIQUE parameter or IMMUTABLE parameters,
      * or a READ-ONLY or IMMUTABLE return value
+     * 
+     * Also interesting if the called method has a @Borrowed(allowReturn=true)
+     * parameter.
      */
     @Override
     protected void handleAsMethodCall(final IRNode call) {
@@ -1183,6 +1201,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         IRNode formals = null;
         boolean hasUnique = false;
         boolean hasImmutable = false;
+        boolean hasBorrowedAllowReturn = false;
+        
         if (declOp instanceof ConstructorDeclaration) {
           formals = ConstructorDeclaration.getParams(declNode);
         } else if (declOp instanceof MethodDeclaration) {
@@ -1191,13 +1211,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             final IRNode self = JavaPromise.getReceiverNode(declNode);
             hasUnique = UniquenessRules.isUnique(self);
             hasImmutable = LockRules.isImmutableRef(self);
+            hasBorrowedAllowReturn = UniquenessRules.isBorrowed(self) && 
+                UniquenessRules.getBorrowed(self).allowReturn();
           }
         }
         if (formals != null) {
           for (int i = 0; !hasUnique && (i < JJNode.tree.numChildren(formals)); i++) {
             final IRNode param = JJNode.tree.getChild(formals, i);
-            hasUnique = UniquenessRules.isUnique(param);
-            hasImmutable = LockRules.isImmutableRef(param);
+            hasUnique |= UniquenessRules.isUnique(param);
+            hasImmutable |= LockRules.isImmutableRef(param);
+            hasBorrowedAllowReturn |= UniquenessRules.isBorrowed(param) && 
+                UniquenessRules.getBorrowed(param).allowReturn();
           }
         }
         
@@ -1209,7 +1233,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           immutableReturn = LockRules.isImmutableRef(returnNode);
         }
         
-        if (hasUnique || hasImmutable || readOnlyReturn || immutableReturn) {
+        if (hasUnique || hasImmutable || hasBorrowedAllowReturn || readOnlyReturn || immutableReturn) {
           results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
         }
       }
