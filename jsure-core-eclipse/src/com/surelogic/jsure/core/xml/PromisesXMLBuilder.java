@@ -23,15 +23,23 @@ public class PromisesXMLBuilder {
 	public static String translateParameters(IMethod m) throws JavaModelException {
 		StringBuilder sb = new StringBuilder();
 		for(String t : m.getParameterTypes()) {
-			if (sb.length() != 0) {
-				sb.append(',');
-			}		
 			translateParameter(m, sb, t);
 		}
 		return sb.toString();
 	}	
 	
-	public static void translateParameter(IMethod m, StringBuilder sb, String t) throws JavaModelException {
+	private static boolean isInternalParameter(String t) {
+		int i=0;
+		while ((i = t.indexOf('$', i)) > 0) {
+			if (Character.isDigit(t.charAt(i+1))) {
+				// Can't be from source, so it must be generated				
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static void translateParameter(IMethod m, StringBuilder sb, String t) throws JavaModelException {
 		String mapped = typeMapping.get(t);
 		if (mapped == null) {
 			int dims = 0;
@@ -40,6 +48,12 @@ public class PromisesXMLBuilder {
 			}
 			if (dims == 0) {
 				// Assumed to be a class name
+				if (isInternalParameter(t)) {
+					return;
+				}
+				if (sb.length() != 0) {
+					sb.append(',');
+				}		
 				mapped = t.substring(1, t.length()-1).replace('$', '.');
 				translatePossibleGenericType(m, sb, translateToRawType(mapped));				
 			} else {
@@ -49,6 +63,9 @@ public class PromisesXMLBuilder {
 				}
 			}			
 		} else {
+			if (sb.length() != 0) {
+				sb.append(',');
+			}		
 			sb.append(mapped);
 		}
 	}
@@ -145,6 +162,9 @@ public class PromisesXMLBuilder {
 	
 	private static void makeParameters(IMethod m, AbstractFunctionElement func) {
 		for(int i=0; i<m.getNumberOfParameters(); i++) {
+			if (isInternalParameter(m.getParameterTypes()[i])) {
+				continue;
+			}
 			func.setParameter(new FunctionParameterElement(i));			
 		}		 
 	}
