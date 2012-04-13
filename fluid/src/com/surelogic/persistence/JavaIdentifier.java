@@ -233,6 +233,25 @@ public final class JavaIdentifier {
 		return parts[0]+SEPARATOR+parts[1]+SEPARATOR+parts[2];
 	}
 	
+	public static String extractDecl(String typePrefix, String code) {
+		String[] parts = code.split(SEPARATOR);		
+		if (parts.length < 4) {
+			throw new IllegalArgumentException("Bad encoding: "+code);
+		}
+		StringBuffer sb = new StringBuffer();
+		if (parts[2].startsWith(typePrefix)) {
+			if (parts[2].length() > typePrefix.length()) {
+				sb.append(parts[2].substring(typePrefix.length()+1)).append('.');
+			}
+		} else {
+			sb.append(parts[2]).append('.');			
+		}
+		for(int i=3; i<parts.length; i++) {
+			sb.append(parts[i]);
+		}
+		return sb.toString();
+	}
+	
 	public static IRNode findDecl(IIRProjects projs, String code) {
 		final StringTokenizer st = new StringTokenizer(code, ":");
 		if (!st.hasMoreTokens()) {
