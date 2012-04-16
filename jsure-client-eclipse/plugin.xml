@@ -175,6 +175,11 @@
 			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
 		</view>
 		
+		<view name="Scan Annotation Explorer" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ActualAnnotationsView"
+			id="com.surelogic.jsure.client.eclipse.views.results.ActualAnnotationsView">
+		</view>
 	</extension>
 
 	<!-- JSure perspective links and Java perspective links -->
