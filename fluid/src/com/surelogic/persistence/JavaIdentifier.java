@@ -237,9 +237,6 @@ public final class JavaIdentifier {
 	}
 	
 	public static String extractDecl(String typePrefix, String code) {
-		if (code.contains("arg0")) {
-			System.out.println("Checking out arg0");
-		}
 		String[] parts = code.split(SEPARATOR);		
 		if (parts.length == 3) {
 			return parts[2];
