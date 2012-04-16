@@ -176,9 +176,9 @@
 		</view>
 		
 		<view name="Scan Annotation Explorer" allowMultiple="false"
-			icon="platform:/plugin/com.surelogic.common/lib/images/annotation.gif"
-			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ActualAnnotationsView"
-			id="com.surelogic.jsure.client.eclipse.views.results.ActualAnnotationsView">
+			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_scan_explorer.gif"
+			category="com.surelogic.jsure" class="com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView"
+			id="com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView">
 		</view>
 	</extension>
 

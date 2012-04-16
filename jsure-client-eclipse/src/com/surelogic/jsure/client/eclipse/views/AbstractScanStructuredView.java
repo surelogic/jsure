@@ -61,7 +61,7 @@ public abstract class AbstractScanStructuredView<T> extends
 	}
 
 	@Override
-	protected final StructuredViewer getViewer() {
+	protected StructuredViewer getViewer() {
 		return f_viewers[getViewIndex()];
 	}
 

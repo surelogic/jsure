@@ -35,6 +35,22 @@ public abstract class AbstractScanTreeView<T> extends
 		return new StructuredViewer[] { treeViewer };
 	}
 
+	@Override
+	public TreeViewer getViewer() {
+		StructuredViewer s = super.getViewer();
+		if (s instanceof TreeViewer)
+			return (TreeViewer) s;
+		else
+			throw new IllegalStateException(
+					"BUG: viewer should be a TreeViewer");
+	}
+
+	@Override
+	protected void makeActions() {
+		// TODO Auto-generated method stub
+
+	}
+
 	/********************* Methods to handle selections ******************************/
 
 	protected void appendText(StringBuilder sb, Object elt) {
