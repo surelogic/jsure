@@ -83,6 +83,10 @@ public class ScanAnnotationExplorerView extends
 			// Organize by package
 			final JSureScanInfo info = JSureDataDirHub.getInstance()
 					.getCurrentScanInfo();
+			if (info == null) {
+				roots = NO_ROOTS;
+				return null;
+			}
 			final MultiMap<String, IDropInfo> pkgToDrop = new MultiHashMap<String, IDropInfo>();
 			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
 				final ISrcRef sr = d.getSrcRef();
