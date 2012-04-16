@@ -566,7 +566,8 @@ simpleEffectExpression
 	;
 	
 anyInstanceExpression
-	: ANY '(' namedType ')' -> ^(AnyInstanceExpression namedType)
+  : ANY '(' ')' -> ^(AnyInstanceExpression ^(NamedType))
+	| ANY '(' namedType ')' -> ^(AnyInstanceExpression namedType)
 	;
  
 readsEffect

@@ -474,7 +474,11 @@ public class CommonAASTBinder extends AASTBinder {
   public ISourceRefType resolveType(ClassTypeNode node) {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
-      return createISourceRefType(resolveTypeName(t, t.getType()));
+      String name = t.getType();
+      if (name == null || name.length() == 0) {
+    	  name = "java.lang.Object";
+      }
+      return createISourceRefType(resolveTypeName(t, name));
     }
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
