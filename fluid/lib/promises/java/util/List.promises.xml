@@ -1,58 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="2">
+<package name="java.util" revision="3">
     <class name="List">
-        <method name="add" params="int,java.lang.Object">
+        <method name="add" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes this:Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">writes this:Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="addAll" params="int, java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="addAll" params="java.util.Collection">
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="contains" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="containsAll" params="java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
         </method>
 
         <method name="get" params="int">
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="indexOf" params="java.lang.Object">
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="iterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
             <Unique>return</Unique>
+        </method>
+
+        <method name="lastIndexOf" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
         </method>
 
         <method name="listIterator">
             <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
             <Unique>return</Unique>
         </method>
 
         <method name="listIterator" params="int">
             <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
             <Unique>return</Unique>
         </method>
 
-        <method name="set" params="int,java.lang.Object">
+        <method name="remove" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="removeAll" params="java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="retainAll" params="java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="set" params="int, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="size">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="subList" params="int, int">
+            <RegionEffects revision="1">reads All; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="toArray">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="toArray" params="java.lang.Object[]">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance; writes arg0:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
     </class>
 </package>

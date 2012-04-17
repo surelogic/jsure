@@ -34,6 +34,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction;
@@ -43,6 +44,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.MethodElement;
 import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.PromisesXMLReader;
@@ -56,15 +58,48 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	private TreeViewer f_viewer;
 
-	private final Action f_open = new Action("Open") {
+	abstract class SingleElementAction extends Action {
+		SingleElementAction(String label) {
+			super(label);
+		}
+
 		@Override
 		public void run() {
 			final TreeViewer treeViewer = f_viewer;
 			if (treeViewer != null) {
 				IStructuredSelection selection = (ITreeSelection) treeViewer
 						.getSelection();
-				if (selection != null)
-					handleDoubleClick(selection);
+				if (selection != null && !selection.isEmpty()) {
+					run(selection.getFirstElement());
+				}
+			}
+		}		
+		abstract void run(Object o);
+	}
+	
+	private final Action f_open = new SingleElementAction("Open") {
+		@Override
+		public void run(Object o) {
+			handleDoubleClick(o);			
+		}
+	};
+	
+	private final Action f_openSource = new SingleElementAction("Open source") {
+		@Override
+		public void run(Object o) {
+			handleOpenSource(o);
+		}
+	};
+	
+	private final Action f_copyAnnos = new SingleElementAction("Copy Annotations") {
+		@Override
+		public void run(Object o) {
+			if (o instanceof IJavaElement) {
+				getClipboard().setFocus((IJavaElement) o);
+			}
+			else if (o instanceof Type) {
+				Type t = (Type) o;
+				getClipboard().setFocus(t.root.getClassElement());
 			}
 		}
 	};
@@ -78,7 +113,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	};
     */
-
+	
 	private final Action f_toggleShowDiffs = new Action(
 			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
 			IAction.AS_CHECK_BOX) {
@@ -231,6 +266,9 @@ public class XMLExplorerView extends AbstractJSureView {
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(f_open);
 		//manager.add(f_new);
+		manager.add(f_openSource);	
+		manager.add(new Separator());
+		manager.add(f_copyAnnos);
 		manager.add(new Separator());
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
@@ -257,6 +295,10 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void handleDoubleClick(IStructuredSelection selection) {
 		final Object o = selection.getFirstElement();
+		handleDoubleClick(o);
+	}
+	
+	void handleDoubleClick(Object o) {
 		if (o instanceof Type) {
 			Type t = (Type) o;
 			PromisesXMLEditor.openInEditor(t.getPath(), false);
@@ -265,13 +307,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			PromisesXMLEditor.openInEditor(getPackagePath(p.name), false);
 		} else if (o instanceof IJavaElement) {
 			IJavaElement e = (IJavaElement) o;
-			while (e != null) {
-				if (e instanceof PackageElement) {
-					break;
-				}
-				e = e.getParent();
-			}
-			PackageElement p = (PackageElement) e;
+			PackageElement p = findPackageElt(e);
 
 			if (p.getClassElement() == null) {
 				PromisesXMLEditor.openInEditor(getPackagePath(p.getName()),
@@ -290,6 +326,36 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	}
 
+	private PackageElement findPackageElt(IJavaElement e) {
+		while (e != null) {
+			if (e instanceof PackageElement) {
+				break;
+			}
+			e = e.getParent();
+		}
+		return (PackageElement) e;
+	}
+	
+	void handleOpenSource(Object o) {
+		if (o instanceof Type) {
+			Type t = (Type) o;
+			JDTUIUtility.tryToOpenInEditor(t.pkg.name, t.name);
+		} else if (o instanceof IJavaElement) {
+			IJavaElement e = (IJavaElement) o;
+			PackageElement p = findPackageElt(e);
+
+			if (p.getClassElement() != null) {
+				if (e instanceof MethodElement) {
+					MethodElement m = (MethodElement) e;
+					JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getName(), 
+							p.getClassElement().getName(), m.getName());
+				} else {
+					JDTUIUtility.tryToOpenInEditor(p.getName(), p.getClassElement().getName());
+				}
+			}
+		}
+	}
+	
 	private String getPackagePath(String qname) {
 		return qname.replace('.', '/') + "/package-info"
 				+ TestXMLParserConstants.SUFFIX;
@@ -688,5 +754,26 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			return isLocal;
 		}
+	}
+	
+	/**
+	 * Mainly for copying annotations
+	 */
+	public static class Clipboard {
+		private IJavaElement focus;
+		
+		public IJavaElement getFocus() {
+			return focus;
+		}
+		
+		public void setFocus(IJavaElement e) {
+			focus = e;
+		}
+	}
+	
+	private static final Clipboard clipboard = new Clipboard();
+	
+	public static Clipboard getClipboard() {
+		return clipboard;
 	}
 }

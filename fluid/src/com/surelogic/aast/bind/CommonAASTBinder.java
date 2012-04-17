@@ -210,7 +210,11 @@ public class CommonAASTBinder extends AASTBinder {
     }
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
-      return resolveTypeName(t, t.getType()) != null;
+      String name = t.getType();
+      if (name == null || name.length() == 0) {
+    	  name = "java.lang.Object";
+      }
+      return resolveTypeName(t, name) != null;
     }
     else if (node instanceof ArrayTypeNode) {
     	ArrayTypeNode at = (ArrayTypeNode) node;
@@ -474,7 +478,11 @@ public class CommonAASTBinder extends AASTBinder {
   public ISourceRefType resolveType(ClassTypeNode node) {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
-      return createISourceRefType(resolveTypeName(t, t.getType()));
+      String name = t.getType();
+      if (name == null || name.length() == 0) {
+    	  name = "java.lang.Object";
+      }
+      return createISourceRefType(resolveTypeName(t, name));
     }
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }

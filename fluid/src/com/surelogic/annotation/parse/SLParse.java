@@ -19,6 +19,7 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
         System.out.println("WARNING: No factory for "+token);
       }
     }  
+    printAST(initParser("any()").anyInstanceExpression().tree);
     printAST(initParser("implementationOnly=false").annoParameters().tree);
     printAST(initParser("implementationOnly=true").annoParameters().tree);
     printAST(initParser("verify=true").annoParameters().tree);
@@ -64,7 +65,11 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
     //printAST(initParser("  [] into Instance  ").uniqueInRegion().tree); 
     printAST(initParser(" public Foo   ").region().tree); 
     printAST(initParser(" public static Foo   ").region().tree); 
-    printAST(initParser(" public private Foo   ").region().tree); 
+    try {
+    	printAST(initParser(" public private Foo   ").region().tree); 
+    } catch(BadTokenException e) {
+    	// Ignore
+    }
     printAST(initParser(" private Bar extends Foo ").region().tree); 
     printAST(initParser("  bar:Instance  ").inRegion().tree); 
     printAST(initParser("  foo, Bar into Instance  ").mapFields().tree); 

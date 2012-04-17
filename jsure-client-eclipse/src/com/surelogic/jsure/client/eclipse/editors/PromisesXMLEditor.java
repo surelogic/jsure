@@ -78,8 +78,10 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.dialogs.LibraryAnnotationDialog;
+import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.AbstractFunctionElement;
 import com.surelogic.xml.AbstractJavaElementVisitor;
 import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
@@ -117,7 +119,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(
 			hideEmpty);
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
-	private final ParameterProvider paramProvider = new ParameterProvider();
+	//private final ParameterProvider paramProvider = new ParameterProvider();
 	private static final AnnoProvider annoProvider = new AnnoProvider();
 	private TreeViewer contents;
 
@@ -374,11 +376,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		PromisesXMLReader.refresh(provider.pkg);
 	}
 
+	/*
 	private void markAsClean() {
 		isDirty = false;
 		fireDirtyProperty();
 		PromisesXMLReader.refresh(provider.pkg);
 	}
+	*/
 
 	private void syncLocalXMLEditor() {
 		final IURIEditorInput input = (IURIEditorInput) provider
@@ -409,12 +413,30 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
 		addNavigationActions(menu, o);
 
+		makeMenuItem(menu, "Copy Annotations", new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				XMLExplorerView.getClipboard().setFocus(o);				
+			}			
+		});
+		
 		if (!provider.isMutable()) {
 			return;
 		}
-
+		
 		if (o instanceof AnnotatedJavaElement) {
-			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
+			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;			
+			makeMenuItem(menu, "Paste Annotations", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					boolean changed = pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
+					if (changed) {
+						markAsDirty();
+						contents.refresh();
+						contents.expandAll();
+					}
+				}			
+			});
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			/*
@@ -609,6 +631,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		protected abstract void create(T member) throws JavaModelException;
 	}
 
+	/*
 	private static final Comparator<IMethod> methodComparator = new Comparator<IMethod>() {
 		@Override
 		public int compare(final IMethod o1, final IMethod o2) {
@@ -635,6 +658,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return rv;
 		}
 	};
+	*/
 
 	private void addNavigationActions(final Menu menu, final IJavaElement o) {
 		if (o instanceof ClassElement) {
@@ -674,13 +698,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 		@Override
 		public void widgetSelected(final SelectionEvent e) {
-			final List<String> annos;
-			if (!makeScopedPromise) {
-				annos = findMissingAnnos(j);
-			} else {
-				annos = sortSet(remove(findApplicableAnnos(target.op),
-						ScopedPromiseRules.PROMISE));
-			}
+			final List<String> annos = computePossibleAnnos(j, target, makeScopedPromise);
 			ListSelectionDialog d = new ListSelectionDialog(contents.getTree()
 					.getShell(), annos.toArray(), annoProvider, annoProvider,
 					makeScopedPromise ? "Select scoped promise(s) to add for "
@@ -735,6 +753,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
+	List<String> computePossibleAnnos(AnnotatedJavaElement j, ScopedTargetType target, boolean makeScopedPromise) {
+		final List<String> annos;
+		if (!makeScopedPromise) {
+			annos = findMissingAnnos(j);
+		} else {
+			annos = sortSet(remove(findApplicableAnnos(target.op),
+					ScopedPromiseRules.PROMISE));
+		}
+		return annos;
+	}
+	
 	private List<String> sortSet(final Set<String> s) {
 		List<String> rv = new ArrayList<String>(s);
 		Collections.sort(rv);
@@ -1254,5 +1283,78 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		 * for(String s : nowSet) { a.setAttribute(s, "true"); } if
 		 * (!nowSet.isEmpty() || !nowUnset.isEmpty()) { markAsDirty(); } }
 		 */
+	}
+	
+	boolean pasteAnnotations(AnnotatedJavaElement target, IJavaElement source) {
+		if (source instanceof AnnotationElement) {
+			AnnotationElement orig = (AnnotationElement) source;			
+			return pasteAnnotation(target, orig);
+		}
+		else if (source instanceof AnnotatedJavaElement) {
+			AnnotatedJavaElement src = (AnnotatedJavaElement) source;
+			boolean changed = pasteAttachedAnnotations(target, src);
+
+			if (src instanceof AbstractFunctionElement && target instanceof AbstractFunctionElement) {
+				AbstractFunctionElement sf = (AbstractFunctionElement) src;				
+				AbstractFunctionElement tf = (AbstractFunctionElement) target;
+				return pasteExtraAnnotationsForMethod(tf, sf) || changed;
+			}
+			else if (src instanceof ClassElement && target instanceof ClassElement) {
+				ClassElement sc = (ClassElement) src;
+				ClassElement tc = (ClassElement) target;
+				return pasteExtraAnnotationsForType(tc, sc) || changed;
+			}
+			return changed;
+		}
+		return false;
+	}
+
+	private boolean pasteExtraAnnotationsForType(ClassElement tc, ClassElement sc) {
+		boolean changed = false;
+		// Match up methods
+		for(MethodElement sm : sc.getMethods()) {
+			MethodElement tm = tc.findMethod(sm.getName(), sm.getParams());
+			changed |= pasteAnnotations(tm, sm);
+		}
+		// TODO Match up constructors?		
+		return changed;
+	}
+
+	private boolean pasteExtraAnnotationsForMethod(AbstractFunctionElement target, AbstractFunctionElement src) {
+		boolean changed = false;
+		int i=0;
+		for(FunctionParameterElement sp : src.getParameters()) {
+			changed |= pasteAnnotations(target.getParameter(i), sp);
+			i++;
+		}
+		return changed;
+	}
+
+	private boolean pasteAttachedAnnotations(AnnotatedJavaElement target, AnnotatedJavaElement src) {
+		final List<String> couldBeNewAnnos = computePastableAnnos(target);		
+		boolean changed = false;
+		for (AnnotationElement orig : src.getPromises()) {
+			changed |= pasteAnnotation(couldBeNewAnnos, target, orig);
+		}
+		return changed;
+	}
+
+	private List<String> computePastableAnnos(AnnotatedJavaElement target) {
+		final List<String> couldBeNewAnnos = computePossibleAnnos(target, null, false);
+		couldBeNewAnnos.add(ScopedPromiseRules.PROMISE);
+		return couldBeNewAnnos;
+	}
+
+	private boolean pasteAnnotation(AnnotatedJavaElement target, AnnotationElement orig) {
+		final List<String> couldBeNewAnnos = computePastableAnnos(target);	
+		return pasteAnnotation(couldBeNewAnnos, target, orig);
+	}
+	
+	private boolean pasteAnnotation(List<String> couldBeNewAnnos, AnnotatedJavaElement target, AnnotationElement orig) {
+		if (!couldBeNewAnnos.contains(orig.getPromise())) {
+			return false;
+		}
+		AnnotationElement a = orig.cloneMe(target);
+		return target.addPromise(a, false) == a;		
 	}
 }

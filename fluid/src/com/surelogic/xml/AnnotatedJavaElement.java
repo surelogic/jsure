@@ -27,11 +27,25 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	}
 	
 	public AnnotationElement addPromise(AnnotationElement a) {
+		return addPromise(a, true);
+	}
+	
+	/**
+	 * @param replace set to true if it can replace an existing annotation
+	 * @return the old element/null if replace is true; the new element/null otherwise 
+	 */
+	public AnnotationElement addPromise(AnnotationElement a, boolean replace) {
 		a.markAsDirty();
 		a.setParent(this);
+		if (!replace && promises.containsKey(a.getUid())) {
+			return null;
+		}		
 		AnnotationElement old = promises.put(a.getUid(), a);
 		updateOrder(old, a);
-		return old;
+		if (replace) {
+			return old;
+		}
+		return a;
 	}
 
 	/**

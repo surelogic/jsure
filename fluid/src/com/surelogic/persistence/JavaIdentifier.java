@@ -154,6 +154,9 @@ public final class JavaIdentifier {
 			*/
 				return null;
 			//}
+		} else if (ParameterDeclaration.prototype.includes(op)) {
+			IRNode func = VisitUtil.getEnclosingClassBodyDecl(decl);
+			id = JJNode.getInfoOrNull(func);
 		} else {
 			id = JJNode.getInfoOrNull(decl);
 			if (id == null) {
@@ -235,6 +238,9 @@ public final class JavaIdentifier {
 	
 	public static String extractDecl(String typePrefix, String code) {
 		String[] parts = code.split(SEPARATOR);		
+		if (parts.length == 3) {
+			return parts[2];
+		}
 		if (parts.length < 4) {
 			throw new IllegalArgumentException("Bad encoding: "+code);
 		}
@@ -246,7 +252,7 @@ public final class JavaIdentifier {
 		} else {
 			sb.append(parts[2]).append('.');			
 		}
-		for(int i=3; i<parts.length; i++) {
+		for(int i=3; i<parts.length && i<5; i++) {
 			sb.append(parts[i]);
 		}
 		return sb.toString();
