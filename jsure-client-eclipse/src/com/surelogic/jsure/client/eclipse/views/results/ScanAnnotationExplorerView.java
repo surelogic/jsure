@@ -4,9 +4,15 @@ import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.ui.IJavaElementSearchConstants;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
@@ -14,9 +20,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
@@ -46,6 +54,18 @@ public class ScanAnnotationExplorerView extends
 		}
 	};
 	
+	private final Action f_findType = new Action() {
+		@Override
+		public void run() {			
+			try {
+				findType();
+			} catch (JavaModelException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	};
+	
 	private final Action f_actionCollapseAll = new Action() {
 		@Override
 		public void run() {
@@ -63,6 +83,9 @@ public class ScanAnnotationExplorerView extends
 	@Override
 	protected void makeActions() {
 		f_openSource.setText("Open source");
+		f_findType.setText("Find Type...");
+		f_findType.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
 		f_actionCollapseAll.setText("Collapse All");
 		f_actionCollapseAll.setToolTipText("Collapse All");
 		f_actionCollapseAll.setImageDescriptor(SLImages
@@ -76,11 +99,13 @@ public class ScanAnnotationExplorerView extends
 	
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
+		manager.add(f_findType);
 		manager.add(f_actionCollapseAll);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(f_findType);
 		manager.add(f_actionCollapseAll);
 	}
 
@@ -224,6 +249,21 @@ public class ScanAnnotationExplorerView extends
 
 		@Override
 		public void removeListener(ILabelProviderListener listener) {
+		}
+
+		ITypeElement findType(final IType t) {
+			final String pkg = t.getPackageFragment().getElementName();
+			for(Package p : roots) {
+				if (pkg.equals(p.getLabel())) {
+					String type = t.getElementName();
+					for(ITypeElement te : p.getChildren()) {
+						if (type.equals(te.getLabel())) {
+							return te;
+						}
+					}
+				}
+			}
+			return null;
 		}
 	}
 
@@ -391,6 +431,33 @@ public class ScanAnnotationExplorerView extends
 			Type t = (Type) e;
 			ISrcRef r = drop.getSrcRef();
 			return new JavaSourceReference(r.getPackage(), t.getLabel(), r.getLineNumber(), r.getOffset());
+		}
+	}
+	
+	void findType() throws JavaModelException {
+		final SelectionDialog dialog = 
+			JavaUI.createTypeDialog(EclipseUIUtility.getShell(), EclipseUIUtility.getIWorkbenchWindow(), 
+					SearchEngine.createWorkspaceScope(), 
+					IJavaElementSearchConstants.CONSIDER_ALL_TYPES, 
+					false, "");
+		dialog.setTitle("Find Annotations on a Type");
+		
+		int result= dialog.open();
+		if (result != IDialogConstants.OK_ID) {
+			return;
+		}
+		Object[] types= dialog.getResult();
+		if (types == null || types.length == 0) {
+			return;
+		}
+		// Focus on the corresponding type
+		IType t = (IType) types[0];		
+		ActualAnnotationsContentProvider cp = (ActualAnnotationsContentProvider) 
+			getViewer().getContentProvider();
+		ITypeElement focus = cp.findType(t);
+		if (focus != null) {
+			getViewer().reveal(focus);
+			getViewer().expandToLevel(focus, 1);
 		}
 	}
 }
