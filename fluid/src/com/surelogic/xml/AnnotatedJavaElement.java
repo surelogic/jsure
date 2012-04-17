@@ -27,8 +27,15 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	}
 	
 	public AnnotationElement addPromise(AnnotationElement a) {
+		return addPromise(a, true);
+	}
+	
+	public AnnotationElement addPromise(AnnotationElement a, boolean replace) {
 		a.markAsDirty();
 		a.setParent(this);
+		if (!replace && promises.containsKey(a.getUid())) {
+			return null;
+		}		
 		AnnotationElement old = promises.put(a.getUid(), a);
 		updateOrder(old, a);
 		return old;
