@@ -81,7 +81,7 @@ implements IClassMember, TestXMLParserConstants
 		return params.get(i);
 	}
 
-	Iterable<FunctionParameterElement> getParameters() {
+	public Iterable<FunctionParameterElement> getParameters() {
 		return params;
 	}
 	
