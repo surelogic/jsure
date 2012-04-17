@@ -78,8 +78,10 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.dialogs.LibraryAnnotationDialog;
+import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.AbstractFunctionElement;
 import com.surelogic.xml.AbstractJavaElementVisitor;
 import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
@@ -409,12 +411,25 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
 		addNavigationActions(menu, o);
 
+		makeMenuItem(menu, "Copy Annotations", new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				XMLExplorerView.getClipboard().setFocus(o);				
+			}			
+		});
+		
 		if (!provider.isMutable()) {
 			return;
 		}
-
+		
 		if (o instanceof AnnotatedJavaElement) {
-			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
+			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;			
+			makeMenuItem(menu, "Paste Annotations", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
+				}			
+			});
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			/*
@@ -1254,5 +1269,37 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		 * for(String s : nowSet) { a.setAttribute(s, "true"); } if
 		 * (!nowSet.isEmpty() || !nowUnset.isEmpty()) { markAsDirty(); } }
 		 */
+	}
+	
+	void pasteAnnotations(AnnotatedJavaElement target, IJavaElement source) {
+		if (source instanceof AnnotationElement) {
+			AnnotationElement orig = (AnnotationElement) source;			
+			pasteAnnotation(target, orig);
+		}
+		else if (source instanceof AnnotatedJavaElement) {
+			AnnotatedJavaElement src = (AnnotatedJavaElement) source;
+			pasteAnnotations(target, src);
+
+			if (src instanceof AbstractFunctionElement && target instanceof AbstractFunctionElement) {
+				AbstractFunctionElement sf = (AbstractFunctionElement) src;				
+				AbstractFunctionElement tf = (AbstractFunctionElement) target;
+				int i=0;
+				for(FunctionParameterElement sp : sf.getParameters()) {
+					pasteAnnotations(tf.getParameter(i), sp);
+					i++;
+				}
+			}
+		}
+	}
+
+	private void pasteAnnotations(AnnotatedJavaElement target, AnnotatedJavaElement src) {
+		for (AnnotationElement orig : src.getPromises()) {
+			pasteAnnotation(target, orig);
+		}
+	}
+
+	private void pasteAnnotation(AnnotatedJavaElement target, AnnotationElement orig) {
+		AnnotationElement a = orig.cloneMe(target);
+		target.addPromise(a, false);
 	}
 }
