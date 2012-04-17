@@ -429,7 +429,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			makeMenuItem(menu, "Paste Annotations", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
+					boolean changed = pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
+					if (changed) {
+						markAsDirty();
+						contents.refresh();
+						contents.expandAll();
+					}
 				}			
 			});
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
@@ -1280,50 +1285,58 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		 */
 	}
 	
-	void pasteAnnotations(AnnotatedJavaElement target, IJavaElement source) {
+	boolean pasteAnnotations(AnnotatedJavaElement target, IJavaElement source) {
 		if (source instanceof AnnotationElement) {
 			AnnotationElement orig = (AnnotationElement) source;			
-			pasteAnnotation(target, orig);
+			return pasteAnnotation(target, orig);
 		}
 		else if (source instanceof AnnotatedJavaElement) {
 			AnnotatedJavaElement src = (AnnotatedJavaElement) source;
-			pasteAttachedAnnotations(target, src);
+			boolean changed = pasteAttachedAnnotations(target, src);
 
 			if (src instanceof AbstractFunctionElement && target instanceof AbstractFunctionElement) {
 				AbstractFunctionElement sf = (AbstractFunctionElement) src;				
 				AbstractFunctionElement tf = (AbstractFunctionElement) target;
-				pasteExtraAnnotationsForMethod(tf, sf);
+				return pasteExtraAnnotationsForMethod(tf, sf) || changed;
 			}
 			else if (src instanceof ClassElement && target instanceof ClassElement) {
 				ClassElement sc = (ClassElement) src;
 				ClassElement tc = (ClassElement) target;
-				pasteExtraAnnotationsForType(tc, sc);
+				return pasteExtraAnnotationsForType(tc, sc) || changed;
 			}
+			return changed;
 		}
+		return false;
 	}
 
-	private void pasteExtraAnnotationsForType(ClassElement tc, ClassElement sc) {
+	private boolean pasteExtraAnnotationsForType(ClassElement tc, ClassElement sc) {
+		boolean changed = false;
 		// Match up methods
 		for(MethodElement sm : sc.getMethods()) {
 			MethodElement tm = tc.findMethod(sm.getName(), sm.getParams());
-			pasteAnnotations(tm, sm);
+			changed |= pasteAnnotations(tm, sm);
 		}
 		// TODO Match up constructors?		
+		return changed;
 	}
 
-	private void pasteExtraAnnotationsForMethod(AbstractFunctionElement target, AbstractFunctionElement src) {
+	private boolean pasteExtraAnnotationsForMethod(AbstractFunctionElement target, AbstractFunctionElement src) {
+		boolean changed = false;
 		int i=0;
 		for(FunctionParameterElement sp : src.getParameters()) {
-			pasteAnnotations(target.getParameter(i), sp);
+			changed |= pasteAnnotations(target.getParameter(i), sp);
 			i++;
 		}
+		return changed;
 	}
 
-	private void pasteAttachedAnnotations(AnnotatedJavaElement target, AnnotatedJavaElement src) {
+	private boolean pasteAttachedAnnotations(AnnotatedJavaElement target, AnnotatedJavaElement src) {
 		final List<String> couldBeNewAnnos = computePastableAnnos(target);		
+		boolean changed = false;
 		for (AnnotationElement orig : src.getPromises()) {
-			pasteAnnotation(couldBeNewAnnos, target, orig);
+			changed |= pasteAnnotation(couldBeNewAnnos, target, orig);
 		}
+		return changed;
 	}
 
 	private List<String> computePastableAnnos(AnnotatedJavaElement target) {
@@ -1332,16 +1345,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return couldBeNewAnnos;
 	}
 
-	private void pasteAnnotation(AnnotatedJavaElement target, AnnotationElement orig) {
+	private boolean pasteAnnotation(AnnotatedJavaElement target, AnnotationElement orig) {
 		final List<String> couldBeNewAnnos = computePastableAnnos(target);	
-		pasteAnnotation(couldBeNewAnnos, target, orig);
+		return pasteAnnotation(couldBeNewAnnos, target, orig);
 	}
 	
-	private void pasteAnnotation(List<String> couldBeNewAnnos, AnnotatedJavaElement target, AnnotationElement orig) {
+	private boolean pasteAnnotation(List<String> couldBeNewAnnos, AnnotatedJavaElement target, AnnotationElement orig) {
 		if (!couldBeNewAnnos.contains(orig.getPromise())) {
-			return;
+			return false;
 		}
 		AnnotationElement a = orig.cloneMe(target);
-		target.addPromise(a, false);
+		return target.addPromise(a, false) == a;		
 	}
 }
