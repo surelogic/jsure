@@ -97,6 +97,10 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (o instanceof IJavaElement) {
 				getClipboard().setFocus((IJavaElement) o);
 			}
+			else if (o instanceof Type) {
+				Type t = (Type) o;
+				getClipboard().setFocus(t.root.getClassElement());
+			}
 		}
 	};
 	
