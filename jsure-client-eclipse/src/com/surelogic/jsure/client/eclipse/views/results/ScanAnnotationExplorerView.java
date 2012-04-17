@@ -1,8 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -10,12 +8,16 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
@@ -30,6 +32,20 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 public class ScanAnnotationExplorerView extends
 		AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> {
 
+	private final Action f_openSource = new Action() {
+		@Override
+		public void run() {
+			final TreeViewer treeViewer = getViewer();
+			if (treeViewer != null) {
+				IStructuredSelection selection = (ITreeSelection) treeViewer
+						.getSelection();
+				if (selection != null) {
+					handleOpenSource(selection);
+				}
+			}
+		}
+	};
+	
 	private final Action f_actionCollapseAll = new Action() {
 		@Override
 		public void run() {
@@ -46,12 +62,18 @@ public class ScanAnnotationExplorerView extends
 
 	@Override
 	protected void makeActions() {
+		f_openSource.setText("Open source");
 		f_actionCollapseAll.setText("Collapse All");
 		f_actionCollapseAll.setToolTipText("Collapse All");
 		f_actionCollapseAll.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 	}
 
+	@Override
+	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+		manager.add(f_openSource);
+	}
+	
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		manager.add(f_actionCollapseAll);
@@ -62,6 +84,32 @@ public class ScanAnnotationExplorerView extends
 		manager.add(f_actionCollapseAll);
 	}
 
+	void handleOpenSource(IStructuredSelection s) {
+		final ITypeElement e = (ITypeElement) s.getFirstElement();
+		if (e instanceof Decl) {
+			Decl d = (Decl) e;
+			Type t = (Type) d.getParent();
+			Package p = (Package) t.getParent();
+			int paren = d.getLabel().indexOf('(');
+			if (paren < 0) {
+				// Field?
+				JDTUIUtility.tryToOpenInEditorUsingFieldName(p.getLabel(), t.getLabel(), d.getLabel());
+			} else {
+				JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getLabel(), t.getLabel(), 
+						d.getLabel().substring(0, paren));
+			}
+		}
+		else if (e instanceof Type) {
+			Type t = (Type) e;
+			Package p = (Package) t.getParent();
+			JDTUIUtility.tryToOpenInEditor(p.getLabel(), t.getLabel());
+		}
+		else if (e instanceof Anno) {
+			Anno a = (Anno) e;
+			JDTUIUtility.tryToOpenInEditor(a.getSourceRef());
+		}
+	}
+	
 	private static final Package[] NO_ROOTS = new Package[0];
 
 	static class ActualAnnotationsContentProvider implements
@@ -193,10 +241,11 @@ public class ScanAnnotationExplorerView extends
 
 	static abstract class AbstractElement implements ITypeElement {
 		private final String label;
-		private ITypeElement parent;
+		private final ITypeElement parent;
 		private final ITypeElement[] children;
 
-		AbstractElement(String l, int size) {
+		AbstractElement(ITypeElement p, String l, int size) {
+			parent = p;
 			label = l;
 			children = size == 0 ? NO_CHILDREN : new ITypeElement[size];
 		}
@@ -233,7 +282,7 @@ public class ScanAnnotationExplorerView extends
 
 	static class Package extends AbstractElement {
 		Package(String qname, MultiMap<String, IDropInfo> cuToDrop) {
-			super(qname, cuToDrop.size());
+			super(null, qname, cuToDrop.size());
 
 			// Init types
 			int i = 0;
@@ -246,7 +295,7 @@ public class ScanAnnotationExplorerView extends
 							.getSrcRef().getJavaId());
 					idToDrop.put(label, d);
 				}
-				getChildren()[i] = new Type(name, idToDrop);
+				getChildren()[i] = new Type(this, name, idToDrop);
 				i++;
 			}
 			Arrays.sort(getChildren());
@@ -275,21 +324,21 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Type extends AbstractElement {
-		Type(String name, MultiMap<String, IDropInfo> idToDrop) {
-			super(name, computeTypeChildren(name, idToDrop));
+		Type(Package p, String name, MultiMap<String, IDropInfo> idToDrop) {
+			super(p, name, computeTypeChildren(name, idToDrop));
 
 			// Init decls
 			int i = 0;
 			Collection<IDropInfo> onType = idToDrop.remove(name);
 			if (onType != null) {
 				for (IDropInfo d : onType) {
-					getChildren()[i] = new Anno(d);
+					getChildren()[i] = new Anno(this, d);
 					i++;
 				}
 			}
 			for (Map.Entry<String, Collection<IDropInfo>> e : idToDrop
 					.entrySet()) {
-				getChildren()[i] = new Decl(e.getKey(), e.getValue());
+				getChildren()[i] = new Decl(this, e.getKey(), e.getValue());
 				i++;
 			}
 			Arrays.sort(getChildren());
@@ -302,13 +351,13 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Decl extends AbstractElement {
-		Decl(String id, Collection<IDropInfo> drops) {
-			super(id, drops.size());
+		Decl(Type t, String id, Collection<IDropInfo> drops) {
+			super(t, id, drops.size());
 
 			// Sort by message
 			int i = 0;
 			for (IDropInfo d : drops) {
-				getChildren()[i] = new Anno(d);
+				getChildren()[i] = new Anno(this, d);
 				i++;
 			}
 		}
@@ -320,17 +369,28 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Anno extends AbstractElement {
-		@SuppressWarnings("unused")
 		private final IDropInfo drop;
 
-		public Anno(IDropInfo d) {
-			super(d.getMessage(), 0);
+		public Anno(ITypeElement e, IDropInfo d) {
+			super(e, d.getMessage(), 0);
 			drop = d;
 		}
 
 		@Override
 		public Image getImage() {
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION);
+		}
+		
+
+		public JavaSourceReference getSourceRef() {
+			// Find type
+			ITypeElement e = getParent();
+			while (!(e instanceof Type)) {
+				e = e.getParent();
+			}
+			Type t = (Type) e;
+			ISrcRef r = drop.getSrcRef();
+			return new JavaSourceReference(r.getPackage(), t.getLabel(), r.getLineNumber(), r.getOffset());
 		}
 	}
 }
