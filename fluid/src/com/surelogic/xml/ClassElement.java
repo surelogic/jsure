@@ -77,8 +77,12 @@ public class ClassElement extends AnnotatedJavaElement {
 		return fields.get(key);
 	}
 	
-	MethodElement findMethod(String name, String params) {
+	public MethodElement findMethod(String name, String params) {
 		return methods.get(name, params);
+	}
+	
+	public ConstructorElement findConstructor(String params) {
+		return constructors.get(params);
 	}
 	
 	ClassInitElement getClassInit() {
@@ -89,7 +93,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		return PromisesXMLWriter.getSortedValues(classes);
 	}
 
-	Iteratable<ConstructorElement> getConstructors() {
+	public Iteratable<ConstructorElement> getConstructors() {
 		return PromisesXMLWriter.getSortedValues(constructors);
 	}
 	
