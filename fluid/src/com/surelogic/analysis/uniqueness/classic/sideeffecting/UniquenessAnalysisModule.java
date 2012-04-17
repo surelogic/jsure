@@ -382,10 +382,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
     public Void visitFieldRef(final IRNode fieldRef) {
       /* Case (2): A use of a unique field. */
       final IRNode fdecl = binder.getBinding(fieldRef);
-      final PromiseDrop<? extends IAASTRootNode> uDrop = 
-        UniquenessUtils.getFieldUnique(fdecl);
+      final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fdecl);
       if (uDrop != null) {
-        addField(getEnclosingDecl(), uDrop);
+        addField(getEnclosingDecl(), uDrop.getDrop());
       }
       doAcceptForChildren(fieldRef);
       return null;
@@ -421,10 +420,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       /* CASE (1): If the field is UNIQUE then we
        * add the current enclosing declaration to the results.
        */
-      final PromiseDrop<? extends IAASTRootNode> uDrop = 
-        UniquenessUtils.getFieldUnique(varDecl);
+      final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(varDecl);
       if (uDrop != null) {
-        addField(getEnclosingDecl(), uDrop);
+        addField(getEnclosingDecl(), uDrop.getDrop());
       }
       // analyze the the RHS of the initialization
       doAcceptForChildren(varDecl);

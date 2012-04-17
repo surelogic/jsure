@@ -39,8 +39,8 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -264,29 +264,59 @@ extends TripleLattice<Element<Integer>,
    * @param node parameter, receiver or field
    * @return annotation converted into state
    */
+//  public State declStatus(final IRNode node) {
+//	  if (UniquenessRules.isUnique(node)) {
+//		  UniquePromiseDrop drop = UniquenessRules.getUnique(node);
+//		  if (drop.allowRead()) return State.UNIQUEWRITE;
+//		  return State.UNIQUE;
+//	  }
+//	  if (UniquenessUtils.isFieldUnique(node)) {
+//	    return State.UNIQUE;
+//	  }
+//	  // TODO: BorrowedReadOnly
+//	  if (UniquenessUtils.isFieldBorrowed(node)) {
+//	    return State.BORROWED;
+//	  }
+//	  if (UniquenessRules.isReadOnly(node)) {
+//	    return State.READONLY;
+//	  }
+//	  if (LockRules.isImmutableRef(node)) {
+//	    return State.IMMUTABLE;
+//	  }
+//	  if (isValueNode(node)) {
+//	    return State.IMMUTABLE;
+//	  }
+//	  return State.SHARED;
+//  }
+
   public State declStatus(final IRNode node) {
-	  if (UniquenessRules.isUnique(node)) {
-		  UniquePromiseDrop drop = UniquenessRules.getUnique(node);
-		  if (drop.allowRead()) return State.UNIQUEWRITE;
-		  return State.UNIQUE;
-	  }
-	  if (UniquenessUtils.isFieldUnique(node)) {
-	    return State.UNIQUE;
-	  }
-	  // TODO: BorrowedReadOnly
-	  if (UniquenessUtils.isFieldBorrowed(node)) {
-	    return State.BORROWED;
-	  }
-	  if (UniquenessRules.isReadOnly(node)) {
-	    return State.READONLY;
-	  }
-	  if (LockRules.isImmutableRef(node)) {
-	    return State.IMMUTABLE;
-	  }
-	  if (isValueNode(node)) {
-	    return State.IMMUTABLE;
-	  }
-	  return State.SHARED;
+    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(node);
+    if (uDrop != null) {
+      if (uDrop.allowRead()) return State.UNIQUEWRITE;
+      return State.UNIQUE;
+    }
+//    if (UniquenessRules.isUnique(node)) {
+//      UniquePromiseDrop drop = UniquenessRules.getUnique(node);
+//      if (drop.allowRead()) return State.UNIQUEWRITE;
+//      return State.UNIQUE;
+//    }
+//    if (UniquenessUtils.isFieldUnique(node)) {
+//      return State.UNIQUE;
+//    }
+    // TODO: BorrowedReadOnly
+    if (UniquenessUtils.isFieldBorrowed(node)) {
+      return State.BORROWED;
+    }
+    if (UniquenessRules.isReadOnly(node)) {
+      return State.READONLY;
+    }
+    if (LockRules.isImmutableRef(node)) {
+      return State.IMMUTABLE;
+    }
+    if (isValueNode(node)) {
+      return State.IMMUTABLE;
+    }
+    return State.SHARED;
   }
 
   /**
@@ -575,8 +605,9 @@ extends TripleLattice<Element<Integer>,
 			  }
 		  }
 	  }
-	  if (UniquenessUtils.isFieldUnique(fieldDecl) ||
-	      UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl)) {
+    final IUniquePromise uPromise = UniquenessUtils.getFieldUnique(fieldDecl);
+	  if (uPromise != null ||
+	      (UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
 		  if (localStatus(s,n) == State.IMMUTABLE) {
 			  // special case: we generate an immutable non-value reference:
@@ -610,7 +641,7 @@ extends TripleLattice<Element<Integer>,
 		  s = apply(s,new Add(State.UNDEFINED, affected));
 
 		  // Allocate new unaliased node on the stack
-		  Store temp = opNew(s);
+		  Store temp = opNew(s);  
 		  if (!temp.isValid()) return temp;
 
 		  // first add field edges to this new node.
@@ -921,7 +952,7 @@ extends TripleLattice<Element<Integer>,
 	  }
 	  return s;
   }
-  
+
   /**
    * Return whether the variable 'n' is sharable.  A variable is sharable if
    * every object that it could refer to has a state less than SHARED or is a 

@@ -4,14 +4,12 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
@@ -22,7 +20,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInRegionNode> 
-implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
+implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop, IUniquePromise {
   public SimpleUniqueInRegionPromiseDrop(UniqueInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
@@ -65,6 +63,10 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
   
   public boolean allowRead() {
 	  return getAST().allowRead();
+  }
+  
+  public SimpleUniqueInRegionPromiseDrop getDrop() {
+    return this;
   }
   
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {

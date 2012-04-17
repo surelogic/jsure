@@ -44,6 +44,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -475,8 +476,7 @@ public class LockAnalysis
 					 * @ThreadSafe takes priority over @Containable: If the type
 					 * is threadsafe don't check the aggregation status
 					 */
-					final PromiseDrop<? extends IAASTRootNode> uDrop =
-					    UniquenessUtils.getFieldUnique(varDecl);
+					final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(varDecl);
 					final Map<IRegion, IRegion> aggMap;
 					boolean isContained = false;
 					if (!isThreadSafe && isContainable) {
@@ -531,7 +531,7 @@ public class LockAnalysis
 							for (final ContainablePromiseDrop p : cDrops) {
 								result.addTrustedPromise(p);
 							}
-							result.addTrustedPromise(uDrop);
+							result.addTrustedPromise(uDrop.getDrop());
 							for (final IRegion destRegion : aggMap.values()) {
 								result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
 							}
@@ -669,8 +669,7 @@ public class LockAnalysis
 									id, reason);
 					result.addTrustedPromise(vouchDrop);
 				} else {
-					final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils
-							.getFieldUnique(varDecl);
+					final IUniquePromise uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
 
 					final boolean isContainable;
 					final Iterable<IRNode> types;
@@ -703,7 +702,7 @@ public class LockAnalysis
 							result.addTrustedPromise(p);
 						}
 						result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
-						result.addTrustedPromise(uniqueDrop);
+						result.addTrustedPromise(uniqueDrop.getDrop());
 					} else {
 						final ResultDropBuilder result =
 						    createResult(varDecl, false, Messages.FIELD_BAD, id);
@@ -734,7 +733,7 @@ public class LockAnalysis
 						if (uniqueDrop != null) {
 							result.addSupportingInformation(varDecl,
 									Messages.FIELD_IS_UNIQUE);
-							result.addTrustedPromise(uniqueDrop);
+							result.addTrustedPromise(uniqueDrop.getDrop());
 						} else {
 							result.addSupportingInformation(varDecl,
 									Messages.FIELD_NOT_UNIQUE);

@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionAggregationDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.SimpleUniqueInRegionPromiseDrop;
@@ -81,8 +82,8 @@ public final class UniquenessUtils {
    *         {@link SimpleUniqueInRegionPromiseDrop}, or <code>null</code> if
    *         the field is not annotated.
    */
-  public static PromiseDrop<? extends IAASTRootNode> getFieldUnique(final IRNode varDecl) {
-    PromiseDrop<? extends IAASTRootNode> result = 
+  public static IUniquePromise getFieldUnique(final IRNode varDecl) {
+    IUniquePromise result = 
       UniquenessRules.getUnique(varDecl);
     if (result == null) {
       result = RegionRules.getSimpleUniqueInRegion(varDecl);

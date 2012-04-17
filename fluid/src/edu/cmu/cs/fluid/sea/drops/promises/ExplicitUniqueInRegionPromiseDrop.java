@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> 
-implements RegionAggregationDrop {
+implements RegionAggregationDrop, IUniquePromise {
   public ExplicitUniqueInRegionPromiseDrop(UniqueMappingNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
@@ -60,6 +60,10 @@ implements RegionAggregationDrop {
   
   public boolean allowRead() {
 	  return getAST().allowRead();
+  }
+  
+  public ExplicitUniqueInRegionPromiseDrop getDrop() {
+    return this;
   }
   
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {

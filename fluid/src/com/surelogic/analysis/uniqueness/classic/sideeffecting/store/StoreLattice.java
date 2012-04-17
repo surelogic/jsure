@@ -46,6 +46,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
@@ -653,8 +654,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opLoad(final Store s, final IRNode srcOp, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
-    final PromiseDrop<? extends IAASTRootNode> uDrop = 
-      UniquenessUtils.getFieldUnique(fieldDecl);
+    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fieldDecl);
     if (uDrop != null) {
       final Integer n = getStackTop(s);
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
@@ -716,8 +716,7 @@ extends TripleLattice<Element<Integer>,
       final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Store temp;
-    final PromiseDrop<? extends IAASTRootNode> uDrop = 
-      UniquenessUtils.getFieldUnique(fieldDecl);
+    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fieldDecl);
     if (uDrop != null) {
       final Integer undertop = getUnderTop(s);
       final Integer stacktop = getStackTop(s);
@@ -744,15 +743,15 @@ extends TripleLattice<Element<Integer>,
         SLLogger.getLogger().log(Level.SEVERE, "Undefined value on top of stack in opStore");
       } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
         recordBorrowedNotUnique(
-            srcOp, uDrop, MessageChooser.ASSIGN, stacktop, s.getObjects());
+            srcOp, uDrop.getDrop(), MessageChooser.ASSIGN, stacktop, s.getObjects());
 //        reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
 //        return errorStore("Borrowed value on stack not unique");
       } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
-        recordSharedNotUnique(srcOp, uDrop, MessageChooser.ASSIGN);      
+        recordSharedNotUnique(srcOp, uDrop.getDrop(), MessageChooser.ASSIGN);      
 //        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //        return errorStore("Shared value on stack not unique");
       } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
-        recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_UNIQUE,
+        recordGoodUnique(srcOp, uDrop.getDrop(), Messages.ASSIGN_IS_UNIQUE,
             new InfoAdder() {
               public void addSupportingInformation(
                   final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
@@ -767,7 +766,7 @@ extends TripleLattice<Element<Integer>,
                   PromiseDrop<? extends IAASTRootNode> uDrop = null;
                   final Operator op = JJNode.tree.getOperator(n);
                   if (FieldRef.prototype.includes(op)) {
-                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n));
+                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n)).getDrop();
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
@@ -784,7 +783,7 @@ extends TripleLattice<Element<Integer>,
               }
             });
       } else { // can be null
-        recordGoodUnique(srcOp, uDrop, Messages.ASSIGN_IS_NULL, null);
+        recordGoodUnique(srcOp, uDrop.getDrop(), Messages.ASSIGN_IS_NULL, null);
       }     
       
       temp = opRelease(opConnect(
@@ -1023,7 +1022,7 @@ extends TripleLattice<Element<Integer>,
                   if (ReceiverDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (FieldRef.prototype.includes(op)) {
-                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n));
+                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n)).getDrop();
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
@@ -1710,7 +1709,7 @@ extends TripleLattice<Element<Integer>,
       final IRNode fieldDecl = load.getKey();
       final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
-      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getFieldUnique(load.getKey());
+      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getFieldUnique(load.getKey()).getDrop();
       
       for (final IRNode readAt : load.getValue()) {
         final ResultDropBuilder r = createResultDrop(
@@ -1748,7 +1747,7 @@ extends TripleLattice<Element<Integer>,
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
           final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
-              UniquenessUtils.getFieldUnique(e.getKey()), read.srcOp,              
+              UniquenessUtils.getFieldUnique(e.getKey()).getDrop(), read.srcOp,              
               false, Messages.READ_OF_BURIED);
           for (final IRNode buriedAt : e.getValue()) {
             r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 

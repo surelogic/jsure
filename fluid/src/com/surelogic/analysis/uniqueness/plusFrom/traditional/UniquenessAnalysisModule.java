@@ -623,7 +623,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		      final IRNode variableDeclarators = FieldDeclaration.getVars(bodyDecl);
   		      for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
   		        if (UniquenessUtils.isFieldUnique(varDecl)) {
-  		          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(varDecl));
+  		          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(varDecl).getDrop());
   		        }
   		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
@@ -827,7 +827,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       if (FieldRef.prototype.equals(op)) {
         final IRNode fdecl = getBinder().getBinding(currentNode);
         if (UniquenessUtils.isFieldUnique(fdecl)) {
-          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(fdecl));
+          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(fdecl).getDrop());
         }
         if (UniquenessUtils.isFieldBorrowed(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
