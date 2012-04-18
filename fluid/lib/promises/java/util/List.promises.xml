@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="5">
+<package name="java.util" revision="6">
     <class name="List">
         <method name="add" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
@@ -168,8 +168,9 @@
         </method>
 
         <method name="subList" params="int, int">
-            <RegionEffects revision="1">reads All; writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </method>
 
         <method name="toArray">
