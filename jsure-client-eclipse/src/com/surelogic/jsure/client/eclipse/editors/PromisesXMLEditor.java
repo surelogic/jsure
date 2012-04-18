@@ -1360,6 +1360,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return false;
 		}
 		AnnotationElement a = orig.cloneMe(target);
-		return target.addPromise(a, false) == a;		
+		boolean added = target.addPromise(a, false) == a;		
+		if (added) {
+			a.markAsModified();
+		}
+		return added;
 	}
 }
