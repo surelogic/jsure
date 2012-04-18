@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="3">
+<package name="java.util" revision="5">
     <class name="List">
         <method name="add" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
@@ -18,15 +18,23 @@
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
         </method>
 
         <method name="addAll" params="java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
         </method>
 
         <method name="clear">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
@@ -59,7 +67,7 @@
 
         <method name="get" params="int">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads this:Instance</RegionEffects>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
@@ -70,18 +78,23 @@
         </method>
 
         <method name="indexOf" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
         </method>
 
         <method name="isEmpty">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="iterator">
             <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique>return</Unique>
         </method>
