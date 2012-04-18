@@ -413,7 +413,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
 		addNavigationActions(menu, o);
 
-		makeMenuItem(menu, "Copy Annotations", new SelectionAdapter() {
+		makeMenuItem(menu, "Copy", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				XMLExplorerView.getClipboard().setFocus(o);				
@@ -426,7 +426,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;			
-			makeMenuItem(menu, "Paste Annotations", new SelectionAdapter() {
+			makeMenuItem(menu, "Paste", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					boolean changed = pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
@@ -478,7 +478,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Revert All Changes", new SelectionAdapter() {
+		makeMenuItem(menu, "Revert to Baseline", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();
@@ -792,6 +792,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	}
 
 	private List<String> findMissingAnnos(final AnnotatedJavaElement j) {
+		if (j == null) {
+			return Collections.emptyList();
+		}
 		final Set<String> annos = findApplicableAnnos(j.getOperator());
 
 		// Remove clashes
@@ -1314,7 +1317,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		// Match up methods
 		for(MethodElement sm : sc.getMethods()) {
 			MethodElement tm = tc.findMethod(sm.getName(), sm.getParams());
-			changed |= pasteAnnotations(tm, sm);
+			if (tm != null) {
+				changed |= pasteAnnotations(tm, sm);
+			}
 		}
 		// TODO Match up constructors?		
 		return changed;
