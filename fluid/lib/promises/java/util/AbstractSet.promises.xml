@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" revision="0">
     <class name="AbstractSet">
-        <ThreadSafe implementationOnly="true"/>
+        <Immutable implementationOnly="true" revision="1"/>
+        <method name="equals" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="removeAll" params="java.util.Collection">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
     </class>
 </package>
