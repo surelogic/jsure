@@ -426,17 +426,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;			
-			makeMenuItem(menu, "Paste", new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					boolean changed = pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
-					if (changed) {
-						markAsDirty();
-						contents.refresh();
-						contents.expandAll();
-					}
-				}			
-			});
+			if (XMLExplorerView.getClipboard().getFocus() != null) {
+				makeMenuItem(menu, "Paste", new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						boolean changed = pasteAnnotations(j, XMLExplorerView.getClipboard().getFocus());				
+						if (changed) {
+							markAsDirty();
+							contents.refresh();
+							contents.expandAll();
+						}
+					}			
+				});
+			}
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			/*
