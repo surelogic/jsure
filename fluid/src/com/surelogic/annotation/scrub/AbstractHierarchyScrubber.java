@@ -286,7 +286,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				walkHierarchy((IJavaDeclaredType) st);
 			}
 
-			boolean cannotSkip = !isPrivateFinalType(p.getTypeEnv(), dt);
+			boolean cannotSkip = !isPrivateFinalType(p.getTypeEnv(), dt.getDeclaration());
 			// process this type
 			/*
 			final String name = dt.getName();
@@ -301,9 +301,11 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			startScrubbingType_internal(decl);
 			try {
 				final List<IRNode> otherDeclsToCheck = getOtherDeclsToCheck(decl);
+				/*
 				if (!cannotSkip && otherDeclsToCheck != null && !otherDeclsToCheck.isEmpty()) {
 					System.out.println("Ok to skip "+dt);
 				}
+				*/
 				if (l != null && !l.isEmpty()) {							
 					processAASTsForType(this, dt.getDeclaration(), l);
 					if (cannotSkip && scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
@@ -331,11 +333,21 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
 		}
 		
-		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IJavaSourceRefType dt) {
-			final int mods = JavaNode.getModifiers(dt.getDeclaration());
-			return JavaNode.getModifier(mods, JavaNode.PRIVATE) &&
-			      (JavaNode.getModifier(mods, JavaNode.FINAL) || 
-			       !tEnv.getRawSubclasses(dt.getDeclaration()).iterator().hasNext());
+		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IRNode decl) {
+			final int mods = JavaNode.getModifiers(decl);
+			if (!JavaNode.getModifier(mods, JavaNode.PRIVATE)) {
+				return false;
+			}
+			if (JavaNode.getModifier(mods, JavaNode.FINAL)) {
+				return true;
+			}
+			// Check if there are any non-private/"final" subclasses
+			for(IRNode sub : tEnv.getRawSubclasses(decl)) {
+				if (!isPrivateFinalType(tEnv, sub)) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private void processUnannotatedDeclsForType(IJavaSourceRefType dt, List<IRNode> declsToCheck) {
