@@ -35,6 +35,7 @@ public class PromisesXMLBuilder {
 				// Can't be from source, so it must be generated				
 				return true;
 			}
+			i++;
 		}
 		return false;
 	}
