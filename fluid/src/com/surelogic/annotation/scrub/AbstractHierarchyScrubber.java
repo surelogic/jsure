@@ -286,6 +286,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				walkHierarchy((IJavaDeclaredType) st);
 			}
 
+			boolean cannotSkip = !isPrivateFinalType(p.getTypeEnv(), dt);
 			// process this type
 			/*
 			final String name = dt.getName();
@@ -307,14 +308,16 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 						otherDeclsToCheck = Collections.emptyList();
 					}
 					if (l == Collections.emptyList()) {
-						if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(dt, otherDeclsToCheck);
-						} else {
-							processUnannotatedType(dt);
+						if (cannotSkip) {
+							if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+								processUnannotatedDeclsForType(dt, otherDeclsToCheck);
+							} else {
+								processUnannotatedType(dt);
+							}
 						}
 					} else {
 						processAASTsForType(this, dt.getDeclaration(), l);
-						if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+						if (cannotSkip && scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
 							processUnannotatedDeclsForType(dt, otherDeclsToCheck);
 						}
 					}
@@ -326,6 +329,13 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			done.add(decl);
 		}
 		
+		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IJavaSourceRefType dt) {
+			final int mods = JavaNode.getModifiers(dt.getDeclaration());
+			return JavaNode.getModifier(mods, JavaNode.PRIVATE) &&
+			      (JavaNode.getModifier(mods, JavaNode.FINAL) || 
+			       !tEnv.getRawSubclasses(dt.getDeclaration()).iterator().hasNext());
+		}
+
 		private void processUnannotatedDeclsForType(IJavaSourceRefType dt, List<IRNode> declsToCheck) {
 			//int size = declsToCheck == null ? 0 : declsToCheck.size();
 			//System.out.println("Looking at "+size+" unannot decls for "+dt);
