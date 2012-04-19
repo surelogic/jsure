@@ -298,35 +298,37 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
             */
 			List<A> l = byType.get(decl);
-			if (l != null) {
-				startScrubbingType_internal(decl);
-				try {
-					final List<IRNode> otherDeclsToCheck;
-					if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-						otherDeclsToCheck = methodRelatedDeclsToCheck.get(decl);
-				    } else {
-						otherDeclsToCheck = Collections.emptyList();
-					}
-					if (l == Collections.emptyList()) {
-						if (cannotSkip) {
-							if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-								processUnannotatedDeclsForType(dt, otherDeclsToCheck);
-							} else {
-								processUnannotatedType(dt);
-							}
-						}
-					} else {
-						processAASTsForType(this, dt.getDeclaration(), l);
-						if (cannotSkip && scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
-							processUnannotatedDeclsForType(dt, otherDeclsToCheck);
-						}
-					}
-				} finally {
-					finishScrubbingType_internal(decl);
+			startScrubbingType_internal(decl);
+			try {
+				final List<IRNode> otherDeclsToCheck = getOtherDeclsToCheck(decl);
+				if (!cannotSkip && otherDeclsToCheck != null && !otherDeclsToCheck.isEmpty()) {
+					System.out.println("Ok to skip "+dt);
 				}
+				if (l != null && !l.isEmpty()) {							
+					processAASTsForType(this, dt.getDeclaration(), l);
+					if (cannotSkip && scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+						processUnannotatedDeclsForType(dt, otherDeclsToCheck);
+					}					
+				} else if (cannotSkip) {
+					if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+						processUnannotatedDeclsForType(dt, otherDeclsToCheck);
+					} else {
+						processUnannotatedType(dt);
+					}										
+				}
+			} finally {
+				finishScrubbingType_internal(decl);
 			}
 			// Mark as done
 			done.add(decl);
+		}
+		
+		private List<IRNode> getOtherDeclsToCheck(IRNode decl) {
+			if (scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
+				return methodRelatedDeclsToCheck.get(decl);
+		    } else {
+		    	return Collections.emptyList();
+			}
 		}
 		
 		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IJavaSourceRefType dt) {
