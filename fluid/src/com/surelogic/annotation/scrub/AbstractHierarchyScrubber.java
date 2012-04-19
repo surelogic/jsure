@@ -109,6 +109,11 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		});	
 	}
 	
+	static boolean isBinary(IRNode n) {
+		IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
+		return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
+	}
+	
 	/**
 	 * Visits stuff (usually annotations/promises) hanging off the type hierarchy
 	 */
@@ -334,8 +339,12 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		}
 		
 		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IRNode decl) {
+			// TODO check if confined to package
 			final int mods = JavaNode.getModifiers(decl);
 			if (!JavaNode.getModifier(mods, JavaNode.PRIVATE)) {
+				return false;
+			}			
+			if (!isBinary(decl)) {
 				return false;
 			}
 			if (JavaNode.getModifier(mods, JavaNode.FINAL)) {
@@ -349,7 +358,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
 			return true;
 		}
-
+		
 		private void processUnannotatedDeclsForType(IJavaSourceRefType dt, List<IRNode> declsToCheck) {
 			//int size = declsToCheck == null ? 0 : declsToCheck.size();
 			//System.out.println("Looking at "+size+" unannot decls for "+dt);
