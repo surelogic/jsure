@@ -175,7 +175,7 @@ public class ScanAnnotationExplorerView extends
 					.entrySet()) {
 				final MultiMap<String, IDropInfo> cuToDrop = new MultiHashMap<String, IDropInfo>();
 				for (IDropInfo d : e.getValue()) {
-					cuToDrop.put(d.getSrcRef().getCUName(), d);
+					cuToDrop.put(computeTypeName(d.getSrcRef().getCUName()), d);
 				}
 				roots[i] = new Package(e.getKey(), cuToDrop);
 				i++;
@@ -329,7 +329,7 @@ public class ScanAnnotationExplorerView extends
 			for (Map.Entry<String, Collection<IDropInfo>> e : cuToDrop
 					.entrySet()) {
 				final MultiMap<String, IDropInfo> idToDrop = new MultiHashMap<String, IDropInfo>();
-				String name = computeTypeName(e.getKey());
+				String name = e.getKey();
 				for (IDropInfo d : e.getValue()) {
 					String label = JavaIdentifier.extractDecl(name, d
 							.getSrcRef().getJavaId());
