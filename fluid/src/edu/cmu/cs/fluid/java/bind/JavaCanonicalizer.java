@@ -374,6 +374,11 @@ public class JavaCanonicalizer {
     			  tEnv.addTypesInCU(cu);
     		  }    	
     	  }
+    	final Operator op = JJNode.tree.getOperator(type.getDeclaration());
+    	if (/*AnonClassExpression.prototype.includes(op) || */EnumConstantClassDeclaration.prototype.includes(op)) {
+    		// Even though it's a static field, these local types can only have instance methods
+    		return ThisExpression.prototype.createNode();
+    	}
     	IRNode nt = CogenUtil.createNamedType(type.getDeclaration());    	
     	addBinding(nt, IBinding.Util.makeBinding(type.getDeclaration(), tEnv));
       	return TypeExpression.createNode(nt);
