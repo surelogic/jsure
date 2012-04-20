@@ -622,6 +622,11 @@ public class JavaCanonicalizer {
     		}
     		return WildcardType.prototype.jjtCreate();
     	}
+    	if (t instanceof IJavaArrayType) {
+    		IJavaArrayType a = (IJavaArrayType) t;
+    		IRNode base = createType(a.getBaseType());
+    		return ArrayType.createNode(base, a.getDimensions());
+    	}
     	throw new IllegalStateException("Unexpected type: "+t);
     }
     
@@ -878,7 +883,7 @@ public class JavaCanonicalizer {
     }
     
     private IRNode makeDecl(int mods, String name, IRNode initE, IJavaType t) {
-        IRNode type = CogenUtil.createType(binder.getTypeEnvironment(), t);
+        IRNode type = createType(t);
         IRNode rv   = makeDecl(mods, name, initE, type);
         return rv;
       }
