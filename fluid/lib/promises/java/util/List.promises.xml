@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="7">
+<package name="java.util" revision="8">
     <class name="List">
         <method name="add" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
@@ -157,7 +157,7 @@
 
         <method name="set" params="int, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 

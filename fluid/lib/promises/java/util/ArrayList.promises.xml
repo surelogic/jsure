@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="4">
+<package name="java.util" revision="5">
     <class name="ArrayList">
         <NotThreadSafe revision="1"/>
         <constructor>
@@ -135,7 +135,7 @@
 
         <method name="set" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 

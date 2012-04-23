@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="1">
+<package name="java.util.concurrent" revision="2">
     <class name="CopyOnWriteArrayList">
         <ThreadSafe revision="1"/>
         <constructor>
@@ -219,7 +219,7 @@
 
         <method name="set" params="int, java.lang.Object">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
