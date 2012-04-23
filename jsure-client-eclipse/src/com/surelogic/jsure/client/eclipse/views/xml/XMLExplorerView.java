@@ -99,7 +99,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			else if (o instanceof Type) {
 				Type t = (Type) o;
-				getClipboard().setFocus(t.root.getClassElement());
+				getClipboard().setFocus(t.getRoot().getClassElement());
 			}
 		}
 	};
@@ -476,9 +476,9 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 			if (parent instanceof Type) {
 				Type t = (Type) parent;
-				t.buildChildren();
-				if (t.root != null) {
-					return super.getChildren(t.root.getClassElement());
+				PackageElement root = t.getRoot();
+				if (root != null) {
+					return super.getChildren(root.getClassElement());
 				}
 			}
 			if (parent instanceof String) {
@@ -664,7 +664,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		final Package pkg;
 		final String name;
 		final boolean isLocal;
-		PackageElement root;
+		private PackageElement root;
 
 		Type(Package pkg, String name, boolean isLocal) {
 			this.pkg = pkg;
@@ -736,6 +736,11 @@ public class XMLExplorerView extends AbstractJSureView {
 				root = PromisesXMLReader.get(path);
 				return root != null;
 			}
+		}
+		
+		public PackageElement getRoot() {
+			buildChildren();
+			return root;
 		}
 
 		@Override
