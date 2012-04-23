@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" revision="2">
     <class name="LinkedList">
         <constructor>
             <RegionEffects revision="2">none</RegionEffects>
@@ -63,6 +63,13 @@
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="2">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="clone">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </method>
 
         <method name="contains" params="java.lang.Object">
