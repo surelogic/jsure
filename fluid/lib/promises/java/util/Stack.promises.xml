@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="Stack">
         <ThreadSafe revision="2"/>
         <constructor>
-            <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="2">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <method name="empty">

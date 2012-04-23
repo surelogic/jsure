@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="2">
+<package name="java.util" revision="3">
     <class name="Vector">
         <ThreadSafe revision="1"/>
         <constructor>
-            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="int">
-            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="int, int">
-            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.util.Collection">
-            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">reads arg0:Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
             <parameter index="0">
                 <Borrowed revision="1"/>
             </parameter>
