@@ -1331,7 +1331,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		boolean changed = false;
 		int i=0;
 		for(FunctionParameterElement sp : src.getParameters()) {
-			changed |= pasteAnnotations(target.getParameter(i), sp);
+			FunctionParameterElement tp = target.getParameter(i);
+			if (tp == null) {
+				continue;
+			}
+			changed |= pasteAnnotations(tp, sp);
 			i++;
 		}
 		return changed;
@@ -1346,9 +1350,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return changed;
 	}
 
+	private static final List<String> ONLY_PROMISE = Collections.singletonList(ScopedPromiseRules.PROMISE);
+	
 	private List<String> computePastableAnnos(AnnotatedJavaElement target) {
 		final List<String> couldBeNewAnnos = computePossibleAnnos(target, null, false);
-		couldBeNewAnnos.add(ScopedPromiseRules.PROMISE);
+		if (couldBeNewAnnos.isEmpty()) {
+			return ONLY_PROMISE;
+		} else {
+			couldBeNewAnnos.add(ScopedPromiseRules.PROMISE);
+		}
 		return couldBeNewAnnos;
 	}
 
