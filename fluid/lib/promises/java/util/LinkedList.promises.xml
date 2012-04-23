@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="LinkedList">
         <constructor>
             <RegionEffects revision="2">none</RegionEffects>
@@ -74,10 +74,35 @@
             </parameter>
         </method>
 
+        <method name="descendingIterator">
+            <Borrowed allowReturn="true" revision="2">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="2">return</Unique>
+        </method>
+
+        <method name="element">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
         <method name="get" params="int">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="getFirst">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="getLast">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="indexOf" params="java.lang.Object">
@@ -105,6 +130,78 @@
             <Unique revision="1">return</Unique>
         </method>
 
+        <method name="offer" params="java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="offerFirst" params="java.lang.Object">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="7">writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+        </method>
+
+        <method name="offerLast" params="java.lang.Object">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="7">writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+        </method>
+
+        <method name="peek">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="peekFirst">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="peekLast">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="poll">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="pollFirst">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="pollLast">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="pop">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="push" params="java.lang.Object">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="7">writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+        </method>
+
+        <method name="remove">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
         <method name="remove" params="int">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">writes Instance</RegionEffects>
@@ -115,6 +212,36 @@
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="removeFirst">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="removeFirstOccurrence" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="removeLast">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="removeLastOccurrence" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="2"/>
             </parameter>
