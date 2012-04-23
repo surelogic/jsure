@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="AbstractCollection">
         <Immutable implementationOnly="true" revision="1"/>
         <method name="add" params="java.lang.Object">
@@ -99,6 +99,12 @@
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance; writes arg0:Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
     </class>
 </package>
