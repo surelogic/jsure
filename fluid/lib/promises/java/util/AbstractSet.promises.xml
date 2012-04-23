@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="AbstractSet">
         <Immutable implementationOnly="true" revision="1"/>
+        <constructor>
+            <RegionEffects revision="2">none</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <Unique revision="2">return</Unique>
+        </constructor>
+
         <method name="equals" params="java.lang.Object">
             <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="5">reads any():Instance</RegionEffects>

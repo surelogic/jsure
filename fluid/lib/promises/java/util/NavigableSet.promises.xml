@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util" revision="0">
+    <class name="NavigableSet">
+        <method name="ceiling" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="descendingIterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="descendingSet">
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="floor" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="headSet" params="java.lang.Object">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="headSet" params="java.lang.Object, boolean">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="higher" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="iterator">
+            <Borrowed allowReturn="true" revision="1">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="lower" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="pollFirst">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="pollLast">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="subSet" params="java.lang.Object, boolean, java.lang.Object, boolean">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="subSet" params="java.lang.Object, java.lang.Object">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="tailSet" params="java.lang.Object">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="tailSet" params="java.lang.Object, boolean">
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="1">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+    </class>
+</package>
