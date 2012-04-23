@@ -3,5 +3,82 @@
 <package name="java.util.concurrent" revision="0">
     <class name="BlockingQueue">
         <ThreadSafe revision="1"/>
+        <method name="add" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="contains" params="java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="drainTo" params="java.util.Collection">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance, arg0:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="drainTo" params="java.util.Collection, int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance, arg0:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="offer" params="java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="offer" params="java.lang.Object, long, java.util.concurrent.TimeUnit">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="poll" params="long, java.util.concurrent.TimeUnit">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="put" params="java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="remainingCapacity">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="take">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
     </class>
 </package>
