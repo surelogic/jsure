@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" revision="2">
     <class name="AbstractList">
         <Immutable implementationOnly="true" revision="1"/>
         <method name="add" params="int, java.lang.Object">
@@ -94,6 +94,12 @@
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="removeRange" params="int, int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="set" params="int, java.lang.Object">

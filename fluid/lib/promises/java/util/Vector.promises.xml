@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" revision="2">
     <class name="Vector">
+        <ThreadSafe revision="1"/>
         <constructor>
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">none</RegionEffects>
@@ -65,10 +66,22 @@
             <Starts revision="2">nothing</Starts>
         </method>
 
+        <method name="capacity">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
         <method name="clear">
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="2">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="clone">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="contains" params="java.lang.Object">
@@ -89,6 +102,24 @@
             </parameter>
         </method>
 
+        <method name="copyInto" params="java.lang.Object[]">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads Instance; writes arg0:Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="elementAt" params="int">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="ensureCapacity" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
         <method name="equals" params="java.lang.Object">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance</RegionEffects>
@@ -96,6 +127,12 @@
             <parameter index="0">
                 <Borrowed revision="2"/>
             </parameter>
+        </method>
+
+        <method name="firstElement">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="get" params="int">
@@ -119,10 +156,31 @@
             </parameter>
         </method>
 
+        <method name="indexOf" params="java.lang.Object, int">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="insertElementAt" params="java.lang.Object, int">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
         <method name="isEmpty">
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="2">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="lastElement">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="lastIndexOf" params="java.lang.Object">
@@ -131,6 +189,15 @@
             <Starts revision="2">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="lastIndexOf" params="java.lang.Object, int">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
             </parameter>
         </method>
 
@@ -158,6 +225,33 @@
             </parameter>
         </method>
 
+        <method name="removeAllElements">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="removeElement" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="removeElementAt" params="int">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="removeRange" params="int, int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
         <method name="retainAll" params="java.util.Collection">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
@@ -171,6 +265,18 @@
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="setElementAt" params="java.lang.Object, int">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="setSize" params="int">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="size">
@@ -202,6 +308,12 @@
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="trimToSize">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="4">writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
         </method>
     </class>
 </package>
