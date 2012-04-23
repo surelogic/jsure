@@ -141,10 +141,6 @@ public class PackageDrop extends CUDrop {
     return hasPromises;
   }
   
-  public boolean isFromSrc() {
-    return isFromSrc;
-  }
-  
   @Override
   public boolean isAsSource() {
     return isFromSrc;
