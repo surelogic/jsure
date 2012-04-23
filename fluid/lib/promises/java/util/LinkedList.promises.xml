@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="2">
+<package name="java.util" revision="3">
     <class name="LinkedList">
+        <NotThreadSafe revision="1"/>
         <constructor>
             <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="2">nothing</Starts>

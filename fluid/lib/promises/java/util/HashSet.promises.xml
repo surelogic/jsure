@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="HashSet">
+        <NotThreadSafe revision="1"/>
         <constructor>
             <RegionEffects revision="3">none</RegionEffects>
             <Starts revision="3">nothing</Starts>
