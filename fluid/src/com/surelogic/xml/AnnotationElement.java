@@ -290,7 +290,12 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		};
 		boolean ok = rule != null && rule.parse(context, text) == ParseResult.OK;
 		if (!ok && rule != null) {
-			System.out.println("Couldn't parse @"+promise+" "+text);
+			System.out.print("Couldn't parse @"+promise+" "+text+" for "+context.getOp().name());
+			if (getParent() == null) {
+				System.out.println();
+			} else {
+				System.out.println(" : "+getParent().getLabel());
+			}
 			rule.parse(context, text);
 		}
 		return ok;
