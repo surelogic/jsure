@@ -73,6 +73,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
@@ -665,6 +666,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	private void addNavigationActions(final Menu menu, final IJavaElement o) {
 		if (o instanceof ClassElement) {
 			final ClassElement c = (ClassElement) o;
+			makeMenuItem(menu, "Open", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(final SelectionEvent e) {
+					final IType t = findIType(c, "");
+					if (t != null) {
+						JDTUIUtility.tryToOpenInEditor(t.getPackageFragment().getElementName(), 
+								t.getTypeQualifiedName('.'));
+					}
+				}
+			});
 			makeMenuItem(menu, "Open Type Hierarchy", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(final SelectionEvent e) {
@@ -676,6 +687,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						if (t != null) {
 							v.setInputElement(t);
 						}
+					}
+				}
+			});
+		}
+		else if (o instanceof MethodElement) {
+			final MethodElement m = (MethodElement) o;
+			makeMenuItem(menu, "Open", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(final SelectionEvent e) {
+					ClassElement c = (ClassElement) m.getParent();
+					final IType t = findIType(c, "");
+					if (t != null) {
+						JDTUIUtility.tryToOpenInEditorUsingMethodName(t.getPackageFragment().getElementName(), 
+								t.getTypeQualifiedName('.'), m.getName());
 					}
 				}
 			});
