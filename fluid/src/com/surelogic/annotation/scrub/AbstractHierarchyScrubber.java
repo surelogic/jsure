@@ -16,6 +16,8 @@ import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
@@ -338,13 +340,18 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			}
 		}
 		
+		/**
+		 * Changed to use "package" access
+		 */
 		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IRNode decl) {
-			// TODO check if confined to package
 			final int mods = JavaNode.getModifiers(decl);
-			if (!JavaNode.getModifier(mods, JavaNode.PRIVATE)) {
+			if (JavaNode.getModifier(mods, JavaNode.PUBLIC) ||
+				JavaNode.getModifier(mods, JavaNode.PROTECTED)) {
 				return false;
 			}			
-			if (!isBinary(decl)) {
+			// Should be private or package-access
+			//if (!isBinary(decl)) {
+			if (!isPackageBinary(decl)) {
 				return false;
 			}
 			if (JavaNode.getModifier(mods, JavaNode.FINAL)) {
@@ -353,6 +360,21 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			// Check if there are any non-private/"final" subclasses
 			for(IRNode sub : tEnv.getRawSubclasses(decl)) {
 				if (!isPrivateFinalType(tEnv, sub)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		private boolean isPackageBinary(IRNode decl) {
+			IRNode cu = VisitUtil.findCompilationUnit(decl);
+			String pkg = VisitUtil.getPackageName(cu);
+			PackageDrop p = PackageDrop.findPackage(pkg);
+			if (p == null) {
+				return false; // Unknown
+			}
+			for(CUDrop cud : p.getCUDrops()) {
+				if (cud.isAsSource()) {
 					return false;
 				}
 			}
