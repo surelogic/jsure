@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="AbstractSequentialList">
         <Immutable implementationOnly="true" revision="1"/>
         <method name="add" params="int, java.lang.Object">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="4">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="addAll" params="int, java.util.Collection">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads arg1:Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <parameter index="1">
                 <Borrowed revision="2"/>
