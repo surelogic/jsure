@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="Vector">
         <constructor>
             <Borrowed revision="1">this</Borrowed>
@@ -195,6 +195,12 @@
         <method name="toArray" params="java.lang.Object[]">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads Instance; writes arg0:Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
     </class>
