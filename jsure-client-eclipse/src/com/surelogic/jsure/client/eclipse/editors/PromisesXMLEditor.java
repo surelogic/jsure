@@ -741,7 +741,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			};
 			if (d.open() == Window.OK) {
-				boolean changed = false;
+				int num = 0;
+				AnnotationElement first = null;
 				for (Object o : d.getResult()) {
 					final String tag = (String) o;
 					final String contents = getDefaultContents(tag,
@@ -760,13 +761,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					// System.out.println("Created elt: "+a);
 					j.addPromise(a);
 					a.markAsModified();
-					changed = true;
+					num++;
 
+					if (first == null) {
+						first = a;
+					}
 				}
-				if (changed) {
+				if (num > 0) {
 					contents.refresh();
 					contents.expandToLevel(j, 1);
 					markAsDirty();
+					
+					if (num == 1) {
+						startAnnotationEditDialog(first);
+					}
 				}
 			}
 		}
