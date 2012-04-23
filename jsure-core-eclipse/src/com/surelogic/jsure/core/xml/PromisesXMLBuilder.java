@@ -155,6 +155,9 @@ public class PromisesXMLBuilder {
 		}
 		// TODO fields
 		for(IType n : t.getTypes()) {
+			if (Flags.isPrivate(n.getFlags())) {
+				continue;
+			}
 			ClassElement ne = makeClass(n, true);
 			c.addMember((IClassMember) ne);
 		}
