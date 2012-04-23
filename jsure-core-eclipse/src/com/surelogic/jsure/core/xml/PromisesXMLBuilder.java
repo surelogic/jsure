@@ -143,7 +143,8 @@ public class PromisesXMLBuilder {
 			}
 			if (m.getDeclaringType().equals(t)) {
 				if ("<clinit>".equals(m.getElementName())) {
-					c.addMember(new ClassInitElement());
+					continue;
+					//c.addMember(new ClassInitElement());
 				} else {
 					String params = translateParameters(m);		
 					AbstractFunctionElement func = m.isConstructor() ? new ConstructorElement(params) : 
