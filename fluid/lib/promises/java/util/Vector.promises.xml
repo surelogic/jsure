@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="5">
+<package name="java.util" revision="6">
     <class name="Vector">
         <ThreadSafe revision="1"/>
         <constructor>
@@ -117,7 +117,7 @@
 
         <method name="elements">
             <Borrowed allowReturn="true" revision="2">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
             <Unique revision="2">return</Unique>
         </method>
