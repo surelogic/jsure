@@ -1,8 +1,8 @@
 package com.surelogic.xml;
 
 public class NestedClassElement extends ClassElement implements IClassMember {
-	public NestedClassElement(String id, Access access) {
-		super(id, access);
+	public NestedClassElement(boolean confirmed, String id, Access access) {
+		super(confirmed, id, access);
 	}
 
 	@Override
@@ -12,14 +12,14 @@ public class NestedClassElement extends ClassElement implements IClassMember {
 	
 	@Override
 	NestedClassElement cloneMe(IJavaElement parent) {
-		NestedClassElement clone = new NestedClassElement(getName(), getAccessibility());
+		NestedClassElement clone = new NestedClassElement(isConfirmed(), getName(), getAccessibility());
 		copyToClone(clone);
 		return clone;
 	}
 	
 	NestedClassElement copyIfDirty() {
 		if (isDirty()) {
-			NestedClassElement clone = new NestedClassElement(getName(), getAccessibility());
+			NestedClassElement clone = new NestedClassElement(isConfirmed(), getName(), getAccessibility());
 			copyIfDirty(clone);
 			return clone;
 		} 

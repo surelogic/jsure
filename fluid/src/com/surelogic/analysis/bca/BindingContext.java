@@ -363,7 +363,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
        * returned."
        */
       /* Don't check for null, if we cannot bind the use, we have big problems */
-      if (UniquenessUtils.isFieldUnique(binder.getBinding(expr))) {
+      if (UniquenessUtils.isUnique(binder.getBinding(expr))) {
         return CachedSet.<IRNode>getEmpty().addElement(expr);
       }
     } else if (AssignExpression.prototype.includes(op)) {

@@ -6,8 +6,8 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class FieldElement extends AnnotatedJavaElement implements IClassMember {
-	FieldElement(String id, Access access) {
-		super(id, access);
+	FieldElement(boolean confirmed, String id, Access access) {
+		super(confirmed, id, access);
 	}
 
 	public String getLabel() {
@@ -33,14 +33,14 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 
 	@Override
 	FieldElement cloneMe(IJavaElement parent) {
-		FieldElement clone = new FieldElement(getName(), getAccessibility());
+		FieldElement clone = new FieldElement(isConfirmed(), getName(), getAccessibility());
 		copyToClone(clone);
 		return clone;
 	}
 	
 	FieldElement copyIfDirty() {
 		if (isDirty()) {
-			FieldElement clone = new FieldElement(getName(), getAccessibility());
+			FieldElement clone = new FieldElement(isConfirmed(), getName(), getAccessibility());
 			copyIfDirty(clone);
 			return clone;
 		}

@@ -39,10 +39,10 @@ public final class UniquenessUtils {
   
 
   /**
-   * Given a VariableDeclarator (from a field declaration) return whether
-   * the field is unique.
+   * Given a field, parameter, or return declaration, return whether
+   * it is unique.
    */
-  public static boolean isFieldUnique(final IRNode varDecl) {
+  public static boolean isUnique(final IRNode varDecl) {
     return UniquenessRules.getUnique(varDecl) != null || 
         RegionRules.getSimpleUniqueInRegion(varDecl) != null ||
         RegionRules.getExplicitUniqueInRegion(varDecl) != null;
@@ -66,14 +66,14 @@ public final class UniquenessUtils {
    */
   public static boolean isUniqueWrite(final IRNode decl) {
 	  if (decl == null) return false;
-	  UniquePromiseDrop udrop = UniquenessRules.getUnique(decl);
-	  if (udrop == null) return false;
-	  return (udrop.allowRead());
+	  final IUniquePromise uPromise = getUnique(decl);
+	  if (uPromise == null) return false;
+	  return (uPromise.allowRead());
   }
 
   /**
    * Get the promise drop, if any, for the Unique or UniqueInRegion annotation
-   * on the field declaration.
+   * on a field, parameter, or return declaration.
    * 
    * @param varDecl
    *          The VariableDeclarator node to test
@@ -82,9 +82,8 @@ public final class UniquenessUtils {
    *         {@link SimpleUniqueInRegionPromiseDrop}, or <code>null</code> if
    *         the field is not annotated.
    */
-  public static IUniquePromise getFieldUnique(final IRNode varDecl) {
-    IUniquePromise result = 
-      UniquenessRules.getUnique(varDecl);
+  public static IUniquePromise getUnique(final IRNode varDecl) {
+    IUniquePromise result = UniquenessRules.getUnique(varDecl);
     if (result == null) {
       result = RegionRules.getSimpleUniqueInRegion(varDecl);
     }

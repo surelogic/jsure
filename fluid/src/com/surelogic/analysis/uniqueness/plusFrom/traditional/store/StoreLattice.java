@@ -290,7 +290,7 @@ extends TripleLattice<Element<Integer>,
 //  }
 
   public State declStatus(final IRNode node) {
-    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(node);
+    final IUniquePromise uDrop = UniquenessUtils.getUnique(node);
     if (uDrop != null) {
       if (uDrop.allowRead()) return State.UNIQUEWRITE;
       return State.UNIQUE;
@@ -605,7 +605,7 @@ extends TripleLattice<Element<Integer>,
 			  }
 		  }
 	  }
-    final IUniquePromise uPromise = UniquenessUtils.getFieldUnique(fieldDecl);
+    final IUniquePromise uPromise = UniquenessUtils.getUnique(fieldDecl);
 	  if (uPromise != null ||
 	      (UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
@@ -694,7 +694,7 @@ extends TripleLattice<Element<Integer>,
     if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
-    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
+    if (UniquenessUtils.isUnique(fieldDecl)) {
     	// added for better/faster error reporting
     	s = opCheckTopState(s,declStatus(fieldDecl));
     	if (!s.isValid()) return s;

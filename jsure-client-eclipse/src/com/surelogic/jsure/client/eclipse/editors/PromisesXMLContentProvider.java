@@ -300,10 +300,14 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			IJavaElement e = (IJavaElement) element;
 			isBad = e.isBad();
 		}
+		if (element instanceof AnnotatedJavaElement) {
+			AnnotatedJavaElement a = (AnnotatedJavaElement) element;
+			isBad |= !a.isConfirmed();
+		}
 		return AbstractJSureView.getCachedImage(desc, isBad);
 	}
 
-	public ImageDescriptor getImageDescriptor(final Object element) {
+	protected ImageDescriptor getImageDescriptor(final Object element) {
 		IJavaElement e = (IJavaElement) element;
 		String key = e.getImageKey();
 		if (key != null) {

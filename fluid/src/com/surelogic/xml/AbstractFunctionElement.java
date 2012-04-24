@@ -18,15 +18,15 @@ implements IClassMember, TestXMLParserConstants
 	private final String parameters;
 	private final List<FunctionParameterElement> params = new ArrayList<FunctionParameterElement>();
 	
-	AbstractFunctionElement(String id, Access access, boolean isStatic, String params) {
-		super(id, access);
+	AbstractFunctionElement(boolean confirmed, String id, Access access, boolean isStatic, String params) {
+		super(confirmed, id, access);
 		this.isStatic = isStatic;
 		parameters = normalize(params);
 		genericParams = null;
 	}
 	
 	AbstractFunctionElement(String id, Entity e) {
-		super(id, Access.PUBLIC);
+		super(false, id, Access.PUBLIC);
 		
 		isStatic = false;
 		final String params = e.getAttribute(PARAMS_ATTRB);

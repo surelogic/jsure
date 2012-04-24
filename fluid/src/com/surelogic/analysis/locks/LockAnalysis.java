@@ -476,7 +476,7 @@ public class LockAnalysis
 					 * @ThreadSafe takes priority over @Containable: If the type
 					 * is threadsafe don't check the aggregation status
 					 */
-					final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(varDecl);
+					final IUniquePromise uDrop = UniquenessUtils.getUnique(varDecl);
 					final Map<IRegion, IRegion> aggMap;
 					boolean isContained = false;
 					if (!isThreadSafe && isContainable) {
@@ -669,7 +669,7 @@ public class LockAnalysis
 									id, reason);
 					result.addTrustedPromise(vouchDrop);
 				} else {
-					final IUniquePromise uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
+					final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
 
 					final boolean isContainable;
 					final Iterable<IRNode> types;

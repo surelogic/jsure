@@ -93,7 +93,7 @@ public final class InstanceTarget extends AbstractTarget {
     final boolean aggregationPivot;
     if (FieldRef.prototype.includes(exprOp)) {
       final IRNode fieldID = binder.getBinding(expr);
-      aggregationPivot = UniquenessUtils.isFieldUnique(fieldID)
+      aggregationPivot = UniquenessUtils.isUnique(fieldID)
           || UniquenessUtils.isFieldBorrowed(fieldID);
     } else {
       aggregationPivot = false;

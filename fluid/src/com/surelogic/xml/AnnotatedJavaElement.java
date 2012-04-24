@@ -14,6 +14,7 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	
 	private final String name;
 	private Access access;
+	private boolean confirmed; // It exists
 	
 	// By uid
 	private final Map<String, AnnotationElement> promises = new HashMap<String, AnnotationElement>(0);
@@ -21,12 +22,17 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	// By promise type
 	private final Map<String,List<AnnotationElement>> order = new HashMap<String,List<AnnotationElement>>();
 	
-	AnnotatedJavaElement(String id, Access access) {
+	AnnotatedJavaElement(boolean confirmed, String id, Access access) {
+		this.confirmed = confirmed;
 		name = id;
 		this.access = access;
 	}
 	
 	public abstract Operator getOperator();
+	
+	public final boolean isConfirmed() {
+		return confirmed;
+	}
 	
 	public final boolean isPublic() {
 		return access == Access.PUBLIC;
@@ -158,15 +164,20 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	 * @return true if changed
 	 */
 	boolean mergeThis(AnnotatedJavaElement changed, MergeType type) {
-		if (type == MergeType.JAVA) {
-			return false;
+		boolean modified = false;
+		if (changed.confirmed) {
+			this.confirmed = true;
+			modified = true;
 		}
-		boolean modified = super.mergeThis(changed, type);		
-
 		if (!changed.isPublic()) {
 			this.access = changed.access;
 			modified = true;
 		}
+		
+		if (type == MergeType.JAVA) {
+			return modified;
+		}
+		modified |= super.mergeThis(changed, type);		
 		
 		final Set<String> unhandledAnnos = new HashSet<String>(order.keySet());
 		promises.clear();		

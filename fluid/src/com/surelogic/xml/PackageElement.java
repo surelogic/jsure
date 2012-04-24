@@ -14,8 +14,8 @@ public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
 	private int revision;
 	
-	public PackageElement(String id, int rev, ClassElement c) {
-		super(id, Access.PUBLIC);
+	public PackageElement(boolean confirmed, String id, int rev, ClassElement c) {
+		super(confirmed, id, Access.PUBLIC);
 		revision = rev;
 		clazz = c;
 		if (clazz != null) {
@@ -148,7 +148,7 @@ public class PackageElement extends AnnotatedJavaElement {
 		if (clazz != null) {
 			cl = clazz.cloneMe(null);
 		}
-		PackageElement e = new PackageElement(getName(), revision, cl);
+		PackageElement e = new PackageElement(isConfirmed(), getName(), revision, cl);
 		copyToClone(e);
 		return e;
 	}
@@ -159,7 +159,7 @@ public class PackageElement extends AnnotatedJavaElement {
 			if (clazz != null) {
 				c = clazz.copyIfDirty();
 			}
-			PackageElement p = new PackageElement(getName(), revision, c);
+			PackageElement p = new PackageElement(isConfirmed(), getName(), revision, c);
 			copyIfDirty(p);
 			return p;
 		}

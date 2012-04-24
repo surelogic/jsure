@@ -382,7 +382,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
     public Void visitFieldRef(final IRNode fieldRef) {
       /* Case (2): A use of a unique field. */
       final IRNode fdecl = binder.getBinding(fieldRef);
-      final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fdecl);
+      final IUniquePromise uDrop = UniquenessUtils.getUnique(fdecl);
       if (uDrop != null) {
         addField(getEnclosingDecl(), uDrop.getDrop());
       }
@@ -420,7 +420,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       /* CASE (1): If the field is UNIQUE then we
        * add the current enclosing declaration to the results.
        */
-      final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(varDecl);
+      final IUniquePromise uDrop = UniquenessUtils.getUnique(varDecl);
       if (uDrop != null) {
         addField(getEnclosingDecl(), uDrop.getDrop());
       }
