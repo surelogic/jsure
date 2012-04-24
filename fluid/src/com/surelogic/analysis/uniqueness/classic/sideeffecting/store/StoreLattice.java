@@ -654,7 +654,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opLoad(final Store s, final IRNode srcOp, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
-    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fieldDecl);
+    final IUniquePromise uDrop = UniquenessUtils.getUnique(fieldDecl);
     if (uDrop != null) {
       final Integer n = getStackTop(s);
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
@@ -716,7 +716,7 @@ extends TripleLattice<Element<Integer>,
       final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Store temp;
-    final IUniquePromise uDrop = UniquenessUtils.getFieldUnique(fieldDecl);
+    final IUniquePromise uDrop = UniquenessUtils.getUnique(fieldDecl);
     if (uDrop != null) {
       final Integer undertop = getUnderTop(s);
       final Integer stacktop = getStackTop(s);
@@ -766,7 +766,7 @@ extends TripleLattice<Element<Integer>,
                   PromiseDrop<? extends IAASTRootNode> uDrop = null;
                   final Operator op = JJNode.tree.getOperator(n);
                   if (FieldRef.prototype.includes(op)) {
-                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n)).getDrop();
+                    uDrop = UniquenessUtils.getUnique(binder.getBinding(n)).getDrop();
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
@@ -1022,7 +1022,7 @@ extends TripleLattice<Element<Integer>,
                   if (ReceiverDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (FieldRef.prototype.includes(op)) {
-                    uDrop = UniquenessUtils.getFieldUnique(binder.getBinding(n)).getDrop();
+                    uDrop = UniquenessUtils.getUnique(binder.getBinding(n)).getDrop();
                   } else if (ParameterDeclaration.prototype.includes(op)) {
                     uDrop = UniquenessRules.getUnique(n);
                   } else if (NewExpression.prototype.includes(op)) {
@@ -1709,7 +1709,7 @@ extends TripleLattice<Element<Integer>,
       final IRNode fieldDecl = load.getKey();
       final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
-      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getFieldUnique(load.getKey()).getDrop();
+      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getUnique(load.getKey()).getDrop();
       
       for (final IRNode readAt : load.getValue()) {
         final ResultDropBuilder r = createResultDrop(
@@ -1747,7 +1747,7 @@ extends TripleLattice<Element<Integer>,
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
           final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
-              UniquenessUtils.getFieldUnique(e.getKey()).getDrop(), read.srcOp,              
+              UniquenessUtils.getUnique(e.getKey()).getDrop(), read.srcOp,              
               false, Messages.READ_OF_BURIED);
           for (final IRNode buriedAt : e.getValue()) {
             r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 

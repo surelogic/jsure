@@ -622,8 +622,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		      if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
   		      final IRNode variableDeclarators = FieldDeclaration.getVars(bodyDecl);
   		      for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
-  		        if (UniquenessUtils.isFieldUnique(varDecl)) {
-  		          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(varDecl).getDrop());
+  		        if (UniquenessUtils.isUnique(varDecl)) {
+  		          pr.uniqueFields.add(UniquenessUtils.getUnique(varDecl).getDrop());
   		        }
   		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
@@ -826,8 +826,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       // is it a unique field access?
       if (FieldRef.prototype.equals(op)) {
         final IRNode fdecl = getBinder().getBinding(currentNode);
-        if (UniquenessUtils.isFieldUnique(fdecl)) {
-          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(fdecl).getDrop());
+        if (UniquenessUtils.isUnique(fdecl)) {
+          pr.uniqueFields.add(UniquenessUtils.getUnique(fdecl).getDrop());
         }
         if (UniquenessUtils.isFieldBorrowed(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
@@ -1316,7 +1316,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       /* Case (2): A use of a UNIQUE, BORROWED, READ-ONLY, or IMMUTABLE field. */
       final IRNode fdecl = binder.getBinding(fieldRef);
       if (
-          UniquenessUtils.isFieldUnique(fdecl)
+          UniquenessUtils.isUnique(fdecl)
           || UniquenessUtils.isFieldBorrowed(fdecl)
           || UniquenessRules.isReadOnly(fdecl)
           || LockRules.isImmutableRef(fdecl)) {
@@ -1402,8 +1402,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       /* CASE (1): If the field is UNIQUE, BORROWED, or IMMUTABLE then we
        * add the current enclosing declaration to the results.
        */
-      if (UniquenessUtils.isFieldUnique(varDecl)
+      if (UniquenessUtils.isUnique(varDecl)
           || UniquenessUtils.isFieldBorrowed(varDecl)
+          || UniquenessRules.isReadOnly(varDecl)
           || LockRules.isImmutableRef(varDecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }

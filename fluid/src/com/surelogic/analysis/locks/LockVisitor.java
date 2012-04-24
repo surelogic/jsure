@@ -1190,7 +1190,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * is not protected.
 			 */
 			final boolean unprotected = !UniquenessUtils
-					.isFieldUnique(this.binder.getBinding(objExpr))
+					.isUnique(this.binder.getBinding(objExpr))
 					&& (isArrayRef || !isFinalOrVolatile(fieldRef)
 							&& lockUtils.getLockForFieldRef(fieldRef) == null);
 			if (unprotected) {
@@ -1359,7 +1359,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (FieldRef.prototype.includes(op)) {
 				// If the field is unique, it is a safe object
 				final boolean isUnique = UniquenessUtils
-						.isFieldUnique(this.binder.getBinding(actualRcvr));
+						.isUnique(this.binder.getBinding(actualRcvr));
 				if (!isUnique) {
 					/*
 					 * See if the field is protected: either directly, or

@@ -252,7 +252,7 @@ extends TripleLattice<Element<Integer>,
 		  if (drop.allowRead()) return State.UNIQUEWRITE;
 		  return State.UNIQUE;
 	  }
-	  if (UniquenessUtils.isFieldUnique(node)) return State.UNIQUE;
+	  if (UniquenessUtils.isUnique(node)) return State.UNIQUE;
 	  // TODO: BorrowedReadOnly
 	  if (UniquenessUtils.isFieldBorrowed(node)) return State.BORROWED;
 	  if (UniquenessRules.isReadOnly(node)) return State.READONLY;
@@ -564,7 +564,7 @@ extends TripleLattice<Element<Integer>,
 			  }
 		  }
 	  }
-	  if (UniquenessUtils.isFieldUnique(fieldDecl) ||
+	  if (UniquenessUtils.isUnique(fieldDecl) ||
 	      UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl)) {
 		  final Integer n = getStackTop(s);
 		  if (localStatus(s,n) == State.IMMUTABLE) {
@@ -650,7 +650,7 @@ extends TripleLattice<Element<Integer>,
     if (!JavaNode.getModifier(fieldDecl, JavaNode.FINAL)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
-    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
+    if (UniquenessUtils.isUnique(fieldDecl)) {
     	// added for better/faster error reporting
     	s = opCheckTopState(s,declStatus(fieldDecl));
     	if (!s.isValid()) return s;
