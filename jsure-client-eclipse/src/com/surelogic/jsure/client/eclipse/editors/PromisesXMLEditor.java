@@ -771,10 +771,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					contents.refresh();
 					contents.expandToLevel(j, 1);
 					markAsDirty();
-					
+					/*
 					if (num == 1 && first.canModify()) {
 						startAnnotationEditDialog(first);
 					}
+					*/
 				}
 			}
 		}
