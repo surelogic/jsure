@@ -7,7 +7,6 @@ import java.util.Set;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
