@@ -1,11 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" revision="1">
     <class name="Boolean">
+        <ThreadSafe revision="1"/>
         <constructor params="boolean">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </constructor>
+
+        <constructor params="java.lang.String">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">none</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </constructor>
+
+        <method name="booleanValue">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="compareTo" params="java.lang.Boolean">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance, arg0:Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="compareTo" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="getBoolean" params="java.lang.String">
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="parseBoolean" params="java.lang.String">
+            <RegionEffects revision="1">none</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="toString" params="boolean">
+            <RegionEffects revision="1">none</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="boolean">
+            <RegionEffects revision="1">none</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="java.lang.String">
+            <RegionEffects revision="1">none</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
     </class>
 </package>
