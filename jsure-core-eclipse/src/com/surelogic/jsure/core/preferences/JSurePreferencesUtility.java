@@ -59,6 +59,10 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultBooleanPreference(
 					IDEPreferences.LOAD_ALL_CLASSES, false);
 
+			EclipseUtility.setDefaultStringListPreference(
+					IDEPreferences.MODELING_PROBLEM_FILTERS,
+					ModelingProblemFilterUtility.DEFAULT);
+
 			EclipseUtility.setDefaultBooleanPreference(
 					SHOW_BALLOON_NOTIFICATIONS, true);
 			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()

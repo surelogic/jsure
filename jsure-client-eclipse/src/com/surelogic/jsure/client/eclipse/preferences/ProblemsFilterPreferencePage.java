@@ -1,7 +1,8 @@
 package com.surelogic.jsure.client.eclipse.preferences;
 
+import java.util.List;
+
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -12,15 +13,20 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 
 public class ProblemsFilterPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
-	private CheckboxTreeViewer checktree;
+	private Table f_filterTable;
 
 	@Override
 	public void init(IWorkbench workbench) {
@@ -49,14 +55,16 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		data.horizontalSpan = 2;
 		data.grabExcessHorizontalSpace = true;
 		label2.setLayoutData(data);
-		checktree = new CheckboxTreeViewer(composite, SWT.BORDER | SWT.H_SCROLL
-				| SWT.V_SCROLL);
+		f_filterTable = new Table(composite, SWT.FULL_SELECTION);
 		data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
 		data.grabExcessHorizontalSpace = true;
 		data.verticalAlignment = GridData.FILL;
 		data.grabExcessVerticalSpace = true;
-		checktree.getControl().setLayoutData(data);
+		f_filterTable.setLayoutData(data);
+
+		setTableContents(ModelingProblemFilterUtility.getPreference());
+
 		Composite buttonHolder = new Composite(composite, SWT.NONE);
 		RowLayout rowLayout = new RowLayout();
 		rowLayout.type = SWT.VERTICAL;
@@ -78,6 +86,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		buttonRemove.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				System.out.println(ModelingProblemFilterUtility.getPreference());
 			}
 		});
 		new Label(buttonHolder, SWT.NONE);
@@ -98,5 +107,16 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 			}
 		});
 		return composite;
+	}
+
+	private void setTableContents(List<String> filters) {
+		if (!f_filterTable.isDisposed()) {
+			f_filterTable.removeAll();
+			for (final String regex : filters) {
+				final TableItem item = new TableItem(f_filterTable, SWT.NULL);
+				item.setText(regex);
+				item.setImage(SLImages.getImage(CommonImages.IMG_PACKAGE));
+			}
+		}
 	}
 }

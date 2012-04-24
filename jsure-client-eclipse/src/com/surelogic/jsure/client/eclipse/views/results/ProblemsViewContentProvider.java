@@ -8,10 +8,10 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
@@ -31,25 +31,12 @@ public final class ProblemsViewContentProvider extends
 		Set<? extends IDropInfo> promiseWarningDrops = info
 				.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
+			final String resource = getResource(id);
 			/*
-			 * Also we only want to show problems in the source code. To do this
-			 * we get the CU name and see if it ends in ".java"
+			 * We filter results based upon the resource.
 			 */
-			final ISrcRef srcRef = id.getSrcRef();
-			if (srcRef != null) {
-				/*
-				final String path = srcRef.getRelativePath();
-				if (path != null) {
-					if (path.endsWith(".java")
-							|| path.endsWith(ToolProperties.PROPS_FILE)) {
-						contents.add(id);
-					}
-				}
-				*/
+			if (ModelingProblemFilterUtility.showResource(resource))
 				contents.add(id);
-			} else {
-				contents.add(id);
-			}
 		}
 		Collections.sort(contents, sortByLocation);
 		return info.getLabel();
