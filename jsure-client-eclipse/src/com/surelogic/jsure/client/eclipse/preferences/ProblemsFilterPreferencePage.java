@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.preference.PreferencePage;
@@ -27,6 +28,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
 	private Table f_filterTable;
+	private Button f_buttonRemove;
 
 	@Override
 	public void init(IWorkbench workbench) {
@@ -65,6 +67,13 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 
 		setTableContents(ModelingProblemFilterUtility.getPreference());
 
+		f_filterTable.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectionMayHaveChanged();
+			}
+		});
+
 		Composite buttonHolder = new Composite(composite, SWT.NONE);
 		RowLayout rowLayout = new RowLayout();
 		rowLayout.type = SWT.VERTICAL;
@@ -81,32 +90,33 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 			}
 		});
-		Button buttonRemove = new Button(buttonHolder, SWT.PUSH);
-		buttonRemove.setText("&Remove");
-		buttonRemove.addSelectionListener(new SelectionAdapter() {
+		f_buttonRemove = new Button(buttonHolder, SWT.PUSH);
+		f_buttonRemove.setText("&Remove");
+		f_buttonRemove.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				System.out.println(ModelingProblemFilterUtility.getPreference());
+				deleteSelection();
+				selectionMayHaveChanged();
 			}
 		});
-		new Label(buttonHolder, SWT.NONE);
-		Button buttonSelectAll = new Button(buttonHolder, SWT.PUSH);
-		buttonSelectAll.setText("&Select All");
-		buttonSelectAll.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// analysisModuleContentProvider.setAll(true);
-			}
-		});
-		Button buttonDeselectAll = new Button(buttonHolder, SWT.PUSH);
-		buttonDeselectAll.setText("D&eselect All");
-		buttonDeselectAll.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// analysisModuleContentProvider.setAll(false);
-			}
-		});
+		selectionMayHaveChanged();
 		return composite;
+	}
+
+	private void selectionMayHaveChanged() {
+		if (!f_filterTable.isDisposed()) {
+			TableItem[] selected = f_filterTable.getSelection();
+			f_buttonRemove.setEnabled(selected.length > 0);
+		}
+	}
+
+	private void deleteSelection() {
+		if (!f_filterTable.isDisposed()) {
+			TableItem[] selected = f_filterTable.getSelection();
+			for (TableItem ti : selected) {
+				ti.dispose();
+			}
+		}
 	}
 
 	private void setTableContents(List<String> filters) {
@@ -118,5 +128,32 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 				item.setImage(SLImages.getImage(CommonImages.IMG_PACKAGE));
 			}
 		}
+	}
+
+	private List<String> getTableContents() {
+		final List<String> result = new ArrayList<String>();
+		for (TableItem item : f_filterTable.getItems()) {
+			result.add(item.getText());
+		}
+		return result;
+	}
+
+	@Override
+	protected void performDefaults() {
+		setTableContents(ModelingProblemFilterUtility.DEFAULT);
+		super.performDefaults();
+	}
+
+	@Override
+	public boolean performOk() {
+		System.out.println(getTableContents());
+		/*
+		 * TODO This doesn't handle empty lists too well?
+		 */
+		ModelingProblemFilterUtility.setPreference(getTableContents());
+		/*
+		 * TODO We need to inform the modeling problems view.
+		 */
+		return true;
 	}
 }
