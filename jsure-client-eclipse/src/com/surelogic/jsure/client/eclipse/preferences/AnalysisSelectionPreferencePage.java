@@ -82,6 +82,8 @@ public final class AnalysisSelectionPreferencePage extends
 		data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
 		data.grabExcessHorizontalSpace = true;
+		data.verticalAlignment = GridData.FILL;
+		data.grabExcessVerticalSpace = true;
 		checktree.getControl().setLayoutData(data);
 		Composite buttonHolder = new Composite(composite, SWT.NONE);
 		RowLayout rowLayout = new RowLayout();
@@ -90,6 +92,7 @@ public final class AnalysisSelectionPreferencePage extends
 		buttonHolder.setLayout(rowLayout);
 		data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
+		data.verticalAlignment = SWT.TOP;
 		buttonHolder.setLayoutData(data);
 		Button buttonSelectAll = new Button(buttonHolder, SWT.PUSH);
 		buttonSelectAll.setText("&Select All");

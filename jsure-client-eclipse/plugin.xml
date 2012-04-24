@@ -121,6 +121,10 @@
 			id="edu.cmu.cs.fluid.dc.PreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
+		<page name="Modeling Problem Filtering" class="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
+			id="edu.cmu.cs.fluid.dc.PreferencePage"
+			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+		</page>
 	</extension>
 
 	<extension point="org.eclipse.ui.views">
