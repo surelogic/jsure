@@ -15,7 +15,7 @@ public class PackageElement extends AnnotatedJavaElement {
 	private int revision;
 	
 	public PackageElement(String id, int rev, ClassElement c) {
-		super(id);
+		super(id, true);
 		revision = rev;
 		clazz = c;
 		if (clazz != null) {

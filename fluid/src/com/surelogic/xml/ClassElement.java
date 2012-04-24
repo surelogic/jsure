@@ -21,8 +21,8 @@ public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,ConstructorElement> constructors = new HashMap<String, ConstructorElement>(0);
 	private ClassInitElement clinit;
 	
-	public ClassElement(String id) {
-		super(id);
+	public ClassElement(String id, boolean isPublic) {
+		super(id, isPublic);
 	}
 	
 	public <T> T visit(IJavaElementVisitor<T> v) {
@@ -302,14 +302,14 @@ public class ClassElement extends AnnotatedJavaElement {
 	
 	@Override
 	ClassElement cloneMe(IJavaElement parent) {
-		ClassElement e = new ClassElement(getName());
+		ClassElement e = new ClassElement(getName(), isPublic());
 		copyToClone(e);
 		return e;
 	}
 
 	ClassElement copyIfDirty() {
 		if (isDirty()) {
-			ClassElement e = new ClassElement(getName());
+			ClassElement e = new ClassElement(getName(), isPublic());
 			copyIfDirty(e);
 			return e;
 		}

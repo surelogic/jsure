@@ -64,7 +64,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			System.err.println("Ignoring top-level comment: "+e.getAttribute(COMMENT_TAG));
 		} else if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
-			clazz = new ClassElement(id);
+			clazz = new ClassElement(id, true);
 			
 			handleNestedElements(clazz, e);
 			//clazz.addComments(comments);
@@ -86,13 +86,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			c.addMember(m = handleNestedElements(new MethodElement(id, n), n));
 		}
 		else if (CLASS.equals(name)) {
-			c.addMember(m = handleNestedElements(new NestedClassElement(id), n));
+			c.addMember(m = handleNestedElements(new NestedClassElement(id, true), n));
 		}
 		else if (CONSTRUCTOR.equals(name)) {
 			c.addMember(m = handleNestedElements(new ConstructorElement(n), n));
 		}		
 		else if (FIELD.endsWith(name)) {
-			c.addMember(m = handleAnnotations(new FieldElement(id), n));
+			c.addMember(m = handleAnnotations(new FieldElement(id, true), n));
 		}
 		else if (CLASSINIT.equals(name)) {
 			c.addMember(m = handleAnnotations(new ClassInitElement(), n));

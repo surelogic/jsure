@@ -16,14 +16,14 @@ implements IClassMember, TestXMLParserConstants
 	private final String parameters;
 	private final List<FunctionParameterElement> params = new ArrayList<FunctionParameterElement>();
 	
-	AbstractFunctionElement(String id, String params) {
-		super(id);
+	AbstractFunctionElement(String id, boolean isPublic, String params) {
+		super(id, isPublic);
 		parameters = normalize(params);
 		genericParams = null;
 	}
 	
 	AbstractFunctionElement(String id, Entity e) {
-		super(id);
+		super(id, true);
 		
 		final String params = e.getAttribute(PARAMS_ATTRB);
 		parameters = normalize(params);

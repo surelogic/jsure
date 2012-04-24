@@ -25,7 +25,13 @@ public class PromisesXMLBuilder {
 		for(String t : m.getParameterTypes()) {
 			translateParameter(m, sb, t);
 		}
-		return sb.toString();
+		String rv = sb.toString();
+		/*
+		if (rv.contains("Delayed")) {
+			System.out.println("Looking at parameters for "+m);
+		}
+        */
+		return rv;
 	}	
 	
 	private static boolean isInternalParameter(String t) {
@@ -135,10 +141,14 @@ public class PromisesXMLBuilder {
 		}
 		if (t.isMember()) {
 			isNested = true;
-		}
-		final ClassElement c = isNested ? new NestedClassElement(t.getElementName()) : new ClassElement(t.getElementName());
+		}		
+		final boolean isPublic = Flags.isPublic(t.getFlags());
+		final ClassElement c = isNested ? 
+				new NestedClassElement(t.getElementName(), isPublic) : 
+				new ClassElement(t.getElementName(), isPublic);
 		for(IMethod m : t.getMethods()) {
-			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags())) {
+			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags()) || 
+				Flags.isSynthetic(m.getFlags())) {
 				continue;
 			}
 			if (m.getDeclaringType().equals(t)) {
@@ -146,9 +156,10 @@ public class PromisesXMLBuilder {
 					continue;
 					//c.addMember(new ClassInitElement());
 				} else {
-					String params = translateParameters(m);		
-					AbstractFunctionElement func = m.isConstructor() ? new ConstructorElement(params) : 
-                            new MethodElement(m.getElementName(), params);
+					final boolean mIsPublic = Flags.isPublic(m.getFlags());
+					final String params = translateParameters(m);		
+					AbstractFunctionElement func = m.isConstructor() ? new ConstructorElement(mIsPublic, params) : 
+                            new MethodElement(m.getElementName(), mIsPublic, params);
 					c.addMember(func);
 					makeParameters(m, func);
 				}

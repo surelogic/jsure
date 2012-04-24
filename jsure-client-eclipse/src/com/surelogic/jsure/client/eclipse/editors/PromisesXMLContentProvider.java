@@ -34,6 +34,7 @@ import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.IMergeableElement;
@@ -309,6 +310,13 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			ImageDescriptor i = SLImages.getImageDescriptor(key);
 			if (i != null) {
 				return i;
+			}
+		}
+		if (e instanceof AnnotatedJavaElement) {
+			AnnotatedJavaElement a = (AnnotatedJavaElement) e;
+			if (!a.isPublic()) {
+				return JavaUI.getSharedImages().getImageDescriptor(
+						ISharedImages.IMG_OBJS_PROTECTED);
 			}
 		}
 		return JavaUI.getSharedImages().getImageDescriptor(

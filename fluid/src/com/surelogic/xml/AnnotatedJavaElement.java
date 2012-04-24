@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	private final String name;
+	private boolean isPublic;
 	
 	// By uid
 	private final Map<String, AnnotationElement> promises = new HashMap<String, AnnotationElement>(0);
@@ -16,11 +17,16 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	// By promise type
 	private final Map<String,List<AnnotationElement>> order = new HashMap<String,List<AnnotationElement>>();
 	
-	AnnotatedJavaElement(String id) {
+	AnnotatedJavaElement(String id, boolean isPublic) {
 		name = id;
+		this.isPublic = isPublic;
 	}
 	
 	public abstract Operator getOperator();
+	
+	public final boolean isPublic() {
+		return isPublic;
+	}
 	
 	public final String getName() {
 		return name;
@@ -149,6 +155,10 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		}
 		boolean modified = super.mergeThis(changed, type);		
 
+		if (!changed.isPublic) {
+			this.isPublic = false;
+		}
+		
 		final Set<String> unhandledAnnos = new HashSet<String>(order.keySet());
 		promises.clear();		
 		for(Map.Entry<String, List<AnnotationElement>> e : changed.order.entrySet()) {
