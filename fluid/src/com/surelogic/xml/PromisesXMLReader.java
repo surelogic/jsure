@@ -9,6 +9,7 @@ import org.xml.sax.Attributes;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.common.xml.NestedXMLReader;
+import com.surelogic.xml.AnnotatedJavaElement.Access;
 
 /**
  * Reads .promises.xml files to create JSure models
@@ -64,7 +65,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			System.err.println("Ignoring top-level comment: "+e.getAttribute(COMMENT_TAG));
 		} else if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
-			clazz = new ClassElement(id, true);
+			clazz = new ClassElement(id, Access.PUBLIC);
 			
 			handleNestedElements(clazz, e);
 			//clazz.addComments(comments);
@@ -86,13 +87,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			c.addMember(m = handleNestedElements(new MethodElement(id, n), n));
 		}
 		else if (CLASS.equals(name)) {
-			c.addMember(m = handleNestedElements(new NestedClassElement(id, true), n));
+			c.addMember(m = handleNestedElements(new NestedClassElement(id, Access.PUBLIC), n));
 		}
 		else if (CONSTRUCTOR.equals(name)) {
 			c.addMember(m = handleNestedElements(new ConstructorElement(n), n));
 		}		
 		else if (FIELD.endsWith(name)) {
-			c.addMember(m = handleAnnotations(new FieldElement(id, true), n));
+			c.addMember(m = handleAnnotations(new FieldElement(id, Access.PUBLIC), n));
 		}
 		else if (CLASSINIT.equals(name)) {
 			c.addMember(m = handleAnnotations(new ClassInitElement(), n));

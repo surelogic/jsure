@@ -21,8 +21,8 @@ public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,ConstructorElement> constructors = new HashMap<String, ConstructorElement>(0);
 	private ClassInitElement clinit;
 	
-	public ClassElement(String id, boolean isPublic) {
-		super(id, isPublic);
+	public ClassElement(String id, Access access) {
+		super(id, access);
 	}
 	
 	public <T> T visit(IJavaElementVisitor<T> v) {
@@ -35,7 +35,15 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 	
 	public final String getImageKey() {
-		return CommonImages.IMG_CLASS;
+		switch (getAccessibility()) {
+		case PROTECTED:
+			return CommonImages.IMG_CLASS_PROTECTED;
+		case DEFAULT:
+			return CommonImages.IMG_CLASS_DEFAULT;
+		case PUBLIC:
+		default:
+			return CommonImages.IMG_CLASS;
+		}
 	}
 	
 	public IClassMember addMember(IClassMember m) {
@@ -302,14 +310,14 @@ public class ClassElement extends AnnotatedJavaElement {
 	
 	@Override
 	ClassElement cloneMe(IJavaElement parent) {
-		ClassElement e = new ClassElement(getName(), isPublic());
+		ClassElement e = new ClassElement(getName(), getAccessibility());
 		copyToClone(e);
 		return e;
 	}
 
 	ClassElement copyIfDirty() {
 		if (isDirty()) {
-			ClassElement e = new ClassElement(getName(), isPublic());
+			ClassElement e = new ClassElement(getName(), getAccessibility());
 			copyIfDirty(e);
 			return e;
 		}

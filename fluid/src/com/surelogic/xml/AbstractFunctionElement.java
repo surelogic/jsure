@@ -3,6 +3,7 @@ package com.surelogic.xml;
 import java.util.*;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.xml.Entity;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -12,27 +13,52 @@ import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 public abstract class AbstractFunctionElement extends AnnotatedJavaElement 
 implements IClassMember, TestXMLParserConstants
 {	
+	private boolean isStatic;
 	private final String genericParams;
 	private final String parameters;
 	private final List<FunctionParameterElement> params = new ArrayList<FunctionParameterElement>();
 	
-	AbstractFunctionElement(String id, boolean isPublic, String params) {
-		super(id, isPublic);
+	AbstractFunctionElement(String id, Access access, boolean isStatic, String params) {
+		super(id, access);
+		this.isStatic = isStatic;
 		parameters = normalize(params);
 		genericParams = null;
 	}
 	
 	AbstractFunctionElement(String id, Entity e) {
-		super(id, true);
+		super(id, Access.PUBLIC);
 		
+		isStatic = false;
 		final String params = e.getAttribute(PARAMS_ATTRB);
 		parameters = normalize(params);
 		genericParams = e.getAttribute(GENERIC_PARAMS_ATTRB);
 	}
 	
+	public final boolean isStatic() {
+		return isStatic;
+	}
+	
 	public final String getImageKey() {
-		//return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
-		return null;
+		if (isStatic()) {
+			switch (getAccessibility()) {
+			case PROTECTED:
+				return CommonImages.IMG_PROTECTED_S;
+			case DEFAULT:
+				return CommonImages.IMG_DEFAULT_S;
+			case PUBLIC:
+			default:
+				return CommonImages.IMG_PUBLIC_S;
+			}
+		}
+		switch (getAccessibility()) {
+		case PROTECTED:
+			return CommonImages.IMG_PROTECTED_I;
+		case DEFAULT:
+			return CommonImages.IMG_DEFAULT_I;
+		case PUBLIC:
+		default:
+			return CommonImages.IMG_PUBLIC_I;
+		}
 	}
 	
 	public static String normalize(String orig) {
@@ -149,6 +175,11 @@ implements IClassMember, TestXMLParserConstants
 				modified = true;
 			}
 		}
+		if (changed.isStatic() && !isStatic()) {			
+			isStatic = true;
+			modified = true;
+		}
+		
 		modified |= mergeThis(changed, type);
 		return modified;
 	}

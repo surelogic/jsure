@@ -6,6 +6,7 @@ import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.xml.*;
+import com.surelogic.xml.AnnotatedJavaElement.Access;
 
 public class PromisesXMLBuilder {
 	private static final Map<String,String> typeMapping = new HashMap<String, String>();
@@ -142,10 +143,10 @@ public class PromisesXMLBuilder {
 		if (t.isMember()) {
 			isNested = true;
 		}		
-		final boolean isPublic = Flags.isPublic(t.getFlags());
+		final Access access = computeAccessibility(t.getFlags());
 		final ClassElement c = isNested ? 
-				new NestedClassElement(t.getElementName(), isPublic) : 
-				new ClassElement(t.getElementName(), isPublic);
+				new NestedClassElement(t.getElementName(), access) : 
+				new ClassElement(t.getElementName(), access);
 		for(IMethod m : t.getMethods()) {
 			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags()) || 
 				Flags.isSynthetic(m.getFlags())) {
@@ -156,10 +157,12 @@ public class PromisesXMLBuilder {
 					continue;
 					//c.addMember(new ClassInitElement());
 				} else {
-					final boolean mIsPublic = Flags.isPublic(m.getFlags());
+					final boolean isStatic = Flags.isStatic(m.getFlags());
+					final Access mAccess = computeAccessibility(m.getFlags());
 					final String params = translateParameters(m);		
-					AbstractFunctionElement func = m.isConstructor() ? new ConstructorElement(mIsPublic, params) : 
-                            new MethodElement(m.getElementName(), mIsPublic, params);
+					AbstractFunctionElement func = m.isConstructor() ? 
+							new ConstructorElement(mAccess, isStatic, params) : 
+                            new MethodElement(m.getElementName(), mAccess, isStatic, params);
 					c.addMember(func);
 					makeParameters(m, func);
 				}
@@ -176,6 +179,16 @@ public class PromisesXMLBuilder {
 		return c;
 	}
 	
+	private static Access computeAccessibility(final int flags) {
+		if (Flags.isPublic(flags)) {
+			return Access.PUBLIC;
+		}
+		if (Flags.isProtected(flags)) {
+			return Access.PROTECTED;
+		}
+		return Access.DEFAULT;
+	}
+
 	private static void makeParameters(IMethod m, AbstractFunctionElement func) {
 		for(int i=0; i<m.getNumberOfParameters(); i++) {
 			if (isInternalParameter(m.getParameterTypes()[i])) {

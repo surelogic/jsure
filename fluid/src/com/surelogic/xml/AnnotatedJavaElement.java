@@ -8,8 +8,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class AnnotatedJavaElement extends AbstractJavaElement {
+	public enum Access {
+		PUBLIC, PROTECTED, DEFAULT;
+	}
+	
 	private final String name;
-	private boolean isPublic;
+	private Access access;
 	
 	// By uid
 	private final Map<String, AnnotationElement> promises = new HashMap<String, AnnotationElement>(0);
@@ -17,15 +21,19 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	// By promise type
 	private final Map<String,List<AnnotationElement>> order = new HashMap<String,List<AnnotationElement>>();
 	
-	AnnotatedJavaElement(String id, boolean isPublic) {
+	AnnotatedJavaElement(String id, Access access) {
 		name = id;
-		this.isPublic = isPublic;
+		this.access = access;
 	}
 	
 	public abstract Operator getOperator();
 	
 	public final boolean isPublic() {
-		return isPublic;
+		return access == Access.PUBLIC;
+	}
+	
+	public Access getAccessibility() {
+		return access;
 	}
 	
 	public final String getName() {
@@ -155,8 +163,9 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		}
 		boolean modified = super.mergeThis(changed, type);		
 
-		if (!changed.isPublic) {
-			this.isPublic = false;
+		if (!changed.isPublic()) {
+			this.access = changed.access;
+			modified = true;
 		}
 		
 		final Set<String> unhandledAnnos = new HashSet<String>(order.keySet());

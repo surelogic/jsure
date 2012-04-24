@@ -6,8 +6,8 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class MethodElement extends AbstractFunctionElement {
-	public MethodElement(String id, boolean isPublic, String params) {
-		super(id, isPublic, params);
+	public MethodElement(String id, Access access, boolean isStatic, String params) {
+		super(id, access, isStatic, params);
 	}
 	MethodElement(String id, Entity e) {
 		super(id, e);
@@ -24,14 +24,14 @@ public class MethodElement extends AbstractFunctionElement {
 	
 	@Override
 	MethodElement cloneMe(IJavaElement parent) {
-		MethodElement clone = new MethodElement(getName(), isPublic(), getParams());
+		MethodElement clone = new MethodElement(getName(), getAccessibility(), isStatic(), getParams());
 		copyToClone(clone);
 		return clone;
 	}
 	
 	MethodElement copyIfDirty() {
 		if (isDirty()) {
-			MethodElement clone = new MethodElement(getName(), isPublic(), getParams());
+			MethodElement clone = new MethodElement(getName(), getAccessibility(), isStatic(), getParams());
 			copyIfDirty(clone);
 			return clone;
 		}

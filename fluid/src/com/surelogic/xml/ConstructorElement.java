@@ -6,8 +6,8 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ConstructorElement extends AbstractFunctionElement {
-	public ConstructorElement(boolean isPublic, String params) {
-		super("new", isPublic, params);
+	public ConstructorElement(Access access, boolean isStatic, String params) {
+		super("new", access, isStatic, params);
 	}
 	
 	ConstructorElement(Entity e) {
@@ -25,14 +25,14 @@ public class ConstructorElement extends AbstractFunctionElement {
 
 	@Override
 	ConstructorElement cloneMe(IJavaElement parent) {
-		ConstructorElement clone = new ConstructorElement(isPublic(), getParams());
+		ConstructorElement clone = new ConstructorElement(getAccessibility(), isStatic(), getParams());
 		copyToClone(clone);
 		return clone;
 	}
 	
 	ConstructorElement copyIfDirty() {
 		if (isDirty()) {
-			ConstructorElement clone = new ConstructorElement(isPublic(), getParams());
+			ConstructorElement clone = new ConstructorElement(getAccessibility(), isStatic(), getParams());
 			copyIfDirty(clone);
 			return clone;
 		}

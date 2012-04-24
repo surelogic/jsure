@@ -8,7 +8,7 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	private final int index;
 	
 	public FunctionParameterElement(int i) {
-		super(Integer.toString(i), true);
+		super(Integer.toString(i), Access.PUBLIC);
 		index = i;
 	}
 	
