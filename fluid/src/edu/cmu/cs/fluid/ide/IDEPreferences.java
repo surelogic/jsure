@@ -9,21 +9,21 @@ public interface IDEPreferences {
 	String DEFAULT_JRE = PREFIX + "default.JRE";
 	String JSURE_XML_DIRECTORY = PREFIX + "xml.directory";
 	String LOAD_ALL_CLASSES = PREFIX + "load.all.classes";
+	String MODELING_PROBLEM_FILTERS = PREFIX + "modeling.problem.filters";
 
 	String TIMEOUT_WARNING_SEC = PREFIX + "timeoutWarningSec";
 	String TIMEOUT_FLAG = PREFIX + "timeoutFlag";
 	String TIMEOUT_SEC = PREFIX + "timeoutSec";
 
-	String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, TIMEOUT_FLAG, 
-			LOAD_ALL_CLASSES
-			};
+	String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, TIMEOUT_FLAG,
+			LOAD_ALL_CLASSES };
 
 	String[] INT_PREFS_TO_SYNC = { TOOL_MEMORY_MB, ANALYSIS_THREAD_COUNT,
 			TIMEOUT_WARNING_SEC, TIMEOUT_SEC, };
 
 	String[] STR_PREFS_TO_SYNC = { JSURE_DATA_DIRECTORY,
 			// DEFAULT_JRE,
-			JSURE_XML_DIRECTORY, };
+			JSURE_XML_DIRECTORY, MODELING_PROBLEM_FILTERS };
 
 	/**
 	 * The preference prefix for whether an analysis is on
