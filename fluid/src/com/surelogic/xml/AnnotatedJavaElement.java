@@ -24,9 +24,6 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	
 	AnnotatedJavaElement(boolean confirmed, String id, Access access) {
 		this.confirmed = confirmed;
-		if (confirmed) {
-			System.out.println("Confirmed for "+id);
-		}
 		name = id;
 		this.access = access;
 	}
