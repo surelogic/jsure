@@ -7,8 +7,8 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	public static String PREFIX = "arg";
 	private final int index;
 	
-	public FunctionParameterElement(int i) {
-		super(Integer.toString(i), Access.PUBLIC);
+	public FunctionParameterElement(boolean confirmed, int i) {
+		super(confirmed, Integer.toString(i), Access.PUBLIC);
 		index = i;
 	}
 	
@@ -37,14 +37,14 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 
 	@Override
 	FunctionParameterElement cloneMe(IJavaElement parent) {
-		FunctionParameterElement clone = new FunctionParameterElement(index);
+		FunctionParameterElement clone = new FunctionParameterElement(isConfirmed(), index);
 		copyToClone(clone);
 		return clone;
 	}
 	
 	FunctionParameterElement copyIfDirty() {
 		if (isDirty()) {
-			FunctionParameterElement clone = new FunctionParameterElement(index);
+			FunctionParameterElement clone = new FunctionParameterElement(isConfirmed(), index);
 			copyIfDirty(clone);
 			return clone;
 		}

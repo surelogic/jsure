@@ -65,7 +65,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			System.err.println("Ignoring top-level comment: "+e.getAttribute(COMMENT_TAG));
 		} else if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
-			clazz = new ClassElement(id, Access.PUBLIC);
+			clazz = new ClassElement(false, id, Access.PUBLIC);
 			
 			handleNestedElements(clazz, e);
 			//clazz.addComments(comments);
@@ -87,13 +87,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			c.addMember(m = handleNestedElements(new MethodElement(id, n), n));
 		}
 		else if (CLASS.equals(name)) {
-			c.addMember(m = handleNestedElements(new NestedClassElement(id, Access.PUBLIC), n));
+			c.addMember(m = handleNestedElements(new NestedClassElement(false, id, Access.PUBLIC), n));
 		}
 		else if (CONSTRUCTOR.equals(name)) {
 			c.addMember(m = handleNestedElements(new ConstructorElement(n), n));
 		}		
 		else if (FIELD.endsWith(name)) {
-			c.addMember(m = handleAnnotations(new FieldElement(id, Access.PUBLIC), n));
+			c.addMember(m = handleAnnotations(new FieldElement(false, id, Access.PUBLIC), n));
 		}
 		else if (CLASSINIT.equals(name)) {
 			c.addMember(m = handleAnnotations(new ClassInitElement(), n));
@@ -134,7 +134,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 				comments.add(n.getAttribute(COMMENT_TAG));
 			} else if (PARAMETER.equals(n.getName())) {
 				final int i = Integer.parseInt(n.getAttribute(INDEX_ATTRB)); 
-				FunctionParameterElement fe = new FunctionParameterElement(i);
+				FunctionParameterElement fe = new FunctionParameterElement(false, i);
 				func.setParameter(handleAnnotations(fe, n));
 				//fe.addComments(comments);
 				comments.clear();
@@ -175,7 +175,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		}
 		*/
 		
-		pkg = new PackageElement(pkgName, revision, clazz);		
+		pkg = new PackageElement(false, pkgName, revision, clazz);		
 		for(AnnotationElement a : promises) {
 			pkg.addPromise(a);
 		}

@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ClassInitElement extends AnnotatedJavaElement implements IClassMember {
 	public ClassInitElement() {
-		super("classinit", Access.DEFAULT);
+		super(false, "classinit", Access.DEFAULT);
 	}
 
 	public String getLabel() {

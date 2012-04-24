@@ -133,7 +133,8 @@ public class PromisesXMLBuilder {
 		if (c == null) {
 			return null;
 		}
-		return new PackageElement(t.getPackageFragment().getElementName(), 0, c);
+		PackageElement p = new PackageElement(true, t.getPackageFragment().getElementName(), 0, c);
+		return p;
 	}
 	
 	private static ClassElement makeClass(IType t, boolean isNested) throws JavaModelException {
@@ -145,8 +146,8 @@ public class PromisesXMLBuilder {
 		}		
 		final Access access = computeAccessibility(t.getFlags());
 		final ClassElement c = isNested ? 
-				new NestedClassElement(t.getElementName(), access) : 
-				new ClassElement(t.getElementName(), access);
+				new NestedClassElement(true, t.getElementName(), access) : 
+				new ClassElement(true, t.getElementName(), access);
 		for(IMethod m : t.getMethods()) {
 			if (m.getElementName().contains("$") || Flags.isPrivate(m.getFlags()) || 
 				Flags.isSynthetic(m.getFlags())) {
@@ -161,8 +162,8 @@ public class PromisesXMLBuilder {
 					final Access mAccess = computeAccessibility(m.getFlags());
 					final String params = translateParameters(m);		
 					AbstractFunctionElement func = m.isConstructor() ? 
-							new ConstructorElement(mAccess, isStatic, params) : 
-                            new MethodElement(m.getElementName(), mAccess, isStatic, params);
+							new ConstructorElement(true, mAccess, isStatic, params) : 
+                            new MethodElement(true, m.getElementName(), mAccess, isStatic, params);
 					c.addMember(func);
 					makeParameters(m, func);
 				}
@@ -194,7 +195,8 @@ public class PromisesXMLBuilder {
 			if (isInternalParameter(m.getParameterTypes()[i])) {
 				continue;
 			}
-			func.setParameter(new FunctionParameterElement(i));			
+			FunctionParameterElement p = new FunctionParameterElement(true, i);
+			func.setParameter(p);			
 		}		 
 	}
 
@@ -217,6 +219,6 @@ public class PromisesXMLBuilder {
 	}
 
 	public static PackageElement makePackageModel(String pkg) {
-		return new PackageElement(pkg, 0, null);
+		return new PackageElement(false, pkg, 0, null);
 	}
 }
