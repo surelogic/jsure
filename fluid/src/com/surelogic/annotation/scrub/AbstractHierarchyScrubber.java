@@ -345,8 +345,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		 */
 		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IRNode decl) {
 			final int mods = JavaNode.getModifiers(decl);
-			if (JavaNode.getModifier(mods, JavaNode.PUBLIC) ||
-				JavaNode.getModifier(mods, JavaNode.PROTECTED)) {
+			if (!isTypePrivate(decl, mods)) {
 				return false;
 			}			
 			// Should be private or package-access
@@ -364,6 +363,28 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				}
 			}
 			return true;
+		}
+		
+		private boolean isTypePrivate(IRNode decl, int mods) {
+			if (isPrivate(mods)) {
+				return true;
+			}
+			IRNode enclosingT = VisitUtil.getEnclosingType(decl);
+			if (enclosingT == null) {
+				// Nothing else to make it inaccessible
+				return false;
+			}			
+			IRNode enclosingD = VisitUtil.getEnclosingClassBodyDecl(decl);
+			if (enclosingD != null && enclosingT != enclosingD) {
+				// A local type inaccessible to anyone else
+				return true;
+			}			
+			return isTypePrivate(enclosingT, JavaNode.getModifiers(enclosingT));
+		}
+		
+		private boolean isPrivate(int mods) {
+			return !JavaNode.getModifier(mods, JavaNode.PUBLIC) && 
+			       !JavaNode.getModifier(mods, JavaNode.PROTECTED);
 		}
 		
 		private boolean isPackageBinary(IRNode decl) {
