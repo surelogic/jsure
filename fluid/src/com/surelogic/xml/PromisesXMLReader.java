@@ -175,7 +175,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		}
 		*/
 		
-		pkg = new PackageElement(false, pkgName, revision, clazz);		
+		pkg = new PackageElement(true, pkgName, revision, clazz);		
 		for(AnnotationElement a : promises) {
 			pkg.addPromise(a);
 		}
