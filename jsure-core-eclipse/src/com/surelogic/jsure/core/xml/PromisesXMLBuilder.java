@@ -219,6 +219,6 @@ public class PromisesXMLBuilder {
 	}
 
 	public static PackageElement makePackageModel(String pkg) {
-		return new PackageElement(false, pkg, 0, null);
+		return new PackageElement(true, pkg, 0, null);
 	}
 }
