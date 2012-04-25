@@ -30,7 +30,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
-public class ProblemsView extends AbstractScanTableView<IDropInfo> {
+public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
 
 	private final Action f_copy = makeCopyAction(
 			I18N.msg("jsure.problems.view.copy"),

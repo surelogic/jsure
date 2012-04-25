@@ -3,6 +3,9 @@ package com.surelogic.jsure.client.eclipse.preferences;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -16,13 +19,20 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ProblemsFilterPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
@@ -142,18 +152,42 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 	protected void performDefaults() {
 		setTableContents(ModelingProblemFilterUtility.DEFAULT);
 		super.performDefaults();
+		selectionMayHaveChanged();
 	}
 
 	@Override
 	public boolean performOk() {
 		System.out.println(getTableContents());
 		/*
-		 * TODO This doesn't handle empty lists too well?
+		 * TODO This doesn't handle empty lists too well? (exception thrown)
 		 */
 		ModelingProblemFilterUtility.setPreference(getTableContents());
+
 		/*
-		 * TODO We need to inform the modeling problems view.
+		 * Notify the problems view if it is opened that the filter changed.
 		 */
+		final UIJob job = new SLUIJob() {
+
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				IViewPart vp = EclipseUIUtility.getView(ProblemsView.class
+						.getName());
+				if (vp == null)
+					return Status.OK_STATUS; // the view is not open
+
+				if (vp instanceof ProblemsView) {
+					final ProblemsView view = (ProblemsView) vp;
+					view.currentScanChanged(JSureDataDirHub.getInstance()
+							.getCurrentScan());
+				} else {
+					final int no = 236;
+					return SLEclipseStatusUtility.createErrorStatus(no,
+							I18N.err(no, vp));
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 		return true;
 	}
 }
