@@ -997,7 +997,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferMethodBody(final IRNode body, final Port kind, Store s) {
       if (kind instanceof EntryPort) {
         return s; // opStart() was invoked when the flow unit was entered
-//        return lattice.opStart();
       } else {
         final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
         final IRNode mdecl = tree.getParent(body);
