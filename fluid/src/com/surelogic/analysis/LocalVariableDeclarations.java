@@ -16,12 +16,17 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.AppendIterator;
+import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.IteratorUtil;
 
 public final class LocalVariableDeclarations {
   // =========================================================================
@@ -64,6 +69,19 @@ public final class LocalVariableDeclarations {
   
   public List<IRNode> getExternal() {
     return external;
+  }
+  
+  public Iteratable<IRNode> getAllDeclarations() {
+    return new AppendIterator<IRNode>(local.iterator(), external.iterator());
+  }
+  
+  public Iteratable<IRNode> getAllParameterDeclarations() {
+    return new FilterIterator<IRNode, IRNode>(getAllDeclarations()) {
+      @Override
+      protected Object select(final IRNode o) {
+        return ParameterDeclaration.prototype.includes(o) ? o : IteratorUtil.noElement;
+      }
+    };
   }
   
   
