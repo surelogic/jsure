@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="sun.util.resources" revision="0">
-    <class name="OpenListResourceBundle">
-        <Promise revision="1" uid="6c661ff5-7021-411c-a879-8bb2fc8f6020">@RegionEffects(reads Instance) for !static *(**)</Promise>
-        <Promise revision="1" uid="28b7427c-b436-461f-9a20-cf11f9a15ca2">@RegionEffects(none) for new(**)</Promise>
-    </class>
-</package>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="java.util" revision="0">
-    <class name="ResourceBundle">
-        <Promise revision="1" uid="c0d6c0f9-76f4-4f5d-84bd-8a726502c015">@RegionEffects(reads Instance) for !static *(**)</Promise>
-        <Promise revision="1" uid="753b40e5-40c4-49db-8610-2a0d8f2afc10">@RegionEffects(none) for new(**)</Promise>
-    </class>
-</package>
