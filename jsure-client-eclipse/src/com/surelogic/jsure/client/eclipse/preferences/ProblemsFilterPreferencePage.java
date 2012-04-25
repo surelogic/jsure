@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -30,6 +31,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.jsure.client.eclipse.dialogs.AddModelingProblemFilterDialog;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -98,6 +100,8 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		buttonAddFilter.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				addFilter();
+				selectionMayHaveChanged();
 			}
 		});
 		f_buttonRemove = new Button(buttonHolder, SWT.PUSH);
@@ -105,7 +109,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		f_buttonRemove.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				deleteSelection();
+				deleteSelectedFilter();
 				selectionMayHaveChanged();
 			}
 		});
@@ -120,7 +124,18 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		}
 	}
 
-	private void deleteSelection() {
+	private void addFilter() {
+		final AddModelingProblemFilterDialog dialog = new AddModelingProblemFilterDialog(
+				getTableContents());
+		if (Dialog.OK == dialog.open()) {
+			final String regex = dialog.getFilter();
+			if (regex != null && !"".equals(regex)) {
+				addRowToTable(regex);
+			}
+		}
+	}
+
+	private void deleteSelectedFilter() {
 		if (!f_filterTable.isDisposed()) {
 			TableItem[] selected = f_filterTable.getSelection();
 			for (TableItem ti : selected) {
@@ -133,11 +148,15 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		if (!f_filterTable.isDisposed()) {
 			f_filterTable.removeAll();
 			for (final String regex : filters) {
-				final TableItem item = new TableItem(f_filterTable, SWT.NULL);
-				item.setText(regex);
-				item.setImage(SLImages.getImage(CommonImages.IMG_PACKAGE));
+				addRowToTable(regex);
 			}
 		}
+	}
+
+	private void addRowToTable(String regex) {
+		final TableItem item = new TableItem(f_filterTable, SWT.NULL);
+		item.setText(regex);
+		item.setImage(SLImages.getImage(CommonImages.IMG_PACKAGE));
 	}
 
 	private List<String> getTableContents() {
