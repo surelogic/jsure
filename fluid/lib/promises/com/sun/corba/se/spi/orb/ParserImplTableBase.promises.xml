@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="com.sun.corba.se.spi.orb">
-    <class name="ParserImplTableBase">
-    </class>
-</package>

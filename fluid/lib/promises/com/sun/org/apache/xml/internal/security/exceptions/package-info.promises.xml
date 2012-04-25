@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="com.sun.org.apache.xml.internal.security.exceptions">
-    <Promise >@Borrowed(this) for printStackTrace(**) in XMLSecurity*Exception</Promise>
-    <Promise >@Starts(nothing) for printStackTrace(**) in XMLSecurity*Exception</Promise>    
-</package>
