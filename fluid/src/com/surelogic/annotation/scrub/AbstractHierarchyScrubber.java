@@ -293,7 +293,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				walkHierarchy((IJavaDeclaredType) st);
 			}
 
-			boolean cannotSkip = !isPrivateFinalType(p.getTypeEnv(), dt.getDeclaration());
+			boolean cannotSkip = !isPrivateFinalType(p, dt.getDeclaration());
 			// process this type
 			/*
 			final String name = dt.getName();
@@ -341,28 +341,43 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		}
 		
 		/**
+		 * Returns true if "private", "final" and in a binary package
 		 * Changed to use "package" access
 		 */
-		private boolean isPrivateFinalType(ITypeEnvironment tEnv, IRNode decl) {
-			final int mods = JavaNode.getModifiers(decl);
-			if (!isTypePrivate(decl, mods)) {
-				return false;
-			}			
-			// Should be private or package-access
+		private boolean isPrivateFinalType(IIRProject p, IRNode decl) {
 			//if (!isBinary(decl)) {
 			if (!isPackageBinary(decl)) {
 				return false;
 			}
+			final int mods = JavaNode.getModifiers(decl);
+			if (!isTypePrivate(decl, mods)) {
+				if (JavaNode.getModifier(mods, JavaNode.PROTECTED) && 
+					!getRawSubclasses(p, decl).iterator().hasNext()) { // "final"
+					return true;
+				}					
+				return false;
+			}			
+			// Should be private or package-access
 			if (JavaNode.getModifier(mods, JavaNode.FINAL)) {
 				return true;
 			}
 			// Check if there are any non-private/"final" subclasses
-			for(IRNode sub : tEnv.getRawSubclasses(decl)) {
-				if (!isPrivateFinalType(tEnv, sub)) {
+			for(IRNode sub : getRawSubclasses(p, decl)) {
+				if (!isPrivateFinalType(p, sub)) {
 					return false;
 				}
 			}
 			return true;
+		}
+
+		private Iterable<IRNode> getRawSubclasses(IIRProject proj, IRNode decl) {
+			final Set<IRNode> subs = new HashSet<IRNode>();
+			for(IIRProject p : proj.getParent().getProjects()) {
+				for(IRNode n : p.getTypeEnv().getRawSubclasses(decl)) {
+					subs.add(n);
+				}
+			}
+			return subs;
 		}
 		
 		private boolean isTypePrivate(IRNode decl, int mods) {
