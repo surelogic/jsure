@@ -219,7 +219,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 			 */
 			StringBuilder b = new StringBuilder();
 			b.append("-- Cut/Paste below to DEFAULT at line 20 of ModelingProblemFilterUtility");
-			b.append("-- in the com.surelogic.jsure.core.preferences package");
+			b.append(" in the com.surelogic.jsure.core.preferences package");
 			b.append('\n');
 			b.append("   Arrays.asList(");
 			boolean first = true;
