@@ -118,11 +118,11 @@
 			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 		<page name="Verifying Analysis Selection" class="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
-			id="edu.cmu.cs.fluid.dc.PreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 		<page name="Modeling Problem Filtering" class="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
-			id="edu.cmu.cs.fluid.dc.PreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 	</extension>

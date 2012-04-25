@@ -19,12 +19,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
 import edu.cmu.cs.fluid.sea.IDropInfo;
@@ -35,6 +37,17 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	private final Action f_copy = makeCopyAction(
 			I18N.msg("jsure.problems.view.copy"),
 			I18N.msg("jsure.problems.view.copy.tooltip"));
+
+	private final Action f_preferences = new Action() {
+
+		@Override
+		public void run() {
+			final String[] FILTER = new String[] { ProblemsFilterPreferencePage.class
+					.getName() };
+			PreferencesUtil.createPreferenceDialogOn(null, FILTER[0], FILTER,
+					null).open();
+		}
+	};
 
 	public ProblemsView() {
 		super(SWT.NONE, IDropInfo.class, new ProblemsViewContentProvider());
@@ -79,18 +92,28 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
 		};
 		viewer.addSelectionChangedListener(listener);
 		f_annotate.setEnabled(false); // wait until something is selected
+
+		f_preferences.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_FILTER));
+		f_preferences.setText(I18N.msg("jsure.problems.view.filter"));
+		f_preferences.setToolTipText(I18N
+				.msg("jsure.problems.view.filter.tooltip"));
 	}
 
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
 		manager.add(f_annotate);
+		manager.add(new Separator());
+		manager.add(f_preferences);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
 		manager.add(f_annotate);
+		manager.add(new Separator());
+		manager.add(f_preferences);
 	}
 
 	@Override
