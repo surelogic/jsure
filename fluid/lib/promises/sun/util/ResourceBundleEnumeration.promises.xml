@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="sun.util" revision="0">
+    <class name="ResourceBundleEnumeration">
+        <constructor params="java.util.Set, java.util.Enumeration">
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </constructor>
+
+        <method name="hasMoreElements">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="nextElement">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+    </class>
+</package>
