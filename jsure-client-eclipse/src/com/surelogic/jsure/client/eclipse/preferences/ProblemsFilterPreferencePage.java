@@ -26,6 +26,8 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -176,11 +178,11 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 
 	@Override
 	public boolean performOk() {
-		System.out.println(getTableContents());
 		/*
-		 * TODO This doesn't handle empty lists too well? (exception thrown)
+		 * Save the filters.
 		 */
-		ModelingProblemFilterUtility.setPreference(getTableContents());
+		final List<String> filters = getTableContents();
+		ModelingProblemFilterUtility.setPreference(filters);
 
 		/*
 		 * Notify the problems view if it is opened that the filter changed.
@@ -207,6 +209,32 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 			}
 		};
 		job.schedule();
+
+		if (XUtil.useExperimental()) {
+			/*
+			 * We dump the list to the console so the default value can be cut
+			 * an pasted into the jsure-core-eclipse project. The value is
+			 * defined as DEFAULT in ModelingProblemFilterUtility in the
+			 * com.surelogic.jsure.core.preferences package.
+			 */
+			StringBuilder b = new StringBuilder();
+			b.append("-- Cut/Paste below to DEFAULT at line 20 of ModelingProblemFilterUtility");
+			b.append("-- in the com.surelogic.jsure.core.preferences package");
+			b.append('\n');
+			b.append("   Arrays.asList(");
+			boolean first = true;
+			for (String regex : filters) {
+				if (first)
+					first = false;
+				else
+					b.append(',');
+				b.append('\"');
+				b.append(SLUtility.escapeJavaStringForQuoting(regex));
+				b.append('\"');
+			}
+			b.append(")\n");
+			System.out.println(b.toString());
+		}
 		return true;
 	}
 }
