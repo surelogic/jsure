@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="0">
+<package name="java.util.concurrent" revision="1">
     <class name="BlockingDeque">
         <ThreadSafe revision="1"/>
         <method name="add" params="java.lang.Object">
@@ -87,25 +87,25 @@
 
         <method name="poll">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="poll" params="long, java.util.concurrent.TimeUnit">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="pollFirst" params="long, java.util.concurrent.TimeUnit">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="pollLast" params="long, java.util.concurrent.TimeUnit">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -135,7 +135,7 @@
 
         <method name="remove">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -174,19 +174,19 @@
 
         <method name="take">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="takeFirst">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="takeLast">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
     </class>

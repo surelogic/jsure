@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="Queue">
         <method name="add" params="java.lang.Object">
             <Borrowed revision="2">this</Borrowed>
@@ -28,13 +28,13 @@
 
         <method name="poll">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="remove">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
     </class>

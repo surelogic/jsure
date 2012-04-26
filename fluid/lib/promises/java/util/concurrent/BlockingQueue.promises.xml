@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="0">
+<package name="java.util.concurrent" revision="1">
     <class name="BlockingQueue">
         <ThreadSafe revision="1"/>
         <method name="add" params="java.lang.Object">
@@ -20,7 +20,7 @@
 
         <method name="drainTo" params="java.util.Collection">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
@@ -29,7 +29,7 @@
 
         <method name="drainTo" params="java.util.Collection, int">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
@@ -50,7 +50,7 @@
 
         <method name="poll" params="long, java.util.concurrent.TimeUnit">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
@@ -77,7 +77,7 @@
 
         <method name="take">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
     </class>

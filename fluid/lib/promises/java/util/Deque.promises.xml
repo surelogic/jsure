@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="Deque">
         <method name="add" params="java.lang.Object">
             <Borrowed revision="3">this</Borrowed>
@@ -99,25 +99,25 @@
 
         <method name="poll">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="pollFirst">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="pollLast">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="pop">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -129,7 +129,7 @@
 
         <method name="remove">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -144,7 +144,7 @@
 
         <method name="removeFirst">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -159,7 +159,7 @@
 
         <method name="removeLast">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
