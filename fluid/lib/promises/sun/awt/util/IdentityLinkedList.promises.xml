@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.awt.util" revision="0">
+<package name="sun.awt.util" revision="1">
     <class name="IdentityLinkedList">
         <NotThreadSafe revision="1"/>
         <constructor>
@@ -211,7 +211,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="3">writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="2"/>
@@ -226,7 +226,7 @@
 
         <method name="removeFirstOccurrence" params="java.lang.Object">
             <Borrowed revision="4">this</Borrowed>
-            <RegionEffects revision="4">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="5">writes Instance</RegionEffects>
             <Starts revision="4">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="3"/>
@@ -241,7 +241,7 @@
 
         <method name="removeLastOccurrence" params="java.lang.Object">
             <Borrowed revision="4">this</Borrowed>
-            <RegionEffects revision="4">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="5">writes Instance</RegionEffects>
             <Starts revision="4">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="3"/>

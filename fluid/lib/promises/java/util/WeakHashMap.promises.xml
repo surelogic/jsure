@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <package name="java.util" revision="0">
-    <class name="Hashtable">
-        <ThreadSafe revision="1"/>
+    <class name="WeakHashMap">
+        <NotThreadSafe revision="1"/>
         <constructor>
             <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="2">nothing</Starts>
@@ -36,22 +36,6 @@
             <Starts revision="3">nothing</Starts>
         </method>
 
-        <method name="clone">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
-        </method>
-
-        <method name="contains" params="java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="2"/>
-            </parameter>
-        </method>
-
         <method name="containsKey" params="java.lang.Object">
             <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="3">reads any():Instance</RegionEffects>
@@ -70,26 +54,10 @@
             </parameter>
         </method>
 
-        <method name="elements">
-            <Borrowed allowReturn="true" revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="3">return</Unique>
-        </method>
-
         <method name="entrySet">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
-        </method>
-
-        <method name="equals" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
         </method>
 
         <method name="get" params="java.lang.Object">
@@ -99,12 +67,6 @@
             <parameter index="0">
                 <Borrowed revision="3"/>
             </parameter>
-        </method>
-
-        <method name="hashCode">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="isEmpty">
@@ -117,13 +79,6 @@
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
-        </method>
-
-        <method name="keys">
-            <Borrowed allowReturn="true" revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="3">return</Unique>
         </method>
 
         <method name="put" params="java.lang.Object, java.lang.Object">
@@ -153,12 +108,6 @@
         <method name="size">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-        </method>
-
-        <method name="toString">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
         </method>
 

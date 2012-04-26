@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="0">
+<package name="java.util.concurrent" revision="1">
     <class name="DelayQueue">
         <ThreadSafe revision="2"/>
         <constructor>
@@ -32,7 +32,7 @@
 
         <method name="drainTo" params="java.util.Collection">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="2"/>
@@ -41,7 +41,7 @@
 
         <method name="drainTo" params="java.util.Collection, int">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="2"/>
@@ -75,13 +75,13 @@
 
         <method name="poll">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="poll" params="long, java.util.concurrent.TimeUnit">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -114,7 +114,7 @@
 
         <method name="take">
             <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">writes Instance</RegionEffects>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
