@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.jar" revision="0">
-    <class name="Attributes">
+<package name="java.util" revision="0">
+    <class name="EnumMap">
         <NotThreadSafe revision="1"/>
-        <constructor>
+        <constructor params="java.lang.Class">
             <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <Unique revision="2">return</Unique>
         </constructor>
 
-        <constructor params="int">
-            <RegionEffects revision="2">none</RegionEffects>
+        <constructor params="java.util.EnumMap">
+            <RegionEffects revision="2">reads arg0:Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <Unique revision="2">return</Unique>
         </constructor>
 
-        <constructor params="java.util.jar.Attributes">
+        <constructor params="java.util.Map">
             <RegionEffects revision="2">reads any():Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <Unique revision="2">return</Unique>
-            <parameter index="0">
-                <Borrowed revision="2"/>
-            </parameter>
         </constructor>
 
         <method name="clear">
@@ -79,43 +76,13 @@
             </parameter>
         </method>
 
-        <method name="getValue" params="java.lang.String">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
-        </method>
-
-        <method name="getValue" params="java.util.jar.Attributes.Name">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
-        </method>
-
-        <method name="hashCode">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-        </method>
-
-        <method name="isEmpty">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="4">reads Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-        </method>
-
         <method name="keySet">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
-        <method name="put" params="java.lang.Object, java.lang.Object">
+        <method name="put" params="java.lang.Enum, java.lang.Object">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
@@ -128,12 +95,6 @@
             <parameter index="0">
                 <Borrowed revision="2"/>
             </parameter>
-        </method>
-
-        <method name="putValue" params="java.lang.String, java.lang.String">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object">
@@ -156,34 +117,5 @@
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
-
-        <class name="Name">
-            <constructor params="java.lang.String">
-                <RegionEffects revision="2">none</RegionEffects>
-                <Starts revision="2">nothing</Starts>
-                <Unique revision="2">return</Unique>
-            </constructor>
-
-            <method name="equals" params="java.lang.Object">
-                <Borrowed revision="1">this</Borrowed>
-                <RegionEffects revision="2">reads Instance, arg0:Instance</RegionEffects>
-                <Starts revision="2">nothing</Starts>
-                <parameter index="0">
-                    <Borrowed revision="1"/>
-                </parameter>
-            </method>
-
-            <method name="hashCode">
-                <Borrowed revision="1">this</Borrowed>
-                <RegionEffects revision="2">reads Instance</RegionEffects>
-                <Starts revision="2">nothing</Starts>
-            </method>
-
-            <method name="toString">
-                <Borrowed revision="1">this</Borrowed>
-                <RegionEffects revision="2">reads Instance</RegionEffects>
-                <Starts revision="2">nothing</Starts>
-            </method>
-        </class>
     </class>
 </package>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent" revision="0">
+    <class name="ConcurrentNavigableMap">
+        <ThreadSafe revision="1"/>
+        <method name="descendingKeySet">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="descendingMap">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="headMap" params="java.lang.Object">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="headMap" params="java.lang.Object, boolean">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="keySet">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="navigableKeySet">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="subMap" params="java.lang.Object, boolean, java.lang.Object, boolean">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="subMap" params="java.lang.Object, java.lang.Object">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="tailMap" params="java.lang.Object">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="tailMap" params="java.lang.Object, boolean">
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <Unique revision="2">return</Unique>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+    </class>
+</package>
