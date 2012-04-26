@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="javax.servlet">
-    <class name="Servlet">
-        <method name="service" params="javax.servlet.ServletRequest,javax.servlet.ServletResponse">
-        </method>
-    </class>
-</package>
