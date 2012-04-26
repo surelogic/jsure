@@ -87,6 +87,7 @@ import com.surelogic.xml.AbstractJavaElementVisitor;
 import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
 import com.surelogic.xml.ClassElement;
+import com.surelogic.xml.ConstructorElement;
 import com.surelogic.xml.FunctionParameterElement;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.IMergeableElement;
@@ -1357,7 +1358,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				changed |= pasteAnnotations(tm, sm);
 			}
 		}
-		// TODO Match up constructors?		
+		// Match up constructors
+		for(ConstructorElement s : sc.getConstructors()) {
+			ConstructorElement t = tc.findConstructor(s.getParams());
+			if (t != null) {
+				changed |= pasteAnnotations(t, s);
+			}
+		}		
 		return changed;
 	}
 
