@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.script" revision="0">
+    <class name="Bindings">
+        <method name="containsKey" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="get" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="put" params="java.lang.String, java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+
+        <method name="putAll" params="java.util.Map">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="2"/>
+            </parameter>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+    </class>
+</package>

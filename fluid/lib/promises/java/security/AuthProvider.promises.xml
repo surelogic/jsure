@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.security" revision="0">
+    <class name="AuthProvider">
+        <ThreadSafe revision="3"/>
+    </class>
+</package>
