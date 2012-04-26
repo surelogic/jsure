@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -129,7 +130,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 	private void addFilter() {
 		final AddModelingProblemFilterDialog dialog = new AddModelingProblemFilterDialog(
 				getTableContents());
-		if (Dialog.OK == dialog.open()) {
+		if (Window.OK == dialog.open()) {
 			final String regex = dialog.getFilter();
 			if (regex != null && !"".equals(regex)) {
 				addRowToTable(regex);
