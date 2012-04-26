@@ -1,47 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.misc" revision="2">
+<package name="sun.misc" revision="0">
     <class name="SoftCache">
+        <constructor>
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
+        <constructor params="int">
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
+        <constructor params="int, float">
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
         <method name="clear">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="containsKey" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
+        </method>
+
+        <method name="entrySet">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="get" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="5">reads any():Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
         </method>
 
         <method name="isEmpty">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="put" params="java.lang.Object, java.lang.Object">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="3"/>
+            </parameter>
         </method>
 
         <method name="size">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
         </method>
-
-        <class name="EntrySet">
-            <method name="isEmpty">
-                <Borrowed>this</Borrowed>
-            </method>
-
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
-        </class>
     </class>
 </package>
