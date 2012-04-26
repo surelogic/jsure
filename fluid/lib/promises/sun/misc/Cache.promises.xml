@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="sun.misc" revision="0">
+    <class name="Cache">
+        <ThreadSafe revision="1"/>
+        <constructor>
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
+        <constructor params="int">
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
+        <constructor params="int, float">
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+            <Unique revision="3">return</Unique>
+        </constructor>
+
+        <method name="elements">
+            <Borrowed allowReturn="true" revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads Instance</RegionEffects>
+            <Starts revision="5">nothing</Starts>
+            <Unique revision="4">return</Unique>
+        </method>
+
+        <method name="get" params="java.lang.Object">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="5">reads Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+        </method>
+
+        <method name="keys">
+            <Borrowed allowReturn="true" revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads Instance</RegionEffects>
+            <Starts revision="5">nothing</Starts>
+            <Unique revision="4">return</Unique>
+        </method>
+
+        <method name="put" params="java.lang.Object, java.lang.Object">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="3">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="3">nothing</Starts>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="size">
+            <Borrowed revision="3">this</Borrowed>
+            <RegionEffects revision="4">reads Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+        </method>
+    </class>
+</package>

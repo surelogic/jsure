@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.management.openmbean" revision="2">
-    <class name="TabularDataSupport">
-        <constructor params="javax.management.openmbean.TabularType">
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
-        </constructor>
-
-        <constructor params="javax.management.openmbean.TabularType, int, float">
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
-        </constructor>
-
+<package name="javax.management.openmbean" revision="0">
+    <class name="TabularData">
         <method name="calculateIndex" params="javax.management.openmbean.CompositeData">
             <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="5">reads any():Instance</RegionEffects>
@@ -24,39 +12,14 @@
         </method>
 
         <method name="clear">
-            <Borrowed>this</Borrowed>
+            <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="4">writes Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
-        </method>
-
-        <method name="clone">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
-        </method>
-
-        <method name="containsKey" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
         </method>
 
         <method name="containsKey" params="java.lang.Object[]">
             <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
-        </method>
-
-        <method name="containsValue" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="3"/>
@@ -72,23 +35,8 @@
             </parameter>
         </method>
 
-        <method name="entrySet">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-        </method>
-
         <method name="equals" params="java.lang.Object">
             <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
-            </parameter>
-        </method>
-
-        <method name="get" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
             <RegionEffects revision="5">reads any():Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
             <parameter index="0">
@@ -118,20 +66,14 @@
         </method>
 
         <method name="isEmpty">
-            <Borrowed revision="1">this</Borrowed>
+            <Borrowed revision="3">this</Borrowed>
             <RegionEffects revision="4">reads Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
         </method>
 
         <method name="keySet">
-            <Borrowed>this</Borrowed>
+            <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-        </method>
-
-        <method name="put" params="java.lang.Object, java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>
 
@@ -141,30 +83,12 @@
             <Starts revision="2">nothing</Starts>
         </method>
 
-        <method name="putAll" params="java.util.Map">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="2"/>
-            </parameter>
-        </method>
-
         <method name="putAll" params="javax.management.openmbean.CompositeData[]">
             <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
-            </parameter>
-        </method>
-
-        <method name="remove" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="3"/>
             </parameter>
         </method>
 
@@ -178,7 +102,7 @@
         </method>
 
         <method name="size">
-            <Borrowed>this</Borrowed>
+            <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
         </method>
@@ -190,7 +114,7 @@
         </method>
 
         <method name="values">
-            <Borrowed>this</Borrowed>
+            <Borrowed revision="2">this</Borrowed>
             <RegionEffects revision="3">reads Instance</RegionEffects>
             <Starts revision="2">nothing</Starts>
         </method>

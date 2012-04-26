@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" revision="1">
     <class name="Properties">
         <ThreadSafe revision="1"/>
         <constructor>
@@ -14,5 +14,162 @@
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </constructor>
+
+        <method name="getProperty" params="java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="getProperty" params="java.lang.String, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="list" params="java.io.PrintStream">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="list" params="java.io.PrintWriter">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="load" params="java.io.InputStream">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="load" params="java.io.Reader">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="loadFromXML" params="java.io.InputStream">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+        </method>
+
+        <method name="propertyNames">
+            <Borrowed allowReturn="true" revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads Instance</RegionEffects>
+            <Starts revision="5">nothing</Starts>
+            <Unique revision="4">return</Unique>
+        </method>
+
+        <method name="save" params="java.io.OutputStream, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="setProperty" params="java.lang.String, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+            </parameter>
+        </method>
+
+        <method name="store" params="java.io.OutputStream, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="store" params="java.io.Writer, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="storeToXML" params="java.io.OutputStream, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="storeToXML" params="java.io.OutputStream, java.lang.String, java.lang.String">
+            <Borrowed revision="4">this</Borrowed>
+            <RegionEffects revision="6">reads any():Instance</RegionEffects>
+            <Starts revision="4">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="4"/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed revision="1"/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="stringPropertyNames">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
     </class>
 </package>
