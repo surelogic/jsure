@@ -158,6 +158,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
     }
     */
+    else if (op instanceof ClassType) {
+    	IRNode parent = JJNode.tree.getParentOrNull(node);
+    	return TypeDeclaration.prototype.includes(parent);
+    }
+    else if (op instanceof Implements || op instanceof Extensions) {
+    	return true;
+    }
     else if (op instanceof NewExpression) {
     	// This is necessary because the type of the NewE may depend on binding the OOS
         return getOOSParent(node) != null;
