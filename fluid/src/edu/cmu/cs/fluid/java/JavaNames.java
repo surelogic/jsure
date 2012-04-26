@@ -284,6 +284,9 @@ public final class JavaNames {
 	 */
 	public static String getPackageName(final IRNode nodeInsideCompUnit) {
 		IRNode compUnit = VisitUtil.findCompilationUnit(nodeInsideCompUnit);
+		if (compUnit == null) {
+			return "";
+		}
 		final IRNode pkgDecl = CompilationUnit.getPkg(compUnit);
 		if (NamedPackageDeclaration.prototype.includes(getOperator(pkgDecl))) {
 			return NamedPackageDeclaration.getId(pkgDecl);

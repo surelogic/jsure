@@ -30,6 +30,9 @@ public class VisitUtil implements JavaGlobals {
    * Check for a promisedFor node before declaring the node as a root
    */
   public static IRNode findCompilationUnit(IRNode here) {
+	  if (here == null) {
+		  return null;
+	  }
 	  IRNode cu = JJNode.tree.getRoot(here); 
 	  //IRNode cu = VisitUtil.findRoot(here);
 	  IRNode promisedFor = cu;
