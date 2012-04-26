@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.swing" revision="1">
+<package name="javax.swing" revision="2">
     <class name="UIDefaults">
         <ThreadSafe revision="2"/>
         <constructor>
@@ -25,15 +25,15 @@
         </constructor>
 
         <method name="addPropertyChangeListener" params="java.beans.PropertyChangeListener">
+            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="3">writes Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
         </method>
 
         <method name="addResourceBundle" params="java.lang.String">
+            <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="3">writes Instance</RegionEffects>
             <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
         </method>
 
         <method name="get" params="java.lang.Object">
