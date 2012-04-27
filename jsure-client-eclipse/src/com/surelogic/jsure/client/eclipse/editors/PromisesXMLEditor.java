@@ -1372,6 +1372,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		boolean changed = false;
 		int i=0;
 		for(FunctionParameterElement sp : src.getParameters()) {
+			if (sp == null) {
+				continue;
+			}
 			FunctionParameterElement tp = target.getParameter(i);
 			if (tp == null) {
 				continue;
