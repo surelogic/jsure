@@ -208,6 +208,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			return null;
 		}
 		
+		@Override
 		public Void visit(AnnotationElement a) {
 			if (a.isToBeDeleted()) {
 				a.removeFromParent();
@@ -217,6 +218,44 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 				a.incrRevision();
 			}
 			a.markAsClean();
+			return defaultValue;
+		}
+		
+		@Override
+		protected Void visitFunc(AbstractFunctionElement f) {
+			super.visitFunc(f);
+			
+			// Remove unannotated parameters
+			int i=0;
+			for(FunctionParameterElement p : f.getParameters()) {
+				if (p != null && p.getPromises().isEmpty()) {
+					f.removeParameter(i);
+				}
+				i++;
+			}
+			return defaultValue;
+		}		
+		
+		@Override
+		public Void visit(ClassElement c) {
+			super.visit(c);
+
+			// These checks work because we've removed unannotated decls above
+			for(MethodElement m : c.getMethods()) {
+				if (m.getPromises().isEmpty() && m.getChildren().length == 0) {
+					c.removeMethod(m);
+				}
+			}
+			for(ConstructorElement e : c.getConstructors()) {
+				if (e.getPromises().isEmpty() && e.getChildren().length == 0) {
+					c.removeConstructor(e);
+				}
+			}
+			for(NestedClassElement n : c.getNestedClasses()) {
+				if (n.getPromises().isEmpty() && n.getChildren().length == 0) { 
+					c.removeClass(n);
+				}
+			}
 			return defaultValue;
 		}
 	}	

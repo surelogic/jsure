@@ -107,6 +107,16 @@ implements IClassMember, TestXMLParserConstants
 		return params.get(i);
 	}
 
+	public void removeParameter(int i) {
+		if (i >= params.size()) {
+			return; // ignore
+		}
+		params.set(i, null);
+	}
+	
+	/**
+	 * Can return null elements
+	 */
 	public Iterable<FunctionParameterElement> getParameters() {
 		return params;
 	}

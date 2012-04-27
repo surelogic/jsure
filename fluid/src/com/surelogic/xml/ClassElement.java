@@ -93,6 +93,18 @@ public class ClassElement extends AnnotatedJavaElement {
 		return constructors.get(params);
 	}
 	
+	public void removeMethod(MethodElement m) {
+		methods.remove(m.getName(), m.getParams());
+	}
+	
+	public void removeConstructor(ConstructorElement c) {
+		constructors.remove(c.getParams());
+	}
+	
+	public void removeClass(NestedClassElement n) {
+		classes.remove(n.getName());
+	}
+	
 	ClassInitElement getClassInit() {
 		return clinit;
 	}
