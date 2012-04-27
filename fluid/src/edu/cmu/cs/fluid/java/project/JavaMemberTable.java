@@ -722,6 +722,10 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
     }
     
+	public boolean canContainPackages() {
+		return false;
+	}    
+    
     private Iteratable<IJavaType> getSuperTypes() {
       IJavaType thisType;
       if (isTypeFormal) {
@@ -820,7 +824,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         }
       }
       DebugUtil.println(out, indent, "[End SuperScope for "+JavaNames.getFullTypeName(typeDeclaration)+"]");
-    }    
+    }
   }
   static Set<IRNode> repopulated = new ConcurrentHashSet<IRNode>();
   
@@ -831,6 +835,10 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	tEnv = te;
     }
     
+	public boolean canContainPackages() {
+		return false;
+	}   
+	
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);

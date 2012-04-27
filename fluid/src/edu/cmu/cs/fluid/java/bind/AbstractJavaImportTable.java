@@ -269,6 +269,10 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     IJavaScope getScope();
   }
   
+  public boolean canContainPackages() {
+	  return false;
+  } 
+  
   public final synchronized IBinding lookup(String name, IRNode useSite, Selector selector) {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");

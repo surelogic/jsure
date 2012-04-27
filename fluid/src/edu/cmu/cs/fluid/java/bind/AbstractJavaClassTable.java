@@ -48,6 +48,10 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       this.prefix = prefix;
     }
 
+	public boolean canContainPackages() {
+		return true;
+	} 
+    
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       final String qname = prefix + name;
       IRNode node = getOuterClass(qname,useSite);

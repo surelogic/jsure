@@ -35,6 +35,8 @@ public interface IJavaScope {
 
   public static final EmptyIterator<IBinding> EMPTY_BINDINGS_ITERATOR = new EmptyIterator<IBinding>();
   
+  public boolean canContainPackages();
+  
   /**
    * Look in the scope to find a declaration that matches the given selector.
    * @param name name to look up in the scope
@@ -72,6 +74,9 @@ public interface IJavaScope {
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[null]");
     }
+	public boolean canContainPackages() {
+		return false;
+	}
   };
   
   /**
@@ -152,6 +157,9 @@ public interface IJavaScope {
     };
     public static IBinding lookupPackage(IJavaScope scope, String name, IRNode useSite) {
       if (scope == null) {
+    	  return null;
+      }
+      if (!scope.canContainPackages()) {
     	  return null;
       }
       return scope.lookup(name,useSite,isPackageDecl);
@@ -331,6 +339,10 @@ public interface IJavaScope {
       selector = sel;
     }
     
+	public boolean canContainPackages() {
+		return scope.canContainPackages();
+	}   
+    
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
@@ -369,6 +381,10 @@ public interface IJavaScope {
       outer = o;
     }
 
+	public boolean canContainPackages() {
+		return outer.canContainPackages();
+	} 
+    
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
@@ -454,6 +470,10 @@ public interface IJavaScope {
       outer = sc;
     }
     
+	public boolean canContainPackages() {
+		return outer.canContainPackages();
+	} 
+    
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       List<IBinding> l = locals.get(name);
       if (l == null) return outer.lookup(name,useSite,selector);
@@ -527,6 +547,10 @@ public interface IJavaScope {
       scope2 = sc2;
     }
 
+	public boolean canContainPackages() {
+		return scope1.canContainPackages() || scope2.canContainPackages();
+	} 
+    
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
@@ -587,6 +611,10 @@ public interface IJavaScope {
       scope2 = sc2;
     }
     
+	public boolean canContainPackages() {
+		return scope1.canContainPackages() || scope2.canContainPackages();
+	} 
+    
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       IBinding result = scope1.lookup(name,useSite,selector);
       if (result == null)
@@ -628,6 +656,10 @@ public interface IJavaScope {
       subst = JavaTypeSubstitution.create(tEnv, ty);
       this.tEnv = tEnv;
     }
+    
+	public boolean canContainPackages() {
+		return scope.canContainPackages();
+	}   
     
     /**
      * Substitute a binding using the local substitution
