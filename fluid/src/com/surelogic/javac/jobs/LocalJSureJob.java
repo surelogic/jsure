@@ -112,8 +112,12 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 			throw new RuntimeException(e);
 		}
 		
-		for(Map.Entry<Object,Object> e : System.getProperties().entrySet()) {
-		    println(e.getKey()+" => "+e.getValue());
+		try {
+			for(Map.Entry<Object,Object> e : new Properties(System.getProperties()).entrySet()) {
+				println(e.getKey()+" => "+e.getValue());
+			}
+		} catch(ConcurrentModificationException e) {
+			// Ignore
 		}
 		
 		if (SystemUtils.OS_ARCH.contains("64") && SystemUtils.JAVA_VENDOR.contains("Sun")) {
