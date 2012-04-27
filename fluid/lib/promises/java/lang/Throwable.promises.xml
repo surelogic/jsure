@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" revision="0">
+<package name="java.lang" revision="1">
     <class name="Throwable">
         <constructor>
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.String">
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.String, java.lang.Throwable">
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.Throwable">
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </constructor>
 
         <method name="fillInStackTrace">
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
@@ -45,13 +45,13 @@
 
         <method name="getMessage">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads All</RegionEffects>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
         </method>
 
         <method name="getStackTrace">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <RegionEffects revision="2">none</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <Unique revision="1">return</Unique>
         </method>
@@ -69,7 +69,7 @@
 
         <method name="printStackTrace" params="java.io.PrintStream">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
@@ -78,7 +78,7 @@
 
         <method name="printStackTrace" params="java.io.PrintWriter">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <RegionEffects revision="2">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
@@ -87,7 +87,7 @@
 
         <method name="setStackTrace" params="java.lang.StackTraceElement[]">
             <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects revision="2">writes Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
