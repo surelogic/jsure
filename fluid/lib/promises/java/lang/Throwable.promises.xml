@@ -1,35 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" revision="0">
     <class name="Throwable">
         <constructor>
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.String">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.String, java.lang.Throwable">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
         <constructor params="java.lang.Throwable">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
         </constructor>
 
+        <method name="fillInStackTrace">
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="getCause">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="getLocalizedMessage">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="getMessage">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="getStackTrace">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <Unique revision="1">return</Unique>
+        </method>
+
+        <method name="initCause" params="java.lang.Throwable">
+            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
         <method name="printStackTrace">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes java.lang.Object:All</RegionEffects>
-            <Starts>nothing</Starts>
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+        </method>
+
+        <method name="printStackTrace" params="java.io.PrintStream">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="printStackTrace" params="java.io.PrintWriter">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="setStackTrace" params="java.lang.StackTraceElement[]">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
+            <Starts revision="1">nothing</Starts>
+            <parameter index="0">
+                <Borrowed revision="1"/>
+            </parameter>
+        </method>
+
+        <method name="toString">
+            <Borrowed revision="1">this</Borrowed>
+            <RegionEffects revision="1">reads All</RegionEffects>
+            <Starts revision="1">nothing</Starts>
         </method>
     </class>
 </package>
