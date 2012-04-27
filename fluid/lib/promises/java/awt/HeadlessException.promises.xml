@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.awt" revision="0">
+    <class name="HeadlessException">
+        <constructor>
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <Unique revision="2">return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String">
+            <RegionEffects revision="3">none</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+            <Unique revision="2">return</Unique>
+        </constructor>
+
+        <method name="getMessage">
+            <Borrowed revision="2">this</Borrowed>
+            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Starts revision="2">nothing</Starts>
+        </method>
+    </class>
+</package>
