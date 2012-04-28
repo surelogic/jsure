@@ -1243,10 +1243,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IRNode tdecl = recType.getDeclaration();
         Operator op  = JJNode.tree.getOperator(tdecl);
         final String tname;
-        if (InterfaceDeclaration.prototype.includes(op)) {
+        if (InterfaceDeclaration.prototype.includes(op) || AnnotationDeclaration.prototype.includes(op)) {
           // This can only appear in an AnonClassExpr
           recType = getTypeEnvironment().getObjectType();
           tname   = "Object";
+        /*
+        } else if (AnnotationDeclaration.prototype.includes(op)) {
+          // This can only appear in an AnonClassExpr
+          recType = (IJavaDeclaredType) getTypeEnvironment().findJavaTypeByName("java.lang.Annotation");
+          tname   = "Annotation";
+         */
         } else {
           // Use the type name for constructors
           tname = JJNode.getInfo(tdecl);
