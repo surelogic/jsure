@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" revision="1">
+<package name="java.lang" revision="2">
     <class name="Boolean">
         <ThreadSafe revision="1"/>
         <constructor params="boolean">
@@ -27,15 +27,6 @@
         <method name="compareTo" params="java.lang.Boolean">
             <Borrowed revision="1">this</Borrowed>
             <RegionEffects revision="1">reads Instance, arg0:Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <parameter index="0">
-                <Borrowed revision="1"/>
-            </parameter>
-        </method>
-
-        <method name="compareTo" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
             <Starts revision="1">nothing</Starts>
             <parameter index="0">
                 <Borrowed revision="1"/>
