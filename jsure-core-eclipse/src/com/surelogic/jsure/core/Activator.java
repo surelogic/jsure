@@ -21,7 +21,7 @@ public class Activator extends Plugin {
 	private static Activator plugin;
 
 	private com.surelogic.jsure.core.driver.DoubleChecker doubleChecker;
-	
+
 	/**
 	 * Returns the shared instance.
 	 */
@@ -42,25 +42,25 @@ public class Activator extends Plugin {
 		super.start(context);
 
 		JSurePreferencesUtility.initializeDefaultScope();
-		
+
 		if (doubleChecker == null) {
 			doubleChecker = new com.surelogic.jsure.core.driver.DoubleChecker();
 			doubleChecker.start(context);
 		}
-		
+
 		if (false && !Util.useResultsXML) {
 			clearJSureData();
 		}
-		//monitor.worked(1);
-		
+
 		// TODO reload persistent data
 		Eclipse.initialize();
-		//monitor.worked(1);
 
 		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
-		JavacDriver.getInstance();		
-		//monitor.worked(1);
-		
+		JavacDriver.getInstance();
+
+		// Clean out empty paths in client's XML promises
+		PromisesLibMerge.removeEmptyPathsOnClient();
+
 		// Try to update the client's XML
 		PromisesLibMerge.updateClient();
 	}
@@ -74,7 +74,7 @@ public class Activator extends Plugin {
 			// i.e. don't delete persistent files
 		}
 	}
-	
+
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		try {
@@ -84,7 +84,7 @@ public class Activator extends Plugin {
 			super.stop(context);
 		}
 	}
-	
+
 	public com.surelogic.jsure.core.driver.DoubleChecker getDoubleChecker() {
 		return doubleChecker;
 	}
