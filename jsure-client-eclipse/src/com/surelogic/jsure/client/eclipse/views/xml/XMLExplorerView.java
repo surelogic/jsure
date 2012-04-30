@@ -73,47 +73,45 @@ public class XMLExplorerView extends AbstractJSureView {
 					run(selection.getFirstElement());
 				}
 			}
-		}		
+		}
+
 		abstract void run(Object o);
 	}
-	
+
 	private final Action f_open = new SingleElementAction("Open") {
 		@Override
 		public void run(Object o) {
-			handleDoubleClick(o);			
+			handleDoubleClick(o);
 		}
 	};
-	
+
 	private final Action f_openSource = new SingleElementAction("Open source") {
 		@Override
 		public void run(Object o) {
 			handleOpenSource(o);
 		}
 	};
-	
-	private final Action f_copyAnnos = new SingleElementAction("Copy Annotations") {
+
+	private final Action f_copyAnnos = new SingleElementAction(
+			"Copy Annotations") {
 		@Override
 		public void run(Object o) {
 			if (o instanceof IJavaElement) {
 				getClipboard().setFocus((IJavaElement) o);
-			}
-			else if (o instanceof Type) {
+			} else if (o instanceof Type) {
 				Type t = (Type) o;
 				getClipboard().setFocus(t.getRoot().getClassElement());
 			}
 		}
 	};
-	
+
 	/*
-	private final Action f_new = new Action("New ...") {
-		@Override
-		public void run() {
-			//TypeSelectionDialog
-			PromisesXMLEditor.openInEditor("", false);
-		}
-	};
-    */
-	
+	 * private final Action f_new = new Action("New ...") {
+	 * 
+	 * @Override public void run() { //TypeSelectionDialog
+	 * PromisesXMLEditor.openInEditor("", false); } };
+	 */
+
 	private final Action f_toggleShowDiffs = new Action(
 			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
 			IAction.AS_CHECK_BOX) {
@@ -265,8 +263,8 @@ public class XMLExplorerView extends AbstractJSureView {
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(f_open);
-		//manager.add(f_new);
-		manager.add(f_openSource);	
+		// manager.add(f_new);
+		manager.add(f_openSource);
 		manager.add(new Separator());
 		manager.add(f_copyAnnos);
 		manager.add(new Separator());
@@ -277,13 +275,11 @@ public class XMLExplorerView extends AbstractJSureView {
 		if (XUtil.useExperimental() && o instanceof Filterable) {
 			final Filterable t = (Filterable) o;
 			if (t.hasLocal()) {
-				final boolean hasUpdate = t.hasUpdate();
 				manager.add(new Separator());
-				manager.add(new Action(hasUpdate ? "Update local XML"
-						: "Merge changes to JSure") {
+				manager.add(new Action("Merge changes to JSure") {
 					@Override
 					public void run() {
-						PromisesLibMerge.merge(hasUpdate, t.getPath());
+						PromisesLibMerge.mergeLocalToJSure(t.getPath());
 						PromisesXMLReader.clear(t.getPath());
 						PromisesXMLReader.refreshAll();
 					}
@@ -297,7 +293,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		final Object o = selection.getFirstElement();
 		handleDoubleClick(o);
 	}
-	
+
 	void handleDoubleClick(Object o) {
 		if (o instanceof Type) {
 			Type t = (Type) o;
@@ -335,7 +331,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 		return (PackageElement) e;
 	}
-	
+
 	void handleOpenSource(Object o) {
 		if (o instanceof Type) {
 			Type t = (Type) o;
@@ -347,15 +343,16 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (p.getClassElement() != null) {
 				if (e instanceof MethodElement) {
 					MethodElement m = (MethodElement) e;
-					JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getName(), 
+					JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getName(),
 							p.getClassElement().getName(), m.getName());
 				} else {
-					JDTUIUtility.tryToOpenInEditor(p.getName(), p.getClassElement().getName());
+					JDTUIUtility.tryToOpenInEditor(p.getName(), p
+							.getClassElement().getName());
 				}
 			}
 		}
 	}
-	
+
 	private String getPackagePath(String qname) {
 		return qname.replace('.', '/') + "/package-info"
 				+ TestXMLParserConstants.SUFFIX;
@@ -517,13 +514,10 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public Image getImage(Object element) {
 			if (element instanceof Package) {
-				Package p = (Package) element;
-				return getCachedImage(CommonImages.IMG_PACKAGE,
-						p.hasConflicts());
+				return getCachedImage(CommonImages.IMG_PACKAGE, false);
 			}
 			if (element instanceof Type) {
-				Type t = (Type) element;
-				return getCachedImage(CommonImages.IMG_CLASS, t.hasConflicts());
+				return getCachedImage(CommonImages.IMG_CLASS, false);
 			}
 			if (element instanceof String) {
 				return null;
@@ -559,11 +553,10 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	interface Filterable {
 		boolean hasLocal();
-		boolean hasUpdate();
+
 		String getPath();
-		
+
 		boolean hasDiffs();
-		boolean hasConflicts();
 	}
 
 	static <T extends Filterable> Object[] filter(Viewing type, T[] elements) {
@@ -589,7 +582,8 @@ public class XMLExplorerView extends AbstractJSureView {
 			final boolean hasLocal = local != null;
 			name = e.getKey();
 			// Adjust for package-info XML
-			types = new Type[e.getValue().size() - (e.getValue().contains(name) ? 1 : 0)];
+			types = new Type[e.getValue().size()
+					- (e.getValue().contains(name) ? 1 : 0)];
 			int i = 0;
 			for (String type : e.getValue()) {
 				if (name.equals(type)) {
@@ -606,8 +600,9 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public String toString() {
 			if (hasDiffs()) {
-				return PromisesXMLContentProvider.DIRTY_PREFIX + 
-					(name.length() == 0 ? SLUtility.JAVA_DEFAULT_PACKAGE : name);
+				return PromisesXMLContentProvider.DIRTY_PREFIX
+						+ (name.length() == 0 ? SLUtility.JAVA_DEFAULT_PACKAGE
+								: name);
 			}
 			return name.length() == 0 ? SLUtility.JAVA_DEFAULT_PACKAGE : name;
 		}
@@ -615,18 +610,6 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public int compareTo(Package o) {
 			return name.compareTo(o.name);
-		}
-
-		@Override
-		public boolean hasConflicts() {
-			if (hasDiffs()) {
-				for (Type t : types) {
-					if (t.hasUpdate()) {
-						return true;
-					}
-				}
-			}
-			return false;
 		}
 
 		@Override
@@ -652,12 +635,6 @@ public class XMLExplorerView extends AbstractJSureView {
 		public boolean hasLocal() {
 			return isLocal;
 		}
-
-		@Override
-		public boolean hasUpdate() {
-			return PromisesLibMerge.checkForUpdate(getPath());
-		}
-		
 	}
 
 	static class Type implements Filterable, Comparable<Type> {
@@ -674,7 +651,7 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		public String getPath() {
 			if (pkg.name.length() == 0) {
-				return name	+ TestXMLParserConstants.SUFFIX;
+				return name + TestXMLParserConstants.SUFFIX;
 			}
 			return pkg.name.replace('.', '/') + '/' + name
 					+ TestXMLParserConstants.SUFFIX;
@@ -686,10 +663,6 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		public boolean hasLocal() {
 			return isLocal;
-		}
-		
-		public boolean hasUpdate() {
-			return PromisesLibMerge.checkForUpdate(getPath());
 		}
 
 		@Override
@@ -737,18 +710,10 @@ public class XMLExplorerView extends AbstractJSureView {
 				return root != null;
 			}
 		}
-		
+
 		public PackageElement getRoot() {
 			buildChildren();
 			return root;
-		}
-
-		@Override
-		public boolean hasConflicts() {
-			if (hasDiffs()) {
-				return hasUpdate();
-			}
-			return false;
 		}
 
 		@Override
@@ -760,24 +725,24 @@ public class XMLExplorerView extends AbstractJSureView {
 			return isLocal;
 		}
 	}
-	
+
 	/**
 	 * Mainly for copying annotations
 	 */
 	public static class Clipboard {
 		private IJavaElement focus;
-		
+
 		public IJavaElement getFocus() {
 			return focus;
 		}
-		
+
 		public void setFocus(IJavaElement e) {
 			focus = e;
 		}
 	}
-	
+
 	private static final Clipboard clipboard = new Clipboard();
-	
+
 	public static Clipboard getClipboard() {
 		return clipboard;
 	}

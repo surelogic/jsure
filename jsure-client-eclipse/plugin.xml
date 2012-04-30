@@ -233,13 +233,6 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action -->
 
-	        <!--<action
-				class="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
-				id="com.surelogic.jsure.client.eclipse.actions.TestXMLMergeAction"
-				label="Test XML Merge"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>-->
-
 	        <!--action
 				class="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"
 				id="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction"

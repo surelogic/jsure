@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
  * @author Edwin
  */
 public abstract class AbstractJSureView extends AbstractSLView {
+
 	/**
 	 * Open and highlight a line within the Java editor, if possible. Otherwise,
 	 * try to open as a text file
@@ -33,22 +34,22 @@ public abstract class AbstractJSureView extends AbstractSLView {
 			showMessage("CoreException was thrown");
 		}
 	}
-	
 
 	/**
 	 * Gets a cached image with an optional conflict (warning) decorator.
 	 * 
 	 * @param symbolicName
 	 *            a name from {@link CommonImages}.
-	 * @param conflict
-	 *            {@code true} if a promise conflict exists, {@code false}
-	 *            otherwise.
-	 * @return an image that is carefully cached. The image should
-	 *         <i>not</i> be disposed by the calling code.
+	 * @param showWariningDecorator
+	 *            {@code true} if a warning decorator should be shown,
+	 *            {@code false} otherwise.
+	 * @return an image that is carefully cached. The image should <i>not</i> be
+	 *         disposed by the calling code.
 	 */
-	public static final Image getCachedImage(String symbolicName, boolean conflict) {
+	public static final Image getCachedImage(String symbolicName,
+			boolean showWarningDecorator) {
 		return getCachedImage(SLImages.getImageDescriptor(symbolicName),
-				conflict);
+				showWarningDecorator);
 	}
 
 	/**
@@ -56,19 +57,18 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	 * 
 	 * @param imageDescriptor
 	 *            an image descriptor.
-	 * @param conflict
-	 *            {@code true} if a promise conflict exists, {@code false}
-	 *            otherwise.
-	 * @return an image that is carefully cached. The image should
-	 *         <i>not</i> be disposed by the calling code.
+	 * @param showWarningDecorator
+	 *            {@code true} if a warning decorator should be shown,
+	 *            {@code false} otherwise.
+	 * @return an image that is carefully cached. The image should <i>not</i> be
+	 *         disposed by the calling code.
 	 */
 	public static final Image getCachedImage(ImageDescriptor imageDescriptor,
-			boolean conflict) {
-		final int flag = conflict ? CoE_Constants.INFO_WARNING
+			boolean showWarningDecorator) {
+		final int flag = showWarningDecorator ? CoE_Constants.INFO_WARNING
 				: CoE_Constants.NONE;
 		ResultsImageDescriptor rid = new ResultsImageDescriptor(
 				imageDescriptor, flag, new Point(22, 16));
 		return rid.getCachedImage();
 	}
 }
-

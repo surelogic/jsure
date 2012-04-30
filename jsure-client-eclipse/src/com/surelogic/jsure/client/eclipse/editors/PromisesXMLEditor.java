@@ -182,7 +182,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					Object o = s.getFirstElement();
 					if (o instanceof AnnotationElement) {
 						AnnotationElement a = (AnnotationElement) o;
-						if (a.canModify()) {
+						if (a.isEditable()) {
 							startAnnotationEditDialog(a);
 						} else {
 							LibraryAnnotationDialog.cannotEdit(a.getLabel());
@@ -517,7 +517,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 							startAnnotationEditDialog(a);
 						}
 					});
-			m.setEnabled(a.canModify());
+			m.setEnabled(a.isEditable());
 
 			MenuItem m2 = makeMenuItem(menu, "Revert",
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
