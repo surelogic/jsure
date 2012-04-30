@@ -62,7 +62,7 @@ public class Activator extends Plugin {
 		PromisesLibMerge.removeEmptyPathsOnClient();
 
 		// Try to update the client's XML
-		PromisesLibMerge.updateClient();
+		PromisesLibMerge.mergeJSureToLocal();
 	}
 
 	private void clearJSureData() {

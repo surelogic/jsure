@@ -1,15 +1,17 @@
 package com.surelogic.jsure.core.xml;
 
 import java.io.*;
+import java.util.logging.Level;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.xml.*;
 
 /**
- * Code to help merge promises XML between fluid and clients' data directories
- * 
- * @author Edwin
+ * Code to help merge promises XML between JSure release (in the fluid project)
+ * and clients workspace directories (the diff files).
  */
 public final class PromisesLibMerge {
 
@@ -25,48 +27,45 @@ public final class PromisesLibMerge {
 	}
 
 	/**
-	 * @param toClient
-	 *            update if true; merge to fluid otherwise
+	 * Merges any possible JSure release updates to local edits. All XML diff
+	 * files in the workspace are updated.
 	 */
-	public static void merge(boolean toClient) {
-		merge(toClient, "");
+	public static void mergeJSureToLocal() {
+		final File fluidRoot = PromisesXMLParser.getFluidXMLDir();
+		final File wsRoot = JSurePreferencesUtility.getJSureXMLDirectory();
+
+		mergeJSureToLocalHelper(wsRoot, fluidRoot);
 	}
 
-	/**
-	 * Update "local" XML (deltas) specific to the client
-	 */
-	public static void updateClient() {
-		merge(true, "");
-	}
-
-	public static void merge(boolean toClient, String relativePath) {
-		final File fLibRoot = PromisesXMLParser.getFluidXMLDir();
-		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
-
-		final File fLibPath = new File(fLibRoot, relativePath);
-		final File libPath = new File(libRoot, relativePath);
-		if (!libPath.exists()) {
-			// System.out.println("Nothing to merge: "+relativePath);
-			return; // Nothing else to do
-		}
-		if (toClient) {
-			PromisesXMLMerge.merge(toClient, libPath, fLibPath);
+	private static void mergeJSureToLocalHelper(File local, File jsure) {
+		if (local.isDirectory()) {
+			for (File f : local.listFiles(TestXMLParserConstants.XML_FILTER)) {
+				mergeJSureToLocalHelper(f, new File(jsure, f.getName()));
+			}
 		} else {
-			PromisesXMLMerge.merge(toClient, fLibPath, libPath);
+			PromisesXMLMerge.merge(MergeType.JSURE_TO_LOCAL, local, jsure);
 		}
 	}
 
 	/**
-	 * From fluid to local
+	 * Merges the passed XML diff file into the JSure codebase (for subsequent
+	 * release).
 	 * 
-	 * @return true if there is an update to Fluid
+	 * @param relativePathToFile
+	 *            the path to the XML diff file relative to the
+	 *            <tt>promises-xml</tt> directory in the workspace.
 	 */
-	public static boolean checkForUpdate(String relativePath) {
-		final File fLibRoot = PromisesXMLParser.getFluidXMLDir();
-		final File libRoot = JSurePreferencesUtility.getJSureXMLDirectory();
+	public static void mergeLocalToJSure(String relativePathToFile) {
+		final File fluidRoot = PromisesXMLParser.getFluidXMLDir();
+		final File wsRoot = JSurePreferencesUtility.getJSureXMLDirectory();
 
-		final File fLibPath = new File(fLibRoot, relativePath);
-		final File libPath = new File(libRoot, relativePath);
-		return PromisesXMLMerge.checkForUpdate(fLibPath, libPath);
+		final File jsure = new File(fluidRoot, relativePathToFile);
+		final File local = new File(wsRoot, relativePathToFile);
+		if (!local.exists()) {
+			SLLogger.getLogger().log(Level.WARNING, I18N.err(239, local),
+					new Exception());
+			return; // Nothing to do
+		}
+		PromisesXMLMerge.merge(MergeType.LOCAL_TO_JSURE, local, jsure);
 	}
 }
