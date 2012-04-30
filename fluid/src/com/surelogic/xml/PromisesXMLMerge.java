@@ -1,142 +1,107 @@
 package com.surelogic.xml;
 
 import java.io.File;
+import java.util.logging.Level;
+
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 
 public class PromisesXMLMerge implements TestXMLParserConstants {
-	public static final boolean onlyKeepDiffs = true;
-	
-	/**
-	 * From fluid to local
-	 * 
-	 * @return true if there is an update to Fluid
-	 */
-	public static boolean checkForUpdate(final File fLibPath, final File libPath) {
-		if (!fLibPath.isFile() || !libPath.isFile()) {		
-			return false;
-		}
-		if (libPath.length() <= 0) {
-			return false;
-		}
-		try {
-			PackageElement fluid = PromisesXMLReader.loadRaw(fLibPath);
-			PackageElement local = PromisesXMLReader.loadRaw(libPath);			
-			return fluid.needsToUpdate(local);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
-	/**
-	 * @param onlyMerge also copy (to fluid) if false
-	 */
-	public static void merge(final boolean onlyMerge, File to, File from) {
-		if (from.isFile()) {			
-			if (!to.exists()) {
-				// Check if I should copy 
-				if (onlyMerge) {
-					//System.out.println("Ignoring "+from);
-					return; // No need to do anything
-				}
-				copy(to, from);
+
+	public static void merge(MergeType type, File local, File jsure) {
+		if (type == MergeType.LOCAL_TO_JSURE) {
+			if (local.isFile() && local.exists()) {
+				mergeLocalXMLIntoJSureXML(local, jsure);
 			} else {
-				merge2(onlyMerge, to, from);
+				throw new IllegalArgumentException(local.toString()
+						+ " must be an existing file (it is not) for a " + type
+						+ " merge");
 			}
-		} 
-		else if (from.isDirectory()) {
-			for(File f : from.listFiles(TestXMLParserConstants.XML_FILTER)) {
-				merge(onlyMerge, new File(to, f.getName()), f);
-			}
+		} else if (type == MergeType.JSURE_TO_LOCAL) {
+			mergeJSureXMLIntoLocalXML(local, jsure);
+		} else {
+			throw new UnsupportedOperationException(type.toString()
+					+ " merge is not supported");
 		}
-		// 'from' doesn't exist, so nothing to do
 	}
-	
-	private static void copy(File to, File from) {		
-		System.out.println("Copying "+from+" into "+to);
-		to.getParentFile().mkdirs();
-		/*
-		FileUtility.copy(from, to);
-		*/
-		// Can't just copy, due to dirty bits
+
+	private static void mergeLocalXMLIntoJSureXML(File local, File jsure) {
 		try {
-			PackageElement cleaned = PromisesXMLReader.loadRaw(from);
-			cleaned.visit(new Cleaner());
-			
-			PromisesXMLWriter w = new PromisesXMLWriter(to);
-			w.write(cleaned);
-			if (onlyKeepDiffs) {
-				from.delete();
-			} else {
-				w = new PromisesXMLWriter(from);
-				w.write(cleaned);
-			}
-		} catch (Exception e) {
-			System.err.println("While copying "+from+" into "+to);
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Merge from a file to another (both exist)
-	 */
-	private static void merge2(final boolean onlyMerge, File to, File from) {
-		try {					
-			// Merge
-			System.out.println("Merging "+from+" into "+to);
-			PackageElement target = PromisesXMLReader.loadRaw(to);
-			PackageElement source = PromisesXMLReader.loadRaw(from);
+			SLLogger.getLogger().log(
+					Level.INFO,
+					"mergeLocalXMLIntoJSureXML(local-> " + local + ", jsure->"
+							+ jsure);
+			PackageElement source = PromisesXMLReader.loadRaw(local);
 			PackageElement merged;
-			if (onlyKeepDiffs) {
-				if (onlyMerge) {
-					// Updating client
-					// target from libPath
-					// source from fLibPath
-					if (!source.needsToUpdate(target)) {
-						return;
-					}
-					PackageElement all = merge_private(onlyMerge, target, source);	
-					merged = diff(all);
-				} else {
-					// Merging to fluid 
-					/* Simulates what we used to do
-					PackageElement all = merge_private(!onlyMerge, source, target);	
-					merged = merge_private(onlyMerge, target, all);
-					*/
-					merged = merge_private(onlyMerge, target, source);	
-					// Need to clear modified bits
-					merged.visit(new Cleaner());
-				}
+
+			/*
+			 * We need to handle the startup case where the file may not exist
+			 * in JSure yet.
+			 */
+			if (jsure.exists()) {
+				PackageElement target = PromisesXMLReader.loadRaw(jsure);
+
+				merged = merge_private(false, target, source);
 			} else {
-				merged = merge_private(onlyMerge, target, source);	
-			}					
-			PromisesXMLWriter w = new PromisesXMLWriter(to);
-			w.write(merged);
-			if (!onlyMerge) {
-				// Merging all changes to fluid, so they should both be the same afterward
-				// (or the local one should be deleted/empty)
-				// TODO what about conflicts?
-				if (PromisesXMLMerge.onlyKeepDiffs) {
-					from.delete();
-				} else {
-					w = new PromisesXMLWriter(from);
-					w.write(merged);
-				}
+				merged = source;
+				jsure.getParentFile().mkdirs();
 			}
+
+			// Need to clear modified bits
+			merged.visit(new Cleaner());
+
+			PromisesXMLWriter w = new PromisesXMLWriter(jsure);
+			w.write(merged);
+
+			/*
+			 * Now delete the local file we no longer need it.
+			 */
+			local.delete();
 		} catch (Exception e) {
-			System.err.println("While merging "+from+" into "+to);
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, I18N.err(237, local, jsure),
+					e);
 		}
 	}
-	
+
+	private static void mergeJSureXMLIntoLocalXML(File local, File jsure) {
+		SLLogger.getLogger().log(
+				Level.INFO,
+				"mergeJSureXMLIntoLocalXML(local-> " + local + ", jsure->"
+						+ jsure);
+
+		if (!jsure.exists())
+			return; // nothing to do
+
+		try {
+			PackageElement target = PromisesXMLReader.loadRaw(local);
+			PackageElement source = PromisesXMLReader.loadRaw(jsure);
+
+			if (!source.needsToUpdate(target)) {
+				return;
+			}
+			PackageElement all = merge_private(true, target, source);
+			PackageElement merged = diff(all);
+
+			PromisesXMLWriter w = new PromisesXMLWriter(local);
+			w.write(merged);
+
+		} catch (Exception e) {
+			SLLogger.getLogger().log(Level.SEVERE, I18N.err(238, jsure, local),
+					e);
+		}
+	}
+
 	/**
 	 * Merge changes into the "original
 	 * 
-	 * @param toClient update if true; merge to fluid otherwise
+	 * @param toClient
+	 *            update if true; merge to fluid otherwise
 	 */
-	private static PackageElement merge_private(boolean toClient, PackageElement orig, PackageElement changed) {
+	private static PackageElement merge_private(boolean toClient,
+			PackageElement orig, PackageElement changed) {
 		return orig.merge(changed, toClient);
 	}
-	
+
 	public static PackageElement diff(PackageElement root) {
 		// Ok to modify root, since we'll just mark it as clean afterwards
 		root.markAsClean();
@@ -147,9 +112,10 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		}
 		return p;
 	}
-	
+
 	/**
 	 * Removed cached attributes used for diffing (not meant to be persisted)
+	 * 
 	 * @author Edwin
 	 */
 	private static class Flusher extends AbstractJavaElementVisitor<Void> {
@@ -161,14 +127,14 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		protected Void combine(Void old, Void result) {
 			return null;
 		}
-		
+
 		@Override
 		public Void visit(AnnotationElement a) {
 			a.flushDiffState();
 			return defaultValue;
 		}
 	}
-	
+
 	/**
 	 * Mark the annos as dirty, so I can figure out what to keep as a diff
 	 * 
@@ -183,7 +149,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		protected Void combine(Void old, Void result) {
 			return null;
 		}
-		
+
 		@Override
 		public Void visit(AnnotationElement a) {
 			if (a.isModified()) {
@@ -192,9 +158,11 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			return defaultValue;
 		}
 	}
-	
+
 	/**
-	 * Bump revision and mark as annos as clean/unmodified
+	 * Bump revision and mark as annos as clean/unmodified.
+	 * <p>
+	 * Only called on a merge to Fluid.
 	 * 
 	 * @author Edwin
 	 */
@@ -207,56 +175,53 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		protected Void combine(Void old, Void result) {
 			return null;
 		}
-		
+
 		@Override
 		public Void visit(AnnotationElement a) {
 			if (a.isToBeDeleted()) {
 				a.removeFromParent();
 				return defaultValue;
 			}
-			if (a.isModified()) {
-				a.incrRevision();
-			}
-			a.markAsClean();
+			a.markAsUnmodified();
 			return defaultValue;
 		}
-		
+
 		@Override
 		protected Void visitFunc(AbstractFunctionElement f) {
 			super.visitFunc(f);
-			
+
 			// Remove unannotated parameters
-			int i=0;
-			for(FunctionParameterElement p : f.getParameters()) {
+			int i = 0;
+			for (FunctionParameterElement p : f.getParameters()) {
 				if (p != null && p.getPromises().isEmpty()) {
 					f.removeParameter(i);
 				}
 				i++;
 			}
 			return defaultValue;
-		}		
-		
+		}
+
 		@Override
 		public Void visit(ClassElement c) {
 			super.visit(c);
 
 			// These checks work because we've removed unannotated decls above
-			for(MethodElement m : c.getMethods()) {
+			for (MethodElement m : c.getMethods()) {
 				if (m.getPromises().isEmpty() && m.getChildren().length == 0) {
 					c.removeMethod(m);
 				}
 			}
-			for(ConstructorElement e : c.getConstructors()) {
+			for (ConstructorElement e : c.getConstructors()) {
 				if (e.getPromises().isEmpty() && e.getChildren().length == 0) {
 					c.removeConstructor(e);
 				}
 			}
-			for(NestedClassElement n : c.getNestedClasses()) {
-				if (n.getPromises().isEmpty() && n.getChildren().length == 0) { 
+			for (NestedClassElement n : c.getNestedClasses()) {
+				if (n.getPromises().isEmpty() && n.getChildren().length == 0) {
 					c.removeClass(n);
 				}
 			}
 			return defaultValue;
 		}
-	}	
+	}
 }

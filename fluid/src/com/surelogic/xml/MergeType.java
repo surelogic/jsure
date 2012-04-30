@@ -6,15 +6,11 @@ public enum MergeType {
 	 */
 	JAVA,
 	/**
-	 * Merge dirty elements to fluid 
+	 * Merge dirty elements to fluid
 	 */
-	MERGE, 
+	LOCAL_TO_JSURE,
 	/**
 	 * Update changes to client
 	 */
-	UPDATE;	
-	
-	public static MergeType get(boolean toClient) {
-		return toClient ? UPDATE : MERGE;
-	}
+	JSURE_TO_LOCAL;
 }

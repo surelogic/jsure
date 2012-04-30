@@ -1,17 +1,24 @@
 package com.surelogic.xml;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
-import com.surelogic.aast.*;
-import com.surelogic.annotation.*;
+import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.annotation.AbstractAnnotationParsingContext;
+import com.surelogic.annotation.AnnotationLocation;
+import com.surelogic.annotation.AnnotationSource;
+import com.surelogic.annotation.IAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
-import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
+import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
@@ -39,7 +46,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	private final boolean isReference;
 
 	public AnnotationElement(IJavaElement parent, final String id,
-			final String tag, String text, Map<String, String> a) {
+			final String tag, String text, final Map<String, String> a) {
 		if (parent != null) {
 			setParent(parent);
 		}
@@ -69,6 +76,15 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		contents = text == null ? "" : text.trim();
 
 		attrDefaults = AnnotationRules.getAttributes(promise);
+		/*
+		 * Handle "dirty" for backwards compatibility.
+		 */
+		final String obsoleteDirtyAttrb = "dirty";
+		final String value = a.get(obsoleteDirtyAttrb);
+		if (value != null) {
+			a.remove(obsoleteDirtyAttrb);
+			a.put(MODIFIED_BY_TOOL_USER_ATTRB, value);
+		}
 		attributes.putAll(a);
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
@@ -111,52 +127,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 	@Override
-	public boolean canModify() {
-		return !attrDefaults.isEmpty() && !ThreadEffectsRules.STARTS.equals(promise);
-	}
-
-	@Override
-	public boolean modify(String value, IErrorListener l) {
-		value = value.trim();
-
-		final int paren = value.indexOf('(');
-		String anno, text;
-		if (paren < 0) {
-			if (!isIdentifier(value)) {
-				// Ignore, since the promise type changed
-				//
-				// l.reportError("Annotation cannot be changed",
-				// "The promise type cannot be changed from "+promise+" to "+value);
-				return false;
-			}
-			anno = value;
-			text = "";
-		} else {
-			final int end;
-			if (!value.endsWith(")")) {
-				// Ignore, since the text doesn't have the right format?
-				/*
-				 * l.reportError("Bad annotation syntax",
-				 * "The annotation needs to use the general syntax:\n\tFoo()");
-				 * return;
-				 */
-				// Act as if it ended with ')'
-				end = value.length();
-			} else {
-				end = value.length() - 1;
-			}
-			anno = value.substring(0, paren).trim();
-			text = value.substring(paren + 1, end).trim();
-		}
-		/*
-		 * Ignore changes to the promise
-		 * 
-		 * if (!promise.equals(anno)) { // Ignore, since the promise type
-		 * changed l.reportError("Annotation cannot be changed",
-		 * "The promise type cannot be changed from "+promise+" to "+anno);
-		 * return; }
-		 */
-		return modifyContents(text);
+	public boolean isEditable() {
+		return !attrDefaults.isEmpty()
+				&& !ThreadEffectsRules.STARTS.equals(promise);
 	}
 
 	public boolean modifyContents(String text) {
@@ -175,15 +148,12 @@ public final class AnnotationElement extends AbstractJavaElement implements
 
 	public void markAsModified() {
 		super.markAsDirty();
-		attributes.put(DIRTY_ATTRB, "true");
+		attributes.put(MODIFIED_BY_TOOL_USER_ATTRB, "true");
 	}
 
-	/**
-	 * Only used below
-	 */
-	private void markAsUnmodified() {
+	public void markAsUnmodified() {
 		markAsClean();
-		attributes.remove(DIRTY_ATTRB);
+		attributes.remove(MODIFIED_BY_TOOL_USER_ATTRB);
 	}
 
 	private void updateModifiedStatus() {
@@ -210,13 +180,11 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (modified) {
 			markAsModified();
 		} else {
-			markAsUnmodified();
+			markAsClean();
+			attributes.remove(MODIFIED_BY_TOOL_USER_ATTRB);
 		}
 	}
 
-	/**
-	 * @return true if this was created and then deleted
-	 */
 	public boolean delete() {
 		markAsModified();
 		attributes.put(DELETE_ATTRB, "true");
@@ -236,7 +204,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		AnnotatedJavaElement parent = (AnnotatedJavaElement) getParent();
 		parent.removePromise(this);
 	}
-	
+
 	/**
 	 * @return true if the promise parses
 	 */
@@ -288,13 +256,15 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				// e.getMessage()+" at "+e.getStackTrace()[0]);
 			}
 		};
-		boolean ok = rule != null && rule.parse(context, text) == ParseResult.OK;
+		boolean ok = rule != null
+				&& rule.parse(context, text) == ParseResult.OK;
 		if (!ok && rule != null) {
-			System.out.print("Couldn't parse @"+promise+" "+text+" for "+context.getOp().name());
+			System.out.print("Couldn't parse @" + promise + " " + text
+					+ " for " + context.getOp().name());
 			if (getParent() == null) {
 				System.out.println();
 			} else {
-				System.out.println(" : "+getParent().getLabel());
+				System.out.println(" : " + getParent().getLabel());
 			}
 			rule.parse(context, text);
 		}
@@ -343,34 +313,14 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return old;
 	}
 
-	public int getRevision() {
-		String value = attributes.get(REVISION_ATTRB);
-		if (value != null) {
-			try {
-				return Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-		return 0;
-	}
-
 	@Override
 	public boolean isModified() {
-		return "true".equals(attributes.get(DIRTY_ATTRB)) || isToBeDeleted();
+		return "true".equals(attributes.get(MODIFIED_BY_TOOL_USER_ATTRB))
+				|| isToBeDeleted();
 	}
 
 	public boolean isToBeDeleted() {
 		return "true".equals(attributes.get(DELETE_ATTRB));
-	}
-
-	public void incrRevision() {
-		if (!isModified()) {
-			throw new IllegalStateException("Not dirty");
-		}
-		final int revision = getRevision();
-		attributes.remove(DIRTY_ATTRB);
-		attributes.put(REVISION_ATTRB, Integer.toString(revision + 1));
 	}
 
 	public String getLabel() {
@@ -386,7 +336,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				}
 				String value = attributes.get(attr.getName());
 				if (value != null) {
-					pairs.put(attr.getName(), attr.isTypeString() ? '"'+value+'"' : value);
+					pairs.put(attr.getName(),
+							attr.isTypeString() ? '"' + value + '"' : value);
 				}
 			}
 		}
@@ -410,7 +361,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				sb.append(", ");
 			}
 			sb.append(e.getKey());
-			sb.append('=');			
+			sb.append('=');
 			sb.append(e.getValue());
 		}
 		sb.append(')');
@@ -422,22 +373,20 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 	/*
-	final AnnotationElement merge(IJavaElement parent, AnnotationElement other, MergeType type) {
-		return merge(parent, this, other, type);
-	}
-	*/
+	 * final AnnotationElement merge(IJavaElement parent, AnnotationElement
+	 * other, MergeType type) { return merge(parent, this, other, type); }
+	 */
 
 	public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
 		AnnotationElement a = (AnnotationElement) other;
-		mergeThis(a, MergeType.MERGE);
 		stashDiffState(a);
 	}
 
 	@Override
 	public AnnotationElement cloneMe(IJavaElement parent) {
-		AnnotationElement clone = new AnnotationElement(parent, uid,
-				promise, contents, attributes);
+		AnnotationElement clone = new AnnotationElement(parent, uid, promise,
+				contents, attributes);
 		copyToClone(clone);
 		return clone;
 	}
@@ -490,16 +439,16 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 	void flushDiffState() {
-		attributes.remove(ORIG_CONTENTS);		
+		attributes.remove(ORIG_CONTENTS);
 		for (String a : attrDefaults.keySet()) {
 			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
 				continue;
 			}
 			final String origKey = ORIG_PREFIX + a;
-			attributes.remove(origKey);			
+			attributes.remove(origKey);
 		}
 	}
-	
+
 	void stashDiffState(AnnotationElement orig) {
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
 			attributes.put(ORIG_CONTENTS, orig.contents);
@@ -518,7 +467,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	public boolean canRevert() {
 		return isDirty() && attributes.containsKey(ORIG_CONTENTS);
 	}
-	
+
 	public void revert() {
 		if (!canRevert()) {
 			return;
@@ -542,7 +491,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		}
 		markAsUnmodified();
 	}
-	
+
 	public Map<String, Attribute> getAttributeDefaults() {
 		return attrDefaults;
 	}

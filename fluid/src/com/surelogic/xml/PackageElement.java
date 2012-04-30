@@ -12,54 +12,66 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
-	private int revision;
-	
-	public PackageElement(boolean confirmed, String id, int rev, ClassElement c) {
+	private int f_releaseVersion;
+
+	public PackageElement(boolean confirmed, String id, int releaseVersion,
+			ClassElement c) {
 		super(confirmed, id, Access.PUBLIC);
-		revision = rev;
+		f_releaseVersion = releaseVersion;
 		clazz = c;
 		if (clazz != null) {
 			c.setParent(this);
 		}
-	}	
+	}
 
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
-	
+
 	public boolean needsToUpdate(PackageElement other) {
 		if (other == null) {
 			return false;
 		}
-		return this.revision > other.revision;
+		return this.f_releaseVersion > other.f_releaseVersion;
 	}
-	
-	int getRevision() {
-		return revision;
+
+	@Override
+	public PackageElement getRootParent() {
+		return this;
 	}
-	
+
+	@Override
+	public int getReleaseVersion() {
+		return f_releaseVersion;
+	}
+
+	@Override
+	public void setReleaseVersion(int value) {
+		f_releaseVersion = value;
+	}
+
 	@Override
 	public Operator getOperator() {
 		return PackageDeclaration.prototype;
 	}
-	
+
 	public final String getImageKey() {
 		return CommonImages.IMG_PACKAGE;
 	}
-	
+
 	public final ClassElement getClassElement() {
 		return clazz;
 	}
 
 	public String getLabel() {
-		return "package "+getName();
+		return "package " + getName();
 	}
-	
+
 	@Override
 	public boolean hasChildren() {
 		return super.hasChildren() || clazz != null;
 	}
-	
+
 	@Override
 	protected void collectOtherChildren(List<Object> children) {
 		super.collectOtherChildren(children);
@@ -67,7 +79,7 @@ public class PackageElement extends AnnotatedJavaElement {
 			children.add(clazz);
 		}
 	}
-	
+
 	@Override
 	public boolean isDirty() {
 		if (clazz != null && clazz.isDirty()) {
@@ -75,6 +87,7 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 		return super.isDirty();
 	}
+
 	@Override
 	public boolean isModified() {
 		if (clazz != null && clazz.isModified()) {
@@ -82,7 +95,7 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 		return super.isModified();
 	}
-	
+
 	public void markAsClean() {
 		super.markAsClean();
 		if (clazz != null) {
@@ -93,62 +106,50 @@ public class PackageElement extends AnnotatedJavaElement {
 	/**
 	 * This is effectively the root, so we start merging the whole tree here
 	 * 
-	 * @param updateToClient if true; merge to fluid otherwise
+	 * @param updateToClient
+	 *            if true; merge to fluid otherwise
 	 */
-	PackageElement merge(PackageElement changed, boolean updateToClient) { 
+	PackageElement merge(PackageElement changed, boolean updateToClient) {
 		// Needs to sync if the versions are the same due to storing local diffs
 		/*
-		final boolean needsToSync = !updateToClient || this.revision < changed.revision;
-		if (!needsToSync) {
-			// Nothing to do, since I'm updating the client, and the revisions are the same
-			return this;
-		}
-		*/
-		final MergeType type = MergeType.get(updateToClient);
-		
+		 * final boolean needsToSync = !updateToClient || this.revision <
+		 * changed.revision; if (!needsToSync) { // Nothing to do, since I'm
+		 * updating the client, and the revisions are the same return this; }
+		 */
+		final MergeType type = updateToClient ? MergeType.JSURE_TO_LOCAL
+				: MergeType.LOCAL_TO_JSURE;
+
 		if (changed.getName().equals(getName())) {
 			if (clazz != null) {
 				if (changed.clazz == null) {
 					// One's a class, the other's a package
 					return null;
-				}			
-				final MergeResult<ClassElement> r = clazz.merge(changed.clazz, type);
+				}
+				final MergeResult<ClassElement> r = clazz.merge(changed.clazz,
+						type);
 				if (r.element != null) {
 					// Class merged, so continue merging
 					boolean modified = r.isModified;
-					modified |= mergeThis(changed, type);		
-					if (modified) {
-						updateRevision(changed, updateToClient);
-					}
+					modified |= mergeThis(changed, type);
 					return this;
 				}
 			} else if (changed.clazz == null) {
 				// neither has a class, so they're both package-info.java files
-				boolean modified = mergeThis(changed, type);								
-				if (modified) {
-					updateRevision(changed, updateToClient);
-				}
+				boolean modified = mergeThis(changed, type);
 				return this;
 			}
 		}
 		return null;
-	}	
-	
-	private void updateRevision(PackageElement changed, boolean updateToClient) { 
-		if (updateToClient) {
-			revision = Math.max(revision, changed.revision);
-		} else {
-			revision = Math.max(revision, changed.revision) + 1;
-		}
 	}
-	
+
 	@Override
 	public PackageElement cloneMe(IJavaElement parent) {
 		ClassElement cl = null;
 		if (clazz != null) {
 			cl = clazz.cloneMe(null);
 		}
-		PackageElement e = new PackageElement(isConfirmed(), getName(), revision, cl);
+		PackageElement e = new PackageElement(isConfirmed(), getName(),
+				f_releaseVersion, cl);
 		copyToClone(e);
 		return e;
 	}
@@ -159,7 +160,8 @@ public class PackageElement extends AnnotatedJavaElement {
 			if (clazz != null) {
 				c = clazz.copyIfDirty();
 			}
-			PackageElement p = new PackageElement(isConfirmed(), getName(), revision, c);
+			PackageElement p = new PackageElement(isConfirmed(), getName(),
+					f_releaseVersion, c);
 			copyIfDirty(p);
 			return p;
 		}

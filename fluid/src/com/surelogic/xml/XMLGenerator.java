@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/xml/XMLGenerator.java,v 1.18 2007/09/17 18:59:29 chance Exp $*/
 package com.surelogic.xml;
 
 import java.io.BufferedWriter;
@@ -289,7 +288,7 @@ public class XMLGenerator
 		return s.toString();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static String generatePromises(IRNode node, Operator op, String space) {
 		/** NOTE: <promise> tags to identify a "promise field" are depreciated */ 
 		final Iterator<TokenInfo> tokenInfos = 
