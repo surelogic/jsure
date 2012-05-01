@@ -140,6 +140,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 			// TODO what about attached stuff?
 			return updated;
 		} else if (t == MergeType.JSURE_TO_LOCAL) { // to client
+			if (me.isModified()) {
+				me.mergeAttached(other);
+				return me; // Conflict, so keep my changes
+			}
 			// Use other, since the other's a newer revision
 			// TODO what about attached stuff?
 			return (T) other.cloneMe(parent);
@@ -168,15 +172,19 @@ abstract class AbstractJavaElement implements IJavaElement {
 		// MERGE = take explicitly marked mods/deletes from other into orig
 		if (type == MergeType.LOCAL_TO_JSURE) {
 			if (other.isEmpty()) {
-				return false; // Nothing to do, since there aren't any marked
-								// changes
+				/*
+				 * Nothing to do, since there aren't any marked changes.
+				 */
+				return false;
 			}
 		}
 		// UPDATE = take (implicit) changes from other unless there's a conflict
 		else if (type == MergeType.JSURE_TO_LOCAL) {
 			if (orig.isEmpty()) {
-				// Take everything in the other, since there's nothing to
-				// conflict with
+				/*
+				 * Take everything in the other, since there's nothing to
+				 * conflict with.
+				 */
 				copyList(parent, other, orig);
 				return false;
 			}

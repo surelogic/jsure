@@ -372,11 +372,6 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return CommonImages.IMG_ANNOTATION;
 	}
 
-	/*
-	 * final AnnotationElement merge(IJavaElement parent, AnnotationElement
-	 * other, MergeType type) { return merge(parent, this, other, type); }
-	 */
-
 	public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
 		AnnotationElement a = (AnnotationElement) other;
@@ -413,13 +408,13 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				+ Integer.toHexString(super.hashCode());
 	}
 
-	AnnotationElement createRef() {
-		// TODO make factory method?
+	protected AnnotationElement createRef() {
 		return new AnnotationElement(null, uid, promise + REF_SUFFIX, contents,
 				Collections.<String, String> emptyMap());
 	}
 
-	int applyPromise(final AnnotationVisitor v, final IRNode annotatedNode) {
+	protected int applyPromise(final AnnotationVisitor v,
+			final IRNode annotatedNode) {
 		if (isBad || isToBeDeleted()) {
 			return 0;
 		}
@@ -438,7 +433,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return added ? 1 : 0;
 	}
 
-	void flushDiffState() {
+	protected void flushDiffState() {
 		attributes.remove(ORIG_CONTENTS);
 		for (String a : attrDefaults.keySet()) {
 			if (AnnotationConstants.VALUE_ATTR.equals(a)) {
@@ -449,7 +444,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		}
 	}
 
-	void stashDiffState(AnnotationElement orig) {
+	protected void stashDiffState(AnnotationElement orig) {
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
 			attributes.put(ORIG_CONTENTS, orig.contents);
 		}
