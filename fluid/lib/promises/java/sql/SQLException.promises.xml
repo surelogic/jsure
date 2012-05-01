@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.sql" revision="0">
+<package name="java.sql" release="1">
     <class name="SQLException">
         <method name="iterator">
-            <Borrowed allowReturn="true" revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes this:Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

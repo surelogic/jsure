@@ -1,62 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="LinkedHashMap">
-        <NotThreadSafe revision="1"/>
+        <NotThreadSafe/>
         <constructor>
-            <RegionEffects revision="2">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int">
-            <RegionEffects revision="2">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int, float">
-            <RegionEffects revision="2">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int, float, boolean">
-            <RegionEffects revision="2">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="java.util.Map">
-            <RegionEffects revision="2">reads any():Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
         </constructor>
 
         <method name="clear">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="4">writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="containsValue" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="3"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="get" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="3"/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>

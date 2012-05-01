@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="2">
     <class name="SortedMap">
         <method name="comparator">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="entrySet">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="firstKey">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="headMap" params="java.lang.Object">
-            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="keySet">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="lastKey">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="subMap" params="java.lang.Object, java.lang.Object">
-            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="tailMap" params="java.lang.Object">
-            <RegionEffects revision="7">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="values">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

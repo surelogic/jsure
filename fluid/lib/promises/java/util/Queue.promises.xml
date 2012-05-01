@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" release="2">
     <class name="Queue">
         <method name="add" params="java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="element">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="offer" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="peek">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="poll">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="remove">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

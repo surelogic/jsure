@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic" revision="1">
+<package name="java.util.concurrent.atomic" release="3">
     <class name="AtomicLong">
         <Promise uid="25247a32-dbd2-420f-84b2-e0578cd5fbcd">@Starts(nothing) for *And*(**)</Promise>
         <Promise uid="a9f00e8c-abe1-4e92-b43c-753e4c5f6ee7">@RegionEffects(writes this:Instance) for *And*(**)</Promise>
         <Promise uid="de33d629-bff1-4b5b-8122-49f103d77276">@Borrowed(this) for *And*(**)</Promise>
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
         <constructor>
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>

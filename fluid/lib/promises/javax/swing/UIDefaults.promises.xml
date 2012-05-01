@@ -1,338 +1,338 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.swing" revision="2">
+<package name="javax.swing" release="3">
     <class name="UIDefaults">
-        <ThreadSafe revision="2"/>
+        <ThreadSafe/>
         <constructor>
-            <RegionEffects revision="3">none</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int, float">
-            <RegionEffects revision="3">none</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="java.lang.Object[]">
-            <RegionEffects revision="3">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="3">return</Unique>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="3"/>
+                <Borrowed/>
             </parameter>
         </constructor>
 
         <method name="addPropertyChangeListener" params="java.beans.PropertyChangeListener">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="addResourceBundle" params="java.lang.String">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="get" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getBoolean" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getBoolean" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getBorder" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getBorder" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getColor" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getColor" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getDefaultLocale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="getDimension" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getDimension" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getFont" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getFont" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getIcon" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getIcon" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getInsets" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getInsets" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getInt" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getInt" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getPropertyChangeListeners">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="getString" params="java.lang.Object">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getString" params="java.lang.Object, java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getUI" params="javax.swing.JComponent">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getUIClass" params="java.lang.String">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="getUIClass" params="java.lang.String, java.lang.ClassLoader">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="4"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="putDefaults" params="java.lang.Object[]">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="removePropertyChangeListener" params="java.beans.PropertyChangeListener">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="removeResourceBundle" params="java.lang.String">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="setDefaultLocale" params="java.util.Locale">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

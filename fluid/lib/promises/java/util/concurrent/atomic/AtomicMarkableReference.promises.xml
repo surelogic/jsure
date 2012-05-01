@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic" revision="0">
+<package name="java.util.concurrent.atomic" release="2">
     <class name="AtomicMarkableReference">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
     </class>
 </package>

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.security.jca">
+<package name="sun.security.jca" release="1">
     <class name="ProviderList">
-    	<class name="ServiceList">
-        	<method name="isEmpty">
-            	<Borrowed>this</Borrowed>
-        	</method>
+        <class name="ServiceList">
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
 
-        	<method name="iterator">
-              <Borrowed allowReturn="true">this</Borrowed>
-              <RegionEffects>writes this:Instance</RegionEffects>
-              <Unique>return</Unique>
-        	</method>    	
-    	</class>
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+        </class>
     </class>
 </package>

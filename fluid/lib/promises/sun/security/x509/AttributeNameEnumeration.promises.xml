@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.security.x509" revision="0">
+<package name="sun.security.x509" release="1">
     <class name="AttributeNameEnumeration">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
         <constructor>
-            <RegionEffects revision="1">none</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
     </class>
 </package>

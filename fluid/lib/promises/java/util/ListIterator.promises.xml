@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" release="1">
     <class name="ListIterator">
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+
         <method name="hasNext">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="hasPrevious">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
@@ -12,7 +22,7 @@
             <RegionEffects>writes Instance</RegionEffects>
         </method>
 
-        <method name="hasPrevious">
+        <method name="nextIndex">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
         </method>
@@ -20,11 +30,6 @@
         <method name="previous">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
-        </method>
-
-        <method name="nextIndex">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="previousIndex">
@@ -38,11 +43,6 @@
         </method>
 
         <method name="set" params="java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
-        </method>
-
-        <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes this:Instance</RegionEffects>
         </method>

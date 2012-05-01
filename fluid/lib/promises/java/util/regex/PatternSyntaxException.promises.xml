@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.regex" revision="0">
+<package name="java.util.regex" release="1">
     <class name="PatternSyntaxException">
         <constructor params="java.lang.String, java.lang.String, int">
-            <RegionEffects revision="3">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <method name="getDescription">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="getIndex">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="getMessage">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="getPattern">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

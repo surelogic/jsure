@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="0">
+<package name="java.util.concurrent" release="2">
     <class name="ConcurrentMap">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
         <method name="putIfAbsent" params="java.lang.Object, java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object, java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="replace" params="java.lang.Object, java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="replace" params="java.lang.Object, java.lang.Object, java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>

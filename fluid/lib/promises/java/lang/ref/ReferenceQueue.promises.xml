@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang.ref">
+<package name="java.lang.ref" release="1">
     <class name="ReferenceQueue">
         <method name="poll">
             <RegionEffects>writes Instance</RegionEffects>

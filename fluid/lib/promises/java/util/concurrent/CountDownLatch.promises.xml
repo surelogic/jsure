@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="0">
+<package name="java.util.concurrent" release="1">
     <class name="CountDownLatch">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
     </class>
 </package>

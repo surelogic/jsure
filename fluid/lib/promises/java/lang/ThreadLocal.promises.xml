@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" release="1">
     <class name="ThreadLocal">
         <SelfProtected/>
     </class>

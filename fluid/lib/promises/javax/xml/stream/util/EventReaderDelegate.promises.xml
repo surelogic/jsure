@@ -1,68 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.xml.stream.util" revision="0">
+<package name="javax.xml.stream.util" release="1">
     <class name="EventReaderDelegate">
         <constructor>
-            <RegionEffects revision="1">none</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="javax.xml.stream.XMLEventReader">
-            <RegionEffects revision="1">none</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <method name="close">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="getElementText">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="getProperty" params="java.lang.String">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="hasNext">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="next">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="nextEvent">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="nextTag">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="peek">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="remove">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="setParent" params="javax.xml.stream.XMLEventReader">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

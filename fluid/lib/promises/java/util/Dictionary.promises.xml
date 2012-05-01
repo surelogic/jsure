@@ -1,62 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="Dictionary">
-        <Immutable implementationOnly="true" revision="1"/>
+        <Immutable implementationOnly="true"/>
         <constructor>
-            <RegionEffects revision="2">none</RegionEffects>
-            <Starts revision="2">nothing</Starts>
-            <Unique revision="2">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <method name="elements">
-            <Borrowed allowReturn="true" revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="3">return</Unique>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="get" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="3"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="isEmpty">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="4">reads Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="keys">
-            <Borrowed allowReturn="true" revision="3">this</Borrowed>
-            <RegionEffects revision="5">reads Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="3">return</Unique>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="put" params="java.lang.Object, java.lang.Object">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="2">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="2">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="3"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="size">
-            <Borrowed revision="2">this</Borrowed>
-            <RegionEffects revision="3">reads Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

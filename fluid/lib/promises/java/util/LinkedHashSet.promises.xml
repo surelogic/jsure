@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="LinkedHashSet">
-        <NotThreadSafe revision="1"/>
+        <NotThreadSafe/>
         <constructor>
-            <RegionEffects revision="4">none</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="4">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int">
-            <RegionEffects revision="4">none</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="4">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="int, float">
-            <RegionEffects revision="4">none</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="4">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </constructor>
 
         <constructor params="java.util.Collection">
-            <RegionEffects revision="4">reads any():Instance</RegionEffects>
-            <Starts revision="4">nothing</Starts>
-            <Unique revision="4">return</Unique>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="2"/>
+                <Borrowed/>
             </parameter>
         </constructor>
     </class>

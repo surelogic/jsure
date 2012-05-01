@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" revision="2">
+<package name="java.lang" release="4">
     <class name="Math">
-        <Promise revision="1" uid="7e18ad06-3783-4875-b8d1-9b471069f51c">@RegionEffects(none) for *(**)</Promise>
-        <method name="max" params="long,long">
-        </method>
-
-        <method name="min" params="long,long">
-        </method>
+        <Promise uid="7e18ad06-3783-4875-b8d1-9b471069f51c">@RegionEffects(none) for *(**)</Promise>
     </class>
 </package>

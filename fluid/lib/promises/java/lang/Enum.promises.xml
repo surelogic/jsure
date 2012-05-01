@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" release="1">
     <class name="Enum">
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
         <ThreadSafe implementationOnly="true"/>
-        <constructor params="java.lang.String,int">
+        <constructor params="java.lang.String, int">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>

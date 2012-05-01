@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.security.jgss" revision="0">
+<package name="sun.security.jgss" release="1">
     <class name="SunProvider">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
     </class>
 </package>

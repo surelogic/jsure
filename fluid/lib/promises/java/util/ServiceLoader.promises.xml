@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="ServiceLoader">
         <method name="iterator">
-            <Borrowed allowReturn="true" revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes this:Instance</RegionEffects>
-            <Unique revision="1">return</Unique>
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

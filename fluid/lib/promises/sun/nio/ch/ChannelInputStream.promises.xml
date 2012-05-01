@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="sun.nio.ch">
+<package name="sun.nio.ch" release="1">
     <class name="ChannelInputStream">
-        <method name="read" params="byte[],int,int">
+        <method name="read" params="byte[], int, int">
             <parameter index="0">
                 <Borrowed/>
             </parameter>

@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.logging">
+<package name="java.util.logging" release="1">
     <class name="FileHandler">
-    	<class name="MeteredStream">
-        	<method name="write" params="byte[],int,int">
-            	<RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
-            	<parameter index="0">
-                	<Borrowed/>
-            	</parameter>
-            	<!--starts>nothing</starts-->
-        	</method>    	
-    	</class>
+        <class name="MeteredStream">
+            <method name="write" params="byte[], int, int">
+                <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
+                <parameter index="0">
+                    <Borrowed/>
+                </parameter>
+            </method>
+        </class>
     </class>
 </package>

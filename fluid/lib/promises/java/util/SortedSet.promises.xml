@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="SortedSet">
         <method name="comparator">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="first">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="6">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="headSet" params="java.lang.Object">
-            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="last">
-            <Borrowed revision="3">this</Borrowed>
-            <RegionEffects revision="6">reads any():Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="subSet" params="java.lang.Object, java.lang.Object">
-            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="tailSet" params="java.lang.Object">
-            <RegionEffects revision="6">reads any():Instance; writes Instance</RegionEffects>
-            <Starts revision="3">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" release="1">
     <class name="System">
-        <method name="arraycopy" params="java.lang.Object,int,java.lang.Object,int,int">
+        <method name="arraycopy" params="java.lang.Object, int, java.lang.Object, int, int">
             <RegionEffects>reads arg0:Instance; writes arg2:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">

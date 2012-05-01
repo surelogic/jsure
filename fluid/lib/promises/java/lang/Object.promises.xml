@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" release="1">
     <class name="Object">
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
@@ -9,38 +9,18 @@
         <Region uid="463eb068-86c4-48eb-97e5-ae306fe4f509">public WaitQueue</Region>
         <RegionLock uid="88cca40d-18b8-43f2-b7f6-64ec7eb3934f">MUTEX is this protects WaitQueue</RegionLock>
         <ThreadSafe implementationOnly="true"/>
-        <!-- promise>@Borrowed(this) for *(**)</promise -->
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
 
-        <!--method name="clone">
-   <borrowed>this</borrowed>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method-->
-        <!--method params="java.lang.Object" name="equals">
-   <effects>reads this.Instance</effects>
-   <effects>reads arg0.Instance</effects>
-   <starts>nothing</starts>
-  </method-->
-        <!--method name="finalize">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method-->
         <method name="getClass">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <!--method name="hashCode">
-   <borrowed>this</borrowed>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method-->
         <method name="notify">
             <RegionEffects>none</RegionEffects>
             <RequiresLock>MUTEX</RequiresLock>
@@ -53,10 +33,6 @@
             <Starts>nothing</Starts>
         </method>
 
-        <!--method name="toString">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method-->
         <method name="wait">
             <RegionEffects>none</RegionEffects>
             <RequiresLock>MUTEX</RequiresLock>
@@ -69,7 +45,7 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="wait" params="long,int">
+        <method name="wait" params="long, int">
             <RegionEffects>none</RegionEffects>
             <RequiresLock>MUTEX</RequiresLock>
             <Starts>nothing</Starts>

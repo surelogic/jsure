@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent">
+<package name="java.util.concurrent" release="1">
     <class name="TimeUnit">
         <ThreadSafe/>
     </class>

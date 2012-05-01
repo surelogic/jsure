@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util">
+<package name="java.util" release="1">
     <class name="NoSuchElementException">
         <constructor>
             <RegionEffects>none</RegionEffects>

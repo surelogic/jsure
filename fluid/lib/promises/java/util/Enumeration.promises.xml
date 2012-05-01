@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="2">
     <class name="Enumeration">
         <method name="hasMoreElements">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="nextElement">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
     </class>
 </package>

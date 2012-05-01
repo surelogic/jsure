@@ -1,71 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="1">
+<package name="java.util" release="2">
     <class name="Arrays">
-        <method name="copyOf" params="boolean[],int">
+        <method name="copyOf" params="boolean[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="byte[],int">
+        <method name="copyOf" params="byte[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="char[],int">
+        <method name="copyOf" params="char[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="double[],int">
+        <method name="copyOf" params="double[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="float[],int">
+        <method name="copyOf" params="float[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="int[],int">
+        <method name="copyOf" params="int[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="java.lang.Object[],int">
+        <method name="copyOf" params="java.lang.Object[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="java.lang.Object[],int,java.lang.Class">
+        <method name="copyOf" params="java.lang.Object[], int, java.lang.Class">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="long[],int">
+        <method name="copyOf" params="long[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
         </method>
 
-        <method name="copyOf" params="short[],int">
+        <method name="copyOf" params="short[], int">
             <RegionEffects>reads arg0:Instance</RegionEffects>
             <parameter index="0">
                 <Borrowed/>
@@ -74,8 +74,8 @@
 
         <class name="ArrayList">
             <method name="get" params="int">
-                <Borrowed revision="1">this</Borrowed>
-                <RegionEffects revision="1">reads this:Instance</RegionEffects>
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads this:Instance</RegionEffects>
             </method>
 
             <method name="size">

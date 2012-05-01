@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" revision="2">
+<package name="java.lang" release="3">
     <class name="String">
         <Immutable/>
-        <Promise revision="1" uid="534ada90-0f0b-43a5-b17a-21337ecb62c2">@RegionEffects(none) for static *(**) | new(**)</Promise>
-        <Promise revision="1" uid="6e7c732f-e7f2-4b66-b41c-39171fd750a3">@RegionEffects(reads Instance) for !static *(**)</Promise>
-        <Promise revision="1" uid="36dfaf15-f8c4-4080-8902-0801fbf21a1e">@Unique(return) for (static *(**) &amp; !(indexOf(**)) &amp; !(lastIndexOf(**))) | new(**)</Promise>
-        <Promise revision="1" uid="d76dc0d5-08b9-413a-9698-de678dbd9866">@Starts(nothing) for **(**)</Promise>
+        <Promise uid="534ada90-0f0b-43a5-b17a-21337ecb62c2">@RegionEffects(none) for static *(**) | new(**)</Promise>
+        <Promise uid="6e7c732f-e7f2-4b66-b41c-39171fd750a3">@RegionEffects(reads Instance) for !static *(**)</Promise>
+        <Promise uid="36dfaf15-f8c4-4080-8902-0801fbf21a1e">@Unique(return) for (static *(**) &amp; !(indexOf(**)) &amp; !(lastIndexOf(**))) | new(**)</Promise>
+        <Promise uid="d76dc0d5-08b9-413a-9698-de678dbd9866">@Starts(nothing) for **(**)</Promise>
         <method name="concat" params="java.lang.String">
             <Unique>return</Unique>
-        </method>
-
-        <method name="length">
-        </method>
-
-        <method name="valueOf" params="java.lang.Object">
         </method>
     </class>
 </package>

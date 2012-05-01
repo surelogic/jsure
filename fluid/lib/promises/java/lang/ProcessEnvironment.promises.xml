@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang">
+<package name="java.lang" release="1">
     <class name="ProcessEnvironment">
         <method name="clear">
             <Borrowed>this</Borrowed>
@@ -18,7 +18,7 @@
             <Borrowed>this</Borrowed>
         </method>
 
-        <method name="put" params="java.lang.Object,java.lang.Object">
+        <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
         </method>
 
@@ -33,41 +33,41 @@
         <method name="values">
             <Borrowed>this</Borrowed>
         </method>
-        
+
         <class name="CheckedEntrySet">
-        	<method name="isEmpty">
-        		<Borrowed>this</Borrowed>
-        	</method>
-        	
-        	<method name="iterator">	
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
-            <Unique>return</Unique>
-        	</method>
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
         </class>
-        
+
         <class name="CheckedKeySet">
-        	<method name="isEmpty">
-        		<Borrowed>this</Borrowed>
-        	</method>
-        	
-        	<method name="iterator">	
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
-            <Unique>return</Unique>
-        	</method>        
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
         </class>
-        
+
         <class name="CheckedValues">
-        	<method name="isEmpty">
-        		<Borrowed>this</Borrowed>
-        	</method>
-        	
-        	<method name="iterator">	
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
-            <Unique>return</Unique>
-        	</method>
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
         </class>
     </class>
 </package>

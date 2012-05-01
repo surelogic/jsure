@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.logging">
+<package name="java.util.logging" release="1">
     <class name="Logger">
         <method name="fine" params="java.lang.String">
             <Borrowed>this</Borrowed>
@@ -17,7 +17,7 @@
             <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
         </method>
 
-        <method name="log" params="java.util.logging.Level,java.lang.String,java.lang.Throwable">
+        <method name="log" params="java.util.logging.Level, java.lang.String, java.lang.Throwable">
             <Borrowed>this</Borrowed>
             <RegionEffects>
 reads arg0:Instance, arg1:Instance, arg2:Instance; 

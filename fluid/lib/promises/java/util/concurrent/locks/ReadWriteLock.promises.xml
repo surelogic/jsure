@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.locks">
+<package name="java.util.concurrent.locks" release="1">
     <class name="ReadWriteLock">
         <ThreadSafe/>
         <method name="readLock">

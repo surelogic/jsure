@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="Collections">
-        <Utility revision="1"/>
+        <Utility/>
         <method name="addAll" params="java.util.Collection, java.lang.Object[]">
-            <RegionEffects revision="1">reads any():Instance; writes arg0:Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <RegionEffects>reads any():Instance; writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="asLifoQueue" params="java.util.Deque">
-            <RegionEffects revision="1">none</RegionEffects>
-            <Starts revision="1">nothing</Starts>
-            <Unique revision="1">return</Unique>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="binarySearch" params="java.util.List, java.lang.Object">
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
 
         <method name="binarySearch" params="java.util.List, java.lang.Object, java.util.Comparator">
-            <RegionEffects revision="1">reads any():Instance</RegionEffects>
-            <Starts revision="1">nothing</Starts>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="1">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="2">
-                <Borrowed revision="1"/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>

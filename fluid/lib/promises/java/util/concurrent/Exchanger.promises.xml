@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" revision="1">
+<package name="java.util.concurrent" release="3">
     <class name="Exchanger">
-        <ThreadSafe revision="1"/>
+        <ThreadSafe/>
         <class name="Node">
             <ThreadSafe/>
         </class>

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" revision="0">
+<package name="java.util" release="1">
     <class name="Scanner">
         <method name="hasNext">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="1">reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
         </method>
 
         <method name="next">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="remove">
-            <Borrowed revision="1">this</Borrowed>
-            <RegionEffects revision="3">writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
     </class>
 </package>
