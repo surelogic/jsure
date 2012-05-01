@@ -277,7 +277,8 @@ public class XMLExplorerView extends AbstractJSureView {
 				final Filterable t = (Filterable) o;
 				manager.add(new Separator());
 				if (t.hasLocal()) {
-					manager.add(new Action("Merge Changes to JSure") {
+					manager.add(new Action(
+							"Publish Changes to JSure For Release") {
 						@Override
 						public void run() {
 							PromisesLibMerge.mergeLocalToJSure(t.getPath());
@@ -286,7 +287,8 @@ public class XMLExplorerView extends AbstractJSureView {
 						}
 					});
 				}
-				manager.add(new Action("Rewrite File to JSure") {
+				manager.add(new Action(
+						"Rewrite JSure File (to update file format)") {
 					@Override
 					public void run() {
 						PromisesLibMerge.rewriteJSure(t.getPath());
