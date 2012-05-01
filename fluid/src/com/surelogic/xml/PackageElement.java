@@ -116,15 +116,14 @@ public class PackageElement extends AnnotatedJavaElement {
 
 		if (clazz == null && other.clazz == null) {
 			// neither has a class, so they're both 'package-info.java' files
-			boolean modified = mergeThis(other, typeOfMerge);
+			mergeThis(other, typeOfMerge);
 			return; // done
 		} else if (clazz != null && other.clazz != null) {
 			final MergeResult<ClassElement> r = clazz.merge(other.clazz,
 					typeOfMerge);
 			if (r.element != null) {
 				// Class merged, so continue merging
-				boolean modified = r.isModified;
-				modified |= mergeThis(other, typeOfMerge);
+				mergeThis(other, typeOfMerge);
 				return; // done
 			} else
 				throw new IllegalArgumentException(I18N.err(242, getName(),
