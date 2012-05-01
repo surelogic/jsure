@@ -69,7 +69,6 @@ abstract class AbstractJavaElement implements IJavaElement {
 		isDirty = false;
 	}
 
-	@Override
 	public PackageElement getRootParent() {
 		final IJavaElement e = getParent();
 		if (e instanceof PackageElement) {
@@ -84,19 +83,16 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 	}
 
-	@Override
 	public int getReleaseVersion() {
 		final PackageElement e = getRootParent();
 		return e.getReleaseVersion();
 	}
 
-	@Override
 	public void setReleaseVersion(int value) {
 		final PackageElement e = getRootParent();
 		e.setReleaseVersion(value);
 	}
 
-	@Override
 	public final void incrementReleaseVersion() {
 		setReleaseVersion(getReleaseVersion() + 1);
 	}
@@ -206,7 +202,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			} else {
 				o2 = other.get(i2);
 			}
-			T syncd = (T) merge(parent, o0, o2, type);
+			T syncd = merge(parent, o0, o2, type);
 			if (syncd != e) {
 				baseline.set(i, syncd);
 				changed = true;
