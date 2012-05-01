@@ -28,6 +28,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -66,27 +67,30 @@ public final class ProposedPromiseContentProvider extends
 		List<IProposedPromiseDropInfo> proposedPromiseDrops = ProposedPromiseDrop
 				.filterOutDuplicates(info
 						.<IProposedPromiseDropInfo, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
-		final boolean filter = EclipseUtility
+		final boolean showAbductiveOnly = EclipseUtility
 				.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
-		if (filter) {
-			final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops
-					.iterator();
-			while (it.hasNext()) {
-				IProposedPromiseDropInfo p = it.next();
+
+		final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops
+				.iterator();
+		while (it.hasNext()) {
+			IProposedPromiseDropInfo p = it.next();
+			boolean remove = false;
+			if (showAbductiveOnly) {
 				if (!p.isAbductivelyInferred())
 					it.remove();
 			}
+			final String resource = getResource(p);
+			/*
+			 * We filter results based upon the resource.
+			 */
+			if (!ModelingProblemFilterUtility.showResource(resource))
+				remove = true;
+
+			if (remove)
+				it.remove();
 		}
 		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
-				// TODO omit annotations on implicitly created methods in enums?
-				/*
-				 * if (id.getSrcRef() == null) {
-				 * System.out.println("Got proposal on "
-				 * +DebugUnparser.toString(id.getNode())+" in "+
-				 * JavaNames.getFullTypeName
-				 * (VisitUtil.getEnclosingType(id.getNode()))); }
-				 */
 				contents.add(id);
 			}
 		}
@@ -217,7 +221,8 @@ public final class ProposedPromiseContentProvider extends
 
 	static class Package extends AbstractTreeable<Type> {
 		Package(String p, Collection<IProposedPromiseDropInfo> drops) {
-			super("".equals(p) ? SLUtility.JAVA_DEFAULT_PACKAGE : p, Type.organize(drops));
+			super("".equals(p) ? SLUtility.JAVA_DEFAULT_PACKAGE : p, Type
+					.organize(drops));
 		}
 
 		@Override

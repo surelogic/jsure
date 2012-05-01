@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<package name="sun.security.rsa" release="1">
-    <class name="SunRsaSign">
-        <ThreadSafe/>
-    </class>
-</package>

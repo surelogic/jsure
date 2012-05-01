@@ -18,7 +18,7 @@ public final class ModelingProblemFilterUtility {
 	 * newlines ('\n').
 	 */
 	public static final List<String> DEFAULT = Arrays.asList("com\\.sun.*",
-			".*\\.internal.*", ".*BakedArrayList\\.class");
+			"sun\\..*", ".*\\.internal.*", ".*BakedArrayList\\.class");
 
 	public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 

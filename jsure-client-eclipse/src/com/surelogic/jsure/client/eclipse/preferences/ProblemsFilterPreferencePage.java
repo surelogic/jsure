@@ -6,7 +6,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -36,6 +35,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.dialogs.AddModelingProblemFilterDialog;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
+import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -194,18 +194,32 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				IViewPart vp = EclipseUIUtility.getView(ProblemsView.class
 						.getName());
-				if (vp == null)
-					return Status.OK_STATUS; // the view is not open
-
-				if (vp instanceof ProblemsView) {
-					final ProblemsView view = (ProblemsView) vp;
-					view.currentScanChanged(JSureDataDirHub.getInstance()
-							.getCurrentScan());
-				} else {
-					final int no = 236;
-					return SLEclipseStatusUtility.createErrorStatus(no,
-							I18N.err(no, vp));
+				if (vp != null) {
+					if (vp instanceof ProblemsView) {
+						final ProblemsView view = (ProblemsView) vp;
+						view.currentScanChanged(JSureDataDirHub.getInstance()
+								.getCurrentScan());
+					} else {
+						final int no = 236;
+						return SLEclipseStatusUtility.createErrorStatus(no,
+								I18N.err(no, vp));
+					}
 				}
+
+				IViewPart pp = EclipseUIUtility
+						.getView(ProposedPromiseView.class.getName());
+				if (pp != null) {
+					if (pp instanceof ProposedPromiseView) {
+						final ProposedPromiseView view = (ProposedPromiseView) pp;
+						view.currentScanChanged(JSureDataDirHub.getInstance()
+								.getCurrentScan());
+					} else {
+						final int no = 236;
+						return SLEclipseStatusUtility.createErrorStatus(no,
+								I18N.err(no, pp));
+					}
+				}
+
 				return Status.OK_STATUS;
 			}
 		};
