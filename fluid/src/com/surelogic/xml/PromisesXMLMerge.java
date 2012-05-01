@@ -24,8 +24,8 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	public static void mergeLocalXMLIntoJSureXML(File local, File jsure) {
 		SLLogger.getLogger().log(
 				Level.INFO,
-				"mergeLocalXMLIntoJSureXML(local-> " + local + ", jsure->"
-						+ jsure);
+				"mergeLocalXMLIntoJSureXML(local promises -> " + local
+						+ ", jsure promises -> " + jsure);
 
 		boolean precondition = local.isFile() && local.exists();
 		if (!precondition)
@@ -96,7 +96,8 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	 *            <tt>false</tt> if it should not be changed.
 	 */
 	public static void rewriteJSureXML(File jsure, boolean incrementVersion) {
-		SLLogger.getLogger().log(Level.INFO, "rewriteJSureXML(jsure->" + jsure);
+		SLLogger.getLogger().log(Level.INFO,
+				"rewriteJSureXML(jsure promises -> " + jsure);
 
 		boolean precondition = jsure.isFile() && jsure.exists();
 		if (!precondition)
@@ -137,10 +138,6 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	 *            a release promises XML file.
 	 */
 	public static void mergeJSureXMLIntoLocalXML(File local, File jsure) {
-		SLLogger.getLogger().log(
-				Level.INFO,
-				"mergeJSureXMLIntoLocalXML(local-> " + local + ", jsure->"
-						+ jsure);
 
 		boolean precondition = jsure.isFile() && jsure.exists()
 				&& local.isFile() && local.exists();
@@ -165,12 +162,21 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			 * We only need to process the local file if the release file has a
 			 * higher version number.
 			 */
-			if (jsurePE.getReleaseVersion() > localPE.getReleaseVersion()) {
+			final int jsureRelVer = jsurePE.getReleaseVersion();
+			final int localRelVer = localPE.getReleaseVersion();
+			if (jsureRelVer > localRelVer) {
+				SLLogger.getLogger().log(
+						Level.INFO,
+						"mergeJSureXMLIntoLocalXML(local promises -> " + local
+								+ "(version=" + localRelVer
+								+ "), jsure promises -> " + jsure + "(version="
+								+ jsureRelVer + ")");
+
 				localPE.mergeDeep(jsurePE, MergeType.JSURE_TO_LOCAL);
 				final PackageElement merged = generateDiff(localPE);
 
 				// Set the diff version to the same as the release file
-				merged.setReleaseVersion(jsurePE.getReleaseVersion());
+				merged.setReleaseVersion(jsureRelVer);
 
 				PromisesXMLWriter w = new PromisesXMLWriter(local);
 				w.write(merged);
