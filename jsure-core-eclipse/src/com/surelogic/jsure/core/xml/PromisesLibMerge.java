@@ -45,7 +45,19 @@ public final class PromisesLibMerge {
 				mergeJSureToLocalHelper(f, new File(jsure, f.getName()));
 			}
 		} else {
-			PromisesXMLMerge.mergeJSureXMLIntoLocalXML(local, jsure);
+			/*
+			 * A bug could leave 0 byte diff files. We can protect against this
+			 * by checking for this here.
+			 */
+			if (local.exists() && local.length() > 0) {
+				PromisesXMLMerge.mergeJSureXMLIntoLocalXML(local, jsure);
+			} else {
+				final boolean result = local.delete();
+				SLLogger.getLogger().log(
+						result ? Level.WARNING : Level.SEVERE,
+						I18N.err(247, local, result ? "deleted successfully"
+								: "delete failed"), new Exception());
+			}
 		}
 	}
 

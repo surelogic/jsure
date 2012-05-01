@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -28,6 +29,8 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
@@ -350,16 +353,17 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			if (e.isBad()) {
 				return colorForBadSyntax;
 			}
-			/*
-			 * if (e.isModified()) { return colorForModified; }
-			 */
 		}
 		return null;
 	}
 
 	void deleteAllChanges() {
 		File local = new File(localXML);
-		local.delete();
+		final boolean result = local.delete();
+		if (!result) {
+			SLLogger.getLogger().log(Level.SEVERE, I18N.err(246, local),
+					new Exception());
+		}
 		deleteUnsavedChanges(false);
 		build(true);
 		PromisesXMLReader.refreshAll();

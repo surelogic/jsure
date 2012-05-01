@@ -193,42 +193,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		});
 
 		contents.setComparer(new Comparer());
-		/*
-		 * contents.setCellEditors(new CellEditor[] { new
-		 * AnnotationCellEditor(contents.getTree()) });
-		 * contents.setColumnProperties(new String[] { "col1" });
-		 * contents.setCellModifier(new ICellModifier() {
-		 * 
-		 * @Override public boolean canModify(Object element, String property) {
-		 * return provider.isMutable() && ((IJavaElement) element).canModify();
-		 * }
-		 * 
-		 * @Override public Object getValue(Object element, String property) {
-		 * //System.out.println("Getting value for "+element); return element;
-		 * //return ((IJavaElement) element).getLabel(); }
-		 * 
-		 * @Override public void modify(Object element, String property, Object
-		 * value) { Item i = (Item) element; IJavaElement e = (IJavaElement)
-		 * i.getData(); //System.out.println("Setting value for "+e); boolean
-		 * changed = e.modify((String) value, BalloonUtility.errorListener); if
-		 * (changed) { contents.update(e, null); markAsDirty(); } } }); //
-		 * http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
-		 * TreeViewerEditor.create(contents, null, new
-		 * ColumnViewerEditorActivationStrategy(contents) {
-		 * 
-		 * @Override protected boolean
-		 * isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {
-		 * ViewerCell cell = (ViewerCell) e.getSource(); IJavaElement elt =
-		 * (IJavaElement) cell.getElement();
-		 * //System.out.println("Got eae for "+elt); return elt.canModify(); }
-		 * }, ColumnViewerEditor.DEFAULT);
-		 */
-		/*
-		 * //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.
-		 * isv/guide/jdt_api_render.htm contents.setContentProvider(new
-		 * StandardJavaElementContentProvider(true));
-		 * contents.setLabelProvider(new JavaElementLabelProvider());
-		 */
 	}
 
 	private void createFluidXMLPage() {
@@ -378,14 +342,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		PromisesXMLReader.refresh(provider.pkg);
 	}
 
-	/*
-	private void markAsClean() {
-		isDirty = false;
-		fireDirtyProperty();
-		PromisesXMLReader.refresh(provider.pkg);
-	}
-	*/
-
 	private void syncLocalXMLEditor() {
 		final IURIEditorInput input = (IURIEditorInput) provider
 				.getLocalInput();
@@ -443,30 +399,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			}
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
-			/*
-			 * if (o instanceof AbstractFunctionElement) { final
-			 * AbstractFunctionElement f = (AbstractFunctionElement) o; if
-			 * (f.getParams().length() > 0) { // Find out which parameters need
-			 * to be added final String[] params = f.getSplitParams(); final
-			 * List<Object> newParams = new ArrayList<Object>(); for(int i=0;
-			 * i<params.length; i++) { final FunctionParameterElement p =
-			 * f.getParameter(i); if (p == null) { newParams.add(new
-			 * NewParameter(i,params[i])); } else { newParams.add(p); } } if
-			 * (newParams.size() > 0) { makeMenuItem(menu, "Add parameter...",
-			 * new SelectionAdapter() {
-			 * 
-			 * @Override public void widgetSelected(SelectionEvent e) {
-			 * ListSelectionDialog d = new
-			 * ListSelectionDialog(contents.getTree().getShell(),
-			 * newParams.toArray(), paramProvider, paramProvider,
-			 * "Select parameter(s) to add"); if (d.open() == Window.OK) {
-			 * boolean changed = false; for(Object o : d.getResult()) { if (o
-			 * instanceof NewParameter) { NewParameter np = (NewParameter) o;
-			 * FunctionParameterElement p = new
-			 * FunctionParameterElement(np.index); f.setParameter(p); changed =
-			 * true; } } if (changed) { markAsDirty(); contents.refresh();
-			 * contents.expandToLevel(f, 1); } } } }); } } } else
-			 */
 			if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
 
