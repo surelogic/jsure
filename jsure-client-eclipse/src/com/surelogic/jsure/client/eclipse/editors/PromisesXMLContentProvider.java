@@ -367,9 +367,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	}
 
 	void deleteAllChanges() {
+		/* This was deleting the local changes immediately
 		File local = new File(localXML);
 		local.delete();
-
+        */
 		deleteUnsavedChanges(false);
 		build(true);
 		PromisesXMLReader.refreshAll();
