@@ -1,8 +1,6 @@
 package com.surelogic.xml;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import difflib.DeleteDelta;
 import difflib.Delta;
@@ -190,6 +188,9 @@ abstract class AbstractJavaElement implements IJavaElement {
 			}
 		}
 		final List<T> baseline = handleNonconflictingChanges(orig, other, type);
+		// A set of elements that are marked as being deleted
+		final Set<T> deleted = type == MergeType.JSURE_TO_LOCAL ?
+				new HashSet<T>() : Collections.<T>emptySet();
 		boolean changed = false;
 		for (int i = 0; i < baseline.size(); i++) {
 			final T e = baseline.get(i);
@@ -206,6 +207,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 			}
 			final int i2 = other.indexOf(e);
 			if (i2 < 0) {
+				if (type == MergeType.JSURE_TO_LOCAL && o0.isToBeDeleted()) {
+					deleted.add(e);
+					changed = true;
+				}
 				continue;
 			} else {
 				o2 = other.get(i2);
@@ -218,8 +223,17 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 		// return baseline;
 		orig.clear();
-		orig.addAll(baseline);
-		// TODO does this include deletes?
+		if (deleted.isEmpty()) {					
+			orig.addAll(baseline);
+		} else {
+			// Keep everything that's not deleted
+			for(T e : baseline) {
+				if (deleted.contains(e)) {
+					continue;
+				}
+				orig.add(e);
+			}
+		}
 		for (T e : orig) {
 			e.setParent(parent);
 		}
