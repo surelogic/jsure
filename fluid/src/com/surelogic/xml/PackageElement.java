@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -26,13 +27,6 @@ public class PackageElement extends AnnotatedJavaElement {
 
 	public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
-	}
-
-	public boolean needsToUpdate(PackageElement other) {
-		if (other == null) {
-			return false;
-		}
-		return this.f_releaseVersion > other.f_releaseVersion;
 	}
 
 	@Override
@@ -104,42 +98,40 @@ public class PackageElement extends AnnotatedJavaElement {
 	}
 
 	/**
-	 * This is effectively the root, so we start merging the whole tree here
+	 * Performs a deep merge of this with the passed tree, this tree is mutated
+	 * if the merge is successful. The trees must be of the same package or type
+	 * or the merge is not performed and an exception is thrown.
 	 * 
-	 * @param updateToClient
-	 *            if true; merge to fluid otherwise
+	 * @param other
+	 *            the tree to merge with.
+	 * @param typeOfMerge
+	 *            the type of merge to perform.
+	 * @throws IllegalArgumentException
+	 *             if the passed tree is not of the same package or type.
 	 */
-	PackageElement merge(PackageElement changed, boolean updateToClient) {
-		// Needs to sync if the versions are the same due to storing local diffs
-		/*
-		 * final boolean needsToSync = !updateToClient || this.revision <
-		 * changed.revision; if (!needsToSync) { // Nothing to do, since I'm
-		 * updating the client, and the revisions are the same return this; }
-		 */
-		final MergeType type = updateToClient ? MergeType.JSURE_TO_LOCAL
-				: MergeType.LOCAL_TO_JSURE;
+	void mergeDeep(PackageElement other, MergeType typeOfMerge) {
+		if (!other.getName().equals(getName()))
+			throw new IllegalArgumentException(I18N.err(240, getName(),
+					other.getName()));
 
-		if (changed.getName().equals(getName())) {
-			if (clazz != null) {
-				if (changed.clazz == null) {
-					// One's a class, the other's a package
-					return null;
-				}
-				final MergeResult<ClassElement> r = clazz.merge(changed.clazz,
-						type);
-				if (r.element != null) {
-					// Class merged, so continue merging
-					boolean modified = r.isModified;
-					modified |= mergeThis(changed, type);
-					return this;
-				}
-			} else if (changed.clazz == null) {
-				// neither has a class, so they're both package-info.java files
-				boolean modified = mergeThis(changed, type);
-				return this;
-			}
-		}
-		return null;
+		if (clazz == null && other.clazz == null) {
+			// neither has a class, so they're both 'package-info.java' files
+			boolean modified = mergeThis(other, typeOfMerge);
+			return; // done
+		} else if (clazz != null && other.clazz != null) {
+			final MergeResult<ClassElement> r = clazz.merge(other.clazz,
+					typeOfMerge);
+			if (r.element != null) {
+				// Class merged, so continue merging
+				boolean modified = r.isModified;
+				modified |= mergeThis(other, typeOfMerge);
+				return; // done
+			} else
+				throw new IllegalArgumentException(I18N.err(242, getName(),
+						other.getName()));
+		} else
+			throw new IllegalArgumentException(I18N.err(241, getName(),
+					other.getName()));
 	}
 
 	@Override

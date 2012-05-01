@@ -1,13 +1,15 @@
 package com.surelogic.jsure.core.xml;
 
-import java.io.*;
+import java.io.File;
 import java.util.logging.Level;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.xml.*;
+import com.surelogic.xml.PromisesXMLMerge;
+import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.TestXMLParserConstants;
 
 /**
  * Code to help merge promises XML between JSure release (in the fluid project)
@@ -43,7 +45,7 @@ public final class PromisesLibMerge {
 				mergeJSureToLocalHelper(f, new File(jsure, f.getName()));
 			}
 		} else {
-			PromisesXMLMerge.merge(MergeType.JSURE_TO_LOCAL, local, jsure);
+			PromisesXMLMerge.mergeJSureXMLIntoLocalXML(local, jsure);
 		}
 	}
 
@@ -61,11 +63,12 @@ public final class PromisesLibMerge {
 
 		final File jsure = new File(fluidRoot, relativePathToFile);
 		final File local = new File(wsRoot, relativePathToFile);
-		if (!local.exists()) {
+		boolean fileExistsOnDisk = local.isFile() && local.exists();
+		if (!fileExistsOnDisk) {
 			SLLogger.getLogger().log(Level.WARNING, I18N.err(239, local),
 					new Exception());
 			return; // Nothing to do
 		}
-		PromisesXMLMerge.merge(MergeType.LOCAL_TO_JSURE, local, jsure);
+		PromisesXMLMerge.mergeLocalXMLIntoJSureXML(local, jsure);
 	}
 }

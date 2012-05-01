@@ -130,38 +130,20 @@ abstract class AbstractJavaElement implements IJavaElement {
 			return me;
 		}
 
-		final int myRev = me.getReleaseVersion();
-		final int otherRev = other.getReleaseVersion();
 		if (t == MergeType.LOCAL_TO_JSURE) { // to fluid
-			checkIf(myRev != otherRev, "Merging different revisions: " + myRev
-					+ " vs " + otherRev);
+
 			// check other for mods
 			if (!other.isModified()) {
 				// Try to merge everything attached if it's modified
 				me.mergeAttached(other);
 				return me;
 			}
-			checkIf(me.isModified(), "Merging into a modified " + me);
+			checkAndFailIf(me.isModified(), "Merging into a modified " + me);
 
-			// Same revision, and the other's modified, so
-			// update and use the other
-			other.incrementReleaseVersion();
 			T updated = (T) other.cloneMe(parent);
-			// updated.incrRevision();
 			// TODO what about attached stuff?
 			return updated;
 		} else if (t == MergeType.JSURE_TO_LOCAL) { // to client
-			if (me.isModified()) {
-				me.mergeAttached(other);
-				return me; // Conflict, so keep my changes
-			}
-			if (myRev == otherRev) {
-				me.mergeAttached(other);
-				return me; // Same revision, so there's nothing to change
-			}
-			checkIf(other.isModified(), "Updating with a modified " + other);
-			checkIf(myRev > otherRev, "Updating with " + myRev + " > "
-					+ otherRev);
 			// Use other, since the other's a newer revision
 			// TODO what about attached stuff?
 			return (T) other.cloneMe(parent);
@@ -169,7 +151,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		throw new IllegalStateException("Unexpected merge type: " + t);
 	}
 
-	private static void checkIf(boolean cond, String issue) {
+	private static void checkAndFailIf(boolean cond, String issue) {
 		if (cond) {
 			throw new IllegalStateException(issue);
 		}
@@ -183,7 +165,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 		if (orig.isEmpty() && other.isEmpty()) {
 			return false;
 		}
-		if (type != MergeType.LOCAL_TO_JSURE && type != MergeType.JSURE_TO_LOCAL) {
+		if (type != MergeType.LOCAL_TO_JSURE
+				&& type != MergeType.JSURE_TO_LOCAL) {
 			throw new IllegalStateException("Unexpected type: " + type);
 		}
 		// MERGE = take explicitly marked mods/deletes from other into orig
@@ -211,8 +194,6 @@ abstract class AbstractJavaElement implements IJavaElement {
 			final int i0 = orig.indexOf(e);
 			if (i0 < 0) {
 				if (type == MergeType.LOCAL_TO_JSURE) {
-					// Merging something new
-					e.incrementReleaseVersion();
 					changed = true;
 				}
 				continue;
@@ -258,7 +239,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			if (d instanceof InsertDelta) {
 				nonConflicts.add(d);
 			} else if (d instanceof DeleteDelta) {
-				checkIf(type == MergeType.LOCAL_TO_JSURE,
+				checkAndFailIf(type == MergeType.LOCAL_TO_JSURE,
 						"Deletes should be explicitly marked for " + type);
 
 				// Check for conflicting changes in the original (client)

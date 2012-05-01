@@ -8,50 +8,53 @@ import com.surelogic.common.logging.SLLogger;
 
 public class PromisesXMLMerge implements TestXMLParserConstants {
 
-	public static void merge(MergeType type, File local, File jsure) {
-		if (type == MergeType.LOCAL_TO_JSURE) {
-			if (local.isFile() && local.exists()) {
-				mergeLocalXMLIntoJSureXML(local, jsure);
-			} else {
-				throw new IllegalArgumentException(local.toString()
-						+ " must be an existing file (it is not) for a " + type
-						+ " merge");
-			}
-		} else if (type == MergeType.JSURE_TO_LOCAL) {
-			mergeJSureXMLIntoLocalXML(local, jsure);
-		} else {
-			throw new UnsupportedOperationException(type.toString()
-					+ " merge is not supported");
-		}
-	}
+	/**
+	 * Merges a local diff XML promises file, which must exist in the user's
+	 * workspace, into a JSure release promises XML file, which may or may not
+	 * exist. If the local file doesn't exist this method does nothing.
+	 * 
+	 * @param local
+	 *            a local promises XML file in the user's workspace.
+	 * @param jsure
+	 *            a release promises XML file which may or may not exist.
+	 */
+	public static void mergeLocalXMLIntoJSureXML(File local, File jsure) {
+		SLLogger.getLogger().log(
+				Level.INFO,
+				"mergeLocalXMLIntoJSureXML(local-> " + local + ", jsure->"
+						+ jsure);
 
-	private static void mergeLocalXMLIntoJSureXML(File local, File jsure) {
+		boolean precondition = local.isFile() && local.exists();
+		if (!precondition)
+			return; // nothing to do
+
 		try {
-			SLLogger.getLogger().log(
-					Level.INFO,
-					"mergeLocalXMLIntoJSureXML(local-> " + local + ", jsure->"
-							+ jsure);
-			PackageElement source = PromisesXMLReader.loadRaw(local);
-			PackageElement merged;
+			final PackageElement localPE = PromisesXMLReader.loadRaw(local);
+			PackageElement jsurePE;
 
 			/*
 			 * We need to handle the startup case where the file may not exist
 			 * in JSure yet.
 			 */
 			if (jsure.exists()) {
-				PackageElement target = PromisesXMLReader.loadRaw(jsure);
+				// A release file exists, do a merge
+				jsurePE = PromisesXMLReader.loadRaw(jsure);
 
-				merged = merge_private(false, target, source);
+				jsurePE.mergeDeep(localPE, MergeType.LOCAL_TO_JSURE);
 			} else {
-				merged = source;
+				// no release file exists, create one
+				jsurePE = localPE;
 				jsure.getParentFile().mkdirs();
 			}
 
 			// Need to clear modified bits
-			merged.visit(new Cleaner());
+			jsurePE.visit(new Cleaner());
+
+			// increment the release version
+			jsurePE.incrementReleaseVersion();
 
 			PromisesXMLWriter w = new PromisesXMLWriter(jsure);
-			w.write(merged);
+			w.write(jsurePE);
 
 			/*
 			 * Now delete the local file we no longer need it.
@@ -63,45 +66,54 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		}
 	}
 
-	private static void mergeJSureXMLIntoLocalXML(File local, File jsure) {
+	/**
+	 * Merges the passed release promises XML file into the passed local diff
+	 * promises XML file. If the passed release file does not exist this method
+	 * does nothing.
+	 * 
+	 * @param local
+	 *            a local promises XML file in the user's workspace.
+	 * @param jsure
+	 *            a release promises XML file.
+	 */
+	public static void mergeJSureXMLIntoLocalXML(File local, File jsure) {
 		SLLogger.getLogger().log(
 				Level.INFO,
 				"mergeJSureXMLIntoLocalXML(local-> " + local + ", jsure->"
 						+ jsure);
 
-		if (!jsure.exists())
+		boolean precondition = jsure.isFile() && jsure.exists()
+				&& local.isFile() && local.exists();
+		if (!precondition)
 			return; // nothing to do
 
 		try {
-			PackageElement target = PromisesXMLReader.loadRaw(local);
-			PackageElement source = PromisesXMLReader.loadRaw(jsure);
+			final PackageElement localPE = PromisesXMLReader.loadRaw(local);
+			final PackageElement jsurePE = PromisesXMLReader.loadRaw(jsure);
 
-			if (!source.needsToUpdate(target)) {
-				return;
+			/*
+			 * We only need to process the local file if the release file has a
+			 * higher version number.
+			 */
+			if (jsurePE.getReleaseVersion() > localPE.getReleaseVersion()) {
+				localPE.mergeDeep(jsurePE, MergeType.JSURE_TO_LOCAL);
+				final PackageElement merged = diff(localPE);
+
+				// Set the diff version to the same as the release file
+				merged.setReleaseVersion(jsurePE.getReleaseVersion());
+
+				PromisesXMLWriter w = new PromisesXMLWriter(local);
+				w.write(merged);
 			}
-			PackageElement all = merge_private(true, target, source);
-			PackageElement merged = diff(all);
-
-			PromisesXMLWriter w = new PromisesXMLWriter(local);
-			w.write(merged);
-
 		} catch (Exception e) {
 			SLLogger.getLogger().log(Level.SEVERE, I18N.err(238, jsure, local),
 					e);
 		}
 	}
 
-	/**
-	 * Merge changes into the "original
-	 * 
-	 * @param toClient
-	 *            update if true; merge to fluid otherwise
+	/*
+	 * Ask about this "diff" seems odd
 	 */
-	private static PackageElement merge_private(boolean toClient,
-			PackageElement orig, PackageElement changed) {
-		return orig.merge(changed, toClient);
-	}
-
 	public static PackageElement diff(PackageElement root) {
 		// Ok to modify root, since we'll just mark it as clean afterwards
 		root.markAsClean();

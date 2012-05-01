@@ -255,7 +255,8 @@ public class PromisesXMLReader extends NestedXMLReader implements
 			} else if (l == null) {
 				p = f;
 			} else {
-				p = l.merge(f, true);
+				l.mergeDeep(f, MergeType.JSURE_TO_LOCAL);
+				p = l;
 				p.markAsClean();
 			}
 			if (p == null) {
