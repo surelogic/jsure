@@ -12,6 +12,9 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	 * Merges a local diff XML promises file, which must exist in the user's
 	 * workspace, into a JSure release promises XML file, which may or may not
 	 * exist. If the local file doesn't exist this method does nothing.
+	 * <p>
+	 * <i>Warning: This method only works if the tool user is running from
+	 * source code in a meta-Eclipse.</i>
 	 * 
 	 * @param local
 	 *            a local promises XML file in the user's workspace.
@@ -30,6 +33,12 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 
 		try {
 			final PackageElement localPE = PromisesXMLReader.loadRaw(local);
+			if (localPE == null) {
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(244, local),
+						new Exception());
+				return;
+			}
+
 			PackageElement jsurePE;
 
 			/*
@@ -39,6 +48,11 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			if (jsure.exists()) {
 				// A release file exists, do a merge
 				jsurePE = PromisesXMLReader.loadRaw(jsure);
+				if (jsurePE == null) {
+					SLLogger.getLogger().log(Level.SEVERE,
+							I18N.err(244, jsure), new Exception());
+					return;
+				}
 
 				jsurePE.mergeDeep(localPE, MergeType.LOCAL_TO_JSURE);
 			} else {
@@ -67,6 +81,52 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	}
 
 	/**
+	 * Rewrites a JSure release promises XML file optionally incrementing the
+	 * release version. This method may be used to update the file format after
+	 * a structural change. If the passed file doesn't exist this method does
+	 * nothing.
+	 * <p>
+	 * <i>Warning: This method only works if the tool user is running from
+	 * source code in a meta-Eclipse.</i>
+	 * 
+	 * @param jsure
+	 *            a release promises XML file.
+	 * @param incrementVersion
+	 *            <tt>true</tt> if the release version should be incremented,
+	 *            <tt>false</tt> if it should not be changed.
+	 */
+	public static void rewriteJSureXML(File jsure, boolean incrementVersion) {
+		SLLogger.getLogger().log(Level.INFO, "rewriteJSureXML(jsure->" + jsure);
+
+		boolean precondition = jsure.isFile() && jsure.exists();
+		if (!precondition)
+			return; // nothing to do
+
+		try {
+			final PackageElement jsurePE = PromisesXMLReader.loadRaw(jsure);
+			if (jsurePE == null) {
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(244, jsure),
+						new Exception());
+				return;
+			}
+
+			// Need to clear modified bits (really should not be any)
+			jsurePE.visit(new Cleaner());
+
+			if (incrementVersion) {
+				// increment the release version
+				jsurePE.incrementReleaseVersion();
+			}
+
+			PromisesXMLWriter w = new PromisesXMLWriter(jsure);
+			w.write(jsurePE);
+
+		} catch (Exception e) {
+			SLLogger.getLogger().log(Level.SEVERE, I18N.err(243, jsure), e);
+		}
+	}
+
+	/**
 	 * Merges the passed release promises XML file into the passed local diff
 	 * promises XML file. If the passed release file does not exist this method
 	 * does nothing.
@@ -89,7 +149,17 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 
 		try {
 			final PackageElement localPE = PromisesXMLReader.loadRaw(local);
+			if (localPE == null) {
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(244, local),
+						new Exception());
+				return;
+			}
 			final PackageElement jsurePE = PromisesXMLReader.loadRaw(jsure);
+			if (jsurePE == null) {
+				SLLogger.getLogger().log(Level.SEVERE, I18N.err(244, jsure),
+						new Exception());
+				return;
+			}
 
 			/*
 			 * We only need to process the local file if the release file has a
@@ -112,7 +182,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	}
 
 	/*
-	 * Ask about this "diff" seems odd
+	 * TODO Ask about this "diff" seems odd???
 	 */
 	public static PackageElement diff(PackageElement root) {
 		// Ok to modify root, since we'll just mark it as clean afterwards

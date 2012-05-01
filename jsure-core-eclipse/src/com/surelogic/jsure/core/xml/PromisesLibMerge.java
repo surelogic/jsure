@@ -52,6 +52,9 @@ public final class PromisesLibMerge {
 	/**
 	 * Merges the passed XML diff file into the JSure codebase (for subsequent
 	 * release).
+	 * <p>
+	 * <i>Warning: This method only works if the tool user is running from
+	 * source code in a meta-Eclipse.</i>
 	 * 
 	 * @param relativePathToFile
 	 *            the path to the XML diff file relative to the
@@ -70,5 +73,25 @@ public final class PromisesLibMerge {
 			return; // Nothing to do
 		}
 		PromisesXMLMerge.mergeLocalXMLIntoJSureXML(local, jsure);
+	}
+
+	/**
+	 * Rewrites a JSure release promises XML file incrementing its release
+	 * version. This method may be used to update the file format after a
+	 * structural change. If the passed file doesn't exist this method does
+	 * nothing.
+	 * <p>
+	 * <i>Warning: This method only works if the tool user is running from
+	 * source code in a meta-Eclipse.</i>
+	 * 
+	 * @param relativePathToFile
+	 *            the path to the XML file relative to the <tt>lib/promises</tt>
+	 *            directory in the fluid project
+	 */
+	public static void rewriteJSure(String relativePathToFile) {
+		final File fluidRoot = PromisesXMLParser.getFluidXMLDir();
+		final File jsure = new File(fluidRoot, relativePathToFile);
+
+		PromisesXMLMerge.rewriteJSureXML(jsure, true);
 	}
 }

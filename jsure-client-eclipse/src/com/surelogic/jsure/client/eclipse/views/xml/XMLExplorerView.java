@@ -271,15 +271,25 @@ public class XMLExplorerView extends AbstractJSureView {
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
 
-		final Object o = s.getFirstElement();
-		if (XUtil.useExperimental() && o instanceof Filterable) {
-			final Filterable t = (Filterable) o;
-			if (t.hasLocal()) {
+		if (XUtil.useExperimental()) {
+			final Object o = s.getFirstElement();
+			if (o instanceof Filterable) {
+				final Filterable t = (Filterable) o;
 				manager.add(new Separator());
-				manager.add(new Action("Merge changes to JSure") {
+				if (t.hasLocal()) {
+					manager.add(new Action("Merge Changes to JSure") {
+						@Override
+						public void run() {
+							PromisesLibMerge.mergeLocalToJSure(t.getPath());
+							PromisesXMLReader.clear(t.getPath());
+							PromisesXMLReader.refreshAll();
+						}
+					});
+				}
+				manager.add(new Action("Rewrite File to JSure") {
 					@Override
 					public void run() {
-						PromisesLibMerge.mergeLocalToJSure(t.getPath());
+						PromisesLibMerge.rewriteJSure(t.getPath());
 						PromisesXMLReader.clear(t.getPath());
 						PromisesXMLReader.refreshAll();
 					}

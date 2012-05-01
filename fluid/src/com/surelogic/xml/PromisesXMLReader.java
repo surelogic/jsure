@@ -39,7 +39,7 @@ public class PromisesXMLReader extends NestedXMLReader implements
 				 * Try the old "revision" attribute (for backwards
 				 * compatibility).
 				 * 
-				 * Output a warning about this.
+				 * Output a warning about this file it is in an obsolete format.
 				 */
 				rev = attributes.getValue("revision");
 				LOG.warning(pkg + " is still using 'revision' attribute not '"
@@ -72,16 +72,11 @@ public class PromisesXMLReader extends NestedXMLReader implements
 	 */
 	public void notify(Entity e) {
 		final String name = e.getName().toLowerCase();
-		if (COMMENT_TAG.equals(name)) {
-			System.err.println("Ignoring top-level comment: "
-					+ e.getAttribute(COMMENT_TAG));
-		} else if (CLASS.equals(name)) {
+		if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
 			clazz = new ClassElement(false, id, Access.PUBLIC);
 
 			handleNestedElements(clazz, e);
-			// clazz.addComments(comments);
-			comments.clear();
 		} else {
 			final String uid = e.getAttribute(UID_ATTRB);
 			promises.add(new AnnotationElement(null, uid, name, e.getCData(), e
@@ -89,8 +84,7 @@ public class PromisesXMLReader extends NestedXMLReader implements
 		}
 	}
 
-	private void handleNestedElement(ClassElement c, Entity n,
-			List<String> comments) {
+	private void handleNestedElement(ClassElement c, Entity n) {
 		final String name = n.getName();
 		final String id = n.getAttribute(NAME_ATTRB);
 		// System.out.println("Looking at "+name+" -- "+id);
@@ -108,22 +102,14 @@ public class PromisesXMLReader extends NestedXMLReader implements
 		} else if (CLASSINIT.equals(name)) {
 			c.addMember(handleAnnotations(new ClassInitElement(), n));
 		} else {
-			handleAnnotationOnElt(c, comments, n);
+			handleAnnotationOnElt(c, n);
 			return;
 		}
 	}
 
 	private IClassMember handleNestedElements(ClassElement cl, Entity c) {
-		// Handle comments
-		final List<String> comments = new ArrayList<String>(0);
 		for (Entity n : c.getReferences()) {
-			if (COMMENT_TAG.equals(n.getName())) {
-				final String comment = n.getAttribute(COMMENT_TAG);
-				comments.add(comment);
-			} else {
-				handleNestedElement(cl, n, comments);
-				comments.clear();
-			}
+			handleNestedElement(cl, n);
 		}
 
 		if (cl instanceof NestedClassElement) {
@@ -134,20 +120,14 @@ public class PromisesXMLReader extends NestedXMLReader implements
 
 	private IClassMember handleNestedElements(AbstractFunctionElement func,
 			Entity f) {
-		// Handle comments
-		final List<String> comments = new ArrayList<String>(0);
 		for (Entity n : f.getReferences()) {
-			if (COMMENT_TAG.equals(n.getName())) {
-				comments.add(n.getAttribute(COMMENT_TAG));
-			} else if (PARAMETER.equals(n.getName())) {
+			if (PARAMETER.equals(n.getName())) {
 				final int i = Integer.parseInt(n.getAttribute(INDEX_ATTRB));
 				FunctionParameterElement fe = new FunctionParameterElement(
 						false, i);
 				func.setParameter(handleAnnotations(fe, n));
-				// fe.addComments(comments);
-				comments.clear();
 			} else {
-				handleAnnotationOnElt(func, comments, n);
+				handleAnnotationOnElt(func, n);
 			}
 		}
 		// func.setLastComments(comments);
@@ -155,27 +135,18 @@ public class PromisesXMLReader extends NestedXMLReader implements
 	}
 
 	private static void handleAnnotationOnElt(AnnotatedJavaElement func,
-			final List<String> comments, Entity n) {
+			Entity n) {
 		final String uid = n.getAttribute(UID_ATTRB);
 		AnnotationElement a = new AnnotationElement(func, uid, n.getName(),
 				n.getCData(), n.getAttributes());
 		func.addPromise(a);
-		// a.addComments(comments);
-		comments.clear();
 	}
 
 	private static <T extends AnnotatedJavaElement> T handleAnnotations(T e,
 			Entity n) {
-		// Handle comments
-		final List<String> comments = new ArrayList<String>(0);
 		for (Entity a : n.getReferences()) {
-			if (COMMENT_TAG.equals(n.getName())) {
-				comments.add(n.getAttribute(COMMENT_TAG));
-			} else {
-				handleAnnotationOnElt(e, comments, a);
-			}
+			handleAnnotationOnElt(e, a);
 		}
-		// e.setLastComments(comments);
 		return e;
 	}
 
