@@ -54,7 +54,6 @@ import edu.cmu.cs.fluid.util.Pair;
 public class PromisesXMLContentProvider extends AbstractContentProvider
 		implements ITreeContentProvider, ITableLabelProvider {
 	public static final String DIRTY_PREFIX = "> ";
-	static final boolean saveDiff = true;
 
 	// private Color colorForModified;
 	private Color colorForBadSyntax;
@@ -99,17 +98,27 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
-			PromisesXMLWriter w = new PromisesXMLWriter(f);
-			if (saveDiff) {
-				PackageElement p = PromisesXMLMerge.diff(pkg);
-				if (p != null) {
-					w.write(p);
-				} else {
-					// No diffs, so make sure there's no empty file
-					f.delete();
-				}
+			PackageElement p = PromisesXMLMerge.generateDiff(pkg);
+			if (p != null) {
+				/*
+				 * Don't create the writer until this block&mdash;doing it above
+				 * creates the file and holds it under Windows (causing a subtle
+				 * bug with the delete() call below if we don't write to the
+				 * file).
+				 */
+				final PromisesXMLWriter w = new PromisesXMLWriter(f);
+				w.write(p);
 			} else {
-				w.write(pkg);
+				/*
+				 * The file may not exist, but if it does delete it&mdash;we
+				 * have no diff to save.
+				 */
+				if (f.exists()) {
+					boolean result = f.delete();
+					if (!result)
+						SLLogger.getLogger().log(Level.SEVERE,
+								I18N.err(246, f), new Exception());
+				}
 			}
 			pkg.markAsClean();
 		} catch (FileNotFoundException e) {
@@ -359,11 +368,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 
 	void deleteAllChanges() {
 		File local = new File(localXML);
-		final boolean result = local.delete();
-		if (!result) {
-			SLLogger.getLogger().log(Level.SEVERE, I18N.err(246, local),
-					new Exception());
-		}
+		local.delete();
+
 		deleteUnsavedChanges(false);
 		build(true);
 		PromisesXMLReader.refreshAll();

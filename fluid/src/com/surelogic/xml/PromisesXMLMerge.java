@@ -167,7 +167,7 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 			 */
 			if (jsurePE.getReleaseVersion() > localPE.getReleaseVersion()) {
 				localPE.mergeDeep(jsurePE, MergeType.JSURE_TO_LOCAL);
-				final PackageElement merged = diff(localPE);
+				final PackageElement merged = generateDiff(localPE);
 
 				// Set the diff version to the same as the release file
 				merged.setReleaseVersion(jsurePE.getReleaseVersion());
@@ -181,11 +181,15 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		}
 	}
 
-	/*
-	 * TODO Ask about this "diff" seems odd???
+	/**
+	 * Produces a diff tree from the passed tree.
+	 * 
+	 * @param root
+	 *            the tree to create the diff tree from
+	 * @return a diff tree or <tt>null</tt> if no diff.
 	 */
-	public static PackageElement diff(PackageElement root) {
-		// Ok to modify root, since we'll just mark it as clean afterwards
+	public static PackageElement generateDiff(PackageElement root) {
+		// Okay to modify root, since we'll just mark it as clean afterwards
 		root.markAsClean();
 		root.visit(new Marker());
 		PackageElement p = root.copyIfDirty();
@@ -196,9 +200,8 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	}
 
 	/**
-	 * Removed cached attributes used for diffing (not meant to be persisted)
-	 * 
-	 * @author Edwin
+	 * Removes cached attributes used for diffing&mdash;these are not meant to
+	 * be persisted.
 	 */
 	private static class Flusher extends AbstractJavaElementVisitor<Void> {
 		Flusher() {
@@ -218,9 +221,8 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	}
 
 	/**
-	 * Mark the annos as dirty, so I can figure out what to keep as a diff
-	 * 
-	 * @author Edwin
+	 * Marks the annotations that are changed as dirty, so we can figure out
+	 * what to keep when we output a diff file.
 	 */
 	private static class Marker extends AbstractJavaElementVisitor<Void> {
 		Marker() {
@@ -242,11 +244,9 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 	}
 
 	/**
-	 * Bump revision and mark as annos as clean/unmodified.
+	 * Marks annotations as clean/unmodified.
 	 * <p>
 	 * Only called on a merge to Fluid.
-	 * 
-	 * @author Edwin
 	 */
 	private static class Cleaner extends AbstractJavaElementVisitor<Void> {
 		Cleaner() {
@@ -272,7 +272,9 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		protected Void visitFunc(AbstractFunctionElement f) {
 			super.visitFunc(f);
 
-			// Remove unannotated parameters
+			/*
+			 * Remove unannotated parameters so the file doesn't get cluttered.
+			 */
 			int i = 0;
 			for (FunctionParameterElement p : f.getParameters()) {
 				if (p != null && p.getPromises().isEmpty()) {
@@ -286,8 +288,10 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 		@Override
 		public Void visit(ClassElement c) {
 			super.visit(c);
-
-			// These checks work because we've removed unannotated decls above
+			/*
+			 * These checks work because we've removed any unannotated
+			 * declarations above.
+			 */
 			for (MethodElement m : c.getMethods()) {
 				if (m.getPromises().isEmpty() && m.getChildren().length == 0) {
 					c.removeMethod(m);
