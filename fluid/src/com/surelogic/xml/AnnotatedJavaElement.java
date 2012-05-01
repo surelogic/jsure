@@ -180,7 +180,7 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		if (type == MergeType.JAVA) {
 			return modified;
 		}
-
+		// These appear in this tree, but not in changed
 		final Set<String> unhandledAnnos = new HashSet<String>(order.keySet());
 		promises.clear();
 		for (Map.Entry<String, List<AnnotationElement>> e : changed.order
@@ -202,8 +202,30 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 			unhandledAnnos.remove(e.getKey());
 		}
 		for (String anno : unhandledAnnos) {
-			for (AnnotationElement a : order.get(anno)) {
-				promises.put(a.getUid(), a);
+			List<AnnotationElement> elts = order.get(anno);
+			if (elts.isEmpty()) {
+				order.remove(anno);
+				modified = true;
+				continue;
+			}
+			if (type == MergeType.JSURE_TO_LOCAL) {
+				for (AnnotationElement a : elts.toArray(new AnnotationElement[elts.size()])) {
+					if (a.isToBeDeleted()) { 
+						// Remove deleted elts that are already gone from the changed version
+						elts.remove(a);
+						modified = true;
+						continue;
+					}
+					promises.put(a.getUid(), a);
+				}
+				if (elts.isEmpty()) {
+					// Empty after deleting 
+					order.remove(anno);
+				}
+			} else {
+				for(AnnotationElement a : elts) {
+					promises.put(a.getUid(), a);
+				}
 			}
 		}
 
