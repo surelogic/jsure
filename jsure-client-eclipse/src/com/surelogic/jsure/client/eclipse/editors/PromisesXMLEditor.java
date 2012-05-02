@@ -426,8 +426,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						/*
 						 * localXML.doRevertToSaved(); markAsClean();
 						 */
-						isDirty = true;
-						markAsDirty();
+						if (provider.getLocalInput().exists()) {
+							isDirty = true;	
+							markAsDirty();
+						} else {
+							// Otherwise, we're just reverted to the saved state in fluid
+							isDirty = false;
+							markAsDirty(); // just updating the editor state
+						}
 					}
 				} else {
 					MessageDialog.openInformation(s, "No Changes",
