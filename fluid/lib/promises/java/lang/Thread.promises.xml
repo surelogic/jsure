@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.lang" release="1">
+    <class name="Thread">
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.Runnable">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.Runnable, java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.ThreadGroup, java.lang.Runnable">
+            <RegionEffects>writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.ThreadGroup, java.lang.Runnable, java.lang.String">
+            <RegionEffects>writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.ThreadGroup, java.lang.Runnable, java.lang.String, long">
+            <RegionEffects>writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.ThreadGroup, java.lang.String">
+            <RegionEffects>writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="activeCount">
+            <RegionEffects>reads any(ThreadGroup):Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="checkAccess">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="countStackFrames">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="currentThread">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getName">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setName" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
