@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="1">
+<package name="java.lang" release="2">
     <class name="AbstractStringBuilder">
         <method name="append" params="boolean">
             <RegionEffects>writes Instance</RegionEffects>
@@ -161,6 +161,9 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="insert" params="int, boolean">
