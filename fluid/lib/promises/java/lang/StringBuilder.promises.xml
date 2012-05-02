@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="2">
-    <class name="StringBuffer">
+<package name="java.lang" release="1">
+    <class name="StringBuilder">
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
@@ -123,36 +123,6 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="capacity">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="charAt" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="codePointAt" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="codePointBefore" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="codePointCount" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
         <method name="delete" params="int, int">
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
@@ -161,21 +131,6 @@
         <method name="deleteCharAt" params="int">
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
-        </method>
-
-        <method name="ensureCapacity" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="getChars" params="int, int, char[], int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance; writes arg2:Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="2">
-                <Borrowed/>
-            </parameter>
         </method>
 
         <method name="indexOf" params="java.lang.String">
@@ -292,18 +247,6 @@
             </parameter>
         </method>
 
-        <method name="length">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="offsetByCodePoints" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
         <method name="replace" params="int, int, java.lang.String">
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
@@ -317,46 +260,7 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="setCharAt" params="int, char">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="setLength" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="subSequence" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </method>
-
-        <method name="substring" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </method>
-
-        <method name="substring" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </method>
-
         <method name="toString">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="trimToSize">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
