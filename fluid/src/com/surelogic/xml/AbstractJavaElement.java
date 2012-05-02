@@ -139,6 +139,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			return updated;
 		} else if (t == MergeType.JSURE_TO_LOCAL) { // to client
 			if (me.isModified()) {
+				// TODO check if everything's the same?
 				me.mergeAttached(other);
 				return me; // Conflict, so keep my changes
 			}
