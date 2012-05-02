@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="4">
+<package name="java.lang" release="5">
     <class name="Boolean">
         <Immutable/>
         <constructor params="boolean">
@@ -45,6 +45,9 @@
         <method name="getBoolean" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="hashCode">

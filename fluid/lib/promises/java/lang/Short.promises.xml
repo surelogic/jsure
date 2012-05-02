@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <package name="java.lang" release="1">
-    <class name="Integer">
+    <class name="Short">
         <Immutable/>
-        <constructor params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
         <constructor params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
@@ -18,10 +12,11 @@
             </parameter>
         </constructor>
 
-        <method name="bitCount" params="int">
+        <constructor params="short">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
-        </method>
+            <Unique>return</Unique>
+        </constructor>
 
         <method name="byteValue">
             <Borrowed>this</Borrowed>
@@ -29,7 +24,7 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="compareTo" params="java.lang.Integer">
+        <method name="compareTo" params="java.lang.Short">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
@@ -67,37 +62,8 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="getInteger" params="java.lang.String">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
-        </method>
-
-        <method name="getInteger" params="java.lang.String, int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
-        </method>
-
-        <method name="getInteger" params="java.lang.String, java.lang.Integer">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
-        </method>
-
         <method name="hashCode">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="highestOneBit" params="int">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
@@ -114,22 +80,7 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="lowestOneBit" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="numberOfLeadingZeros" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="numberOfTrailingZeros" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="parseInt" params="java.lang.String">
+        <method name="parseShort" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
@@ -137,7 +88,7 @@
             </parameter>
         </method>
 
-        <method name="parseInt" params="java.lang.String, int">
+        <method name="parseShort" params="java.lang.String, int">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
@@ -145,22 +96,7 @@
             </parameter>
         </method>
 
-        <method name="reverse" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="reverseBytes" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="rotateLeft" params="int, int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="rotateRight" params="int, int">
+        <method name="reverseBytes" params="short">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
@@ -171,43 +107,13 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="signum" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="toBinaryString" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="toHexString" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="toOctalString" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
         <method name="toString">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="toString" params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="toString" params="int, int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="valueOf" params="int">
+        <method name="toString" params="short">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
@@ -226,6 +132,11 @@
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="valueOf" params="short">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>
