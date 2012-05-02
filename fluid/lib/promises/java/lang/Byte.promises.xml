@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="4">
-    <class name="Boolean">
+<package name="java.lang" release="1">
+    <class name="Byte">
         <Immutable/>
-        <constructor params="boolean">
+        <constructor params="byte">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
@@ -18,19 +18,33 @@
             </parameter>
         </constructor>
 
-        <method name="booleanValue">
+        <method name="byteValue">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="compareTo" params="java.lang.Boolean">
+        <method name="compareTo" params="java.lang.Byte">
             <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="decode" params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="doubleValue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="equals" params="java.lang.Object">
@@ -42,23 +56,50 @@
             </parameter>
         </method>
 
-        <method name="getBoolean" params="java.lang.String">
+        <method name="floatValue">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="hashCode">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="intValue">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="parseBoolean" params="java.lang.String">
+        <method name="longValue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="parseByte" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="parseByte" params="java.lang.String, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="shortValue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="toString">
@@ -67,12 +108,12 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="toString" params="boolean">
+        <method name="toString" params="byte">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="valueOf" params="boolean">
+        <method name="valueOf" params="byte">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
@@ -80,6 +121,17 @@
         <method name="valueOf" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="valueOf" params="java.lang.String, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
     </class>
 </package>
