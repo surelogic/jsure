@@ -1,7 +1,276 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="4">
+<package name="java.lang" release="5">
     <class name="Math">
-        <Promise uid="7e18ad06-3783-4875-b8d1-9b471069f51c">@RegionEffects(none) for *(**)</Promise>
+        <Utility/>
+        <method name="IEEEremainder" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="abs" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="abs" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="abs" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="abs" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="acos" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="asin" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="atan" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="atan2" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="cbrt" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="ceil" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="copySign" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="copySign" params="float, float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="cos" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="cosh" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="exp" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="expm1" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="floor" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getExponent" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getExponent" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hypot" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="log" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="log10" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="log1p" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="max" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="max" params="float, float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="max" params="int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="max" params="long, long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="min" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="min" params="float, float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="min" params="int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="min" params="long, long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="nextAfter" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="nextAfter" params="float, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="nextUp" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="nextUp" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="pow" params="double, double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="random">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="rint" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="round" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="round" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="scalb" params="double, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="scalb" params="float, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="signum" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="signum" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sin" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sinh" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sqrt" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="tan" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="tanh" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toDegrees" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toRadians" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="ulp" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="ulp" params="float">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
     </class>
 </package>

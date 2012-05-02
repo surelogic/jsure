@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="3">
+<package name="java.lang" release="4">
     <class name="Throwable">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -51,7 +51,7 @@
 
         <method name="getStackTrace">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
