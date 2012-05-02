@@ -34,6 +34,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	private static final char DASH = '-';
 	private static final String ORIG_PREFIX = "original-";
 	private static final String ORIG_CONTENTS = ORIG_PREFIX + "contents";
+	// Used to mark placeholder annotations that preserve the relative ordering
+	// when merging diffs
 	public static final String REF_SUFFIX = DASH + "ref";
 
 	private final String uid;
@@ -406,6 +408,31 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	public String toString() {
 		return getClass().getName() + '@'
 				+ Integer.toHexString(super.hashCode());
+	}
+
+	@Override
+	public boolean isEquivalent(IMergeableElement o) {
+		if (o instanceof AnnotationElement) {
+			AnnotationElement other = (AnnotationElement) o;
+			return uid.equals(other.uid) &&
+				contents.equals(other.contents) &&
+				promise.equals(other.promise) &&
+				hasSameAttributes(other);
+		}
+		return false;
+	}
+	
+	private boolean hasSameAttributes(AnnotationElement other) {
+		if (isToBeDeleted()) {
+			return false; // These can't be the same
+		}
+		for(Map.Entry<String, String> e : other.attributes.entrySet()) {
+			String val = getAttribute(e.getKey());
+			if (!e.getValue().equals(val)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	protected AnnotationElement createRef() {
