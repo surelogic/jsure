@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="1">
+<package name="java.lang" release="2">
     <class name="Thread">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -72,9 +72,129 @@
             <Starts>nothing</Starts>
         </method>
 
+        <method name="destroy">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="dumpStack">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="enumerate" params="java.lang.Thread[]">
+            <RegionEffects>writes any(ThreadGroup):Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAllStackTraces">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="getContextClassLoader">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getDefaultUncaughtExceptionHandler">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getId">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
         <method name="getName">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getPriority">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getStackTrace">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="getState">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getThreadGroup">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getUncaughtExceptionHandler">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="holdsLock" params="java.lang.Object">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="interrupt">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="interrupted">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isAlive">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isDaemon">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isInterrupted">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setContextClassLoader" params="java.lang.ClassLoader">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setDaemon" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -83,5 +203,21 @@
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
+
+        <method name="setPriority" params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setUncaughtExceptionHandler" params="java.lang.Thread.UncaughtExceptionHandler">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <class name="State">
+            <Immutable/>
+        </class>
     </class>
 </package>
