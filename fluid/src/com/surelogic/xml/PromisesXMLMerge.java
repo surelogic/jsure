@@ -174,12 +174,18 @@ public class PromisesXMLMerge implements TestXMLParserConstants {
 
 				localPE.mergeDeep(jsurePE, MergeType.JSURE_TO_LOCAL);
 				final PackageElement merged = generateDiff(localPE);
+				if (merged != null) {
+					// Set the diff version to the same as the release file
+					merged.setReleaseVersion(jsureRelVer);
 
-				// Set the diff version to the same as the release file
-				merged.setReleaseVersion(jsureRelVer);
-
-				PromisesXMLWriter w = new PromisesXMLWriter(local);
-				w.write(merged);
+					PromisesXMLWriter w = new PromisesXMLWriter(local);
+					w.write(merged);
+				} else {
+					/*
+					 * Now delete the local file since there's no diff
+					 */
+					local.delete();
+				}
 			}
 		} catch (Exception e) {
 			SLLogger.getLogger().log(Level.SEVERE, I18N.err(238, jsure, local),

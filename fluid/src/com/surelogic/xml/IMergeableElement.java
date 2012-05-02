@@ -37,4 +37,9 @@ public interface IMergeableElement extends IJavaElement {
 	 * unchanged
 	 */
 	void mergeAttached(IMergeableElement other);
+	
+	/**
+	 * @return true if the two elements are the same (as far as merges are concerned)
+	 */
+	boolean	isEquivalent(IMergeableElement other);
 }
