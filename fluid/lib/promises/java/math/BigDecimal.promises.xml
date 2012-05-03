@@ -1,28 +1,453 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.math" release="1">
+<package name="java.math" release="2">
     <class name="BigDecimal">
+        <Immutable/>
+        <constructor params="char[]">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="char[], int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="char[], int, int, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="char[], java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="double, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="int, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="java.lang.String, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="java.math.BigInteger">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="java.math.BigInteger, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="java.math.BigInteger, int, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="java.math.BigInteger, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <constructor params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="long, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="abs">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="abs" params="java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="add" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="add" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="byteValueExact">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="compareTo" params="java.math.BigDecimal">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal, int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal, int, java.math.RoundingMode">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divide" params="java.math.BigDecimal, java.math.RoundingMode">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divideAndRemainder" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="divideAndRemainder" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="divideToIntegralValue" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="divideToIntegralValue" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
         <method name="doubleValue">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="floatValue">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="intValue">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="intValueExact">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="longValue">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="max" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="min" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="movePointLeft" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="movePointRight" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="multiply" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="multiply" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="negate">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="negate" params="java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="plus">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="plus" params="java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="pow" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="pow" params="int, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="precision">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="remainder" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="remainder" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="round" params="java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="scale">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="scaleByPowerOfTen" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setScale" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setScale" params="int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setScale" params="int, java.math.RoundingMode">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="shortValueExact">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="signum">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="stripTrailingZeros">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="subtract" params="java.math.BigDecimal">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="subtract" params="java.math.BigDecimal, java.math.MathContext">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toBigInteger">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toBigIntegerExact">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toEngineeringString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toPlainString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="ulp">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="unscaledValue">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="double">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="valueOf" params="long">
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="long, int">
+            <RegionEffects>reads All</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>

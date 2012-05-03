@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.math" release="3">
+<package name="java.math" release="4">
     <class name="BigInteger">
         <Immutable/>
         <constructor params="byte[]">
@@ -104,8 +104,12 @@
         </method>
 
         <method name="compareTo" params="java.math.BigInteger">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="divide" params="java.math.BigInteger">
