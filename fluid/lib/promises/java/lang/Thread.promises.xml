@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="3">
+<package name="java.lang" release="4">
     <class name="Thread">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -81,7 +81,6 @@
         <method name="dumpStack">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
-            <Unique>return</Unique>
         </method>
 
         <method name="enumerate" params="java.lang.Thread[]">
