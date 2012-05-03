@@ -413,6 +413,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
+		final boolean markUnannotated = provider.markUnannotated();
+		final MenuItem markDecls = makeMenuItem(menu, "Mark Unannotated Methods", 
+				null, new SelectionAdapter() {
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				provider.setMarkUnannotated(!markUnannotated);
+				contents.refresh();
+				contents.expandAll();
+			}
+		}, SWT.CHECK);
+		markDecls.setSelection(markUnannotated);
+		
+		new MenuItem(menu, SWT.SEPARATOR);
 		makeMenuItem(menu, "Revert to Baseline", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
@@ -797,7 +810,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 	static MenuItem makeMenuItem(final Menu menu, final String label,
 			final Image image, final SelectionListener l) {
-		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
+		return makeMenuItem(menu, label, image, l, SWT.PUSH);
+	}
+	
+	static MenuItem makeMenuItem(final Menu menu, final String label,
+			final Image image, final SelectionListener l, int flags) {
+		MenuItem item1 = new MenuItem(menu, flags);
 		item1.setText(label);
 		item1.addSelectionListener(l);
 		if (image != null) {

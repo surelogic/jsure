@@ -46,10 +46,8 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	 * @return an image that is carefully cached. The image should <i>not</i> be
 	 *         disposed by the calling code.
 	 */
-	public static final Image getCachedImage(String symbolicName,
-			boolean showWarningDecorator) {
-		return getCachedImage(SLImages.getImageDescriptor(symbolicName),
-				showWarningDecorator);
+	public static final Image getCachedImage(String symbolicName, Decorator d) {
+		return getCachedImage(SLImages.getImageDescriptor(symbolicName), d);
 	}
 
 	/**
@@ -63,12 +61,21 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	 * @return an image that is carefully cached. The image should <i>not</i> be
 	 *         disposed by the calling code.
 	 */
-	public static final Image getCachedImage(ImageDescriptor imageDescriptor,
-			boolean showWarningDecorator) {
-		final int flag = showWarningDecorator ? CoE_Constants.INFO_WARNING
-				: CoE_Constants.NONE;
+	public static final Image getCachedImage(ImageDescriptor imageDescriptor, Decorator d) {
 		ResultsImageDescriptor rid = new ResultsImageDescriptor(
-				imageDescriptor, flag, new Point(22, 16));
+				imageDescriptor, d.flag, new Point(22, 16));
 		return rid.getCachedImage();
+	}
+	
+	public enum Decorator {
+		NONE(CoE_Constants.NONE), 
+		WARNING(CoE_Constants.INFO_WARNING), 
+		RED_DOT(CoE_Constants.REDDOT);
+		
+		final int flag;
+		
+		Decorator(int flag) {
+			this.flag = flag;
+		}
 	}
 }

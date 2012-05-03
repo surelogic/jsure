@@ -35,8 +35,10 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureView.Decorator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.AbstractFunctionElement;
 import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
 import com.surelogic.xml.IJavaElement;
@@ -63,11 +65,20 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	PackageElement pkg;
 	Object[] roots;
 	final boolean hideEmpty;
+	private boolean markUnannotated = false;
 	String fluidXML = "";
 	URI localXML = null;
 
 	protected PromisesXMLContentProvider(final boolean hideEmpty) {
 		this.hideEmpty = hideEmpty;
+	}
+	
+	public boolean markUnannotated() {
+		return markUnannotated;
+	}
+	
+	public void setMarkUnannotated(boolean val) {
+		markUnannotated = val;
 	}
 
 	boolean isMutable() {
@@ -307,16 +318,25 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	@Override
 	public Image getImage(final Object element) {
 		ImageDescriptor desc = getImageDescriptor(element);
-		boolean isBad = false;
+		Decorator d = Decorator.NONE;
 		if (element instanceof AnnotationElement) {
 			IJavaElement e = (IJavaElement) element;
-			isBad = e.isBad();
+			if (e.isBad()) {
+				d = Decorator.WARNING;
+			}
 		}
 		if (element instanceof AnnotatedJavaElement) {
 			AnnotatedJavaElement a = (AnnotatedJavaElement) element;
-			isBad |= !a.isConfirmed();
+			if (!a.isConfirmed()) {
+				d = Decorator.WARNING;
+			}
+			if (a instanceof AbstractFunctionElement) {
+				if (markUnannotated && a.getPromises().isEmpty()) {
+					d = Decorator.RED_DOT;
+				}
+			}
 		}
-		return AbstractJSureView.getCachedImage(desc, isBad);
+		return AbstractJSureView.getCachedImage(desc, d);
 	}
 
 	protected ImageDescriptor getImageDescriptor(final Object element) {
