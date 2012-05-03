@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="2">
+<package name="java.lang" release="3">
     <class name="Thread">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -102,7 +102,7 @@
         </method>
 
         <method name="getDefaultUncaughtExceptionHandler">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads All</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -159,12 +159,12 @@
 
         <method name="interrupt">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="interrupted">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes any(Thread):Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -182,6 +182,30 @@
 
         <method name="isInterrupted">
             <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="join">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="join" params="long">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="join" params="long, int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="resume">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
@@ -195,6 +219,11 @@
         <method name="setDaemon" params="boolean">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setDefaultUncaughtExceptionHandler" params="java.lang.Thread.UncaughtExceptionHandler">
+            <RegionEffects>writes All</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -213,6 +242,49 @@
         <method name="setUncaughtExceptionHandler" params="java.lang.Thread.UncaughtExceptionHandler">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sleep" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sleep" params="long, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="start">
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="stop">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="stop" params="java.lang.Throwable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="suspend">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="yield">
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
