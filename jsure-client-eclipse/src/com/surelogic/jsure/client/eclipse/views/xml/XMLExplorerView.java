@@ -526,15 +526,15 @@ public class XMLExplorerView extends AbstractJSureView {
 		@Override
 		public Image getImage(Object element) {
 			if (element instanceof Package) {
-				return getCachedImage(CommonImages.IMG_PACKAGE, false);
+				return getCachedImage(CommonImages.IMG_PACKAGE, Decorator.NONE);
 			}
 			if (element instanceof Type) {
-				return getCachedImage(CommonImages.IMG_CLASS, false);
+				return getCachedImage(CommonImages.IMG_CLASS, Decorator.NONE);
 			}
 			if (element instanceof String) {
 				return null;
 			}
-			return getCachedImage(super.getImageDescriptor(element), false);
+			return getCachedImage(super.getImageDescriptor(element), Decorator.NONE);
 		}
 
 		@Override

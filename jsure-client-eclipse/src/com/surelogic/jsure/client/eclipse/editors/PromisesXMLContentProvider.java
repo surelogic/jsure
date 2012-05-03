@@ -35,6 +35,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureView.Decorator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.AnnotatedJavaElement;
@@ -307,16 +308,20 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	@Override
 	public Image getImage(final Object element) {
 		ImageDescriptor desc = getImageDescriptor(element);
-		boolean isBad = false;
+		Decorator d = Decorator.NONE;
 		if (element instanceof AnnotationElement) {
 			IJavaElement e = (IJavaElement) element;
-			isBad = e.isBad();
+			if (e.isBad()) {
+				d = Decorator.WARNING;
+			}
 		}
 		if (element instanceof AnnotatedJavaElement) {
 			AnnotatedJavaElement a = (AnnotatedJavaElement) element;
-			isBad |= !a.isConfirmed();
+			if (!a.isConfirmed()) {
+				d = Decorator.WARNING;
+			}
 		}
-		return AbstractJSureView.getCachedImage(desc, isBad);
+		return AbstractJSureView.getCachedImage(desc, d);
 	}
 
 	protected ImageDescriptor getImageDescriptor(final Object element) {
