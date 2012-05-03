@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.math" release="1">
+<package name="java.math" release="2">
     <class name="BigInteger">
         <constructor params="byte[]">
             <RegionEffects>none</RegionEffects>
@@ -42,7 +42,7 @@
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
-            <parameter index="1">
+            <parameter index="0">
                 <Borrowed/>
             </parameter>
         </constructor>
