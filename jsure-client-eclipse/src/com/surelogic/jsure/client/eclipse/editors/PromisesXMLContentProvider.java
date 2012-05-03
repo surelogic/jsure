@@ -38,6 +38,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView.Decorator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
+import com.surelogic.xml.AbstractFunctionElement;
 import com.surelogic.xml.AnnotatedJavaElement;
 import com.surelogic.xml.AnnotationElement;
 import com.surelogic.xml.IJavaElement;
@@ -64,11 +65,20 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	PackageElement pkg;
 	Object[] roots;
 	final boolean hideEmpty;
+	private boolean markUnannotated = false;
 	String fluidXML = "";
 	URI localXML = null;
 
 	protected PromisesXMLContentProvider(final boolean hideEmpty) {
 		this.hideEmpty = hideEmpty;
+	}
+	
+	public boolean markUnannotated() {
+		return markUnannotated;
+	}
+	
+	public void setMarkUnannotated(boolean val) {
+		markUnannotated = val;
 	}
 
 	boolean isMutable() {
@@ -319,6 +329,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			AnnotatedJavaElement a = (AnnotatedJavaElement) element;
 			if (!a.isConfirmed()) {
 				d = Decorator.WARNING;
+			}
+			if (a instanceof AbstractFunctionElement) {
+				if (markUnannotated && a.getPromises().isEmpty()) {
+					d = Decorator.RED_DOT;
+				}
 			}
 		}
 		return AbstractJSureView.getCachedImage(desc, d);
