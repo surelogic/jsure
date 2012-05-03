@@ -42,8 +42,14 @@ public class MethodBinder {
      * Only ruling out the case that the match used varargs,
      * but the best did not.
      */
-    private boolean useMatch(BindingInfo best, BindingInfo match) {    	
-    	return !match.usedVarArgs || best.usedVarArgs;
+    private boolean useMatch(BindingInfo best, IJavaType bestClass, BindingInfo match, IJavaType tmpClass) {    
+    	if (!match.usedVarArgs && best.usedVarArgs) {
+    		return true;
+    	}
+    	if (typeEnvironment.isSubType(tmpClass,bestClass)) {
+    		return best.numBoxed >= match.numBoxed;
+    	}
+    	return false;
 	}
     
     BindingInfo findBestMethod(Iterator<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
@@ -82,9 +88,7 @@ public class MethodBinder {
     		// we don't detect the case that there is no best method.
     		if (bestMethod == null ||
     				(typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
-    						typeEnvironment.isSubType(tmpClass,bestClass)) &&
-    						useMatch(bestMethod, match) ||
-    						bestMethod.numBoxed > match.numBoxed) { 
+    						useMatch(bestMethod, bestClass, match, tmpClass))) { 
     			// BUG: this algorithm does the wrong
     			// thing in the case of non-overridden multiple inheritance
     			// But there's no right thing to do, so...
