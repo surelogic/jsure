@@ -49,14 +49,16 @@ public final class PromisesLibMerge {
 			 * A bug could leave 0 byte diff files. We can protect against this
 			 * by checking for this here.
 			 */
-			if (local.exists() && local.length() > 0) {
-				PromisesXMLMerge.mergeJSureXMLIntoLocalXML(local, jsure);
-			} else {
-				final boolean result = local.delete();
-				SLLogger.getLogger().log(
-						result ? Level.WARNING : Level.SEVERE,
-						I18N.err(247, local, result ? "deleted successfully"
-								: "delete failed"), new Exception());
+			if (local.exists()) {
+				if (local.length() > 0) {
+					PromisesXMLMerge.mergeJSureXMLIntoLocalXML(local, jsure);
+				} else {
+					final boolean result = local.delete();
+					SLLogger.getLogger().log(
+							result ? Level.WARNING : Level.SEVERE,
+									I18N.err(247, local, result ? "deleted successfully"
+											: "delete failed"), new Exception());
+				}
 			}
 		}
 	}
