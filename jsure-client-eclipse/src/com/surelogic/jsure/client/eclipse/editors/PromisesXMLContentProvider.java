@@ -32,6 +32,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.TreeViewerState;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
@@ -72,11 +73,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	protected PromisesXMLContentProvider(final boolean hideEmpty) {
 		this.hideEmpty = hideEmpty;
 	}
-	
+
 	public boolean markUnannotated() {
 		return markUnannotated;
 	}
-	
+
 	public void setMarkUnannotated(boolean val) {
 		markUnannotated = val;
 	}
@@ -172,10 +173,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 			viewer.getControl().getDisplay().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					tree.expandAll();
+					if (!TreeViewerState.restoreSavedTreeViewerStateIfPossible(
+							tree, true)) {
+						tree.expandToLevel(3);
+					}
 				}
 			});
-
 		}
 	}
 
@@ -387,10 +390,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	}
 
 	void deleteAllChanges() {
-		/* This was deleting the local changes immediately
-		File local = new File(localXML);
-		local.delete();
-        */
+		/*
+		 * This was deleting the local changes immediately File local = new
+		 * File(localXML); local.delete();
+		 */
 		deleteUnsavedChanges(false);
 		build(true);
 		PromisesXMLReader.refreshAll();

@@ -75,6 +75,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.TreeViewerState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -191,6 +192,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			}
 		});
+
+		/*
+		 * Save the tree state if we need to restore it later (due to a major
+		 * update)
+		 */
+		TreeViewerState
+				.registerListenersToSaveTreeViewerStateOnChange(contents);
 
 		contents.setComparer(new Comparer());
 	}
@@ -391,7 +399,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						if (changed) {
 							markAsDirty();
 							contents.refresh();
-							contents.expandAll();
 						}
 					}
 				});
@@ -399,13 +406,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			if (o instanceof ClassElement) {
-				final ClassElement c = (ClassElement) o;
-
 				for (ScopedTargetType t : ScopedTargetType.values()) {
 					makeMenuItem(menu, "Add Scoped Promise For " + t.label
 							+ "...", new AnnotationCreator(j, t));
 				}
-				addActionsOnClasses(menu, c);
 			}
 		}
 
@@ -414,17 +418,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		final boolean markUnannotated = provider.markUnannotated();
-		final MenuItem markDecls = makeMenuItem(menu, "Mark Unannotated Methods", 
-				null, new SelectionAdapter() {
-			@Override
-			public void widgetSelected(final SelectionEvent e) {
-				provider.setMarkUnannotated(!markUnannotated);
-				contents.refresh();
-				contents.expandAll();
-			}
-		}, SWT.CHECK);
+		final MenuItem markDecls = makeMenuItem(menu,
+				"Mark Unannotated Methods", null, new SelectionAdapter() {
+					@Override
+					public void widgetSelected(final SelectionEvent e) {
+						provider.setMarkUnannotated(!markUnannotated);
+						contents.refresh();
+					}
+				}, SWT.CHECK);
 		markDecls.setSelection(markUnannotated);
-		
+
 		new MenuItem(menu, SWT.SEPARATOR);
 		makeMenuItem(menu, "Revert to Baseline", new SelectionAdapter() {
 			@Override
@@ -435,15 +438,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 							"Do you really want to revert all changes?")) {
 						provider.deleteAllChanges();
 						contents.refresh();
-						contents.expandAll();
 						/*
 						 * localXML.doRevertToSaved(); markAsClean();
 						 */
 						if (provider.getLocalInput().exists()) {
-							isDirty = true;	
+							isDirty = true;
 							markAsDirty();
 						} else {
-							// Otherwise, we're just reverted to the saved state in fluid
+							// Otherwise, we're just reverted to the saved state
+							// in fluid
 							isDirty = false;
 							markAsDirty(); // just updating the editor state
 						}
@@ -501,40 +504,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 							}
 							markAsDirty();
 							contents.refresh();
-							contents.expandToLevel(me.getParent(), 1);
 						}
 					}
 				});
-	}
-
-	private void addActionsOnClasses(final Menu menu, final ClassElement c) {
-		/*
-		 * makeMenuItem(menu, "Add existing method(s)...", new
-		 * ITypeSelector<IMethod>(c, methodComparator) {
-		 * 
-		 * @Override protected void preselect(IType t) throws JavaModelException
-		 * { for(IMethod m : t.getMethods()) { final boolean omitted =
-		 * Flags.isSynthetic(m.getFlags()) ||
-		 * "<clinit>".equals(m.getElementName()) ||
-		 * m.getElementName().startsWith("access$"); if
-		 * (m.getDeclaringType().equals(t) && !omitted) { // TODO check if
-		 * already there? members.add(m); } } }
-		 * 
-		 * @Override protected void create(IMethod m) throws JavaModelException
-		 * { String params = PromisesXMLBuilder.translateParameters(m);
-		 * c.addMember(m.isConstructor() ? new ConstructorElement(params) : new
-		 * MethodElement(m.getElementName(), params)); } }); makeMenuItem(menu,
-		 * "Add existing nested type(s)...", new ITypeSelector<IType>(c,
-		 * typeComparator) {
-		 * 
-		 * @Override protected void preselect(IType t) throws JavaModelException
-		 * { for(IType nt : t.getTypes()) { // TODO check if already there?
-		 * members.add(nt); } }
-		 * 
-		 * @Override protected void create(IType member) throws
-		 * JavaModelException { c.addMember(new
-		 * NestedClassElement(member.getElementName())); } });
-		 */
 	}
 
 	abstract class ITypeSelector<T extends IMember> extends SelectionAdapter {
@@ -584,23 +556,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 		protected abstract void create(T member) throws JavaModelException;
 	}
-
-	/*
-	 * private static final Comparator<IMethod> methodComparator = new
-	 * Comparator<IMethod>() {
-	 * 
-	 * @Override public int compare(final IMethod o1, final IMethod o2) { int rv
-	 * = o1.getElementName().compareTo(o2.getElementName()); if (rv == 0) { rv =
-	 * o1.getParameterTypes().length - o2.getParameterTypes().length; } if (rv
-	 * == 0) { try { rv = o1.getSignature().compareTo(o2.getSignature()); }
-	 * catch (JavaModelException e) { // ignore } } return rv; } };
-	 * 
-	 * private static final Comparator<IType> typeComparator = new
-	 * Comparator<IType>() {
-	 * 
-	 * @Override public int compare(final IType o1, final IType o2) { int rv =
-	 * o1.getElementName().compareTo(o2.getElementName()); return rv; } };
-	 */
 
 	private void addNavigationActions(final Menu menu, final IJavaElement o) {
 		if (o instanceof ClassElement) {
@@ -709,7 +664,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 				if (num > 0) {
 					contents.refresh();
-					contents.expandToLevel(j, 1);
 					markAsDirty();
 					/*
 					 * if (num == 1 && first.canModify()) {
@@ -812,7 +766,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			final Image image, final SelectionListener l) {
 		return makeMenuItem(menu, label, image, l, SWT.PUSH);
 	}
-	
+
 	static MenuItem makeMenuItem(final Menu menu, final String label,
 			final Image image, final SelectionListener l, int flags) {
 		MenuItem item1 = new MenuItem(menu, flags);
