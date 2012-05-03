@@ -1694,9 +1694,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (recType != null) toUse = typeScope(recType);
       }
       if (toUse != null) {        
-        /*
-        if ("toArray".equals(name)) {
-        	System.out.println("toArray: "+DebugUnparser.toString(node));
+    	/*
+        if ("_".equals(name)) {
+        	String unparse = DebugUnparser.toString(node);
+        	if ("test._".equals(unparse)) {
+        		System.out.println("toArray: "+unparse);
+        	}
         }
         */
         if (recType instanceof IJavaDeclaredType) {
