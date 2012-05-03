@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="4">
+<package name="java.lang" release="5">
     <class name="Thread">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -96,7 +96,7 @@
 
         <method name="getContextClassLoader">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <RegionEffects>reads any():Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -169,7 +169,7 @@
 
         <method name="isAlive">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -187,19 +187,19 @@
 
         <method name="join">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="join" params="long">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="join" params="long, int">
             <Borrowed>this</Borrowed>
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -245,12 +245,12 @@
         </method>
 
         <method name="sleep" params="long">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="sleep" params="long, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
