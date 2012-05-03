@@ -36,6 +36,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.TreeViewerState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
@@ -417,15 +418,27 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		public void refreshAll() {
-			build();
-
-			// This shouldn't be necessary, but Eclipse doesn't seem to
-			// realize that the viewer changed
 			new SLUIJob() {
 				@Override
 				public IStatus runInUIThread(IProgressMonitor monitor) {
-					if (!f_viewer.getControl().isDisposed())
-						f_viewer.refresh();
+					if (!f_viewer.getControl().isDisposed()) {
+						final TreeViewerState state = new TreeViewerState(
+								f_viewer);
+						build();
+						new SLUIJob() {
+							@Override
+							public IStatus runInUIThread(
+									IProgressMonitor monitor) {
+								if (!f_viewer.getControl().isDisposed()) {
+									f_viewer.refresh();
+									state.restoreViewState(f_viewer, true);
+									f_viewer.refresh();
+								}
+								return Status.OK_STATUS;
+							}
+						}.schedule();
+
+					}
 					return Status.OK_STATUS;
 				}
 			}.schedule();
