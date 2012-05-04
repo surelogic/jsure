@@ -44,6 +44,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.javac.persistence.JSureScan;
@@ -72,9 +73,9 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 public final class ResultsView extends AbstractJSureResultsView implements
 		JSureDataDirHub.CurrentScanChangeListener {
 
-	private static final String VIEW_STATE = "view.state";
+	private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
 
-	final File f_viewState;
+	final File f_viewStatePersistenceFile;
 
 	public ResultsView() {
 		File viewState = null;
@@ -90,7 +91,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		} catch (IOException e) {
 			// Nothing to do
 		}
-		f_viewState = viewState;
+		f_viewStatePersistenceFile = viewState;
 	}
 
 	@Override
@@ -114,9 +115,17 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		final UIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				saveViewState();
-				finishCreatePartControl();
-				restoreViewState();
+				if (treeViewer != null) {
+					final TreeViewerUIState state = new TreeViewerUIState(
+							treeViewer);
+					finishCreatePartControl();
+					state.restoreViewState(treeViewer);
+				} else {
+					SLLogger.getLogger()
+							.log(Level.WARNING,
+									"treeViewer is null when the current scan is being changed",
+									new Exception());
+				}
 				return Status.OK_STATUS;
 			}
 		};
@@ -406,18 +415,23 @@ public final class ResultsView extends AbstractJSureResultsView implements
 
 			@Override
 			public IResultsViewContentProvider buildModelOfDropSea() {
+				final TreeViewerUIState state = new TreeViewerUIState(
+						treeViewer);
 				try {
-					saveViewState(f_viewState);
+					state.saveToFile(f_viewStatePersistenceFile);
 				} catch (IOException e) {
-					e.printStackTrace();
+					SLLogger.getLogger().log(
+							Level.WARNING,
+							"Trouble when saving ResultsView UI state to "
+									+ f_viewStatePersistenceFile
+											.getAbsolutePath(), e);
 				}
-
 				try {
 					return super.buildModelOfDropSea_internal();
 				} finally {
 					f_viewerbook.getDisplay().asyncExec(new Runnable() {
 						public void run() {
-							restoreViewState();
+							state.restoreViewState(treeViewer);
 						}
 					});
 				}
@@ -832,14 +846,13 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					+ (end - start) + " ms");
 
 			// Running too early?
-			if (f_viewState != null && f_viewState.exists()) {
+			if (f_viewStatePersistenceFile != null
+					&& f_viewStatePersistenceFile.exists()) {
 				f_viewerbook.getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						try {
-							loadViewState(f_viewState);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+						final TreeViewerUIState state = TreeViewerUIState
+								.loadFromFile(f_viewStatePersistenceFile);
+						state.restoreViewState(treeViewer);
 					}
 				});
 			}
@@ -856,9 +869,13 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	@Override
 	public void saveState(IMemento memento) {
 		try {
-			saveViewState(f_viewState);
+			final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
+			state.saveToFile(f_viewStatePersistenceFile);
 		} catch (IOException e) {
-			e.printStackTrace();
+			SLLogger.getLogger().log(
+					Level.WARNING,
+					"Trouble when saving ResultsView UI state to "
+							+ f_viewStatePersistenceFile.getAbsolutePath(), e);
 		}
 	}
 }
