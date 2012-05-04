@@ -36,7 +36,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.TreeViewerState;
+import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
@@ -422,7 +422,14 @@ public class XMLExplorerView extends AbstractJSureView {
 				@Override
 				public IStatus runInUIThread(IProgressMonitor monitor) {
 					if (!f_viewer.getControl().isDisposed()) {
-						final TreeViewerState state = new TreeViewerState(
+						/*
+						 * The normal approach to saving the view state
+						 * (registering to listen for changes and saving to the
+						 * view's data) doesn't seem work for this view. Hence,
+						 * we save right before we change the view and then
+						 * restore the UI state.
+						 */
+						final TreeViewerUIState state = new TreeViewerUIState(
 								f_viewer);
 						build();
 						new SLUIJob() {
@@ -547,7 +554,8 @@ public class XMLExplorerView extends AbstractJSureView {
 			if (element instanceof String) {
 				return null;
 			}
-			return getCachedImage(super.getImageDescriptor(element), Decorator.NONE);
+			return getCachedImage(super.getImageDescriptor(element),
+					Decorator.NONE);
 		}
 
 		@Override

@@ -139,7 +139,7 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 
 	public String getLabel() {
-		return "type "+getName();
+		return getName();
 	}
 	
 	@Override

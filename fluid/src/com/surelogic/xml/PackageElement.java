@@ -58,7 +58,7 @@ public class PackageElement extends AnnotatedJavaElement {
 	}
 
 	public String getLabel() {
-		return "package " + getName();
+		return getName();
 	}
 
 	@Override

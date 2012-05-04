@@ -190,8 +190,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 		final List<T> baseline = handleNonconflictingChanges(orig, other, type);
 		// A set of elements that are marked as being deleted
-		final Set<T> deleted = type == MergeType.JSURE_TO_LOCAL ?
-				new HashSet<T>() : Collections.<T>emptySet();
+		final Set<T> deleted = type == MergeType.JSURE_TO_LOCAL ? new HashSet<T>()
+				: Collections.<T> emptySet();
 		boolean changed = false;
 		for (int i = 0; i < baseline.size(); i++) {
 			final T e = baseline.get(i);
@@ -224,11 +224,11 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 		// return baseline;
 		orig.clear();
-		if (deleted.isEmpty()) {					
+		if (deleted.isEmpty()) {
 			orig.addAll(baseline);
 		} else {
 			// Keep everything that's not deleted
-			for(T e : baseline) {
+			for (T e : baseline) {
 				if (deleted.contains(e)) {
 					continue;
 				}
@@ -329,5 +329,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 			}
 			result.add(e);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "[" + getLabel() + "]";
 	}
 }

@@ -12,6 +12,8 @@ import java.util.logging.Level;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -32,7 +34,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.TreeViewerState;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
@@ -170,15 +172,13 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 		}
 		if (viewer instanceof TreeViewer) {
 			final TreeViewer tree = (TreeViewer) viewer;
-			viewer.getControl().getDisplay().asyncExec(new Runnable() {
+			(new SLUIJob() {
 				@Override
-				public void run() {
-					if (!TreeViewerState.restoreSavedTreeViewerStateIfPossible(
-							tree, true)) {
-						tree.expandToLevel(3);
-					}
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					tree.expandToLevel(3);
+					return Status.OK_STATUS;
 				}
-			});
+			}).schedule();
 		}
 	}
 
@@ -390,10 +390,6 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	}
 
 	void deleteAllChanges() {
-		/*
-		 * This was deleting the local changes immediately File local = new
-		 * File(localXML); local.delete();
-		 */
 		deleteUnsavedChanges(false);
 		build(true);
 		PromisesXMLReader.refreshAll();

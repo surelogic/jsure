@@ -36,6 +36,7 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.Window;
@@ -75,7 +76,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.TreeViewerState;
+import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -197,7 +198,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		 * Save the tree state if we need to restore it later (due to a major
 		 * update)
 		 */
-		TreeViewerState
+		TreeViewerUIState
 				.registerListenersToSaveTreeViewerStateOnChange(contents);
 
 		contents.setComparer(new Comparer());
@@ -436,11 +437,28 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				if (provider.pkg.isModified()) {
 					if (MessageDialog.openQuestion(s, "Revert All Changes?",
 							"Do you really want to revert all changes?")) {
+						/*
+						 * Get the UI state before we do the revert to baseline.
+						 */
+						final TreeViewerUIState state = TreeViewerUIState
+								.getSavedTreeViewerStateIfPossible(contents);
+
 						provider.deleteAllChanges();
 						contents.refresh();
-						/*
-						 * localXML.doRevertToSaved(); markAsClean();
-						 */
+
+						if (state != null) {
+							/*
+							 * Restore the UI state
+							 */
+							(new SLUIJob() {
+								@Override
+								public IStatus runInUIThread(
+										IProgressMonitor monitor) {
+									state.restoreViewState(contents, true);
+									return Status.OK_STATUS;
+								}
+							}).schedule();
+						}
 						if (provider.getLocalInput().exists()) {
 							isDirty = true;
 							markAsDirty();
@@ -543,7 +561,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					if (changed) {
 						markAsDirty();
 						contents.refresh();
-						// contents.refresh(c, true);
 					}
 				}
 			} catch (JavaModelException e1) {
@@ -664,11 +681,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 				if (num > 0) {
 					contents.refresh();
+					contents.setExpandedState(((ITreeSelection) contents
+							.getSelection()).getFirstElement(), true);
 					markAsDirty();
-					/*
-					 * if (num == 1 && first.canModify()) {
-					 * startAnnotationEditDialog(first); }
-					 */
 				}
 			}
 		}
