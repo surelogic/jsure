@@ -422,13 +422,7 @@ public class XMLExplorerView extends AbstractJSureView {
 				@Override
 				public IStatus runInUIThread(IProgressMonitor monitor) {
 					if (!f_viewer.getControl().isDisposed()) {
-						/*
-						 * The normal approach to saving the view state
-						 * (registering to listen for changes and saving to the
-						 * view's data) doesn't seem work for this view. Hence,
-						 * we save right before we change the view and then
-						 * restore the UI state.
-						 */
+						// save the view state
 						final TreeViewerUIState state = new TreeViewerUIState(
 								f_viewer);
 						build();
@@ -438,13 +432,13 @@ public class XMLExplorerView extends AbstractJSureView {
 									IProgressMonitor monitor) {
 								if (!f_viewer.getControl().isDisposed()) {
 									f_viewer.refresh();
+									// restore the view state
 									state.restoreViewState(f_viewer, true);
 									f_viewer.refresh();
 								}
 								return Status.OK_STATUS;
 							}
 						}.schedule();
-
 					}
 					return Status.OK_STATUS;
 				}
