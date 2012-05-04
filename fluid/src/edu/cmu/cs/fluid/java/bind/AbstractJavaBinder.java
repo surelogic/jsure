@@ -1140,7 +1140,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     /**
      * @return true if bound
      */
-    protected boolean bindCall(final IRNode call, IRNode targs, IRNode args, String name, IJavaScope sc) {
+    protected boolean bindCall(final IRNode call, IRNode targs, IRNode args, final String name, final IJavaScope sc) {
       /*
       if (pathToTarget != null) {
     	  System.out.println("Not computing binding for call: "+DebugUnparser.toString(call));
@@ -1170,7 +1170,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
-      Iterator<IBinding> methods = IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
+      final Iterable<IBinding> methods = new Iterable<IBinding>() {
+			@Override
+			public Iterator<IBinding> iterator() {
+				return IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
+			}
+      };
       BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
       /*
       if (bestMethod != null && AnonClassExpression.prototype.includes(call)) {
@@ -2782,9 +2787,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
   
   @Override
-  public Iteratable<IBinding>  findOverriddenParentMethods(IRNode mth) {
-	  String name         = SomeFunctionDeclaration.getId(mth);
-	  IRNode td           = VisitUtil.getEnclosingType(mth);
+  public Iteratable<IBinding>  findOverriddenParentMethods(final IRNode mth) {
+	  final String name   = SomeFunctionDeclaration.getId(mth);
+	  final IRNode td     = VisitUtil.getEnclosingType(mth);
 	  IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
   
 	  final MethodBinder mb      = new MethodBinder(this, false);
@@ -2793,8 +2798,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
 			  new IJavaScope.SubstScope(typeMemberTable((IJavaDeclaredType) st).asScope(this), getTypeEnvironment(), t);	  
-		  BindingInfo best = mb.findBestMethod(superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl), null, null, 
-				                               mb.getFormalTypes(t, mth));
+		  Iterable<IBinding> temp = new Iterable<IBinding>() {
+			@Override
+			public Iterator<IBinding> iterator() {
+				return superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl);
+			}			  
+		  };
+		  BindingInfo best = mb.findBestMethod(temp, null, null, mb.getFormalTypes(t, mth));
 		  if (best != null) {
 			  methods.add(best.method);
 		  }
