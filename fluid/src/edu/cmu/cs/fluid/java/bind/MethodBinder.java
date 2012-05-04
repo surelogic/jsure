@@ -10,7 +10,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Hashtable2;
 
-public class MethodBinder {
+class MethodBinder {
 	private static final Logger LOG = AbstractJavaBinder.LOG;
 	
     private final Hashtable2<IJavaType,IJavaType,Boolean> callCompatCache = 
@@ -20,7 +20,7 @@ public class MethodBinder {
 	private final AbstractJavaBinder binder;
 	private final ITypeEnvironment typeEnvironment;
 	
-	public MethodBinder(AbstractJavaBinder b, boolean debug) {
+	MethodBinder(AbstractJavaBinder b, boolean debug) {
 		binder = b;
 		typeEnvironment = b.getTypeEnvironment();
 		this.debug = debug;
@@ -38,29 +38,63 @@ public class MethodBinder {
     	return result;
     }
 	
-    /**
-     * Only ruling out the case that the match used varargs,
-     * but the best did not.
-     */
-    private boolean useMatch(BindingInfo best, IJavaType bestClass, BindingInfo match, IJavaType tmpClass) {    
+	/**
+	 * 15.12.2.5 Choosing the Most Specific Method If more than one member
+	 * method is both accessible and applicable to a method invocation, it is
+	 * necessary to choose one to provide the descriptor for the run-time method
+	 * dispatch. The Java programming language uses the rule that the most
+	 * specific method is chosen. The informal intuition is that one method is
+	 * more specific than another if any invocation handled by the first method
+	 * could be passed on to the other one without a compile-time type error.
+	 */
+    private boolean useMatch(BindingInfo best, IJavaType bestClass, IJavaType[] bestArgs, BindingInfo match, IJavaType tmpClass, IJavaType[] tmpTypes) {    
     	if (!match.usedVarArgs && best.usedVarArgs) {
     		return true;
     	}
-    	if (typeEnvironment.isSubType(tmpClass,bestClass)) {
+    	if (best.numBoxed > match.numBoxed) {
+    		return true;
+    	}
+    	if (typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
+			typeEnvironment.isSubType(tmpClass,bestClass)) {
     		return best.numBoxed >= match.numBoxed;
     	}
     	return false;
 	}
     
-    BindingInfo findBestMethod(Iterator<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
+	/**
+	 * The process of determining applicability begins by determining the
+	 * potentially applicable methods (§15.12.2.1). The remainder of the process
+	 * is split into three phases.
+	 * 
+	 * The first phase (§15.12.2.2) performs overload resolution without
+	 * permitting boxing or unboxing conversion, or the use of variable arity
+	 * method invocation. If no applicable method is found during this phase
+	 * then processing continues to the second phase.
+	 * 
+	 * The second phase (§15.12.2.3) performs overload resolution while allowing
+	 * boxing and unboxing, but still precludes the use of variable arity method
+	 * invocation. If no applicable method is found during this phase then
+	 * processing continues to the third phase.
+	 * 
+	 * The third phase (§15.12.2.4) allows overloading to be combined with
+	 * variable arity methods, boxing and unboxing. Deciding whether a method is
+	 * applicable will, in the case of generic methods (§8.4.4), require that
+	 * actual type arguments be determined. Actual type arguments may be passed
+	 * explicitly or implicitly. If they are passed implicitly, they must be
+	 * inferred (§15.12.2.7) from the types of the argument expressions. If
+	 * several applicable methods have been identified during one of the three
+	 * phases of applicability testing, then the most specific one is chosen, as
+	 * specified in section §15.12.2.5. See the following subsections for
+	 * details.
+	 */
+    BindingInfo findBestMethod(Iterable<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
         BindingInfo bestMethod = null;
         IJavaType bestClass = null; // type of containing class
         IJavaType[] bestArgs = new IJavaType[argTypes.length];
         IJavaType[] tmpTypes = new IJavaType[argTypes.length];
         
         final int numTypeArgs = AbstractJavaBinder.numChildrenOrZero(targs);
-    	findMethod: while (methods.hasNext()) {
-    		final IBinding mbind = methods.next();
+    	findMethod: for(final IBinding mbind : methods) {
     		final IRNode mdecl = mbind.getNode();
     		if (debug) {
     			LOG.finer("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
@@ -86,9 +120,7 @@ public class MethodBinder {
     		IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(match.method.getNode()));
     		IJavaType tmpClass = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
     		// we don't detect the case that there is no best method.
-    		if (bestMethod == null ||
-    				(typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
-    						useMatch(bestMethod, bestClass, match, tmpClass))) { 
+    		if (bestMethod == null || useMatch(bestMethod, bestClass, bestArgs, match, tmpClass, tmpTypes)) { 
     			// BUG: this algorithm does the wrong
     			// thing in the case of non-overridden multiple inheritance
     			// But there's no right thing to do, so...
@@ -106,7 +138,7 @@ public class MethodBinder {
      * @param tmpTypes The types matched against
      * @return non-null if mbind matched the arguments
      */
-    BindingInfo matchMethod(IRNode targs, IRNode args, IJavaType[] argTypes, 
+    private BindingInfo matchMethod(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                   IBinding mbind, IJavaType[] tmpTypes,
                                   final IJavaTypeSubstitution mSubst) {
       final int numTypeArgs = AbstractJavaBinder.numChildrenOrZero(targs);
@@ -421,7 +453,7 @@ System.out.println("matching against "+tmpTypes);
       
       // Check case 1
       if (fty instanceof IJavaTypeFormal) {
-    	IJavaTypeFormal tf = (IJavaTypeFormal) fty;
+    	//IJavaTypeFormal tf = (IJavaTypeFormal) fty;
     	/*
         System.out.println("Trying to capture "+fty+" within "+
         		JavaNames.getFullName(VisitUtil.getEnclosingDecl(tf.getDeclaration())));
@@ -532,7 +564,7 @@ System.out.println("matching against "+tmpTypes);
       }
     }
 
-	public IJavaType[] getFormalTypes(IJavaDeclaredType t, IRNode mdecl) {
+	IJavaType[] getFormalTypes(IJavaDeclaredType t, IRNode mdecl) {
 		final IRNode formals;
 		final Operator op = JJNode.tree.getOperator(mdecl);
 		if (op instanceof MethodDeclaration) {
