@@ -73,9 +73,9 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 public final class ResultsView extends AbstractJSureResultsView implements
 		JSureDataDirHub.CurrentScanChangeListener {
 
-	private static final String VIEW_STATE = "view.state";
+	private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
 
-	final File f_viewState;
+	final File f_viewStatePersistenceFile;
 
 	public ResultsView() {
 		File viewState = null;
@@ -91,7 +91,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		} catch (IOException e) {
 			// Nothing to do
 		}
-		f_viewState = viewState;
+		f_viewStatePersistenceFile = viewState;
 	}
 
 	@Override
@@ -418,12 +418,13 @@ public final class ResultsView extends AbstractJSureResultsView implements
 				final TreeViewerUIState state = new TreeViewerUIState(
 						treeViewer);
 				try {
-					state.saveToFile(f_viewState);
+					state.saveToFile(f_viewStatePersistenceFile);
 				} catch (IOException e) {
 					SLLogger.getLogger().log(
 							Level.WARNING,
 							"Trouble when saving ResultsView UI state to "
-									+ f_viewState.getAbsolutePath(), e);
+									+ f_viewStatePersistenceFile
+											.getAbsolutePath(), e);
 				}
 				try {
 					return super.buildModelOfDropSea_internal();
@@ -845,19 +846,13 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					+ (end - start) + " ms");
 
 			// Running too early?
-			if (f_viewState != null && f_viewState.exists()) {
+			if (f_viewStatePersistenceFile != null
+					&& f_viewStatePersistenceFile.exists()) {
 				f_viewerbook.getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						try {
-							final TreeViewerUIState state = TreeViewerUIState
-									.loadFromFile(f_viewState);
-							state.restoreViewState(treeViewer);
-						} catch (IOException e) {
-							SLLogger.getLogger().log(
-									Level.WARNING,
-									"Trouble when loading ResultsView UI state from "
-											+ f_viewState.getAbsolutePath(), e);
-						}
+						final TreeViewerUIState state = TreeViewerUIState
+								.loadFromFile(f_viewStatePersistenceFile);
+						state.restoreViewState(treeViewer);
 					}
 				});
 			}
@@ -875,12 +870,12 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	public void saveState(IMemento memento) {
 		try {
 			final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
-			state.saveToFile(f_viewState);
+			state.saveToFile(f_viewStatePersistenceFile);
 		} catch (IOException e) {
 			SLLogger.getLogger().log(
 					Level.WARNING,
 					"Trouble when saving ResultsView UI state to "
-							+ f_viewState.getAbsolutePath(), e);
+							+ f_viewStatePersistenceFile.getAbsolutePath(), e);
 		}
 	}
 }
