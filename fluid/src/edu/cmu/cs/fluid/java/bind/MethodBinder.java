@@ -61,6 +61,63 @@ class MethodBinder {
     	return false;
 	}
     
+    private class SearchState {
+    	final Iterable<IBinding> methods;
+    	final IRNode targs;		
+    	final IRNode args; 
+    	final IJavaType[] argTypes;
+    	final int numTypeArgs;
+    	
+    	BindingInfo bestMethod = null;
+    	IJavaType bestClass = null; // type of containing class
+    	final IJavaType[] bestArgs;
+    	final IJavaType[] tmpTypes;
+        
+		SearchState(Iterable<IBinding> methods, IRNode targs,
+				IRNode args, IJavaType[] argTypes) {
+			this.methods = methods;
+			this.targs = targs;
+			this.args = args;
+			this.argTypes = argTypes;
+			numTypeArgs = AbstractJavaBinder.numChildrenOrZero(targs);
+			bestArgs = new IJavaType[argTypes.length];
+			tmpTypes = new IJavaType[argTypes.length];
+		}
+
+		void updateBestMethod(BindingInfo match) {    		
+    		IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(match.method.getNode()));
+    		IJavaType tmpClass = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
+    		// we don't detect the case that there is no best method.
+    		
+    		// TODO FIX
+    		if (bestMethod == null || useMatch(match, tmpClass)) { 
+    			// BUG: this algorithm does the wrong
+    			// thing in the case of non-overridden multiple inheritance
+    			// But there's no right thing to do, so...
+    			System.arraycopy(tmpTypes, 0, bestArgs, 0, bestArgs.length);
+    			bestMethod = match;
+    			bestClass = tmpClass;      
+    		}
+		}
+
+		private boolean useMatch(BindingInfo match, IJavaType tmpClass) {
+			/*
+	    	if (!match.usedVarArgs && best.usedVarArgs) {
+	    		return true;
+	    	}
+	    	if (best.numBoxed > match.numBoxed) {
+	    		return true;
+	    	}
+	    	*/
+	    	if (typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
+				typeEnvironment.isSubType(tmpClass,bestClass)) {
+	    		return true;
+	    		//return best.numBoxed >= match.numBoxed;
+	    	}
+	    	return false;
+		}    	
+    }
+    
 	/**
 	 * The process of determining applicability begins by determining the
 	 * potentially applicable methods (§15.12.2.1). The remainder of the process
@@ -88,6 +145,278 @@ class MethodBinder {
 	 * details.
 	 */
     BindingInfo findBestMethod(Iterable<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
+    	final SearchState state = new SearchState(methods, targs, args, argTypes);
+    	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
+    	if (best == null) {
+    		best = findMostSpecificApplicableMethod(state, true, false);
+    		if (best == null) {
+    			best = findMostSpecificApplicableMethod(state, true, true);
+    		}
+    	}
+    	return best;
+    }
+    
+    private BindingInfo findMostSpecificApplicableMethod(final SearchState s, 
+    		boolean allowBoxing, boolean allowVarargs) {            	
+    	for(final IBinding mbind : s.methods) {
+    		final IRNode mdecl = mbind.getNode();
+    		if (debug) {
+    			LOG.finer("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
+    					+ binder.getInVersionString());
+    		}
+    		final BindingInfo match = isApplicable(s, allowBoxing, allowVarargs, mbind);
+    		if (match != null) {
+    			s.updateBestMethod(match);
+    		}
+    	}
+        return s.bestMethod;
+	}
+    
+    private class MethodState {
+    	final SearchState search;
+    	final IBinding bind;
+    	final IRNode formals;
+    	final IRNode typeFormals;
+    	final int numTypeFormals;
+    	final IJavaTypeSubstitution methodTypeSubst;
+    	final Map<IJavaType,IJavaType> substMap;
+    	
+    	MethodState(SearchState s, IBinding m) {
+    		search = s;
+    		bind = m;
+    		
+    		// Setup various info about the method
+        	final IRNode mdecl = m.getNode();
+        	final Operator op  = JJNode.tree.getOperator(mdecl);      
+        	if (op instanceof MethodDeclaration) {
+        		formals = MethodDeclaration.getParams(mdecl);
+        		typeFormals = MethodDeclaration.getTypes(mdecl);
+        		/*
+    	        if ("toArray".equals(MethodDeclaration.getId(mdecl))) {
+    	        	System.out.println(DebugUnparser.toString(mdecl));
+    	        	System.out.println();
+    	        }
+        		 */
+        	} else {
+        		formals = ConstructorDeclaration.getParams(mdecl);
+        		typeFormals = ConstructorDeclaration.getTypes(mdecl);
+        	}
+        	numTypeFormals = AbstractJavaBinder.numChildrenOrZero(typeFormals);
+        	
+        	// Compute a type substitution if needed
+        	IJavaTypeSubstitution subst = IJavaTypeSubstitution.NULL;
+        	if (s.numTypeArgs != 0) {
+        		if (s.numTypeArgs == numTypeFormals) {
+        			// Use explicit type arguments
+        			subst = FunctionParameterSubstitution.create(binder, m, s.targs);
+        		}
+        	} 
+        	methodTypeSubst = subst;
+        	
+        	if (numTypeFormals != 0) {
+        		substMap = new HashMap<IJavaType,IJavaType>();
+        	} else {
+        		substMap = Collections.emptyMap();
+        	}
+    	}
+
+		void initSubstMap() { 	
+	    	if (numTypeFormals != 0) {
+	    		int i = 0;
+	    		for(IRNode tf : JJNode.tree.children(typeFormals)) {
+	    			IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(tf);
+	    			/*
+		    		System.out.println("Mapping "+jtf+" within "+
+		    				JavaNames.getFullName(VisitUtil.getEnclosingDecl(jtf.getDeclaration())));
+	    			 */
+	    			if (search.numTypeArgs == 0) {    		
+	    				IJavaType subst = bind.convertType(jtf); 
+	    				substMap.put(jtf, subst); // FIX slow lookup
+	    			} else {
+	    				IRNode targ = TypeActuals.getType(search.targs, i);
+	    				IJavaType targT = binder.getJavaType(targ);
+	    				substMap.put(jtf, targT);    			
+	    			}
+	    			i++;
+	    		}
+	    	}
+		}
+
+		IRNode getVarargsType() {
+			IRNode varType;
+	    	IRLocation lastLoc = JJNode.tree.lastChildLocation(formals);
+	    	if (lastLoc != null) {
+	    		IRNode lastParam = JJNode.tree.getChild(formals,lastLoc);
+	    		IRNode ptype = ParameterDeclaration.getType(lastParam);
+	    		if (VarArgsType.prototype.includes(ptype)) {
+	    			if (debug) {
+	    				LOG.finer("Handling variable numbers of parameters.");
+	    			}
+	    			varType = ptype;
+	    		} else {
+	    			varType = null;
+	    		}
+	    	} else {
+	    		varType = null;
+	    	}
+	    	return varType;
+		}
+    }
+    
+    private BindingInfo isApplicable(final SearchState s, final boolean allowBoxing, final boolean allowVarargs, 
+    		final IBinding mbind) { 
+    	final MethodState m = new MethodState(s, mbind);
+    	if (s.numTypeArgs != 0 && s.numTypeArgs != m.numTypeFormals) {
+    		// No way for this method to be applicable
+    		return null; 
+    	}    	
+    	m.initSubstMap();
+    	
+    	BindingInfo matched = matchedParameters(s, allowBoxing, allowVarargs, m);    	
+    	if (matched == null && !m.substMap.isEmpty()) {
+    		// Necessary to match "raw" usages of a method
+    		m.substMap.clear();
+    		matched = matchedParameters(s, allowBoxing, allowVarargs, m);    	
+    	}
+    	return matched;
+    }
+    
+	private BindingInfo matchedParameters(final SearchState s, final boolean allowBoxing,
+			final boolean allowVarargs, final MethodState m) {
+    	final IRNode varType = m.getVarargsType();        
+    	// Check that the #params matches #args
+    	final int numFormals = JJNode.tree.numChildren(m.formals);
+    	if (allowVarargs && varType != null) {
+    		if (s.argTypes.length < numFormals - 1) {
+    			if (debug) {
+    				LOG.finer("Wrong number of parameters.");
+    			}
+    			return null;
+    		}
+    	} 
+    	else if (numFormals != s.argTypes.length) {
+    		if (debug) {
+    			LOG.finer("Wrong number of parameters.");
+    		}
+    		return null;
+    	}    	    	    	
+     	int numBoxed = 0;    	    	
+    	
+    	// First, capture type variables
+    	// (expanding varargs to fill in what would be null)
+    	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
+    	IJavaType varArgBase = null;
+    	for (int i=0; i < s.argTypes.length; ++i) {
+    		IJavaType fty;
+    		if (!fe.hasNext()) {
+    			// No more formals .. so it has to be varargs for a match
+    			if (!allowVarargs) {
+    				return null;
+    			}
+    			else if (varType == null) {
+    				LOG.severe("Not enough parameters to continue");
+    				return null;
+    			}
+    			else if (varArgBase == null) {
+    				LOG.severe("No varargs type to copy");
+    				return null;
+    			}
+    			// Expanded from 
+    			fty = varArgBase;
+    		} else {
+    			IRNode ptype  = ParameterDeclaration.getType(fe.next());    		
+    			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
+    			
+    			fty = m.bind.convertType(fty);
+    			if (allowVarargs && ptype == varType && 
+    					(i < s.argTypes.length-1 || 
+    							(i==s.argTypes.length-1 && !(s.argTypes[i] instanceof IJavaArrayType)))) {
+    				// FIX what's the right way to convert if the number of args match
+    				IJavaArrayType at = (IJavaArrayType) fty;
+    				varArgBase = at.getElementType();     		
+    				fty = varArgBase;
+    			}
+    		}
+    		if (allowBoxing) {
+    			// Handle boxing
+    			IJavaType[] newArgTypes = handleBoxing(fty, s.argTypes, i);
+    			if (newArgTypes != s.argTypes) {
+    				// arg[i] was (un)boxed
+    				// 
+    				// TODO is this right?  why is it modifying the args 
+    				s.argTypes[i] = newArgTypes[i];
+    				numBoxed++;
+    			}
+    		}
+    		s.tmpTypes[i] = fty;    		
+    		if (m.substMap != null) {
+    			capture(m.substMap, fty, s.argTypes[i]);
+    		}
+    	}
+
+    	// Then, substitute and check if compatible
+    	final boolean isVarArgs = varType != null;
+    	for (int i=0; i < s.argTypes.length; ++i) {       
+    		IJavaType fty      = s.tmpTypes[i];
+    		IJavaType captured = m.substMap == null ? binder.getTypeEnvironment().computeErasure(fty) : 
+    			substitute(m.substMap, fty);          
+    		if (!isCallCompatible(captured,s.argTypes[i])) {        	
+    			// Check if need (un)boxing
+    			if (allowBoxing && onlyNeedsBoxing(captured, s.argTypes[i])) {
+    				numBoxed++;
+    				continue;
+    			}    			
+    			if (isVarArgs && i == s.argTypes.length-1 && captured instanceof IJavaArrayType &&
+    					s.argTypes[i] instanceof IJavaArrayType) {
+    				// issue w/ the last/varargs parameter
+    				final IJavaArrayType at = (IJavaArrayType) captured;
+    				final IJavaType eltType = at.getElementType();
+    				if (allowVarargs && s.args != null) {
+    					final IRNode varArg = Arguments.getArg(s.args, i); 
+    					if (VarArgsExpression.prototype.includes(varArg)) {
+    						inner:
+    							for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
+    								final IJavaType argType = binder.getJavaType(arg);
+    								if (!isCallCompatible(eltType, argType)) {        	
+    									// Check if need (un)boxing
+    									if (onlyNeedsBoxing(eltType, argType)) {
+    										numBoxed++;
+    										continue inner;
+    									}
+    									return null;
+    								}
+    							}
+    					continue;
+    					}
+    				}
+    			}
+    			if (debug) {
+    				LOG.finer("... but " + s.argTypes[i] + " !<= " + captured);
+    			}
+    			return null;
+    		}
+    	}
+
+    	final IJavaTypeSubstitution subst;
+    	if (!m.substMap.isEmpty() && m.methodTypeSubst == IJavaTypeSubstitution.NULL) {
+    		//System.out.println("Making method subst for "+JavaNames.getFullName(mbind.getNode()));
+    		subst = 
+    			FunctionParameterSubstitution.create(binder, m.bind.getNode(), m.substMap);
+    	} else {
+    		/*
+    		if (mSubst != IJavaTypeSubstitution.NULL) {
+    			System.out.println("Using explicit type arguments at call: "+mSubst);
+    		}
+    		*/
+    		subst = m.methodTypeSubst;
+    	}
+    	if (subst != IJavaTypeSubstitution.NULL) {
+    		return new BindingInfo(IBinding.Util.makeMethodBinding(m.bind, subst), numBoxed, isVarArgs);
+    	}
+    	return new BindingInfo(m.bind, numBoxed, isVarArgs);
+	}
+
+	BindingInfo findBestMethod_old(Iterable<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
         BindingInfo bestMethod = null;
         IJavaType bestClass = null; // type of containing class
         IJavaType[] bestArgs = new IJavaType[argTypes.length];
