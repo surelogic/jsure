@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="6">
+<package name="java.lang" release="7">
     <class name="Thread">
         <ThreadSafe implementationOnly="true"/>
         <constructor>
@@ -246,12 +246,12 @@
         </method>
 
         <method name="sleep" params="long">
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>writes any(Thread):Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="sleep" params="long, int">
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>writes any(Thread):Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 

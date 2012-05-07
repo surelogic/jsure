@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="1">
+<package name="java.lang" release="2">
     <class name="String">
         <Immutable/>
         <constructor>
@@ -10,81 +10,119 @@
         </constructor>
 
         <constructor params="byte[]">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], int, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], int, int, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], int, int, java.lang.String">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], int, int, java.nio.charset.Charset">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
             <parameter index="3">
                 <Borrowed/>
             </parameter>
         </constructor>
 
         <constructor params="byte[], java.lang.String">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="byte[], java.nio.charset.Charset">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
             <parameter index="1">
                 <Borrowed/>
             </parameter>
         </constructor>
 
         <constructor params="char[]">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="char[], int, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="int[], int, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </constructor>
 
         <constructor params="java.lang.StringBuffer">
@@ -582,7 +620,7 @@
         </method>
 
         <method name="valueOf" params="char[]">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -591,7 +629,7 @@
         </method>
 
         <method name="valueOf" params="char[], int, int">
-            <RegionEffects>none</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
