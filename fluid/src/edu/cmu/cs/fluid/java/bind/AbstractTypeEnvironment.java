@@ -673,7 +673,7 @@ private long parseIntLiteral(String token) {
 	} finally {
 		if (!ignoreGenerics) {
 			synchronized (subTypeCache) {
-				subTypeCache.put(s, t, result);
+				//subTypeCache.put(s, t, result);
 			}
 		}
 	}
@@ -895,7 +895,7 @@ private long parseIntLiteral(String token) {
       return JavaTypeFactory.getArrayType(base, at.getDimensions());
     }
     if (ty instanceof IJavaTypeFormal) {
-      return ty.getSuperclass(this);
+      return computeErasure(ty.getSuperclass(this));
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
