@@ -321,20 +321,28 @@ class MethodBinder {
     				LOG.severe("No varargs type to copy");
     				return null;
     			}
-    			// Expanded from 
+    			// Expanding to match the number of arguments
     			fty = varArgBase;
     		} else {
     			IRNode ptype  = ParameterDeclaration.getType(fe.next());    		
     			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
     			
     			fty = m.bind.convertType(fty);
-    			if (allowVarargs && ptype == varType && 
-    					(i < s.argTypes.length-1 || 
-    							(i==s.argTypes.length-1 && !(s.argTypes[i] instanceof IJavaArrayType)))) {
-    				// FIX what's the right way to convert if the number of args match
-    				IJavaArrayType at = (IJavaArrayType) fty;
-    				varArgBase = at.getElementType();     		
-    				fty = varArgBase;
+    	
+    			if (allowVarargs && ptype == varType) {
+    				// Check if I need to use varargs
+    				// 1. Last formal (varargs) is before the last argument
+    				//	  f(Object, Object...) vs f(a, b1, b2) 
+    				// 2. Last formal matches up with the last argument, and is not call compatible
+    				if (i < s.argTypes.length-1 || 
+    					(i==s.argTypes.length-1 && !isCallCompatible(fty, s.argTypes[i]))) {
+    					// was !(s.argTypes[i] instanceof IJavaArrayType))) {
+    			
+    					// Convert the varargs type to get the element type
+    					IJavaArrayType at = (IJavaArrayType) fty;
+    					varArgBase = at.getElementType();      					
+    					fty = varArgBase;
+    				}
     			}
     		}
     		if (allowBoxing) {
