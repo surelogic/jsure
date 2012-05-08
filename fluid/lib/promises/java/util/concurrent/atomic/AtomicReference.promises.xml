@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic" release="2">
-    <class name="AtomicBoolean">
+<package name="java.util.concurrent.atomic" release="1">
+    <class name="AtomicReference">
         <ThreadSafe/>
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -9,16 +9,19 @@
             <Unique>return</Unique>
         </constructor>
 
-        <constructor params="boolean">
+        <constructor params="java.lang.Object">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
 
-        <method name="compareAndSet" params="boolean, boolean">
+        <method name="compareAndSet" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="get">
@@ -27,19 +30,19 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="getAndSet" params="boolean">
+        <method name="getAndSet" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="lazySet" params="boolean">
+        <method name="lazySet" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="set" params="boolean">
+        <method name="set" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
@@ -51,10 +54,13 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="weakCompareAndSet" params="boolean, boolean">
+        <method name="weakCompareAndSet" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
     </class>
 </package>

@@ -376,7 +376,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return;
 		}
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
-		addNavigationActions(menu, o);
+
+		if (addNavigationActions(menu, o)) {
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
 
 		makeMenuItem(menu, "Copy", new SelectionAdapter() {
 			@Override
@@ -400,10 +403,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 						if (changed) {
 							markAsDirty();
 							contents.refresh();
+							// Expand the selection
+							contents.setExpandedState(
+									((ITreeSelection) contents.getSelection())
+											.getFirstElement(), true);
 						}
 					}
 				});
 			}
+
+			new MenuItem(menu, SWT.SEPARATOR);
+
 			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
 
 			if (o instanceof ClassElement) {
@@ -418,6 +428,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
+
 		final boolean markUnannotated = provider.markUnannotated();
 		final MenuItem markDecls = makeMenuItem(menu,
 				"Mark Unannotated Methods", null, new SelectionAdapter() {
@@ -574,8 +585,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		protected abstract void create(T member) throws JavaModelException;
 	}
 
-	private void addNavigationActions(final Menu menu, final IJavaElement o) {
+	/**
+	 * 
+	 * @param menu
+	 *            the context menu
+	 * @param o
+	 *            the target.
+	 * @return <tt>true</tt> if anything was added to the menu.
+	 */
+	private boolean addNavigationActions(final Menu menu, final IJavaElement o) {
+		boolean result = false;
 		if (o instanceof ClassElement) {
+			result = true;
 			final ClassElement c = (ClassElement) o;
 			makeMenuItem(menu, "Open", new SelectionAdapter() {
 				@Override
@@ -602,6 +623,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			});
 		} else if (o instanceof MethodElement) {
+			result = true;
 			final MethodElement m = (MethodElement) o;
 			makeMenuItem(menu, "Open", new SelectionAdapter() {
 				@Override
@@ -616,6 +638,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			});
 		}
+		return result;
 	}
 
 	private class AnnotationCreator extends SelectionAdapter {

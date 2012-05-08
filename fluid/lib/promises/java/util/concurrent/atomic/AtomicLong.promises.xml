@@ -1,90 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic" release="2">
-    <class name="AtomicIntegerArray">
+<package name="java.util.concurrent.atomic" release="1">
+    <class name="AtomicLong">
         <ThreadSafe/>
-        <constructor params="int">
+        <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
 
-        <constructor params="int[]">
-            <RegionEffects>reads arg0:Instance</RegionEffects>
+        <constructor params="long">
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
         </constructor>
 
-        <method name="addAndGet" params="int, int">
+        <method name="addAndGet" params="long">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="compareAndSet" params="int, int, int">
+        <method name="compareAndSet" params="long, long">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="decrementAndGet" params="int">
+        <method name="decrementAndGet">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="get" params="int">
+        <method name="doubleValue">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="getAndAdd" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="getAndDecrement" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="getAndIncrement" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="getAndSet" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="incrementAndGet" params="int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="lazySet" params="int, int">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="length">
+        <method name="floatValue">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="set" params="int, int">
+        <method name="get">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAndAdd" params="long">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAndDecrement">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAndIncrement">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAndSet" params="long">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="incrementAndGet">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="intValue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="lazySet" params="long">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="longValue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="set" params="long">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
@@ -96,7 +111,7 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="weakCompareAndSet" params="int, int, int">
+        <method name="weakCompareAndSet" params="long, long">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
