@@ -673,7 +673,7 @@ private long parseIntLiteral(String token) {
 	} finally {
 		if (!ignoreGenerics) {
 			synchronized (subTypeCache) {
-				//subTypeCache.put(s, t, result);
+				subTypeCache.put(s, t, result);
 			}
 		}
 	}
