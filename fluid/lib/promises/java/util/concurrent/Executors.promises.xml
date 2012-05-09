@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent" release="1">
+    <class name="Executors">
+        <Utility/>
+        <method name="callable" params="java.lang.Runnable">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="callable" params="java.lang.Runnable, java.lang.Object">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="callable" params="java.security.PrivilegedAction">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="callable" params="java.security.PrivilegedExceptionAction">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="defaultThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newCachedThreadPool">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newCachedThreadPool" params="java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newFixedThreadPool" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newFixedThreadPool" params="int, java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newScheduledThreadPool" params="int">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newScheduledThreadPool" params="int, java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newSingleThreadExecutor">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newSingleThreadExecutor" params="java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newSingleThreadScheduledExecutor">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="newSingleThreadScheduledExecutor" params="java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="privilegedCallable" params="java.util.concurrent.Callable">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="privilegedCallableUsingCurrentClassLoader" params="java.util.concurrent.Callable">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="privilegedThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="unconfigurableExecutorService" params="java.util.concurrent.ExecutorService">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="unconfigurableScheduledExecutorService" params="java.util.concurrent.ScheduledExecutorService">
+            <RegionEffects>none</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+    </class>
+</package>

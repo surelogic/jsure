@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent" release="1">
+    <class name="CompletionService">
+        <ThreadSafe/>
+        <method name="poll">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="poll" params="long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="submit" params="java.lang.Runnable, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="submit" params="java.util.concurrent.Callable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="take">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
