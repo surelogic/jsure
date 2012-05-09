@@ -1,30 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.locks" release="1">
+<package name="java.util.concurrent.locks" release="2">
     <class name="Lock">
         <ThreadSafe/>
         <method name="lock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="lockInterruptibly">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="newCondition">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="tryLock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="tryLock" params="long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="unlock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

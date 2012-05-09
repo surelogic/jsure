@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.script" release="1">
+    <class name="ScriptException">
+        <constructor params="java.lang.Exception">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String, java.lang.String, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.lang.String, java.lang.String, int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="getColumnNumber">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getFileName">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getLineNumber">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getMessage">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

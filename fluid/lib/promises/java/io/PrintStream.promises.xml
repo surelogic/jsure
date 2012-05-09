@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.io" release="1">
+    <class name="PrintStream">
+        <method name="append" params="char">
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="append" params="java.lang.CharSequence">
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="append" params="java.lang.CharSequence, int, int">
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

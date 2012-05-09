@@ -1,67 +1,211 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.locks" release="1">
+<package name="java.util.concurrent.locks" release="2">
     <class name="ReentrantReadWriteLock">
         <ThreadSafe/>
-        <method name="readLock">
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="boolean">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="getQueueLength">
+            <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getReadHoldCount">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getReadLockCount">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getWaitQueueLength" params="java.util.concurrent.locks.Condition">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getWriteHoldCount">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hasQueuedThread" params="java.lang.Thread">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hasQueuedThreads">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hasWaiters" params="java.util.concurrent.locks.Condition">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="isFair">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isWriteLocked">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isWriteLockedByCurrentThread">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="readLock">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="writeLock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <class name="ReadLock">
             <ThreadSafe/>
             <method name="lock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="lockInterruptibly">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="newCondition">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </method>
+
+            <method name="toString">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="tryLock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="tryLock" params="long, java.util.concurrent.TimeUnit">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="unlock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
         </class>
 
         <class name="WriteLock">
             <ThreadSafe/>
+            <method name="getHoldCount">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="isHeldByCurrentThread">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
             <method name="lock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="lockInterruptibly">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="newCondition">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </method>
+
+            <method name="toString">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="tryLock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="tryLock" params="long, java.util.concurrent.TimeUnit">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
 
             <method name="unlock">
+                <Borrowed>this</Borrowed>
                 <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
             </method>
         </class>
     </class>

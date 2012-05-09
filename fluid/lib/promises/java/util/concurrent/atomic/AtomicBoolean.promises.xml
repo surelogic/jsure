@@ -1,7 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.atomic" release="1">
+<package name="java.util.concurrent.atomic" release="2">
     <class name="AtomicBoolean">
         <ThreadSafe/>
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="boolean">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="compareAndSet" params="boolean, boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="get">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getAndSet" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="lazySet" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="set" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="weakCompareAndSet" params="boolean, boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
     </class>
 </package>

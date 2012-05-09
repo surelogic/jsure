@@ -635,6 +635,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  NameContext(Selector s) {
 		  selector = s;
 	  }
+	  boolean couldBeType() {
+		  return this != NOT_TYPE;
+	  }
+	  boolean couldBeVariable() {
+		  return this != TYPE;
+	  }
   }
   
   /**
@@ -993,12 +999,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param node node at which to set the binding
      * @param binding binding to bind to.
      */
-    private boolean bind(IRNode node, IBinding binding) {      
+    private boolean bind(IRNode node, IBinding binding) {
+    	return bind(node, binding, false);
+    }
+    
+    private boolean bind(IRNode node, IBinding binding, boolean quietWarnings) {      
       if (pathToTarget != null) {
     	  //System.out.println("Throwing away binding for "+DebugUnparser.toString(node));
     	  return false; // don't bind: not in the target granule
       }      
       if (binding == null) {
+        if (quietWarnings) {
+        	return false;
+        }
     	final String unparse = DebugUnparser.toString(node);
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
@@ -1057,8 +1070,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param name name to perform lookup using
      */
     protected boolean bind(IRNode node, Selector selector, String name) {
+    	return bind(node, selector, false, name);
+    }
+    
+   	protected boolean bind(IRNode node, Selector selector, boolean quietWarnings, String name) {    	
       // LOG.finer(name);
-      return bind(node,scope,selector,name);
+      return bind(node,scope,selector,quietWarnings,name);
     }
     
     /**
@@ -1068,7 +1085,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param selector used to choose the binding
      */
     protected boolean bind(IRNode node, IJavaScope sc, Selector selector) {
-      return bind(node,sc,selector,JJNode.getInfo(node));
+      return bind(node,sc,selector,false,JJNode.getInfo(node));
     }
     
     /**
@@ -1079,7 +1096,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param name name to perform lookup using
      * @return true if bound to non-null
      */
-    protected boolean bind(IRNode node, IJavaScope sc, Selector selector, String name) {
+    protected boolean bind(IRNode node, IJavaScope sc, Selector selector, boolean quietWarnings, String name) {
       if (debug) {
         LOG.finer("Looking up " + name + " in " + sc);
       }
@@ -1088,7 +1105,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (binding == null) {
           sc.lookup(name,node,selector);
         }
-        bind(node, binding);
+        bind(node, binding, quietWarnings);
         return binding != null;
       } else {
         bind(node, (IRNode) null);
@@ -1102,7 +1119,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param selector choose which declaration
      */
     protected boolean bind(IRNode node, Selector selector) {
-      return bind(node,selector,JJNode.getInfo(node));
+      return bind(node,selector,false);
+    }
+    
+    protected boolean bind(IRNode node, Selector selector, boolean quietWarnings) {
+      return bind(node,selector,quietWarnings,JJNode.getInfo(node));
     }
 
     // Convert the args to IJavaTypes
@@ -2495,6 +2516,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitSimpleName(IRNode node) { 
+      /*
+      final String name = JJNode.getInfo(node);
+      if ("TestNameResolution".equals(name)) {
+    	  System.out.println("Binding 'Inner'");
+      }
+      */
       final NameContext context = computeNameContext(node);
       /*
       final String name = JJNode.getInfo(node);
@@ -2514,7 +2541,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  }
       }
       */
-      boolean success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, context.selector));
+      boolean success = false;
+      if (context.couldBeVariable()) {
+    	  success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName), true);
+      }
+      if (!success && context.couldBeType()) {
+    	  success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
+      }
       /*
       String unparse = DebugUnparser.toString(node);
       if (unparse.contains("lattice")) {
@@ -2534,7 +2567,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       if (!success) {
-    	  bind(node, context.selector);
+    	  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
+    	  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
     	  /*
       } else if ("String".equals(SimpleName.getId(node))) {
     	  System.out.println("isFullPass("+this.isFullPass+") for "+node);

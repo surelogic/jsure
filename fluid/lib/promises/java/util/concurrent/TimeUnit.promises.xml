@@ -1,7 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="1">
+<package name="java.util.concurrent" release="3">
     <class name="TimeUnit">
-        <ThreadSafe/>
+        <Immutable/>
+        <method name="convert" params="long, java.util.concurrent.TimeUnit">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="sleep" params="long">
+            <RegionEffects>writes any(java.lang.Thread):Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="timedJoin" params="java.lang.Thread, long">
+            <RegionEffects>writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="timedWait" params="java.lang.Object, long">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>arg0:MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="toDays" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toHours" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toMicros" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toMillis" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toMinutes" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toNanos" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toSeconds" params="long">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="valueOf" params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="values">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
     </class>
 </package>
