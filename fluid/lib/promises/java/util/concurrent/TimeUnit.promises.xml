@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="TimeUnit">
         <Immutable/>
         <method name="convert" params="long, java.util.concurrent.TimeUnit">
@@ -9,7 +9,7 @@
         </method>
 
         <method name="sleep" params="long">
-            <RegionEffects>writes any(Thread):Instance</RegionEffects>
+            <RegionEffects>writes any(java.lang.Thread):Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
