@@ -441,7 +441,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		markDecls.setSelection(markUnannotated);
 
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Revert to Baseline", new SelectionAdapter() {
+		makeMenuItem(menu, "Revert To Baseline", new SelectionAdapter() {
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();

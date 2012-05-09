@@ -17,8 +17,9 @@ public final class ModelingProblemFilterUtility {
 	 * The default filters: a series of regular expressions separated by
 	 * newlines ('\n').
 	 */
-	public static final List<String> DEFAULT = Arrays.asList("com\\.sun.*",
-			"sun\\..*", ".*\\.internal.*", ".*BakedArrayList\\.class");
+	public static final List<String> DEFAULT = Arrays.asList("com\\.apple.*",
+			"com\\.sun.*", "sun\\..*", ".*\\.internal.*",
+			".*BakedArrayList\\.class", "quicktime.*");
 
 	public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 

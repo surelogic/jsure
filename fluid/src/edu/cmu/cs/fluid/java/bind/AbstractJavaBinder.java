@@ -1192,7 +1192,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
       final Iterable<IBinding> methods = new Iterable<IBinding>() {
-			@Override
+//			@Override
 			public Iterator<IBinding> iterator() {
 				return IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
 			}
@@ -2833,7 +2833,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  final IJavaScope superScope = 
 			  new IJavaScope.SubstScope(typeMemberTable((IJavaDeclaredType) st).asScope(this), getTypeEnvironment(), t);	  
 		  Iterable<IBinding> temp = new Iterable<IBinding>() {
-			@Override
+//			@Override
 			public Iterator<IBinding> iterator() {
 				return superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl);
 			}			  
