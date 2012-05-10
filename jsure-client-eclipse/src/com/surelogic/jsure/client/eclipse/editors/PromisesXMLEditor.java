@@ -1078,7 +1078,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		@Override
 		public boolean exists() {
 			final Pair<File, File> f = PromisesXMLParser.findPromisesXML(path);
-			return f.first().isFile() || f.second().isFile();
+			if (f.first().isFile() || f.second().isFile()) {
+				return true;
+			}
+			// Check if the type exists
+			final int lastSlash = path.lastIndexOf('/');
+			final String pkg;
+			if (lastSlash < 0) {
+				pkg = "";
+			} else {
+				pkg = path.substring(0, lastSlash).replace('/', '.');
+
+			}
+			final String type = name.substring(0, name.length() - TestXMLParserConstants.SUFFIX.length());
+			return JDTUtility.findIType(null, pkg, type) != null;			
 		}
 
 		@Override
