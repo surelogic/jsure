@@ -396,7 +396,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	public AnnotationElement cloneAsNew(IJavaElement parent) {
 		AnnotationElement clone = cloneMe(parent);
 		// Clean out diff state
-		for(String key : clone.attributes.keySet()) {
+		for(String key : clone.attributes.keySet().toArray(new String[clone.attributes.size()])) {
 			if (key.startsWith(ORIG_PREFIX)) {
 				clone.attributes.remove(key);
 			}
