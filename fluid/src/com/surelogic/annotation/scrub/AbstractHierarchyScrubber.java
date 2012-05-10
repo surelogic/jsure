@@ -111,11 +111,6 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		});	
 	}
 	
-	static boolean isBinary(IRNode n) {
-		IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
-		return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
-	}
-	
 	/**
 	 * Visits stuff (usually annotations/promises) hanging off the type hierarchy
 	 */

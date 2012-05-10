@@ -389,6 +389,21 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return clone;
 	}
 
+	/**
+	 * Make a copy of the current annotation,
+	 * but make as if it was newly created by the user
+	 */
+	public AnnotationElement cloneAsNew(IJavaElement parent) {
+		AnnotationElement clone = cloneMe(parent);
+		// Clean out diff state
+		for(String key : clone.attributes.keySet()) {
+			if (key.startsWith(ORIG_PREFIX)) {
+				clone.attributes.remove(key);
+			}
+		}
+		return clone;
+	}
+	
 	@Override
 	public int hashCode() {
 		// return comment.hashCode();

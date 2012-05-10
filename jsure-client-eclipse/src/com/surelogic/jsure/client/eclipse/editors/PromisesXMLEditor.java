@@ -1332,7 +1332,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		if (!couldBeNewAnnos.contains(orig.getPromise())) {
 			return false;
 		}
-		AnnotationElement a = orig.cloneMe(target);
+		AnnotationElement a = orig.cloneAsNew(target);
 		boolean added = target.addPromise(a, false) == a;
 		if (added) {
 			a.markAsModified();
