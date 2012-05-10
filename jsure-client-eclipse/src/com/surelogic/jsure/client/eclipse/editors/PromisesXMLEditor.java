@@ -397,7 +397,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				makeMenuItem(menu, new LoggedSelectionAdapter("Paste") {
 					@Override
 					protected void selected(SelectionEvent e) {
-						try {
 						boolean changed = pasteAnnotations(j, XMLExplorerView
 								.getClipboard().getFocus());
 						if (changed) {
@@ -407,11 +406,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 							contents.setExpandedState(
 									((ITreeSelection) contents.getSelection())
 											.getFirstElement(), true);
-						}
-						} catch(RuntimeException x) {
-							SLLogger.getLogger().log(Level.SEVERE, 
-									"Exception while pasting annotations for "+j.getLabel(), x);
-							throw x;
 						}
 					}
 				});
