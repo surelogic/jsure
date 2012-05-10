@@ -440,6 +440,14 @@ public class TypeUtil implements JavaGlobals {
     }
   }
 
+  /**
+   * Is the given node part of a compiled binary?
+   */
+  public static boolean isBinary(IRNode n) {
+    final IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
+    return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
+  }
+
   
   
   public static final class UpperBoundGetter {
