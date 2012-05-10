@@ -440,8 +440,9 @@ public class LockRules extends AnnotationRules {
 			 * >> LocksOK << --- Lock name is bindable
 			 */
 			// Check if the lock name is good; if not we cannot continue
-			lockDecl = isLockNameOkay(JavaNode.getModifier(
-			    annotatedMethod, JavaNode.STATIC), lockName, context);
+			lockDecl = isLockNameOkay(
+			    JavaNode.getModifier(annotatedMethod, JavaNode.STATIC),
+			    lockName, context, TypeUtil.isBinary(annotatedMethod));
 			okay = (lockDecl != null);
 		}
 		
@@ -615,7 +616,8 @@ public class LockRules extends AnnotationRules {
 			 */
 			// If the lock name is bad we cannot continue
 			final LockModel lockModel =
-			  isLockNameOkay(TypeUtil.isStatic(annotatedMethod), lockName, context);
+			  isLockNameOkay(TypeUtil.isStatic(annotatedMethod),
+			      lockName, context, TypeUtil.isBinary(annotatedMethod));
 			if (lockModel != null) {
 				lockDecls.add(lockModel);
 
@@ -1341,8 +1343,8 @@ public class LockRules extends AnnotationRules {
 					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
-								TypeUtil.isStatic(member), returnedLock
-										.getAST().getLock(), null);
+						    TypeUtil.isStatic(member), returnedLock.getAST().getLock(),
+						    null, true);
 						// Check for null because the requiresLock annotation
 						// could be bad
 						if (returnedLockModel != null
@@ -1478,8 +1480,6 @@ public class LockRules extends AnnotationRules {
 	}
 
 	/**
-	 * Scrubbing code for the
-	 * 
 	 * @IsLock annotation
 	 * @param context
 	 * @param a
@@ -1491,8 +1491,10 @@ public class LockRules extends AnnotationRules {
 		IsLockPromiseDrop promiseDrop = null;
 
 		if (lockName != null) {
-			LockModel lockDecl = isLockNameOkay(JavaNode.getModifier(node
-					.getPromisedFor(), JavaNode.STATIC), lockName, context);
+		  final IRNode promisedFor = node.getPromisedFor();
+			LockModel lockDecl = isLockNameOkay(
+			    JavaNode.getModifier(promisedFor, JavaNode.STATIC),
+			    lockName, context, TypeUtil.isBinary(promisedFor));
 			if (lockDecl != null) {
 				promiseDrop = new IsLockPromiseDrop(node);
 				lockDecl.addDependent(promiseDrop);
@@ -1538,134 +1540,120 @@ public class LockRules extends AnnotationRules {
 	 * @return The bound lock object if it is okay, or <code>null</code> if
 	 *         any errors were reported
 	 */
-	private static LockModel isLockNameOkay(final boolean isStatic,
-			final LockNameNode lockName, final IAnnotationScrubberContext report) {
-		// Default to assuming we should not get the binding
-		boolean getBinding = false;
-		boolean deferCheckForStaticUseOfThis = false;
-		boolean staticUseOfThis = false;
-		boolean checkForTypeQualifiedInstance = false;
-		boolean checkForInstanceQualifiedStatic = false;
-		boolean isBad = false;
-		
-		if (lockName instanceof QualifiedLockNameNode) {
-			// Check that the qualifying variable exists
-			final ExpressionNode base = ((QualifiedLockNameNode) lockName)
-					.getBase();
-			if (base instanceof VariableUseExpressionNode) {
-				VariableUseExpressionNode v = (VariableUseExpressionNode) base;
-				final IVariableBinding var = v.resolveBinding();
-				if (var == null) {
-					report.reportError("Parameter \"" + v //$NON-NLS-1$
-							+ "\" does not exist", v); //$NON-NLS-1$
-					isBad = true;
-				}
-				else {
-					// make sure the parameter is final
-					if (JavaNode.getModifier(var.getNode(), JavaNode.FINAL)) {
-						getBinding = true;
-						checkForInstanceQualifiedStatic = true;
-					}
-					else {
-						report
-								.reportError(
-										"Parameter \"" //$NON-NLS-1$
-												+ v
-												+ "\" is not final; can only require locks on final parameters", //$NON-NLS-1$
-										v);
-	          isBad = true;
-					}
-				}
-			}
-			else if (base instanceof TypeExpressionNode) {
-				final IType type = ((TypeExpressionNode) base).resolveType();
-				if (type == null) {
-					report.reportError("Class \"" + base //$NON-NLS-1$
-							+ "\" does not exist", lockName); //$NON-NLS-1$
+  private static LockModel isLockNameOkay(final boolean isStatic,
+      final LockNameNode lockName, final IAnnotationScrubberContext report,
+      final boolean isBinary) {
+    // Default to assuming we should not get the binding
+    boolean getBinding = false;
+    boolean deferCheckForStaticUseOfThis = false;
+    boolean staticUseOfThis = false;
+    boolean checkForTypeQualifiedInstance = false;
+    boolean checkForInstanceQualifiedStatic = false;
+    boolean isBad = false;
+
+    if (lockName instanceof QualifiedLockNameNode) {
+      // Check that the qualifying variable exists
+      final ExpressionNode base = ((QualifiedLockNameNode) lockName).getBase();
+      if (base instanceof VariableUseExpressionNode) {
+        VariableUseExpressionNode v = (VariableUseExpressionNode) base;
+        final IVariableBinding var = v.resolveBinding();
+        if (var == null) {
+          report.reportError("Parameter \"" + v //$NON-NLS-1$
+              + "\" does not exist", v); //$NON-NLS-1$
           isBad = true;
-				}
-				else {
-					getBinding = true;
-					checkForTypeQualifiedInstance = true;
-				}
-			}
-			else if (base instanceof ThisExpressionNode) {
-				if (!isStatic) {
-					getBinding = true;
-					checkForInstanceQualifiedStatic = true;
-				}
-				else {
-					staticUseOfThis = true;
-				}
-			}
-			else if (base instanceof QualifiedThisExpressionNode) {
-				/*
-				 * No longer needed final IRNode rcvr =
-				 * ((QualifiedThisExpressionNode) base); if (rcvr == null) {
-				 * report.reportError("Qualified receiver \"" + base + "\" does
-				 * not exist", lockName); } else {
-				 */
-				getBinding = true;
-				checkForInstanceQualifiedStatic = true;
-				// }
-			}
-		}
-		else if (lockName instanceof SimpleLockNameNode) {
-			getBinding = true;
-			if (isStatic) {
-				deferCheckForStaticUseOfThis = true;
-			}
-		}
-		else {
-			// defensive programming!
-			throw new IllegalArgumentException(
-					"Don't know what to do with a \""
-							+ lockName.getClass().getSimpleName() + "\"");
-		}
+        } else {
+          // make sure the parameter is final
+          if (isBinary || JavaNode.getModifier(var.getNode(), JavaNode.FINAL)) {
+            getBinding = true;
+            checkForInstanceQualifiedStatic = true;
+          } else {
+            report
+                .reportError(
+                    "Parameter \"" //$NON-NLS-1$
+                        + v
+                        + "\" is not final; can only require locks on final parameters", //$NON-NLS-1$
+                    v);
+            isBad = true;
+          }
+        }
+      } else if (base instanceof TypeExpressionNode) {
+        final IType type = ((TypeExpressionNode) base).resolveType();
+        if (type == null) {
+          report.reportError("Class \"" + base //$NON-NLS-1$
+              + "\" does not exist", lockName); //$NON-NLS-1$
+          isBad = true;
+        } else {
+          getBinding = true;
+          checkForTypeQualifiedInstance = true;
+        }
+      } else if (base instanceof ThisExpressionNode) {
+        if (!isStatic) {
+          getBinding = true;
+          checkForInstanceQualifiedStatic = true;
+        } else {
+          staticUseOfThis = true;
+        }
+      } else if (base instanceof QualifiedThisExpressionNode) {
+        /*
+         * No longer needed final IRNode rcvr = ((QualifiedThisExpressionNode)
+         * base); if (rcvr == null) { report.reportError("Qualified receiver \""
+         * + base + "\" does not exist", lockName); } else {
+         */
+        getBinding = true;
+        checkForInstanceQualifiedStatic = true;
+        // }
+      }
+    } else if (lockName instanceof SimpleLockNameNode) {
+      getBinding = true;
+      if (isStatic) {
+        deferCheckForStaticUseOfThis = true;
+      }
+    } else {
+      // defensive programming!
+      throw new IllegalArgumentException("Don't know what to do with a \""
+          + lockName.getClass().getSimpleName() + "\"");
+    }
 
-		ILockBinding boundLock = null;
-		if (getBinding) {
-			boundLock = lockName.resolveBinding();
-			if (boundLock == null) {
-				report.reportError(
-						"Lock \"" + lockName.getId() + "\" does not exist", //$NON-NLS-1$ //$NON-NLS-2$
-						lockName);
+    ILockBinding boundLock = null;
+    if (getBinding) {
+      boundLock = lockName.resolveBinding();
+      if (boundLock == null) {
+        report.reportError("Lock \"" + lockName.getId() + "\" does not exist", //$NON-NLS-1$ //$NON-NLS-2$
+            lockName);
         isBad = true;
-			}
-			else {
-				final boolean lockIsStatic = boundLock.getModel().getAST()
-						.isLockStatic();
-				if (deferCheckForStaticUseOfThis) {
-					staticUseOfThis = !lockIsStatic;
-				}
-				if (checkForInstanceQualifiedStatic) {
-					if (lockIsStatic) {
-						report
-								.reportError(
-										"Cannot qualify a static lock with a receiver or a method parameter",
-										lockName);
-	          isBad = true;
-					}
-				}
-				if (checkForTypeQualifiedInstance) {
-					if (!lockIsStatic) {
-						report.reportError(
-								"Cannot type-qualify an instance lock",
-								lockName);
-	          isBad = true;
-					}
-				}
-			}
-		}
+      } else {
+        final boolean lockIsStatic = boundLock.getModel().getAST()
+            .isLockStatic();
+        if (deferCheckForStaticUseOfThis) {
+          staticUseOfThis = !lockIsStatic;
+        }
+        if (checkForInstanceQualifiedStatic) {
+          if (lockIsStatic) {
+            report
+                .reportError(
+                    "Cannot qualify a static lock with a receiver or a method parameter",
+                    lockName);
+            isBad = true;
+          }
+        }
+        if (checkForTypeQualifiedInstance) {
+          if (!lockIsStatic) {
+            report
+                .reportError("Cannot type-qualify an instance lock", lockName);
+            isBad = true;
+          }
+        }
+      }
+    }
 
-		if (staticUseOfThis) {
-			report.reportError(
-					"Cannot reference \"this\" from a static method", lockName);
+    if (staticUseOfThis) {
+      report.reportError("Cannot reference \"this\" from a static method",
+          lockName);
       isBad = true;
-		}
-		
-		return isBad ? null : boundLock.getModel();
-	}
+    }
+
+    return isBad ? null : boundLock.getModel();
+  }
 
 	/**
 	 * Does the given region have any field members in the given class. Copied
@@ -1754,7 +1742,8 @@ public class LockRules extends AnnotationRules {
 	    return storeDropIfNotNull(a, scrubAnnotated(a, isAssumption));          
 	  }
 	  
-	  protected final P makePromiseDrop(final A a) {
+	  @Override
+    protected final P makePromiseDrop(final A a) {
 	    throw new IllegalStateException("Should not get to here");       
 	  }
 	  
