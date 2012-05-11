@@ -6,7 +6,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.*;
 
 public class TypeUtils {
 	private final ITypeEnvironment tEnv;
@@ -417,4 +417,263 @@ public class TypeUtils {
 		}
 		return result;
 	}	
+		
+	public Constraints getEmptyConstraints(Map<IJavaType, IJavaType> substMap, boolean allowBoxing, boolean allowVarargs) {
+		return new Constraints(substMap, allowBoxing, allowVarargs);
+	}
+	
+	public class Constraints {
+		final boolean allowBoxing; 
+		final boolean allowVarargs;
+		final Mapping map;
+
+		public Constraints(Map<IJavaType, IJavaType> substMap, boolean box, boolean varargs) {
+			map = new Mapping(substMap);
+			allowBoxing = box;
+			allowVarargs = varargs;
+		}
+		
+		public void addConstraints(IJavaType formal, IJavaType actual) {
+			capture(map.subst, formal, actual);
+		}
+		
+		/**		 
+		 * @return null if unsatisfiable
+		 */
+		public Mapping computeTypeMapping() {
+			// TODO
+			return map;
+		}
+	}
+	
+	public class Mapping {
+		final Map<IJavaType, IJavaType> subst;
+
+		Mapping(Map<IJavaType, IJavaType> substMap) {
+			subst = new HashMap<IJavaType, IJavaType>(substMap);
+		}
+
+		public IJavaType substitute(IJavaType fty) {
+			// TODO Auto-generated method stub
+			return TypeUtils.this.substitute(subst, fty);
+		}
+
+		public void export(Map<IJavaType, IJavaType> substMap) {
+			substMap.putAll(subst);
+		}
+	}
+	
+    /**
+     * For now, try to handle the simple cases 
+     * 1. T appears as the type of a parameter
+     * 2. T appears as the base type of an array parameter (T[])
+     * 3. T appears as a parameter of a parameterized type (Foo<T,T>)
+     * 4. T appears as a bound on a wildcard (? extends T)
+     * 
+     * This no longer does any substitution
+     */
+    private void capture(Map<IJavaType, IJavaType> map,
+                              IJavaType fty, IJavaType argType) {
+      if (fty == null) {
+        return;
+      }
+      if (map.isEmpty()) {
+        return;
+      }
+      
+      // Check case 1
+      if (fty instanceof IJavaTypeFormal) {
+    	//IJavaTypeFormal tf = (IJavaTypeFormal) fty;
+    	/*
+        System.out.println("Trying to capture "+fty+" within "+
+        		JavaNames.getFullName(VisitUtil.getEnclosingDecl(tf.getDeclaration())));
+        */
+    	final IJavaType mapping = map.get(fty);        
+        if (mapping instanceof IJavaTypeFormal/*== fty*/) { // no substitution yet
+          // Add mapping temporarily to do substitution on extends bound
+          IJavaType extendsT = mapping.getSuperclass(tEnv);          
+          map.put(fty, argType);
+          // TODO capture(map, extendsT, argType);
+          
+          if (tEnv.isSubType(argType, substitute(map, extendsT))) {                      
+            return;
+          } else {
+//            System.out.println("Couldn't quite match "+fty+", "+argType);
+            // restore previous mapping
+            map.put(fty, mapping);
+          }
+        } else {
+          // FIX What if it's not the identity mapping?
+        }
+      }
+      // Check case 2
+      else if (fty instanceof IJavaArrayType) {
+        IJavaArrayType fat = (IJavaArrayType) fty;
+        if (argType instanceof IJavaArrayType) {
+          IJavaArrayType aat = (IJavaArrayType) argType;
+          if (fat.getDimensions() == aat.getDimensions()) {  
+        	capture(map, fat.getBaseType(), aat.getBaseType());  
+          }
+          else if (fat.getDimensions() < aat.getDimensions()) {          
+        	final int diff = aat.getDimensions() - fat.getDimensions();
+            capture(map, fat.getBaseType(), JavaTypeFactory.getArrayType(aat.getBaseType(), diff));          
+          }
+        }
+      }
+      // Check case 3
+      else if (fty instanceof IJavaDeclaredType) {
+        IJavaDeclaredType fdt = (IJavaDeclaredType) fty;
+        final int size        = fdt.getTypeParameters().size();
+        
+        if (size == 0) {
+          return; // No type parameters to look at   
+        }
+        if (argType instanceof IJavaDeclaredType) {
+          IJavaDeclaredType adt = (IJavaDeclaredType) argType;
+          captureDeclaredType(map, fdt, adt);
+        }
+      }
+      // FIX This may require binding the return type first
+      else if (fty instanceof IJavaWildcardType) {
+        // nothing to capture
+      }      
+    }	
+	
+    private void captureDeclaredType(final Map<IJavaType, IJavaType> map,
+    		final IJavaDeclaredType fdt, 
+    		final IJavaDeclaredType adt) {
+    	final int size = fdt.getTypeParameters().size();
+    	// Check if it's the same (parameterized) type
+    	if (fdt.getDeclaration().equals(adt.getDeclaration())) {
+    		if (size == adt.getTypeParameters().size()) {
+    			for(int i=0; i<size; i++) {
+    				IJavaType oldT = fdt.getTypeParameters().get(i);            
+    				capture(map, oldT, adt.getTypeParameters().get(i)); 
+    			}
+    		}
+    		// Looks to be a raw type of the same kind
+    		else if (size > 0 && adt.getTypeParameters().isEmpty()) { 
+    			captureMissingTypeParameters(map, fdt, adt);
+    		}
+    	}
+    	// Look at supertypes for type variables?
+    	if (ClassDeclaration.prototype.includes(fdt.getDeclaration())) {
+    		IJavaDeclaredType superT = adt.getSuperclass(tEnv);
+    		if (superT != null) {
+    			captureDeclaredType(map, fdt, superT);
+    		}
+    	} else {
+    		// FIX is this right?
+    		for(IJavaType superT : adt.getSupertypes(tEnv)) {
+    			capture(map, fdt, superT);
+    		}
+    	}
+    }
+	
+    /**
+     * Match up the parameters in fdt with the missing ones in adt
+     */
+    private void captureMissingTypeParameters(Map<IJavaType, IJavaType> map,
+                                              final IJavaDeclaredType fdt, 
+                                              final IJavaDeclaredType adt) {
+      final Operator op = JJNode.tree.getOperator(adt.getDeclaration());            
+      final IRNode formals;
+      if (ClassDeclaration.prototype.includes(op)) {        
+        formals = ClassDeclaration.getTypes(adt.getDeclaration());
+      }
+      else if (InterfaceDeclaration.prototype.includes(op)) {
+        formals = InterfaceDeclaration.getTypes(adt.getDeclaration());
+      }
+      else {
+        return; // nothing to do        
+      }
+      Iterator<IJavaType> fdtParams = fdt.getTypeParameters().iterator(); 
+      for(IRNode tf : TypeFormals.getTypeIterator(formals)) {
+        IJavaType fT = JavaTypeFactory.getTypeFormal(tf);
+        capture(map, fdtParams.next(), fT.getSuperclass(tEnv));
+      }
+    }
+	
+    private IJavaType substitute(Map<IJavaType, IJavaType> map, IJavaType fty) {
+    	if (fty == null) {
+    		return null;
+    	}
+    	if (map.isEmpty()) {
+    		return fty;
+    	}
+    	if (fty instanceof IJavaTypeFormal) {
+    		IJavaType rv = map.get(fty);  
+    		if (rv != null) {
+    			return rv;
+    		}
+    	}
+    	else if (fty instanceof IJavaDeclaredType) {
+    		IJavaDeclaredType dt = (IJavaDeclaredType) fty;
+    		// copied from captureDeclaredType
+    		final int size   = dt.getTypeParameters().size(); 
+    		boolean captured = false;
+    		List<IJavaType> params = new ArrayList<IJavaType>(size);
+    		for(int i=0; i<size; i++) {
+    			IJavaType oldT = dt.getTypeParameters().get(i);            
+    			IJavaType newT = substitute(map, oldT); 
+    			params.add(newT);
+    			if (!oldT.equals(newT)) {
+    				captured = true;                
+    			}
+    		}
+    		if (captured) {
+    			return JavaTypeFactory.getDeclaredType(dt.getDeclaration(), params, 
+    					dt.getOuterType());
+    		}
+    	}
+    	else if (fty instanceof IJavaWildcardType) {
+    		return substituteWildcardType(map, fty);
+    	}
+    	else if (fty instanceof IJavaArrayType) {
+    		IJavaArrayType at = (IJavaArrayType) fty;
+    		IJavaType baseT   = at.getBaseType();
+    		IJavaType newBase = substitute(map, baseT);
+    		if (newBase != baseT) {
+    			return JavaTypeFactory.getArrayType(newBase, at.getDimensions());
+    		}
+    	}
+    	return fty;
+    }
+    
+    private IJavaReferenceType substituteWildcardType(
+    		Map<IJavaType, IJavaType> map, IJavaType fty) {
+    	IJavaWildcardType wt     = (IJavaWildcardType) fty;
+    	if (wt.getUpperBound() != null) {
+    		IJavaReferenceType upper = (IJavaReferenceType) substitute(map, wt.getUpperBound());
+    		if (!upper.equals(wt.getUpperBound())) {
+    			return JavaTypeFactory.getWildcardType(upper, null);
+    		}
+    	}
+    	else if (wt.getLowerBound() != null) {
+    		IJavaReferenceType lower = (IJavaReferenceType) substitute(map, wt.getLowerBound());
+    		if (!lower.equals(wt.getLowerBound())) {
+    			return JavaTypeFactory.getWildcardType(null, lower);
+    		}
+    	}
+    	return wt;
+    }
+    
+	/**
+	 * 15.12.2.7 Inferring Type Arguments Based on Actual Arguments
+	 */
+	private final class TypeConstraint {
+		final IJavaTypeFormal variable;
+		final Constraint constraint;
+		final IJavaReferenceType bound;
+		
+		TypeConstraint(IJavaTypeFormal v, Constraint c, IJavaReferenceType x) {
+			variable = v;
+			constraint = c;
+			bound = x;
+		}
+	}
+	
+	private enum Constraint {
+		EQUAL, CONVERTIBLE_TO, CONVERTIBLE_FROM, SUBTYPE_OF, SUPERTYPE_OF
+	}
 }
