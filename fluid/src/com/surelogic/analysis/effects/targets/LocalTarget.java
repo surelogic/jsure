@@ -232,4 +232,8 @@ public final class LocalTarget extends AbstractTarget {
     result = 31 * result + var.hashCode();
     return result;
   }
+  
+  public IRNode getVarDecl() {
+    return var;
+  }
 }

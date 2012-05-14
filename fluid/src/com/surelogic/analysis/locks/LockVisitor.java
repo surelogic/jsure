@@ -17,7 +17,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.java.ExpressionNode;
+import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.promise.LockSpecificationNode;
+import com.surelogic.aast.promise.QualifiedLockNameNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
@@ -29,7 +32,9 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.ConflictChecker;
+import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.targets.LocalTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.MustHoldAnalysis.HeldLocks;
@@ -68,11 +73,13 @@ import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -1038,10 +1045,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private Set<HeldLock> convertLockExpr(final IRNode lockExpr,
 			final BindingContextAnalysis.Query bcaQuery,
 			final IRNode enclosingDecl, final IRNode src) {
-		final IRNode sync = SynchronizedStatement.prototype
-				.includes(JJNode.tree.getOperator(src)) ? src : null;
-		if (lockUtils.getFinalExpressionChecker(bcaQuery, enclosingDecl, sync)
-				.isFinal(lockExpr)) {
+		if (lockUtils.getFinalExpressionChecker(bcaQuery, enclosingDecl,
+		    SomeFunctionDeclaration.getBody(enclosingDecl)).isFinal(lockExpr)) {
 			final Set<HeldLock> result = new HashSet<HeldLock>();
 			lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory,
 					enclosingDecl, src, result);
@@ -1104,12 +1109,69 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 *            this method. The locks corresponding to required locks are
 	 *            added to the front of the list.
 	 */
-	private void processLockPreconditions(final IRNode decl,
-			final LockStackFrame stackFrame) {
+	private void processLockPreconditions(
+	    final IRNode decl, final LockStackFrame stackFrame,
+			Set<LockSpecificationNode> locksOnParameters) {
 		final Set<HeldLock> preconditions = new HashSet<HeldLock>();
 		LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, decl,
-				heldLockFactory, ctxtTheReceiverNode, preconditions);
+				heldLockFactory, ctxtTheReceiverNode, preconditions, locksOnParameters);
 		stackFrame.push(preconditions);
+	}
+	
+	private void checkMutabilityOfFormalParameters(
+	    final IRNode decl, final Set<LockSpecificationNode> locksOnParameters,
+	    final Set<LockSpecificationNode> returnsLockOnParameters) {
+		/* Check for requires lock preconditions of the form "p:Lock".  Need to
+		 * check if 'p' is modified in the body of the method.  We used to use the
+		 * scrubber to check that 'p' is final.  Now we check it here.  If 'p' 
+		 * is final, continue without saying anything.  If 'p' is not final, we
+		 * check to see if 'p' is written too in the method.  If so, this is an 
+		 * error.  If not, we proceed, but warn that it would be better to 
+		 * declare 'p' as final.
+		 */
+		if (!(locksOnParameters.isEmpty() && returnsLockOnParameters.isEmpty())) {
+		  final Set<Effect> fx =
+		      effects.getEffectsQuery(decl, ctxtBcaQuery).getResultFor(
+		          SomeFunctionDeclaration.getBody(decl));
+		  checkHelper(fx, decl, "precondition", LockRules.getRequiresLock(decl), locksOnParameters);
+		  checkHelper(fx, decl, "postcondition", LockRules.getReturnsLock(JavaPromise.getReturnNodeOrNull(decl)), returnsLockOnParameters);
+		}
+	}
+	
+	private void checkHelper(final Set<Effect> fx, final IRNode decl,
+	    final String label, final PromiseDrop<? extends IAASTRootNode> drop,
+  final Set<LockSpecificationNode> locksOnParameters) {
+	  for (final LockSpecificationNode lockSpec : locksOnParameters) {
+      final ExpressionNode base = ((QualifiedLockNameNode) lockSpec.getLock()).getBase();
+      final IRNode pDecl = ((VariableUseExpressionNode) base).resolveBinding().getNode();
+      if (!TypeUtil.isFinal(pDecl)) {
+        boolean bad = false;
+        for (final Effect e : fx) {
+          if (e.isWrite()) {
+            final Target t = e.getTarget();
+            if (t instanceof LocalTarget) {
+              if (((LocalTarget) t).getVarDecl().equals(pDecl)) {
+                bad = true;
+              }
+            }
+          }
+        }
+        if (bad) {
+          makeResultDrop(pDecl, drop, false,
+              Messages.FORMAL_PARAMETER_WRITTEN_TO,
+              ParameterDeclaration.getId(pDecl),
+              label,
+              lockSpec.unparse(false));
+        } else {
+          makeWarningDrop(Messages.DSC_FINAL_FIELDS, pDecl,
+              Messages.SHOULD_BE_FINAL,
+              ParameterDeclaration.getId(pDecl),
+              label,
+              lockSpec.unparse(false));
+          // warning: should make parameter final
+        }
+      }
+	  }
 	}
 
 	/**
@@ -2167,10 +2229,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// Add locks from lock preconditions to the lock context
 			final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
 			try {
-				processLockPreconditions(cdecl, reqFrame);
+			  final Set<LockSpecificationNode> locksOnParameters = 
+			      new HashSet<LockSpecificationNode>();
+				processLockPreconditions(cdecl, reqFrame, locksOnParameters);
 				// ConstructorCall handles visiting initializers now
 				try {
 					updateJUCAnalysisQueries(cdecl);
+					checkMutabilityOfFormalParameters(cdecl, locksOnParameters,
+					    Collections.<LockSpecificationNode>emptySet());
 					doAcceptForChildren(cdecl);
 				} finally {
 					ctxtHeldLocksQuery = null;
@@ -2452,8 +2518,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					syncLockIsIdentifiable = true;
 				}
 			}
-			final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
-			processLockPreconditions(mdecl, reqFrame);
+
+      final Set<LockSpecificationNode> locksOnParameters = 
+          new HashSet<LockSpecificationNode>();
+	    final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
+			processLockPreconditions(mdecl, reqFrame, locksOnParameters);
 
 			/*
 			 * If the method is declared to return a particular lock, then set
@@ -2468,13 +2537,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtConflicter = new ConflictChecker(binder, mayAlias);
 			final ReturnsLockPromiseDrop returnedLockName = LockUtils
 					.getReturnedLock(mdecl);
+      final Set<LockSpecificationNode> returnsLocksOnParameters = 
+          new HashSet<LockSpecificationNode>();
 			if (returnedLockName != null) {
 				ctxtReturnsLockDrop = returnedLockName;
 				ctxtReturnedLock = LockUtils.convertLockNameToMethodContext(
 						mdecl, heldLockFactory, returnedLockName.getAST()
-								.getLock(), false, null, ctxtTheReceiverNode);
+								.getLock(), false, null, ctxtTheReceiverNode,
+								returnsLocksOnParameters);
 			}
 			// Analyze the children
+			checkMutabilityOfFormalParameters(
+			    mdecl, locksOnParameters, returnsLocksOnParameters);
 			doAcceptForChildren(mdecl);
 
 			/*
@@ -2594,11 +2668,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder,
 						binder);
 			}
-			// for (StackLock lock : convertLockExpr(expr, ctxtInsideMethod,
-			// rstmt)) {
-			// correct |= ctxtReturnedLock.mustAlias(lock.lock, thisExprBinder,
-			// binder);
-			// }
 
 			if (correct) {
 				if (ctxtReturnsLockDrop != null) {

@@ -1562,19 +1562,8 @@ public class LockRules extends AnnotationRules {
               + "\" does not exist", v); //$NON-NLS-1$
           isBad = true;
         } else {
-          // make sure the parameter is final
-          if (isBinary || JavaNode.getModifier(var.getNode(), JavaNode.FINAL)) {
-            getBinding = true;
-            checkForInstanceQualifiedStatic = true;
-          } else {
-            report
-                .reportError(
-                    "Parameter \"" //$NON-NLS-1$
-                        + v
-                        + "\" is not final; can only require locks on final parameters", //$NON-NLS-1$
-                    v);
-            isBad = true;
-          }
+          getBinding = true;
+          checkForInstanceQualifiedStatic = true;
         }
       } else if (base instanceof TypeExpressionNode) {
         final IType type = ((TypeExpressionNode) base).resolveType();

@@ -350,8 +350,8 @@ final class LockExpressions {
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
-      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, heldLockFactory, rcvr, jucRequiredLocks);
-      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, heldLockFactory, rcvr, intrinsicAssumedLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, heldLockFactory, rcvr, jucRequiredLocks, null);
+      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, heldLockFactory, rcvr, intrinsicAssumedLocks, null);
       singleThreadedData = lockUtils.isConstructorSingleThreaded(cdecl, rcvr);
       if (singleThreadedData.isSingleThreaded) {
         final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
@@ -375,8 +375,8 @@ final class LockExpressions {
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
-      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, mdecl, heldLockFactory, rcvr, jucRequiredLocks);
-      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, mdecl, heldLockFactory, rcvr, intrinsicAssumedLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, mdecl, heldLockFactory, rcvr, jucRequiredLocks, null);
+      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, mdecl, heldLockFactory, rcvr, intrinsicAssumedLocks, null);
       
       if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
         final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
