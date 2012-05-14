@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="1">
+<package name="java.util.concurrent" release="2">
     <class name="ThreadPoolExecutor">
         <ThreadSafe/>
         <constructor params="int, int, long, java.util.concurrent.TimeUnit, java.util.concurrent.BlockingQueue">
@@ -194,6 +194,12 @@
         <method name="shutdownNow">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>

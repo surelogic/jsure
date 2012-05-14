@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.xml.transform" release="1">
+<package name="javax.xml.transform" release="3">
     <class name="TransformerFactoryConfigurationError">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -25,6 +25,12 @@
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
+
+        <method name="getCause">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
 
         <method name="getException">
             <Borrowed>this</Borrowed>

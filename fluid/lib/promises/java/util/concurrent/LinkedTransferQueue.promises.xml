@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
-    <class name="LinkedBlockingQueue">
+<package name="java.util.concurrent" release="1">
+    <class name="LinkedTransferQueue">
         <ThreadSafe/>
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -9,14 +9,8 @@
             <Unique>return</Unique>
         </constructor>
 
-        <constructor params="int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
         <constructor params="java.util.Collection">
-            <RegionEffects>reads arg0:Instance</RegionEffects>
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -24,9 +18,9 @@
             </parameter>
         </constructor>
 
-        <method name="clear">
+        <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -57,6 +51,24 @@
             </parameter>
         </method>
 
+        <method name="getWaitingConsumerCount">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hasWaitingConsumer">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
         <method name="iterator">
             <Borrowed allowReturn="true">this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
@@ -66,13 +78,13 @@
 
         <method name="offer" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="offer" params="java.lang.Object, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -84,19 +96,19 @@
 
         <method name="poll">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="poll" params="long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="put" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -123,26 +135,25 @@
 
         <method name="take">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="toArray">
+        <method name="transfer" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </method>
-
-        <method name="toArray" params="java.lang.Object[]">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance; writes arg0:Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="toString">
+        <method name="tryTransfer" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="tryTransfer" params="java.lang.Object, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>

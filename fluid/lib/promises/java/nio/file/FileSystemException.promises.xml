@@ -1,44 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.xml.parsers" release="2">
-    <class name="FactoryConfigurationError">
-        <constructor>
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
-        <constructor params="java.lang.Exception">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
-        <constructor params="java.lang.Exception, java.lang.String">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
+<package name="java.nio.file" release="1">
+    <class name="FileSystemException">
         <constructor params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
 
-        <method name="getCause">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+        <constructor params="java.lang.String, java.lang.String, java.lang.String">
+            <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
-        </method>
+            <Unique>return</Unique>
+        </constructor>
 
-        <method name="getException">
+        <method name="getFile">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getMessage">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getOtherFile">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getReason">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
