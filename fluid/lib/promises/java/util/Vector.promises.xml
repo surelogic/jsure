@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="8">
+<package name="java.util" release="9">
     <class name="Vector">
         <ThreadSafe/>
         <constructor>
@@ -185,6 +185,13 @@
             <Starts>nothing</Starts>
         </method>
 
+        <method name="iterator">
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
         <method name="lastElement">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
@@ -207,6 +214,20 @@
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="listIterator">
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="listIterator" params="int">
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="remove" params="int">
