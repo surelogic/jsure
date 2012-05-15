@@ -92,7 +92,7 @@ public class TypeUtils {
     
 	//  and define the erased supertype set of U,
 	//  EST(U) = { V | W in ST(U) and V = |W| }
-	//  where|W| is the erasure (§4.6) of W.
+	//  where|W| is the erasure (ï¿½4.6) of W.
 	private Set<IRNode> getEST(IJavaReferenceType t) {
 		Set<IRNode> est = new HashSet<IRNode>();
 		for(IJavaDeclaredType s : getST(t)) {
@@ -254,7 +254,7 @@ public class TypeUtils {
 	//  1. lcta(? extends U, ? extends V) = ? extends lub(U, V)
 	//  2. lcta(? extends U, ? super V) = U if U = V, ? otherwise
 	//  3. lcta(? super U, ? super V) = ? super glb(U, V)
-	//  where glb() is as defined in (§5.1.10).
+	//  where glb() is as defined in (ï¿½5.1.10).
 	private IJavaType getLCTA(IJavaWildcardType u, IJavaWildcardType v) {
 		if (u.getUpperBound() != null) {
 			return getLCTA_super(u.getUpperBound(), v);
@@ -374,7 +374,7 @@ public class TypeUtils {
 		return result;
 	}
 	
-	// (§5.1.10) - no formal definition there
+	// (ï¿½5.1.10) - no formal definition there
 	public IJavaReferenceType getGreatestLowerBound(IJavaReferenceType... bounds) {
 		IJavaReferenceType result = null;
 		if (bounds.length == 1) {
@@ -492,6 +492,10 @@ public class TypeUtils {
 				if (constraint == Constraint.CONVERTIBLE_TO) {
 					throw new UnsupportedOperationException();
 				}
+				if (actual == JavaTypeFactory.anyType) {
+					// No constraint
+					return false;
+				}
 				// Find bounds that match f
 				return deriveForDeclaredType(f, constraint, (IJavaReferenceType) actual);							
 			}
@@ -528,6 +532,10 @@ public class TypeUtils {
 			if (actual instanceof IJavaDeclaredType) {
 				IJavaDeclaredType a = (IJavaDeclaredType) actual;
 				if (f.getDeclaration().equals(a.getDeclaration())) {
+					if (a.getTypeParameters().size() == 0) {
+						// The actual is raw, so there's nothing else to do?
+						return false;
+					}
 					final int num = f.getTypeParameters().size();				
 					for(int i=0; i<num; i++) {
 						switch(c) {
@@ -594,13 +602,13 @@ public class TypeUtils {
 						IJavaType v = a.getUpperBound();						
 						if (v != null) {
 							// U << V
-							return derive(u, Constraint.CONVERTIBLE_TO, v);
+							return derive(f.getUpperBound(), Constraint.CONVERTIBLE_TO, v);
 						}
 						// Otherwise, no constraint is implied on Tj.
 					} else {
 						// G<..., Xk-1, V, Xk+1, ...>. Then this algorithm is applied recursively to
 						// the constraint V >> U.
-						return derive(u, Constraint.CONVERTIBLE_TO, aParam);
+						return derive(f.getUpperBound(), Constraint.CONVERTIBLE_TO, aParam);
 					}				
 				}
 			} else {
@@ -966,7 +974,7 @@ public class TypeUtils {
 			}
 		}, 
 		/**
-		 * U << V indicates that type U is convertible to type V by method invocation conversion (§5.3)
+		 * U << V indicates that type U is convertible to type V by method invocation conversion (ï¿½5.3)
 		 */
 		CONVERTIBLE_TO {
 			@Override Constraint simplify() {
