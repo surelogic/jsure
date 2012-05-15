@@ -82,7 +82,7 @@ public class TypeUtils {
     	if (t instanceof IJavaDeclaredType) {
     		st.add((IJavaDeclaredType) t);
     	} else {
-    		System.out.println("Excluded from ST: "+t);
+    		//System.out.println("Excluded from ST: "+t);
     	}
     	
 		for(IJavaType s : t.getSupertypes(tEnv)) {
@@ -1018,9 +1018,11 @@ public class TypeUtils {
      *    with the next type variable.
 	 */
 	void inferTypeParameters(Mapping map, Set<TypeConstraint> constraints) {
+		/*
 		if (constraints.size() > 1) {
 			System.out.println("Inferring from "+constraints.size()+" constraints");
 		}
+		*/
 		List<TypeConstraint> bounds = new ArrayList<TypeConstraint>();
 		Map<IJavaType,IJavaType> equalities = new HashMap<IJavaType, IJavaType>();
 		for(TypeConstraint c : constraints) {
@@ -1074,9 +1076,11 @@ public class TypeUtils {
 				i++;
 			}
 			IJavaReferenceType lub = getLowestUpperBound(inputs);
+			/*
 			if (inputs.length > 1) {
 				System.out.println("Orig: "+e.getKey()+" => "+map.subst.get(e.getKey())+", now "+lub);
 			}
+			*/
 			map.subst.put(e.getKey(), lub);
 		}
 		map.subst.putAll(equalities);
