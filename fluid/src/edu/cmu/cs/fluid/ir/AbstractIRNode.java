@@ -3,9 +3,6 @@ package edu.cmu.cs.fluid.ir;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.java.operator.IllegalCode;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * A default implementation of the intermediate representation node 
@@ -38,21 +35,10 @@ public abstract class AbstractIRNode implements IRNode {
 		return this;
 	}
 
-	/**
-	 * @mapInto State
-	 */
-	volatile int hash = IRNodeUtils.hash(super.hashCode());
+	private volatile int hash = super.hashCode();
 
-	/**
-	 * Modified to allow this hash to be directly used
-	 * by a hashtable like JDK 1.4's HashMap
-	 */
 	@Override
 	public int hashCode() {
-		/*
-	    if (destroyed()) return DESTROYED_HASH;
-	    return super.hashCode();
-		 */
 		return hash;
 	}
 
@@ -78,12 +64,6 @@ public abstract class AbstractIRNode implements IRNode {
 
 			hash = DESTROYED_HASH;
 			destroyedNodes.incrementAndGet();
-			/*
-			Operator op = JJNode.tree.getOperator(this);
-			if (!(op instanceof IllegalCode)) {
-				System.out.println("Destroying "+op);
-			}
-			*/
 		}
 	}
 
@@ -131,11 +111,6 @@ public abstract class AbstractIRNode implements IRNode {
 	 * If the slot is not initialized with a value.
 	 */
 	public <T> T getSlotValue(SlotInfo<T> si) throws SlotUndefinedException {
-		/*
-	    if (si == null) {
-	      throw new NullPointerException();
-	    }
-		 */
 		try { 
 			return si.getSlotValue(this);
 		}
