@@ -87,6 +87,9 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			cr = new ClassReader(jar.getInputStream(e));
 			cr.accept(new AnalyzeSignaturesVisitor(), 0);
 			*/
+			final ISrcRef ref = new ClassRef(resource, 0);
+			JavaNode.setSrcRef(root, ref);
+			
 			if (!isInner) {
 				// Need to create comp unit
 				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX

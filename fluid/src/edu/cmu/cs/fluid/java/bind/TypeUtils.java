@@ -2,6 +2,9 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -9,6 +12,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class TypeUtils {
+	static final boolean useNewTypeInference = false;
+	
 	private final ITypeEnvironment tEnv;
 	private final Hashtable2<IJavaReferenceType, IJavaReferenceType, JavaRefTypeProxy> proxyCache = 
 		new Hashtable2<IJavaReferenceType, IJavaReferenceType, JavaRefTypeProxy>();
@@ -77,7 +82,7 @@ public class TypeUtils {
     	if (t instanceof IJavaDeclaredType) {
     		st.add((IJavaDeclaredType) t);
     	} else {
-    		System.out.println("Excluded from ST: "+t);
+    		//System.out.println("Excluded from ST: "+t);
     	}
     	
 		for(IJavaType s : t.getSupertypes(tEnv)) {
@@ -318,6 +323,9 @@ public class TypeUtils {
 	//  lub(U1 ... Uk) = Candidate(W1) & ... & Candidate(Wr) where Wi, , are
 	//  the elements of MEC.
 	IJavaReferenceType getLowestUpperBound(IJavaReferenceType... types) {
+		if (types.length == 1) {
+			return types[0];
+		}
 		// Check for a proxy
 		if (types.length == 2) {
 			// This is the only case used internally
@@ -425,6 +433,7 @@ public class TypeUtils {
 	public class Constraints {
 		final boolean allowBoxing; 
 		final boolean allowVarargs;
+		final Set<TypeConstraint> constraints = new HashSet<TypeConstraint>();
 		final Mapping map;
 
 		public Constraints(Map<IJavaType, IJavaType> substMap, boolean box, boolean varargs) {
@@ -435,22 +444,283 @@ public class TypeUtils {
 		
 		public void addConstraints(IJavaType formal, IJavaType actual) {
 			capture(map.subst, formal, actual);
+			
+			// New code to match JLS 3 section 15.12.2.7
+			derive(formal, Constraint.CONVERTIBLE_FROM, actual);			
+		}
+		
+		/**
+		 * 15.12.2.7 Inferring Type Arguments Based on Actual Arguments
+		 * (really for polymorphic methods)
+		 * 
+		 * @return true if derived some constraints
+		 */
+		private boolean derive(IJavaType formal, Constraint constraint, IJavaType actual) {
+			if (formal instanceof IJavaPrimitiveType || actual instanceof IJavaNullType) {
+				// Nothing to do since there can't be any type variables to deal with here
+				//   or
+				// p.453: If A is the type of null, no constraint is implied on Tj.
+				return false;
+			}
+			// Otherwise a ref type
+			if (actual instanceof IJavaPrimitiveType) {
+				// p.453: 
+				// If A is a primitive type, then A is converted to a reference type U via boxing
+				// conversion and this algorithm is applied recursively to the constraint
+				// U << F.
+				IJavaPrimitiveType a = (IJavaPrimitiveType) actual;
+				return derive(formal, constraint, JavaTypeFactory.getCorrespondingDeclType(tEnv, a));
+			}
+			else if (formal instanceof IJavaArrayType) {
+				// p.453: 
+				// If F = U[], where the type U involves Tj, then if A is an array type V[], or
+				// a type variable with an upper bound that is an array type V[], where V is a
+				// reference type, this algorithm is applied recursively to the constraint V<<U.
+				final IJavaArrayType f = (IJavaArrayType) formal;
+				if (actual instanceof IJavaArrayType) {
+					IJavaArrayType a = (IJavaArrayType) actual;
+					return derive(f.getElementType(), constraint/*.simplify()?*/, a.getElementType());
+				} 
+				else if (actual instanceof IJavaTypeFormal) {
+					IJavaTypeFormal a = (IJavaTypeFormal) actual;
+					return deriveForArray(f.getElementType(), constraint/*.simplify()?*/, a.getSuperclass(tEnv));
+				} 
+				map.markAsUnsatisfiable();
+			}
+			else if (formal instanceof IJavaDeclaredType) {
+				IJavaDeclaredType f = (IJavaDeclaredType) formal;
+				if (constraint == Constraint.CONVERTIBLE_TO) {
+					throw new UnsupportedOperationException();
+				}
+				// Find bounds that match f
+				return deriveForDeclaredType(f, constraint, (IJavaReferenceType) actual);							
+			}
+			else if (formal instanceof IJavaTypeFormal) {
+				// TODO check if this is one of the relevant type variables
+				if (map.subst.containsKey(formal)) {
+					// p.453: Otherwise, if F = Tj, then the constraint Tj :> A is implied.
+					IJavaTypeFormal f = (IJavaTypeFormal) formal;
+					IJavaReferenceType a = (IJavaReferenceType) actual;
+					constraints.add(new TypeConstraint(f, constraint.simplify(), a));
+				}
+			}
+			else if (formal instanceof IJavaIntersectionType) {
+				// TODO
+				throw new UnsupportedOperationException();
+			}
+			else throw new IllegalStateException("Unexpected type: "+formal);
+			
+			return false;
+		}
+			
+		private boolean deriveForArray(IJavaType elementType, Constraint constraint, IJavaType formalBound) {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException();
+		}
+		
+		/**
+		 * p.453-4:
+		 * Look for a supertype of a that matches f
+		 * @param c 
+		 */
+		private boolean deriveForDeclaredType(final IJavaDeclaredType f, Constraint c, IJavaReferenceType actual) {
+			boolean derived = false;
+			if (actual instanceof IJavaDeclaredType) {
+				IJavaDeclaredType a = (IJavaDeclaredType) actual;
+				if (f.getDeclaration().equals(a.getDeclaration())) {
+					final int num = f.getTypeParameters().size();				
+					for(int i=0; i<num; i++) {
+						switch(c) {
+						case CONVERTIBLE_FROM: // A << F
+							derived |= deriveForTypeParameter(f.getTypeParameters().get(i), 
+									                          a.getTypeParameters().get(i));
+							break;
+						case EQUAL: // A = F
+							derived |= deriveForTypeParameter_equal(f.getTypeParameters().get(i), 
+			                                                        a.getTypeParameters().get(i));
+							break;
+							/*
+						case CONVERTIBLE_TO: // A >> F
+							derived |= deriveForTypeParameter_to(f.getTypeParameters().get(i), 
+									                             a.getTypeParameters().get(i));
+							break;
+							*/
+						default:
+							throw new UnsupportedOperationException();
+						}
+					}
+					return derived;
+				}
+			}
+//			Keep looking
+			for(IJavaType s : actual.getSupertypes(tEnv)) {
+				derived |= deriveForDeclaredType(f, c, (IJavaReferenceType) s);
+			}
+			return derived;
+		}
+
+		private boolean deriveForTypeParameter(IJavaType fParam, IJavaType aParam) {
+			if (fParam instanceof IJavaWildcardType) {
+				// JLS 3 p.454:
+				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, where U involves Tj,
+				// then if A has a supertype that is one of:
+				IJavaWildcardType f = (IJavaWildcardType) fParam;				
+				IJavaType u = f.getLowerBound();
+				if (u != null) {
+					if (aParam instanceof IJavaWildcardType) {
+						// G<..., Xk-1, ? extends V, Xk+1, ...>. Then this algorithm is applied recursively
+						// to the constraint V << U.
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getLowerBound();						
+						if (v != null) {
+							// U >> V
+							return derive(u, Constraint.CONVERTIBLE_FROM, v);
+						}
+						// Otherwise, no constraint is implied on Tj.
+					} else {
+						// G<..., Xk-1, V, Xk+1, ...>, where V is a type expression. Then this algorithm						
+						// is applied recursively to the constraint V << U.						
+						return derive(u, Constraint.CONVERTIBLE_FROM, aParam);
+					}
+				}
+				// p.455:
+				// If F has the form G<..., Yk-1, ? super U, Yk+1, ...>, where U involves Tj,
+				// then if A has a supertype that is one of:
+				else if (f.getUpperBound() != null) {
+					if (aParam instanceof IJavaWildcardType) {
+						// G<..., Xk-1, ? super V, Xk+1, ...>. Then this algorithm is applied recursively
+						// to the constraint V >> U.
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getUpperBound();						
+						if (v != null) {
+							// U << V
+							return derive(u, Constraint.CONVERTIBLE_TO, v);
+						}
+						// Otherwise, no constraint is implied on Tj.
+					} else {
+						// G<..., Xk-1, V, Xk+1, ...>. Then this algorithm is applied recursively to
+						// the constraint V >> U.
+						return derive(u, Constraint.CONVERTIBLE_TO, aParam);
+					}				
+				}
+			} else {
+				// p.453:
+				// If F has the form G<..., Yk-1, U, Yk+1, ...>, where U is a type
+				// expression that involves Tj, then if A has a supertype of the form G<...,
+				// Xk-1, V, Xk+1, ...> where V is a type expression, this algorithm is applied
+				// recursively to the constraint V = U.
+				return derive(fParam, Constraint.EQUAL, aParam);
+			}
+			return false;
+		}
+
+		// JLS 3 p.456-7
+		private boolean deriveForTypeParameter_equal(IJavaType fParam, IJavaType aParam) {
+			if (fParam instanceof IJavaWildcardType) {
+				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, where U involves Tj,
+				// then if A is one of:
+				IJavaWildcardType f = (IJavaWildcardType) fParam;				
+				IJavaType u = f.getLowerBound();
+				if (u != null) {
+					if (aParam instanceof IJavaWildcardType) {
+						// G<..., Xk-1, ? extends V, Xk+1, ...>. Then this algorithm is applied recursively
+						// to the constraint V = U.
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getLowerBound();						
+						if (v != null) {
+							return derive(u, Constraint.EQUAL, v);
+						}						
+					} 
+					// Otherwise, no constraint is implied on Tj.
+				}
+				// If F has the form G<..., Yk-1, ? super U, Yk+1 ,...>, where U involves Tj,
+				// then if A is one of:
+				else if (f.getUpperBound() != null) {
+					if (aParam instanceof IJavaWildcardType) {
+						// G<..., Xk-1, ? super V, Xk+1, ...>. Then this algorithm is applied recursively
+						// to the constraint V = U.
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getUpperBound();						
+						if (v != null) {
+							return derive(u, Constraint.EQUAL, v);
+						}
+					} 	
+					// Otherwise, no constraint is implied on Tj.
+				}
+			} else {
+				// If F has the form G<..., Yk-1, U, Yk+1, ...>, where U is type
+				// expression that involves Tj, then if A is of the form G<..., Xk-1, V,
+				// Xk+1,...> where V is a type expression, this algorithm is applied recursively
+				// to the constraint V = U.
+				return derive(fParam, Constraint.EQUAL, aParam);
+			}
+			return false;
+		}
+		
+		// JLS 3 p.457-?: if the constraint has the form A >> F
+		private boolean deriveForTypeParameter_to(IJavaType fParam, IJavaType aParam) {
+			if (fParam instanceof IJavaWildcardType) {
+			
+				IJavaWildcardType f = (IJavaWildcardType) fParam;				
+				IJavaType u = f.getLowerBound();
+				if (u != null) {
+					if (aParam instanceof IJavaWildcardType) {
+						
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getLowerBound();						
+						if (v != null) {
+							return derive(u, Constraint.EQUAL, v);
+						}						
+					} 
+					// Otherwise, no constraint is implied on Tj.
+				}
+			
+				else if (f.getUpperBound() != null) {
+					if (aParam instanceof IJavaWildcardType) {
+
+						IJavaWildcardType a = (IJavaWildcardType) aParam;
+						IJavaType v = a.getUpperBound();						
+						if (v != null) {
+							return derive(u, Constraint.EQUAL, v);
+						}
+					} 	
+					// Otherwise, no constraint is implied on Tj.
+				}
+			} else {
+				// p.458
+				// If F has the form G<..., Yk-1, U, Yk+1, ...>, where U is a type expression
+				// that involves Tj, then:
+				// -- If A is an instance of a non-generic type, then no constraint is implied on Tj.
+				// -- If A is an invocation of a generic type declaration H, where H is either G
+				//    or superclass or superinterface of G, then:
+				//    -- If , then let S1, ..., Sn be the formal type parameters of G, and let
+				//       H<U1, ..., Ul> be the unique invocation of H that is a supertype of
+				//       G<S1 , ..., Sn>, and let V = H<U1, ..., Ul>[Sk = U]. Then, if V
+			}
+			return false;
 		}
 		
 		/**		 
 		 * @return null if unsatisfiable
 		 */
 		public Mapping computeTypeMapping() {
-			// TODO
+			if (useNewTypeInference) {
+				inferTypeParameters(map, constraints);
+			}
 			return map;
 		}
 	}
 	
 	public class Mapping {
 		final Map<IJavaType, IJavaType> subst;
+		boolean isUnsatisfiable = false;
 
 		Mapping(Map<IJavaType, IJavaType> substMap) {
 			subst = new HashMap<IJavaType, IJavaType>(substMap);
+		}
+
+		void markAsUnsatisfiable() {
+			isUnsatisfiable = true;
 		}
 
 		public IJavaType substitute(IJavaType fty) {
@@ -538,8 +808,8 @@ public class TypeUtils {
         // nothing to capture
       }      
     }	
-	
-    private void captureDeclaredType(final Map<IJavaType, IJavaType> map,
+
+	private void captureDeclaredType(final Map<IJavaType, IJavaType> map,
     		final IJavaDeclaredType fdt, 
     		final IJavaDeclaredType adt) {
     	final int size = fdt.getTypeParameters().size();
@@ -671,9 +941,148 @@ public class TypeUtils {
 			constraint = c;
 			bound = x;
 		}
+		
+		@Override
+		public int hashCode() {
+			return variable.hashCode() + constraint.hashCode() + bound.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if (other instanceof TypeConstraint) {
+				TypeConstraint o = (TypeConstraint) other;
+				return constraint == o.constraint &&
+				       variable.equals(o.variable) && 
+				       bound.equals(o.bound);				
+			}
+			return false;
+		}
 	}
 	
 	private enum Constraint {
-		EQUAL, CONVERTIBLE_TO, CONVERTIBLE_FROM, SUBTYPE_OF, SUPERTYPE_OF
+		EQUAL {
+			@Override Constraint reverse() {
+				return this;
+			}
+		}, 
+		/**
+		 * U << V indicates that type U is convertible to type V by method invocation conversion (§5.3)
+		 */
+		CONVERTIBLE_TO {
+			@Override Constraint simplify() {
+				return SUBTYPE_OF;
+			}
+			@Override Constraint reverse() {
+				return CONVERTIBLE_FROM;
+			}
+		}, 
+		/**
+		 * U >> V indicates that type V is convertible to type U by method invocation conversion.
+		 */
+		CONVERTIBLE_FROM {
+			@Override Constraint simplify() {
+				return SUPERTYPE_OF;
+			}
+			@Override Constraint reverse() {
+				return CONVERTIBLE_TO;
+			}
+		},
+		// X is equal or a subtype of Y
+		SUBTYPE_OF {
+			@Override Constraint reverse() {
+				return SUPERTYPE_OF;
+			}
+		}, 
+		// X is equal or a supertype of Y
+		SUPERTYPE_OF {
+			@Override Constraint reverse() {
+				return SUBTYPE_OF;
+			}
+		};
+		
+		Constraint simplify() {
+			return this;
+		}
+		abstract Constraint reverse();
+	}
+
+	/**
+	 * JLS 3 p.463
+     * -- If U is not one of the type parameters of the method, then U is the type
+     *    inferred for Tj. Then all remaining constraints involving Tj are rewritten such
+     *    that Tj is replaced with U. There are necessarily no further equality constraints
+     *    involving Tj, and processing continues with the next type parameter, if any.
+
+     * -- Otherwise, the constraint is of the form Tj = Tk for . Then all constraints
+     *    involving Tj are rewritten such that Tj is replaced with Tk, and processing continues
+     *    with the next type variable.
+	 */
+	void inferTypeParameters(Mapping map, Set<TypeConstraint> constraints) {
+		/*
+		if (constraints.size() > 1) {
+			System.out.println("Inferring from "+constraints.size()+" constraints");
+		}
+		*/
+		List<TypeConstraint> bounds = new ArrayList<TypeConstraint>();
+		Map<IJavaType,IJavaType> equalities = new HashMap<IJavaType, IJavaType>();
+		for(TypeConstraint c : constraints) {
+			/*
+			 * Next, for each type variable Tj, , the implied equality constraints are
+		     * resolved as follows:
+		     * For each implied equality constraint Tj = U or U = Tj:
+		     */
+			if (c.constraint == Constraint.EQUAL) {
+				final IJavaType old = equalities.get(c.variable);
+				if (c.variable.equals(c.bound) || c.bound.equals(old)) {
+					// Otherwise, if U is Tj, then this constraint carries no information and may be
+				    // discarded.
+					continue;
+				}
+				else if (old != null) {
+					// Already checked above if the bound is the same as one processed earlier
+					//throw new IllegalStateException(c.variable+" already set to "+old+", now to "+c.bound);
+					equalities.put(c.variable, getLowestUpperBound((IJavaReferenceType) old, c.bound));
+					// TODO could be more efficient to use a multimap
+				}
+				else {
+					equalities.put(c.variable, c.bound);
+				}
+			} else {
+				bounds.add(c);
+			}
+		}
+		// Do substitutions on the bounds using the equalities above, and organize by variable
+		MultiMap<IJavaTypeFormal, TypeConstraint> inequalities = new MultiHashMap<IJavaTypeFormal, TypeConstraint>();
+		for(TypeConstraint c : bounds) {
+			IJavaType newBound = substitute(equalities, c.bound);
+			if (c.bound.equals(newBound)) {
+				inequalities.put(c.variable, c);
+			} else {
+				inequalities.put(c.variable, 
+						new TypeConstraint(c.variable, c.constraint, (IJavaReferenceType) newBound));
+			}
+		}
+		/*
+		 * Then, for each remaining type variable Tj, the constraints Tj :> U are considered.
+		 * Given that these constraints are Tj :> U1 ... Tj :> Uk, the type of Tj is inferred
+		 * as lub(U1 ... Uk), computed as follows: 
+		 */
+		for(Map.Entry<IJavaTypeFormal, Collection<TypeConstraint>> e : inequalities.entrySet()) {
+			IJavaReferenceType[] inputs = new IJavaReferenceType[e.getValue().size()];
+			int i=0;
+			for(TypeConstraint c : e.getValue()) {
+				// TODO Check if the right kind?
+				inputs[i] = c.bound;
+				i++;
+			}
+			IJavaReferenceType lub = getLowestUpperBound(inputs);
+			/*
+			if (inputs.length > 1) {
+				System.out.println("Orig: "+e.getKey()+" => "+map.subst.get(e.getKey())+", now "+lub);
+			}
+			*/
+			map.subst.put(e.getKey(), lub);
+		}
+		map.subst.putAll(equalities);
 	}
 }
