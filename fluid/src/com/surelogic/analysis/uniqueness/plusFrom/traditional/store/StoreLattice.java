@@ -609,41 +609,51 @@ extends TripleLattice<Element<Integer>,
 	  if (uPromise != null ||
 	      (UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
+
 		  if (localStatus(s,n) == State.IMMUTABLE) {
 			  // special case: we generate an immutable non-value reference:
 			  return opGenerate(opRelease(s),State.IMMUTABLE,fieldDecl);
 		  }
-		  final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
-		  ImmutableHashOrderSet<Object> affected = EMPTY;
-		  final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
-		  final Set<ImmutableHashOrderSet<Object>> aliases = new HashSet<ImmutableHashOrderSet<Object>>();
-		  for (final FieldTriple t : fieldStore) {
-			  final ImmutableHashOrderSet<Object> object = t.first();
-			  if (object.contains(n) && objects.contains(object) && t.second().equals(fieldDecl)) {
-				  aliases.add(t.third());
-				  affected = affected.union(t.third());
-			  }
+		  
+		  Store temp;
+      final Set<ImmutableHashOrderSet<Object>> aliases = new HashSet<ImmutableHashOrderSet<Object>>();
+		  /* @Borrowed and @Unique fields need to have aliases buried.
+		   * Do not bury aliases for @Unique(allowRead=true) fields.
+		   */
+		  if (uPromise == null || !uPromise.allowRead()) {
+  		  final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
+  		  ImmutableHashOrderSet<Object> affected = EMPTY;
+  		  final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
+  		  for (final FieldTriple t : fieldStore) {
+  			  final ImmutableHashOrderSet<Object> object = t.first();
+  			  if (object.contains(n) && objects.contains(object) && t.second().equals(fieldDecl)) {
+  				  aliases.add(t.third());
+  				  affected = affected.union(t.third());
+  			  }
+  		  }
+  		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
+  		  // Otherwise, we cannot: *shared* (say) becomes undefined.
+  		  if (nodeStatus(affected) != State.UNIQUE) {
+  			  return errorStore("loaded compromised field");
+  		  }
+  
+  		  // Remove affected nodes:
+  		  //      s = apply(s,new Remove(affected));
+  		  // Unfortunately, with combination (a.f = b, b.g = c -> a.* = c), removal of b
+  		  // causes NEW *-edges to appear which would increase the affected set (by c).  
+  		  // Rather than following this to the logical conclusion (fixed points),
+  		  // I leave them in place, but then make stackTop alias existing fields
+  
+  		  // Alias Burying: make aliases undefined
+  		  s = apply(s,new Add(State.UNDEFINED, affected));
+  
+  		  // Allocate new unaliased node on the stack
+  		  temp = opNew(s);  
+		  } else {
+		    temp = opGenerate(s,declStatus(fieldDecl),fieldDecl);
 		  }
-		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
-		  // Otherwise, we cannot: *shared* (say) becomes undefined.
-		  if (nodeStatus(affected) != State.UNIQUE) {
-			  return errorStore("loaded compromised field");
-		  }
-
-		  // Remove affected nodes:
-		  //      s = apply(s,new Remove(affected));
-		  // Unfortunately, with combination (a.f = b, b.g = c -> a.* = c), removal of b
-		  // causes NEW *-edges to appear which would increase the affected set (by c).  
-		  // Rather than following this to the logical conclusion (fixed points),
-		  // I leave them in place, but then make stackTop alias existing fields
-
-		  // Alias Burying: make aliases undefined
-		  s = apply(s,new Add(State.UNDEFINED, affected));
-
-		  // Allocate new unaliased node on the stack
-		  Store temp = opNew(s);  
-		  if (!temp.isValid()) return temp;
-
+      if (!temp.isValid()) return temp;
+		  
 		  // first add field edges to this new node.
 		  Set<FieldTriple> newFields = new HashSet<FieldTriple>();
 		  Integer newN = getStackTop(temp);
@@ -655,8 +665,11 @@ extends TripleLattice<Element<Integer>,
 		  }
 		  temp = setFieldStore(temp,temp.getFieldStore().union(newFields));
 		  
-		  // now that I am no longer removing the old aliases, I must add the following line:
-		  temp = apply(temp,new AddAlias(aliases,newN));
+		  // Again, only @Borrowed and @Unique fuss with aliases
+		  if (uPromise == null || !uPromise.allowRead()) {
+  		  // now that I am no longer removing the old aliases, I must add the following line:
+  		  temp = apply(temp,new AddAlias(aliases,newN));
+		  }
 		  return opSet(temp, n);
 	  } else {
 		  return opGenerate(opRelease(s),declStatus(fieldDecl),fieldDecl);
