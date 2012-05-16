@@ -98,6 +98,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return isReference;
 	}
 
+	@Override
 	public boolean isBad() {
 		return isBad;
 	}
@@ -388,6 +389,21 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return clone;
 	}
 
+	/**
+	 * Make a copy of the current annotation,
+	 * but make as if it was newly created by the user
+	 */
+	public AnnotationElement cloneAsNew(IJavaElement parent) {
+		AnnotationElement clone = cloneMe(parent);
+		// Clean out diff state
+		for(String key : clone.attributes.keySet().toArray(new String[clone.attributes.size()])) {
+			if (key.startsWith(ORIG_PREFIX)) {
+				clone.attributes.remove(key);
+			}
+		}
+		return clone;
+	}
+	
 	@Override
 	public int hashCode() {
 		// return comment.hashCode();
@@ -410,7 +426,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				+ Integer.toHexString(super.hashCode());
 	}
 
-	@Override
+//	@Override
 	public boolean isEquivalent(IMergeableElement o) {
 		if (o instanceof AnnotationElement) {
 			AnnotationElement other = (AnnotationElement) o;

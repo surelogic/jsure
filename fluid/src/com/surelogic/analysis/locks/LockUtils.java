@@ -28,6 +28,7 @@ import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -306,14 +307,14 @@ public final class LockUtils {
    * Get a check object that can test if expressions in the given flow unit are
    * "final." An expression is "final" if its value is fixed no matter where in
    * the synchronized block it is evaluated.
-   * @param sync
-   *          The synchronized block whose lock expression contains
+   * @param block
+   *          The block whose lock expression contains
    *          <code>expr</code>. May be <code>null</code> if the expression is
    *          not part of the lock expression of a synchronized block.
    */
   public FinalExpressionChecker getFinalExpressionChecker(
       final BindingContextAnalysis.Query bcaQuery,
-      final IRNode flowUnit, final IRNode sync) {
+      final IRNode flowUnit, final IRNode block) {
     /*
      * TODO Need to modify this method to produce
      * a nested chain of evidence of why it believes an expression to NOT be a
@@ -360,7 +361,7 @@ public final class LockUtils {
           if (TypeUtil.isFinal(id)) {
             return true;
           } else {
-            return !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, sync);
+            return !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, block);
           }
         } else if (FieldRef.prototype.includes(op)) {
           /* Field must be final (or protected by a lock and not modified by the
@@ -380,7 +381,7 @@ public final class LockUtils {
                * the body of the synchronized block.
                */
               return getLockForFieldRef(expr) != null
-                  && !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, sync);
+                  && !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, block);
             }
           }
         } else if (ArrayRefExpression.prototype.includes(op)) {
@@ -391,7 +392,7 @@ public final class LockUtils {
           final IRNode array = ArrayRefExpression.getArray(expr);
           final IRNode idx = ArrayRefExpression.getIndex(expr);
           if (isFinal(array) && isFinal(idx)) {
-            return !isArrayChangedBySyncBlock(fxQuery, conflicter, array, sync);
+            return !isArrayChangedBySyncBlock(fxQuery, conflicter, array, block);
           }
         } else if (IntLiteral.prototype.includes(op)) {
           /* Integer constants are final.  We do not consider float, boolean, or
@@ -429,7 +430,6 @@ public final class LockUtils {
       final Set<Effect> exprEffects = fxQuery.getResultFor(expr);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
-      
       return true;
     }
   }
@@ -1190,7 +1190,7 @@ public final class LockUtils {
       final IRNode mdecl, final HeldLockFactory heldLockFactory,
       final LockSpecificationNode lockSpec, final boolean isAssumed,
       final RequiresLockPromiseDrop supportingDrop,
-      final IRNode formalRcvr) {
+      final IRNode formalRcvr, final Collection<LockSpecificationNode> locksOnParameters) {
     final IRNode src = lockSpec.getPromisedFor();
     final LockModel lockDecl = lockSpec.resolveBinding().getModel();
     final LockNameNode lockName = lockSpec.getLock();
@@ -1222,6 +1222,7 @@ public final class LockUtils {
           return heldLockFactory.createInstanceLock(canonicalQThis, lockDecl, src, supportingDrop, isAssumed, lockType);
         } else {
           // Lock is "<UseExpression>.<LockName>"
+          if (locksOnParameters != null) locksOnParameters.add(lockSpec);
           return heldLockFactory.createInstanceLock(
               base, lockDecl, src, supportingDrop, isAssumed, lockType);
         }
@@ -1440,14 +1441,17 @@ public final class LockUtils {
   public static void getLockPreconditions(
       final HowToProcessLocks howTo, final IRNode methodDecl,
       final HeldLockFactory heldLockFactory, final IRNode rcvr,
-      final Set<HeldLock> preconditions) {
+      final Set<HeldLock> preconditions,
+      final Collection<LockSpecificationNode> locksOnParameters) {
     final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
     /* No RequiresLock means no lock precondition. */
     if (drop != null) {
       for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
         final LockModel lm = requiredLock.resolveBinding().getModel();
         if (howTo.acceptsLock(lm)) {
-          final HeldLock lock = convertLockNameToMethodContext(methodDecl, heldLockFactory, requiredLock, true, drop, rcvr);
+          final HeldLock lock = convertLockNameToMethodContext(
+              methodDecl, heldLockFactory, requiredLock, true, drop, rcvr, 
+              locksOnParameters);
           preconditions.add(lock);
         }
       }

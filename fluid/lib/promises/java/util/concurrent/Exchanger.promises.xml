@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
+<package name="java.util.concurrent" release="1">
     <class name="Exchanger">
         <ThreadSafe/>
-        <class name="Node">
-            <ThreadSafe/>
-        </class>
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
 
-        <class name="Slot">
-            <ThreadSafe/>
-        </class>
+        <method name="exchange" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="exchange" params="java.lang.Object, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
     </class>
 </package>

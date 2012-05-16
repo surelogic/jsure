@@ -73,12 +73,18 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
 			final IRNode p1 = o1.getPromisedFor();
 			final IRNode p2 = o2.getPromisedFor();
+			int rv;
 			if (p1.equals(p2)) {
-				// Sufficient because we're only comparing things in the same type				
-				return o1.getOffset() - o2.getOffset();
+				// Actually not sufficient, even though we're only comparing things in the same type				
+				rv = o1.getOffset() - o2.getOffset();
 			} else {
-				return p1.hashCode() - p2.hashCode();
+				rv = p1.hashCode() - p2.hashCode();
 			}
+			if (rv != 0) {
+				return rv;
+			}
+			// Most likely used for library annotations 
+			return o1.unparse(false).compareTo(o2.unparse(false));
 		}
 	};
 	

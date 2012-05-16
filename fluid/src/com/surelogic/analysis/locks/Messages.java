@@ -34,7 +34,8 @@ public final class Messages extends AbstractMessages {
   public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance(215);
   public static final Category DSC_MATCHING_CALLS = Category.getInstance(216);
   public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(217);
-
+  public static final Category DSC_FINAL_FIELDS = Category.getInstance(218);
+  
   
   
   // Labels for the single-threaded result disjunction
@@ -106,6 +107,8 @@ public final class Messages extends AbstractMessages {
   public static final int LockAnalysis_ds_UnsupportedModel = 258;
   public static final int VOUCHED_FINAL = 259;
   public static final int VOUCHED_FINAL_WITH_REASON = 260;
+  public static final int FORMAL_PARAMETER_WRITTEN_TO = 261;
+  public static final int SHOULD_BE_FINAL = 262;
   
   
   

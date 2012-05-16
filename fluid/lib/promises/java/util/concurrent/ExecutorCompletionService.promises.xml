@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.concurrent" release="1">
+    <class name="ExecutorCompletionService">
+        <ThreadSafe/>
+        <constructor params="java.util.concurrent.Executor">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="java.util.concurrent.Executor, java.util.concurrent.BlockingQueue">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="poll">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="poll" params="long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="submit" params="java.lang.Runnable, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="submit" params="java.util.concurrent.Callable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="take">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

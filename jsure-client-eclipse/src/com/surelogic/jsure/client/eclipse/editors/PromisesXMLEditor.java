@@ -43,9 +43,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -77,6 +75,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
+import com.surelogic.common.ui.actions.LoggedSelectionAdapter;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.text.XMLLineStyler;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -376,11 +375,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return;
 		}
 		final IJavaElement o = (IJavaElement) s.getFirstElement();
-		addNavigationActions(menu, o);
 
-		makeMenuItem(menu, "Copy", new SelectionAdapter() {
+		if (addNavigationActions(menu, o)) {
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
+
+		makeMenuItem(menu, new LoggedSelectionAdapter("Copy") {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			protected void selected(SelectionEvent e) {
 				XMLExplorerView.getClipboard().setFocus(o);
 			}
 		});
@@ -392,24 +394,31 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			if (XMLExplorerView.getClipboard().getFocus() != null) {
-				makeMenuItem(menu, "Paste", new SelectionAdapter() {
+				makeMenuItem(menu, new LoggedSelectionAdapter("Paste") {
 					@Override
-					public void widgetSelected(SelectionEvent e) {
+					protected void selected(SelectionEvent e) {
 						boolean changed = pasteAnnotations(j, XMLExplorerView
 								.getClipboard().getFocus());
 						if (changed) {
 							markAsDirty();
 							contents.refresh();
+							// Expand the selection
+							contents.setExpandedState(
+									((ITreeSelection) contents.getSelection())
+											.getFirstElement(), true);
 						}
 					}
 				});
 			}
-			makeMenuItem(menu, "Add Annotation...", new AnnotationCreator(j));
+
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			makeMenuItem(menu, new AnnotationCreator("Add Annotation...", j));
 
 			if (o instanceof ClassElement) {
 				for (ScopedTargetType t : ScopedTargetType.values()) {
-					makeMenuItem(menu, "Add Scoped Promise For " + t.label
-							+ "...", new AnnotationCreator(j, t));
+					makeMenuItem(menu, new AnnotationCreator("Add Scoped Promise For " + t.label
+							+ "...", j, t));
 				}
 			}
 		}
@@ -418,11 +427,12 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			addActionsForAnnotations(menu, o);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
+
 		final boolean markUnannotated = provider.markUnannotated();
 		final MenuItem markDecls = makeMenuItem(menu,
-				"Mark Unannotated Methods", null, new SelectionAdapter() {
+				null, new LoggedSelectionAdapter("Mark Unannotated Methods") {
 					@Override
-					public void widgetSelected(final SelectionEvent e) {
+					protected void selected(final SelectionEvent e) {
 						provider.setMarkUnannotated(!markUnannotated);
 						contents.refresh();
 					}
@@ -430,9 +440,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		markDecls.setSelection(markUnannotated);
 
 		new MenuItem(menu, SWT.SEPARATOR);
-		makeMenuItem(menu, "Revert to Baseline", new SelectionAdapter() {
+		makeMenuItem(menu, new LoggedSelectionAdapter("Revert To Baseline") {
 			@Override
-			public void widgetSelected(final SelectionEvent e) {
+			protected void selected(final SelectionEvent e) {
 				final Shell s = contents.getTree().getShell();
 				if (provider.pkg.isModified()) {
 					if (MessageDialog.openQuestion(s, "Revert All Changes?",
@@ -480,21 +490,21 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
 		if (o instanceof AnnotationElement) {
 			final AnnotationElement a = (AnnotationElement) o;
-			MenuItem m = makeMenuItem(menu, "Edit Annotation...",
+			MenuItem m = makeMenuItem(menu, 
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
-					new SelectionAdapter() {
+					new LoggedSelectionAdapter("Edit Annotation...") {
 						@Override
-						public void widgetSelected(final SelectionEvent se) {
+						protected void selected(final SelectionEvent se) {
 							startAnnotationEditDialog(a);
 						}
 					});
 			m.setEnabled(a.isEditable());
 
-			MenuItem m2 = makeMenuItem(menu, "Revert",
+			MenuItem m2 = makeMenuItem(menu, 
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
-					new SelectionAdapter() {
+					new LoggedSelectionAdapter("Revert") {
 						@Override
-						public void widgetSelected(final SelectionEvent se) {
+						protected void selected(final SelectionEvent se) {
 							a.revert();
 							isDirty = true;
 							markAsDirty();
@@ -503,10 +513,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			m2.setEnabled(a.canRevert());
 		}
 		final IMergeableElement me = (IMergeableElement) o;
-		makeMenuItem(menu, "Delete", SLImages.getImage(CommonImages.IMG_RED_X),
-				new SelectionAdapter() {
+		makeMenuItem(menu, SLImages.getImage(CommonImages.IMG_RED_X),
+				new LoggedSelectionAdapter("Delete") {
 					@Override
-					public void widgetSelected(final SelectionEvent e) {
+					protected void selected(final SelectionEvent e) {
 						final Shell s = contents.getTree().getShell();
 						if (MessageDialog.openQuestion(
 								s,
@@ -527,18 +537,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				});
 	}
 
-	abstract class ITypeSelector<T extends IMember> extends SelectionAdapter {
+	abstract class ITypeSelector<T extends IMember> extends LoggedSelectionAdapter {
 		final ClassElement c;
 		final List<T> members = new ArrayList<T>();
 		final Comparator<T> comparator;
 
-		ITypeSelector(final ClassElement cls, final Comparator<T> compare) {
+		ITypeSelector(String label, final ClassElement cls, final Comparator<T> compare) {
+			super(label);
 			c = cls;
 			comparator = compare;
 		}
 
 		@Override
-		public final void widgetSelected(final SelectionEvent e) {
+		protected final void selected(final SelectionEvent e) {
 			final IType t = findIType(c, "");
 			if (t == null) {
 				return;
@@ -574,12 +585,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		protected abstract void create(T member) throws JavaModelException;
 	}
 
-	private void addNavigationActions(final Menu menu, final IJavaElement o) {
+	/**
+	 * 
+	 * @param menu
+	 *            the context menu
+	 * @param o
+	 *            the target.
+	 * @return <tt>true</tt> if anything was added to the menu.
+	 */
+	private boolean addNavigationActions(final Menu menu, final IJavaElement o) {
+		boolean result = false;
 		if (o instanceof ClassElement) {
+			result = true;
 			final ClassElement c = (ClassElement) o;
-			makeMenuItem(menu, "Open", new SelectionAdapter() {
+			makeMenuItem(menu, new LoggedSelectionAdapter("Open") {
 				@Override
-				public void widgetSelected(final SelectionEvent e) {
+				protected void selected(final SelectionEvent e) {
 					final IType t = findIType(c, "");
 					if (t != null) {
 						JDTUIUtility.tryToOpenInEditor(t.getPackageFragment()
@@ -587,9 +608,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					}
 				}
 			});
-			makeMenuItem(menu, "Open Type Hierarchy", new SelectionAdapter() {
+			makeMenuItem(menu, new LoggedSelectionAdapter("Open Type Hierarchy") {
 				@Override
-				public void widgetSelected(final SelectionEvent e) {
+				protected void selected(final SelectionEvent e) {
 					final IViewPart view = EclipseUIUtility
 							.showView(JavaUI.ID_TYPE_HIERARCHY);
 					if (view instanceof ITypeHierarchyViewPart) {
@@ -602,10 +623,11 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			});
 		} else if (o instanceof MethodElement) {
+			result = true;
 			final MethodElement m = (MethodElement) o;
-			makeMenuItem(menu, "Open", new SelectionAdapter() {
+			makeMenuItem(menu, new LoggedSelectionAdapter("Open") {
 				@Override
-				public void widgetSelected(final SelectionEvent e) {
+				protected void selected(final SelectionEvent e) {
 					ClassElement c = (ClassElement) m.getParent();
 					final IType t = findIType(c, "");
 					if (t != null) {
@@ -616,26 +638,28 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				}
 			});
 		}
+		return result;
 	}
 
-	private class AnnotationCreator extends SelectionAdapter {
+	private class AnnotationCreator extends LoggedSelectionAdapter {
 		final AnnotatedJavaElement j;
 		final ScopedTargetType target;
 		final boolean makeScopedPromise;
 
-		AnnotationCreator(final AnnotatedJavaElement aje,
+		AnnotationCreator(String label, final AnnotatedJavaElement aje,
 				final ScopedTargetType t) {
+			super(label);
 			j = aje;
 			target = t;
 			makeScopedPromise = t != null;
 		}
 
-		AnnotationCreator(final AnnotatedJavaElement aje) {
-			this(aje, null);
+		AnnotationCreator(String label, final AnnotatedJavaElement aje) {
+			this(label, aje, null);
 		}
 
 		@Override
-		public void widgetSelected(final SelectionEvent e) {
+		protected void selected(final SelectionEvent e) {
 			final List<String> annos = computePossibleAnnos(j, target,
 					makeScopedPromise);
 			ListSelectionDialog d = new ListSelectionDialog(contents.getTree()
@@ -772,20 +796,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		}
 	}
 
-	static MenuItem makeMenuItem(final Menu menu, final String label,
-			final SelectionListener l) {
-		return makeMenuItem(menu, label, null, l);
+	static MenuItem makeMenuItem(Menu menu, LoggedSelectionAdapter l) {
+		return makeMenuItem(menu, null, l);
 	}
 
-	static MenuItem makeMenuItem(final Menu menu, final String label,
-			final Image image, final SelectionListener l) {
-		return makeMenuItem(menu, label, image, l, SWT.PUSH);
+	static MenuItem makeMenuItem(Menu menu, Image image, LoggedSelectionAdapter l) {
+		return makeMenuItem(menu, image, l, SWT.PUSH);
 	}
 
-	static MenuItem makeMenuItem(final Menu menu, final String label,
-			final Image image, final SelectionListener l, int flags) {
+	static MenuItem makeMenuItem(final Menu menu, final Image image, final LoggedSelectionAdapter l, int flags) {
 		MenuItem item1 = new MenuItem(menu, flags);
-		item1.setText(label);
+		item1.setText(l.getContext());
 		item1.addSelectionListener(l);
 		if (image != null) {
 			item1.setImage(image);
@@ -1057,7 +1078,20 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		@Override
 		public boolean exists() {
 			final Pair<File, File> f = PromisesXMLParser.findPromisesXML(path);
-			return f.first().isFile() || f.second().isFile();
+			if (f.first().isFile() || f.second().isFile()) {
+				return true;
+			}
+			// Check if the type exists
+			final int lastSlash = path.lastIndexOf('/');
+			final String pkg;
+			if (lastSlash < 0) {
+				pkg = "";
+			} else {
+				pkg = path.substring(0, lastSlash).replace('/', '.');
+
+			}
+			final String type = name.substring(0, name.length() - TestXMLParserConstants.SUFFIX.length());
+			return JDTUtility.findIType(null, pkg, type) != null;			
 		}
 
 		@Override
@@ -1091,9 +1125,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return path;
 		}
 
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		@Override
-		public Object getAdapter(
-				@SuppressWarnings("rawtypes") final Class adapter) {
+		public Object getAdapter(final Class adapter) {
 			if (adapter == Object.class) {
 				return this;
 			}
@@ -1309,7 +1343,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		if (!couldBeNewAnnos.contains(orig.getPromise())) {
 			return false;
 		}
-		AnnotationElement a = orig.cloneMe(target);
+		AnnotationElement a = orig.cloneAsNew(target);
 		boolean added = target.addPromise(a, false) == a;
 		if (added) {
 			a.markAsModified();

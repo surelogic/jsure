@@ -194,9 +194,12 @@ public class AbstractAdapter {
 
 				//System.out.println("Adding last-minute nodes to "+JavaNames.getFullTypeName(n));
 				if (makeSrcRefs) {
-					String name = JavaNames.getFullTypeName(n);
-					ISrcRef ref = new NamedSrcRef(project, name, pkg, cu);
-					JavaNode.setSrcRef(n, ref);
+					ISrcRef ref = JavaNode.getSrcRef(n);
+					if (ref == null) {
+						String name = JavaNames.getFullTypeName(n);
+						ref = new NamedSrcRef(project, name, pkg, cu);
+						JavaNode.setSrcRef(n, ref);
+					}
 				}
 			} else if (edu.cmu.cs.fluid.java.operator.AnnotationElement.prototype.includes(op)) {
 				ReturnValueDeclaration.getReturnNode(n);

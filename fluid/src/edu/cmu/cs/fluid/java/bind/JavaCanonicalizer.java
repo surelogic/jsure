@@ -721,9 +721,10 @@ public class JavaCanonicalizer {
     		// No varargs
     		return changed; 
     	}
-    	IRLocation last = tree.lastChildLocation(params);    	
-    	IRNode lastP  = tree.getChild(params, last);
-    	if (VarArgsType.prototype.includes(ParameterDeclaration.getType(lastP))) {
+    	final IRLocation last = tree.lastChildLocation(params);    	
+    	final IRNode lastP  = tree.getChild(params, last);
+    	final IRNode lastType = ParameterDeclaration.getType(lastP);
+    	if (VarArgsType.prototype.includes(lastType)) {
     		//System.out.println("Var binding: "+DebugUnparser.toString(b.getNode()));
     		
     		// Reorganize arguments
@@ -750,6 +751,15 @@ public class JavaCanonicalizer {
     			if (i < numLastParam) {
     				newArgs[i] = arg;
     			} else {
+    				if (varArgs.isEmpty()) {
+    					// First var arg, so add cast here if needed
+    					IRNode lastBase = VarArgsType.getBase(lastType);
+    					Operator op = tree.getOperator(lastBase);
+    					if (PrimitiveType.prototype.includes(op)) {
+    						// Introduce cast to get the right type
+    						arg = CastExpression.createNode(op.createNode(), arg);
+    					}
+    				}
     				varArgs.add(arg);
     			}
     			i++;

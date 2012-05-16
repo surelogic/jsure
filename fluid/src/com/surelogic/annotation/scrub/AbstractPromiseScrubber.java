@@ -2,10 +2,13 @@ package com.surelogic.annotation.scrub;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
@@ -32,9 +35,13 @@ public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IA
 	@Override
 	protected void processAASTsForType(IAnnotationTraversalCallback<P> ignored,
 			IRNode decl, List<P> l) {
-		// Sort to process in a consistent order
-		Collections.sort(l, dropComparator);
-
+		try {
+			// Sort to process in a consistent order
+			Collections.sort(l, dropComparator);
+		} catch(IllegalArgumentException e) {
+			SLLogger.getLogger().log(Level.WARNING, "While sorting AASTs for "+JavaNames.getFullName(decl), e);
+		}
+		
 		for(P a : l) {
 	    /*
 		if ("MUTEX".equals(a.toString())) {

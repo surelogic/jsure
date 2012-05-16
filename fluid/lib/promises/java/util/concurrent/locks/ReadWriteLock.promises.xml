@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.locks" release="1">
+<package name="java.util.concurrent.locks" release="2">
     <class name="ReadWriteLock">
         <ThreadSafe/>
         <method name="readLock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="writeLock">
+            <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

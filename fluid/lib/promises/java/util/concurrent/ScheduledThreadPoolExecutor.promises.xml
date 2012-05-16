@@ -1,22 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="ScheduledThreadPoolExecutor">
-        <class name="DelayedWorkQueue">
-            <ThreadSafe/>
-            <method name="isEmpty">
-                <Borrowed>this</Borrowed>
-            </method>
+        <ThreadSafe/>
+        <constructor params="int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
 
-            <method name="iterator">
-                <Borrowed allowReturn="true">this</Borrowed>
-                <RegionEffects>writes this:Instance</RegionEffects>
-                <Unique>return</Unique>
-            </method>
+        <constructor params="int, java.util.concurrent.RejectedExecutionHandler">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
 
-            <method name="remove">
-                <Borrowed>this</Borrowed>
-            </method>
-        </class>
+        <constructor params="int, java.util.concurrent.ThreadFactory">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="int, java.util.concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="execute" params="java.lang.Runnable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="getContinueExistingPeriodicTasksAfterShutdownPolicy">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getExecuteExistingDelayedTasksAfterShutdownPolicy">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getQueue">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="remove" params="java.lang.Runnable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="schedule" params="java.lang.Runnable, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="schedule" params="java.util.concurrent.Callable, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="scheduleAtFixedRate" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="scheduleWithFixedDelay" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="setContinueExistingPeriodicTasksAfterShutdownPolicy" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setExecuteExistingDelayedTasksAfterShutdownPolicy" params="boolean">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="shutdown">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="shutdownNow">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="submit" params="java.lang.Runnable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="submit" params="java.lang.Runnable, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
+
+        <method name="submit" params="java.util.concurrent.Callable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes any():Instance</RegionEffects>
+        </method>
     </class>
 </package>

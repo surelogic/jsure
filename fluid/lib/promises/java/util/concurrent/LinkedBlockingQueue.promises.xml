@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="LinkedBlockingQueue">
         <ThreadSafe/>
         <constructor>
@@ -28,6 +28,15 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
+        </method>
+
+        <method name="contains" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads any():Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="drainTo" params="java.util.Collection">
