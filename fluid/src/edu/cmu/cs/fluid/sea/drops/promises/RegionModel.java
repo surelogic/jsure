@@ -152,7 +152,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		}				
 	}
 
-	public String getProject() {
+	@Override
+  public String getProject() {
 		return project;
 	}
 
@@ -217,6 +218,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 						&& isActiveProject(key.second())
 						&& (drop.colorInfo != null || drop.getAST() != null
 								|| key.first().equals(INSTANCE)
+								|| key.first().endsWith(".Static")
 								|| key.first().equals(ALL));
 			}
 
@@ -538,6 +540,14 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		return RegionModel.getInstance(INSTANCE, getJRE(context)); 
 	}
 
+	/**
+	 * Get the "Static" region for the given class or interface.
+	 */
+	public static RegionModel getStaticRegionForClass(final IRNode typeDecl) {
+	  return RegionModel.getInstance(
+	      JavaNames.getFullTypeName(typeDecl) + ".Static", getJRE(typeDecl));
+	}
+	
 	public static void printModels() {
 		for (RegionModel m : nameToDrop.elements()) {
 			final IRNode n = m.getNode();

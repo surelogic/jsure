@@ -230,10 +230,11 @@ public class RegionRules extends AnnotationRules {
          */
       }
     } else {
-      /* Parent model is INSTANCE if the region is not static, ALL if 
-       * region is static.  Region ALL has no parent. 
+      /* Parent model is INSTANCE if the region is not static, STATIC of the
+       * current class if region is static.  Region ALL has no parent. 
        */
       if (!qualifiedName.equals(RegionModel.ALL)) {
+//        parentModel = a.isStatic() ? RegionModel.getStaticRegionForClass(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
         parentModel = a.isStatic() ? RegionModel.getAllRegion(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
       }
     }
