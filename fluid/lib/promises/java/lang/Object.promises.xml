@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="1">
+<package name="java.lang" release="2">
     <class name="Object">
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
-        <Region uid="98392026-4d3c-4542-b64f-cec1760420a3">public static All</Region>
         <Region uid="a2b4b727-4a78-47f0-8cf4-3fb341abd825">public Instance extends All</Region>
         <Region uid="463eb068-86c4-48eb-97e5-ae306fe4f509">public WaitQueue</Region>
         <RegionLock uid="88cca40d-18b8-43f2-b7f6-64ec7eb3934f">MUTEX is this protects WaitQueue</RegionLock>

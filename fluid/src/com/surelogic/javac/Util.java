@@ -1112,6 +1112,17 @@ public class Util {
 					}
 					name = info.getFile().getPackage();
 				}
+				// Add the Static region before anything else (even All?)
+				final AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
+				for(IRNode type : VisitUtil.getTypeDecls(cu)) {
+					if ("java.lang.Object".equals(name)) {
+						v.handleXMLPromise(type, RegionRules.REGION, "public static All", 
+								JavaNode.ALL_FALSE, Collections.<String,String>emptyMap());
+					}
+					v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", 
+							JavaNode.ALL_FALSE, Collections.<String,String>emptyMap());
+				}
+				
 				// Process any pre-existing package-level scoped promises?
 				// (If the package is reprocessed, there shouldn't be any promises on it here)				
 				final PackageDrop pkg = PackageDrop.findPackage(info.getFile().getPackage());
@@ -1124,7 +1135,7 @@ public class Util {
 					}
 				}				
 		
-				AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
+				// Visit the source, checking for annotations
 				int num = v.doAccept(cu);
 				final JavacProject p = Projects.getProject(cu);
 				int fromXML = 0;
