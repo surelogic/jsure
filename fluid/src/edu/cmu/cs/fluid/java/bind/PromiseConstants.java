@@ -131,8 +131,11 @@ public interface PromiseConstants {
   public static final Operator[] fieldParamDeclOps = {
     FieldDeclaration.prototype, ParameterDeclaration.prototype, };
   
-  
   public static final Operator[] fieldMethodParamDeclOps = {
+	    FieldDeclaration.prototype, ParameterDeclaration.prototype,
+	    MethodDeclaration.prototype, };
+  
+  public static final Operator[] fieldFuncParamDeclOps = {
     FieldDeclaration.prototype, ParameterDeclaration.prototype,
     SomeFunctionDeclaration.prototype, };
   

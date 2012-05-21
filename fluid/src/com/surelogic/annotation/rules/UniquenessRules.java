@@ -179,7 +179,7 @@ public class UniquenessRules extends AnnotationRules {
   
   public static class Readonly_ParseRule extends AbstractParseRule<ReadOnlyNode, ReadOnlyPromiseDrop> {
 	public Readonly_ParseRule() {
-		super(READONLY, fieldMethodParamDeclOps, ReadOnlyNode.class);
+		super(READONLY, fieldFuncParamDeclOps, ReadOnlyNode.class);
 	}
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
@@ -232,7 +232,7 @@ public class UniquenessRules extends AnnotationRules {
   public static class Unique_ParseRule 
   extends AbstractParseRule<UniqueNode,UniquePromiseDrop> {
     public Unique_ParseRule() {
-      super(UNIQUE, fieldMethodParamDeclOps, UniqueNode.class);
+      super(UNIQUE, fieldFuncParamDeclOps, UniqueNode.class);
     }
    
     @Override

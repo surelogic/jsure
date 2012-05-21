@@ -2292,7 +2292,7 @@ public class LockRules extends AnnotationRules {
   static class ImmutableRefRule 
   extends SimpleBooleanAnnotationParseRule<ImmutableRefNode,ImmutableRefPromiseDrop> {
 	  public ImmutableRefRule() {
-		  super(IMMUTABLE_REF, fieldMethodParamDeclOps, ImmutableRefNode.class);
+		  super(IMMUTABLE_REF, fieldFuncParamDeclOps, ImmutableRefNode.class);
 	  }
 	  @Override
 	  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
