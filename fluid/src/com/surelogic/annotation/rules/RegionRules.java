@@ -43,6 +43,8 @@ public class RegionRules extends AnnotationRules {
   public static final String EXPLICIT_BORROWED_IN_REGION = "Borrowed Mapping"; // Never meant to be parsed
   public static final String REGION_INITIALIZER = "RegionInitializer";
   public static final String REGIONS_DONE = "RegionsDone";
+  public static final String STATIC = "Static";
+  public static final String STATIC_SUFFIX = '.'+STATIC;
   
   private static final AnnotationRules instance = new RegionRules();  
 
@@ -172,6 +174,13 @@ public class RegionRules extends AnnotationRules {
     // Region must be uniquely named
     final String simpleName = a.getId();
     final String qualifiedName = computeQualifiedName(a);  
+    /*
+    if ("Static".equals(a.getId())) {
+    	System.out.println("Processing region "+qualifiedName);
+    } else {
+    	System.err.println("Processing region "+qualifiedName);
+    }
+	*/
     if (regionState.isNameAlreadyUsed(promisedFor, simpleName, qualifiedName)) {
       context.reportError(a, "Region \"{0}\" is already declared in class", simpleName);
       annotationIsGood = false;
@@ -231,11 +240,19 @@ public class RegionRules extends AnnotationRules {
       }
     } else {
       /* Parent model is INSTANCE if the region is not static, STATIC of the
-       * current class if region is static.  Region ALL has no parent. 
+       * current class if region is static (or ALL if it is STATIC).  Region ALL has no parent. 
        */
       if (!qualifiedName.equals(RegionModel.ALL)) {
-//        parentModel = a.isStatic() ? RegionModel.getStaticRegionForClass(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
-        parentModel = a.isStatic() ? RegionModel.getAllRegion(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
+    	  if (a.isStatic()) {
+    		  if (STATIC.equals(simpleName)) {
+    			  parentModel = RegionModel.getAllRegion(a.getPromisedFor());
+    		  } else {
+    			  parentModel = RegionModel.getStaticRegionForClass(a.getPromisedFor());
+    		  }
+    	  } else {
+    		  parentModel = RegionModel.getInstanceRegion(a.getPromisedFor());
+    	  }
+//        parentModel = a.isStatic() ? RegionModel.getAllRegion(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
       }
     }
     
