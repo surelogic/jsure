@@ -287,10 +287,20 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	public static Diff diff(final Sea sea, File location) throws Exception {
 		Set<Drop> drops = sea.getDrops();
-		return diff(drops, location);
+		return diff(drops, location, nullFilter);
 	}
 	
-	public static Diff diff(Collection<? extends IDropInfo> drops, File location) throws Exception {
+	public interface Filter {
+		boolean showResource(IDropInfo d);
+	}
+
+	private static final Filter nullFilter = new Filter() {
+		public boolean showResource(IDropInfo d) {
+			return true;
+		}
+	};
+	
+	public static Diff diff(Collection<? extends IDropInfo> drops, File location, Filter f) throws Exception {
 		// Load up current contents
 		final Listener l = read(location);
 		

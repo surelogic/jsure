@@ -44,6 +44,7 @@ import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
 import com.surelogic.test.ITest;
@@ -604,7 +605,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			return resultsOk;
 		}
 		Collection<IDropInfo> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
-		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation);
+		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)
