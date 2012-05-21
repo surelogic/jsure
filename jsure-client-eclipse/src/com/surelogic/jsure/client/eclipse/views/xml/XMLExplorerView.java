@@ -33,6 +33,7 @@ import org.eclipse.ui.IEditorPart;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
@@ -539,11 +540,15 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof Package) {
-				return getCachedImage(CommonImages.IMG_PACKAGE, Decorator.NONE);
+			if (element instanceof Package) {				
+				Package p = (Package) element;
+				return getCachedImage(CommonImages.IMG_PACKAGE, 
+						p.hasWarning() ? Decorator.WARNING : Decorator.NONE);
 			}
 			if (element instanceof Type) {
-				return getCachedImage(CommonImages.IMG_CLASS, Decorator.NONE);
+				final Type t = (Type) element;
+				return getCachedImage(CommonImages.IMG_CLASS, 
+						t.confirmed ? Decorator.NONE : Decorator.WARNING);
 			}
 			if (element instanceof String) {
 				return null;
@@ -624,6 +629,15 @@ public class XMLExplorerView extends AbstractJSureView {
 			Arrays.sort(types);
 		}
 
+		boolean hasWarning() {
+			for(Type t : types) {
+				if (!t.confirmed) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		@Override
 		public String toString() {
 			if (hasDiffs()) {
@@ -668,12 +682,15 @@ public class XMLExplorerView extends AbstractJSureView {
 		final Package pkg;
 		final String name;
 		final boolean isLocal;
+		final boolean confirmed;
 		private PackageElement root;
 
 		Type(Package pkg, String name, boolean isLocal) {
 			this.pkg = pkg;
 			this.name = name;
 			this.isLocal = isLocal;
+			
+			confirmed = JDTUtility.findIType(null, pkg.name, name) != null;
 		}
 
 		public String getPath() {
