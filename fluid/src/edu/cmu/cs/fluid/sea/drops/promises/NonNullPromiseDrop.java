@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.annotation.rules.NonNullRules;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -14,6 +15,6 @@ public final class NonNullPromiseDrop extends BooleanPromiseDrop<NonNullNode> {
 
 	@Override
 	protected void computeBasedOnAST() {
-		setMessage("NonNull on "+DebugUnparser.toString(getNode()));
+		setMessage(NonNullRules.NONNULL+" on "+DebugUnparser.toString(getNode()));
 	}
 }

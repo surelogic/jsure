@@ -1,6 +1,7 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
+import com.surelogic.annotation.rules.NonNullRules;
 
 public class NonNullNode extends AbstractBooleanNode 
 { 
@@ -11,7 +12,7 @@ public class NonNullNode extends AbstractBooleanNode
 
   @Override
   public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "NonNull");
+    return unparse(debug, indent, NonNullRules.NONNULL);
   }
 
   @Override

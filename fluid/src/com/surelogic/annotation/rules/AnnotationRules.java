@@ -234,7 +234,7 @@ public abstract class AnnotationRules {
 		JcipRules.getInstance().register(fw);
 		LayerRules.getInstance().register(fw);
 		UtilityRules.getInstance().register(fw);
-
+		NonNullRules.getInstance().register(fw);
 		PromiseDropStorage.init();
 	}
 

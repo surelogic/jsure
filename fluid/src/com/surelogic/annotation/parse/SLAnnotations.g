@@ -331,6 +331,23 @@ uniqueConstructorExpression
     : varUse | returnValue
     ;
     
+nonNullMethod
+    : returnValue EOF -> returnValue
+    ; 
+   
+nonNullList
+    : nonNullExpressionList EOF -> nonNullExpressionList
+   	| nonNullExpression EOF -> nonNullExpression
+    ;
+
+nonNullExpressionList
+	  : nonNullExpression (',' nonNullExpression)+ -> ^(Expressions nonNullExpression+)
+    ;
+
+nonNullExpression
+    : varUse | returnValue 
+    ;
+    
 /*************************************************************************************
  * Thread effects rules
  *************************************************************************************/	
