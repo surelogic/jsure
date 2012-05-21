@@ -218,7 +218,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 						&& isActiveProject(key.second())
 						&& (drop.colorInfo != null || drop.getAST() != null
 								|| key.first().equals(INSTANCE)
-								|| key.first().endsWith(".Static")
+								|| key.first().endsWith(RegionRules.STATIC_SUFFIX)
 								|| key.first().equals(ALL));
 			}
 
