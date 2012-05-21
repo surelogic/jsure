@@ -177,6 +177,9 @@ public class RegionRules extends AnnotationRules {
     /*
     if ("Static".equals(a.getId())) {
     	System.out.println("Processing region "+qualifiedName);
+    	if ("ttt.Test.Static".equals(qualifiedName)) {
+    		System.out.println("Debugging ...");
+    	}
     } else {
     	System.err.println("Processing region "+qualifiedName);
     }
