@@ -9,6 +9,9 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 @Utility
 public final class ModelingProblemFilterUtility {
@@ -58,4 +61,15 @@ public final class ModelingProblemFilterUtility {
 		}
 		return true; // show this resource
 	}
+	
+	public static SeaSummary.Filter defaultFilter = new SeaSummary.Filter() {
+		@Override
+		public boolean showResource(IDropInfo d) {
+			ISrcRef ref = d.getSrcRef();
+			if (ref != null) {
+				return ModelingProblemFilterUtility.showResource(ref.getRelativePath());
+			}
+			return false;
+		}
+	};
 }
