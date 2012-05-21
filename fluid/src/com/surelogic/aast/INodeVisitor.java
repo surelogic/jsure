@@ -148,4 +148,6 @@ public interface INodeVisitor<T> {
 	T visit(SingletonNode singletonNode);
 	T visit(SimpleBorrowedInRegionNode borrowedInRegionNode);
 	T visit(ExplicitBorrowedInRegionNode explicitBorrowedInRegionNode);
+	T visit(NonNullNode nonNullNode);
+	T visit(NullableNode nullableNode);
 }

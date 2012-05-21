@@ -767,4 +767,12 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(ExplicitBorrowedInRegionNode n) {
 	  return doAccept(n.getMapping());
   }
+
+  public T visit(NonNullNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(NullableNode n) {
+	  return defaultValue;
+  }
 }
