@@ -32,12 +32,22 @@ public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IA
 
 	protected abstract void processDrop(P a);
 	
+	/**
+	 * @return true if this scrubs an annotation that allows multiple annotation 
+	 * on the same declaration, e.g. @Promise
+	 */
+	protected boolean allowsMultipleAnnosOnSameDecl() {
+		return false;
+	}
+	
 	@Override
 	protected void processAASTsForType(IAnnotationTraversalCallback<P> ignored,
 			IRNode decl, List<P> l) {
 		try {
-			// Sort to process in a consistent order
-			Collections.sort(l, dropComparator);
+			if (!allowsMultipleAnnosOnSameDecl()) {
+				// Sort to process in a consistent order
+				Collections.sort(l, dropComparator);
+			}
 		} catch(IllegalArgumentException e) {
 			SLLogger.getLogger().log(Level.WARNING, "While sorting AASTs for "+JavaNames.getFullName(decl), e);
 		}

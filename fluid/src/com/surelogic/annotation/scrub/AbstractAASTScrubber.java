@@ -280,9 +280,11 @@ extends AbstractHierarchyScrubber<A> {
 	@Override
 	protected void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
+			/* These need to be in whatever order they are defined!
+			 * 
 			// Sort to process in a consistent order
 			Collections.sort(l, aastComparator);
-
+            */
 			for(A a : preprocessAASTsForSeq(l)) {
 		    /*
 			if ("MUTEX".equals(a.toString())) {
