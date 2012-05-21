@@ -68,7 +68,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 	PackageElement pkg;
 	Object[] roots;
 	final boolean hideEmpty;
-	private boolean markUnannotated = false;
+	private boolean markUnannotated = true;
 	String fluidXML = "";
 	URI localXML = null;
 
