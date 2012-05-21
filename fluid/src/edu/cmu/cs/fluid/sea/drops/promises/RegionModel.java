@@ -544,8 +544,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 * Get the "Static" region for the given class or interface.
 	 */
 	public static RegionModel getStaticRegionForClass(final IRNode typeDecl) {
+	  final IIRProject thisProj = JavaProjects.getEnclosingProject(typeDecl);
 	  return RegionModel.getInstance(
-	      JavaNames.getFullTypeName(typeDecl) + ".Static", getJRE(typeDecl));
+	      JavaNames.getFullTypeName(typeDecl) + ".Static", thisProj.getName());
 	}
 	
 	public static void printModels() {
