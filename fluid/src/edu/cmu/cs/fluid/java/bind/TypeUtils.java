@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class TypeUtils {
-	static final boolean useNewTypeInference = false;
+	static final boolean useNewTypeInference = true;
 	
 	private final ITypeEnvironment tEnv;
 	private final Hashtable2<IJavaReferenceType, IJavaReferenceType, JavaRefTypeProxy> proxyCache = 
