@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="7">
+<package name="java.lang" release="8">
     <class name="Thread">
         <ThreadSafe implementationOnly="true"/>
         <constructor>
@@ -102,7 +102,7 @@
         </method>
 
         <method name="getDefaultUncaughtExceptionHandler">
-            <RegionEffects>reads All</RegionEffects>
+            <RegionEffects>reads Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -223,7 +223,7 @@
         </method>
 
         <method name="setDefaultUncaughtExceptionHandler" params="java.lang.Thread.UncaughtExceptionHandler">
-            <RegionEffects>writes All</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 

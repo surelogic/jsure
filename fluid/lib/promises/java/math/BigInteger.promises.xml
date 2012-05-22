@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.math" release="4">
+<package name="java.math" release="5">
     <class name="BigInteger">
         <Immutable/>
         <constructor params="byte[]">
@@ -304,7 +304,7 @@
         </method>
 
         <method name="valueOf" params="long">
-            <RegionEffects>reads All</RegionEffects>
+            <RegionEffects>reads Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
