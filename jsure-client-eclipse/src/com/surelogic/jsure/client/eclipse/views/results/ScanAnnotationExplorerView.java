@@ -29,6 +29,7 @@ import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.persistence.JavaIdentifier;
@@ -161,12 +162,14 @@ public class ScanAnnotationExplorerView extends
 				return null;
 			}
 			final MultiMap<String, IDropInfo> pkgToDrop = new MultiHashMap<String, IDropInfo>();
-			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
+			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {				
 				final ISrcRef sr = d.getSrcRef();
 				if (sr == null) {
 					continue;
 				}
-				pkgToDrop.put(sr.getPackage(), d);
+				if (ModelingProblemFilterUtility.showResource(sr.getRelativePath())) {
+					pkgToDrop.put(sr.getPackage(), d);
+				}
 			}
 			// Organize by type
 			roots = new Package[pkgToDrop.size()];
