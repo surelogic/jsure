@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -263,15 +264,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 				return false;
 			}
 
-			IJavaType t1 = null; // tEnv.findJavaTypeByName(p);
-
-			try {
-				t1 = tEnv.findJavaTypeByName(p);
-			} catch (NullPointerException n) {
-				t1 = tEnv.findJavaTypeByName(TypeErasure.calcTypeErasure(p,
-						tEnv));
-			}
-
+			IJavaType t1 = findJavaType(tEnv, p);
 			if (t1 == null) {
 				if (finerIsLoggable)
 					LOG.info("Couldn't find type: " + p);
@@ -313,6 +306,57 @@ public final class TreeAccessor implements TestXMLParserConstants {
 			LOG.finer("Matched all " + max + " params");
 		return true;
 
+	}
+
+	private static IJavaType findJavaType(ITypeEnvironment tEnv, String name) {
+		IJavaType t = findJavaTypeByName(tEnv, name);
+		if (t != null) {
+			return t;
+		}
+		final int lastDot = name.lastIndexOf('.');
+		if (lastDot < 0) {
+			return null;
+		}
+		// Try without the last name segment
+		t = findJavaTypeByName(tEnv, name.substring(0, lastDot));
+		if (t == null) {
+			return null;
+		}
+		if (!(t instanceof IJavaDeclaredType)) {
+			throw new IllegalStateException("No decl type for "+name);
+		}
+		// From AbstractTypeEnvironment.findJavaTypeByName()
+		// Check for array dimensions
+		final IJavaDeclaredType outer = (IJavaDeclaredType) t;
+		final String lastSeg = name.substring(lastDot+1, name.length());
+	    int dims = 0;    
+	    int possibleArray = lastSeg.length() - 2;
+	    while (possibleArray > 0 && lastSeg.charAt(possibleArray) == '[' && 
+	    		                    lastSeg.charAt(possibleArray+1) == ']') {
+	      dims++;
+	      possibleArray -= 2;
+	    }
+	    possibleArray += 2;		
+	    IRNode inner;
+	    if (dims > 0) {
+	    	inner = findNestedClass(lastSeg.substring(0, possibleArray), outer.getDeclaration());
+	    } else {
+	    	inner = findNestedClass(lastSeg, outer.getDeclaration());
+	    }
+	    IJavaType rv = tEnv.convertNodeTypeToIJavaType(inner);
+	    if (dims > 0) {
+	    	return JavaTypeFactory.getArrayType(rv, dims);
+	    }
+	    return rv;
+	}
+
+	private static IJavaType findJavaTypeByName(ITypeEnvironment tEnv, String p) {
+		try {
+			return tEnv.findJavaTypeByName(p);
+		} catch (NullPointerException n) {
+			return tEnv.findJavaTypeByName(TypeErasure.calcTypeErasure(p,
+					tEnv));
+		}
 	}
 
 	private static boolean matchesTypeErasure(IJavaType t1, IJavaType t2) {
