@@ -1216,17 +1216,14 @@ public class Util {
 	}
 	
 	protected static boolean insideOfMethod(IRNode type) {
-		IRNode here = type;
-		do {
-			here = VisitUtil.getEnclosingClassBodyDecl(here);
-			
+		IRNode here = VisitUtil.getEnclosingClassBodyDecl(type);
+		while (here != null) {
 			Operator op = JJNode.tree.getOperator(here);
 			if (!(op instanceof NestedDeclInterface)) {
 				return true;
 			}
-		}
-		while (here != null);
-			
+			here = VisitUtil.getEnclosingClassBodyDecl(here);
+		}			
 		return false;
 	}
 
