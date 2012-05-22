@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -408,11 +409,11 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 					throw new RuntimeException("No binding exists for " + this);
 				}
 			}
-			// return the default STATIC or INSTANCE
+			// return the default parent
 			else {
 				if (nrdn.isStatic()) {
-					model = ALL.equals(regionName) ? null : RegionModel
-							.getAllRegion(this.getNode());
+					model = ALL.equals(regionName) ? null :
+					  RegionModel.getStaticRegionForClass(nrdn.getPromisedFor());
 				} else {
 					model = INSTANCE.equals(regionName) ? RegionModel
 							.getAllRegion(this.getNode()) : RegionModel.getInstanceRegion(this.getNode());
@@ -460,7 +461,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 					SLLogger.getLogger().severe("Null node for region "+project+'/'+this.regionName);
 				}
 				if (JavaNode.getModifier(this.getNode(), JavaNode.STATIC)) {
-					return RegionModel.getAllRegion(this.getNode());
+				  return RegionModel.getStaticRegionForClass(
+				      VisitUtil.getEnclosingType(this.getNode()));
 				} else {
 					return RegionModel.getInstanceRegion(this.getNode());
 				}

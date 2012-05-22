@@ -70,41 +70,40 @@ public class FieldRegion extends AbstractRegion {
   }
   
   public IRegion getParentRegion() {
-    // This is a field-based region, look for a @InRegion 
+    // This is a field-based region, look for a @InRegion
     // and return that region if it exists, otherwise return the defaults
     final InRegionNode min;
     final InRegionPromiseDrop mipd = RegionRules.getInRegion(field);
 
-    if(mipd != null){
+    if (mipd != null) {
       min = mipd.getAST();
-      if(min != null){
+      if (min != null) {
         RegionSpecificationNode rsn = min.getSpec();
-        if(rsn != null){
+        if (rsn != null) {
           IRegionBinding binding = rsn.resolveBinding();
-          if(binding != null){
+          if (binding != null) {
             return binding.getModel();
-          }
-          else {
+          } else {
             throw new RuntimeException("No binding exists for " + this);
           }
         }
-        //No regionspecificationdrop
-        else{
-          //Error
+        // No regionspecificationdrop
+        else {
+          // Error
           throw new RuntimeException("No RegionSpecificationNode for " + min);
         }
       }
-      //No InRegionNode - ERROR
-      else{
+      // No InRegionNode - ERROR
+      else {
         throw new RuntimeException("No InRegionNode for " + this);
       }
     }
-    //No InRegionPromiseDrop for this field, return the default regions
-    else{
-      if (isStatic()){
-        return RegionModel.getAllRegion(field);
-      }
-      else{
+    // No InRegionPromiseDrop for this field, return the default regions
+    else {
+      if (isStatic()) {
+        return RegionModel.getStaticRegionForClass(
+            VisitUtil.getEnclosingType(field));
+      } else {
         return RegionModel.getInstanceRegion(field);
       }
     }
