@@ -49,6 +49,7 @@ import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub.CurrentScanChangeListener;
@@ -694,8 +695,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						System.out.println("\nUpdated " + f.getName() + ": \t"
 								+ oldLength + " -> " + f.length());
 						try {
-							final Diff d = SeaSummary.diff(new File(deletedDir,
-									f.getName()), f);
+							final Diff d = SeaSummary.diff(ModelingProblemFilterUtility.defaultFilter,
+									new File(deletedDir, f.getName()), f);
 							if (d.isEmpty()) {
 								System.out.println("\tNo differences.");
 							}

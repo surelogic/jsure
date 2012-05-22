@@ -277,10 +277,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return l;
 	}
 	
-	public static Diff diff(File location1, File location2) throws Exception {
+	public static Diff diff(Filter f, File location1, File location2) throws Exception {
 		final Listener l1 = read(location1);
 		final Listener l2 = read(location2);
-		Diff d = new Diff(l1.drops, l2.drops);
+		Diff d = new Diff(filter(f, l1), filter(f, l2));
 		d.diff();
 		return d;
 	}
@@ -304,19 +304,23 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 	};
 	
-	public static Diff diff(Collection<? extends IDropInfo> drops, File location, Filter f) throws Exception {
-		// Load up current contents
-		final Listener l = read(location);
-		
-		final List<Entity> oldDrops = new ArrayList<Entity>();
+	private static List<Entity> filter(Filter f, Listener l) {
+		final List<Entity> drops = new ArrayList<Entity>();
 		//Collections.sort(oldDrops, EntityComparator.prototype);
 		for(Entity e : l.drops) {
 			String path = e.getAttribute(PATH_ATTR);
 			if (path == null || f.showResource(path)) {
-				oldDrops.add(e);			
+				drops.add(e);			
 			}
 		}
+		return drops;
+	}
 	
+	public static Diff diff(Collection<? extends IDropInfo> drops, File location, Filter f) throws Exception {
+		// Load up current contents
+		final Listener l = read(location);
+		
+		final List<Entity> oldDrops = filter(f, l);	
 		final SeaSummary s = new SeaSummary(null);
 		final List<Entity> newDrops = new ArrayList<Entity>();
 		for(IDropInfo d : drops) {
