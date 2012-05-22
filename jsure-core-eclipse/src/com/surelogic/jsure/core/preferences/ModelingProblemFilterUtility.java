@@ -21,8 +21,8 @@ public final class ModelingProblemFilterUtility {
 	 * newlines ('\n').
 	 */
 	public static final List<String> DEFAULT = Arrays.asList("com\\.apple.*",
-			"com\\.sun.*", ".*\\.internal.*", ".*BakedArrayList\\.class",
-			"oracle.*", "quicktime.*", "sun\\..*");
+			"com\\.oracle.*", "com\\.sun.*", ".*\\.internal.*",
+			".*BakedArrayList\\.class", "oracle.*", "quicktime.*", "sun.*");
 
 	public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 
@@ -61,12 +61,13 @@ public final class ModelingProblemFilterUtility {
 		}
 		return true; // show this resource
 	}
-	
+
 	public static SeaSummary.Filter defaultFilter = new SeaSummary.Filter() {
 		@Override
 		public boolean showResource(String path) {
 			return ModelingProblemFilterUtility.showResource(path);
 		}
+
 		@Override
 		public boolean showResource(IDropInfo d) {
 			ISrcRef ref = d.getSrcRef();

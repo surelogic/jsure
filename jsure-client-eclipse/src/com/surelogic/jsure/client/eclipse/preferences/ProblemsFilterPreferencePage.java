@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.progress.UIJob;
@@ -28,16 +27,15 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.dialogs.AddModelingProblemFilterDialog;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
+import com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ProblemsFilterPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
@@ -192,33 +190,12 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				IViewPart vp = EclipseUIUtility.getView(ProblemsView.class
-						.getName());
-				if (vp != null) {
-					if (vp instanceof ProblemsView) {
-						final ProblemsView view = (ProblemsView) vp;
-						view.currentScanChanged(JSureDataDirHub.getInstance()
-								.getCurrentScan());
-					} else {
-						final int no = 236;
-						return SLEclipseStatusUtility.createErrorStatus(no,
-								I18N.err(no, vp));
-					}
-				}
-
-				IViewPart pp = EclipseUIUtility
-						.getView(ProposedPromiseView.class.getName());
-				if (pp != null) {
-					if (pp instanceof ProposedPromiseView) {
-						final ProposedPromiseView view = (ProposedPromiseView) pp;
-						view.currentScanChanged(JSureDataDirHub.getInstance()
-								.getCurrentScan());
-					} else {
-						final int no = 236;
-						return SLEclipseStatusUtility.createErrorStatus(no,
-								I18N.err(no, pp));
-					}
-				}
+				AbstractJSureScanView
+						.notifyScanViewOfChangeIfOpened(ProblemsView.class);
+				AbstractJSureScanView
+						.notifyScanViewOfChangeIfOpened(ProposedPromiseView.class);
+				AbstractJSureScanView
+						.notifyScanViewOfChangeIfOpened(ScanAnnotationExplorerView.class);
 
 				return Status.OK_STATUS;
 			}

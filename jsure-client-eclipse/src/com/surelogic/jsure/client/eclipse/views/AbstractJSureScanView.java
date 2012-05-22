@@ -1,12 +1,17 @@
 package com.surelogic.jsure.client.eclipse.views;
 
+import java.util.logging.Level;
+
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -59,6 +64,29 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	@Override
 	public void currentScanChanged(JSureScan scan) {
 		updateViewState();
+	}
+
+	/**
+	 * Can be used to lookup a view implementation and notify it that changes
+	 * occurred. Does nothing if the view is not open. Logs a problem if the
+	 * types come out wrong from the Eclipse lookup of the view.
+	 * 
+	 * @param clazz
+	 *            the type of the view implementation.
+	 */
+	public static void notifyScanViewOfChangeIfOpened(
+			Class<? extends AbstractJSureScanView> clazz) {
+		final IViewPart view = EclipseUIUtility.getView(clazz.getName());
+		if (view != null) { // view opened?
+			if (view instanceof AbstractJSureScanView) {
+				final AbstractJSureScanView scanView = (AbstractJSureScanView) view;
+				scanView.currentScanChanged(JSureDataDirHub.getInstance()
+						.getCurrentScan());
+			} else {
+				SLLogger.getLogger().log(Level.SEVERE,
+						I18N.err(236, clazz.getName(), view));
+			}
+		}
 	}
 
 	/**
