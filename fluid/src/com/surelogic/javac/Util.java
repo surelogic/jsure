@@ -1110,14 +1110,22 @@ public class Util {
 				// Add the Static region before anything else (even All?)
 				final AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
 				for(IRNode type : VisitUtil.getAllTypeDecls(cu)) {
+					final String qname = JavaNames.getFullTypeName(type);
+					/*
+					if ("region.accessibility.samePackage.DefaultSuper.Inner_ParentIsDefaultSuper".equals(qname)) {
+						System.out.println("Checking Inner_ParentIsDefaultSuper");
+					}
+					*/
 					final Operator op = JJNode.tree.getOperator(type);
 					if (op instanceof AnonClassExpression || op instanceof TypeFormal) {
 						continue;
 					}
+					/* Removed due to bug in Javac -- missing static modifier
 					if (op instanceof NestedDeclInterface && !JavaNode.getModifier(type, JavaNode.STATIC)) {
 						// These can't have static fields
 						continue;
 					}
+					*/
 					if (op instanceof EnumConstantClassDeclaration) {
 						continue;
 					}
