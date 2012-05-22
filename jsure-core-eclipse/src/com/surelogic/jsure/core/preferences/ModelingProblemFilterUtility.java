@@ -64,10 +64,14 @@ public final class ModelingProblemFilterUtility {
 	
 	public static SeaSummary.Filter defaultFilter = new SeaSummary.Filter() {
 		@Override
+		public boolean showResource(String path) {
+			return ModelingProblemFilterUtility.showResource(path);
+		}
+		@Override
 		public boolean showResource(IDropInfo d) {
 			ISrcRef ref = d.getSrcRef();
 			if (ref != null) {
-				return ModelingProblemFilterUtility.showResource(ref.getRelativePath());
+				return showResource(ref.getRelativePath());
 			}
 			return false;
 		}

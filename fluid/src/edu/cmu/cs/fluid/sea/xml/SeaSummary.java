@@ -292,9 +292,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	public interface Filter {
 		boolean showResource(IDropInfo d);
+		boolean showResource(String path);
 	}
 
 	private static final Filter nullFilter = new Filter() {
+		public boolean showResource(String path) {
+			return true;
+		}
 		public boolean showResource(IDropInfo d) {
 			return true;
 		}
@@ -304,14 +308,20 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		// Load up current contents
 		final Listener l = read(location);
 		
-		final List<Entity> oldDrops = l.drops;
+		final List<Entity> oldDrops = new ArrayList<Entity>();
 		//Collections.sort(oldDrops, EntityComparator.prototype);
+		for(Entity e : l.drops) {
+			String path = e.getAttribute(PATH_ATTR);
+			if (path == null || f.showResource(path)) {
+				oldDrops.add(e);			
+			}
+		}
 	
 		final SeaSummary s = new SeaSummary(null);
 		final List<Entity> newDrops = new ArrayList<Entity>();
 		for(IDropInfo d : drops) {
-			IDropInfo id = checkIfReady(d);
-			if (id != null) {
+			IDropInfo id = checkIfReady(d);			
+			if (id != null && f.showResource(id)) {
 				s.reset();
 				s.summarizeDrop(id);
 				/*
