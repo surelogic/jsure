@@ -19,12 +19,14 @@ import com.surelogic.analysis.ICompUnitContext;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.NormalErrorQuery;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -35,18 +37,24 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -55,6 +63,9 @@ import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ImmutableRefPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
@@ -163,6 +174,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
           }
           System.out.println("Sequential: " + methodName);
+          System.out.flush();
           analzyePseudoMethodDeclaration(node);
         }
         ImmutableHashOrderSet.clearCaches();
@@ -374,18 +386,51 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		/** The borrowed parameters declared by this method/constructor */
 		public final Set<BorrowedPromiseDrop> myBorrowedParams;
 
-		/** The unique return value declared by this method */
-		public final Set<UniquePromiseDrop> myUniqueReturn;
+    /** The immutable and read-only parameters declared by this method/constructor */
+		public final Set<ImmutableRefPromiseDrop> myImmutableParams;
+		
+    /** The immutable and read-only parameters declared by this method/constructor */
+		public final Set<ReadOnlyPromiseDrop> myReadOnlyParams;
+		
+    /** The unique return value declared by this method */
+    public final Set<UniquePromiseDrop> myUniqueReturn;
+
+    /** The unique return value declared by this method */
+    public final Set<ImmutableRefPromiseDrop> myImmutableReturn;
+
+    /** The unique return value declared by this method */
+    public final Set<ReadOnlyPromiseDrop> myReadOnlyReturn;
 
 		/** Method call drops for each invoked method that has unique parameters */
 		public final Set<ResultDropBuilder> calledUniqueParams;
 
 		/**
+		 * Promise drops for each formal parameter of a called method that is 
+		 * Borrowed(allowReturn=true).
+		 */
+		public final Set<BorrowedPromiseDrop> calledBorrowedAllowReturn;
+		
+		/**
+		 * Promise drops for each formal parameter of a called method that is 
+		 * ReadOnly.
+		 */
+		public final Set<ReadOnlyPromiseDrop> calledReadOnly;
+		
+    /**
+     * Promise drops for each formal parameter of a called method that is 
+     * Immutable.
+     */
+    public final Set<ImmutableRefPromiseDrop> calledImmutable;		
+		
+		/**
 		 * Method call drops for each invoked method that has unique return;
 		 * Map from the method call drop to the unique promise about the return value.
 		 */
 		public final Map<ResultDropBuilder, UniquePromiseDrop> calledUniqueReturns;
-
+		
+		public final Set<ImmutableRefPromiseDrop> calledImmtuableReturns;
+		public final Set<ReadOnlyPromiseDrop> calledReadOnlyReturns;
+		
 		/**
 		 * Method call drops for each invoked constructor that has a borrowed
 		 * receiver.  Map from the method call drop to the borrowed promise.
@@ -403,9 +448,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		/** The unique and borrowed fields accessed */
 		public final Set<PromiseDrop<? extends IAASTRootNode>> uniqueFields;
 		
+		public final Set<ImmutableRefPromiseDrop> usedImmutableFields;
+		public final Set<ReadOnlyPromiseDrop> usedReadOnlyFields;
+    
+    /** Immutable types that have instances that are passed as actual arguments
+     * to methods.
+     */
+    private final Set<ImmutablePromiseDrop> immutableActuals;
+
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
-
+  
     /**
      * Result drop that aggregates together all the unique field promise drops.
      * Created lazily.
@@ -425,7 +478,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     /** Need a separate flag because aggregatedUniqueParams is allowed to be null;
      */
     private boolean isAggregatedUniqueParamsSet = false;
-		
+    
 		/**
 		 * Map from method/constructor calls to the set of result drops that
 		 * represent the calls.
@@ -438,16 +491,28 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		  methodDecl = block;
 			myUniqueParams = new HashSet<UniquePromiseDrop>();
 			myBorrowedParams = new HashSet<BorrowedPromiseDrop>();
+			myImmutableParams = new HashSet<ImmutableRefPromiseDrop>();
+			myReadOnlyParams = new HashSet<ReadOnlyPromiseDrop>();
 			myUniqueReturn = new HashSet<UniquePromiseDrop>();
-			calledUniqueReturns = new HashMap<ResultDropBuilder, UniquePromiseDrop>();
+			myImmutableReturn = new HashSet<ImmutableRefPromiseDrop>();
+			myReadOnlyReturn = new HashSet<ReadOnlyPromiseDrop>();
+      calledUniqueReturns = new HashMap<ResultDropBuilder, UniquePromiseDrop>();
+      calledImmtuableReturns = new HashSet<ImmutableRefPromiseDrop>();
+      calledReadOnlyReturns = new HashSet<ReadOnlyPromiseDrop>();
       calledBorrowedConstructors = new HashMap<ResultDropBuilder, BorrowedPromiseDrop>();
       calledUniqueConstructors = new HashMap<ResultDropBuilder, UniquePromiseDrop>();
 			calledUniqueParams = new HashSet<ResultDropBuilder>();
       calledBorrowedParams = new HashSet<ResultDropBuilder>();
+      calledReadOnly = new HashSet<ReadOnlyPromiseDrop>();
+      calledImmutable = new HashSet<ImmutableRefPromiseDrop>();
       calledBorrowedReceiverAsUniqueReturn = new HashSet<ResultDropBuilder>();
 			calledEffects = new HashSet<ResultDropBuilder>();
 			uniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-
+			usedImmutableFields = new HashSet<ImmutableRefPromiseDrop>();
+			usedReadOnlyFields = new HashSet<ReadOnlyPromiseDrop>();
+			immutableActuals = new HashSet<ImmutablePromiseDrop>();
+			calledBorrowedAllowReturn = new HashSet<BorrowedPromiseDrop>();
+			
 			callsToDrops = new HashMap<IRNode, Set<ResultDropBuilder>>();
 			
 			// Create the control flow drop for the block
@@ -578,6 +643,20 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
   		        }
+  		        final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(varDecl);
+  		        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(varDecl);
+  		        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
+  		        if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
+  		      }
+  		      
+  		      // Also check if the class has an IFQR that is borrowed
+  		      final IRNode ifqr =
+  		          JavaPromise.getQualifiedReceiverNodeOrNull(
+  		              TypeDeclaration.getBody(JJNode.tree.getParentOrNull(
+  		                  block.getClassBody())));
+  		      if (ifqr != null) {
+  		        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(ifqr);
+  		        if (bDrop != null) pr.uniqueFields.add(bDrop);
   		      }
 		      }
 		    }
@@ -589,8 +668,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		 */
     if (isConstructorDecl || isMethodDecl) {
       // don't care about my effects, use a throw-away set here
-      getPromisesFromMethodDecl(block.methodDecl, pr.myUniqueReturn,
+      getPromisesFromMethodDecl(block.methodDecl,
+          pr.myUniqueReturn, pr.myImmutableReturn, pr.myReadOnlyReturn,
           pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
+          pr.myImmutableParams, pr.myReadOnlyParams,
           pr.myUniqueParams, new HashSet<RegionEffectsPromiseDrop>());
     }
 
@@ -611,7 +692,23 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       }
     }
 
-
+    final Set<ResultDropBuilder> fooSet = Collections.singleton(pr.controlFlow);
+    addDependencies(pr.myImmutableReturn, fooSet);
+    addDependencies(pr.myReadOnlyReturn, fooSet);
+    addDependencies(pr.myImmutableParams, fooSet);
+    addDependencies(pr.myReadOnlyParams, fooSet);
+    
+    addDependencies(pr.calledImmtuableReturns, fooSet);
+    addDependencies(pr.calledReadOnlyReturns, fooSet);
+    
+    addDependencies(pr.usedImmutableFields, fooSet);
+    addDependencies(pr.usedReadOnlyFields, fooSet);
+    
+    addDependencies(pr.immutableActuals, fooSet);
+    
+    addDependencies(pr.calledBorrowedAllowReturn, fooSet);
+    addDependencies(pr.calledImmutable, fooSet);
+    addDependencies(pr.calledReadOnly, fooSet);
     
     /*
      * Set up the borrowed dependencies. Each parameter of the method that is
@@ -692,7 +789,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			dependsOnPromises.addAll(pr.myUniqueParams);
 			dependsOnPromises.addAll(pr.uniqueFields);
-			if (!(dependsOnPromises.isEmpty() && pr.calledUniqueReturns.isEmpty() && pr.calledBorrowedConstructors.isEmpty() && pr.calledUniqueConstructors.isEmpty())) {
+			if (!(dependsOnPromises.isEmpty() && pr.calledUniqueReturns.isEmpty()
+			    && pr.calledImmtuableReturns.isEmpty()
+			    && pr.calledReadOnlyReturns.isEmpty()
+			    && pr.calledBorrowedConstructors.isEmpty()
+			    && pr.calledUniqueConstructors.isEmpty())) {
 				for (ResultDropBuilder callToCheck : pr.calledUniqueParams) {
 					// Add depended upon promises
 					for (final PromiseDrop<? extends IAASTRootNode> trustedPD : dependsOnPromises) {
@@ -748,6 +849,38 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (UniquenessUtils.isFieldBorrowed(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
         }
+        final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(fdecl);
+        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(fdecl);
+        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
+        if (roDrop != null) pr.usedReadOnlyFields.add(roDrop);
+      }
+      
+      if (QualifiedThisExpression.prototype.includes(op)) {
+        /* See if any of the qualified receiver fields that we implicitly
+         * access are borrowed.  If so, add the containing method as interesting.
+         */
+        final IRNode ifqr = getBinder().getBinding(currentNode);
+        /* Make sure
+         * (1) it's not the regular receiver ("C.this" used inside of class "C")
+         * (2) it's an IFQR and not an IPQR
+         */
+        if (!ReceiverDeclaration.prototype.includes(ifqr) &&
+            !ConstructorDeclaration.prototype.includes(
+                JavaPromise.getPromisedFor(ifqr))) {
+          /* Loop up the nested class hierarchy until we find the class whose
+           * qualified receiver declaration equals 'decl'. 
+           */
+          IRNode currentClass = VisitUtil.getEnclosingType(currentNode);
+          IRNode currentQualifiedReceiverField;
+          do {
+            currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+            // check for @Borrowed
+            final BorrowedPromiseDrop bDrop = 
+                UniquenessRules.getBorrowed(currentQualifiedReceiverField);
+            if (bDrop != null) pr.uniqueFields.add(bDrop);
+            currentClass = VisitUtil.getEnclosingType(currentClass);
+          } while (currentQualifiedReceiverField != ifqr);
+        }
       }
 
       // Is it a method call
@@ -757,6 +890,37 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
           continue;
         }
+
+        /* Look at the call site and see if there are actual expressions whose
+         * type is @Immutable.
+         */
+        // check the receiver, if any (non-static method calls)
+        if (MethodCall.prototype.includes(currentNode) && !TypeUtil.isStatic(declNode)) {
+          final IRNode rcvr = MethodCall.getObject(currentNode);
+          final IJavaType type = getBinder().getJavaType(rcvr);
+          if (type instanceof IJavaSourceRefType) {
+            final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+            final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+            final ImmutablePromiseDrop iDrop = LockRules.getImmutableType(typeDeclarationNode);
+            if (iDrop != null) pr.immutableActuals.add(iDrop);
+          }
+        }
+        // check the params
+        try {
+          final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(currentNode)).get_Args(currentNode);
+          for (final IRNode arg : Arguments.getArgIterator(actuals)) {
+            final IJavaType type = getBinder().getJavaType(arg);
+            if (type instanceof IJavaSourceRefType) {
+              final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+              final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+              final ImmutablePromiseDrop iDrop = LockRules.getImmutableType(typeDeclarationNode);
+              if (iDrop != null) pr.immutableActuals.add(iDrop);
+            }
+          }
+        } catch (final CallInterface.NoArgs e) {
+          // do nothing
+        }
+
         final boolean isConstructorCall = 
           ConstructorDeclaration.prototype.includes(declNode);
         
@@ -767,7 +931,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         final Set<UniquePromiseDrop> uniqueParams = new HashSet<UniquePromiseDrop>();
         final Set<RegionEffectsPromiseDrop> effects = new HashSet<RegionEffectsPromiseDrop>();
         getPromisesFromMethodDecl(
-            declNode, uniqueReturns, borrowedParams, borrowedReceiver,
+            declNode, uniqueReturns, pr.calledImmtuableReturns, pr.calledReadOnlyReturns,
+            borrowedParams, borrowedReceiver, pr.calledImmutable, pr.calledReadOnly,
             uniqueParams, effects);
 
         // Create the method call drops
@@ -798,6 +963,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           if (isConstructorCall && !borrowedReceiver.isEmpty()) {
             // Borrowed receivers is a singleton set
             pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
+          }
+          
+          for (final BorrowedPromiseDrop bDrop : borrowedParams) {
+            if (bDrop.allowReturn()) {
+              pr.calledBorrowedAllowReturn.add(bDrop);
+            }
           }
         }
         if (!uniqueParams.isEmpty()) {
@@ -850,20 +1021,28 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	 */
 	private void getPromisesFromMethodDecl(final IRNode mdecl,
 			final Set<UniquePromiseDrop> uniqueReturns,
+			final Set<ImmutableRefPromiseDrop> immutableReturns,
+			final Set<ReadOnlyPromiseDrop> readOnlyReturns,
 			final Set<BorrowedPromiseDrop> borrowedParams,
 			final Set<BorrowedPromiseDrop> borrowedReceiver,
+			final Set<ImmutableRefPromiseDrop> immutableParams,
+			final Set<ReadOnlyPromiseDrop> readOnlyParams,
 			final Set<UniquePromiseDrop> uniqueParams,
 			final Set<RegionEffectsPromiseDrop> effects) {
-		final Operator op = JJNode.tree.getOperator(mdecl);
-		final boolean isConstructor = ConstructorDeclaration.prototype.includes(op);
-
 		// Try to get the @unique returns drop if any
 		final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
 		if (retDecl != null) {
-		  final UniquePromiseDrop returnsUniqueDrop =
-		    UniquenessRules.getUnique(retDecl);
-		  if (returnsUniqueDrop != null)
-		    uniqueReturns.add(returnsUniqueDrop);
+      final UniquePromiseDrop returnsUniqueDrop =
+          UniquenessRules.getUnique(retDecl);
+      if (returnsUniqueDrop != null) uniqueReturns.add(returnsUniqueDrop);
+
+      final ImmutableRefPromiseDrop returnsImmutableDrop =
+          LockRules.getImmutableRef(retDecl);
+      if (returnsImmutableDrop != null) immutableReturns.add(returnsImmutableDrop);
+
+      final ReadOnlyPromiseDrop returnsReadOnlyDrop =
+          UniquenessRules.getReadOnly(retDecl);
+      if (returnsReadOnlyDrop != null) readOnlyReturns.add(returnsReadOnlyDrop);
 		}
 
 		// Get the @borrowed and @unique params drops, if any
@@ -872,13 +1051,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			if (self != null) {
 				final BorrowedPromiseDrop borrowedRcvrDrop = UniquenessRules.getBorrowed(self);
 				final UniquePromiseDrop uniqueRcvrDrop = UniquenessRules.getUnique(self);
+				final ImmutableRefPromiseDrop immutableRcvrDrop = LockRules.getImmutableRef(self);
+				final ReadOnlyPromiseDrop readOnlyRcvrDrop = UniquenessRules.getReadOnly(self);
 				if (borrowedRcvrDrop != null) {
 					borrowedParams.add(borrowedRcvrDrop);
 					borrowedReceiver.add(borrowedRcvrDrop);
 				}
-				if (uniqueRcvrDrop != null) {
-					uniqueParams.add(uniqueRcvrDrop);
-				}
+				if (uniqueRcvrDrop != null) uniqueParams.add(uniqueRcvrDrop);
+				if (immutableRcvrDrop != null) immutableParams.add(immutableRcvrDrop);
+				if (readOnlyRcvrDrop != null) readOnlyParams.add(readOnlyRcvrDrop);
 			}
 			
 			// Try for the IPQR (only present on constructors)
@@ -891,19 +1072,31 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			}
 		}
 		
-		final IRNode myParams = isConstructor ? ConstructorDeclaration
-				.getParams(mdecl) : MethodDeclaration.getParams(mdecl);
-		for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
-			final IRNode param = JJNode.tree.getChild(myParams, i);
-			final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowed(param);
-			final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(param);
-			if (borrowedDrop != null) {
-				borrowedParams.add(borrowedDrop);
-			}
-			if (uniqueDrop != null) {
-				uniqueParams.add(uniqueDrop);
-			}
-		}
+    final LocalVariableDeclarations declsInScope = LocalVariableDeclarations.getDeclarationsFor(mdecl);
+    for (final IRNode decl : declsInScope.getAllParameterDeclarations()) {
+      final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowed(decl);
+      final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(decl);
+      final ImmutableRefPromiseDrop immutableDrop = LockRules.getImmutableRef(decl);
+      final ReadOnlyPromiseDrop readOnlyDrop = UniquenessRules.getReadOnly(decl);
+      if (borrowedDrop != null) borrowedParams.add(borrowedDrop);
+      if (uniqueDrop != null) uniqueParams.add(uniqueDrop);
+      if (immutableDrop != null) immutableParams.add(immutableDrop);
+      if (readOnlyDrop != null) readOnlyParams.add(readOnlyDrop);
+    }
+
+//		final IRNode myParams = isConstructor ? ConstructorDeclaration
+//				.getParams(mdecl) : MethodDeclaration.getParams(mdecl);
+//		for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
+//			final IRNode param = JJNode.tree.getChild(myParams, i);
+//			final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowed(param);
+//			final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(param);
+//			final ImmutableRefPromiseDrop immutableDrop = LockRules.getImmutableRef(param);
+//			final ReadOnlyPromiseDrop readOnlyDrop = UniquenessRules.getReadOnly(param);
+//			if (borrowedDrop != null) borrowedParams.add(borrowedDrop);
+//			if (uniqueDrop != null) uniqueParams.add(uniqueDrop);
+//			if (immutableDrop != null) immutableParams.add(immutableDrop);
+//			if (readOnlyDrop != null) readOnlyParams.add(readOnlyDrop);
+//		}
 
 		// get effects
 		if (true) {
@@ -982,10 +1175,17 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	}
 	
   /*
-   * We are searching for (1) the declarations of an unique field (2) the
-   * use of an unique field, (3) the declaration of a method that has
-   * borrowed parameters, unique parameters, or a unique return value, or
-   * (4) the invocation of a method that has unique parameter requirements.
+   * We are searching for
+   * 
+   *   (1) the declaration of an unique, borrowed, or immutable field
+   *   
+   *   (2) the use of a unique, borrowed, read-only, or immutable field
+   *   
+   *   (3) the declaration of a method that has a borrowed, unique, read-only,
+   *   or immutable parameter, or a unique or immutable return value
+   *   
+   *   (4) the invocation of a method that has unique or immutable parameter requirements or
+   *   returns a read-only or immutable reference
    */
 	private static final class NewShouldAnalyzeVisitor extends JavaSemanticsVisitor {
     private final IBinder binder;
@@ -1011,9 +1211,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     
     
-    /* Case 4: invoking method with unique parameter or borrowed parameters.
-     * We care about borrowed parameters because they can affect the 
-     * validity of unique fields passed to them.
+    /* Case (4): invoking method with UNIQUE parameter or IMMUTABLE parameters,
+     * or a READ-ONLY or IMMUTABLE return value
+     * 
+     * Also interesting if the called method has a @Borrowed(allowReturn=true)
+     * parameter.
      */
     @Override
     protected void handleAsMethodCall(final IRNode call) {
@@ -1023,6 +1225,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         final Operator declOp = JJNode.tree.getOperator(declNode);
         IRNode formals = null;
         boolean hasUnique = false;
+        boolean hasImmutable = false;
+        boolean hasBorrowedAllowReturn = false;
+        
         if (declOp instanceof ConstructorDeclaration) {
           formals = ConstructorDeclaration.getParams(declNode);
         } else if (declOp instanceof MethodDeclaration) {
@@ -1030,38 +1235,98 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           if (!TypeUtil.isStatic(declNode)) {
             final IRNode self = JavaPromise.getReceiverNode(declNode);
             hasUnique = UniquenessRules.isUnique(self);
+            hasImmutable = LockRules.isImmutableRef(self);
+            hasBorrowedAllowReturn = UniquenessRules.isBorrowed(self) && 
+                UniquenessRules.getBorrowed(self).allowReturn();
           }
         }
         if (formals != null) {
           for (int i = 0; !hasUnique && (i < JJNode.tree.numChildren(formals)); i++) {
             final IRNode param = JJNode.tree.getChild(formals, i);
-            hasUnique = UniquenessRules.isUnique(param);
+            hasUnique |= UniquenessRules.isUnique(param);
+            hasImmutable |= LockRules.isImmutableRef(param);
+            hasBorrowedAllowReturn |= UniquenessRules.isBorrowed(param) && 
+                UniquenessRules.getBorrowed(param).allowReturn();
           }
-          if (hasUnique) {
+        }
+        
+        final IRNode returnNode = JavaPromise.getReturnNodeOrNull(declNode);
+        boolean readOnlyReturn = false;
+        boolean immutableReturn = false;
+        if (returnNode != null) {
+          readOnlyReturn = UniquenessRules.isReadOnly(returnNode);
+          immutableReturn = LockRules.isImmutableRef(returnNode);
+        }
+        
+        if (hasUnique || hasImmutable || hasBorrowedAllowReturn || readOnlyReturn || immutableReturn) {
+          results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+        }
+      }
+      
+      /* Look at the call site and see if there are actual expressions whose
+       * type is @Immutable.
+       */
+      // check the receiver, if any (non-static method calls)
+      if (MethodCall.prototype.includes(call) && !TypeUtil.isStatic(declNode)) {
+        final IRNode rcvr = MethodCall.getObject(call);
+        if (isValueNode(rcvr)) {
+          results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+        }
+      }
+      // check the params
+      try {
+        final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(call)).get_Args(call);
+        for (final IRNode arg : Arguments.getArgIterator(actuals)) {
+          if (isValueNode(arg)) {
             results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
           }
         }
+      } catch (final CallInterface.NoArgs e) {
+        // do nothing
       }
     }
     
+    private boolean isValueNode(final IRNode node) {
+      IJavaType type = binder.getJavaType(node);
+      if (type instanceof IJavaSourceRefType) {
+        final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
+        final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+        return LockRules.isImmutableType(typeDeclarationNode);
+      }
+      return false;
+    }
     
     
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
-      // Case 3b: borrowed/unique parameter
+      // Case 3b: borrowed/unique/immutable/read-only parameter
       boolean hasBorrowedParam = false;
       boolean hasUniqueParam = false;
+      boolean hasImmutableParam = false;
+      boolean hasReadOnlyParam = false;
       hasBorrowedParam |= UniquenessRules.isBorrowedReceiver(cdecl);
       hasBorrowedParam |= UniquenessRules.isBorrowed(
           JavaPromise.getQualifiedReceiverNodeOrNull(cdecl));
       // Cannot have a unique receiver
-
-      final IRNode formals = ConstructorDeclaration.getParams(cdecl);
-      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-        final IRNode param = JJNode.tree.getChild(formals, i);
-        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-        hasUniqueParam |= UniquenessRules.isUnique(param);
+      final IRNode self = JavaPromise.getReceiverNodeOrNull(cdecl);
+      hasImmutableParam = LockRules.isImmutableRef(self);
+      hasReadOnlyParam = UniquenessRules.isReadOnly(self);
+      
+      final LocalVariableDeclarations declsInScope = LocalVariableDeclarations.getDeclarationsFor(cdecl);
+      for (final IRNode decl : declsInScope.getAllParameterDeclarations()) {
+        hasBorrowedParam |= UniquenessRules.isBorrowed(decl);
+        hasUniqueParam |= UniquenessRules.isUnique(decl);
+        hasImmutableParam |= LockRules.isImmutableRef(decl);
+        hasReadOnlyParam |= UniquenessRules.isReadOnly(decl);
       }
+//      final IRNode formals = ConstructorDeclaration.getParams(cdecl);
+//      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+//        final IRNode param = JJNode.tree.getChild(formals, i);
+//        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+//        hasUniqueParam |= UniquenessRules.isUnique(param);
+//        hasImmutableParam |= LockRules.isImmutableRef(param);
+//        hasReadOnlyParam |= UniquenessRules.isReadOnly(param);
+//      }
       
       /* Also check to see if the class containing the constructor has a 
        * @Borrowed annotation on the IFQR.
@@ -1069,7 +1334,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final boolean hasBorrowedIFQR = UniquenessRules.isBorrowed(
           JavaPromise.getQualifiedReceiverNodeOrNull(getEnclosingType()));
       
-      if (hasBorrowedParam || hasUniqueParam || hasBorrowedIFQR) {
+      if (hasBorrowedParam || hasUniqueParam || hasBorrowedIFQR
+          || hasImmutableParam || hasReadOnlyParam) {
         results.add(new TypeAndMethod(getEnclosingType(), cdecl));
       }
             
@@ -1079,10 +1345,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
     @Override
     public Void visitFieldRef(final IRNode fieldRef) {
-      /* Case (2): A use of a unique or borrowed field. */
+      /* Case (2): A use of a UNIQUE, BORROWED, READ-ONLY, or IMMUTABLE field. */
       final IRNode fdecl = binder.getBinding(fieldRef);
-      if (UniquenessUtils.isUnique(fdecl) ||
-          UniquenessUtils.isFieldBorrowed(fdecl)) {
+      if (
+          UniquenessUtils.isUnique(fdecl)
+          || UniquenessUtils.isFieldBorrowed(fdecl)
+          || UniquenessRules.isReadOnly(fdecl)
+          || LockRules.isImmutableRef(fdecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       doAcceptForChildren(fieldRef);
@@ -1090,36 +1359,77 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     }
     
     @Override
-    protected void handleMethodDeclaration(final IRNode mdecl) {
-      /*
-      System.out.println("Looking at: "+DebugUnparser.toString(mdecl));
-      if ("getLength".equals(JJNode.getInfoOrNull(mdecl))) {
-    	  for(IRNode n : JJNode.tree.bottomUp(mdecl)) {
-    		  System.out.println("Node: "+JJNode.tree.getOperator(n));
-    	  }
+    public Void visitQualifiedThisExpression(final IRNode qthis) {
+      /* See if any of the qualified receiver fields that we implicitly
+       * access are borrowed.  If so, add the containing method as interesting.
+       */
+      final IRNode ifqr = binder.getBinding(qthis);
+      /* Make sure
+       * (1) it's not the regular receiver ("C.this" used inside of class "C")
+       * (2) it's an IFQR and not an IPQR
+       */
+      if (!ReceiverDeclaration.prototype.includes(ifqr) &&
+          !ConstructorDeclaration.prototype.includes(
+              JavaPromise.getPromisedFor(ifqr))) {
+        /* Loop up the nested class hierarchy until we find the class whose
+         * qualified receiver declaration equals 'decl'. 
+         */
+        IRNode currentClass = VisitUtil.getEnclosingType(qthis);
+        IRNode currentQualifiedReceiverField;
+        do {
+          currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
+          // check for @Borrowed
+          if (UniquenessRules.isBorrowed(currentQualifiedReceiverField)) {
+            results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+            // quit early
+            break;
+          }
+          currentClass = VisitUtil.getEnclosingType(currentClass);
+        } while (currentQualifiedReceiverField != ifqr);
       }
-      */
-
+      doAcceptForChildren(qthis);
+      return null;
+    }
+    
+    @Override
+    protected void handleMethodDeclaration(final IRNode mdecl) {
       // Case 3a: returns unique
       final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
       final boolean returnsUnique =
-        (retDecl == null) ? false : UniquenessRules.isUnique(retDecl);
-
+          (retDecl == null) ? false : UniquenessRules.isUnique(retDecl);
+      final boolean returnsImmutable = 
+          (retDecl == null) ? false : LockRules.isImmutableRef(retDecl);
+      
       // Case 3b: borrowed/unique parameter
       boolean hasBorrowedParam = false;
       boolean hasUniqueParam = false;
+      boolean hasImmutableParam = false;
+      boolean hasReadOnlyParam = false;
       if (!TypeUtil.isStatic(mdecl)) { // non-static method
         final IRNode self = JavaPromise.getReceiverNode(mdecl);
         hasBorrowedParam |= UniquenessRules.isBorrowed(self);
         hasUniqueParam |= UniquenessRules.isUnique(self);
+        hasImmutableParam = LockRules.isImmutableRef(self);
+        hasReadOnlyParam = UniquenessRules.isReadOnly(self);
       }
-      final IRNode formals = MethodDeclaration.getParams(mdecl);
-      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-        final IRNode param = JJNode.tree.getChild(formals, i);
-        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-        hasUniqueParam |= UniquenessRules.isUnique(param);
+      final LocalVariableDeclarations declsInScope = LocalVariableDeclarations.getDeclarationsFor(mdecl);
+      for (final IRNode decl : declsInScope.getAllParameterDeclarations()) {
+        hasBorrowedParam |= UniquenessRules.isBorrowed(decl);
+        hasUniqueParam |= UniquenessRules.isUnique(decl);
+        hasImmutableParam |= LockRules.isImmutableRef(decl);
+        hasReadOnlyParam |= UniquenessRules.isReadOnly(decl);
       }
-      if (returnsUnique || hasBorrowedParam || hasUniqueParam) {
+//      final IRNode formals = MethodDeclaration.getParams(mdecl);
+//      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+//        final IRNode param = JJNode.tree.getChild(formals, i);
+//        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+//        hasUniqueParam |= UniquenessRules.isUnique(param);
+//        hasImmutableParam |= LockRules.isImmutableRef(param);
+//        hasReadOnlyParam |= UniquenessRules.isReadOnly(param);
+//      }
+      if (returnsUnique || returnsImmutable
+          || hasBorrowedParam || hasUniqueParam
+          || hasImmutableParam || hasReadOnlyParam) {
         results.add(new TypeAndMethod(getEnclosingType(), mdecl));
       }
     
@@ -1128,10 +1438,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     @Override
     protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
-      /* CASE (1): If the field is UNIQUE then we
+      /* CASE (1): If the field is UNIQUE, BORROWED, or IMMUTABLE then we
        * add the current enclosing declaration to the results.
        */
-      if (UniquenessUtils.isUnique(varDecl)) {
+      if (UniquenessUtils.isUnique(varDecl)
+          || UniquenessUtils.isFieldBorrowed(varDecl)
+          || UniquenessRules.isReadOnly(varDecl)
+          || LockRules.isImmutableRef(varDecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       // analyze the the RHS of the initialization
