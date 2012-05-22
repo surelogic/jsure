@@ -35,7 +35,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
 	  final boolean shouldTimeOut = IDE.getInstance().getBooleanPreference(
 	      IDEPreferences.TIMEOUT_FLAG);
-	  return new UniquenessAnalysis(binder, shouldTimeOut);
+	  return new UniquenessAnalysis(this, binder, shouldTimeOut);
 	}
 	
 	@Override

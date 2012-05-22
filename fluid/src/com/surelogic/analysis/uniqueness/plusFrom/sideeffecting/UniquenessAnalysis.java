@@ -2,9 +2,11 @@ package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
@@ -15,9 +17,9 @@ import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
-import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.Store;
-import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.StoreLattice;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
@@ -96,13 +98,21 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   private final boolean timeOut;
   private final IMayAlias mayAlias;
   
+  // for creating drops
+  private final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis;
+
+  
+  
   // ==================================================================
   // === Constructor 
   // ==================================================================
   
-  public UniquenessAnalysis(final IBinder binder, final boolean to) {
+  public UniquenessAnalysis(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> a,
+      final IBinder binder, final boolean to) {
     super(new FixBinder(binder)); // avoid crashes.
     mayAlias = new TypeBasedMayAlias(binder);
+    analysis = a;
     timeOut = to;
   }
   
@@ -152,10 +162,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     final Effects effects = new Effects(binder);
     final List<Effect> methodEffects = effects.getMethodEffects(flowUnit, flowUnit);
-    final StoreLattice lattice = new StoreLattice(locals, binder, mayAlias, methodEffects);
-    return new Uniqueness(
+    final StoreLattice lattice =
+        new StoreLattice(flowUnit, analysis, locals, binder, mayAlias, methodEffects);
+    final AtomicBoolean cargo = new AtomicBoolean(false);
+    return new Uniqueness(true, cargo,
         "Uniqueness Analsys (U+F)", lattice,
-        new UniquenessTransfer(binder, effects, lattice, 0, flowUnit, timeOut),
+        new UniquenessTransfer(
+            cargo, binder, effects, lattice, 0, flowUnit, timeOut),
         timeOut);
   }
 
@@ -254,11 +267,34 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Flow Analysis: Subclass to throw Gave up exception
   // ==================================================================
 
-  private static final class Uniqueness extends JavaForwardAnalysis<Store, StoreLattice> {
-    public Uniqueness(
+  public static final class Uniqueness extends JavaForwardAnalysis<Store, StoreLattice> {
+    private final boolean root;
+    private final AtomicBoolean flag;
+    
+    public Uniqueness(final boolean r, final AtomicBoolean f,
         final String name, final StoreLattice lattice,
         final UniquenessTransfer transfer, boolean timeOut) {
       super(name, lattice, transfer, DebugUnparser.viewer, timeOut);
+      root = r;
+      flag = f;
+    }
+    
+    @Override
+    public void performAnalysis() {
+      // Root analysis always starts with side effects turned off.
+      realPerformAnalysis();
+      if (root) {
+        flag.set(true);
+        lattice.setSideEffects(true);
+      }
+      if (flag.get()) {
+        reworkAll();
+        if (root) {
+          lattice.makeResultDrops();
+          flag.set(false);
+          lattice.setSideEffects(false);
+        }
+      }
     }
   }
   
@@ -282,10 +318,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // === Constructor 
     // ==================================================================
 
-    public UniquenessTransfer(final IBinder binder, final Effects fx,
+    public UniquenessTransfer(final AtomicBoolean cargo, 
+        final IBinder binder, final Effects fx,
         final StoreLattice lattice, final int floor,
         final IRNode fu, final boolean timeOut) {
-      super(binder, lattice, new SubAnalysisFactory(fu, timeOut), floor);
+      super(binder, lattice, new SubAnalysisFactory(cargo, fu, timeOut), floor);
       flowUnit = fu;
       effects = fx;
     }
@@ -1331,10 +1368,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // ==================================================================
 
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<StoreLattice, Store> {
+    private final AtomicBoolean cargo;
     private final IRNode flowUnit;
     private final boolean timeOut;
     
-    public SubAnalysisFactory(final IRNode fu, final boolean to) {
+    public SubAnalysisFactory(final AtomicBoolean c,
+        final IRNode fu, final boolean to) {
+      cargo = c;
       flowUnit = fu;
       timeOut = to;
     }
@@ -1344,8 +1384,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(binder, new Effects(binder), lattice, floor, flowUnit, timeOut);
-      return new Uniqueness("Sub Analysis", lattice, transfer, timeOut);
+      final UniquenessTransfer transfer =
+          new UniquenessTransfer(cargo, binder, new Effects(binder), lattice, floor, flowUnit, timeOut);
+      return new Uniqueness(false, cargo, "Sub Analysis", lattice, transfer, timeOut);
     }
   }
   

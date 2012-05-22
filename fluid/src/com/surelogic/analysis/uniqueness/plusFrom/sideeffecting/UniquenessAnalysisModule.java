@@ -26,6 +26,7 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalys
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.NormalErrorQuery;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -98,8 +99,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
     final boolean shouldTimeOut = IDE.getInstance().getBooleanPreference(
         IDEPreferences.TIMEOUT_FLAG);
-    return new UniquenessAnalysis(binder, shouldTimeOut);
-//    return new UniquenessAnalysis(binder, false);
+    return new UniquenessAnalysis(this, binder, shouldTimeOut);
 	}
 	
 	@Override
@@ -199,11 +199,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
     final String methodName = JavaNames.genQualifiedMethodConstructorName(node.methodDecl);
 
+    StoreLattice sl = null;
     // Prepare for 'too long' warning
     final long tooLongDuration = IDE.getInstance().getIntPreference(
         IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
     final long startTime = System.nanoTime();
     try {
+      // Get the analysis object, which triggers the control flow analysis
+      sl = getAnalysis().getAnalysis(node.methodDecl).getLattice();
+
       /* if decl is a constructor declaration or initializer declaration, we need to
        * scan the containing type and process the field declarations and
        * initializer blocks.
@@ -226,7 +230,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        System.out.println("______________________ too long ______________: " + methodName);
         final InfoDropBuilder info =
           InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
         this.setResultDependUponDrop(info, node.methodDecl);
@@ -236,10 +239,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecks()) {
           info.addDependUponDrop(pd);
         }
+        info.addDependUponDrop(sl.getCFDrop());
       }
     } catch (final FlowAnalysis.AnalysisGaveUp e) {
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
+      sl = ((UniquenessAnalysis.Uniqueness) e.fa).getLattice();
+      
+      // kill any partial results
+      sl.cancelResults();
+
+      // TODO: Copy the stuff from the class.sideeffecting version
+      
       /* (1) Mark our control flow drop as timed out */
       pr.controlFlow.setTimeout();
       pr.controlFlow.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);

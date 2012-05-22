@@ -1,7 +1,6 @@
 package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -9,13 +8,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.PessimisticMayAlias;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
@@ -41,6 +41,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -77,28 +78,75 @@ extends TripleLattice<Element<Integer>,
   private final IBinder binder;
   private final IMayAlias mayAlias;
   private final List<Effect> effects;
+  private final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis;
   
+  /**
+   * Should we create drops at all.  This is set by the analysis using
+   * the lattice.  That is, are we at the side-effecing stage yet.
+   */
+  private boolean produceSideEffects = false;
+    
+  /**
+   * If we are creating drops, should temporarily suppress creation of the
+   * drops.  This is used internally, and set when along the abrupt termination
+   * path should not be created because they are going to duplicate results
+   * reported along the normal termination path.
+   */
+  private boolean suppressDrops = false;
+  
+  /** Are the results we are creating for the abrupt termination path */
+  private boolean abruptDrops = false;
 
+  
+  
+  // ==================================================================
+  // === Side-effecting state.  This state is set on the last pass
+  // === (when makeDrops is true) and used to build the chains
+  // === evidence later.
+  // ==================================================================
+
+  /**
+   * Method control flow drops.  Map from method/constructor declaration
+   * nodes to drops.
+   */
+  private final UniquenessControlFlowDrop controlFlowDrop;
+
+  
+  
   // ==================================================================
   // === Constructor 
   // ==================================================================
   
-  public StoreLattice(final IRNode[] locals, IBinder b, IMayAlias ma, List<Effect> fx) {
+  public StoreLattice(final IRNode flowUnit,
+      final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
+      final IRNode[] locals, IBinder b, IMayAlias ma, List<Effect> fx) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
         new UnionLattice<FieldTriple>());
     this.locals = locals;
-    binder = b;
-    mayAlias = ma;
-    effects = fx;
+    this.binder = b;
+    this.mayAlias = ma;
+    this.effects = fx;    
+    this.analysis = analysis;
+    this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
   }
-	  
-  public StoreLattice(final IRNode[] locals) {
-	  this(locals,null,PessimisticMayAlias.INSTANCE,Collections.<Effect>emptyList());
-  }
-	  
+
+  
+  
   public int getNumLocals() {
     return locals.length;
+  }
+  
+  public void setSideEffects(final boolean value) {
+    produceSideEffects = value;
+  }
+  
+  public void setSuppressDrops(final boolean value) {
+    suppressDrops = value;
+  }
+  
+  public void setAbruptResults(final boolean value) {
+    abruptDrops = value;
   }
   
   
@@ -1317,6 +1365,7 @@ extends TripleLattice<Element<Integer>,
   }
   
   
+  
   // ==================================================================
   // === Set operations 
   //
@@ -1343,5 +1392,37 @@ extends TripleLattice<Element<Integer>,
   private static <X> ImmutableHashOrderSet<X> addElements(
       final ImmutableSet<X> s, final Iterator<X> i) {
     return ((ImmutableHashOrderSet) s).addElements(i);
+  }
+
+  
+  
+  // ==================================================================
+  // === Side-effects
+  // ==================================================================
+  
+  private boolean shouldRecordResult() {
+    return produceSideEffects && !suppressDrops;
+  }
+  
+
+  
+  // ------------------------------------------------------------------
+  // -- Good Values
+  // ------------------------------------------------------------------
+  
+  public UniquenessControlFlowDrop getCFDrop() {
+    return controlFlowDrop;
+  }
+
+  
+  
+  public void cancelResults() {
+//    for (final ResultDropBuilder drop : drops) {
+//      drop.invalidate();
+//    }
+  }
+
+  public void makeResultDrops() {
+    // TODO
   }
 }
