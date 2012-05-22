@@ -38,12 +38,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.BlockStatement;
-import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.Declaration;
-import edu.cmu.cs.fluid.java.operator.IllegalCode;
-import edu.cmu.cs.fluid.java.operator.Statement;
+import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -1114,7 +1109,18 @@ public class Util {
 				}
 				// Add the Static region before anything else (even All?)
 				final AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
-				for(IRNode type : VisitUtil.getTypeDecls(cu)) {
+				for(IRNode type : VisitUtil.getAllTypeDecls(cu)) {
+					final Operator op = JJNode.tree.getOperator(type);
+					if (op instanceof AnonClassExpression || op instanceof TypeFormal) {
+						continue;
+					}
+					if (op instanceof NestedDeclInterface && !JavaNode.getModifier(type, JavaNode.STATIC)) {
+						// These can't have static fields
+						continue;
+					}
+					if (op instanceof EnumConstantClassDeclaration) {
+						continue;
+					}
 					if ("java.lang.Object".equals(name)) {
 						v.handleXMLPromise(type, RegionRules.REGION, "public static All", 
 								JavaNode.ALL_FALSE, Collections.<String,String>emptyMap());
