@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.aast.promise.UniqueNode;
-import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -107,7 +106,7 @@ implements MaybeTopLevel, RegionAggregationDrop, IUniquePromise {
           instanceRegion, instanceRegion);
     } else {
       return Collections.<IRegion, IRegion>singletonMap(
-          instanceRegion, new FieldRegion(fieldDecl));
+          instanceRegion, RegionModel.getInstance(fieldDecl));
     }
   }
 }

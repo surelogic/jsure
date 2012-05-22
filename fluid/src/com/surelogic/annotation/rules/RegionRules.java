@@ -255,7 +255,6 @@ public class RegionRules extends AnnotationRules {
     	  } else {
     		  parentModel = RegionModel.getInstanceRegion(a.getPromisedFor());
     	  }
-//        parentModel = a.isStatic() ? RegionModel.getAllRegion(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
       }
     }
     
