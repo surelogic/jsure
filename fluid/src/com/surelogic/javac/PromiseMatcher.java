@@ -86,11 +86,12 @@ public class PromiseMatcher {
 		}		
 		// Create drops from results! 
 		JSureResultsXMLReader resultsReader = new JSureResultsXMLReader(projs);
-		ScopedPromisesLexer.init();
-		SLAnnotationsLexer.init();    	
-		resultsReader.readXMLArchive(results);
-		ScopedPromisesLexer.clear();
-		SLAnnotationsLexer.clear();
+		ParseUtil.init();    	
+		try {
+			resultsReader.readXMLArchive(results);
+		} finally {
+			ParseUtil.clear();
+		}
 		return true;
 	}
 }

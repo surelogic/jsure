@@ -8,4 +8,18 @@ public class ParseUtil {
     System.out.println(prefix+'.'+id);    
     return ParseHelper.getInstance().getStatus(context, prefix, id) != null;
   }
+  
+  public static void init() {
+	  ScopedPromisesLexer.init();
+	  SLAnnotationsLexer.init();
+	  SLThreadRoleAnnotationsLexer.init();
+  }
+  
+  public static void clear() {
+	  /* Disabled for now, due to use by XML editor
+	  ScopedPromisesLexer.clear();
+	  SLAnnotationsLexer.clear();
+	  SLThreadRoleAnnotationsLexer.clear();
+	  */
+  }
 }

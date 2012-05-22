@@ -620,11 +620,12 @@ public class Util {
     	scanner.selectByFilePath(sources);
     	scanner.selectByTypeLocation(types);
     	
-		ScopedPromisesLexer.init();
-		SLAnnotationsLexer.init();    	
-		new JSureResultsXMLReader(projects).readXMLArchive(results);
-		ScopedPromisesLexer.clear();
-		SLAnnotationsLexer.clear();
+		ParseUtil.init();    	
+		try {
+			new JSureResultsXMLReader(projects).readXMLArchive(results);
+		} finally {
+			ParseUtil.clear();
+		}
 	}
 
 	/**
@@ -651,13 +652,14 @@ public class Util {
 
 	private static void testExperimentalFeatures(final Projects projects, IParallelArray<CodeInfo> cus) {
     	if (testPersistence) {
-    		ScopedPromisesLexer.init();
-    		SLAnnotationsLexer.init();
-    		for(CodeInfo cu : cus.asList()) {
-    			JavaIdentifier.testFindEncoding(projects, cu.getTypeEnv().getProject(), cu.getNode());
+    		ParseUtil.init();    	
+    		try {
+        		for(CodeInfo cu : cus.asList()) {
+        			JavaIdentifier.testFindEncoding(projects, cu.getTypeEnv().getProject(), cu.getNode());
+        		}
+    		} finally {
+    			ParseUtil.clear();
     		}
-    		ScopedPromisesLexer.clear();
-    		SLAnnotationsLexer.clear();
     	}
 	}
 
@@ -1075,9 +1077,7 @@ public class Util {
 	}
 
 	private static void parsePromises(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
-		ScopedPromisesLexer.init();
-		SLAnnotationsLexer.init();
-		SLThreadRoleAnnotationsLexer.init();
+		ParseUtil.init();
 		
 		startSubTask(monitor, "Parsing promises");
 		final File root = new File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY));
@@ -1378,9 +1378,7 @@ public class Util {
 		AnnotationRules.scrub();    
 	    RegionModel.purgeUnusedRegions();
 	    LockModel.purgeUnusedLocks();
-		ScopedPromisesLexer.clear();
-		SLAnnotationsLexer.clear();
-		SLThreadRoleAnnotationsLexer.clear();
+		ParseUtil.clear();
 		endSubTask(monitor);
 	}
     
