@@ -1129,6 +1129,9 @@ public class Util {
 					if (op instanceof EnumConstantClassDeclaration) {
 						continue;
 					}
+					if (insideOfMethod(type)) {
+						continue;
+					}
 					if ("java.lang.Object".equals(name)) {
 						v.handleXMLPromise(type, RegionRules.REGION, "public static All", 
 								JavaNode.ALL_FALSE, Collections.<String,String>emptyMap());
@@ -1212,6 +1215,21 @@ public class Util {
 		endSubTask(monitor);
 	}
 	
+	protected static boolean insideOfMethod(IRNode type) {
+		IRNode here = type;
+		do {
+			here = VisitUtil.getEnclosingClassBodyDecl(here);
+			
+			Operator op = JJNode.tree.getOperator(here);
+			if (!(op instanceof NestedDeclInterface)) {
+				return true;
+			}
+		}
+		while (here != null);
+			
+		return false;
+	}
+
 	static void startSubTask(SLProgressMonitor monitor, String msg) {
 		if (monitor == null) {
 			System.out.println("null monitor");
