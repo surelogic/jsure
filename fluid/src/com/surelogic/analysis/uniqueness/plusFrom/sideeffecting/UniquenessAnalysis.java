@@ -15,9 +15,9 @@ import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
-import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
-import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.Store;
+import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
@@ -71,6 +71,7 @@ import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
+import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -276,6 +277,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final Effects effects;
     
     
+    
     // ==================================================================
     // === Constructor 
     // ==================================================================
@@ -343,6 +345,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(
+        final IRNode call, final IRNode mdecl,
         final int numFormals, final IRNode formals,
         final List<Effect> declEffects, Store s) {
       for (final Effect f : declEffects) {
@@ -427,8 +430,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	s = lattice.opDup(s, actualStackDepth); 
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
-        // check for sneaky mutations
-        if (f.isWrite()) s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {
@@ -441,10 +442,44 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	s = lattice.opLoad(s, r.getNode());
         	s = lattice.opRelease(s);
         }
+        
+        if (f.isWrite()) {
+          /* Loop over each formal (including the receiver) (qualified receivers
+           * cannot be @Immutable or @ReadOnly) and see if the effect covers
+           * an effect on the state of the object referenced by the formal
+           * parameter.
+           */
+          if (!TypeUtil.isStatic(mdecl)) {
+            final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
+            final int depth = hasOuterObject(call) ? numFormals + 1 : numFormals;
+            s = checkMutationOfParameters(s, t, rcvr, depth);
+          }
+          
+          for (int i = 0; i < numFormals; ++i) {
+            // Create "writes(p:Instance)"
+            final IRNode formal = tree.getChild(formals, i);
+            s = checkMutationOfParameters(
+                s, t, formal, computeDepthOfFormal(numFormals, i));
+          }
+        }
       }
       return s;
     }
 
+    private Store checkMutationOfParameters(
+        Store s, final Target declaredTarget,
+        final IRNode formal, final int stackDepth) {
+      if (declaredTarget.mayTargetStateOfReference(binder, formal)) {
+        // State of the object passed as a parameter may be affected
+        s = lattice.opDup(s, stackDepth);
+        if (!s.isValid()) return s;
+        // check for sneaky mutations
+        s = lattice.opCheckMutable(s, StoreLattice.getStackTop(s));
+        s = pop(s);
+      }
+      return s;
+    }
+    
 	/**
 	 * Get the stack depth of the actual parameter connected to this
 	 * formal parameter (or receiver or qualified receiver).
@@ -463,12 +498,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	
     	for (int i = 0; i < numFormals; ++i) {
     		if (tree.getChild(formals, i).equals(formal)) {
-    			return numFormals - i - 1;  // was + 1; fixed 2011-01-07
+    			return computeDepthOfFormal(numFormals, i);
     		}
     	}
 
     	return null;
     }
+
+  private static int computeDepthOfFormal(final int numFormals, final int i) {
+    return numFormals - i - 1;  // was + 1; fixed 2011-01-07
+  }
 
 //    /**
 //     * Return true if the given region may have a field in the given class that is
@@ -501,10 +540,41 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * The formals may be null only if there is some sort of error.
      * This error is logged as a warning already.
      */
+    // Only called with numActuals > 0
     private Store popArguments(
-        final int numActuals, final IRNode formals, Store s) {
+        final int numActuals, final IRNode actuals, final IRNode formals, Store s) {
       if (formals != null && numActuals != tree.numChildren(formals)) {
         throw new FluidError("#formals != #actuals");
+      }
+      
+      /* Handle varargs: If the last actual argument is a VarArgsExpression, we 
+       * have to deal with the fact that in reality the final argument is a 
+       * an array: That is, if the called method is 
+       * 
+       *   void foo(int x, Object... y) { ... }
+       *   
+       * and the call is "foo(a, b, c, d)", we really have the call
+       * "foo(a, new Object[] { b, c, d, })".  So we need to simulate the 
+       * array assignments for the last 3 arguments, and then push a new 
+       * object on the stack to account for the array.  Then we check that 
+       * new object against the last declared formal parameter.
+       */
+      final IRNode lastActual = JJNode.tree.getChild(actuals, numActuals - 1);
+      if (VarArgsExpression.prototype.includes(lastActual)) {
+        // compromise each actual argument that is part of the var args expression
+        final int numActualsInArray = JJNode.tree.numChildren(lastActual);
+        for (int count = 0; count < numActualsInArray; count++) {
+          if (!s.isValid()) return s;
+          s = lattice.opCompromise(s);
+        }
+        if (!s.isValid()) return s;
+        // push a new object to represent the array
+        s = lattice.opNew(s);
+      } else {
+        /* Make sure we have a valid store below; we have a valid store coming
+         * out of the true branch already.
+         */
+        if (!s.isValid()) return s;
       }
       for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
@@ -711,7 +781,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       // XXX: leave this: will need for side-effecting later
       // final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       if (mdecl != null) {
-        s = considerDeclaredEffects(
+        s = considerDeclaredEffects(node, mdecl,
             numActuals, formals, effects.getMethodEffects(mdecl, node), s);
       }
       
@@ -745,7 +815,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
             
       // We have to possibly compromise arguments
-      s = popArguments(numActuals, formals, s);
+      if (numActuals > 0) {
+        s = popArguments(numActuals, actuals, formals, s);
+      }
       if (hasOuterObject(node)) {
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("Popping qualifier");
@@ -887,7 +959,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           rcvr = JavaPromise.getReceiverNode(flowUnit);
         }
         s = lattice.opGet(s, rcvr);
-//        s = lattice.opThis(s);
         if (fineIsLoggable) {
           LOG.fine("initializing field '" + JJNode.getInfo(node) + "'");
         }
@@ -926,7 +997,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferMethodBody(final IRNode body, final Port kind, Store s) {
       if (kind instanceof EntryPort) {
         return s; // opStart() was invoked when the flow unit was entered
-//        return lattice.opStart();
       } else {
         final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
         final IRNode mdecl = tree.getParent(body);
@@ -1013,16 +1083,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
           if (externalVars.contains(decl)) {
-        	  if (FieldDeclaration.prototype.includes(decl)) {
-         		  usedExternal = true;
-         	  } else {
-         		  //XXX: Here we compromise.  If we want to
-         		  // be less conservative than this (and this will give errors
-         		  // if the value is ReadOnly), we need to use both the
-         		  // possible borrowed-ness of the local FQR, but also
-         		  // need an annotation on the local specific to the NCD or ACE.
-         		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
-         	  }
+            usedExternal = true;
+       		  //XXX: Here we compromise.  If we want to
+       		  // be less conservative than this (and this will give errors
+       		  // if the value is ReadOnly), we need to use both the
+       		  // possible borrowed-ness of the local FQR, but also
+       		  // need an annotation on the local specific to the NCD or ACE.
+       		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
           }
         } else if (QualifiedThisExpression.prototype.includes(n)) {
          	usedExternal = true;

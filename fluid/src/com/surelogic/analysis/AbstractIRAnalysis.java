@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
-	private IIRProject project;
+  private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
 	
