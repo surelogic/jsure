@@ -22,7 +22,8 @@ public final class ModelingProblemFilterUtility {
 	 */
 	public static final List<String> DEFAULT = Arrays.asList("com\\.apple.*",
 			"com\\.oracle.*", "com\\.sun.*", ".*\\.internal.*",
-			".*BakedArrayList\\.class", "oracle.*", "quicktime.*", "sun.*");
+			".*BakedArrayList\\.class", "apple.*", "oracle.*", "quicktime.*",
+			"sun.*");
 
 	public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 
