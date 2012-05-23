@@ -490,7 +490,8 @@ public class TypeUtils {
 			else if (formal instanceof IJavaDeclaredType) {
 				IJavaDeclaredType f = (IJavaDeclaredType) formal;
 				if (constraint == Constraint.CONVERTIBLE_TO) {
-					throw new UnsupportedOperationException();
+					// This turns out to be pretty different from the cases below
+					return deriveForDeclaredType_to(f, (IJavaDeclaredType) actual);
 				}
 				if (actual == JavaTypeFactory.anyType) {
 					// No constraint
@@ -665,47 +666,149 @@ public class TypeUtils {
 			return false;
 		}
 		
-		// JLS 3 p.457-?: if the constraint has the form A >> F
-		private boolean deriveForTypeParameter_to(IJavaType fParam, IJavaType aParam) {
-			if (fParam instanceof IJavaWildcardType) {
-			
-				IJavaWildcardType f = (IJavaWildcardType) fParam;				
-				IJavaType u = f.getLowerBound();
-				if (u != null) {
-					if (aParam instanceof IJavaWildcardType) {
-						
-						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getLowerBound();						
-						if (v != null) {
-							return derive(u, Constraint.EQUAL, v);
-						}						
-					} 
-					// Otherwise, no constraint is implied on Tj.
+		/** 
+		 * JLS 7 p.471-4: if the constraint has the form A >> F
+		 */
+		private boolean deriveForDeclaredType_to(IJavaDeclaredType f, IJavaDeclaredType a) {
+			if (a.getTypeParameters().isEmpty()) {
+				// If A is an instance of a non-generic type, then no constraint is implied on Tj.
+				return false;
+			}
+			// A generic type of some kind ...
+			// 
+			// If A is an invocation of a generic type declaration H, 
+			// where H is either G or superclass or superinterface of G, then:
+			if (tEnv.isRawSubType(f, a)) {
+				if (a.getTypeParameters().size() == 0) {
+					// TODO The actual is raw, so there's nothing else to do?
+					return false;
 				}
-			
-				else if (f.getUpperBound() != null) {
-					if (aParam instanceof IJavaWildcardType) {
+				final int num = f.getTypeParameters().size();				
+				for(int i=0; i<num; i++) {
+					deriveForTypeParameter_to(f, f.getTypeParameters().get(i), a, i);
+				}
+			}			 
+			return false;
+		}
 
-						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getUpperBound();						
-						if (v != null) {
-							return derive(u, Constraint.EQUAL, v);
-						}
-					} 	
-					// Otherwise, no constraint is implied on Tj.
-				}
+		private boolean deriveForTypeParameter_to(IJavaDeclaredType f, IJavaType fParam, IJavaDeclaredType a, int i) {
+			if (!f.getDeclaration().equals(a.getDeclaration())) {
+				// If H != G, then let S1, ..., Sn be the type parameters of G, and 
+				// let H<U1, ..., Ul> be the unique invocation of H that is a supertype of G<S1, ..., Sn>
+				// ...	
+				// make a version of F with just the type variables
+				final IJavaDeclaredType pureF = 
+					(IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(f.getDeclaration());
+				
+				final Map<IJavaType,IJavaType> subst = 
+					Collections.singletonMap(pureF.getTypeParameters().get(i), fParam);
+				
+				final IJavaDeclaredType h = computeSuperTypeH(a.getDeclaration(), pureF);					
+				final IJavaDeclaredType v;
+				if (fParam instanceof IJavaWildcardType) {
+					IJavaWildcardType fw = (IJavaWildcardType) fParam;
+					if (fw.getLowerBound() != null) {
+						// let V = H<? extends U1, ..., ? extends Ul>[Sk=U]. 
+						v = (IJavaDeclaredType) substitute(subst, transformParametersToWildcards(h, false));
+						// Then this algorithm is applied recursively to the constraint A >> V.
+						return derive(v, Constraint.CONVERTIBLE_TO, a);
+					} 
+					else if (fw.getUpperBound() != null) {
+						// let V = H<? super U1, ..., ? super Ul>[Sk=U]. 
+						v = (IJavaDeclaredType) substitute(subst, transformParametersToWildcards(h, true));
+						// Then this algorithm is applied recursively to the constraint A >> V.
+						return derive(v, Constraint.CONVERTIBLE_TO, a);
+					}
+				} else {
+					// let V = H<U1, ..., Ul>[Sk=U]. 
+					v = (IJavaDeclaredType) substitute(subst, h);
+					// Then, if V :> F this algorithm is applied recursively to the constraint A >> V.
+					if (tEnv.isSubType(f, v)) {
+						// V << A
+						return derive(v, Constraint.CONVERTIBLE_TO, a);
+					}
+				}		
+			} 
+			// A is of the form G<...>
+			final IJavaType aParam = a.getTypeParameters().get(i);
+			IJavaWildcardType aw;
+			if (aParam instanceof IJavaWildcardType) {
+				aw = (IJavaWildcardType) aParam;
 			} else {
-				// p.458
-				// If F has the form G<..., Yk-1, U, Yk+1, ...>, where U is a type expression
-				// that involves Tj, then:
-				// -- If A is an instance of a non-generic type, then no constraint is implied on Tj.
-				// -- If A is an invocation of a generic type declaration H, where H is either G
-				//    or superclass or superinterface of G, then:
-				//    -- If , then let S1, ..., Sn be the formal type parameters of G, and let
-				//       H<U1, ..., Ul> be the unique invocation of H that is a supertype of
-				//       G<S1 , ..., Sn>, and let V = H<U1, ..., Ul>[Sk = U]. Then, if V
+				aw = null;
+			}
+			if (fParam instanceof IJavaWildcardType) {
+				IJavaWildcardType fw = (IJavaWildcardType) fParam;
+				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, 
+				// where U is a type expression that involves Tj, then:
+				if (fw.getLowerBound() != null) {
+					// Otherwise, if A is of the form G<..., Xk-1, ? extends W, Xk+1, ...>, 
+					// this algorithm is applied recursively to the constraint W >> U.
+					if (aw != null && aw.getLowerBound() != null) {
+						// U << W
+						return derive(fw.getLowerBound(), Constraint.CONVERTIBLE_TO, aw.getLowerBound());
+					}
+				}
+				// If F has the form G<..., Yk-1, ? super U, Yk+1, ...>, 
+				// where U is a type expression that involves Tj, then A is either:
+				else if (fw.getUpperBound() != null) {					
+					// Otherwise, if A is of the form G<..., Xk-1, ? super W, ..., Xk+1, ...>, 
+					// this algorithm is applied recursively to the constraint W << U.
+					if (aw != null && aw.getUpperBound() != null) {
+						// U >> W
+						return derive(fw.getUpperBound(), Constraint.CONVERTIBLE_FROM, aw.getUpperBound());
+					}
+				}				
+			} else { 
+				// If F has the form G<..., Yk-1, U, Yk+1, ...>, 
+				// where U is a type expression that involves Tj, then:
+				if (aw != null) {
+					// Otherwise, if A is of the form G<..., Xk-1, ? extends W, Xk+1, ...>, 
+					// this algorithm is applied recursively to the constraint W >> U.
+					if (aw.getLowerBound() != null) {
+						// U << W
+						return derive(fParam, Constraint.CONVERTIBLE_TO, aw.getLowerBound());
+					}
+					// Otherwise, if A is of the form G<..., Xk-1, ? super W, Xk+1, ...>, 
+					// this algorithm is applied recursively to the constraint W << U.
+					else if (aw.getUpperBound() != null) {
+						// U >> W
+						return derive(fParam, Constraint.CONVERTIBLE_FROM, aw.getUpperBound());
+					}
+				} else {
+					// Otherwise, if A is of the form G<..., Xk-1, W, Xk+1, ...>, 
+					// where W is a type expression, this algorithm is applied recursively to the constraint W = U.
+					return derive(fParam, Constraint.EQUAL, aParam);
+				}
 			}
 			return false;
+		}
+
+		private IJavaDeclaredType computeSuperTypeH(final IRNode hDecl, final IJavaDeclaredType here) {
+			if (hDecl.equals(here.getDeclaration())) {
+				return here;
+			}
+			for(IJavaType s : here.getSupertypes(tEnv)) {
+				IJavaDeclaredType rv = computeSuperTypeH(hDecl, (IJavaDeclaredType) s);
+				if (rv != null) {
+					return rv;
+				}					
+			}
+			return null;
+		}
+		
+		private IJavaType transformParametersToWildcards(IJavaDeclaredType h, boolean useAsUpperBounds) {
+			final int size = h.getTypeParameters().size();
+			if (size == 0) {
+				return h;
+			}
+			List<IJavaType> newParameters = new ArrayList<IJavaType>(size);
+			for(int i=0; i<size; i++) {
+				IJavaReferenceType old = (IJavaReferenceType) h.getTypeParameters().get(i);
+				newParameters.add(useAsUpperBounds ? JavaTypeFactory.getWildcardType(old, null) : 
+					                                 JavaTypeFactory.getWildcardType(null, old));
+			}
+			return JavaTypeFactory.getDeclaredType(h.getDeclaration(), newParameters, h.getOuterType());
 		}
 		
 		/**		 
