@@ -527,12 +527,10 @@ extends TripleLattice<Element<Integer>,
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
           temp = opExistingBetter(temp, srcOp, State.BORROWED, mayAlias, local);
-//          temp = opExisting(temp, srcOp, State.BORROWED);
         } else if (UniquenessRules.isUnique(local)) {
           temp = opNew(temp);
         } else {
           temp = opExistingBetter(temp, srcOp, State.SHARED, mayAlias, local);
-//          temp = opExisting(temp, srcOp, State.SHARED);
         }
         temp = pop(apply(temp, srcOp, new Add(getStackTop(temp), EMPTY.addElement(local))), srcOp);
       } 
@@ -560,30 +558,8 @@ extends TripleLattice<Element<Integer>,
     } else {
       recordBuriedRead(srcOp, local);
       return opNull(s);
-//      final String name = (local instanceof IRNode) ? DebugUnparser
-//          .toString((IRNode) local) : local.toString();
-//      final String errorMessage = "read undefined local: " + name;
-//      reportError(srcOp, "X3", errorMessage);
-//      return errorStore(errorMessage);
     }
   }
-
-//  /**
-//   * Special case of {@link #opGet} for the receiver.
-//   */
-//  public Store opThis(final Store s, final IRNode srcOp) {
-//    if (!s.isValid()) return s;
-//    if (locals == null) {
-//      SLLogger.getLogger().log(Level.SEVERE, "no 'this' (or anything else) in scope");
-//    }
-//    for (final IRNode l : locals) {
-//      if (ReceiverDeclaration.prototype.includes(l)) {
-//        return opGet(s, srcOp, l);
-//      }
-//    }
-//    SLLogger.getLogger().log(Level.SEVERE, "no 'this' in scope");
-//    return s;
-//  }
   
   /**
    * Duplicate a stack value from further down stack
