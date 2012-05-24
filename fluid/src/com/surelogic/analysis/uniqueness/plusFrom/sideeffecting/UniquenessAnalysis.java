@@ -20,11 +20,13 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
+import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.control.AbruptExitPort;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
@@ -82,6 +84,7 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
@@ -350,7 +353,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store popSecond(final Store s, final IRNode srcOp) {
       if (!s.isValid()) return s;
-      return lattice.opSet(s, StoreLattice.getUnderTop(s));
+      return lattice.opSet(s, srcOp, StoreLattice.getUnderTop(s));
     }
 
     @Override
@@ -385,6 +388,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private Store considerDeclaredEffects(
         final IRNode call, final IRNode mdecl, final IRNode actualRcvr,
         final int numFormals, final IRNode formals,
+        final RegionEffectsPromiseDrop fxDrop,
         final List<Effect> declEffects, Store s) {
       for (final Effect f : declEffects) {
     	if (!s.isValid()) return s;
@@ -474,11 +478,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (r.isAbstract()) {
             // it could refer to almost anything
             // everything reachable from this pointer is alias buried:
-        	s = lattice.opLoadReachable(s);
+        	s = lattice.opLoadReachable(s, call, fxDrop);
         	s = lattice.opRelease(s);
         } else {
         	// it's a field, load and discard.
-        	s = lattice.opLoad(s, r.getNode());
+        	s = lattice.opLoad(s, call, r.getNode());
         	s = lattice.opRelease(s);
         }
         
@@ -768,7 +772,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // first copy both onto stack
         s = lattice.opGet(lattice.opGet(s, node, object), node, field);
         // now perform assignment
-        s = lattice.opStore(s, fieldDecl);
+        s = lattice.opStore(s, node, fieldDecl);
         // now pop extraneous object off stack
         return popSecond(s, node);
       }
@@ -783,7 +787,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return s;
       } else {
         if (!s.isValid()) return s;
-        return lattice.opSet(dup(s, var), varDecl);
+        return lattice.opSet(dup(s, var), var, varDecl);
       }
     }
     
@@ -797,7 +801,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
 
     @Override
-    protected Store transferCall(final IRNode node, final boolean flag, Store s) {
+    protected Store transferCall(final IRNode node, final boolean isNormal, Store s) {
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
       final boolean mcall = MethodCall.prototype.includes(op);
@@ -822,85 +826,100 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
   
       final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
-      if (mdecl != null) {
-        s = considerDeclaredEffects(node, mdecl, receiverNode,
-            numActuals, formals, effects.getMethodEffects(mdecl, node), s);
-      }
       
-      // we need to set RETURN to the return value,
-      // so that allowReturn can be handled while popping actuals
-      if (mcall) {
-    	  s = pushReturnValue(mdecl,s);
-      } else if (s.isValid()){
-    	  s = lattice.opGet(s, node, StoreLattice.getStackTop(s)-numActuals);
+      if (!isNormal) {
+        lattice.setSuppressDrops(true);
       }
-      s = lattice.opSet(s, RETURN_VAR);
-       
-      /* If the call is "super(...)" and the flow unit is a constructor
-       * from a nested class, then we have to copy the IPQR to the IFQR.
-       */
-      if (ConstructorCall.prototype.includes(node) &&
-          SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
-        final IRNode enclosingType = VisitUtil.getEnclosingType(flowUnit);
-        if (ConstructorDeclaration.prototype.includes(flowUnit) &&
-            TypeUtil.isNested(enclosingType)) {
-          final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-          final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(enclosingType);
-          s = lattice.opGet(s, node, ipqr); // read from the parameter
-          if (UniquenessRules.isBorrowed(ifqr)) {
-            s = lattice.opReturn(s, ifqr);
-            s = lattice.opRelease(s);
-          } else {
-            s = lattice.opCompromise(s);
+      try {
+        if (mdecl != null) {
+          s = considerDeclaredEffects(
+              node, mdecl, receiverNode, numActuals, formals,
+              MethodEffectsRules.getRegionEffectsDrop(mdecl),
+              effects.getMethodEffects(mdecl, node), s);
+        }
+        
+        // we need to set RETURN to the return value,
+        // so that allowReturn can be handled while popping actuals
+        if (mcall) {
+          s = pushReturnValue(mdecl,s);
+        } else if (s.isValid()){
+          s = lattice.opGet(s, node, StoreLattice.getStackTop(s)-numActuals);
+        }
+        s = lattice.opSet(s, node, RETURN_VAR);
+         
+        /* If the call is "super(...)" and the flow unit is a constructor
+         * from a nested class, then we have to copy the IPQR to the IFQR.
+         */
+        if (ConstructorCall.prototype.includes(node) &&
+            SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
+          final IRNode enclosingType = VisitUtil.getEnclosingType(flowUnit);
+          if (ConstructorDeclaration.prototype.includes(flowUnit) &&
+              TypeUtil.isNested(enclosingType)) {
+            final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+            final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(enclosingType);
+            s = lattice.opGet(s, node, ipqr); // read from the parameter
+            if (UniquenessRules.isBorrowed(ifqr)) {
+              s = lattice.opReturn(s, node, ifqr);
+              s = lattice.opRelease(s);
+            } else {
+              s = lattice.opCompromise(s);
+            }
           }
         }
-      }
-            
-      // We have to possibly compromise arguments
-      if (numActuals > 0) {
-        s = popArguments(numActuals, actuals, formals, s);
-      }
-      final IRNode outerObject = getOuterObject(node);
-      if (outerObject != null) {
-        if (LOG.isLoggable(Level.FINE)) {
-          LOG.fine("Popping qualifier");
+              
+        // We have to possibly compromise arguments
+        if (numActuals > 0) {
+          s = popArguments(numActuals, actuals, formals, s);
         }
-        if (!s.isValid()) return s;
-        /* Handle value under top: (1) copy it onto top; (2) compromise
-         * new top and discard it; (3) popSecond
-         */
-        s = lattice.opGet(s, node, StoreLattice.getUnderTop(s));
-        
-        s = popQualifiedReceiver(mdecl, s, outerObject);
-        if (!s.isValid()) return s;
-        /* This does a popSecond by popping the top value off the stack (op set)
-         * and changing the variable just under the top to have the value that 
-         * was on the top of the stack.
-         */
-        s = lattice.opSet(s, StoreLattice.getUnderTop(s));
+        final IRNode outerObject = getOuterObject(node);
+        if (outerObject != null) {
+          if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine("Popping qualifier");
+          }
+          if (!s.isValid()) return s;
+          /* Handle value under top: (1) copy it onto top; (2) compromise
+           * new top and discard it; (3) popSecond
+           */
+          s = lattice.opGet(s, node, StoreLattice.getUnderTop(s));
+          
+          s = popQualifiedReceiver(mdecl, s, outerObject);
+          if (!s.isValid()) return s;
+          /* This does a popSecond by popping the top value off the stack (op set)
+           * and changing the variable just under the top to have the value that 
+           * was on the top of the stack.
+           */
+          s = lattice.opSet(s, node, StoreLattice.getUnderTop(s));
+        }
+    
+        // for method calls (need return value)
+        // for new expressions (object already duplicated)
+        // and for constructor calls (also already duplicated)
+        // we pop the receiver.
+        s = popReceiver(mdecl, s, (receiverNode == null) ? node : receiverNode);
+      } finally {
+        lattice.setSuppressDrops(false);
       }
-  
-      // for method calls (need return value)
-      // for new expressions (object already duplicated)
-      // and for constructor calls (also already duplicated)
-      // we pop the receiver.
-      s = popReceiver(mdecl, s, (receiverNode == null) ? node : receiverNode);
-      
+       
       if (LOG.isLoggable(Level.FINE)) {
         LOG.fine("After handling receivers/qualifiers/parameter: " + s);
       }
-      if (flag) { // call succeeded
+      if (isNormal) { // call succeeded
     	  s = lattice.opGet(s, node, RETURN_VAR);
     	  // kill return value
     	  s = lattice.opNull(s);
-    	  s = lattice.opSet(s,RETURN_VAR);
+    	  s = lattice.opSet(s, node, RETURN_VAR);
         return s;
       } else {
-    	  // kill return value
-    	  s = lattice.opNull(s);
-    	  s = lattice.opSet(s,RETURN_VAR);
-        // we pop all pending
-        s = popAllPending(s, node);
+        lattice.setAbruptResults(true);
+        try {
+      	  // kill return value
+      	  s = lattice.opNull(s);
+      	  s = lattice.opSet(s,node, RETURN_VAR);
+          // we pop all pending
+          s = popAllPending(s, node);
+        } finally {
+          lattice.setAbruptResults(false);
+        }
         return s;
       }
     }
@@ -944,7 +963,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferCatchOpen(final IRNode node, Store s) {
     	IRNode var = CatchClause.getParam(node);
     	s = lattice.opExisting(s, State.SHARED, var);
-    	return lattice.opSet(s, var);
+    	return lattice.opSet(s, node, var);
     }
     
     @Override
@@ -1007,14 +1026,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         }
       }
       s = lattice.opDup(s, node, 1); // get value on top of stack
-      s = lattice.opStore(s, node); // perform store
+      s = lattice.opStore(s, node, node); // perform store
       s = lattice.opRelease(s); // throw away the extra copy
       return s;
     }
     
     @Override
     protected Store transferInitializationOfVar(final IRNode node, final Store s) {
-      return lattice.opSet(s, node);
+      return lattice.opSet(s, node, node);
     }
     
     @Override
@@ -1064,12 +1083,23 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           if (fineIsLoggable) {
             LOG.fine("After handling return value of " + name + ": " + s);
           }
+          s = lattice.opStop(s);
         } else if (kind instanceof NormalExitPort && 
         		ConstructorDeclaration.prototype.includes(mOp)) {
         	final IRNode rnode = JavaPromise.getReceiverNode(mdecl);
         	s = lattice.opRemoveFrom(s,rnode);
+          s = lattice.opStop(s);
+        } else if (kind instanceof AbruptExitPort) {
+          lattice.setAbruptResults(true);
+          try {
+            s = lattice.opStop(s);
+          } finally {
+            lattice.setAbruptResults(false);
+          }
+        } else {
+          // SHouldn't get here??? Stop anyway
+          s = lattice.opStop(s);
         }
-        s = lattice.opStop(s);
         if (fineIsLoggable) {
           LOG.fine("At end of " + name + ": " + s);
         }
@@ -1172,7 +1202,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return pop(s, node);
       } else {
         IRNode returnNode = JavaPromise.getReturnNode(node);
-		return lattice.opSet(lattice.opReturn(s,returnNode), returnNode);
+		return lattice.opSet(lattice.opReturn(s, node, returnNode), node, returnNode);
       }
     }
     
@@ -1225,7 +1255,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         s = pop(s, fref);
         return lattice.opNull(s); // just put null on stack (least likely to cause additional errors)
       } else {
-        return lattice.opLoad(s, decl);
+        return lattice.opLoad(s, fref, decl);
       }
     }
     
@@ -1275,7 +1305,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         do {
           currentQualifiedReceiverField = JavaPromise.getQualifiedReceiverNodeOrNull(currentClass);
           // Do the pseudo-field reference
-          newStore = lattice.opLoad(newStore, currentQualifiedReceiverField);
+          newStore = lattice.opLoad(newStore, use, currentQualifiedReceiverField);
           currentClass = VisitUtil.getEnclosingType(currentClass);
         } while (currentQualifiedReceiverField != decl);
         
@@ -1363,7 +1393,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     public Store transferComponentSource(final IRNode node) {
     	// debugEffects(node);
-      return lattice.opStart();
+      return lattice.opStart(node);
     }
   }
   

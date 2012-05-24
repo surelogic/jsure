@@ -648,8 +648,6 @@ extends TripleLattice<Element<Integer>,
       
       if (nodeStatus(affected) != State.UNIQUE) {
         recordLoadOfCompromisedField(srcOp, fieldDecl);
-//        reportError(srcOp, "L1", "Read of a compromised unique field: value cannot be guaranteed unique");
-//        return errorStore("loaded compromised field");
       }
       Store temp = opNew(
           apply(
