@@ -116,7 +116,40 @@ public final class UniquenessUtils {
     return result;
   }
   
-  
+  /**
+   * Get the Unique, Borrowed, UniqueInRegion, or BorrowedInRegion annotation
+   * for the given field declaration.
+   * 
+   * @param varDecl
+   *          The VariableDeclarator node to test
+   * @return The promise drop (a {@link UniquePromiseDrop},
+   *         {@link ExplicitUniqueInRegionPromiseDrop},
+   *         {@link SimpleUniqueInRegionPromiseDrop},
+   *         {@link BorrowedPromiseDrop},
+   *         {@link ExplicitBorrowedInRegionPromiseDrop}, or
+   *         {@link SimpleBorrowedInRegionPromiseDrop}), or <code>null</code> if
+   *         the field is not annotated.
+   */  
+  public static PromiseDrop<? extends IAASTRootNode> getFieldUniqueOrBorrowed(
+      final IRNode varDecl) {
+    PromiseDrop<? extends IAASTRootNode> result = UniquenessRules.getUnique(varDecl);
+    if (result == null) {
+      result = RegionRules.getSimpleUniqueInRegion(varDecl);
+    }
+    if (result == null) {
+      result = RegionRules.getExplicitUniqueInRegion(varDecl);
+    }
+    if (result == null) {
+      result = UniquenessRules.getBorrowed(varDecl);
+    }
+    if (result == null) {
+      result = RegionRules.getSimpleBorrowedInRegion(varDecl);
+    }
+    if (result == null) {
+      result = RegionRules.getExplicitBorrowedInRegion(varDecl);
+    }
+    return result;
+  }
   
   /**
    * Compute the regions that a field reference maps into. This process is

@@ -1,13 +1,16 @@
 package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.Effect;
@@ -15,6 +18,7 @@ import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -33,20 +37,25 @@ import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.IteratorUtil;
+import edu.cmu.cs.fluid.util.Triple;
 import edu.uwm.cs.fluid.util.FlatLattice2;
 import edu.uwm.cs.fluid.util.FlatLattice2.Element;
 import edu.uwm.cs.fluid.util.TripleLattice;
@@ -82,7 +91,7 @@ extends TripleLattice<Element<Integer>,
   
   /**
    * Should we create drops at all.  This is set by the analysis using
-   * the lattice.  That is, are we at the side-effecing stage yet.
+   * the lattice.  That is, are we at the side-effecting stage yet.
    */
   private boolean produceSideEffects = false;
     
@@ -110,6 +119,69 @@ extends TripleLattice<Element<Integer>,
    * nodes to drops.
    */
   private final UniquenessControlFlowDrop controlFlowDrop;
+  
+  /**
+   * Whether any results were added to the control flow drop.   Checked in
+   * {@link #makeResultDrops()}: any promise that doesn't have any results is
+   * given a generic "invariants respected" result.
+   */
+  private boolean hasControlFlowResults = false;
+
+  /**
+   * Records where variables with buried references are read. Built by
+   * {@link #opGet(Store, IRNode, Object)}. After analysis, this is cross
+   * referenced with {@link #buriedLocals} to determine where the variable was
+   * buried.
+   */
+  private final Set<BuriedRead> buriedReads = new HashSet<BuriedRead>();  
+  
+  /**
+   * Records which local variables are buried by reads of unique/borrowed fields. Built
+   * by {@link #opLoad(Store, IRNode, IRNode)} and
+   * {@link #opLoadReachable(Store, IRNode)}. Two level map: Local Variable ->
+   * Field Declaration -> set of srcOps
+   */
+  private final Map<Object, Map<IRNode, Set<IRNode>>> buryingLoads =
+    new HashMap<Object, Map<IRNode, Set<IRNode>>>();
+
+  /**
+   * Records where an UNDEFINED value is assigned to a local variable.  Can
+   * happen when a variable is assigned a method return value, the 
+   * return value is the SHARED object, and the effects of the method call
+   * cause the SHARED object to be invalidated.  Map from
+   * local variable stack position to set of IRNodes representing invalidating
+   * assignments.
+   */
+  private final Map<Object, Set<IRNode>> badSets = new HashMap<Object, Set<IRNode>>();
+
+  /**
+   * Track which stack locations are buried by unique field reads and where.  This is a map
+   * from stack indices to sets of IRNodes indicating source locations where
+   * the stack location may have been made compromised.  Built by
+   * {@link #opLoad(Store, IRNode)}.  Used when handling "undefined" errors
+   * to out why the stack position is undefined.
+   */
+  private final Map<Integer, Set<IRNode>> stackBuriedAt =
+    new HashMap<Integer, Set<IRNode>>();
+
+  /**
+   * Track which stack locations are buried by unique field reads as a method side-effect.  This is a map
+   * from stack indices to sets of IRNodes indicating source locations where
+   * the stack location may have been made compromised.  Built by
+   * {@link #opLoadReachable(Store, IRNode)}.  Used when handling "undefined" errors
+   * to out why the stack position is undefined.
+   */
+  private final Map<Integer, Set<Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>>> stackIndirectlyBuriedAt =
+    new HashMap<Integer, Set<Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>>>();
+
+  
+  
+  
+  /**
+   * All the result drops we are going to have created.  Saved up here in case
+   * we need to cancel them if the analysis times out.
+   */
+  private final Set<ResultDropBuilder> drops = new HashSet<ResultDropBuilder>();
 
   
   
@@ -450,7 +522,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart() {
+  public Store opStart(final IRNode srcOp) {
     Store temp;
     
     /*
@@ -476,13 +548,13 @@ extends TripleLattice<Element<Integer>,
       if (ReceiverDeclaration.prototype.includes(op)) {
           final IRNode decl = JavaPromise.getPromisedFor(local);
     	  temp = opGenerate(temp,receiverStatus(decl,local),local);
-    	  temp = opSet(temp,local);
+    	  temp = opSet(temp, srcOp, local);
       } else if (QualifiedReceiverDeclaration.prototype.includes(op) ||
     		  ParameterDeclaration.prototype.includes(op)) {
     	  IRNode parent = JJNode.tree.getParent(local);
     	  if (parent == null || !CatchClause.prototype.includes(JJNode.tree.getOperator(parent))) {
     		  temp = opGenerate(temp,declStatus(local),local);
-    		  temp = opSet(temp,local);
+    		  temp = opSet(temp, srcOp, local);
     	  }
       }
     }
@@ -499,12 +571,16 @@ extends TripleLattice<Element<Integer>,
   /**
    * Fetch the value of a local onto stack.
    **/
-  public Store opGet(final Store s, final Object local) {
+  public Store opGet(final Store s, final IRNode srcOp, final Object local) {
     if (!s.isValid()) return s;
     if (localStatus(s, local) != State.UNDEFINED) {
       Store temp = push(s);
       return apply(temp, new Add(local, EMPTY.addElement(getStackTop(temp))));
     } else {
+      recordBuriedRead(srcOp, local);
+      // TODO: return opNull(s);
+
+      // TODO: kill these lines
       final String name = (local instanceof IRNode) ? DebugUnparser
           .toString((IRNode) local) : local.toString();
       return errorStore("read undefined local: " + name);
@@ -528,20 +604,25 @@ extends TripleLattice<Element<Integer>,
    * @param fromTop
    *          0 for duplicate top, 1 for under top etc.
    */
-  public Store opDup(final Store s, final int fromTop) {
+  public Store opDup(final Store s, final IRNode srcOp, final int fromTop) {
     if (!s.isValid()) return s;
     final Integer i = Integer.valueOf(getStackTop(s).intValue() - fromTop);
-    return opGet(s, i);
+    return opGet(s, srcOp, i);
   }
   
   /** Store the top of the stack into a local. */
-  public Store opSet(final Store s, final Object local) {
+  public Store opSet(final Store s, final IRNode srcOp, final Object local) {
     if (!s.isValid()) return s;
     final ImmutableHashOrderSet<Object> lset = EMPTY.addElement(local);
+    final Integer n = getStackTop(s);
+    if (localStatus(s, n) == State.UNDEFINED) {
+      recordBadSet(local, srcOp);
+    }
+    
     return pop(
         apply(
             apply(s, new Remove(lset)),
-            new Add(getStackTop(s), lset)));
+            new Add(n, lset)));
   }
 
   public static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
@@ -637,7 +718,7 @@ extends TripleLattice<Element<Integer>,
    * 
    * @precondition isValid();
    */
-  public Store opLoad(Store s, final IRNode fieldDecl) {
+  public Store opLoad(Store s, final IRNode srcOp, final IRNode fieldDecl) {
 	  // System.out.println("opLoad(" + DebugUnparser.toString(fieldDecl) + ": store " + toString(s));
 	  if (!s.isValid()) return s;
 	  s = undefineFromNodes(s,getStackTop(s));
@@ -679,6 +760,9 @@ extends TripleLattice<Element<Integer>,
   				  affected = affected.union(t.third());
   			  }
   		  }
+  		  
+  		  recordBuryingFieldRead(fieldDecl, affected, srcOp);
+  		  
   		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
   		  // Otherwise, we cannot: *shared* (say) becomes undefined.
   		  if (nodeStatus(affected) != State.UNIQUE) {
@@ -718,7 +802,7 @@ extends TripleLattice<Element<Integer>,
   		  // now that I am no longer removing the old aliases, I must add the following line:
   		  temp = apply(temp,new AddAlias(aliases,newN));
 		  }
-		  return opSet(temp, n);
+		  return opSet(temp, srcOp, n);
 	  } else {
 		  return opGenerate(opRelease(s),declStatus(fieldDecl),fieldDecl);
 	  }
@@ -747,7 +831,7 @@ extends TripleLattice<Element<Integer>,
 	  return s;
   }
   
-  public Store opStore(Store s, final IRNode fieldDecl) {
+  public Store opStore(Store s, final IRNode srcOp, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
     s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
@@ -788,7 +872,7 @@ extends TripleLattice<Element<Integer>,
       // Used to check that the borrowed field is final, but the sanity checker already does that.
 
     	// perform remaining checks
-    	s = opReturn(s, fieldDecl);
+    	s = opReturn(s, srcOp, fieldDecl);
       if (!s.isValid()) return s;
     	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
     	{
@@ -810,9 +894,9 @@ extends TripleLattice<Element<Integer>,
    * @param destDecl place the value is going (field or return decl)
    * @return same store, or an error store
    */
-  public Store opReturn(Store s, final IRNode destDecl) {
+  public Store opReturn(Store s, final IRNode srcOp, final IRNode destDecl) {
 	  // to prevent borrowing something twice, we ensure there is nothing from already:
-	  s = opLoadReachable(s);
+	  s = opLoadReachable(s, srcOp, null);
 	  if (!s.isValid()) return s;
 	  final Integer stackTop = getStackTop(s);
 	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
@@ -859,12 +943,14 @@ extends TripleLattice<Element<Integer>,
    * structure reachable from the top of the stack is made undefined (alias
    * burying). Used to implement read (and write) effects.
    */
-  public Store opLoadReachable(Store s) {
+  public Store opLoadReachable(Store s, final IRNode srcOp,
+      final RegionEffectsPromiseDrop fxDrop) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     s = undefineFromNodes(s,n);
     if (!s.isValid()) return s;
-    Set<Object> affectedM = new HashSet<Object>();
+    final Set<IRNode> loadedFields = new HashSet<IRNode>();
+    final Set<Object> affectedM = new HashSet<Object>();
     final Set<ImmutableHashOrderSet<Object>> found = new HashSet<ImmutableHashOrderSet<Object>>();
     final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
     boolean done;
@@ -888,10 +974,15 @@ extends TripleLattice<Element<Integer>,
           for (Object v : newObject) {
         	  if (!(v instanceof State)) affectedM.add(v);
           }
+          loadedFields.add(t.second());
         }
       }
     } while (!done);
-    ImmutableHashOrderSet<Object> affected = new ImmutableHashOrderSet<Object>(affectedM);
+    final ImmutableHashOrderSet<Object> affected =
+        new ImmutableHashOrderSet<Object>(affectedM);
+    
+    recordBuryingMethodEffects(loadedFields, affected, srcOp, fxDrop);
+    
     return
         apply(
             apply(s, new Remove(affected)),
@@ -1404,6 +1495,72 @@ extends TripleLattice<Element<Integer>,
     return produceSideEffects && !suppressDrops;
   }
   
+  private static <K, V> void addToMappedSet(
+      final Map<K, Set<V>> map, final K key, final V value) {
+    // Get/make the set first
+    Set<V> s = map.get(key);
+    if (s == null) {
+      s = new HashSet<V>();
+      map.put(key, s);
+    }
+    
+    // add the value
+    s.add(value);
+  }
+  
+  
+
+  // ------------------------------------------------------------------
+  // -- Alias burying
+  // ------------------------------------------------------------------
+  
+  private void recordBuriedRead(final IRNode srcOp, final Object local) {
+    if (shouldRecordResult()) {
+      buriedReads.add(new BuriedRead(local, srcOp, abruptDrops));
+    }
+  }
+  
+  private void recordBuryingLoad(final IRNode fieldDecl,
+      final Set<Object> affectedVars, final IRNode srcOp) {
+    for (final Object lv : affectedVars) {
+      Map<IRNode, Set<IRNode>> fieldMap = buryingLoads.get(lv);
+      if (fieldMap == null) {
+        fieldMap = new HashMap<IRNode, Set<IRNode>>();
+        buryingLoads.put(lv, fieldMap);
+      }
+      addToMappedSet(fieldMap, fieldDecl, srcOp);
+    }
+  }
+  
+  private void recordBuryingFieldRead(final IRNode fieldDecl,
+      final Set<Object> affectedVars, final IRNode srcOp) {
+    if (shouldRecordResult()) {
+      recordBuryingLoad(fieldDecl, affectedVars, srcOp);
+      for (final Object v : affectedVars) {
+        if (v instanceof Integer) {
+          addToMappedSet(stackBuriedAt, (Integer) v, srcOp);
+
+        }
+      }
+    }
+  }
+  
+  private void recordBuryingMethodEffects(final Set<IRNode> loadedFields,
+      final Set<Object> affectedVars, final IRNode srcOp,
+      final RegionEffectsPromiseDrop fxDrop) {
+    if (shouldRecordResult()) {
+      for (final IRNode fieldDecl : loadedFields) {
+        recordBuryingLoad(fieldDecl, affectedVars, srcOp);
+      }
+      for (final Object v : affectedVars) {
+        if (v instanceof Integer) {
+          addToMappedSet(stackIndirectlyBuriedAt, (Integer) v, 
+              new Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>(
+                  loadedFields, srcOp, fxDrop));
+        }
+      }
+    }
+  }
 
   
   // ------------------------------------------------------------------
@@ -1415,14 +1572,113 @@ extends TripleLattice<Element<Integer>,
   }
 
   
+    
+  // ------------------------------------------------------------------
+  // -- Bad Values
+  // ------------------------------------------------------------------
+
+  private void recordBadSet(final Object local, final IRNode op) {
+    if (shouldRecordResult()) {
+      addToMappedSet(badSets, local, op);
+    }
+  }
+  
+  
   
   public void cancelResults() {
-//    for (final ResultDropBuilder drop : drops) {
-//      drop.invalidate();
-//    }
+    for (final ResultDropBuilder drop : drops) {
+      drop.invalidate();
+    }
+  }
+  
+  private ResultDropBuilder createResultDrop(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
+      final boolean abruptDrops, final boolean addToControlFlow,
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final IRNode node, final boolean isConsistent, 
+      final int msg, final Object... args) {
+    final Object[] newArgs = new Object[args.length+1];
+    System.arraycopy(args, 0, newArgs, 0, args.length);
+    newArgs[args.length] =
+      abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
+    
+    final ResultDropBuilder result =
+      ResultDropBuilder.create(analysis, Messages.toString(msg));
+    drops.add(result);
+    analysis.setResultDependUponDrop(result, node);
+    result.addCheckedPromise(promiseDrop);
+    if (promiseDrop != controlFlowDrop) {
+      if (addToControlFlow) {
+        result.addCheckedPromise(controlFlowDrop);
+        hasControlFlowResults = true;
+      }
+    } else {
+      hasControlFlowResults = true;
+    }
+    result.setConsistent(isConsistent);
+    result.setResultMessage(msg, newArgs);
+    return result;
+  }
+
+  private ResultDropBuilder createResultDrop(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
+      final boolean abruptDrops,
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final IRNode node, final boolean isConsistent, 
+      final int msg, final Object... args) {
+    return createResultDrop(analysis, abruptDrops, true,
+        promiseDrop, node, isConsistent, msg, args);
   }
 
   public void makeResultDrops() {
-    // TODO
+    // Link reads of buried references to burying field loads
+    for (final BuriedRead read : buriedReads) {
+      final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
+      if (loads != null) {
+        for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
+          final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+              UniquenessUtils.getFieldUniqueOrBorrowed(e.getKey()), read.srcOp,              
+              false, Messages.READ_OF_BURIED);
+          for (final IRNode buriedAt : e.getValue()) {
+            r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
+                DebugUnparser.toString(buriedAt));
+          }
+        }
+      }
+      
+      // Could be undefined because we were assigned an undefined value
+      final Set<IRNode> z = badSets.get(read.var);
+      if (z != null) {
+        final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+            controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
+        for (final IRNode setOp : z) {
+          r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
+              VariableUseExpression.prototype.includes(read.srcOp) ?
+                  VariableUseExpression.getId(read.srcOp) : "*UNKNOWN*",
+              DebugUnparser.toString(setOp));
+        }
+      }
+    }
+
+    /* TODO: If we haven't already added results to the control flow drop, then 
+     * we add a single "invariants respected" positive result.
+     */
+    if (!hasControlFlowResults) {
+      // TODO
+    }
+  }
+
+
+
+  private final static class BuriedRead {
+    public final Object var;
+    public final IRNode srcOp;
+    public final boolean isAbrupt;
+    
+    public BuriedRead(final Object var, final IRNode n, final boolean a) {
+      this.var = var;
+      this.srcOp = n;
+      this.isAbrupt = a;
+    }
   }
 }
