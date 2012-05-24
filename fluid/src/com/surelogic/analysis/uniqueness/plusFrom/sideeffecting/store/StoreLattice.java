@@ -1633,12 +1633,14 @@ extends TripleLattice<Element<Integer>,
   public void makeResultDrops() {
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
+      final boolean varIsReturn = (read.var instanceof IRNode)
+          && ReturnValueDeclaration.prototype.includes((IRNode) read.var);          
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
           final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
               UniquenessUtils.getFieldUniqueOrBorrowed(e.getKey()), read.srcOp,              
-              false, Messages.READ_OF_BURIED);
+              false, varIsReturn ? Messages.RETURN_OF_BURIED : Messages.READ_OF_BURIED);
           for (final IRNode buriedAt : e.getValue()) {
             r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
                 DebugUnparser.toString(buriedAt));

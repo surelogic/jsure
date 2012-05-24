@@ -1162,6 +1162,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
        		  // if the value is ReadOnly), we need to use both the
        		  // possible borrowed-ness of the local FQR, but also
        		  // need an annotation on the local specific to the NCD or ACE.
+            
+            // TODO: DOn't use 'n' here.
        		  s = lattice.opCompromise(lattice.opGet(s, n, decl));                	
           }
         } else if (QualifiedThisExpression.prototype.includes(n)) {
@@ -1169,7 +1171,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         }
       }
           
-      // If we used outer things and we aren't in a static context then compromise "this"
+      /* If we used outer things and we aren't in a static context then
+       * compromise "this" of the method that contains the nested class, because
+       * that is the only reference that can be the actual outer object.
+       */
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
       if (usedExternal && rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
