@@ -756,7 +756,8 @@ public class JavaCanonicalizer {
     					IRNode lastBase = VarArgsType.getBase(lastType);
     					Operator op = tree.getOperator(lastBase);
     					if (PrimitiveType.prototype.includes(op)) {
-    						// Introduce cast to get the right type
+    						// Introduce cast to get the right type    						
+    						tree.removeChild(node, arg); 
     						arg = CastExpression.createNode(op.createNode(), arg);
     					}
     				}
