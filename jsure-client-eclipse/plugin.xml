@@ -306,6 +306,12 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-run-jsure-tutorials">
 			</action>
+			
+			<action class="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationChangesAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationChangesAction"
+				label="Send Library Annotation Changes"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service">
+			</action>
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
@@ -318,19 +324,6 @@
 			<action class="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
 				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
 				label="Send Tip for Improvement"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
-				helpContextId="menu-send-tip-for-improvement">
-			</action>
-			
-			<action class="com.surelogic.jsure.client.eclipse.actions.MergeLibraryAnnotationsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.MergeLibraryAnnotationsAction"
-				label="Merge Library Annotations"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service">
-			</action>
-			
-			<action class="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationsAction"
-				label="Send Library Annotations"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-send-tip-for-improvement">
 			</action>

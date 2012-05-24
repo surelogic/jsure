@@ -443,7 +443,8 @@ public class TypeUtils {
 		}
 		
 		public void addConstraints(IJavaType formal, IJavaType actual) {
-			capture(map.subst, formal, actual);
+			// Obsolete:
+			// capture(map.subst, formal, actual);
 			
 			// New code to match JLS 3 section 15.12.2.7
 			derive(formal, Constraint.CONVERTIBLE_FROM, actual);			
@@ -835,12 +836,28 @@ public class TypeUtils {
 		}
 
 		public IJavaType substitute(IJavaType fty) {
-			// TODO Auto-generated method stub
 			return TypeUtils.this.substitute(subst, fty);
 		}
 
 		public void export(Map<IJavaType, IJavaType> substMap) {
 			substMap.putAll(subst);
+		}
+
+		/**
+		 * JLS v3 sec 15.12.2.5
+		 * Checks if Al <: Bl[R1 = A1, ..., Rp = Ap], 
+		 *            extends
+		 */
+		public boolean checkIfSatisfiesBounds() {
+			for(Map.Entry<IJavaType, IJavaType> e : subst.entrySet()) {
+				final IJavaTypeFormal r = (IJavaTypeFormal) e.getKey();
+				final IJavaType b = r.getSuperclass(tEnv);
+				final IJavaType a = e.getValue();
+				if (!tEnv.isSubType(a, substitute(b))) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	
@@ -1098,13 +1115,13 @@ public class TypeUtils {
 				return CONVERTIBLE_TO;
 			}
 		},
-		// X is equal or a subtype of Y
+		/** X is equal or a subtype of Y */
 		SUBTYPE_OF {
 			@Override Constraint reverse() {
 				return SUPERTYPE_OF;
 			}
 		}, 
-		// X is equal or a supertype of Y
+		/** X is equal or a supertype of Y */
 		SUPERTYPE_OF {
 			@Override Constraint reverse() {
 				return SUBTYPE_OF;
