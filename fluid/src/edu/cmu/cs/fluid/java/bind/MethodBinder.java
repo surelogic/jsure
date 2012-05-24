@@ -5,6 +5,8 @@ import java.util.logging.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -50,6 +52,7 @@ class MethodBinder {
     	IJavaType bestClass = null; // type of containing class
     	final IJavaType[] bestArgs;
     	final IJavaType[] tmpTypes;
+    	MethodState bestState;
     	
 		SearchState(Iterable<IBinding> methods, IRNode targs,
 				IRNode args, IJavaType[] argTypes) {
@@ -62,19 +65,20 @@ class MethodBinder {
 			tmpTypes = new IJavaType[argTypes.length];
 		}
 
-		void updateBestMethod(BindingInfo match) {    		
-    		IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(match.method.getNode()));
+		void updateBestMethod(MethodState m) {    		
+    		IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(m.match.method.getNode()));
     		IJavaType tmpClass = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
     		// we don't detect the case that there is no best method.
     		
     		// TODO FIX
-    		if (bestMethod == null || useMatch(match, tmpClass)) { 
+    		if (bestMethod == null || useMatch(m, tmpClass)) { 
     			// BUG: this algorithm does the wrong
     			// thing in the case of non-overridden multiple inheritance
     			// But there's no right thing to do, so...
     			System.arraycopy(tmpTypes, 0, bestArgs, 0, bestArgs.length);
-    			bestMethod = match;
+    			bestMethod = m.match;
     			bestClass = tmpClass;      
+    			bestState = m;
     		}
 		}
 
@@ -87,21 +91,62 @@ class MethodBinder {
 		 * more specific than another if any invocation handled by the first method
 		 * could be passed on to the other one without a compile-time type error.
 		 */
-		private boolean useMatch(BindingInfo match, IJavaType tmpClass) {
-			/*
-	    	if (!match.usedVarArgs && best.usedVarArgs) {
-	    		return true;
-	    	}
-	    	if (best.numBoxed > match.numBoxed) {
-	    		return true;
-	    	}
-	    	*/
-	    	if (typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
-				typeEnvironment.isSubType(tmpClass,bestClass)) {
-	    		return true;
-	    		//return best.numBoxed >= match.numBoxed;
+		private boolean useMatch(MethodState match, IJavaType tmpClass) {
+			/* 
+			 * One fixed-arity member method named m is more specific than another member
+			 * method of the same name and arity if all of the following conditions hold:
+			 * -- The declared types of the parameters of the first member method are T1, ... , Tn.
+			 * -- The declared types of the parameters of the other method are U1, ... , Un.
+			 * -- If the second method is generic then let R1 ... Rp , be its formal type
+			 *    parameters, let Bl be the declared bound of Rl, , let A1 ... Ap be the
+			 *    actual type arguments inferred (§15.12.2.7) for this invocation under the initial
+			 *    constraints Ti << Ui, and let Si = Ui[R1 = A1, ..., Rp = Ap] ; otherwise let Si = Ui .
+			 *    
+			 * Conditions:
+			 * -- For all j from 1 to n, Tj <: Sj.
+			 * -- If the second method is a generic method as described above then Al <:
+			 *    Bl[R1 = A1, ..., Rp = Ap], .
+			 */
+		 	final IJavaType[] sArgs;
+			if (bestState.numTypeFormals > 0) {
+				sArgs = computeEquivalentArgs(match);
+				if (sArgs == null) {
+					return false;
+				}
+			} else {
+				sArgs = bestArgs;
+			}
+			if (typeEnvironment.isAssignmentCompatible(sArgs,tmpTypes)) { 				
+				return (isStatic(match.bind.getNode()) && isStatic(bestState.bind.getNode())) ||
+				       typeEnvironment.isSubType(tmpClass,bestClass);
+	    		//return true;
 	    	}
 	    	return false;
+		}
+
+		private boolean isStatic(IRNode m) {
+			return JavaNode.getModifier(m, JavaNode.STATIC);
+		}
+		
+		private IJavaType[] computeEquivalentArgs(MethodState match) {
+		 	final IJavaType[] u = bestArgs;
+		 	// Infer actual type arguments
+		 	final Constraints constraints = 
+	     		utils.getEmptyConstraints(new HashMap<IJavaType,IJavaType>(bestState.substMap), false, false); 		 	
+	     	for(int i=0; i<bestArgs.length; i++) {
+	     		// Ui >> Ti
+	     		constraints.addConstraints(u[i], tmpTypes[i]); 
+	     	}
+	     	final Mapping a = constraints.computeTypeMapping();
+	     	if (!a.checkIfSatisfiesBounds()) {
+	     		return null;
+	     	}
+	     	// Compute equiv args
+		 	final IJavaType[] s = new IJavaType[bestArgs.length];
+		 	for(int i=0; i<bestArgs.length; i++) {
+		 		s[i] = a.substitute(u[i]);
+		 	}
+		 	return s;
 		}    	
     }
     
@@ -151,9 +196,9 @@ class MethodBinder {
     			LOG.finer("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
     					+ binder.getInVersionString());
     		}
-    		final BindingInfo match = isApplicable(s, allowBoxing, allowVarargs, mbind);
-    		if (match != null) {
-    			s.updateBestMethod(match);
+    		final MethodState m = isApplicable(s, allowBoxing, allowVarargs, mbind);
+    		if (m.match != null) {
+    			s.updateBestMethod(m);
     		}
     	}
         return s.bestMethod;
@@ -167,6 +212,7 @@ class MethodBinder {
     	final int numTypeFormals;
     	final IJavaTypeSubstitution methodTypeSubst;
     	final Map<IJavaType,IJavaType> substMap;
+    	BindingInfo match;
     	
     	MethodState(SearchState s, IBinding m) {
     		search = s;
@@ -250,7 +296,7 @@ class MethodBinder {
 		}
     }
     
-    private BindingInfo isApplicable(final SearchState s, final boolean allowBoxing, final boolean allowVarargs, 
+    private MethodState isApplicable(final SearchState s, final boolean allowBoxing, final boolean allowVarargs, 
     		final IBinding mbind) { 
     	final MethodState m = new MethodState(s, mbind);
     	if (s.numTypeArgs != 0 && s.numTypeArgs != m.numTypeFormals) {
@@ -259,13 +305,13 @@ class MethodBinder {
     	}    	
     	m.initSubstMap();
     	
-    	BindingInfo matched = matchedParameters(s, allowBoxing, allowVarargs, m);    	
-    	if (matched == null && !m.substMap.isEmpty()) {
+    	m.match = matchedParameters(s, allowBoxing, allowVarargs, m);    	
+    	if (m.match == null && !m.substMap.isEmpty()) {
     		// Necessary to match "raw" usages of a method
     		m.substMap.clear();
-    		matched = matchedParameters(s, allowBoxing, allowVarargs, m);    	
-    	}
-    	return matched;
+    		m.match = matchedParameters(s, allowBoxing, allowVarargs, m);    	
+    	}    	
+    	return m;
     }
     
 	private BindingInfo matchedParameters(final SearchState s, final boolean allowBoxing,
