@@ -15,9 +15,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.AppendIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.util.*;
 
 /**
  * A table representing a Java import list mapping names to declarations.
@@ -59,6 +57,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
    * A map from the import to an Entry object.
    */
   final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
+  //final Map<IRNode,Entry> indirect = new ListMap<IRNode,Entry>(); // for debugging
   
   protected abstract IDerivedInformation makeInformation();
   
