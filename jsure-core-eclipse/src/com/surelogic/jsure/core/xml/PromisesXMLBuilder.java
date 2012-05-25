@@ -212,6 +212,10 @@ public class PromisesXMLBuilder {
 		final IType t = JDTUtility.findIType(null, p.getName(), p.getClassElement().getName());
 		final ClassElement c = makeClass(t, false);
 		if (c == null) {
+			if (JDTUtility.getProjects().isEmpty()) {
+				// No other way to confirm whether the type exists
+				return p.getClassElement().visit(new AnnotatedJavaElement.Confirmer());
+			}
 			return false;
 		}
 		final MergeResult<ClassElement> result = p.getClassElement().merge(c, MergeType.JAVA);

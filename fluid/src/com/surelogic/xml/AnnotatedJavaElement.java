@@ -31,6 +31,10 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 
 	public abstract Operator getOperator();
 
+	void confirm() {
+		confirmed = true;
+	}
+	
 	public final boolean isConfirmed() {
 		return confirmed;
 	}
@@ -309,5 +313,25 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 			}
 		}
 		return count;
+	}
+	
+	public static class Confirmer extends AbstractJavaElementVisitor<Boolean> {
+		public Confirmer() {
+			super(false);
+		}
+
+		@Override
+		protected Boolean combine(Boolean old, Boolean result) {
+			return old || result;
+		}
+		
+		@Override
+		protected Boolean visitAnnotated(AnnotatedJavaElement elt) {			
+			if (elt.isConfirmed()) {
+				return Boolean.FALSE;
+			}
+			elt.confirm();
+			return Boolean.TRUE;
+		}
 	}
 }
