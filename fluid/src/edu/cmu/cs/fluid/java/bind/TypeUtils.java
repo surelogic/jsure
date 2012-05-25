@@ -322,20 +322,21 @@ public class TypeUtils {
 	//  Then the inferred type for Tj is
 	//  lub(U1 ... Uk) = Candidate(W1) & ... & Candidate(Wr) where Wi, , are
 	//  the elements of MEC.
-	IJavaReferenceType getLowestUpperBound(IJavaReferenceType... types) {
+	synchronized IJavaReferenceType getLowestUpperBound(IJavaReferenceType... types) {
 		if (types.length == 1) {
 			return types[0];
 		}
 		// Check for a proxy
+		JavaRefTypeProxy p = null;
 		if (types.length == 2) {
 			// This is the only case used internally
-			JavaRefTypeProxy p = getProxy(types[0], types[1]);
+			p = getProxy(types[0], types[1]);
 			Boolean complete = p.isComplete();
 			if (complete != null) {
 				return p;				
 			}
 			// otherwise, we haven't started computing this yet
-			p.start();
+			p.start("lub("+types[0]+", "+types[1]+")");
 		}
 		
 		Iterable<IJavaDeclaredType> allSupers = getST(types);
@@ -371,6 +372,16 @@ public class TypeUtils {
 			return tEnv.getObjectType();
 		}
 		*/
+		if (p != null) {
+			p.finishType(result);
+		}
+		try {
+			result.isValid();
+		} catch(StackOverflowError e) {
+			e = null;
+			new Throwable().printStackTrace();
+			System.out.println();
+		}
 		return result;
 	}
 	

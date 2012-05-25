@@ -19,16 +19,22 @@ import edu.cmu.cs.fluid.util.Iteratable;
 public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenceType {
 	private IJavaReferenceType type;
 	private Boolean complete;
+	private String unparse;
 	
 	Boolean isComplete() {
 		return complete;
 	}
 	
-	void start() {
+	void start(String unparse) {
 		if (complete != null) {
 			throw new IllegalStateException();
 		}
 		complete = Boolean.FALSE;
+		
+		if (unparse == null) {
+			throw new IllegalStateException();
+		}
+		this.unparse = unparse;
 	}
 	
 	void finishType(IJavaReferenceType t) {
@@ -43,7 +49,7 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	
 	@Override
 	public String toString() {
-		return "...";
+		return unparse;
 	}
 
 	@Override
