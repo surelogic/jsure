@@ -92,6 +92,10 @@ class MethodBinder {
 		 * could be passed on to the other one without a compile-time type error.
 		 */
 		private boolean useMatch(MethodState match, IJavaType tmpClass) {
+			// Handle simple cases of shadowing/overriding
+			if (areEqual(bestArgs,tmpTypes)) {
+				return typeEnvironment.isSubType(tmpClass,bestClass);
+			}
 			/* 
 			 * One fixed-arity member method named m is more specific than another member
 			 * method of the same name and arity if all of the following conditions hold:
@@ -115,10 +119,6 @@ class MethodBinder {
 				}
 			} else {
 				sArgs = bestArgs;
-			}
-			// Handle simple cases of shadowing/overriding
-			if (areEqual(sArgs,tmpTypes)) {
-				return typeEnvironment.isSubType(tmpClass,bestClass);
 			}
 			if (typeEnvironment.isAssignmentCompatible(sArgs,tmpTypes)) { 				
 				return (isStatic(match.bind.getNode()) && isStatic(bestState.bind.getNode())) ||
