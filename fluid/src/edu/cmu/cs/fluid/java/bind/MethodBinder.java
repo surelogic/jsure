@@ -116,12 +116,25 @@ class MethodBinder {
 			} else {
 				sArgs = bestArgs;
 			}
+			// Handle simple cases of shadowing/overriding
+			if (areEqual(sArgs,tmpTypes)) {
+				return typeEnvironment.isSubType(tmpClass,bestClass);
+			}
 			if (typeEnvironment.isAssignmentCompatible(sArgs,tmpTypes)) { 				
 				return (isStatic(match.bind.getNode()) && isStatic(bestState.bind.getNode())) ||
 				       typeEnvironment.isSubType(tmpClass,bestClass);
 	    		//return true;
 	    	}
 	    	return false;
+		}
+
+		private boolean areEqual(IJavaType[] s, IJavaType[] t) {
+			for(int i=0; i<s.length; i++) {
+				if (!s[i].isEqualTo(typeEnvironment, t[i])) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private boolean isStatic(IRNode m) {
