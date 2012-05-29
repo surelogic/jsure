@@ -17,7 +17,7 @@ import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.xml.TestXMLParserConstants;
+import static com.surelogic.xml.TestXMLParserConstants.*;
 
 public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 	public void run(IAction action) {
@@ -57,8 +57,10 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 	}
 
 	private static class Archiver extends TextArchiver {
-
-		private final Set<String> packages = new TreeSet<String>();
+		/**
+		 * Qualified names of packages or types that changed
+		 */
+		private final Set<String> changed = new TreeSet<String>();
 
 		public Archiver(File target) throws IOException {
 			super(target);
@@ -66,14 +68,14 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 
 		@Override
 		public boolean accept(File pathname) {
-			return TestXMLParserConstants.XML_FILTER.accept(pathname);
+			return XML_FILTER.accept(pathname);
 		}
 
 		@Override
 		protected void iterate(String relativePath, File f) {
 			super.iterate(relativePath, f);
 
-			String pkg;
+			final String pkg;
 			if (relativePath.indexOf('/') >= 0
 					&& relativePath.endsWith(f.getName())) {
 				pkg = relativePath.substring(0,
@@ -82,18 +84,23 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 			} else {
 				pkg = relativePath;
 			}
-			packages.add(pkg);
+			if (PACKAGE_PROMISES.equals(f.getName())) {
+				changed.add(pkg);
+			} else {
+				final String qname = pkg+'.'+f.getName().substring(0, f.getName().length() - SUFFIX.length());
+				changed.add(qname);
+			}
 		}
 
 		boolean isEmpty() {
-			return packages.isEmpty();
+			return changed.isEmpty();
 		}
 
 		String getDescription() {
 			StringBuilder sb = new StringBuilder(
 					"Archive of library annotation changes for the following packages:\n");
-			for (String pkg : packages) {
-				sb.append(pkg).append('\n');
+			for (String qname : changed) {
+				sb.append('\t').append(qname).append('\n');
 			}
 			return sb.toString();
 		}
