@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="4">
+<package name="java.util.concurrent" release="5">
     <class name="CopyOnWriteArrayList">
         <ThreadSafe/>
         <constructor>
@@ -84,7 +84,7 @@
 
         <method name="contains" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -93,7 +93,7 @@
 
         <method name="containsAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -102,7 +102,7 @@
 
         <method name="equals" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -117,13 +117,13 @@
 
         <method name="hashCode">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="indexOf" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -132,7 +132,7 @@
 
         <method name="indexOf" params="java.lang.Object, int">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -154,7 +154,7 @@
 
         <method name="lastIndexOf" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -163,7 +163,7 @@
 
         <method name="lastIndexOf" params="java.lang.Object, int">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -192,7 +192,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -201,7 +201,7 @@
 
         <method name="removeAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -210,7 +210,7 @@
 
         <method name="retainAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -230,7 +230,7 @@
         </method>
 
         <method name="subList" params="int, int">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
@@ -250,7 +250,7 @@
 
         <method name="toString">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>

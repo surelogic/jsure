@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.swing" release="3">
+<package name="javax.swing" release="4">
     <class name="UIDefaults">
         <ThreadSafe/>
         <constructor>
@@ -16,7 +16,7 @@
         </constructor>
 
         <constructor params="java.lang.Object[]">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -38,7 +38,7 @@
 
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -47,7 +47,7 @@
 
         <method name="get" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -60,7 +60,7 @@
 
         <method name="getBoolean" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -69,7 +69,7 @@
 
         <method name="getBoolean" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -82,7 +82,7 @@
 
         <method name="getBorder" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -91,7 +91,7 @@
 
         <method name="getBorder" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -104,7 +104,7 @@
 
         <method name="getColor" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -113,7 +113,7 @@
 
         <method name="getColor" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -132,7 +132,7 @@
 
         <method name="getDimension" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -141,7 +141,7 @@
 
         <method name="getDimension" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -154,7 +154,7 @@
 
         <method name="getFont" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -163,7 +163,7 @@
 
         <method name="getFont" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -176,7 +176,7 @@
 
         <method name="getIcon" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -185,7 +185,7 @@
 
         <method name="getIcon" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -198,7 +198,7 @@
 
         <method name="getInsets" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -207,7 +207,7 @@
 
         <method name="getInsets" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -220,7 +220,7 @@
 
         <method name="getInt" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -229,7 +229,7 @@
 
         <method name="getInt" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -248,7 +248,7 @@
 
         <method name="getString" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -257,7 +257,7 @@
 
         <method name="getString" params="java.lang.Object, java.util.Locale">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -270,7 +270,7 @@
 
         <method name="getUI" params="javax.swing.JComponent">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -279,7 +279,7 @@
 
         <method name="getUIClass" params="java.lang.String">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -288,7 +288,7 @@
 
         <method name="getUIClass" params="java.lang.String, java.lang.ClassLoader">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg1:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -301,13 +301,13 @@
 
         <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="putDefaults" params="java.lang.Object[]">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -316,7 +316,7 @@
 
         <method name="removePropertyChangeListener" params="java.beans.PropertyChangeListener">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -325,7 +325,7 @@
 
         <method name="removeResourceBundle" params="java.lang.String">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 

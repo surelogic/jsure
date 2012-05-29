@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="1">
+<package name="java.util" release="2">
     <class name="WeakHashMap">
         <NotThreadSafe/>
         <constructor>
@@ -22,7 +22,7 @@
         </constructor>
 
         <constructor params="java.util.Map">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -38,7 +38,7 @@
 
         <method name="containsKey" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -47,7 +47,7 @@
 
         <method name="containsValue" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -62,7 +62,7 @@
 
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -83,13 +83,13 @@
 
         <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="putAll" params="java.util.Map">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -98,7 +98,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

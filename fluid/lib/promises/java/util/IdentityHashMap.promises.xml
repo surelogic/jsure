@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="1">
+<package name="java.util" release="2">
     <class name="IdentityHashMap">
         <NotThreadSafe/>
         <constructor>
@@ -63,7 +63,7 @@
 
         <method name="equals" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

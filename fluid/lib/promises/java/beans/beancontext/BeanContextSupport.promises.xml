@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.beans.beancontext" release="1">
+<package name="java.beans.beancontext" release="2">
     <class name="BeanContextSupport">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -34,13 +34,13 @@
 
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="addAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -55,7 +55,7 @@
 
         <method name="contains" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -64,7 +64,7 @@
 
         <method name="containsAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -86,7 +86,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -95,7 +95,7 @@
 
         <method name="removeAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -104,7 +104,7 @@
 
         <method name="retainAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

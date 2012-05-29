@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="1">
+<package name="java.util.concurrent" release="2">
     <class name="ConcurrentLinkedQueue">
         <ThreadSafe/>
         <constructor>
@@ -26,7 +26,7 @@
 
         <method name="contains" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -66,7 +66,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

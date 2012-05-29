@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="2">
+<package name="java.util" release="3">
     <class name="PriorityQueue">
         <NotThreadSafe/>
         <constructor>
@@ -22,7 +22,7 @@
         </constructor>
 
         <constructor params="java.util.Collection">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -31,7 +31,7 @@
         </constructor>
 
         <constructor params="java.util.PriorityQueue">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -40,7 +40,7 @@
         </constructor>
 
         <constructor params="java.util.SortedSet">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -50,7 +50,7 @@
 
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -68,7 +68,7 @@
 
         <method name="contains" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -84,7 +84,7 @@
 
         <method name="offer" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -96,13 +96,13 @@
 
         <method name="poll">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

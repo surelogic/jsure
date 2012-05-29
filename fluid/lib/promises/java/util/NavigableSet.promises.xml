@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="1">
+<package name="java.util" release="2">
     <class name="NavigableSet">
         <method name="ceiling" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -19,14 +19,14 @@
         </method>
 
         <method name="descendingSet">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
 
         <method name="floor" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -34,7 +34,7 @@
         </method>
 
         <method name="headSet" params="java.lang.Object">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -43,7 +43,7 @@
         </method>
 
         <method name="headSet" params="java.lang.Object, boolean">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -53,7 +53,7 @@
 
         <method name="higher" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -69,7 +69,7 @@
 
         <method name="lower" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -78,18 +78,18 @@
 
         <method name="pollFirst">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="pollLast">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="subSet" params="java.lang.Object, boolean, java.lang.Object, boolean">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg2:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -102,7 +102,7 @@
         </method>
 
         <method name="subSet" params="java.lang.Object, java.lang.Object">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -115,7 +115,7 @@
         </method>
 
         <method name="tailSet" params="java.lang.Object">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -124,7 +124,7 @@
         </method>
 
         <method name="tailSet" params="java.lang.Object, boolean">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">

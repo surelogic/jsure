@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.jar" release="1">
+<package name="java.util.jar" release="2">
     <class name="Attributes">
         <NotThreadSafe/>
         <constructor>
@@ -16,7 +16,7 @@
         </constructor>
 
         <constructor params="java.util.jar.Attributes">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
             <parameter index="0">
@@ -39,7 +39,7 @@
 
         <method name="containsKey" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -48,7 +48,7 @@
 
         <method name="containsValue" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -63,7 +63,7 @@
 
         <method name="equals" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -72,7 +72,7 @@
 
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -81,7 +81,7 @@
 
         <method name="getValue" params="java.lang.String">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -90,7 +90,7 @@
 
         <method name="getValue" params="java.util.jar.Attributes.Name">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -99,7 +99,7 @@
 
         <method name="hashCode">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -117,13 +117,13 @@
 
         <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="putAll" params="java.util.Map">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -132,13 +132,13 @@
 
         <method name="putValue" params="java.lang.String, java.lang.String">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -166,7 +166,7 @@
 
             <method name="equals" params="java.lang.Object">
                 <Borrowed>this</Borrowed>
-                <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+                <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
                 <Starts>nothing</Starts>
                 <parameter index="0">
                     <Borrowed/>

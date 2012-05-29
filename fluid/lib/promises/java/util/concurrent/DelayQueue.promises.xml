@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="DelayQueue">
         <ThreadSafe/>
         <constructor>
@@ -20,7 +20,7 @@
 
         <method name="add" params="java.util.concurrent.Delayed">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -32,7 +32,7 @@
 
         <method name="drainTo" params="java.util.Collection">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects>writes Instance, arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -41,7 +41,7 @@
 
         <method name="drainTo" params="java.util.Collection, int">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance, arg0:Instance</RegionEffects>
+            <RegionEffects>writes Instance, arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -57,13 +57,13 @@
 
         <method name="offer" params="java.util.concurrent.Delayed">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="offer" params="java.util.concurrent.Delayed, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -75,19 +75,19 @@
 
         <method name="poll">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="poll" params="long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="put" params="java.util.concurrent.Delayed">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -99,7 +99,7 @@
 
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -114,7 +114,7 @@
 
         <method name="take">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
