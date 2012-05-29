@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="8">
+<package name="java.lang" release="9">
     <class name="Thread">
         <ThreadSafe implementationOnly="true"/>
         <constructor>
@@ -58,7 +58,7 @@
 
         <method name="checkAccess">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
@@ -97,7 +97,7 @@
 
         <method name="getContextClassLoader">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 

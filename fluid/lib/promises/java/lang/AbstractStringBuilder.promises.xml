@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="3">
+<package name="java.lang" release="4">
     <class name="AbstractStringBuilder">
         <ThreadSafe implementationOnly="true"/>
         <method name="append" params="boolean">
@@ -61,7 +61,7 @@
         </method>
 
         <method name="append" params="java.lang.Object">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -225,7 +225,7 @@
         </method>
 
         <method name="insert" params="int, java.lang.Object">
-            <RegionEffects>reads any():Instance; writes Instance</RegionEffects>
+            <RegionEffects>reads arg1:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="1">
                 <Borrowed/>

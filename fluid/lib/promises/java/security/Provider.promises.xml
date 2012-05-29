@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.security" release="2">
+<package name="java.security" release="3">
     <class name="Provider">
         <ThreadSafe/>
         <method name="clear">
@@ -45,7 +45,7 @@
 
         <method name="getProperty" params="java.lang.String">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -92,7 +92,7 @@
 
         <method name="load" params="java.io.InputStream">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
