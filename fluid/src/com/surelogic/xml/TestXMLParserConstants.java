@@ -32,6 +32,7 @@ public interface TestXMLParserConstants {
 	public static final String CONTENTS = "contents";
 
 	public static final String SUFFIX = ".promises.xml";
+	public static final String PACKAGE_PROMISES = "package-info.promises.xml";
 	public static final String DTD_NAME = "promises.dtd";
 
 	public static final String UID_ATTRB = "uid";
