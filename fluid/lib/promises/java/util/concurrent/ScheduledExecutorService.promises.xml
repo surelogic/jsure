@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="1">
+<package name="java.util.concurrent" release="2">
     <class name="ScheduledExecutorService">
         <ThreadSafe/>
         <method name="schedule" params="java.lang.Runnable, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="schedule" params="java.util.concurrent.Callable, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="scheduleAtFixedRate" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="scheduleWithFixedDelay" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
     </class>
 </package>

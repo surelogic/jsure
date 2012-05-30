@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
+<package name="java.util.concurrent" release="4">
     <class name="ScheduledThreadPoolExecutor">
         <ThreadSafe/>
         <constructor params="int">
@@ -29,7 +29,7 @@
 
         <method name="execute" params="java.lang.Runnable">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="getContinueExistingPeriodicTasksAfterShutdownPolicy">
@@ -58,22 +58,22 @@
 
         <method name="schedule" params="java.lang.Runnable, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="schedule" params="java.util.concurrent.Callable, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="scheduleAtFixedRate" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="scheduleWithFixedDelay" params="java.lang.Runnable, long, long, java.util.concurrent.TimeUnit">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="setContinueExistingPeriodicTasksAfterShutdownPolicy" params="boolean">
@@ -90,29 +90,29 @@
 
         <method name="shutdown">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="shutdownNow">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="submit" params="java.lang.Runnable">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="submit" params="java.lang.Runnable, java.lang.Object">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
 
         <method name="submit" params="java.util.concurrent.Callable">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
         </method>
     </class>
 </package>

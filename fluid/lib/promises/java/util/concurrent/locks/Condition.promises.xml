@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent.locks" release="1">
+<package name="java.util.concurrent.locks" release="2">
     <class name="Condition">
         <ThreadSafe/>
         <method name="await">
@@ -35,13 +35,13 @@
 
         <method name="signal">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="signalAll">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes any():Instance</RegionEffects>
+            <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>

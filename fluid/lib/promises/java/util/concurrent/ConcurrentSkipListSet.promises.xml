@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
+<package name="java.util.concurrent" release="4">
     <class name="ConcurrentSkipListSet">
         <ThreadSafe/>
         <constructor>
@@ -34,7 +34,7 @@
         </constructor>
 
         <constructor params="java.util.concurrent.ConcurrentNavigableMap">
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
