@@ -381,7 +381,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         			if (actualStackDepth == null || asd2 == null || 
         					lattice.mayAlias(s,total-actualStackDepth, total-asd2)) {
         				String message = "Effect disjointness error: " + f + " overlaps with " + f2;
-        				System.out.println(message);
         				return lattice.errorStore(message);
         			}
         		}
@@ -581,7 +580,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (formal != null && UniquenessRules.isBorrowed(formal) && 
         		UniquenessRules.getBorrowed(formal).allowReturn()) {
         	s = addFromNode(s);
-    		System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
         }
         if (lattice.isValueNode(formal)) s = pop(s);
         else s = lattice.opConsume(s, lattice.declStatus(formal));
@@ -602,7 +600,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (UniquenessRules.isBorrowed(recDecl) && 
         		UniquenessRules.getBorrowed(recDecl).allowReturn()) {
         	s = addFromNode(s);
-    		System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
         }
         
         State required = lattice.receiverStatus(decl, recDecl);
@@ -616,6 +613,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * the qualified receiver.
      */
     private Store popQualifiedReceiver(final IRNode decl, Store s) {
+      // TODO: This method is wrong -- see 2012-05-25 e-mail
     	if (decl == null) return pop(s);
     	
     	IRNode p = JJNode.tree.getParent(decl);
@@ -696,7 +694,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferArrayInitializer(final IRNode node, final Store s) {
-    	// System.out.println("At array initializer, store is " + lattice.toString(s));
       return lattice.opCompromise(s);
     }
     
@@ -907,9 +904,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferCatchClose(final IRNode node, boolean flag, Store s) {
     	IRNode var = CatchClause.getParam(node);
-    	// System.out.println("before catch close: " + lattice.toString(s));
     	s = lattice.opClear(s,var);
-    	// System.out.println("after catch close: " + lattice.toString(s));
     	return s;
     }
     
@@ -983,7 +978,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   		if (StringLiteral.prototype.includes(op) &&
   				JJNode.getInfo(node).startsWith("\"Unique")) {
 			// debugging hook
-			System.out.println("At " + JJNode.getInfo(node) + ": " + lattice.toString(s));
 		}
         return lattice.opValue(s); // push a shared String constant
       } else {

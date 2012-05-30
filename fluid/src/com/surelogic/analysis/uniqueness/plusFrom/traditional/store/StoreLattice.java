@@ -380,7 +380,6 @@ extends TripleLattice<Element<Integer>,
 	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
 		  if (obj.contains(pseudo)) return obj;
 	  }
-	  System.out.println("No " + pseudo + " object: " + toString(s));
 	  throw new FluidError("no " + pseudo + " object?");
   }
 
@@ -590,7 +589,6 @@ extends TripleLattice<Element<Integer>,
    * @precondition isValid();
    */
   public Store opLoad(Store s, final IRNode fieldDecl) {
-	  // System.out.println("opLoad(" + DebugUnparser.toString(fieldDecl) + ": store " + toString(s));
 	  if (!s.isValid()) return s;
 	  s = undefineFromNodes(s,getStackTop(s));
 	  if (!s.isValid()) return s;
@@ -693,7 +691,7 @@ extends TripleLattice<Element<Integer>,
 	  if (!State.lattice.lessEq(localStatus,State.SHARED)) {
      // kludge to permit VALUE objects to be shared:
 	    if (isVariableSharable(s, var)) return s;
-		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
+//		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
 		  return errorStore("mutation not legal on this reference");
 	  }
 	  return s;
@@ -746,13 +744,18 @@ extends TripleLattice<Element<Integer>,
     	{
     			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
     	}
-    	temp = opRelease(s);
+    	// Consume the item being assigned to the field as BORROWED
+    	temp = opConsume(s, State.BORROWED);
     } else if (isValueNode(fieldDecl)) {
     	temp = opRelease(s); // Java Type system does all we need
     } else {
     	temp = opConsume(s,declStatus(fieldDecl));
     }
-    return opRelease(temp);
+    /* Make sure that the object being dereferenced by the field assignment is
+     * not undefined.  Can happen if the a @Borrowed parameter is assigned to
+     * two or more fields of the object.
+     */
+    return opConsume(temp, State.BORROWED);
   }
 
   /**
@@ -769,7 +772,6 @@ extends TripleLattice<Element<Integer>,
 	  final Integer stackTop = getStackTop(s);
 	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
 		  if (obj.contains(stackTop) && nodeStatus(obj) == State.BORROWED) { //TODO; Change to use contains
-			  // System.out.println(DebugUnparser.toString(destDecl) + " is readonly? " + UniquenessRules.isReadOnly(destDecl));
 			  // we need to find something that allows the return in this object
 			  IRNode auth = null;
 			  for (Object x : obj) {
@@ -999,9 +1001,6 @@ extends TripleLattice<Element<Integer>,
 	    if (isVariableSharable(s, n)) return s;
 	  }
 	  if (!State.lattice.lessEq(localStatus, required)) {
-		  System.out.println("Value flow error: Required: " + required + ", actual: " + localStatus);
-		  System.out.println("Store: " + toString(s));
-		  // (new FluidError("for debugging")).printStackTrace();
 		  return errorStore("Value flow error.  Required: " + required + ", actual: " + localStatus);
 	  }
 	  return s;
@@ -1118,7 +1117,6 @@ extends TripleLattice<Element<Integer>,
     	new ImmutableHashOrderSet<FieldTriple>(newFieldList);
     
     final Store result = check(canonicalize(newTriple(s.first(),newObjects,newFields),s));
-    // System.out.println("After apply " + c + ": " + toString(result));
     return result;
   }
   
@@ -1196,11 +1194,11 @@ extends TripleLattice<Element<Integer>,
 		  if (PSEUDOS.includes(from)) {
 			  if (UniquenessUtils.isUniqueWrite(t.second())) {
 				  if (status != State.UNIQUEWRITE) {
-					  System.out.println("Lost compromised unique(allowRead) field for " + toString(s));
+//					  System.out.println("Lost compromised unique(allowRead) field for " + toString(s));
 					  return errorStore("compromised unique(allowRead) field has been lost");
 				  }
 			  } else if (status != State.UNIQUE){
-				  System.out.println("Lost compromised field error for " + toString(s));
+//				  System.out.println("Lost compromised field error for " + toString(s));
 				  return errorStore("compromised field has been lost");
 			  }
 			  // otherwise (including if side-effecting), we discard
@@ -1256,7 +1254,6 @@ extends TripleLattice<Element<Integer>,
       }
     }
     if (!s.invariant()) {
-    	System.out.println("For Store " + sb.toString());
     	throw new AssertionError("Invariant failed.");
     }
     return sb.toString();
