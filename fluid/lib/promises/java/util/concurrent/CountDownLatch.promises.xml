@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="CountDownLatch">
         <ThreadSafe/>
         <constructor params="int">
@@ -35,7 +35,7 @@
 
         <method name="toString">
             <Borrowed>this</Borrowed>
-            <RegionEffects>reads any():Instance</RegionEffects>
+            <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
     </class>
