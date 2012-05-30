@@ -1394,11 +1394,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			}
 			newProjects.computeScan(dataDir, oldProjects);
 
-			final File zips = new File(dataDir, newProjects.getRun()+"/"+PersistenceConstants.ZIPS_DIR);
-			final File target = new File(dataDir, newProjects.getRun()
-					+ "/srcs");
+			final File runDir = new File(dataDir, newProjects.getRun());
+			final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
+			final File target = new File(runDir, "srcs");
 			target.mkdirs();
-
+			new File(runDir, JSureScan.INCOMPLETE_SCAN).createNewFile();
 			/*
 			 * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
 			 * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
@@ -1948,6 +1948,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					if (status == SLStatus.OK_STATUS) {
 						ok = true;
 
+						new File(projects.getRunDir(), JSureScan.INCOMPLETE_SCAN).delete();
+						new File(projects.getRunDir(), JSureScan.COMPLETE_SCAN).createNewFile();		
+						
 						// Normally done by Javac, but needs to be repeated
 						// locally
 						if (oldProjects != null && noConflict) {

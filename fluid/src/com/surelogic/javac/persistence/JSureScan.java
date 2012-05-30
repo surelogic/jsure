@@ -13,6 +13,8 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
+	public static final String INCOMPLETE_SCAN = "Incomplete.Scan";
+	public static final String COMPLETE_SCAN = "Complete.Scan";
 	private static final String PRECOMPUTED_PROPS = "precomputed.properties";
 
 	private abstract static class ScanProperty {
@@ -73,6 +75,7 @@ public class JSureScan implements Comparable<JSureScan> {
 	}
 
 	private static String[] requiredFiles = {
+		JSureScan.COMPLETE_SCAN,
 		RemoteJSureRun.SUMMARIES_ZIP,
 		RemoteJSureRun.RESULTS_XML,
 		RemoteJSureRun.LOG_TXT,
