@@ -80,7 +80,8 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 
 	@Override
 	public boolean isValid() {
-		return type != null && type.isValid();
+		// It's valid as long as the rest is valid
+		return type != null;// && type.isValid();
 	}
 
 	@Override
