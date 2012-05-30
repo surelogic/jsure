@@ -90,7 +90,7 @@ public class RegionEffectsNode extends AASTRootNode {
         sb.append(_n.unparse(debug, indent+2));
       }    
     } else {
-      sb.append(' ');
+      sb.append('(');
       if (effects.isEmpty()) {
       	sb.append("none");
       } else { 
@@ -104,6 +104,7 @@ public class RegionEffectsNode extends AASTRootNode {
       		sb.append(_n.unparse(false));
       	} 		
       }     
+      sb.append(')');
     }
     return sb.toString();
 	}
