@@ -154,11 +154,13 @@ extends AbstractHierarchyScrubber<A> {
 				if (node instanceof Resolvable) {
 					Resolvable r = (Resolvable) node;
 					if (!r.bindingExists() && getContext() != null) {
-						String msg = "Couldn't resolve a binding for "+node+" on "+current;
+						String msg = "Couldn't resolve a binding for "+node+" in @"+current;
 						getContext().reportError(msg, node);		
+						/*
 						if (msg.startsWith("Couldn't resolve a binding for InstanceRegion on RegionEffects Writes test_qualifiedThis.C.this:InstanceRegion")) {
 							r.bindingExists();
 						}
+						*/
 						rv = false;
 					}
 				}
