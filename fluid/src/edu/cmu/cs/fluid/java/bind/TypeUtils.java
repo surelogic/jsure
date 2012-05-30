@@ -375,6 +375,7 @@ public class TypeUtils {
 		if (p != null) {
 			p.finishType(result);
 		}
+		/*
 		try {
 			result.isValid();
 		} catch(StackOverflowError e) {
@@ -382,6 +383,7 @@ public class TypeUtils {
 			new Throwable().printStackTrace();
 			System.out.println();
 		}
+		*/
 		return result;
 	}
 	
