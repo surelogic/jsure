@@ -95,6 +95,13 @@ public class JSureScan implements Comparable<JSureScan> {
 		return true;
 	}
 	
+	public static boolean isIncompleteScan(final File dir) {
+		if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
+			return false;
+		}
+		return new File(dir, INCOMPLETE_SCAN).isFile();
+	}
+	
 	/**
 	 * Checks if the passed directory name appears to follow the conventions for
 	 * scan directories. If so, the name should have at least three segments:

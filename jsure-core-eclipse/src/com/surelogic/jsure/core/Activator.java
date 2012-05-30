@@ -7,6 +7,7 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.javac.Util;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
@@ -48,8 +49,8 @@ public class Activator extends Plugin {
 			doubleChecker.start(context);
 		}
 
-		if (false && !Util.useResultsXML) {
-			clearJSureData();
+		if (false) {
+			cleanupJSureData();
 		}
 
 		// TODO reload persistent data
@@ -65,13 +66,14 @@ public class Activator extends Plugin {
 		PromisesLibMerge.mergeJSureToLocal();
 	}
 
-	private void clearJSureData() {
+	private void cleanupJSureData() {
 		for (File f : JSurePreferencesUtility.getJSureDataDirectory()
 				.listFiles()) {
 			if (f.isDirectory()) {
-				FileUtility.recursiveDelete(f, false);
+				if (JSureScan.isIncompleteScan(f)) {
+					FileUtility.recursiveDelete(f, false);
+				}
 			}
-			// i.e. don't delete persistent files
 		}
 	}
 
