@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -115,6 +116,12 @@ public final class InstanceTarget extends AbstractTarget {
        * allocation expression, so we can ignore it.  (OuterObjectSpecifier 
        * could also be "o. super(...)", but that is impossible in this context
        * because it wouldn't ever be returned by BCA.)
+       */
+      return new EmptyTarget(new EmptyEvidence(Reason.NEW_OBJECT, this, expr));
+    } else if (VarArgsExpression.prototype.includes(exprOp)) {
+      /* Var args expression at the end of a method call, e.g., 
+       * m(1, 2, 3), where m is m(int...).  This creates a new array, so it 
+       * should be masked.
        */
       return new EmptyTarget(new EmptyEvidence(Reason.NEW_OBJECT, this, expr));
     } else if (MethodCall.prototype.includes(exprOp)) {

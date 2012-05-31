@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/MethodCallUtils.java,v 1.10 2008/07/03 19:34:02 chance Exp $*/
 package com.surelogic.analysis;
 
 import java.util.HashMap;
@@ -16,14 +15,12 @@ import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
-import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionCall;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
-import edu.cmu.cs.fluid.java.operator.VarArgsType;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -182,20 +179,7 @@ public class MethodCallUtils {
     // build a table mapping each formal parameter to its actual
     final Map<IRNode, IRNode> table = new HashMap<IRNode, IRNode>();
     while (paramsEnum.hasNext()) {
-      if (!actualsEnum.hasNext()) {
-    	  //System.out.println("Skipping empty varargs");
-    	  break; 
-      }
-      IRNode param = paramsEnum.next();      
-      if (!paramsEnum.hasNext()) {
-    	  // Last formal
-    	  IRNode ptype = ParameterDeclaration.getType(param);
-    	  if (VarArgsType.prototype.includes(ptype)) {
-    		  //System.out.println("Skipping varargs");
-    		  break;
-    	  }
-      }
-      table.put(param, actualsEnum.next());
+      table.put(paramsEnum.next(), actualsEnum.next());
     }
 
     // ==== Step 2: map the receiver; generically map the qualified receivers (enclosing instances)
