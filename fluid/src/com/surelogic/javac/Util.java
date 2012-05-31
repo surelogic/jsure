@@ -353,9 +353,13 @@ public class Util {
         temp = null;  // To free up memory
         
         final long parse = System.currentTimeMillis();
+        //checkForDups(cus.asList());
         rewriteCUs(projects, cus.asList(), projects.getMonitor());
+    	//checkForDups(cus.asList());
         // Really to check if we added type refs via default constructors
 		loader.checkReferences(cus.asList());
+		eliminateDups(cus.asList(), cus.asList());
+		//checkForDups(cus.asList());
 		
 		final long canon = System.currentTimeMillis();
 		canonicalizeCUs(cus, projects);    
@@ -498,6 +502,18 @@ public class Util {
 		AbstractTypeEnvironment.printStats();
 		return pd;
     }
+
+	private static void checkForDups(List<CodeInfo> cus) {
+		Map<IRNode,CodeInfo> seen = new HashMap<IRNode,CodeInfo>();
+		for(CodeInfo cu : cus) {
+			CodeInfo dup = seen.get(cu.getNode());
+			if (dup != null) {
+				System.out.println("Already contains "+cu.getFile().getRelativePath());
+			} else {
+				seen.put(cu.getNode(), cu);
+			}
+		}
+	}
 
 	private static void checkProjects(Projects projects) {
 		for(final Config c : projects.getConfigs()) {
@@ -1010,7 +1026,7 @@ public class Util {
 			}			
 		};
 		//cus.apply(proc);
-		
+
 		for (final CodeInfo info : cus) {
 			if (info.getFile().getRelativePath() != null) {
 				System.out.println("Canonicalizing "+info.getFile().getRelativePath());
