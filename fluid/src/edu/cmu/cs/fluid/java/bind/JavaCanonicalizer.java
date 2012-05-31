@@ -254,6 +254,12 @@ public class JavaCanonicalizer {
       if (LOG.isLoggable(Level.FINE)) {
         LOG.fine("Adding boxing around " + DebugUnparser.toString(node));
       }
+      /*String unparse = DebugUnparser.toString(JJNode.tree.getParentOrNull(node));
+      if (unparse.contains("2, 3, 4")) {
+    	  System.out.println("Boxing 1");
+    	  contextIsReference(node);
+      }
+      */
       IRNode newBox = JavaNode.makeJavaNode(BoxExpression.prototype);
       replaceSubtree(node, newBox);
       BoxExpression.setOp(newBox, node);
@@ -705,6 +711,7 @@ public class JavaCanonicalizer {
     
     @Override
     public Boolean visitArguments(IRNode node) {
+    	// Computing before canonicalizing the arguments
 		final int numArgs = tree.numChildren(node);
     	final IRNode lastArg = numArgs > 0 ? tree.getChild(node, numArgs-1) : null;
     	boolean changed = super.visitArguments(node);
@@ -715,8 +722,8 @@ public class JavaCanonicalizer {
     	if (b == null) {
     		return false;
     	}
-    	IRNode params = SomeFunctionDeclaration.getParams(b.getNode());
-    	int numParams = tree.numChildren(params);
+    	final IRNode params = SomeFunctionDeclaration.getParams(b.getNode());
+    	final int numParams = tree.numChildren(params);
     	if (numParams == 0) {
     		// No varargs
     		return changed; 
@@ -732,6 +739,7 @@ public class JavaCanonicalizer {
     		final int numLastParam = numParams - 1;
     		List<IRNode> varArgs;
     		if (numArgs == numLastParam) {
+    			// Only non-varargs 
     			varArgs = Collections.emptyList();
     		} else {
     			if (numArgs == numParams) {
@@ -753,12 +761,17 @@ public class JavaCanonicalizer {
     			} else {
     				if (varArgs.isEmpty()) {
     					// First var arg, so add cast here if needed
-    					IRNode lastBase = VarArgsType.getBase(lastType);
-    					Operator op = tree.getOperator(lastBase);
-    					if (PrimitiveType.prototype.includes(op)) {
-    						// Introduce cast to get the right type    						
-    						tree.removeChild(node, arg); 
-    						arg = CastExpression.createNode(op.createNode(), arg);
+    					// (using lastArg since we can't bind new nodes yet)
+    					final IJavaType argType = binder.getJavaType(lastArg);
+    					if (argType instanceof IJavaPrimitiveType) {
+    						final IJavaPrimitiveType primT = (IJavaPrimitiveType) argType; 
+    						final IRNode lastBase = VarArgsType.getBase(lastType);
+    						final Operator op = tree.getOperator(lastBase);
+    						if (primT.getOp() != op && PrimitiveType.prototype.includes(op)) {
+    							// Introduce cast to get the right type    						
+    							tree.removeChild(node, arg); 
+    							arg = CastExpression.createNode(op.createNode(), arg);
+    						}
     					}
     				}
     				varArgs.add(arg);
@@ -1338,6 +1351,11 @@ public class JavaCanonicalizer {
       IRNode fType  = ParameterDeclaration.getType(formal);
       boolean vargs = VarArgsType.prototype.includes(fType);     
       if (vargs) {    	  
+    	  /*String unparse = DebugUnparser.toString(node);
+    	  if (unparse.contains("2, 3, 4")) {
+    		  System.out.println("Looking at VarArgsE: "+unparse);
+    	  }
+    	  */
     	  return contextFromNode(VarArgsType.getBase(fType));
       }
       // Not varargs, so do the same as above
