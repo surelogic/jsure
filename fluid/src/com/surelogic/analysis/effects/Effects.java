@@ -475,7 +475,6 @@ public final class Effects implements IBinderClient {
                 new QualifiedReceiverConversionEvidence(mdecl, ref, javaType)); 
             methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
           } else {
-            // something went wrong          
             throw new IllegalStateException("Unmappable instance target: " + t);
           }
         }
