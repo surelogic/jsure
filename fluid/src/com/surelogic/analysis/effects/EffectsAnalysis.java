@@ -240,6 +240,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
                 // any(Object):Instance
                 ty = javaLangObject;
                 region = RegionModel.getInstanceRegion(member);
+              } else {
+            	  throw new IllegalStateException("Unexpected type for "+DebugUnparser.toString(ref)+" : "+ty);
               }
             }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
