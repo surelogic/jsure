@@ -170,13 +170,16 @@ public final class AnnotationElement extends AbstractJavaElement implements
 					continue;
 				}
 				String value = attributes.get(attr);
+				String orig = attributes.get(ORIG_PREFIX + attr);
 				if (value != null) {
 					// The attr has a value to check
-					String orig = attributes.get(ORIG_PREFIX + attr);
 					if (orig == null || !orig.equals(value)) {
 						modified = true;
 						break;
 					}
+				} else if (orig != null) { // value == null
+					modified = true;
+					break;
 				}
 			}
 		}
