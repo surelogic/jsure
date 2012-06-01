@@ -296,8 +296,8 @@ public abstract class AnnotationRules {
 
 		public void reportError(String msg, IAASTNode n) {
 			if (!msg.contains(" on ")) {
-				IRNode here = n.getPromisedFor();
-				msg = msg + " on " + JavaNames.getFullName(here);
+				//IRNode here = n.getPromisedFor();
+				msg = msg + " on " + n;//JavaNames.getFullName(here);
 			}
 			reportError_private(msg, n.getPromisedFor(),
 					n.getOffset());
