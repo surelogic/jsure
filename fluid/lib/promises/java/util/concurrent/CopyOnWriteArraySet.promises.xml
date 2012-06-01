@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
+<package name="java.util.concurrent" release="4">
     <class name="CopyOnWriteArraySet">
         <ThreadSafe/>
         <constructor>
@@ -73,7 +73,7 @@
         </method>
 
         <method name="iterator">
-            <Borrowed allowReturn="true">this</Borrowed>
+            <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
