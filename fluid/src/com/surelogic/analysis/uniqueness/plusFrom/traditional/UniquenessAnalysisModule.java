@@ -651,9 +651,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		      
   		      // Also check if the class has an IFQR that is borrowed
   		      final IRNode ifqr =
-  		          JavaPromise.getQualifiedReceiverNodeOrNull(
-  		              TypeDeclaration.getBody(JJNode.tree.getParentOrNull(
-  		                  block.getClassBody())));
+  		          JavaPromise.getQualifiedReceiverNodeOrNull(block.getClassBody());
+//  		              TypeDeclaration.getBody(JJNode.tree.getParentOrNull(
+//  		                  block.getClassBody())));
   		      if (ifqr != null) {
   		        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(ifqr);
   		        if (bDrop != null) pr.uniqueFields.add(bDrop);
