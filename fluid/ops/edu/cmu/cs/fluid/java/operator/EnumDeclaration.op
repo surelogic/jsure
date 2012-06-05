@@ -1,5 +1,5 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumDeclaration.op,v 1.10 2008/08/21 14:46:59 chance Exp $
-public operator EnumDeclaration extends TypeDeclaration implements ClassBodyDeclInterface, FlowUnit 
+public operator EnumDeclaration extends TypeDeclaration implements FlowUnit 
 {
   syntax {
     annos:Annotations

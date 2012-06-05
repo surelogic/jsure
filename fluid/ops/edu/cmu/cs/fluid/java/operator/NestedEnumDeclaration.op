@@ -1,6 +1,6 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NestedEnumDeclaration.op,v 1.1 2007/05/07 15:20:30 chance Exp $
 public operator NestedEnumDeclaration extends EnumDeclaration 
-implements NestedDeclInterface
+implements NestedDeclInterface, ClassBodyDeclInterface
 {
   // Exactly like EnumDecl
   syntax {
