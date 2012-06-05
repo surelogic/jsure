@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing.plaf" release="1">
+    <class name="DimensionUIResource">
+        <constructor params="int, int">
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+    </class>
+</package>
