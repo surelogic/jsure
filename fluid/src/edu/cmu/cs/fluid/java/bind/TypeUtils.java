@@ -831,6 +831,15 @@ public class TypeUtils {
 		public Mapping computeTypeMapping() {
 			if (useNewTypeInference) {
 				inferTypeParameters(map, constraints);
+				
+				// Make sure that the variables are at worst the same as the original bound
+				for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {
+					final IJavaType origBound = e.getKey().getSuperclass(tEnv);
+					final IJavaType origSubst = substitute(map.subst, origBound);
+					if (!tEnv.isSubType(e.getValue(), origSubst)) {						
+						e.setValue(origSubst);
+					}
+				}
 			}
 			return map;
 		}
