@@ -63,7 +63,7 @@ import edu.cmu.cs.fluid.version.Version;
  */
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
-  private static final IJavaType[] noTypes = new IJavaType[0];
+  private static final IJavaType[] noTypes = JavaGlobals.noTypes;
   
   public static volatile boolean foundIssue = false;  
   public static final AtomicInteger issueCount = new AtomicInteger(0);
