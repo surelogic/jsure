@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.Messages;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
@@ -347,8 +348,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		// FIX From IR
 		IRNode decl = getNode();
 		if (decl == null) {
-			// XXX: Shouldn't his be "All"???
-			return "Static".equals(regionName);
+			return RegionRules.STATIC.equals(regionName) || PromiseConstants.REGION_ALL_NAME.equals(regionName);
 			// throw new Error("decl is null");
 		}
 		if (!(JJNode.tree.getOperator(decl) instanceof VariableDeclarator)) {
