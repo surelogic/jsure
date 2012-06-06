@@ -637,6 +637,11 @@ public class JavaCanonicalizer {
     		IJavaPrimitiveType p = (IJavaPrimitiveType) t;
     		return p.getOp().createNode();
     	}
+    	if (t instanceof IJavaCaptureType) {
+    		IJavaCaptureType c = (IJavaCaptureType) t;
+    		// TODO what to do about the capture bounds?
+    		return createType(c.getWildcard());
+    	}
     	throw new IllegalStateException("Unexpected type: "+t);
     }
     
