@@ -153,6 +153,12 @@ public class ClassMemberSearch {
     
     if (s.visitSuperifaces()) {
       Iteratable<IJavaType> ifaces = tEnv.getSuperTypes(type);
+      if (!ifaces.hasNext()) {
+    	  // Due to inability to find a binding
+    	  //Iteratable<IJavaType> temp = tEnv.getSuperTypes(type);
+    	  //temp.next();
+    	  return; 
+      }
       IJavaType first              = ifaces.next();
       if (!ifaces.hasNext() && s.visitSuperclass()) {
         // Need to get 'superclass' of interface
