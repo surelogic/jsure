@@ -802,7 +802,11 @@ private long parseIntLiteral(String token) {
   protected IJavaType findJavaTypeByName_internal(final String name) {
 	IRNode t = findNamedType(name);
 	if (t != null) {
-	  return convertNodeTypeToIJavaType(t);
+	  if (TypeDeclaration.prototype.includes(t)) {
+		  return convertNodeTypeToIJavaType(t);
+	  } else {
+		  return null; // Probably a package
+	  }
 	} else {	  
 	  // Try to look up primitive types
 	  return javaTypeMap.get(name);
