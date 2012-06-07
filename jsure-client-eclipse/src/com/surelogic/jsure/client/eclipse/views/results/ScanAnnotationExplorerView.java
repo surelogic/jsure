@@ -12,6 +12,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -100,14 +101,16 @@ public class ScanAnnotationExplorerView extends
 	
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
-		manager.add(f_findType);
 		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
+		manager.add(f_findType);
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(f_findType);
 		manager.add(f_actionCollapseAll);
+		manager.add(new Separator());
+		manager.add(f_findType);
 	}
 
 	void handleOpenSource(IStructuredSelection s) {
