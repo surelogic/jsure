@@ -495,6 +495,16 @@ extends TripleLattice<Element<Integer>,
             new Add(getStackTop(s), lset)));
   }
 
+  /** Store the top of the stack into a local. */
+  public Store opSetAliasAware(final Store s, final IRNode local) {
+    if (!s.isValid()) return s;
+    final ImmutableHashOrderSet<Object> lset = EMPTY.addElement(local);
+    return pop(
+        apply(
+            apply(s, new Remove(lset)),
+            new Add(getStackTop(s), lset, local, mayAlias)));
+  }
+
   public static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
 
   /**
@@ -950,6 +960,7 @@ extends TripleLattice<Element<Integer>,
 					   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
 		  
 	  case IMMUTABLE:
+	    // TODO: Use the alias-aware constructor of ADD?
 		  return apply(push(s), new Add(NONVALUE, EMPTY.addElement(getStackTop(s)+1)));
 		  
 	  case SHARED:

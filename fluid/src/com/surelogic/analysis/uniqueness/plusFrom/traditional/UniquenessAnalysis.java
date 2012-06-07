@@ -784,9 +784,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       
       // we need to set RETURN to the return value,
       // so that allowReturn can be handled while popping actuals
-      if (mcall) {
+      if (mcall) { // method call
     	  s = pushReturnValue(mdecl,s);
-      } else if (s.isValid()){
+      } else if (s.isValid()){ // constructor call
     	  s = lattice.opGet(s,StoreLattice.getStackTop(s)-numActuals);
       }
       s = lattice.opSet(s, RETURN_VAR);
@@ -966,7 +966,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferInitializationOfVar(final IRNode node, final Store s) {
-      return lattice.opSet(s, node);
+      return lattice.opSetAliasAware(s, node);
     }
     
     @Override

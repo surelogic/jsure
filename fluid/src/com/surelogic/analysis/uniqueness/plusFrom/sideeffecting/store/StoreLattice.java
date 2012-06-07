@@ -487,6 +487,20 @@ extends TripleLattice<Element<Integer>,
             new Add(n, lset)));
   }
 
+  public Store opSetAliasAware(final Store s, final IRNode srcOp, final IRNode local) {
+    if (!s.isValid()) return s;
+    final ImmutableHashOrderSet<Object> lset = EMPTY.addElement(local);
+    final Integer n = getStackTop(s);
+    if (localStatus(s, n) == State.UNDEFINED) {
+      sideEffects.recordBadSet(local, srcOp);
+    }
+    
+    return pop(
+        apply(
+            apply(s, new Remove(lset)),
+            new Add(n, lset, local, mayAlias)));
+  }
+  
   public static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
 
   /**
@@ -952,6 +966,7 @@ extends TripleLattice<Element<Integer>,
 					   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
 		  
 	  case IMMUTABLE:
+      // TODO: Use the alias-aware constructor of ADD?
 		  return apply(push(s), new Add(NONVALUE, EMPTY.addElement(getStackTop(s)+1)));
 		  
 	  case SHARED:
