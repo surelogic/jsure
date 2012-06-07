@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -1238,52 +1239,68 @@ public final class Effects implements IBinderClient {
         final Set<Target> targets, final Set<Target> newTargets) {
       if (target instanceof InstanceTarget) {
         final IRNode expr = target.getReference();
-        final Operator op = JJNode.tree.getOperator(expr);
-        /*
-         * EffectsVisitor does not generate InstanceTargets whose reference is a
-         * ThisExpression, SuperExpression, or QualifiedThisExpression. They have
-         * already been canonicalized to ReceiverDeclaration and
-         * QualifiedReceiverDeclarations: there is no need to have BCA do it for
-         * us.
+        
+        /* If the expression is of an @Immutable type, we can ignore the effect.
          */
-        if (VariableUseExpression.prototype.includes(op)) {
-          elaborateUseExpression(expr, target, targets, newTargets);
-        } else if (FieldRef.prototype.includes(op)) {
-          elaborateFieldRef(expr, target, targets, newTargets);
-        } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
-          elaborateQualifiedRcvrRef(expr, target, targets, newTargets);
-        } else if (ParameterDeclaration.prototype.includes(op) ||
-            ReceiverDeclaration.prototype.includes(op) ||
-            MethodCall.prototype.includes(op)) {
-          final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
-              JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
-              
-          /* If the expr is an immutable ref, then we ignore the target by
-           * simply marking it as elaborated and replacing it with a 
-           * an empty target.
+        final IJavaType jType = binder.getJavaType(expr);
+        if (jType instanceof IJavaDeclaredType
+            && LockRules.isImmutableType(((IJavaDeclaredType) jType).getDeclaration())) {
+          /* Ignore the target by simply marking it as elaborated and replacing
+           * it with a an empty target.
            */
-          if (LockRules.isImmutableRef(nodeToTest)) {
-            targets.add(
-                targetFactory.createEmptyTarget(new EmptyEvidence(
-                    EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
-            elaborated.add(target);
-          }
-          
-          /* If the expr is a read only ref, then we replace the target with 
-           * a class target on Object:All.
-           */
-          if (UniquenessRules.isReadOnly(nodeToTest)) {
-            targets.add(
-                targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
-            elaborated.add(target);
-          }
-        } else if (OpUtil.isNullExpression(expr)) {
-          /* Public bug 37: if the actual argument is "null" then we ignore 
-           * the effect because there is no object. 
-           */
-          targets.add(targetFactory.createEmptyTarget(
-                  new EmptyEvidence(Reason.NULL_REFERENCE, target, expr)));
+          targets.add(
+              targetFactory.createEmptyTarget(new EmptyEvidence(
+                  EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, expr)));
           elaborated.add(target);
+        } else {
+          // Process the expression further
+          final Operator op = JJNode.tree.getOperator(expr);
+          /*
+           * EffectsVisitor does not generate InstanceTargets whose reference is a
+           * ThisExpression, SuperExpression, or QualifiedThisExpression. They have
+           * already been canonicalized to ReceiverDeclaration and
+           * QualifiedReceiverDeclarations: there is no need to have BCA do it for
+           * us.
+           */
+          if (VariableUseExpression.prototype.includes(op)) {
+            elaborateUseExpression(expr, target, targets, newTargets);
+          } else if (FieldRef.prototype.includes(op)) {
+            elaborateFieldRef(expr, target, targets, newTargets);
+          } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
+            elaborateQualifiedRcvrRef(expr, target, targets, newTargets);
+          } else if (ParameterDeclaration.prototype.includes(op) ||
+              ReceiverDeclaration.prototype.includes(op) ||
+              MethodCall.prototype.includes(op)) {
+            final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
+                JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
+                
+            /* If the expr is an immutable ref, then we ignore the target by
+             * simply marking it as elaborated and replacing it with a 
+             * an empty target.
+             */
+            if (LockRules.isImmutableRef(nodeToTest)) {
+              targets.add(
+                  targetFactory.createEmptyTarget(new EmptyEvidence(
+                      EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
+              elaborated.add(target);
+            }
+            
+            /* If the expr is a read only ref, then we replace the target with 
+             * a class target on Object:All.
+             */
+            if (UniquenessRules.isReadOnly(nodeToTest)) {
+              targets.add(
+                  targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
+              elaborated.add(target);
+            }
+          } else if (OpUtil.isNullExpression(expr)) {
+            /* Public bug 37: if the actual argument is "null" then we ignore 
+             * the effect because there is no object. 
+             */
+            targets.add(targetFactory.createEmptyTarget(
+                    new EmptyEvidence(Reason.NULL_REFERENCE, target, expr)));
+            elaborated.add(target);
+          }
         }
       }
     }
