@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -238,6 +239,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
               } else if (ty instanceof IJavaArrayType) {
                 // not presently supported in region annotations, convert to
                 // any(Object):Instance
+                ty = javaLangObject;
+                region = RegionModel.getInstanceRegion(member);
+              } else if (ty instanceof IJavaIntersectionType) {
                 ty = javaLangObject;
                 region = RegionModel.getInstanceRegion(member);
               } else {
