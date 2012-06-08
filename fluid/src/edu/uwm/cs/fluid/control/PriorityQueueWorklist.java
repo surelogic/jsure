@@ -56,7 +56,8 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
    * @see edu.uwm.cs.fluid.control.Worklist#hasNext()
    */
   public boolean hasNext() {
-    return !pqueue.isEmpty();
+    return pqueue == null ? false : !pqueue.isEmpty();
+//    return !pqueue.isEmpty();
   }
 
   public int size() {
