@@ -4,7 +4,6 @@ import java.util.Set;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 
 public final class NullSideEffects implements ISideEffects {
   public static final NullSideEffects prototype = new NullSideEffects();
@@ -55,16 +54,6 @@ public final class NullSideEffects implements ISideEffects {
 
   
   // ==================================================================
-  // == Good Values
-  // ==================================================================
-  
-  public UniquenessControlFlowDrop getCFDrop() {
-    throw new RuntimeException("bad!");
-  }
-
-  
-    
-  // ==================================================================
   // == Bad Values
   // ==================================================================
 
@@ -78,10 +67,6 @@ public final class NullSideEffects implements ISideEffects {
   // == Manage Result Drops
   // ==================================================================
 
-  public void cancelResults() {
-    // Do nothing
-  }
-  
   public void makeResultDrops() {
     // Do nothing
   }

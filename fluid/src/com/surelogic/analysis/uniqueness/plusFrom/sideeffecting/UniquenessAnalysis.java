@@ -32,8 +32,11 @@ import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
@@ -85,9 +88,14 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
+import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
+import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -272,6 +280,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // ==================================================================
  
   private static final class UniquenessRoot extends JavaForwardAnalysis<Store, StoreLattice> {
+    private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
+
     private final AtomicBoolean reworkFlag;
     private final IRNode flowUnit;
     private final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis;
@@ -289,17 +299,64 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     public void performAnalysis() {
-      // Root analysis always starts with side effects turned off.
-      realPerformAnalysis();
-
-      // Turn on side effects and rerun analysis one more time
-      final RealSideEffects se = new RealSideEffects(flowUnit, analysis);
-      lattice.setSideEffects(se);
-      reworkFlag.set(true);
-      reworkAll();
+      final String methodName =
+          JavaNames.genQualifiedMethodConstructorName(flowUnit);
+      final UniquenessControlFlowDrop controlFlowDrop =
+          new UniquenessControlFlowDrop(flowUnit);
       
-      // Dump the results into the sea
-      se.makeResultDrops();
+      final long tooLongDuration = IDE.getInstance().getIntPreference(
+          IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
+      final long startTime = System.nanoTime();
+      boolean gaveUp = false;
+      
+      /* Do the analysis without side-effects.  Trap for time-out errors. */
+      try {
+        realPerformAnalysis();
+        
+        // Did we take too long?
+        final long endTime = System.nanoTime();
+        final long duration = endTime - startTime;
+        if (duration > tooLongDuration) {
+          final InfoDropBuilder info =
+            InfoDropBuilder.create(analysis, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
+          analysis.setResultDependUponDrop(info, flowUnit);
+          info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
+              methodName, duration / NANO_SECONDS_PER_SECOND);
+          info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
+          info.addDependUponDrop(controlFlowDrop);
+        }
+      } catch (final FlowAnalysis.AnalysisGaveUp e) {
+        // Analysis of the flow unit gave up
+        final long endTime = System.nanoTime();
+        final long duration = endTime - startTime;
+        gaveUp = true;
+        
+        final ResultDropBuilder timeOutResult = 
+            ResultDropBuilder.create(analysis, Messages.toString(Messages.TIMEOUT));
+        analysis.setResultDependUponDrop(timeOutResult, flowUnit);
+        timeOutResult.setTimeout();
+        timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
+        timeOutResult.setResultMessage(Messages.TIMEOUT,
+            e.timeOut / NANO_SECONDS_PER_SECOND,
+            methodName, duration / NANO_SECONDS_PER_SECOND);
+        timeOutResult.addCheckedPromise(controlFlowDrop);
+          
+        /* TODO: Add "time out" result to
+         * (2) Borrowed promises of the method's
+         * parameters, and (3) Unique promise on the method's return node,
+         */
+      }
+
+      if (!gaveUp) {
+        // Turn on side effects and rerun analysis one more time
+        final RealSideEffects se = new RealSideEffects(controlFlowDrop, analysis);
+        lattice.setSideEffects(se);
+        reworkFlag.set(true);
+        reworkAll();
+        
+        // Dump the results into the sea
+        se.makeResultDrops();
+      }
     }
   }
   

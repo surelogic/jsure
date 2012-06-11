@@ -94,6 +94,8 @@ public final class Messages  {
     code2name.put(RETURN_IS_NULL, "?");
     code2name.put(ASSIGN_IS_NULL, "?");
     code2name.put(CONTROL_FLOW_ROOT, "?");
+    code2name.put(TIMEOUT, "?");
+    code2name.put(TOO_LONG, "?");
   }
   
   public static String toString(int code) {

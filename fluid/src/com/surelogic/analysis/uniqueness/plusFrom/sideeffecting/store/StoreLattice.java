@@ -42,7 +42,6 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -1360,15 +1359,15 @@ extends TripleLattice<Element<Integer>,
   
   
   
-  // ==================================================================
-  // == Manage side effects
-  // ==================================================================
-
-  public UniquenessControlFlowDrop getCFDrop() {
-    return sideEffects.getCFDrop();
-  }
-  
-  public void cancelResults() {
-    sideEffects.cancelResults();
-  }
+//  // ==================================================================
+//  // == Manage side effects
+//  // ==================================================================
+//
+//  public UniquenessControlFlowDrop getCFDrop() {
+//    return sideEffects.getCFDrop();
+//  }
+//  
+//  public void cancelResults() {
+//    sideEffects.cancelResults();
+//  }
 }

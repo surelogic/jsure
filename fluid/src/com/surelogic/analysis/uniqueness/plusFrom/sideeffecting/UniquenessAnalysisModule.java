@@ -26,7 +26,6 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalys
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.NormalErrorQuery;
-import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -60,7 +59,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
@@ -68,17 +66,11 @@ import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutableRefPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Unused> {
-  private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
-
-  
-  
   /**
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.
@@ -197,76 +189,24 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
     final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
     final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
-//    final String methodName = JavaNames.genQualifiedMethodConstructorName(node.methodDecl);
-//
-//    StoreLattice sl = null;
-//    // Prepare for 'too long' warning
-//    final long tooLongDuration = IDE.getInstance().getIntPreference(
-//        IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
-//    final long startTime = System.nanoTime();
-//    try {
-//      // Get the analysis object, which triggers the control flow analysis
-//      sl = getAnalysis().getAnalysis(node.methodDecl).getLattice();
 
-      /* if decl is a constructor declaration or initializer declaration, we need to
-       * scan the containing type and process the field declarations and
-       * initializer blocks.
-       */
-      if (isInit || isClassInit || isConstructorDecl) {
-        for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
-          if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
-            if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
-              analyzeSubtree(node.methodDecl, pr, bodyDecl);
-            }
+    /* if decl is a constructor declaration or initializer declaration, we need to
+     * scan the containing type and process the field declarations and
+     * initializer blocks.
+     */
+    if (isInit || isClassInit || isConstructorDecl) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
+        if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
+          if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+            analyzeSubtree(node.methodDecl, pr, bodyDecl);
           }
         }
       }
-      
-      if (isConstructorDecl || isMethodDecl) {
-        analyzeSubtree(node.methodDecl, pr, node.methodDecl);
-      }
-      
-//      // Did we take too long?
-//      final long endTime = System.nanoTime();
-//      final long duration = endTime - startTime;
-//      if (duration > tooLongDuration) {
-//        final InfoDropBuilder info =
-//          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
-//        this.setResultDependUponDrop(info, node.methodDecl);
-//        info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
-//            methodName, duration / NANO_SECONDS_PER_SECOND);
-//        info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-//        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecks()) {
-//          info.addDependUponDrop(pd);
-//        }
-//        info.addDependUponDrop(sl.getCFDrop());
-//      }
-//    } catch (final FlowAnalysis.AnalysisGaveUp e) {
-//      final long endTime = System.nanoTime();
-//      final long duration = endTime - startTime;
-//      sl = ((UniquenessAnalysis.Uniqueness) e.fa).getLattice();
-//      
-//      // kill any partial results
-//      sl.cancelResults();
-//
-//      // TODO: Copy the stuff from the class.sideeffecting version
-//      
-//      /* (1) Mark our control flow drop as timed out */
-//      pr.controlFlow.setTimeout();
-//      pr.controlFlow.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
-//      pr.controlFlow.setResultMessage(Messages.TIMEOUT, e.timeOut / NANO_SECONDS_PER_SECOND,
-//          methodName, duration / NANO_SECONDS_PER_SECOND);
-//      
-//      /* (2) Invalidate all our calledUniqueParam results, because we don't need
-//       * them now.  The unique params we call will be marked as unassured because
-//       * they depend on our control flow drop.
-//       */
-//      for (final ResultDropBuilder r : pr.calledUniqueParams) {
-//        r.invalidate();
-//      }
-//
-//      System.out.println(".............. Gave up analyzing " + methodName);
-//    }
+    }
+    
+    if (isConstructorDecl || isMethodDecl) {
+      analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+    }
 	}
 
 	private void analyzeSubtree(

@@ -114,9 +114,9 @@ public final class RealSideEffects implements ISideEffects {
   // === Constructor 
   // ==================================================================
 
-  public RealSideEffects(final IRNode flowUnit,
+  public RealSideEffects(final UniquenessControlFlowDrop cfd,
       final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> a) {
-    controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
+    controlFlowDrop = cfd;
     analysis = a;
   }
   
@@ -211,15 +211,6 @@ public final class RealSideEffects implements ISideEffects {
   }
 
   
-  // ==================================================================
-  // == Good Values
-  // ==================================================================
-  
-  public UniquenessControlFlowDrop getCFDrop() {
-    return controlFlowDrop;
-  }
-
-  
     
   // ==================================================================
   // == Bad Values
@@ -237,12 +228,6 @@ public final class RealSideEffects implements ISideEffects {
   // == Manage Result Drops
   // ==================================================================
 
-  public void cancelResults() {
-    for (final ResultDropBuilder drop : drops) {
-      drop.invalidate();
-    }
-  }
-  
   private ResultDropBuilder createResultDrop(
       final boolean abruptDrops, final boolean addToControlFlow,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
