@@ -578,14 +578,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           if (!TypeUtil.isStatic(mdecl)) {
             final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
             final int depth = OuterObjectSpecifier.prototype.includes(callSrcOp) ? numFormals + 1 : numFormals;
-            s = checkMutationOfParameters(s, t, rcvr, depth);
+            s = checkMutationOfParameters(s, t, rcvr, depth); // XXX: May be generating bogus errors from opGet()
           }
           
           for (int i = 0; i < numFormals; ++i) {
             // Create "writes(p:Instance)"
             final IRNode formal = tree.getChild(formals, i);
             s = checkMutationOfParameters(
-                s, t, formal, computeDepthOfFormal(numFormals, i));
+                s, t, formal, computeDepthOfFormal(numFormals, i)); // XXX: May be generating bogus errors from opGet()
           }
         }
       }
@@ -966,6 +966,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           final IRNode outerObject = OuterObjectSpecifier.getObject(outerObjectSpec);
           
           if (!s.isValid()) return s;
+          // XXX: This opGet() calls makes errors on outer object references get error checked differently than the receiver and the other args because they do not use an opGet().
           /* Handle value under top: (1) copy it onto top; (2) compromise
            * new top and discard it; (3) popSecond
            */
