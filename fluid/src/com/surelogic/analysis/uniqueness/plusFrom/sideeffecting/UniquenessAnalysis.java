@@ -1,7 +1,9 @@
 package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +19,7 @@ import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.BuriedMessage;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.RealSideEffects;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
@@ -70,6 +73,7 @@ import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
@@ -465,7 +469,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(
-        final IRNode call, final IRNode mdecl, final IRNode actualRcvr,
+        final IRNode callSrcOp, final IRNode mdecl, final IRNode actualRcvr,
         final int numFormals, final IRNode formals,
         final RegionEffectsPromiseDrop fxDrop,
         final List<Effect> declEffects, Store s) {
@@ -548,7 +552,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (actualStackDepth == null) {
         	s = lattice.opExisting(s, State.SHARED, null);
         } else {
-        	s = lattice.opDup(s, call, actualStackDepth); 
+        	s = lattice.opDup(s, callSrcOp, actualStackDepth); 
         }
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
@@ -557,11 +561,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (r.isAbstract()) {
             // it could refer to almost anything
             // everything reachable from this pointer is alias buried:
-        	s = lattice.opLoadReachable(s, call, fxDrop);
+        	s = lattice.opLoadReachable(s, callSrcOp, fxDrop);
         	s = lattice.opRelease(s);
         } else {
         	// it's a field, load and discard.
-        	s = lattice.opLoad(s, call, r.getNode());
+        	s = lattice.opLoad(s, callSrcOp, r.getNode());
         	s = lattice.opRelease(s);
         }
         
@@ -573,7 +577,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
            */
           if (!TypeUtil.isStatic(mdecl)) {
             final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
-            final int depth = hasOuterObject(call) ? numFormals + 1 : numFormals;
+            final int depth = OuterObjectSpecifier.prototype.includes(callSrcOp) ? numFormals + 1 : numFormals;
             s = checkMutationOfParameters(s, t, rcvr, depth);
           }
           
@@ -884,6 +888,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
       final boolean mcall = MethodCall.prototype.includes(op);
+      /* Results look better if we use the outer object specifier (if any) as
+       * the source operation. 
+       */
+      final IRNode outerObjectSpec = getOuterObject(node);
+      final IRNode srcOp = outerObjectSpec == null ? node : outerObjectSpec;
       
       final CallInterface call = (CallInterface) op;
       IRNode actuals;
@@ -912,7 +921,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       try {
         if (mdecl != null) {
           s = considerDeclaredEffects(
-              node, mdecl, receiverNode, numActuals, formals,
+              srcOp, mdecl, receiverNode, numActuals, formals,
               MethodEffectsRules.getRegionEffectsDrop(mdecl),
               effects.getMethodEffects(mdecl, node), s);
         }
@@ -922,9 +931,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (mcall) { // method call
           s = pushReturnValue(mdecl,s);
         } else if (s.isValid()) { // constructor call
-          s = lattice.opGet(s, node, StoreLattice.getStackTop(s)-numActuals);
+          s = lattice.opGet(s, srcOp, StoreLattice.getStackTop(s)-numActuals);
         }
-        s = lattice.opSet(s, node, RETURN_VAR);
+        s = lattice.opSet(s, srcOp, RETURN_VAR);
          
         /* If the call is "super(...)" and the flow unit is a constructor
          * from a nested class, then we have to copy the IPQR to the IFQR.
@@ -936,9 +945,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               TypeUtil.isNested(enclosingType)) {
             final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
             final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(enclosingType);
-            s = lattice.opGet(s, node, ipqr); // read from the parameter
+            s = lattice.opGet(s, srcOp, ipqr); // read from the parameter
             if (UniquenessRules.isBorrowed(ifqr)) {
-              s = lattice.opReturn(s, node, ifqr);
+              s = lattice.opReturn(s, srcOp, ifqr);
               s = lattice.opRelease(s);
             } else {
               s = lattice.opCompromise(s);
@@ -950,16 +959,17 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (numActuals > 0) {
           s = popArguments(numActuals, actuals, formals, s);
         }
-        final IRNode outerObject = getOuterObject(node);
-        if (outerObject != null) {
+        if (outerObjectSpec != null) {
           if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Popping qualifier");
           }
+          final IRNode outerObject = OuterObjectSpecifier.getObject(outerObjectSpec);
+          
           if (!s.isValid()) return s;
           /* Handle value under top: (1) copy it onto top; (2) compromise
            * new top and discard it; (3) popSecond
            */
-          s = lattice.opGet(s, node, StoreLattice.getUnderTop(s));
+          s = lattice.opGet(s, outerObject, StoreLattice.getUnderTop(s));
           
           s = popQualifiedReceiver(mdecl, s, outerObject);
           if (!s.isValid()) return s;
@@ -967,14 +977,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
            * and changing the variable just under the top to have the value that 
            * was on the top of the stack.
            */
-          s = lattice.opSet(s, node, StoreLattice.getUnderTop(s));
+          s = lattice.opSet(s, srcOp, StoreLattice.getUnderTop(s));
         }
     
         // for method calls (need return value)
         // for new expressions (object already duplicated)
         // and for constructor calls (also already duplicated)
         // we pop the receiver.
-        s = popReceiver(mdecl, s, (receiverNode == null) ? node : receiverNode);
+        s = popReceiver(mdecl, s, (receiverNode == null) ? srcOp : receiverNode);
       } finally {
         lattice.setSuppressDrops(false);
       }
@@ -983,19 +993,19 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         LOG.fine("After handling receivers/qualifiers/parameter: " + s);
       }
       if (isNormal) { // call succeeded
-    	  s = lattice.opGet(s, node, RETURN_VAR);
+    	  s = lattice.opGet(s, srcOp, RETURN_VAR);
     	  // kill return value
     	  s = lattice.opNull(s);
-    	  s = lattice.opSet(s, node, RETURN_VAR);
+    	  s = lattice.opSet(s, srcOp, RETURN_VAR);
         return s;
       } else {
         lattice.setAbruptResults(true);
         try {
       	  // kill return value
       	  s = lattice.opNull(s);
-      	  s = lattice.opSet(s,node, RETURN_VAR);
+      	  s = lattice.opSet(s, srcOp, RETURN_VAR);
           // we pop all pending
-          s = popAllPending(s, node);
+          s = popAllPending(s, srcOp);
         } finally {
           lattice.setAbruptResults(false);
         }
@@ -1152,7 +1162,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             MethodDeclaration.prototype.includes(mOp) && 
             !VoidType.prototype.includes(MethodDeclaration.getReturnType(mdecl))) {
           final IRNode rnode = JavaPromise.getReturnNode(mdecl);
-          s = lattice.opGet(s, body, rnode);
+          s = lattice.opGet(s, body, rnode, BuriedMessage.RETURN);
           s = lattice.opRemoveFrom(s, rnode);
           if (lattice.isValueNode(rnode)) {
         	  // no check necessary: Java type system handles
@@ -1231,32 +1241,39 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final List<IRNode> externalVars =
           LocalVariableDeclarations.getExternallyDeclaredVariables(
               JavaPromise.getInitMethodOrNull(node));
-      boolean usedExternal = false;
+      final Set<IRNode> usedExternalVars = new HashSet<IRNode>();
+      boolean usesExternal = false;
   	  for (final IRNode n : tree.bottomUp(classBody)) {
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
           if (externalVars.contains(decl)) {
-            usedExternal = true;
-       		  //XXX: Here we compromise.  If we want to
-       		  // be less conservative than this (and this will give errors
-       		  // if the value is ReadOnly), we need to use both the
-       		  // possible borrowed-ness of the local FQR, but also
-       		  // need an annotation on the local specific to the NCD or ACE.
-            
-            // TODO: DOn't use 'n' here.
-       		  s = lattice.opCompromise(lattice.opGet(s, n, decl));                	
+            usesExternal = true;
+            usedExternalVars.add(decl);
+//       		  //XXX: Here we compromise.  If we want to
+//       		  // be less conservative than this (and this will give errors
+//       		  // if the value is ReadOnly), we need to use both the
+//       		  // possible borrowed-ness of the local FQR, but also
+//       		  // need an annotation on the local specific to the NCD or ACE.
+//            
+//            // TODO: DOn't use 'n' here.
+//       		  s = lattice.opCompromise(lattice.opGet(s, n, decl));                	
           }
         } else if (QualifiedThisExpression.prototype.includes(n)) {
-         	usedExternal = true;
+         	usesExternal = true;
         }
       }
           
+  	  // Compromise the external variables that are used
+  	  for (final IRNode v : usedExternalVars) {
+  	    s = lattice.opCompromise(lattice.opGet(s, node, v, BuriedMessage.EXTERNAL_VAR));
+  	  }
+  	  
       /* If we used outer things and we aren't in a static context then
        * compromise "this" of the method that contains the nested class, because
        * that is the only reference that can be the actual outer object.
        */
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
-      if (usedExternal && rcvr != null) { 
+      if (usesExternal && rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
         s = lattice.opCompromise(lattice.opGet(s, classBody, rcvr));
       }

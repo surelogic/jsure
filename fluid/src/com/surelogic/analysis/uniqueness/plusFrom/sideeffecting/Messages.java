@@ -46,6 +46,7 @@ public final class Messages  {
   public static final int UNDEFINED_BY = 324;  
   public static final int READ_OF_BURIED = 325;
   public static final int RETURN_OF_BURIED = 360; // ** out of order
+  public static final int READ_OF_BURIED_EXTERNAL = 361; // ** out of order
   public static final int BURIED_BY = 326;
   public static final int SHARED_NOT_UNIQUE_ACTUAL = 327;
   public static final int SHARED_NOT_UNIQUE_RETURN = 328;
@@ -123,6 +124,7 @@ public final class Messages  {
     code2name.put(ASSIGN_IS_NULL, "?");
     code2name.put(CONTROL_FLOW_ROOT, "?");
     code2name.put(RETURN_OF_BURIED, "?");
+    code2name.put(READ_OF_BURIED_EXTERNAL, "?");
   }
   
   public static String toString(int code) {

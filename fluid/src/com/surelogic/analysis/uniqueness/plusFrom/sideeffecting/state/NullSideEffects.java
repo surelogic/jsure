@@ -37,7 +37,8 @@ public final class NullSideEffects implements ISideEffects {
   // == Alias burying
   // ==================================================================
   
-  public void recordBuriedRead(final IRNode srcOp, final Object local) {
+  public void recordBuriedRead(final IRNode srcOp, final Object local,
+      final BuriedMessage msg) {
     // Do nothing
   }
   

@@ -15,7 +15,6 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
@@ -162,9 +161,10 @@ public final class RealSideEffects implements ISideEffects {
   // == Alias burying
   // ==================================================================
   
-  public void recordBuriedRead(final IRNode srcOp, final Object local) {
+  public void recordBuriedRead(final IRNode srcOp, final Object local,
+      final BuriedMessage msg) {
     if (!suppressDrops) {
-      buriedReads.add(new BuriedRead(local, srcOp, abruptDrops));
+      buriedReads.add(new BuriedRead(msg, local, srcOp, abruptDrops));
     }
   }
   
@@ -187,7 +187,6 @@ public final class RealSideEffects implements ISideEffects {
       for (final Object v : affectedVars) {
         if (v instanceof Integer) {
           addToMappedSet(stackBuriedAt, (Integer) v, srcOp);
-
         }
       }
     }
@@ -268,14 +267,12 @@ public final class RealSideEffects implements ISideEffects {
   public void makeResultDrops() {
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
-      final boolean varIsReturn = (read.var instanceof IRNode)
-          && ReturnValueDeclaration.prototype.includes((IRNode) read.var);          
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
           final ResultDropBuilder r = createResultDrop(read.isAbrupt,
               UniquenessUtils.getFieldUniqueOrBorrowed(e.getKey()), read.srcOp,              
-              false, varIsReturn ? Messages.RETURN_OF_BURIED : Messages.READ_OF_BURIED);
+              false, read.getMessage(), read.getVarArgs());
           for (final IRNode buriedAt : e.getValue()) {
             r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
                 DebugUnparser.toString(buriedAt));

@@ -14,6 +14,7 @@ import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.BuriedMessage;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.ISideEffects;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.NullSideEffects;
 import com.surelogic.annotation.rules.LockRules;
@@ -433,12 +434,17 @@ extends TripleLattice<Element<Integer>,
    * Fetch the value of a local onto stack.
    **/
   public Store opGet(final Store s, final IRNode srcOp, final Object local) {
+    return opGet(s, srcOp, local, BuriedMessage.VAR);
+  }
+  
+  public Store opGet(final Store s, final IRNode srcOp, final Object local,
+      final BuriedMessage msg) {
     if (!s.isValid()) return s;
     if (localStatus(s, local) != State.UNDEFINED) {
       Store temp = push(s);
       return apply(temp, new Add(local, EMPTY.addElement(getStackTop(temp))));
     } else {
-      sideEffects.recordBuriedRead(srcOp, local);
+      sideEffects.recordBuriedRead(srcOp, local, msg);
       // TODO: return opNull(s);
 
       // TODO: kill these lines

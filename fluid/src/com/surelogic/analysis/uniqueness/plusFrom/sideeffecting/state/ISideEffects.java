@@ -20,7 +20,7 @@ public interface ISideEffects {
   // == Alias burying
   // ==================================================================
   
-  public void recordBuriedRead(IRNode srcOp, Object local);
+  public void recordBuriedRead(IRNode srcOp, Object local, BuriedMessage msg);
   
   public void recordBuryingFieldRead(IRNode fieldDecl,
       Set<Object> affectedVars, IRNode srcOp);
