@@ -445,12 +445,8 @@ extends TripleLattice<Element<Integer>,
       return apply(temp, new Add(local, EMPTY.addElement(getStackTop(temp))));
     } else {
       sideEffects.recordBuriedRead(srcOp, local, msg);
-      // TODO: return opNull(s);
-
-      // TODO: kill these lines
-      final String name = (local instanceof IRNode) ? DebugUnparser
-          .toString((IRNode) local) : local.toString();
-      return errorStore("read undefined local: " + name);
+      // keep going: return null value 
+      return opNull(s);
     }
   }
 
