@@ -10,7 +10,10 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTriple;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -19,6 +22,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
+import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.Triple;
 
 public final class RealSideEffects implements ISideEffects {
@@ -50,7 +55,39 @@ public final class RealSideEffects implements ISideEffects {
    * given a generic "invariants respected" result.
    */
   private boolean hasControlFlowResults = false;
-
+  
+  /**
+   * Track which unique fields are possibly compromised and where. This is a map
+   * from field declaration IRNodes to a set of IRNodes indicating source
+   * locations where the field may have been compromised. Built by
+   * {@link StoreLattice#opCompromiseNoRelease(Store, IRNode) and
+   * {@link StoreLattice#opConsume} when the state is SHARED.
+   */
+  private final Map<IRNode, Set<IRNode>> compromisedAt =
+    new HashMap<IRNode, Set<IRNode>>();
+  
+  /**
+   * Track which unique fields are made undefined and where. This is a map
+   * from field declaration IRNodes to a set of IRNodes indicating source
+   * locations where the field may have been made undefined. Built by
+   * {@link StoreLattice#opConsume(Store, IRNode, State)} when the state is
+   * UNIQUE
+   */
+  private final Map<IRNode, Set<IRNode>> undefinedAt =
+    new HashMap<IRNode, Set<IRNode>>();
+  
+  /**
+   * Records where compromised fields are loaded as the result of executing a method.  After analysis is over,
+   * we cross reference this set with {@link #compromisedAt} and {@link #undefinedAt} to determine
+   * where the loaded value may have been compromised.  Map from 
+   * field declaration IRNodes to a set of IRNodes indicating locations where
+   * the field is read and found to be compromised.
+   */
+  private final Map<IRNode, Set<CompromisedField>> indirectlyLoadedCompromisedFields =
+    new HashMap<IRNode, Set<CompromisedField>>();
+  private final Map<IRNode, Set<CompromisedField>> indirectlyLoadedCompromisedFieldsAbrupt =
+    new HashMap<IRNode, Set<CompromisedField>>();
+  
   /**
    * Records where variables with buried references are read. Built by
    * {@link #opGet(Store, IRNode, Object)}. After analysis, this is cross
@@ -77,6 +114,16 @@ public final class RealSideEffects implements ISideEffects {
    * assignments.
    */
   private final Map<Object, Set<IRNode>> badSets = new HashMap<Object, Set<IRNode>>();
+
+  /**
+   * Track which stack locations are made undefined and where. This is a map
+   * from stack indices to sets of IRNodes indicating source locations where the
+   * stack location may have been made undefined by use of a value as a unique
+   * parameter. Built by {@link #opUndefine(Store, IRNode)}. Used when handling
+   * "undefined" errors to out why the stack position is undefined.
+   */
+  private final Map<Integer, Set<IRNode>> stackUndefinedAt =
+    new HashMap<Integer, Set<IRNode>>();
 
   /**
    * Track which stack locations are buried by unique field reads and where.  This is a map
@@ -157,6 +204,62 @@ public final class RealSideEffects implements ISideEffects {
   
   
 
+  // ==================================================================
+  // == Compromising unique fields
+  // ==================================================================
+  
+  public void recordCompromisingOfUnique(
+      final IRNode srcOp, final Integer topOfStack, final State localStatus,
+      final ImmutableSet<FieldTriple> fieldStore) {
+    recordLossOfUniqueness(srcOp, topOfStack, localStatus, fieldStore, compromisedAt);
+    // Do Nothing
+  }
+  
+  public void recordUndefiningOfUnique(
+      final IRNode srcOp, final Integer topOfStack, final State localStatus,
+      final Store s) {
+    if (!suppressDrops) {
+      recordLossOfUniqueness(srcOp, topOfStack, localStatus, s.getFieldStore(), undefinedAt);
+      // Find all the stack locations about to made undefined
+      for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
+        if (object.contains(topOfStack)) {
+          for (final Object o : object) {
+            if (o instanceof Integer) {
+              addToMappedSet(stackUndefinedAt, (Integer) o, srcOp);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  private void recordLossOfUniqueness(final IRNode srcOp, final Integer topOfStack,
+      final State localStatus, final ImmutableSet<FieldTriple> fieldStore,
+      final Map<IRNode, Set<IRNode>> howLostMap) {
+    if (!suppressDrops) {
+      if (localStatus == State.UNIQUE || localStatus == State.UNIQUEWRITE) {
+        for (final FieldTriple ft : fieldStore) {
+          if (ft.third().contains(topOfStack)) {
+            addToMappedSet(howLostMap, ft.second(), srcOp);
+          }
+        }
+      }
+    }
+  }
+  
+  public void recordIndirectLoadOfCompromisedField(
+      final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
+    if (!suppressDrops) {
+      // Record look up of compromised field
+      addToMappedSet(
+          abruptDrops ? indirectlyLoadedCompromisedFieldsAbrupt :
+            indirectlyLoadedCompromisedFields,
+          fieldDecl, new CompromisedField(fieldState, srcOp));
+    }
+  }
+  
+
+  
   // ==================================================================
   // == Alias burying
   // ==================================================================
@@ -263,8 +366,40 @@ public final class RealSideEffects implements ISideEffects {
     return createResultDrop(
         abruptDrops, true, promiseDrop, node, isConsistent, msg, args);
   }
+  
+  private void crossReferenceKilledFields(
+      final int msg, final boolean isAbrupt,
+      final Map<IRNode, Set<CompromisedField>> compromisedFields) {
+    for (final Map.Entry<IRNode, Set<CompromisedField>> load : compromisedFields.entrySet()) {
+      final IRNode fieldDecl = load.getKey();
+      final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
+      final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
+      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getUnique(load.getKey()).getDrop();
+      
+      for (final CompromisedField cf : load.getValue()) {
+        final ResultDropBuilder r = createResultDrop(
+            isAbrupt, uniquePromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
+        if (compromises != null) {
+          for (final IRNode compromisedAt : compromises) {
+            r.addSupportingInformation(compromisedAt, Messages.COMPROMISED_BY,
+                DebugUnparser.toString(compromisedAt));
+          }
+        }
+        if (undefines != null) {
+          for (final IRNode undefinedAt : undefines) {
+            r.addSupportingInformation(undefinedAt, Messages.UNDEFINED_BY,
+                DebugUnparser.toString(undefinedAt));
+          }
+        }
+      }
+    }
+  }
 
   public void makeResultDrops() {
+    // Link loaded compromised fields with comprising locations
+    crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, false, indirectlyLoadedCompromisedFields);
+    crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, true, indirectlyLoadedCompromisedFieldsAbrupt);
+
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);

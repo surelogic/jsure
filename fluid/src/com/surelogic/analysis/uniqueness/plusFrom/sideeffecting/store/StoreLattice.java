@@ -754,17 +754,17 @@ extends TripleLattice<Element<Integer>,
     			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
     	}
       // Consume the item being assigned to the field as BORROWED
-      temp = opConsume(s, State.BORROWED);
+      temp = opConsume(s, srcOp, State.BORROWED);
     } else if (isValueNode(fieldDecl)) {
     	temp = opRelease(s); // Java Type system does all we need
     } else {
-    	temp = opConsume(s,declStatus(fieldDecl));
+    	temp = opConsume(s, srcOp, declStatus(fieldDecl));
     }
     /* Make sure that the object being dereferenced by the field assignment is
      * not undefined.  Can happen if the a @Borrowed parameter is assigned to
      * two or more fields of the object.
      */
-    return opConsume(temp, State.BORROWED);
+    return opConsume(temp, srcOp, State.BORROWED);
   }
 
   /**
@@ -842,10 +842,12 @@ extends TripleLattice<Element<Integer>,
           State newStatus = nodeStatus(newObject);
           if (UniquenessUtils.isUniqueWrite(t.second())){
         	  if (!State.lattice.lessEq(newStatus,State.UNIQUEWRITE)) {
+              sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUEWRITE, t.second());
         		  return errorStore("loaded compromised unique(allowRead) field");
         	  }
           } else {
         	  if (newStatus != State.UNIQUE) { 
+        	    sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUE, t.second());
         		  return errorStore("loaded compromised field");
         	  }
           }
@@ -935,15 +937,21 @@ extends TripleLattice<Element<Integer>,
   /**
    * Compromise the value on the top of the stack.
    */
-  public Store opCompromiseNoRelease(final Store s) {
+  public Store opCompromiseNoRelease(final Store s, final IRNode srcOp) {
+    if (!s.isValid()) return s;
+    final Integer n = getStackTop(s);
+    final State localStatus = localStatus(s, n);
+    sideEffects.recordCompromisingOfUnique(
+        srcOp,  n, localStatus, s.getFieldStore());
+    
 	  return opYieldTopState(opCheckTopState(s,State.SHARED),State.SHARED);
   }
   
   /**
    * Compromise the value on the top of the stack and then pop it off.
    */
-  public Store opCompromise(final Store s) {
-    return opConsume(s,State.SHARED);
+  public Store opCompromise(final Store s, final IRNode srcOp) {
+    return opConsume(s, srcOp, State.SHARED);
   }
 
   public Store opGenerate(final Store s, State required, IRNode exprORdecl) {
@@ -1066,7 +1074,16 @@ extends TripleLattice<Element<Integer>,
    * @param state required state of stack top which will be yielded.
    * @return store after
    */
-  public Store opConsume(final Store s, State state) {
+  public Store opConsume(final Store s, final IRNode srcOp, final State state) {
+    if (!s.isValid()) return s;
+    final Integer n = getStackTop(s);
+    final State localStatus = localStatus(s, n);
+    if (state == State.SHARED) {
+      sideEffects.recordCompromisingOfUnique(
+          srcOp,  n, localStatus, s.getFieldStore());
+    } else if (state == State.UNIQUE) {
+      sideEffects.recordUndefiningOfUnique(srcOp, n, localStatus, s);
+    }
 	  return opRelease(opYieldTopState(opCheckTopState(s,state),state));
   }
   

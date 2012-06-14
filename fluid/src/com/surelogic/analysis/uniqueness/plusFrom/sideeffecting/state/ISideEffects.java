@@ -2,8 +2,13 @@ package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state;
 
 import java.util.Set;
 
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTriple;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.util.ImmutableSet;
 
 public interface ISideEffects {
   // ==================================================================
@@ -17,6 +22,22 @@ public interface ISideEffects {
   
 
   // ==================================================================
+  // == Compromising unique fields
+  // ==================================================================
+  
+  public void recordCompromisingOfUnique(
+      IRNode srcOp, Integer topOfStack, State localStatus,
+      ImmutableSet<FieldTriple> fieldStore);
+  
+  public void recordUndefiningOfUnique(
+      IRNode srcOp, Integer topOfStack, State localStatus, Store s);
+  
+  public void recordIndirectLoadOfCompromisedField(
+      IRNode srcOp, final State fieldState, IRNode fieldDecl);
+  
+  
+  
+  // ==================================================================
   // == Alias burying
   // ==================================================================
   
@@ -29,6 +50,7 @@ public interface ISideEffects {
       Set<Object> affectedVars, IRNode srcOp,
       RegionEffectsPromiseDrop fxDrop);
 
+  
   
   // ==================================================================
   // == Bad Values

@@ -691,7 +691,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final int numActualsInArray = JJNode.tree.numChildren(lastActual);
         for (int count = 0; count < numActualsInArray; count++) {
           if (!s.isValid()) return s;
-          s = lattice.opCompromise(s);
+          s = lattice.opCompromise(s, JJNode.tree.getChild(lastActual, count));
         }
         if (!s.isValid()) return s;
         // push a new object to represent the array
@@ -708,10 +708,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (formal != null && UniquenessRules.isBorrowed(formal) && 
         		UniquenessRules.getBorrowed(formal).allowReturn()) {
         	s = addFromNode(s);
-    		System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
+        	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
         }
-        if (lattice.isValueNode(formal)) s = pop(s, formal);
-        else s = lattice.opConsume(s, lattice.declStatus(formal));
+        if (lattice.isValueNode(formal)) {
+          s = pop(s, formal);
+        } else {
+          s = lattice.opConsume(
+              s, JJNode.tree.getChild(actuals, n), lattice.declStatus(formal));
+        }
       }
       return s;
     }
@@ -736,7 +740,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       
       State required = lattice.receiverStatus(decl, recDecl);
       if (lattice.isValueNode(recDecl)) return pop(s, srcOp); // do nothing.  Type system will check
-      else return lattice.opConsume(s,required);
+      else return lattice.opConsume(s, srcOp, required);
     }
 
     /**
@@ -766,7 +770,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	if (lattice.isValueNode(qr)) { // unlikely
     		return pop(s, srcOp);
     	}
-    	return lattice.opConsume(s, lattice.declStatus(qr));
+    	return lattice.opConsume(s, srcOp, lattice.declStatus(qr));
     }
 
     /**
@@ -827,7 +831,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferArrayInitializer(final IRNode node, final Store s) {
     	// System.out.println("At array initializer, store is " + lattice.toString(s));
-      return lattice.opCompromise(s);
+      return lattice.opCompromise(s, node);
     }
     
     @Override
@@ -839,7 +843,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       s = lattice.opCheckMutable(s, StoreLattice.getUnderTop(s));
       if (!s.isValid()) return s;
       // [..., arrayRef, val]: Pop arrayRef, and compromise val
-      return lattice.opCompromiseNoRelease(popSecond(s, node));
+      return lattice.opCompromiseNoRelease(popSecond(s, node), node);
     }
     
     @Override
@@ -950,7 +954,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               s = lattice.opReturn(s, srcOp, ifqr);
               s = lattice.opRelease(s);
             } else {
-              s = lattice.opCompromise(s);
+              s = lattice.opCompromise(s, srcOp);
             }
           }
         }
@@ -1169,7 +1173,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	  // no check necessary: Java type system handles
         	  s = lattice.opRelease(s);
           } else {
-        	  s = lattice.opConsume(s, lattice.declStatus(rnode));
+        	  s = lattice.opConsume(s, rnode, lattice.declStatus(rnode));
           }
           if (fineIsLoggable) {
             LOG.fine("After handling return value of " + name + ": " + s);
@@ -1266,7 +1270,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           
   	  // Compromise the external variables that are used
   	  for (final IRNode v : usedExternalVars) {
-  	    s = lattice.opCompromise(lattice.opGet(s, node, v, BuriedMessage.EXTERNAL_VAR));
+  	    s = lattice.opCompromise(lattice.opGet(s, node, v, BuriedMessage.EXTERNAL_VAR), node);
   	  }
   	  
       /* If we used outer things and we aren't in a static context then
@@ -1276,7 +1280,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
       if (usesExternal && rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
-        s = lattice.opCompromise(lattice.opGet(s, classBody, rcvr));
+        s = lattice.opCompromise(lattice.opGet(s, classBody, rcvr), classBody);
       }
       return s;
 	  }
@@ -1311,7 +1315,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferThrow(final IRNode node, final Store s) {
-      return lattice.opCompromise(s);
+      return lattice.opCompromise(s, node);
     }
     
 	@Override

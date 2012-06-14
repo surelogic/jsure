@@ -40,7 +40,7 @@ public final class Messages  {
   public static final int ASSIGNED_UNDEFINED_BY = 318;
   public static final int BORROWED_PASSED_TO_BORROWED = 319;
   public static final int COMPROMISED_READ = 320;
-  public static final int COMPROMISED_INDIRECT_READ = 321;  
+  public static final int COMPROMISED_INDIRECT_READ = 361;  
   public static final int LOST_COMPROMISED_FIELD = 322;
   public static final int COMPROMISED_BY = 323;
   public static final int UNDEFINED_BY = 324;  
