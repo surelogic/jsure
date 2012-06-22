@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.EmptyVisitor;
@@ -35,6 +37,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 	IRNode superType;
 	IRNode[] ifaces = noNodes;
 	IRNode root;
+	final List<IRNode> annos = new ArrayList<IRNode>();
 	final List<IRNode> members = new ArrayList<IRNode>();
 	
 	public ClassAdapter(String project, ZipFile j, String qname, boolean inner, int mods) {
@@ -188,7 +191,13 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 	}
 
 	public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-		return null; // FIX
+		return new AnnoBuilder(desc) {
+			@Override
+			public void visitEnd() {
+				super.visitEnd();
+				annos.add(result);
+			}
+		};
 	}
 
 	public void visitAttribute(Attribute attr) {
@@ -232,33 +241,50 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		}
 	}
 
-	public FieldVisitor visitField(int access, String name, String desc,
-			String signature, Object value) {
+	public FieldVisitor visitField(final int access, final String name, final String desc,
+			final String signature, Object value) {
 		if ((access & Opcodes.ACC_PRIVATE) != 0) {
 			return null;
 		}
 		if (isEnumDecl()) {
 			IRNode result = SimpleEnumConstantDeclaration.createNode(name);
 			members.add(result);
-		} else {
-			IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX
-			int mods     = adaptModifiers(access);
-			IRNode type;
-			if (signature == null) {
-				type = adaptTypeDescriptor(desc);
-			} else {
-				//new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));			
-				FieldDeclVisitor tv = new FieldDeclVisitor();
-				new SignatureReader(signature).accept(tv);
-				type = tv.getType();
-			}			
-			IRNode vdecl = VariableDeclarator.createNode(name, 0, 
-					NoInitialization.prototype.jjtCreate());
-			IRNode vars  = VariableDeclarators.createNode(new IRNode[] { vdecl });
-			IRNode result = FieldDeclaration.createNode(annos, mods, type, vars);
-			members.add(result);
-		}
-		return null; // FIX for annos
+			return null;
+		} 
+		return new EmptyVisitor() {
+			final List<IRNode> annoList = new ArrayList<IRNode>();
+			
+			@Override
+			public AnnotationVisitor visitAnnotation(String typeDesc, boolean viz) {
+				return new AnnoBuilder(typeDesc) {
+					@Override
+					public void visitEnd() {
+						super.visitEnd();
+						annoList.add(result);					
+					}
+				};
+			}
+			@Override 
+			public void visitEnd() {
+				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
+				int mods     = adaptModifiers(access);
+				IRNode type;
+				if (signature == null) {
+					type = adaptTypeDescriptor(desc);
+				} else {
+					//new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));			
+					FieldDeclVisitor tv = new FieldDeclVisitor();
+					new SignatureReader(signature).accept(tv);
+					type = tv.getType();
+				}			
+				IRNode vdecl = VariableDeclarator.createNode(name, 0, 
+						NoInitialization.prototype.jjtCreate());
+				IRNode vars  = VariableDeclarators.createNode(new IRNode[] { vdecl });
+				IRNode result = FieldDeclaration.createNode(annos, mods, type, vars);
+				members.add(result);
+			}
+		};
+
 	}
 
 	private class FieldDeclVisitor extends TypeVisitor {
@@ -310,7 +336,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		}
 	}
 	
-	private <T> IRNode createParameters(T[] paramTypes, Function<T> func, 
+	private <T> IRNode createParameters(MultiMap<Integer,IRNode> paramAnnos, T[] paramTypes, Function<T> func, 
 			                            boolean skipFirstArg) {
 		final int num  = paramTypes.length;
 		/*
@@ -322,7 +348,14 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		IRNode[] nodes = new IRNode[size];
 		for(int i = 0; i<size; i++) {
 			final int index = skipFirstArg ? i+1 : i;
-			IRNode pAnnos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX
+			Collection<IRNode> annoList = paramAnnos.get(i);
+			final IRNode[] annos;
+			if (annoList == null) {
+				annos = noNodes;
+			} else {
+				annos = annoList.toArray(noNodes);
+			}
+			IRNode pAnnos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annos);
 			IRNode type   = func.call(paramTypes[index], null, index, size);
 			String id     = getDummyArg(index);
 			nodes[i] = ParameterDeclaration.createNode(pAnnos, 0, type, id);
@@ -350,8 +383,8 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 	 * signature includes generics if any
 	 * desc is the raw thing
 	 */
-	public MethodVisitor visitMethod(int access, String name,
-			String desc, String signature, String[] exceptions) {
+	public MethodVisitor visitMethod(int access, final String name,
+			final String desc, final String signature, final String[] exceptions) {
 		if (debug) {
 			System.out.println("Visiting "+name+" "+desc+" "+signature);
 		}
@@ -384,11 +417,8 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			System.out.println("clone sig: "+signature);
 		}
 		*/
-		IRNode types, params, exs;
-		IRNode rType = null;
-		MethodDeclVisitor mdv = null;
 		final boolean varargs = (access & Opcodes.ACC_VARARGS) != 0;	
-		Type[] paramTypes = Type.getArgumentTypes(desc);
+
 		// Check if non-static nested class
 		// desc (not signature) contains an extra arg for the ref to the outer class
 		// If so, constructor needs to be modified to make the first arg implicit		
@@ -398,100 +428,149 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			System.out.println("signature and desc not the same: "+desc);
 		}
 		*/
-		if (signature == null) {
-			/*
-			if (skipFirstArg) {
-				System.out.println("Skipping first arg: "+desc);
-			}
-			*/
-			types = TypeFormals.createNode(noNodes);
-		    exs   = Throws.createNode(map(adaptTypeName, exceptions, null));
-			if (desc != null) {
-				params = createParameters(paramTypes, varargs ? adaptVarargsTypeDescriptor :
-					                                            adaptTypeDescriptor, skipFirstArg);
-			} else {
-				params = Parameters.createNode(noNodes);		
-			}
-		} else {
-			mdv = new MethodDeclVisitor(varargs, paramTypes.length);
-			new SignatureReader(signature).accept(mdv);
-			types  = TypeFormals.createNode(mdv.types);
-	        // signature doesn't contain the extra arg, so no need to skip
-			params = createParameters(mdv.paramTypes.toArray(noNodes), identity, false);
-			rType  = mdv.rType;			
-			exs    = Throws.createNode(mdv.exTypes.toArray(noNodes));
-			
-			if (rType == null) {
-				new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));	
-			}
-		}
-		final IRNode result;
 		if (isAnnotationDecl()) {
+			IRNode params = Parameters.createNode(noNodes);	
 			// See below
 			String rName = desc.substring(desc.lastIndexOf(')')+1, desc.length());
+			IRNode rType = null;
 			if (signature == null) {
 				rType = adaptTypeDescriptor(rName);
 			}
 			if (rType == null) {
 				System.out.println("Null type for anno elt");
 			}
-			result = AnnotationElement.createNode(JavaNode.PUBLIC, rType, name, params, exs, 
+			IRNode exs    = Throws.createNode(noNodes);
+			IRNode result = AnnotationElement.createNode(JavaNode.PUBLIC, rType, name, params, exs, 
 					NoMethodBody.prototype.jjtCreate(), 
 					NoDefaultValue.prototype.jjtCreate());
-		} else {
-			IRNode annos  = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX
-			int mods      = adaptModifiers(access);
-			IRNode body   = CompiledMethodBody.createNode("no body");
-			if (isConstructor) {
-				int delim = this.name.lastIndexOf('$');
-				if (delim < 0) {							
-					delim = this.name.lastIndexOf('/');
-				}
-				String cname = delim < 0 ? this.name : this.name.substring(delim+1);
-				result = ConstructorDeclaration.createNode(annos, mods, types, cname, params, 
-						exs, body);
-			} else {
-				String rName = desc.substring(desc.lastIndexOf(')')+1, desc.length());
-				if (signature == null) {
-					rType = adaptTypeDescriptor(rName);
-				}
-				if (rType == null) {
-					System.out.println("null rType");
-				}
-				result = MethodDeclaration.createNode(annos, mods, types, rType, name, params, 
-						0, exs, body);
-			}
-			createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), result);
-		}
-		members.add(result);
+			members.add(result);
+			// Used to get the first line number
+			return new MethodBodyVisitor(result, params);
+		} 
+		// Otherwise
+		final int mods     = adaptModifiers(access);
+		final IRNode body  = CompiledMethodBody.createNode("no body");
+		final String className = this.name;
 		
-		final IRNode parameters = params;
 		// Used to get the first line number
-		return new EmptyVisitor() {
-			int line = Integer.MAX_VALUE;
+		return new MethodBodyVisitor(null, null) {
+			final List<IRNode> annoList = new ArrayList<IRNode>();
+			final MultiMap<Integer,IRNode> paramAnnos = new MultiHashMap<Integer, IRNode>();
 			
 			@Override
-			public void visitLineNumber(int newLine, Label label) {
-				if (newLine < line) {
-					line = newLine;
-				}
+			public AnnotationVisitor visitAnnotation(String desc, boolean viz) {
+				return new AnnoBuilder(desc) {
+					@Override
+					public void visitEnd() {
+						super.visitEnd();
+						annoList.add(result);
+					}
+				};
+			}
+			
+			@Override
+			public AnnotationVisitor visitParameterAnnotation(final int i, String desc, boolean viz) {
+				return new AnnoBuilder(desc) {
+					@Override
+					public void visitEnd() {
+						super.visitEnd();
+						paramAnnos.put(i, result);
+					}
+				};
 			}
 			
 			@Override
 			public void visitEnd() {
-				//System.out.println("Got line#"+line);
-				if (line == Integer.MAX_VALUE) {
-					line = 0;
+				final IRNode types, exs;
+				final Type[] paramTypes = Type.getArgumentTypes(desc);
+				IRNode rType = null;
+				if (signature == null) {
+					/*
+					if (skipFirstArg) {
+						System.out.println("Skipping first arg: "+desc);
+					}
+					*/
+					types = TypeFormals.createNode(noNodes);
+				    exs   = Throws.createNode(map(adaptTypeName, exceptions, null));
+					if (desc != null) {
+						parameters = createParameters(paramAnnos, paramTypes, varargs ? adaptVarargsTypeDescriptor :
+							                                            adaptTypeDescriptor, skipFirstArg);
+					} else {
+						parameters = Parameters.createNode(noNodes);		
+					}
+				} else {
+					MethodDeclVisitor mdv = new MethodDeclVisitor(varargs, paramTypes.length);
+					new SignatureReader(signature).accept(mdv);
+					types  = TypeFormals.createNode(mdv.types);
+			        // signature doesn't contain the extra arg, so no need to skip
+					parameters = createParameters(paramAnnos, mdv.paramTypes.toArray(noNodes), identity, false);
+					rType  = mdv.rType;			
+					exs    = Throws.createNode(mdv.exTypes.toArray(noNodes));
+					
+					if (rType == null) {
+						new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));	
+					}
 				}
-				final ISrcRef ref = new ClassRef(resource, line);
-				JavaNode.setSrcRef(result, ref);				
-				for(IRNode p : Parameters.getFormalIterator(parameters)) {
-					JavaNode.setSrcRef(p, ref);
+				
+				IRNode annos = Annotations.createNode(annoList.toArray(noNodes));
+
+				if (isConstructor) {
+					int delim = className.lastIndexOf('$');
+					if (delim < 0) {							
+						delim = className.lastIndexOf('/');
+					}
+					String cname = delim < 0 ? className : className.substring(delim+1);
+					result = ConstructorDeclaration.createNode(annos, mods, types, cname, parameters, 
+							exs, body);
+				} else {
+					String rName = desc.substring(desc.lastIndexOf(')')+1, desc.length());
+					if (signature == null) {
+						rType = adaptTypeDescriptor(rName);
+					}
+					if (rType == null) {
+						System.out.println("null rType");
+					}
+					result = MethodDeclaration.createNode(annos, mods, types, rType, name, parameters, 
+							0, exs, body);
 				}
+				createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), result);
+
+				members.add(result);
+				super.visitEnd();
 			}
-		}; // FIX for annos/line numbers
+		};
 	}
 
+	class MethodBodyVisitor extends EmptyVisitor {
+		int line = Integer.MAX_VALUE;
+		IRNode result, parameters;
+
+		MethodBodyVisitor(IRNode n, IRNode params) {
+			result = n;
+			parameters = params;
+		}
+		
+		@Override
+		public void visitLineNumber(int newLine, Label label) {
+			if (newLine < line) {
+				line = newLine;
+			}
+		}
+		
+		@Override
+		public void visitEnd() {
+			//System.out.println("Got line#"+line);
+			if (line == Integer.MAX_VALUE) {
+				line = 0;
+			}
+			final ISrcRef ref = new ClassRef(resource, line);
+			JavaNode.setSrcRef(result, ref);				
+			for(IRNode p : Parameters.getFormalIterator(parameters)) {
+				JavaNode.setSrcRef(p, ref);
+			}
+		}
+	}
+	
 	public void visitEnd() {
 		String id;
 		int separator = name.lastIndexOf('/');
@@ -586,10 +665,10 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		return TypeRef.createNode(base, name.substring(dollar+1));
 	}
 	
-	private IRNode adaptTypeDescriptor(String desc) {
+	public static IRNode adaptTypeDescriptor(String desc) {
 		return adaptTypeDescriptor(desc, 0);
 	}	
-	private IRNode adaptTypeDescriptor(String desc, boolean varargs) {
+	public static IRNode adaptTypeDescriptor(String desc, boolean varargs) {
 		if (varargs) {
 			if (desc.charAt(0) != '[') {
 				throw new IllegalArgumentException("Non-array: "+desc);
@@ -600,7 +679,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			return adaptTypeDescriptor(desc, 0);
 		}
 	}
-	private IRNode adaptTypeDescriptor(String desc, int i) {
+	public static IRNode adaptTypeDescriptor(String desc, int i) {
 		switch (desc.charAt(i)) {
 		case 'V':
 			return VoidType.prototype.jjtCreate();
