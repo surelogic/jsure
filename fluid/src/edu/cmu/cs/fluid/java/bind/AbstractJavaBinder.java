@@ -1298,6 +1298,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	if (!isFullPass) {
     		return null;
     	}
+    	//System.out.println("Binding "+node+" = "+DebugUnparser.toString(node));
+    	
     	// Copied from NamedType
     	String name = Annotation.getId(node);
     	/*
@@ -1846,6 +1848,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
       IRNode formals = isConstructor ?
           ConstructorDeclaration.getParams(node) : MethodDeclaration.getParams(node);
+      /*
+      IRNode annos = isConstructor ?
+    	  ConstructorDeclaration.getAnnos(node) : MethodDeclaration.getAnnos(node);
+      if (JJNode.tree.hasChildren(annos) && isBinary(node)) {
+    	  System.out.println("Found binary func w/ annos: "+JavaNames.getFullName(node));
+      }
+      */
       /*
       if ("of".equals(JJNode.getInfoOrNull(node))) {
     	  System.out.println("Debugging "+JavaNames.getFullName(node));

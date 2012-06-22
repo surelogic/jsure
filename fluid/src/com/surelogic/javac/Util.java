@@ -961,6 +961,13 @@ public class Util {
 					throw new CancellationException();
 				}
 				if (!info.isAsSource()) {
+				    /*
+					IRNode type = VisitUtil.getPrimaryType(info.getNode());
+					String unparse = DebugUnparser.toString(type);
+					if (unparse.contains("Deprecated")) {
+						System.out.println("Deprecated in "+JavaNames.getFullName(type));
+					}
+                    */
 					return; // Nothing to do on class files
 				}
 				final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
