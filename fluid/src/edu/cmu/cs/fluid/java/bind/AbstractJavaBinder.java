@@ -1295,9 +1295,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitAnnotation(IRNode node) {
     	visit(node);
+    	/* This is wrong; it needs to get bound either way
+    	 * 
     	if (!isFullPass) {
     		return null;
     	}
+    	*/
     	//System.out.println("Binding "+node+" = "+DebugUnparser.toString(node));
     	
     	// Copied from NamedType
