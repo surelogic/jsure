@@ -2,7 +2,7 @@
 public operator EnumConstantDeclaration extends VariableDeclaration implements ClassBodyDeclInterface, EnumBodyDeclInterface, CallInterface
 {
   syntax { 
-    $id:Info @args:OptArguments body:OptClassBody
+    $id:Info init:ImpliedEnumConstantInitialization @args:OptArguments body:OptClassBody
   }
   properties {
     binding=Variable

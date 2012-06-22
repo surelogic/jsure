@@ -2,7 +2,7 @@
 public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
 {
   syntax { 
-    $id:Info 
+    $id:Info init:ImpliedEnumConstantInitialization 
   }
   private static final CallInterface.NoArgs noArgs = new CallInterface.NoArgs();
 

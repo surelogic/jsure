@@ -2,7 +2,7 @@
 public operator NormalEnumConstantDeclaration extends EnumConstantDeclaration
 {
   syntax { 
-    $id:Info args:OptArguments
+    $id:Info init:ImpliedEnumConstantInitialization args:OptArguments
   }
   properties {
     binding=Variable

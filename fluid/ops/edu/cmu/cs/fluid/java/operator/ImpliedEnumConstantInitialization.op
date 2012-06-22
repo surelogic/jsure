@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NoInitialization.op,v 1.5 2006/06/15 13:53:39 chance Exp $
+public operator ImpliedEnumConstantInitialization 
+{
+  syntax { }
+
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node, new ComponentFlow(null,this));
+  }
+}

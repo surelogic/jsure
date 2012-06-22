@@ -247,7 +247,8 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			return null;
 		}
 		if (isEnumDecl()) {
-			IRNode result = SimpleEnumConstantDeclaration.createNode(name);
+	    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
+			IRNode result = SimpleEnumConstantDeclaration.createNode(name, impliedInit);
 			members.add(result);
 			return null;
 		} 

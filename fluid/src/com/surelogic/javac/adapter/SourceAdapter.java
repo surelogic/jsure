@@ -1496,16 +1496,17 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     	IRNode[] rawArgs  = map(adaptExprs, init.getArguments(), context);
     	IRNode args       = Arguments.createNode(rawArgs);
     	ClassTree cbody   = init.getClassBody();
+    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
     	final IRNode rv;
     	if (cbody != null) {
     		IRNode body = makeAnonClassBody(init, context);
-    		rv = EnumConstantClassDeclaration.createNode(id, args, body);
+    		rv = EnumConstantClassDeclaration.createNode(id, impliedInit, args, body);
     	}
     	else if (rawArgs.length == 0) {
-    		rv = SimpleEnumConstantDeclaration.createNode(id);
+    		rv = SimpleEnumConstantDeclaration.createNode(id, impliedInit);
     	}
     	else {
-    		rv = NormalEnumConstantDeclaration.createNode(id, args);
+    		rv = NormalEnumConstantDeclaration.createNode(id, impliedInit, args);
     	}
     	
     	JavaNode.setModifiers(rv, JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.FINAL);
