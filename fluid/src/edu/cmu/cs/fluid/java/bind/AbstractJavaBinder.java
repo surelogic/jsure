@@ -1337,6 +1337,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    		final String qname = name.substring(0, lastDot);
 		final String id = name.substring(lastDot+1);
 		IRNode decl = classTable.getOuterClass(qname, node);
+		if (decl != null && !AnnotationDeclaration.prototype.includes(decl)) {
+			// Not a type decl
+			decl = null;
+		}
 		IBinding b = null;
 		if (decl == null) {
 			b = scope.lookup(qname, node, IJavaScope.Util.isTypeDecl);    
