@@ -436,6 +436,10 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			IRNode rType = null;
 			if (signature == null) {
 				rType = adaptTypeDescriptor(rName);
+			} else {
+				MethodDeclVisitor mdv = new MethodDeclVisitor(false, 0);
+				new SignatureReader(signature).accept(mdv);
+				rType  = mdv.rType;		
 			}
 			if (rType == null) {
 				System.out.println("Null type for anno elt");
