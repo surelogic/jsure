@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
@@ -1150,9 +1151,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	  }
 	  
     public IRNode getClassBody() {
-      return AnonClassExpression.prototype.includes(typeDecl) ?
-          AnonClassExpression.getBody(typeDecl) : TypeDeclaration.getBody(typeDecl);
-
+      return VisitUtil.getClassBody(typeDecl);
     }
 	  
 	  @Override

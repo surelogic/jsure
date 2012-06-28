@@ -82,12 +82,10 @@ class AnnoBuilder implements AnnotationVisitor {
 		pairs.add(ElementValuePair.createNode(name, n));
 	}
 	
-	@Override
 	public void visit(String name, Object value) {
 		add(name, adaptValue(value));
 	}
 
-	@Override
 	public AnnotationVisitor visitAnnotation(final String name, String desc) {
 		final AnnoBuilder outer = this;
 		return new AnnoBuilder(desc) {
@@ -99,18 +97,15 @@ class AnnoBuilder implements AnnotationVisitor {
 		};
 	}
 
-	@Override
 	public AnnotationVisitor visitArray(String name) {
 		return new ArrayBuilder(this, name);
 	}
 
-	@Override
 	public void visitEnum(String name, String typeDesc, String value) {
 		IRNode type = ClassAdapter.adaptTypeDescriptor(typeDesc);
 		add(name, FieldRef.createNode(TypeExpression.createNode(type), value));
 	}
 	
-	@Override
 	public void visitEnd() {
 		if (pairs.isEmpty()) {
 			result = MarkerAnnotation.createNode(type);

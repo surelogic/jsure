@@ -61,10 +61,12 @@ import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
+import edu.cmu.cs.fluid.java.operator.SimpleEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
@@ -345,11 +347,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(
-        final IRNode call, final IRNode mdecl,
+        final IRNode mdecl, final boolean hasOuter,
         final int numFormals, final IRNode formals,
         final List<Effect> declEffects, Store s) {
       for (final Effect f : declEffects) {
-    	if (!s.isValid()) return s;
+      if (!s.isValid()) return s;
         if (f.isEmpty()) {
           // empty effects are harmless
           continue;
@@ -370,21 +372,21 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (f.isWrite() && CHECK_EFFECTS_DISJOINTNESS) {
             // A write effect on a reference cannot 
             // overlap with any effect on the same reference.        
-        	for (final Effect f2 : declEffects) {
-        		if (f2.isEmpty()) continue;
-        		if (f == f2) continue; // Don't compare with self.
-        		Target t2 = f2.getTarget();
-        		if (t.getRegion().overlapsWith(t2.getRegion())) {
-        			final Integer asd2 = getActualDepth(ref, numFormals, formals);
-        			// if (asd2 != actualStackDepth) continue;
-        			int total = s.getStackSize();
-        			if (actualStackDepth == null || asd2 == null || 
-        					lattice.mayAlias(s,total-actualStackDepth, total-asd2)) {
-        				String message = "Effect disjointness error: " + f + " overlaps with " + f2;
-        				return lattice.errorStore(message);
-        			}
-        		}
-        	}
+          for (final Effect f2 : declEffects) {
+            if (f2.isEmpty()) continue;
+            if (f == f2) continue; // Don't compare with self.
+            Target t2 = f2.getTarget();
+            if (t.getRegion().overlapsWith(t2.getRegion())) {
+              final Integer asd2 = getActualDepth(ref, numFormals, formals);
+              // if (asd2 != actualStackDepth) continue;
+              int total = s.getStackSize();
+              if (actualStackDepth == null || asd2 == null || 
+                  lattice.mayAlias(s,total-actualStackDepth, total-asd2)) {
+                String message = "Effect disjointness error: " + f + " overlaps with " + f2;
+                return lattice.errorStore(message);
+              }
+            }
+          }
         }
         
         /* Should update this.  Need to look at the types of the 
@@ -424,9 +426,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
         // First we load the reference of the target
         if (actualStackDepth == null)
-        	s = lattice.opExisting(s, State.SHARED, null);
+          s = lattice.opExisting(s, State.SHARED, null);
         else
-        	s = lattice.opDup(s, actualStackDepth); 
+          s = lattice.opDup(s, actualStackDepth); 
         
         if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
       
@@ -434,12 +436,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (r.isAbstract()) {
             // it could refer to almost anything
             // everything reachable from this pointer is alias buried:
-        	s = lattice.opLoadReachable(s);
-        	s = lattice.opRelease(s);
+          s = lattice.opLoadReachable(s);
+          s = lattice.opRelease(s);
         } else {
-        	// it's a field, load and discard.
-        	s = lattice.opLoad(s, r.getNode());
-        	s = lattice.opRelease(s);
+          // it's a field, load and discard.
+          s = lattice.opLoad(s, r.getNode());
+          s = lattice.opRelease(s);
         }
         
         if (f.isWrite()) {
@@ -450,7 +452,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
            */
           if (!TypeUtil.isStatic(mdecl)) {
             final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
-            final int depth = hasOuterObject(call) ? numFormals + 1 : numFormals;
+            final int depth = hasOuter ? numFormals + 1 : numFormals;
             s = checkMutationOfParameters(s, t, rcvr, depth);
           }
           
@@ -751,56 +753,76 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 	}
 
 
-	@Override
+    @Override
     protected Store transferCall(final IRNode node, final boolean flag, Store s) {
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
-      final boolean mcall = MethodCall.prototype.includes(op);
-      
-      final CallInterface call = (CallInterface) op;
       IRNode actuals;
-      int numActuals;
       try {
-        actuals = call.get_Args(node);
-        numActuals = tree.numChildren(actuals);
+        actuals = ((CallInterface) op).get_Args(node);
       } catch (final CallInterface.NoArgs e) {
         actuals = null;
-        numActuals = 0;
       }
+      
+      return handleCallLikeExpressions(
+          node, flag, s, node, mdecl, actuals, hasOuterObject(node),
+          MethodCall.prototype.includes(op));
+    }
 
-      final IRNode formals;
-      if (mdecl == null) {
-        LOG.warning("No binding for method " + DebugUnparser.toString(node));
-        formals = null;
-      } else {
-        formals = SomeFunctionDeclaration.getParams(mdecl);
-      }
+  	/**
+  	 * Process a method/constructor call.  Shared by {@link #transferCall}
+  	 * and {@link #transferImpliedNewExpression}.
+  	 *  
+  	 * @param node The node of the method/constructor call.
+  	 * @param flag <code>true</code> for normal method termination
+  	 * @param s The store.
+  	 * @param callSite The call site for linking errors.
+  	 * @param mdecl The declaration node of the called method/constructor.
+  	 * @param actuals 
+  	 * @param formals
+  	 * @param hasOuter
+  	 * @param isMethodCall
+  	 * @return
+  	 */
+    private Store handleCallLikeExpressions(final IRNode node,
+        final boolean flag, Store s, final IRNode callSite,
+        final IRNode mdecl, final IRNode actuals,
+        final boolean hasOuter, final boolean isMethodCall) {
+      final IRNode formals = SomeFunctionDeclaration.getParams(mdecl);
+
+      // Should be the same for actuals and formals
+      final int numArgs = JJNode.tree.numChildren(formals);
+      
       // XXX: leave this: will need for side-effecting later
       // final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       if (mdecl != null) {
-        s = considerDeclaredEffects(node, mdecl,
-            numActuals, formals, effects.getMethodEffects(mdecl, node), s);
+        s = considerDeclaredEffects(mdecl, hasOuter, numArgs, formals,
+            effects.getMethodEffects(mdecl, callSite), s);
       }
-      
+
       // we need to set RETURN to the return value,
       // so that allowReturn can be handled while popping actuals
-      if (mcall) { // method call
-    	  s = pushReturnValue(mdecl,s);
-      } else if (s.isValid()){ // constructor call
-    	  s = lattice.opGet(s,StoreLattice.getStackTop(s)-numActuals);
+      if (isMethodCall) { // method call
+        s = pushReturnValue(mdecl, s);
+      } else if (s.isValid()) { // constructor call
+        s = lattice.opGet(s, StoreLattice.getStackTop(s) - numArgs);
       }
       s = lattice.opSet(s, RETURN_VAR);
-       
-      /* If the call is "super(...)" and the flow unit is a constructor
-       * from a nested class, then we have to copy the IPQR to the IFQR.
+
+      /*
+       * If the call is "super(...)" and the flow unit is a constructor from a
+       * nested class, then we have to copy the IPQR to the IFQR.
        */
-      if (ConstructorCall.prototype.includes(node) &&
-          SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
+      if (ConstructorCall.prototype.includes(node)
+          && SuperExpression.prototype
+              .includes(ConstructorCall.getObject(node))) {
         final IRNode enclosingType = VisitUtil.getEnclosingType(flowUnit);
-        if (ConstructorDeclaration.prototype.includes(flowUnit) &&
-            TypeUtil.isNested(enclosingType)) {
-          final IRNode ipqr = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
-          final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(enclosingType);
+        if (ConstructorDeclaration.prototype.includes(flowUnit)
+            && TypeUtil.isNested(enclosingType)) {
+          final IRNode ipqr = JavaPromise
+              .getQualifiedReceiverNodeOrNull(flowUnit);
+          final IRNode ifqr = JavaPromise
+              .getQualifiedReceiverNodeOrNull(enclosingType);
           s = lattice.opGet(s, ipqr); // read from the parameter
           if (UniquenessRules.isBorrowed(ifqr)) {
             s = lattice.opReturn(s, ifqr);
@@ -810,25 +832,29 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
         }
       }
-            
+
       // We have to possibly compromise arguments
-      if (numActuals > 0) {
-        s = popArguments(numActuals, actuals, formals, s);
+      if (numArgs > 0) {
+        s = popArguments(numArgs, actuals, formals, s);
       }
-      if (hasOuterObject(node)) {
+      if (hasOuter) {
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("Popping qualifier");
         }
-        if (!s.isValid()) return s;
-        /* Handle value under top: (1) copy it onto top; (2) compromise
-         * new top and discard it; (3) popSecond
+        if (!s.isValid())
+          return s;
+        /*
+         * Handle value under top: (1) copy it onto top; (2) compromise new top
+         * and discard it; (3) popSecond
          */
         s = lattice.opGet(s, StoreLattice.getUnderTop(s));
-        
-        s = popQualifiedReceiver(mdecl,s);
-        if (!s.isValid()) return s;
-        /* This does a popSecond by popping the top value off the stack (op set)
-         * and changing the variable just under the top to have the value that 
+
+        s = popQualifiedReceiver(mdecl, s);
+        if (!s.isValid())
+          return s;
+        /*
+         * This does a popSecond by popping the top value off the stack (op set)
+         * and changing the variable just under the top to have the value that
          * was on the top of the stack.
          */
         s = lattice.opSet(s, StoreLattice.getUnderTop(s));
@@ -839,25 +865,25 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       // and for constructor calls (also already duplicated)
       // we pop the receiver.
       s = popReceiver(mdecl, s);
-      
+
       if (LOG.isLoggable(Level.FINE)) {
         LOG.fine("After handling receivers/qualifiers/parameter: " + s);
       }
       if (flag) { // call succeeded
-    	  s = lattice.opGet(s, RETURN_VAR);
-    	  // kill return value
-    	  s = lattice.opNull(s);
-    	  s = lattice.opSet(s,RETURN_VAR);
+        s = lattice.opGet(s, RETURN_VAR);
+        // kill return value
+        s = lattice.opNull(s);
+        s = lattice.opSet(s, RETURN_VAR);
         return s;
       } else {
-    	  // kill return value
-    	  s = lattice.opNull(s);
-    	  s = lattice.opSet(s,RETURN_VAR);
+        // kill return value
+        s = lattice.opNull(s);
+        s = lattice.opSet(s, RETURN_VAR);
         // we pop all pending
         s = popAllPending(s);
         return s;
       }
-    }
+    }	
 	
     @Override
 	protected Store transferCast(IRNode node, Store value) {
@@ -914,7 +940,36 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       // other types are primitive and hence null (for uniqueness analysis)
       return lattice.opNull(s);
     }
-    
+
+    @Override
+    protected Store transferEnumConstantDeclarationAsFieldInit(final IRNode node,  Store s) {
+      /* N.B. Should be handled as a special case of field initialization.
+       * See transferInitializationOfField(), below.
+       */
+      
+      // Static field init, so we push the shared object onto the stack 
+      s = lattice.opExisting(s, State.SHARED, null);
+      s = lattice.opDup(s, 1); // get value on top of stack
+      s = lattice.opStore(s, node); // perform store
+      
+      /* Regular field init does opRelease.  But enum constants are shared
+       * because they are stored into an elements array by the enum
+       * implementation.  So we have to compromise the value being stored
+       * into the enum constant.  (That is, we can never assure a @Unique
+       * enum constant.) 
+       */
+      s = lattice.opCompromise(s);
+      return s;
+    }
+
+
+    @Override
+    protected Store transferEnumConstantDeclarationAsAnonClass(final IRNode node,  Store s) {
+      /* N.B. Should be handled as a special case of anonymous class
+       */
+      return transferNestedClassUse(node,  s);
+    }
+
     @Override
     protected Store transferEq(final IRNode node, final boolean flag, final Store s) {
       // compare top two stack values and pop off.
@@ -925,6 +980,26 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferFailedCall(final IRNode node, final Store s) {
       throw new FluidError("execution should not reach here.");
+    }
+    
+    @Override
+    protected Store transferImpliedNewExpression(
+        final IRNode node, final boolean flag, final Store s) {
+      // N.B. Should be handled as a specialized case of transferCall
+      final IRNode enumConst = JJNode.tree.getParent(node);
+      final Operator enumConstOp = JJNode.tree.getOperator(enumConst);
+      final IRNode actuals;
+      if (SimpleEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+        actuals = null;
+      } else if (NormalEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+        actuals = NormalEnumConstantDeclaration.getArgs(enumConst);
+      } else { // EnumConstantClassConstantDeclaration
+        actuals = EnumConstantClassDeclaration.getArgs(enumConst);
+      }
+
+      return handleCallLikeExpressions(
+          node, flag, s, enumConst, binder.getBinding(enumConst),
+          actuals, false, false);
     }
     
     @Override
@@ -1064,10 +1139,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	IRNode fqr = getQualifiedReceiver(node);
     	boolean isBorrowed = UniquenessRules.isBorrowed(fqr);
     	*/
-      final IRNode classbody =           
-          AnonClassExpression.prototype.includes(node) ? 
-        			AnonClassExpression.getBody(node) :
-        			NestedClassDeclaration.getBody(node);
+      final IRNode classbody = VisitUtil.getClassBody(node);
     	// called on NestedClassDeclaration AND AnonClassExpression
       final List<IRNode> externalVars =
           LocalVariableDeclarations.getExternallyDeclaredVariables(

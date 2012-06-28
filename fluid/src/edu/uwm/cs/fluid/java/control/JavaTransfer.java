@@ -105,6 +105,8 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       return transferAssignment(node, value);
     } else if (TypeDeclarationStatement.prototype.includes(op)) {
       return transferNestedClass(TypeDeclarationStatement.getTypedec(node), value);
+    } else if (EnumConstantDeclaration.prototype.includes(op)) {
+      return transferEnumConstantDeclaration(node, value);
     } else {
       return transferOperation(node, op, info, value);
     }
@@ -125,7 +127,11 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     }
     
     if (info instanceof CallInterface) {
-      return transferCall(node, flag, value);
+      if (ImpliedEnumConstantInitialization.prototype.includes(node)) {
+        return transferImpliedNewExpression(node, flag, value);
+      } else {
+        return transferCall(node, flag, value);
+      }
     } else if (op instanceof AssignmentInterface && info == null) {
       if (flag) {
         /* completed assignment */
@@ -306,6 +312,16 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
 	 *          true for normal termination, false for abrupt termination
 	 */
   protected T transferCall(IRNode call, boolean flag, T value) {
+    return value;
+  }
+  
+  /**
+   * Transfer a lattice value over the implied constructor call of an 
+   * enumeration constant declaration.
+   */
+  protected T transferImpliedNewExpression(
+      final IRNode call, final boolean flag, final T value) {
+    // N.B. Should be handled as a specialized case of transferCall
     return value;
   }
 
@@ -579,6 +595,14 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
 		  IRNode node,
 		  T value ) {
 	  return value;
+  }
+  
+  /**
+   * Transfer over the declaration of an enumeration constant declaration.
+   */
+  protected T transferEnumConstantDeclaration(final IRNode node, final T value) {
+    // N.B. Should be handled as a special case of field initialization
+    return value;
   }
   
   /**

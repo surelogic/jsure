@@ -17,29 +17,4 @@ public operator NormalEnumConstantDeclaration extends EnumConstantDeclaration
   public IRNode get_TypeArgs(IRNode n) {
     return null;
   }
-  
-  @Override public Component createComponent(IRNode node) {
-    /* A(1,2,3) is the same as "public static final E A = new E(1,2,3)",
-     * where E is the enclosing enum type.  So we need to make the
-     * control graph for the call "new E(1,2,3)"
-     */
-    Component comp = new Component(node,1,1,1);
-    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,argsLoc),1,1,1);
-
-    ControlNode doAlloc = new ComponentFlow(comp,NewExpression.prototype);
-    ControlNode doCall = new ComponentChoice(comp,NewExpression.prototype);
-    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
-    ControlNode abruptMerge = new Merge();
-
-    ControlEdge.connect(comp.getEntryPort(),doAlloc);
-    ControlEdge.connect(doAlloc,sub.getEntryPort());
-    ControlEdge.connect(sub.getNormalExitPort(),doCall);
-    ControlEdge.connect(doCall,comp.getNormalExitPort());
-    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
-    ControlEdge.connect(doCall,propagateExceptions);
-    ControlEdge.connect(propagateExceptions,abruptMerge);
-    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
-
-    return comp;
-  }
 }

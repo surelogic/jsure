@@ -118,6 +118,10 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     
     @Override 
     public ImmutableSet<IRNode>[] transferCall(final IRNode node, final boolean b, final ImmutableSet<IRNode>[] before) {
+      /* N.B. Don't have to also override transferImpliedNewExpression because
+       * we aren't interested in the initialization of fields.
+       */
+
       return before;
     }
     

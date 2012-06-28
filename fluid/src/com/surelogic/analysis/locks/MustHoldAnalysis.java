@@ -339,7 +339,11 @@ public final class MustHoldAnalysis extends
     protected ImmutableList<ImmutableSet<IRNode>>[] transferCall(
         final IRNode call, final boolean flag,
         final ImmutableList<ImmutableSet<IRNode>>[] value) {
-//      System.out.println("transferCall (" + flag + ") " + DebugUnparser.toString(call) + ": " + lattice.toString(value));
+      /* N.B. Don't have to also override transferImpliedNewExpression because
+       * we don't care about new expressions.
+       */
+
+      //      System.out.println("transferCall (" + flag + ") " + DebugUnparser.toString(call) + ": " + lattice.toString(value));
 //      System.out.flush();
 
       final Operator op = tree.getOperator(call);

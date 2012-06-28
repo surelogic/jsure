@@ -19,6 +19,34 @@ public operator EnumConstantDeclaration extends VariableDeclaration implements C
   }
   
   @Override public Component createComponent(IRNode node) {
-    return new SimpleComponent(node); // TODO is this right?
+    /* Be like a VariableDeclarator.  The implied initialization node 
+     * is linked to as a subcomponent for the field initializer.
+     */ 
+    // Component comp = new Component(node,1,1,1);
+    Component comp = new EnumConstantDeclarationComponent(node);
+    Subcomponent subinit = 
+        new Subcomponent(comp,tree.childLocation(node,initLoc),1,1,1);
+    ControlNode performInit = new ComponentFlow(comp,null);
+    
+    ControlEdge.connect(comp.getEntryPort(),subinit.getEntryPort());
+    ControlEdge.connect(subinit.getNormalExitPort(),performInit);
+    ControlEdge.connect(performInit,comp.getNormalExitPort());
+    ControlEdge.connect(subinit.getAbruptExitPort(),comp.getAbruptExitPort());
+    return comp;
+  }
+}
+
+class EnumConstantDeclarationComponent extends Component {
+  public EnumConstantDeclarationComponent(final IRNode node) {
+    super(node, 1, 1, 1);
+  }
+  
+  @Override
+  public Subcomponent getSubcomponent(final IRLocation loc) {
+    if (loc == EnumConstantDeclaration.initLocation) {
+      return super.getSubcomponent(loc);
+    } else {
+      return this.getComponent(tree.getChild(syntax, 0)).getSubcomponent(loc);
+    }
   }
 }

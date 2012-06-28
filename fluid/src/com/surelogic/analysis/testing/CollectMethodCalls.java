@@ -84,6 +84,10 @@ final class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNo
     @Override 
     public ImmutableSet<IRNode> transferCall(
         final IRNode node, final boolean flag, final ImmutableSet<IRNode> before) {
+      /* N.B. Don't have to also override transferImpliedNewExpression because
+       * we are only interested in method calls that appear in the syntax.
+       */
+
       // Only need to add the call once, so just do it on the normal path
       ImmutableSet<IRNode> out = before;
       if (flag) {

@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
@@ -393,6 +394,8 @@ public final class LocalVariableDeclarations {
       } else if (NestedEnumDeclaration.prototype.includes(op)) {
         lastTypeDecl = current;
       } else if (AnonClassExpression.prototype.includes(op)) {
+        lastTypeDecl = current;
+      } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
         lastTypeDecl = current;
       }
       current = JJNode.tree.getParentOrNull(current); 

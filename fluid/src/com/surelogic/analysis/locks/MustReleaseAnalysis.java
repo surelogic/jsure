@@ -272,6 +272,10 @@ public final class MustReleaseAnalysis extends
     protected ImmutableList<ImmutableSet<IRNode>>[] transferCall(
         final IRNode call, final boolean flag,
         final ImmutableList<ImmutableSet<IRNode>>[] value) {
+      /* N.B. Don't have to also override transferImpliedNewExpression because
+       * we don't care about new expressions.
+       */
+      
       // Bail out if input is top or bottom
       if (!lattice.isNormal(value)) {
         return value;

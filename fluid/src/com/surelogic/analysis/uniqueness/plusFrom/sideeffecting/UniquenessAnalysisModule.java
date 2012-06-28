@@ -1101,9 +1101,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	  }
 	  
     public IRNode getClassBody() {
-      return AnonClassExpression.prototype.includes(typeDecl) ?
-          AnonClassExpression.getBody(typeDecl) : TypeDeclaration.getBody(typeDecl);
-
+      return VisitUtil.getClassBody(typeDecl);
     }
 	  
 	  @Override

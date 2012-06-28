@@ -4,6 +4,110 @@ public operator ImpliedEnumConstantInitialization
   syntax { }
 
   @Override public Component createComponent(IRNode node) {
-    return new SimpleComponent(node, new ComponentFlow(null,this));
+    final IRNode parent = JJNode.tree.getParent(node);
+    final Operator parentOp = JJNode.tree.getOperator(parent);
+    final Component comp = new Component(node,1,1,1);
+
+    if (SimpleEnumConstantDeclaration.prototype.includes(parentOp)) {
+      /* A() is the same as "public static final E A = new E()",
+       * where E is the enclosing enum type.  So we need to make the
+       * control graph for the call "new E()"
+       */
+      ControlNode doAlloc = new ComponentFlow(comp,NewExpression.prototype);
+      ControlNode doCall = new ComponentChoice(comp,NewExpression.prototype);
+      ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+
+      ControlEdge.connect(comp.getEntryPort(),doAlloc);
+      ControlEdge.connect(doAlloc, doCall);  // No arguments, so connect directly
+      ControlEdge.connect(doCall,comp.getNormalExitPort());
+      ControlEdge.connect(doCall,propagateExceptions);
+      ControlEdge.connect(propagateExceptions, comp.getAbruptExitPort());
+    } else if (NormalEnumConstantDeclaration.prototype.includes(parentOp)) {
+      /* A(1,2,3) is the same as "public static final E A = new E(1,2,3)",
+       * where E is the enclosing enum type.  So we need to make the
+       * control graph for the call "new E(1,2,3)"
+       */
+      Subcomponent sub = new ImpliedSubcomponent(comp, parent, tree.childLocation(parent, NormalEnumConstantDeclaration.argsLoc),1,1,1);
+  
+      ControlNode doAlloc = new ComponentFlow(comp,NewExpression.prototype);
+      ControlNode doCall = new ComponentChoice(comp,NewExpression.prototype);
+      ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+      ControlNode abruptMerge = new Merge();
+  
+      ControlEdge.connect(comp.getEntryPort(),doAlloc);
+      ControlEdge.connect(doAlloc,sub.getEntryPort());
+      ControlEdge.connect(sub.getNormalExitPort(),doCall);
+      ControlEdge.connect(doCall,comp.getNormalExitPort());
+      ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+      ControlEdge.connect(doCall,propagateExceptions);
+      ControlEdge.connect(propagateExceptions,abruptMerge);
+      ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    } else { // EnumConstantClassDeclaration
+      /* "A(1,2,3) { ... }" is the same as 
+       * "public static final E A = new E(1,2,3) { ... }" where E is the
+       * enum type containing the declaration.  So we build the same
+       * control-flow structure as an Anonymous class expression.
+       */
+    
+      /* First we create a flow graph for executing the anonymous class
+       * expression as an object allocation expression that executes
+       * constructors, etc.
+       */
+       
+      /* AnonClassExpression has NewExpression as a child.  We don't have that
+       * here, so we have to explicitly create the flow graph for
+       * a NewExpression.
+       */ 
+      Subcomponent argsSub = new ImpliedSubcomponent(comp, parent, tree.childLocation(parent, EnumConstantClassDeclaration.argsLoc),1,1,1);
+  
+      ControlNode doAlloc = new ComponentFlow(comp,NewExpression.prototype);
+      ControlNode doCall = new ComponentChoice(comp,NewExpression.prototype);
+      ControlNode propagateExceptionsNewExpression = new AddLabel(ExceptionLabel.prototype);
+      ControlNode abruptMergeNewExpression = new Merge();
+  
+      ControlEdge.connect(doAlloc,argsSub.getEntryPort());
+      ControlEdge.connect(argsSub.getNormalExitPort(),doCall);
+      ControlEdge.connect(argsSub.getAbruptExitPort(),abruptMergeNewExpression);
+      ControlEdge.connect(propagateExceptionsNewExpression,abruptMergeNewExpression);
+      
+      /* Now build graph around the New Expression */    
+      ControlNode doClose = new ComponentFlow(comp,null);
+      // doInit calls the class initializer
+      ControlNode doInit = new ComponentChoice(comp,SuperExpression.prototype);
+      ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+      ControlNode abruptMerge = new Merge();
+  
+      ControlEdge.connect(comp.getEntryPort(),doClose);
+      ControlEdge.connect(doClose, doAlloc);
+      ControlEdge.connect(doCall,doInit);
+      ControlEdge.connect(doCall,propagateExceptionsNewExpression); 
+      ControlEdge.connect(doInit,comp.getNormalExitPort());
+      ControlEdge.connect(abruptMergeNewExpression,abruptMerge);
+      ControlEdge.connect(doInit,propagateExceptions);
+      ControlEdge.connect(propagateExceptions,abruptMerge);
+      ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+      
+      /* doClose: NB: when looking at reads of (final) variables,
+       * it is necessary to check the nested class body for uses.
+       */
+  
+  
+      /* Next we create a second flow graph for treating the anonymous
+       * class declaration as a flow unit.  This is identical to what
+       * we do for ClassDeclaration.
+       */
+  
+      /* the class body executes the static initializer */
+      Subcomponent sub = new ImpliedSubcomponent(comp, parent, tree.childLocation(parent, EnumConstantClassDeclaration.bodyLoc),1,1,1);
+      ControlNode startNode = new ComponentSource(comp,null);
+      ControlNode endNode = new ComponentSink(comp,Boolean.TRUE);
+      ControlNode abruptNode = new ComponentSink(comp,Boolean.FALSE);
+  
+      ControlEdge.connect(startNode,sub.getEntryPort());
+      ControlEdge.connect(sub.getNormalExitPort(),endNode);
+      ControlEdge.connect(sub.getAbruptExitPort(),abruptNode);
+    }
+  
+    return comp;
   }
 }
