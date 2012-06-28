@@ -1730,6 +1730,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				}
 			} else {
 				FileUtility.unzipFile(zf, projectDir, callback);
+				// To prevent issues with importing projects
+				File dotProject = new File(projectDir, ".project");
+				if (dotProject.exists()) {
+					dotProject.renameTo(new File(projectDir, ".project.bak"));
+				}
 			}
 			this.setFiles(srcFiles);
 			super.copySources(zipDir, targetDir);
