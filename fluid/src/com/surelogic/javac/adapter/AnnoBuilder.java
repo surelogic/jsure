@@ -133,7 +133,16 @@ class AnnoBuilder implements AnnotationVisitor {
 
 		@Override
 		public void visitEnd() {			
-			result = ArrayInitializer.createNode(pairs.toArray(JavaGlobals.noNodes));
+			if (pairs.isEmpty()) {
+				// TODO is there some other way to know what this should be?
+				result = ElementValueArrayInitializer.createNode(JavaGlobals.noNodes);
+			}
+			else if (Initializer.prototype.includes(pairs.get(0))) {
+				result = ArrayInitializer.createNode(pairs.toArray(JavaGlobals.noNodes));
+			}
+			else {
+				result = ElementValueArrayInitializer.createNode(JavaGlobals.noNodes);
+			}
 			outer.add(name, result);
 		}	
 	}
