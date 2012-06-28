@@ -355,10 +355,11 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
         AnonClassExpression.getBody(call),
         value,
         flag);
-    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+    } else if (ImpliedEnumConstantInitialization.prototype.includes(op) &&
+        EnumConstantClassDeclaration.prototype.includes(JJNode.tree.getParent(call))) {
       return runClassInitializer(
-          call,
-          EnumConstantClassDeclaration.getBody(call),
+          JJNode.tree.getParent(call),
+          EnumConstantClassDeclaration.getBody(JJNode.tree.getParent(call)),
           value,
           flag);
     } else if (!flag) return null;

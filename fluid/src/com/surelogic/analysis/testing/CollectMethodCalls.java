@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
@@ -84,19 +85,29 @@ final class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNo
     @Override 
     public ImmutableSet<IRNode> transferCall(
         final IRNode node, final boolean flag, final ImmutableSet<IRNode> before) {
-      /* N.B. Don't have to also override transferImpliedNewExpression because
-       * we are only interested in method calls that appear in the syntax.
-       */
-
       // Only need to add the call once, so just do it on the normal path
       ImmutableSet<IRNode> out = before;
       if (flag) {
-        System.out.println("transfer method call: " + DebugUnparser.toString(node));
         out = out.union(ImmutableHashOrderSet.<IRNode>emptySet().addElement(node));
       }
       return out;
     }
         
+    @Override
+    public ImmutableSet<IRNode> transferImpliedNewExpression(
+        final IRNode call, final boolean flag, final ImmutableSet<IRNode> before) {
+      // N.B. Should be handled as a specialized case of transferCall
+      
+      // Only need to add the call once, so just do it on the normal path
+      ImmutableSet<IRNode> out = before;
+      if (flag) {
+        out = out.union(
+            ImmutableHashOrderSet.<IRNode>emptySet().addElement(
+                JJNode.tree.getParent(call)));
+      }
+      return out;
+  }
+
     public ImmutableSet<IRNode> transferComponentSource(final IRNode node) {
       return ImmutableHashOrderSet.emptySet();
     }
