@@ -2,6 +2,7 @@
 public operator EnumConstantClassDeclaration extends EnumConstantDeclaration implements NestedDeclInterface, FlowUnit
 {
   syntax { 
+    annos:Annotations  
     $id:Info init:ImpliedEnumConstantInitialization args:OptArguments body:ClassBody
   }
   properties {

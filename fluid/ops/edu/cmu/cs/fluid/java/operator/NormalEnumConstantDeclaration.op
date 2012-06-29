@@ -2,6 +2,7 @@
 public operator NormalEnumConstantDeclaration extends EnumConstantDeclaration
 {
   syntax { 
+    annos:Annotations
     $id:Info init:ImpliedEnumConstantInitialization args:OptArguments
   }
   properties {
