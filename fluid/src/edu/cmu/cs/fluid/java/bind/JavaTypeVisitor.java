@@ -826,8 +826,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
         return type1;
       }else {
         if( pt1 instanceof BooleanType || pt2 instanceof BooleanType ) {
-          //If one of them is BooleanType, and the other is not.
-          return null;
+          //If one of them is BooleanType, and the other is not -> try boxing 
+          IJavaType bt1 = forceBoxed(type1);
+          IJavaType bt2 = forceBoxed(type2);
+          return typeInference3(bt1, node1, bt2, node2);
         }
         boolean assignableTo2 = pt1 instanceof IntegralType && 
                                 binder.getTypeEnvironment().isAssignmentCompatible(type2, type1, node1);
