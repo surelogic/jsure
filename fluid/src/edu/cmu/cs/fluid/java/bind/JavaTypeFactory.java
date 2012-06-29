@@ -1249,7 +1249,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
-    throw new NotImplemented("what IJavaType for Object");
+    if (lowerBound != null) {
+    	// TODO is this right?
+    	return lowerBound;
+    }
+    return wildcard.getSuperclass(env);
   }
   
   /* (non-Javadoc)
