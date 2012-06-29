@@ -1238,10 +1238,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	IRNode fqr = getQualifiedReceiver(node);
     	boolean isBorrowed = UniquenessRules.isBorrowed(fqr);
     	*/
-      final IRNode classBody =           
-          AnonClassExpression.prototype.includes(node) ? 
-        			AnonClassExpression.getBody(node) :
-        			NestedClassDeclaration.getBody(node);
+      final IRNode classBody = VisitUtil.getClassBody(node);        
     	// called on NestedClassDeclaration AND AnonClassExpression
       final List<IRNode> externalVars =
           LocalVariableDeclarations.getExternallyDeclaredVariables(

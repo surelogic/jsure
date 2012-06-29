@@ -408,37 +408,6 @@ public class TypeUtil implements JavaGlobals {
     }
     throw new IllegalArgumentException("Couldn't find context for given expression");
   }
-  
-  /**
-   * Given a type declaration, return the ClassBody node of the type.
-   * 
-   * @param typeDecl
-   *          A {@link AnonClassExpression}, {@link ClassDeclaration},
-   *          {@link NestedClassDeclaration},
-   *          {@link EnumConstantClassDeclaration}, {@link EnumDeclaration},
-   *          {@link NestedEnumDeclaration}, {@link InterfaceDeclaration}, or
-   *          {@link NestedInterfaceDeclaration} node.
-   * @return The {@link ClassBody} node of the given type declaration.
-   * @throws IllegalArgumentException
-   *           if <code>typeDecl</code> is not one of the above nodes.
-   */
-  public static IRNode getTypeBody(final IRNode typeDecl) {
-    final Operator op = JJNode.tree.getOperator(typeDecl);
-    if (AnonClassExpression.prototype.includes(op)) {
-      return AnonClassExpression.getBody(typeDecl);
-    } else if (ClassDeclaration.prototype.includes(op)) {
-      return ClassDeclaration.getBody(typeDecl);
-    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
-      return EnumConstantClassDeclaration.getBody(typeDecl);
-    } else if (EnumDeclaration.prototype.includes(op)) {
-      return EnumDeclaration.getBody(typeDecl);
-    } else if (InterfaceDeclaration.prototype.includes(op)) {
-      return InterfaceDeclaration.getBody(typeDecl);
-    } else {
-      throw new IllegalArgumentException(
-          "Unknown type declaration " + op.name());
-    }
-  }
 
   /**
    * Is the given node part of a compiled binary?

@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
@@ -38,7 +38,7 @@ public abstract class TypeImplementationProcessor {
       final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
       final PromiseDrop<? extends IAASTRootNode> pd,
       final IRNode td) {
-    this(a, pd, td, TypeUtil.getTypeBody(td));
+    this(a, pd, td, VisitUtil.getClassBody(td));
   }
   
   

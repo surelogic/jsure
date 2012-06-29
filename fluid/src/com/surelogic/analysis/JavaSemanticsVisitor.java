@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -1000,15 +1001,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        * initializations in the class. 
        */
       final IRNode classDecl = JavaPromise.getPromisedFor(node);
-      final IRNode classBody;
-      if (AnonClassExpression.prototype.includes(classDecl)) {
-        classBody = AnonClassExpression.getBody(classDecl);
-      } else if (EnumConstantClassDeclaration.prototype.includes(classDecl)) {
-        classBody = EnumConstantClassDeclaration.getBody(classDecl);
-      } else {
-        classBody = TypeDeclaration.getBody(classDecl);
-      }
-      processClassBody(classBody, WhichMembers.STATIC);
+      processClassBody(VisitUtil.getClassBody(classDecl), WhichMembers.STATIC);
     } finally {
       leaveEnclosingDecl(null);
     }
