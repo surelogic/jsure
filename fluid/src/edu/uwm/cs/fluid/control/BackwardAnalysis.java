@@ -32,6 +32,7 @@ import edu.cmu.cs.fluid.control.SimpleOutputPort;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
+import edu.cmu.cs.fluid.control.SubcomponentChoice;
 import edu.cmu.cs.fluid.control.SubcomponentFlow;
 import edu.cmu.cs.fluid.control.TrackLabel;
 import edu.cmu.cs.fluid.control.TrackedDemerge;
@@ -248,6 +249,39 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
         return lattice.join(r1,r2);
       }
   };
+  final LabeledLattice.Combiner<T,SubcomponentChoice> subcomponentChoiceCombiner =
+      new LabeledLattice.Combiner<T,SubcomponentChoice>() {
+       public final UnaryOp<T,SubcomponentChoice> leftBottom = new UnaryOp<T,SubcomponentChoice>() {
+         public T operate(T x, SubcomponentChoice arg) { 
+           IRNode node = arg.getSyntax();
+           Object info = arg.getInfo();
+           return trans.transferComponentChoice(node,info,false,x);
+         }
+       };
+       public final UnaryOp<T,SubcomponentChoice> rightBottom = new UnaryOp<T,SubcomponentChoice>() {
+         public T operate(T x, SubcomponentChoice arg) { 
+           IRNode node = arg.getSyntax();
+           Object info = arg.getInfo();
+           T r1 = trans.transferComponentChoice(node,info,true,x);
+           return r1; 
+         }
+       };
+       public UnaryOp<T,SubcomponentChoice> bindLeftBottom() {
+         return leftBottom;
+       }
+       public UnaryOp<T,SubcomponentChoice> bindRightBottom() {
+         return rightBottom;
+       }
+       public T combine(T x, T y, SubcomponentChoice arg) {
+          IRNode node = arg.getSyntax();
+          Object info = arg.getInfo();
+          T r1 = trans.transferComponentChoice(node,info,true,x);
+          T r2 = trans.transferComponentChoice(node,info,false,y);
+          if (r1 == null) r1 = lattice.bottom();
+          if (r2 == null) r2 = lattice.bottom();
+          return lattice.join(r1,r2);
+        }
+    };
   final LabeledLattice.Combiner<T, IRNode> conditionalCombiner =
     new LabeledLattice.Combiner<T,IRNode>() {
       public final UnaryOp<T,IRNode> leftBottom = new UnaryOp<T,IRNode>() {
@@ -368,6 +402,8 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
         doTransfer(out1,out2,in,addLabelOp,label,nopLabelOp,null);
       } else if (node instanceof ComponentChoice) {
         doTransfer(out1,out2,in,componentChoiceCombiner,(ComponentChoice)node);
+      } else if (node instanceof SubcomponentChoice) {
+        doTransfer(out1, out2, in, subcomponentChoiceCombiner, (SubcomponentChoice) node);
       } else {
         LOG.severe("Unknown Choice " + node);
       }
