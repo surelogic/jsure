@@ -1445,7 +1445,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * of the way we handle anonymous class expressions and constructors.</em>
    * Unfortunately, we do get here because the way that UniquenssAnalysis 
    * handles anonymous class expressions is broken.  So to reiterate,
-   * when only get here when the InitDeclaration is from an AnonClassExpression or EnumConstantClassDeclaration
+   * we only get here when the InitDeclaration is from an AnonClassExpression or EnumConstantClassDeclaration
    * being visited by UniqueAnalysis.  
    * 
    * <P>We handle this similarly to an anon class expression, except we are already
