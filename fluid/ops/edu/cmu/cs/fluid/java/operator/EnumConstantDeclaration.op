@@ -2,6 +2,7 @@
 public operator EnumConstantDeclaration extends VariableDeclaration implements ClassBodyDeclInterface, EnumBodyDeclInterface, CallInterface
 {
   syntax { 
+    annos:Annotations  
     $id:Info init:ImpliedEnumConstantInitialization @args:OptArguments body:OptClassBody
   }
   properties {
@@ -46,7 +47,7 @@ class EnumConstantDeclarationComponent extends Component {
     if (loc == EnumConstantDeclaration.initLocation) {
       return super.getSubcomponent(loc);
     } else {
-      return this.getComponent(tree.getChild(syntax, 0)).getSubcomponent(loc);
+      return this.getComponent(tree.getChild(syntax, EnumConstantDeclaration.initLoc)).getSubcomponent(loc);
     }
   }
 }

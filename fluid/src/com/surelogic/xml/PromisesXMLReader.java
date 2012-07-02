@@ -259,4 +259,14 @@ public class PromisesXMLReader extends NestedXMLReader implements
 	public static PackageElement get(String path) {
 		return cache.get(path);
 	}
+	
+	// HACK!?!
+	public static void cache(String path, PackageElement p) {
+		if (p == null) {
+			return;
+		}
+		if (!cache.containsKey(path)) {
+			cache.put(path, p);
+		}
+	}
 }

@@ -229,6 +229,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 								roots[0] = pkg = PromisesXMLBuilder.makeModel(
 										p, name);
 							}
+							PromisesXMLReader.cache(path, pkg);
 						}
 					} else {
 						if (PromisesXMLBuilder.updateElements(pkg)) {

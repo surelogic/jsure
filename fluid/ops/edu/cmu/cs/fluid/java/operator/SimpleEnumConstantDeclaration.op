@@ -2,6 +2,7 @@
 public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
 {
   syntax { 
+    annos:Annotations  
     $id:Info init:ImpliedEnumConstantInitialization 
   }
   private static final CallInterface.NoArgs noArgs = new CallInterface.NoArgs();

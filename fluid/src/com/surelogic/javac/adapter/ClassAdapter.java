@@ -246,12 +246,6 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		if ((access & Opcodes.ACC_PRIVATE) != 0) {
 			return null;
 		}
-		if (isEnumDecl()) {
-	    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
-			IRNode result = SimpleEnumConstantDeclaration.createNode(name, impliedInit);
-			members.add(result);
-			return null;
-		} 
 		return new EmptyVisitor() {
 			final List<IRNode> annoList = new ArrayList<IRNode>();
 			
@@ -268,6 +262,12 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			@Override 
 			public void visitEnd() {
 				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
+				if (isEnumDecl()) {
+			    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
+					IRNode result = SimpleEnumConstantDeclaration.createNode(annos, name, impliedInit);
+					members.add(result);
+					return;
+				} 
 				int mods     = adaptModifiers(access);
 				IRNode type;
 				if (signature == null) {
