@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="JSure Tests" default="summarize and print test results">
-
+<project name="JSure Tests" default="summarize and print test results" xmlns:artifact="antlib:org.apache.maven.artifact.ant">	
 	<property name="fs" value="${file.separator}" />
 	<property name="ln" value="----------------------------------------------------------------------" />
 
 	<dirname property="antfile.dir" file="${ant.file}" />
 
+	<property name="maven-ant-tasks-jar" value = "${antfile.dir}${fs}lib${fs}maven-ant-tasks-2.1.3.jar"/>
+	<path id="maven-ant-tasks.classpath" path="${maven-ant-tasks-jar}" />
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	           uri="antlib:org.apache.maven.artifact.ant"
+	           classpathref="maven-ant-tasks.classpath" />
+	
 	<!-- A set of tasks we cooked up to help the JSure test run -->
 	<taskdef resource="sl-tasks.properties">
 		<classpath>
@@ -286,6 +291,29 @@
 								<echo message="Unzipped @{name.zip} into ${sandbox.suites.dir}${fs}@{suite}${fs}${name.no.dot.zip} (and removed @{name.zip})" />
 							</then>
 						</if>
+					</sequential>
+				</for>
+				
+				<findTests property="updated.project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
+				<for list="${updated.project.list}" param="project" trim="true">
+					<sequential>
+						<!-- Check for existance of "aux-setup.xml" file -->
+						<property name="as.x" value="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}aux-build.xml" />
+						<available property="aux-ant-tasks.file" value="${as.x}" file="${as.x}"/>
+
+						<if>
+							<available file="${as.x}"/>
+							<then>
+								<ant antfile="${as.x}"/>
+							</then>
+						</if>
+						<!-- Check if we need to do some Maven setup 
+						(by looking for a Ant file with properties to find Maven?) -->
+						<!-- Load up any maven goals (if any)						
+						<artifact:mvn pom="path/to/my-pom.xml" mavenHome="/path/to/maven-2.0.x">
+						<arg value="install"/>
+						</artifact:mvn>
+						-->
 					</sequential>
 				</for>
 			</sequential>
