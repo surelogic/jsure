@@ -9,7 +9,6 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.EmptyVisitor;
 import org.objectweb.asm.signature.*;
 
 import com.surelogic.common.logging.SLLogger;
@@ -21,7 +20,7 @@ import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
 
-public class ClassAdapter extends AbstractAdapter implements ClassVisitor {	
+public class ClassAdapter extends AbstractAdapter {	
 	final boolean debug;
 	final ZipFile jar;
 	final String className;
@@ -85,7 +84,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		}
 		if (is != null) {
 			ClassReader cr = new ClassReader(is);
-			cr.accept(this, 0);
+			cr.accept(new Visitor(), 0);
 			/*
 			cr = new ClassReader(jar.getInputStream(e));
 			cr.accept(new AnalyzeSignaturesVisitor(), 0);
@@ -183,12 +182,6 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			return interfaces.toArray(noNodes);
 		}
 	}
-	
-	public void visitSource(String source, String debug) {
-	}
-
-	public void visitOuterClass(String owner, String name, String desc) {
-	}
 
 	public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
 		return new AnnoBuilder(desc) {
@@ -198,9 +191,6 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 				annos.add(result);
 			}
 		};
-	}
-
-	public void visitAttribute(Attribute attr) {
 	}
 
 	public void visitInnerClass(String name, String outerName,
@@ -246,7 +236,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		if ((access & Opcodes.ACC_PRIVATE) != 0) {
 			return null;
 		}
-		return new EmptyVisitor() {
+		return new FieldVisitor(Opcodes.ASM4) {
 			final List<IRNode> annoList = new ArrayList<IRNode>();
 			
 			@Override
@@ -546,11 +536,12 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		};
 	}
 
-	class MethodBodyVisitor extends EmptyVisitor {
+	class MethodBodyVisitor extends MethodVisitor {
 		int line = Integer.MAX_VALUE;
 		IRNode result, parameters;
 
 		MethodBodyVisitor(IRNode n, IRNode params) {
+			super(Opcodes.ASM4);
 			result = n;
 			parameters = params;
 		}
@@ -754,5 +745,45 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 			mods = JavaNode.setModifier(mods, JavaNode.VOLATILE, true);
 		}
 		return mods;
+	}
+	
+	class Visitor extends ClassVisitor {
+		Visitor() {
+			super(Opcodes.ASM4);
+		}		
+		
+		@Override
+		public void visit(int version, int access, String name,
+				String sig, String sname, String[] interfaces) {
+			ClassAdapter.this.visit(version, access, name, sig, sname, interfaces);	
+		}
+		
+		@Override
+		public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+			return ClassAdapter.this.visitAnnotation(desc, visible);
+		}
+		
+		@Override
+		public void visitInnerClass(String name, String outerName,
+				String innerName, int access) {
+			ClassAdapter.this.visitInnerClass(name, outerName, innerName, access);
+		}
+		
+		@Override
+		public MethodVisitor visitMethod(int access, final String name,
+				final String desc, final String signature, final String[] exceptions) {
+			return ClassAdapter.this.visitMethod(access, name, desc, signature, exceptions);
+		}
+		
+		@Override
+		public FieldVisitor visitField(final int access, final String name, final String desc,
+				final String signature, Object value) {
+			return ClassAdapter.this.visitField(access, name, desc, signature, value);
+		}
+		
+		@Override
+		public void visitEnd() {
+			ClassAdapter.this.visitEnd();
+		}
 	}
 }

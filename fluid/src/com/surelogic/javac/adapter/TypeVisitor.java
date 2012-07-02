@@ -2,13 +2,14 @@ package com.surelogic.javac.adapter;
 
 import java.util.*;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.signature.SignatureVisitor;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.operator.*;
 
-public class TypeVisitor implements SignatureVisitor {	
+public class TypeVisitor extends SignatureVisitor {	
 	protected static final IRNode[] noNodes = JavaGlobals.noNodes;
 	protected static final IRNode illegal     = new MarkedIRNode("illegal");
 	
@@ -20,6 +21,7 @@ public class TypeVisitor implements SignatureVisitor {
 		this(false);
 	}
 	TypeVisitor(boolean varargs) {
+		super(Opcodes.ASM4);
 		this.varargs = varargs;
 	}
 	

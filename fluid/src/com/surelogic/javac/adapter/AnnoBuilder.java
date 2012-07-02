@@ -3,6 +3,7 @@ package com.surelogic.javac.adapter;
 import java.util.*;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -15,12 +16,13 @@ import edu.cmu.cs.fluid.java.operator.*;
  * @author Edwin
  */
 // (visit | visitEnum | visitAnnotation | visitArray)* visitEnd. 
-class AnnoBuilder implements AnnotationVisitor {
+class AnnoBuilder extends AnnotationVisitor {
 	final String type;
 	final List<IRNode> pairs = new ArrayList<IRNode>();
 	IRNode result;
 	
 	AnnoBuilder(String desc) {
+		super(Opcodes.ASM4);
 		if (desc == null) {
 			type = null;
 		} else {

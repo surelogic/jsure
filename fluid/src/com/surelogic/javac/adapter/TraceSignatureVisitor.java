@@ -1,15 +1,17 @@
 package com.surelogic.javac.adapter;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.signature.SignatureVisitor;
 
 /**
  * ASM signature visitor which reports all calls.
  */
-public class TraceSignatureVisitor implements SignatureVisitor
+public class TraceSignatureVisitor extends SignatureVisitor
 {
     private final String m_indent;
     
     public TraceSignatureVisitor(String indent) {
+    	super(Opcodes.ASM4);
         m_indent = indent;
     }
 
