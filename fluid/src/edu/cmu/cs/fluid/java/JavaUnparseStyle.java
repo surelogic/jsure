@@ -83,6 +83,12 @@ public class JavaUnparseStyle {
   private Token TKCOMMA = defaultCOMMA;
   public Token getCOMMA() { return TKCOMMA; }
   public void setCOMMA(Token tk) { TKCOMMA = tk; }
+  
+  /* <or> */
+  private static Token defaultOR = IndepBP.DEFAULTBP;
+  private Token TKOR = defaultOR;
+  public Token getOR() { return TKOR; }
+  public void setOR(Token tk) { TKOR = tk; }
 
   /* <then> */
   private static Token defaultTHEN = defaultBLOCK;
