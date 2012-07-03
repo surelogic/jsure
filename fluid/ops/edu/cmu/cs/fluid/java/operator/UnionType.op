@@ -1,0 +1,12 @@
+# $Header$
+public operator UnionType extends ReferenceType {
+  syntax {
+    type:ReferenceType */ ( <> "|" <or> ) 
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

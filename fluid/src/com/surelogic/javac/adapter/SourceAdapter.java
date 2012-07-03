@@ -275,6 +275,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 		case SUPER_WILDCARD:
 		case UNBOUNDED_WILDCARD:
 			return visitWildcard((WildcardTree) t, context);
+		case UNION_TYPE:
+			return visitUnionType((UnionTypeTree) t, context);
 		default:			
 			throw new IllegalArgumentException("Unknown type: "+t.getKind());
 		}
@@ -1388,6 +1390,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
     public IRNode visitTry(TryTree node, CodeContext context)
     {
+    	// TODO fix for Java 7
         IRNode b = acceptNode(node.getBlock(), context);
         IRNode[] c = map(acceptNodes, node.getCatches(), context);
         IRNode f = acceptNode(node.getFinallyBlock(), context);
@@ -1396,7 +1399,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         } else {
         	f = Finally.createNode(f);
         }
-        return TryStatement.createNode(b, CatchClauses.createNode(c), f);
+        return TryStatement.createNode(b, CatchClauses.createNode(c), f);       
     }
 
     public IRNode visitTypeCast(TypeCastTree node, CodeContext context)
@@ -1540,7 +1543,14 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
     // needed for Java 7
 	public IRNode visitUnionType(UnionTypeTree u, CodeContext c) {
-		throw new UnsupportedOperationException("Union type: "+u);
+		final List<? extends Tree> list = u.getTypeAlternatives();
+		IRNode[] alts = new IRNode[list.size()];
+		int i=0;
+		for(Tree t : list) {
+			alts[i] = adaptType(t, c);
+			i++;
+		}
+		return UnionType.createNode(alts);
 	}
 
 	// needed for Java 8?
