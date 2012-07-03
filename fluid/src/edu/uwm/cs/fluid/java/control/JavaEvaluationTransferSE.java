@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -86,7 +87,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     Operator op,
     Object info,
     T val) {
-    if (Initializer.prototype.includes(op)) {
+    if (ImpliedEnumConstantInitialization.prototype.includes(op)) {
+      if (info instanceof NewExpression) {
+        /* allocation of new object */
+        return transferAllocation(node, val);
+      } else {
+        return transferImpliedEnumConstantInitialization(node, val);
+      }
+    } else if (Initializer.prototype.includes(op)) {
       if (LiteralExpression.prototype.includes(op)) {
         return transferLiteral(node, val);
       } else if (PrimaryExpression.prototype.includes(op)) {
@@ -351,46 +359,51 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
-	 * Transfer a value over a successful call expression. <strong>leaf
-	 * </strong>
-	 */
-  protected T transferCall(IRNode node, T value) {
-    Operator op = tree.getOperator(node);
-    boolean mcall = MethodCall.prototype.includes(op);
-    
-    // pop actuals
-    // trickier than you might expect because of var args!
+   * Transfer a value over a successful call expression. <strong>leaf
+   * </strong>
+   */
+  protected T transferCall(final IRNode node, final T value) {
+    final Operator op = tree.getOperator(node);
     Iterable<IRNode> actuals;
     try {
       actuals = Arguments.getArgIterator(((CallInterface) op).get_Args(node));
     } catch(final CallInterface.NoArgs e) {
       actuals = new EmptyIterator<IRNode>();
     }
-    for (IRNode arg : actuals) {
+    
+    return transferCall(node, value, actuals, 
+        hasOuterObject(node), MethodCall.prototype.includes(op));
+  }
+
+  private T transferCall(final IRNode callNode, 
+      T value, final Iterable<IRNode> actuals,
+      final boolean hasOuter, final boolean isMethodCall) {
+    // pop actuals
+    // trickier than you might expect because of var args!
+    for (final IRNode arg : actuals) {
       if (VarArgsExpression.prototype.includes(arg)) {
-        value = pop(value, node, tree.numChildren(arg));
+        value = pop(value, callNode, tree.numChildren(arg));
       } else {
-        value = pop(value, node);
+        value = pop(value, callNode);
       }
     }
 
     // if constructor, pop qualifications
     // while leaving receiver in place:
-    boolean q = hasOuterObject(node);
-    if (q) {
-      if (mcall) {
+    if (hasOuter) {
+      if (isMethodCall) {
         LOG.severe("MethodCall's can't have qualifiers!");
       }
-      value = popSecond(value, node);
+      value = popSecond(value, callNode);
     }
     
     // now if a method call, pop receiver and push return value
-    if (mcall) {
-      value = pop(value, node);
+    if (isMethodCall) {
+      value = pop(value, callNode);
       /* Push value even for "void" methods.  The extraneous stack value will
        * be popped by the surrounding "ExpressionStatement" node.
        */
-      value = push(value, node);
+      value = push(value, callNode);
     }
     return value;
   }
@@ -548,6 +561,29 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
+   * Transfer over the declaration of an enumeration constant declaration.
+   */
+  @Override
+  protected final T transferEnumConstantDeclaration(final IRNode node, final T value) {
+    /* N.B. Should be handled as a special case of field initialization,
+     * and then as an anonymous class expression, if necessary.
+     */
+    T v = transferEnumConstantDeclarationAsFieldInit(node, value);
+    if (EnumConstantClassDeclaration.prototype.includes(node)) {
+      v = transferEnumConstantDeclarationAsAnonClass(node, v);
+    }
+    return v;
+  }
+  
+  protected T transferEnumConstantDeclarationAsFieldInit(final IRNode node, final T value) {
+    return pop(value, node); // value is stored
+  }
+  
+  protected T transferEnumConstantDeclarationAsAnonClass(final IRNode node, final T value) {
+    return value;
+  }
+ 
+  /**
 	 * Transfer a lattice value over == test. <strong>leaf</strong>
 	 */
   protected T transferEq(IRNode node, boolean flag, T value) {
@@ -611,6 +647,41 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     IRNode arrayInitializer,
     T value) {
     return transferArrayCreation(arrayInitializer, value);
+  }
+
+  protected T transferImpliedEnumConstantInitialization(
+      final IRNode node, final T value) {
+    /* Pass through the value generated from simulating an object allocation
+     * and new expression.  That is, this node shouldn't normally affect
+     * the flow results.
+     */
+    return value;
+  }
+  
+  /**
+   * Transfer a lattice value over the implied constructor call of an 
+   * enumeration constant declaration.
+   */
+  @Override
+  protected T transferImpliedNewExpression(
+      final IRNode impliedInit, final boolean flag, final T value) {
+    // N.B. Should be handled as a specialized case of transferCall
+    final IRNode enumConst = JJNode.tree.getParent(impliedInit);
+    
+    if (!flag) {
+      return popAllPending(value, enumConst);
+    }
+    
+    final Operator enumConstOp = JJNode.tree.getOperator(enumConst);
+    final Iterable<IRNode> args;
+    if (SimpleEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+      args = new EmptyIterator<IRNode>();
+    } else if (NormalEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+      args = OptArguments.getArgIterator(NormalEnumConstantDeclaration.getArgs(enumConst));
+    } else { // EnumConstantClassConstantDeclaration
+      args = OptArguments.getArgIterator(EnumConstantClassDeclaration.getArgs(enumConst));
+    }
+    return transferCall(enumConst, value, args, false, false);
   }
 
   /**

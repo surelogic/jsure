@@ -664,22 +664,22 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
    */
   @Override
   protected T transferImpliedNewExpression(
-      final IRNode call, final boolean flag, final T value) {
+      final IRNode impliedInit, final boolean flag, final T value) {
     // N.B. Should be handled as a specialized case of transferCall
     
     if (!flag) {
       return popAllPending(value);
     }
     
-    final IRNode enumConst = JJNode.tree.getParent(call);
+    final IRNode enumConst = JJNode.tree.getParent(impliedInit);
     final Operator enumConstOp = JJNode.tree.getOperator(enumConst);
     final Iterable<IRNode> args;
     if (SimpleEnumConstantDeclaration.prototype.includes(enumConstOp)) {
       args = new EmptyIterator<IRNode>();
     } else if (NormalEnumConstantDeclaration.prototype.includes(enumConstOp)) {
-      args = OptArguments.getArgIterator(NormalEnumConstantDeclaration.getArgs(call));
+      args = OptArguments.getArgIterator(NormalEnumConstantDeclaration.getArgs(enumConst));
     } else { // EnumConstantClassConstantDeclaration
-      args = OptArguments.getArgIterator(EnumConstantClassDeclaration.getArgs(call));
+      args = OptArguments.getArgIterator(EnumConstantClassDeclaration.getArgs(enumConst));
     }
     return transferCall(value, args, false, false);
   }

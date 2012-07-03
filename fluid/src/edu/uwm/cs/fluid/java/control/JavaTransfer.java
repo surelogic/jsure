@@ -320,7 +320,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
    * enumeration constant declaration.
    */
   protected T transferImpliedNewExpression(
-      final IRNode call, final boolean flag, final T value) {
+      final IRNode impliedInit, final boolean flag, final T value) {
     // N.B. Should be handled as a specialized case of transferCall
     return value;
   }

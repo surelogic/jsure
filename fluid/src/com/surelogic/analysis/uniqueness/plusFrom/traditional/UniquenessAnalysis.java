@@ -998,7 +998,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
 
       return handleCallLikeExpressions(
-          node, flag, s, enumConst, binder.getBinding(enumConst),
+          enumConst, flag, s, enumConst, binder.getBinding(enumConst),
           actuals, false, false);
     }
     

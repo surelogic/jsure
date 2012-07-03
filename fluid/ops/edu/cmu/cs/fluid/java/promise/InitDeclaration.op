@@ -32,6 +32,8 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (AnonClassExpression.prototype.includes(op)) {
       classBody = AnonClassExpression.getBody(classDecl);
       //System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
     return ClassBody.prototype.getSource(classBody);
   }
@@ -44,6 +46,8 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (AnonClassExpression.prototype.includes(op)) {
       classBody = AnonClassExpression.getBody(classDecl);
       // System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
     return ClassBody.prototype.getNormalSink(classBody);
   }
@@ -56,6 +60,8 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (AnonClassExpression.prototype.includes(op)) {
       classBody = AnonClassExpression.getBody(classDecl);
       // System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
     return ClassBody.prototype.getAbruptSink(classBody);
   }

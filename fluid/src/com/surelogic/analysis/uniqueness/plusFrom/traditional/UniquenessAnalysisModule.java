@@ -39,19 +39,16 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -653,8 +650,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		      // Also check if the class has an IFQR that is borrowed
   		      final IRNode ifqr =
   		          JavaPromise.getQualifiedReceiverNodeOrNull(block.getClassBody());
-//  		              TypeDeclaration.getBody(JJNode.tree.getParentOrNull(
-//  		                  block.getClassBody())));
   		      if (ifqr != null) {
   		        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(ifqr);
   		        if (bDrop != null) pr.uniqueFields.add(bDrop);

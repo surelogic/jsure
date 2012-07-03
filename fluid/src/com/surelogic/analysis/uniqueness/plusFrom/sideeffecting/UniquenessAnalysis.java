@@ -72,11 +72,13 @@ import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
+import edu.cmu.cs.fluid.java.operator.SimpleEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
@@ -469,7 +471,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(
-        final IRNode callSrcOp, final IRNode mdecl, final IRNode actualRcvr,
+        final IRNode callSrcOp, final IRNode mdecl, final boolean hasOuter,
+        final IRNode actualRcvr,
         final int numFormals, final IRNode formals,
         final RegionEffectsPromiseDrop fxDrop,
         final List<Effect> declEffects, Store s) {
@@ -577,7 +580,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
            */
           if (!TypeUtil.isStatic(mdecl)) {
             final IRNode rcvr = JavaPromise.getReceiverNode(mdecl);
-            final int depth = OuterObjectSpecifier.prototype.includes(callSrcOp) ? numFormals + 1 : numFormals;
+            final int depth = hasOuter ? numFormals + 1 : numFormals;
             s = checkMutationOfParameters(s, t, rcvr, depth); // XXX: May be generating bogus errors from opGet()
           }
           
@@ -888,54 +891,66 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
 
     @Override
-    protected Store transferCall(final IRNode node, final boolean isNormal, Store s) {
+    protected Store transferCall(final IRNode node, final boolean flag, Store s) {
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
-      final boolean mcall = MethodCall.prototype.includes(op);
-      /* Results look better if we use the outer object specifier (if any) as
-       * the source operation. 
-       */
-      final IRNode outerObjectSpec = getOuterObject(node);
-      final IRNode srcOp = outerObjectSpec == null ? node : outerObjectSpec;
-      
-      final CallInterface call = (CallInterface) op;
       IRNode actuals;
-      int numActuals;
       try {
-        actuals = call.get_Args(node);
-        numActuals = tree.numChildren(actuals);
+        actuals = ((CallInterface) op).get_Args(node);
       } catch (final CallInterface.NoArgs e) {
         actuals = null;
-        numActuals = 0;
       }
-  
-      final IRNode formals;
-      if (mdecl == null) {
-        LOG.warning("No binding for method " + DebugUnparser.toString(node));
-        formals = null;
-      } else {
-        formals = SomeFunctionDeclaration.getParams(mdecl);
-      }
-  
-      final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
       
+      final IRNode outerObjectSpec = getOuterObject(node);
+      final IRNode srcOp = outerObjectSpec == null ? node : outerObjectSpec;
+      final boolean isMethodCall = MethodCall.prototype.includes(op);
+      final IRNode receiverNode = 
+          isMethodCall ? ((MethodCall) op).get_Object(node) : null;
+      return handleCallLikeExpressions(
+          node, flag, s, srcOp, mdecl, actuals, outerObjectSpec,
+          isMethodCall, receiverNode);
+    }
+
+    /**
+     * Process a method/constructor call.  Shared by {@link #transferCall}
+     * and {@link #transferImpliedNewExpression}.
+     *  
+     * @param node The node of the method/constructor call.
+     * @param flag <code>true</code> for normal method termination
+     * @param s The store.
+     * @param srcOp The call site for linking errors.
+     * @param mdecl The declaration node of the called method/constructor.
+     * @param actuals 
+     * @param formals
+     * @param hasOuter
+     * @param isMethodCall
+     * @return
+     */
+    private Store handleCallLikeExpressions(final IRNode node,
+        final boolean isNormal, Store s, final IRNode srcOp,
+        final IRNode mdecl, final IRNode actuals,
+        final IRNode outerSpec, final boolean isMethodCall,
+        final IRNode receiverNode) {
+      final IRNode formals = SomeFunctionDeclaration.getParams(mdecl);
+
+      // Should be the same for actuals and formals
+      final int numArgs = JJNode.tree.numChildren(formals);
+
       if (!isNormal) {
         lattice.setSuppressDrops(true);
       }
       try {
-        if (mdecl != null) {
-          s = considerDeclaredEffects(
-              srcOp, mdecl, receiverNode, numActuals, formals,
-              MethodEffectsRules.getRegionEffectsDrop(mdecl),
-              effects.getMethodEffects(mdecl, node), s);
-        }
+        s = considerDeclaredEffects(
+            srcOp, mdecl, outerSpec != null, receiverNode, numArgs, formals,
+            MethodEffectsRules.getRegionEffectsDrop(mdecl),
+            effects.getMethodEffects(mdecl, node), s);
         
         // we need to set RETURN to the return value,
         // so that allowReturn can be handled while popping actuals
-        if (mcall) { // method call
+        if (isMethodCall) { // method call
           s = pushReturnValue(mdecl,s);
         } else if (s.isValid()) { // constructor call
-          s = lattice.opGet(s, srcOp, StoreLattice.getStackTop(s)-numActuals);
+          s = lattice.opGet(s, srcOp, StoreLattice.getStackTop(s) - numArgs);
         }
         s = lattice.opSet(s, srcOp, RETURN_VAR);
          
@@ -960,14 +975,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         }
               
         // We have to possibly compromise arguments
-        if (numActuals > 0) {
-          s = popArguments(numActuals, actuals, formals, s);
+        if (numArgs > 0) {
+          s = popArguments(numArgs, actuals, formals, s);
         }
-        if (outerObjectSpec != null) {
+        if (outerSpec != null) {
           if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Popping qualifier");
           }
-          final IRNode outerObject = OuterObjectSpecifier.getObject(outerObjectSpec);
+          final IRNode outerObject = OuterObjectSpecifier.getObject(outerSpec);
           
           if (!s.isValid()) return s;
           // XXX: This opGet() calls makes errors on outer object references get error checked differently than the receiver and the other args because they do not use an opGet().
@@ -1075,7 +1090,35 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       // other types are primitive and hence null (for uniqueness analysis)
       return lattice.opNull(s);
     }
-    
+
+    @Override
+    protected Store transferEnumConstantDeclarationAsFieldInit(final IRNode node,  Store s) {
+      /* N.B. Should be handled as a special case of field initialization.
+       * See transferInitializationOfField(), below.
+       */
+      
+      // Static field init, so we push the shared object onto the stack 
+      s = lattice.opExisting(s, State.SHARED, null);
+      s = lattice.opDup(s, node, 1); // get value on top of stack
+      s = lattice.opStore(s, node, node); // perform store
+      
+      /* Regular field init does opRelease.  But enum constants are shared
+       * because they are stored into an elements array by the enum
+       * implementation.  So we have to compromise the value being stored
+       * into the enum constant.  (That is, we can never assure a @Unique
+       * enum constant.) 
+       */
+      s = lattice.opCompromise(s, node);
+      return s;
+    }
+
+    @Override
+    protected Store transferEnumConstantDeclarationAsAnonClass(final IRNode node,  Store s) {
+      /* N.B. Should be handled as a special case of anonymous class
+       */
+      return transferNestedClassUse(node,  s);
+    }
+
     @Override
     protected Store transferEq(final IRNode node, final boolean flag, final Store s) {
       // compare top two stack values and pop off.
@@ -1087,7 +1130,27 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferFailedCall(final IRNode node, final Store s) {
       throw new FluidError("execution should not reach here.");
     }
-    
+
+    @Override
+    protected Store transferImpliedNewExpression(
+        final IRNode node, final boolean flag, final Store s) {
+      // N.B. Should be handled as a specialized case of transferCall
+      final IRNode enumConst = JJNode.tree.getParent(node);
+      final Operator enumConstOp = JJNode.tree.getOperator(enumConst);
+      final IRNode actuals;
+      if (SimpleEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+        actuals = null;
+      } else if (NormalEnumConstantDeclaration.prototype.includes(enumConstOp)) {
+        actuals = NormalEnumConstantDeclaration.getArgs(enumConst);
+      } else { // EnumConstantClassConstantDeclaration
+        actuals = EnumConstantClassDeclaration.getArgs(enumConst);
+      }
+
+      return handleCallLikeExpressions(
+          enumConst, flag, s, enumConst, binder.getBinding(enumConst),
+          actuals, null, false, null);
+    }
+
     @Override
     protected Store transferInitializationOfField(final IRNode node, Store s) {
       final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
