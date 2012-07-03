@@ -5,7 +5,7 @@
 
 	<dirname property="antfile.dir" file="${ant.file}" />
 
-	<property name="maven-ant-tasks-jar" value = "${antfile.dir}${fs}lib${fs}maven-ant-tasks-2.1.3.jar"/>
+	<property name="maven-ant-tasks-jar" value = "${antfile.dir}${fs}..${fs}lib${fs}maven-ant-tasks-2.1.3.jar"/>
 	<path id="maven-ant-tasks.classpath" path="${maven-ant-tasks-jar}" />
     <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
 	           uri="antlib:org.apache.maven.artifact.ant"
@@ -297,14 +297,16 @@
 				<findTests property="updated.project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${updated.project.list}" param="project" trim="true">
 					<sequential>
-						<!-- Check for existance of "aux-setup.xml" file -->
+						<!-- Check for existance of "aux-build.xml" file -->
 						<property name="as.x" value="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}aux-build.xml" />
 						<available property="aux-ant-tasks.file" value="${as.x}" file="${as.x}"/>
 
 						<if>
 							<available file="${as.x}"/>
 							<then>
-								<ant antfile="${as.x}"/>
+								<ant antfile="${as.x}">
+									<property name="buildfile.dir" value="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}"/>
+								</ant>
 							</then>
 						</if>
 						<!-- Check if we need to do some Maven setup 
