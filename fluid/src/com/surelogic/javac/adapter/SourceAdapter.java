@@ -59,6 +59,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	    
 		IRNode result = acceptNode(cut, new CodeContext(false, false, false));
 		createLastMinuteNodes(result);
+		if (asBinary) {
+			JavaNode.setModifiers(result, JavaNode.AS_BINARY);
+		}
 		try {
     	return new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode, 
 	                        asBinary ? IJavaFileLocator.Type.INTERFACE : 
