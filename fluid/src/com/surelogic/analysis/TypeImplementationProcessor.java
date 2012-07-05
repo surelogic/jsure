@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -63,6 +64,20 @@ public abstract class TypeImplementationProcessor {
   public final void processType() {
     preProcess();
     
+    // First process the super type list
+    if (EnumConstantClassDeclaration.prototype.includes(typeDecl)) {
+      /* VisitUtil.getSupertypeNames() doesn't work EnumConstantClassDeclarations.
+       * We want the enumeration that contains the declaration to be the 
+       * supertype.
+       */
+      processSuperType(JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
+    } else {
+      for (final IRNode name : VisitUtil.getSupertypeNames(typeDecl)) {
+        processSuperType(analysis.getBinder().getBinding(name));
+      }
+    }
+    
+    // Then process the body elements
     for (final IRNode decl : ClassBody.getDeclIterator(typeBody)) {
       final Operator op = JJNode.tree.getOperator(decl);
       if (ClassInitializer.prototype.includes(op)) {
@@ -89,6 +104,10 @@ public abstract class TypeImplementationProcessor {
     // Do nothing by default
   }
 
+  protected void processSuperType(final IRNode decl) {
+    // Do nothing by default
+  }
+  
   protected void processFieldDeclaration(final IRNode decl) {
     // Visit variable declarators by default
     final boolean isStatic = JavaNode.getModifier(decl, JavaNode.STATIC);

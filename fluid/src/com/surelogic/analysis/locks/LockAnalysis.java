@@ -334,6 +334,18 @@ public class LockAnalysis
 			return Messages.toString(msg);
 		}
 
+    @Override
+    protected void processSuperType(final IRNode tdecl) {
+      final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
+          LockRules.getThreadSafeImplPromise(tdecl);
+      if (pDrop != null) {
+        final ResultDropBuilder result = createResult(tdecl, true,
+            Messages.THREAD_SAFE_SUPERTYPE,
+            JavaNames.getQualifiedTypeName(tdecl));
+        result.addTrustedPromise(pDrop);
+      }
+    }
+
 		@Override
 		protected void postProcess() {
 			if (!hasFields) {
@@ -596,6 +608,18 @@ public class LockAnalysis
 		}
 
 		@Override
+		protected void processSuperType(final IRNode tdecl) {
+		  final ContainablePromiseDrop pDrop =
+		      LockRules.getContainableImplementation(tdecl);
+		  if (pDrop != null) {
+		    final ResultDropBuilder result = createResult(tdecl, true,
+		        Messages.CONTAINABLE_SUPERTYPE,
+		        JavaNames.getQualifiedTypeName(tdecl));
+		    result.addTrustedPromise(pDrop);
+		  }
+		}
+		
+		@Override
 		protected void processConstructorDeclaration(final IRNode cdecl) {
 			final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
 			final BorrowedPromiseDrop bpd = UniquenessRules
@@ -760,6 +784,18 @@ public class LockAnalysis
 		protected String message2string(final int msg) {
 			return Messages.toString(msg);
 		}
+
+    @Override
+    protected void processSuperType(final IRNode tdecl) {
+      final ImmutablePromiseDrop pDrop =
+          LockRules.getImmutableImplementation(tdecl);
+      if (pDrop != null) {
+        final ResultDropBuilder result = createResult(tdecl, true,
+            Messages.IMMUTABLE_SUPERTYPE,
+            JavaNames.getQualifiedTypeName(tdecl));
+        result.addTrustedPromise(pDrop);
+      }
+    }
 
 		@Override
 		protected void postProcess() {

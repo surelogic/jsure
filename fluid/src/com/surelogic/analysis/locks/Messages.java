@@ -127,6 +127,7 @@ public final class Messages extends AbstractMessages {
   public static final int DECLARED_TYPE_IS_THREAD_SAFE = 411;
   public static final int DECLARED_TYPE_IS_NOT_THREAD_SAFE = 412;
   public static final int NOT_AGGREGATED = 413;
+  public static final int THREAD_SAFE_SUPERTYPE = 414;
   
   
   
@@ -146,6 +147,8 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 462;
   public static final int DECLARED_TYPE_IS_CONTAINABLE = 463;
   public static final int FIELD_IS_UNIQUE=464;
+  public static final int CONTAINABLE_SUPERTYPE=465;
+  
   
   
   // For Immutable assurance
@@ -158,7 +161,10 @@ public final class Messages extends AbstractMessages {
   public static final int TRIVIALLY_IMMUTABLE = 486;
   public static final int IMMUTABLE_VOUCHED_WITH_REASON = 487;
   public static final int IMMUTABLE_IMPL = 488;
-
+  public static final int IMMUTABLE_SUPERTYPE = 489;
+  
+  
+  
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 
   /** To support JSure-Sierra integration
