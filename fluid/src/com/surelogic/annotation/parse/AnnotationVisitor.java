@@ -522,7 +522,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		 * if (src != null) {
 		 * System.out.println("Handling promise: "+promise+' '+c); }
 		 */
-		AnnotationSource from = TypeUtil.isBinary(here) ? AnnotationSource.XML : AnnotationSource.JAVA_5;
+		AnnotationSource from;
+		if (TypeUtil.isBinary(here)) {
+			from = AnnotationSource.XML;
+		} else {
+			from = AnnotationSource.JAVA_5;
+		}
 		return createPromise(makeContext(here, promise, c, from, offset, modifiers, props));
 	}
 
