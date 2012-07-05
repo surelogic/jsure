@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.comment.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -521,7 +522,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		 * if (src != null) {
 		 * System.out.println("Handling promise: "+promise+' '+c); }
 		 */
-		return createPromise(makeContext(here, promise, c, AnnotationSource.JAVA_5, offset, modifiers, props));
+		AnnotationSource from = TypeUtil.isBinary(here) ? AnnotationSource.XML : AnnotationSource.JAVA_5;
+		return createPromise(makeContext(here, promise, c, from, offset, modifiers, props));
 	}
 
 	public boolean handleXMLPromise(IRNode node, String promise, String c, int modifiers, Map<String,String> props) {
