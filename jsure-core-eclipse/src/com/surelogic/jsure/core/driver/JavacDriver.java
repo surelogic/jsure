@@ -1381,10 +1381,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			if (!XUtil.testing) {
 				System.out.println("Configuring analyses for doBuild");
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
-				System.out.println("JSure data dir = "+
-						IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
-				System.out.println("XML diff dir   = "+
-						IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
 			}
 			// final boolean hasDeltas = info.hasDeltas();
 			makeProjects(newProjects, monitor);
@@ -1933,6 +1929,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			System.out.println("Copying sources = " + (end - start) + " ms");
 
 			JavacEclipse.initialize();
+			System.out.println("JSure data dir  = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
+			System.out.println("XML diff dir    = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
 			NotificationHub.notifyAnalysisStarting();
 			try {
 				boolean ok = false;
