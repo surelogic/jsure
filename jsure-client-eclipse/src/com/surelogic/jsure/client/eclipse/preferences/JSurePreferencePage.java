@@ -1,11 +1,16 @@
 package com.surelogic.jsure.client.eclipse.preferences;
 
+import java.io.File;
+
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.ScaleFieldEditor;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -13,10 +18,15 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
+import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.dialogs.ChangeDataDirectoryDialog;
+import com.surelogic.common.ui.dialogs.ErrorDialogUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -27,6 +37,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	static private final String THREADS_LABEL = "jsure.eclipse.preference.page.thread.msg";
 	static private final String TIMEOUT_WARNING_LABEL = "jsure.eclipse.preference.page.timeoutWarning";
 	static private final String TIMEOUT_LABEL = "jsure.eclipse.preference.page.timeout";
+
+	private Label f_dataDirectory;
 
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_selectProjectsToScan;
@@ -49,6 +61,63 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		final Composite panel = new Composite(parent, SWT.NONE);
 		GridLayout grid = new GridLayout();
 		panel.setLayout(grid);
+
+		final Group dataGroup = createGroup(panel, "preference.page.group.data");
+		dataGroup.setLayout(new GridLayout());
+
+		final Label dataDirectory = new Label(dataGroup, SWT.NONE);
+		dataDirectory.setText(JSurePreferencesUtility.getJSureDataDirectory()
+				.getAbsolutePath());
+		dataDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+				false));
+
+		final Group xmlDiffDirGroup = createGroup(panel,
+				"preference.page.group.xmlDiffDir");
+		xmlDiffDirGroup.setLayout(new GridLayout(2, false));
+
+		f_dataDirectory = new Label(xmlDiffDirGroup, SWT.NONE);
+		updateDataDirectory();
+		f_dataDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+				false));
+
+		final Button change = new Button(xmlDiffDirGroup, SWT.PUSH);
+		change.setText(I18N
+				.msg("jsure.eclipse.preference.page.changexmlDiffDir"));
+		change.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT, false,
+				false));
+		change.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(final Event event) {
+				final File existing = JSurePreferencesUtility
+						.getJSureXMLDirectory();
+				final ChangeDataDirectoryDialog dialog = new ChangeDataDirectoryDialog(
+						change.getShell(),
+						existing,
+						I18N.msg("jsure.eclipse.change.data.directory.dialog.title"),
+						SLImages.getImage(CommonImages.IMG_JSURE_LOGO),
+						I18N.msg("jsure.eclipse.change.data.directory.dialog.information"));
+
+				if (dialog.open() != Window.OK) {
+					return;
+				}
+
+				if (!dialog.isValidChangeToDataDirectory()) {
+					return;
+				}
+
+				final File destination = dialog.getNewDataDirectory();
+				try {
+					JSurePreferencesUtility.setJSureXMLDirectory(destination);
+				} catch (Exception e) {
+					IStatus status = SLEclipseStatusUtility.createErrorStatus(
+							IStatus.ERROR, e);
+					ErrorDialogUtility.open(
+							change.getShell(),
+							I18N.msg("jsure.eclipse.change.data.directory.dialog.failed"),
+							status);
+				}
+			}
+		});
 
 		final Group diGroup = createGroup(panel, "preference.page.group.app");
 
@@ -188,6 +257,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		e.setPage(this);
 		e.setPreferenceStore(EclipseUIUtility.getPreferences());
 		e.load();
+	}
+
+	private void updateDataDirectory() {
+		f_dataDirectory.setText(JSurePreferencesUtility.getJSureXMLDirectory()
+				.getAbsolutePath());
 	}
 
 	@Override
