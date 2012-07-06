@@ -1393,7 +1393,6 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
     public IRNode visitTry(TryTree node, CodeContext context)
     {
-    	// TODO fix for Java 7
         IRNode b = acceptNode(node.getBlock(), context);
         IRNode[] c = map(acceptNodes, node.getCatches(), context);
         IRNode f = acceptNode(node.getFinallyBlock(), context);
@@ -1402,6 +1401,11 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         } else {
         	f = Finally.createNode(f);
         }
+    	if (node.getResources().size() > 0) {
+    		IRNode[] resources  = map(acceptNodes, node.getResources(), context);
+    		IRNode resourceRoot = Resources.createNode(resources);
+    		return TryResource.createNode(resourceRoot, b, CatchClauses.createNode(c), f);       
+    	}
         return TryStatement.createNode(b, CatchClauses.createNode(c), f);       
     }
 
@@ -1449,9 +1453,17 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     	}        
     }
 
+    // Currently only used for try-with-resources
     public IRNode visitVariable(VariableTree node, CodeContext context)
     {
-    	throw new UnsupportedOperationException();
+        IRNode annos = adaptAnnotations(node.getModifiers(), context);
+    	int mods     = adaptModifiers(node.getModifiers());
+        IRNode type  = adaptType(node.getType(), context);
+        String id    = node.getName().toString();     
+        IRNode initE = adaptExpr(node.getInitializer(), context);
+        IRNode init  = Initialization.createNode(initE);
+        IRNode vd    = VariableDeclarator.createNode(id, 0, init);
+    	return VariableResource.createNode(annos, mods, type, vd);
     }
     
     public IRNode adaptField(VariableTree node, String className, TypeKind kind, CodeContext context) {
