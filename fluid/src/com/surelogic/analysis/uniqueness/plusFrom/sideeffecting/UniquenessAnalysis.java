@@ -66,6 +66,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
@@ -86,6 +87,7 @@ import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -692,9 +694,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (VarArgsExpression.prototype.includes(lastActual)) {
         // compromise each actual argument that is part of the var args expression
         final int numActualsInArray = JJNode.tree.numChildren(lastActual);
-        for (int count = 0; count < numActualsInArray; count++) {
+        for (int count = numActualsInArray - 1; count >= 0; count--) {
           if (!s.isValid()) return s;
-          s = lattice.opCompromise(s, JJNode.tree.getChild(lastActual, count));
+          s = lattice.opCompromise(s, JJNode.tree.getChild(lastActual, count),
+              Messages.COMPROMISED_BY_VARARGS_ASSIGNMENT,
+              DebugUnparser.toString(lastActual));
         }
         if (!s.isValid()) return s;
         // push a new object to represent the array
@@ -716,8 +720,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (lattice.isValueNode(formal)) {
           s = pop(s, formal);
         } else {
-          s = lattice.opConsume(
-              s, JJNode.tree.getChild(actuals, n), lattice.declStatus(formal));
+          final IRNode srcOp = JJNode.tree.getChild(actuals, n);
+          final State required = lattice.declStatus(formal);
+          if (required == State.SHARED) {
+            s = lattice.opConsumeShared(s, srcOp,
+                Messages.COMPROMISED_BY_SHARED_FORMAL,
+                ParameterDeclaration.getId(formal));
+          } else {
+            s = lattice.opConsume(s, srcOp, required);
+          }
         }
       }
       return s;
@@ -741,9 +752,17 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
       }
       
-      State required = lattice.receiverStatus(decl, recDecl);
-      if (lattice.isValueNode(recDecl)) return pop(s, srcOp); // do nothing.  Type system will check
-      else return lattice.opConsume(s, srcOp, required);
+      if (lattice.isValueNode(recDecl)) {
+        return pop(s, srcOp); // do nothing.  Type system will check
+      } else {
+        final State required = lattice.receiverStatus(decl, recDecl);
+        if (required == State.SHARED) {
+          return lattice.opConsumeShared(
+              s, srcOp, Messages.COMPROMISED_BY_SHARED_RECEIVER);
+        } else {
+          return lattice.opConsume(s, srcOp, required);
+        }
+      }
     }
 
     /**
@@ -772,8 +791,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     	if (lattice.isValueNode(qr)) { // unlikely
     		return pop(s, srcOp);
+    	} else {
+    	  final State required = lattice.declStatus(qr);
+    	  if (required == State.SHARED) {
+    	    return lattice.opConsumeShared(
+    	        s, srcOp, Messages.COMPROMISED_BY_SHARED_QUALIFIED_RECEIVER);
+    	  } else {
+    	    return lattice.opConsume(s, srcOp, required);
+    	  }
     	}
-    	return lattice.opConsume(s, srcOp, lattice.declStatus(qr));
     }
 
     /**
@@ -834,7 +860,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferArrayInitializer(final IRNode node, final Store s) {
     	// System.out.println("At array initializer, store is " + lattice.toString(s));
-      return lattice.opCompromise(s, node);
+      return lattice.opCompromise(s, JJNode.tree.getParent(node),
+          Messages.COMPROMISED_BY_ARRAY_INITIALIZER,
+          DebugUnparser.toString(JJNode.tree.getParent(node)));
     }
     
     @Override
@@ -846,7 +874,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       s = lattice.opCheckMutable(s, StoreLattice.getUnderTop(s));
       if (!s.isValid()) return s;
       // [..., arrayRef, val]: Pop arrayRef, and compromise val
-      return lattice.opCompromiseNoRelease(popSecond(s, node), node);
+      return lattice.opCompromiseNoRelease(
+          popSecond(s, node), node, Messages.COMPROMISED_BY_ARRAY_ASSIGNMENT,
+          DebugUnparser.toString(node));
     }
     
     @Override
@@ -969,7 +999,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               s = lattice.opReturn(s, srcOp, ifqr);
               s = lattice.opRelease(s);
             } else {
-              s = lattice.opCompromise(s, srcOp);
+              /* Pretty sure this message is useless because the IFQR can never
+               * be unique
+               */
+              s = lattice.opCompromise(s, srcOp, Messages.COMPROMISED_BY_IFQR);
             }
           }
         }
@@ -1108,7 +1141,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
        * into the enum constant.  (That is, we can never assure a @Unique
        * enum constant.) 
        */
-      s = lattice.opCompromise(s, node);
+      s = lattice.opCompromise(s, node, Messages.COMPROMISED_BY_FIELD_ASSIGNMENT,
+          EnumConstantDeclaration.getId(node));
       return s;
     }
 
@@ -1236,6 +1270,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	  // no check necessary: Java type system handles
         	  s = lattice.opRelease(s);
           } else {
+            /* Here we may pass SHARED or UNIQUE to opConsume, which we 
+             * normally shouldn't do, but this happens after there is anything
+             * to detect the compromising or undefining, respectively, of the
+             * return value.
+             */
         	  s = lattice.opConsume(s, rnode, lattice.declStatus(rnode));
           }
           if (fineIsLoggable) {
@@ -1330,7 +1369,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           
   	  // Compromise the external variables that are used
   	  for (final IRNode v : usedExternalVars) {
-  	    s = lattice.opCompromise(lattice.opGet(s, node, v, BuriedMessage.EXTERNAL_VAR), node);
+  	    s = lattice.opCompromise(
+  	        lattice.opGet(
+  	            s, node, v, BuriedMessage.EXTERNAL_VAR), node,
+  	            Messages.COMPROMISED_BY_HIDDEN_FIELD, VariableDeclarator.getId(v));
   	  }
   	  
       /* If we used outer things and we aren't in a static context then
@@ -1340,7 +1382,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
       if (usesExternal && rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
-        s = lattice.opCompromise(lattice.opGet(s, classBody, rcvr), classBody);
+        s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node,
+            Messages.COMPROMISED_BY_OUTER_OBJECT);
       }
       return s;
 	  }
@@ -1375,7 +1418,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferThrow(final IRNode node, final Store s) {
-      return lattice.opCompromise(s, node);
+      return lattice.opCompromise(s, node, Messages.COMPROMISED_BY_THROW);
     }
     
 	@Override

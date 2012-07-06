@@ -14,6 +14,7 @@ import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.BuriedMessage;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.ISideEffects;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.NullSideEffects;
@@ -757,6 +758,10 @@ extends TripleLattice<Element<Integer>,
       temp = opConsume(s, srcOp, State.BORROWED);
     } else if (isValueNode(fieldDecl)) {
     	temp = opRelease(s); // Java Type system does all we need
+    } else if (declStatus(fieldDecl) == State.SHARED) {
+      temp = opConsumeShared(
+          s, srcOp, Messages.COMPROMISED_BY_FIELD_ASSIGNMENT,
+          VariableDeclarator.getId(fieldDecl));
     } else {
     	temp = opConsume(s, srcOp, declStatus(fieldDecl));
     }
@@ -937,12 +942,13 @@ extends TripleLattice<Element<Integer>,
   /**
    * Compromise the value on the top of the stack.
    */
-  public Store opCompromiseNoRelease(final Store s, final IRNode srcOp) {
+  public Store opCompromiseNoRelease(final Store s, final IRNode srcOp,
+      final int msg, final Object... args) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
     sideEffects.recordCompromisingOfUnique(
-        srcOp,  n, localStatus, s.getFieldStore());
+        srcOp,  n, localStatus, s.getFieldStore(), msg, args);
     
 	  return opYieldTopState(opCheckTopState(s,State.SHARED),State.SHARED);
   }
@@ -950,8 +956,9 @@ extends TripleLattice<Element<Integer>,
   /**
    * Compromise the value on the top of the stack and then pop it off.
    */
-  public Store opCompromise(final Store s, final IRNode srcOp) {
-    return opConsume(s, srcOp, State.SHARED);
+  public Store opCompromise(final Store s, final IRNode srcOp,
+      final int msg, final Object... args) {
+    return opConsumeShared(s, srcOp, msg, args);
   }
 
   public Store opGenerate(final Store s, State required, IRNode exprORdecl) {
@@ -1068,23 +1075,90 @@ extends TripleLattice<Element<Integer>,
 	  return s;
   }
   
+  private static interface ConsumeSideEffects {
+    public static final ConsumeSideEffects NONE = new ConsumeSideEffects() {
+      public void produceSideEffects(
+          final Store s, final IRNode srcOp, final Integer topOfStack,
+          final State localStatus) {
+        // do nothing
+      }
+    };
+    
+    public void produceSideEffects(
+        Store s, IRNode srcOp, Integer topOfStack, State localStatus);
+  }
+  
   /**
    * Remove the top element of the stack and yielding it up using the state given.
    * @param s store before
    * @param state required state of stack top which will be yielded.
    * @return store after
    */
-  public Store opConsume(final Store s, final IRNode srcOp, final State state) {
+  public Store opConsume(
+      final Store s, final IRNode srcOp, final State state,
+      final ConsumeSideEffects cse) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
-    if (state == State.SHARED) {
-      sideEffects.recordCompromisingOfUnique(
-          srcOp,  n, localStatus, s.getFieldStore());
-    } else if (state == State.UNIQUE) {
-      sideEffects.recordUndefiningOfUnique(srcOp, n, localStatus, s);
-    }
-	  return opRelease(opYieldTopState(opCheckTopState(s,state),state));
+    cse.produceSideEffects(s, srcOp, n, localStatus);
+    return opRelease(opYieldTopState(opCheckTopState(s,state),state));
+  }
+  
+  /**
+   * Remove the top element of the stack and yielding it up using the state given.
+   * @param s store before
+   * @param state required state of stack top which will be yielded.  Should 
+   * not be SHARED or UNIQUE.  For those use {@link #opConsumeShared} and
+   * {@link #opConsumeUnique}, respectively.
+   * @return store after
+   */
+  public Store opConsume(final Store s, final IRNode srcOp, final State state) {
+    return opConsume(s, srcOp, state, ConsumeSideEffects.NONE);
+//    if (!s.isValid()) return s;
+//    final Integer n = getStackTop(s);
+//    final State localStatus = localStatus(s, n);
+//    if (state == State.SHARED) {
+//      sideEffects.recordCompromisingOfUnique(
+//          srcOp,  n, msg, localStatus, s.getFieldStore());
+//    } else if (state == State.UNIQUE) {
+//      sideEffects.recordUndefiningOfUnique(srcOp, n, localStatus, s);
+//    }
+//	  return opRelease(opYieldTopState(opCheckTopState(s,state),state));
+  }
+
+  /**
+   * Remove the top element of the stack and yielding it up as SHARED
+   * @param s store before
+   * @return store after
+   */
+  public Store opConsumeShared(final Store s, final IRNode srcOp,
+      final int msg, final Object... args) {
+    return opConsume(s, srcOp, State.SHARED,
+        new ConsumeSideEffects() {
+          public void produceSideEffects(
+              final Store s, final IRNode srcOp, final Integer topOfStack,
+              final State localStatus) {
+            sideEffects.recordCompromisingOfUnique(
+                srcOp, topOfStack, localStatus, s.getFieldStore(), msg, args);
+          }
+        });
+  }
+  
+  /**
+   * Remove the top element of the stack and yielding it up as UNIQUE.
+   * @param s store before
+   * @return store after
+   */
+  public Store opConsumeUnique(final Store s, final IRNode srcOp) {
+    return opConsume(s, srcOp, State.UNIQUE,
+        new ConsumeSideEffects() {
+          public void produceSideEffects(
+              final Store s, final IRNode srcOp, final Integer topOfStack,
+              final State localStatus) {
+            sideEffects.recordUndefiningOfUnique(
+                srcOp, topOfStack, localStatus, s);
+          }
+        });
   }
   
   /**

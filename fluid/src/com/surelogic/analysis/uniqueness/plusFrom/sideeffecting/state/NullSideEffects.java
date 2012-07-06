@@ -44,7 +44,8 @@ public final class NullSideEffects implements ISideEffects {
   
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
-      final ImmutableSet<FieldTriple> fieldStore) {
+      final ImmutableSet<FieldTriple> fieldStore,
+      final int msg, final Object... args) {
     // Do Nothing
   }
   

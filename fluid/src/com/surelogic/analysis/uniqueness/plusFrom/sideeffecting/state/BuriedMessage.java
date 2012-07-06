@@ -6,42 +6,36 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
 public enum BuriedMessage {
-  VAR {
-    @Override
-    public int getMessage() {
-      return Messages.READ_OF_BURIED;
-    }
-
+  VAR(Messages.READ_OF_BURIED) {
     @Override
     public Object[] getVarArgs(final Object v) {
       return new Object[0];
     }    
   },
   
-  RETURN {
-    @Override
-    public int getMessage() {
-      return Messages.RETURN_OF_BURIED;
-    }
-
+  RETURN(Messages.RETURN_OF_BURIED) {
     @Override
     public Object[] getVarArgs(final Object v) {
       return new Object[0];
     }    
   },
   
-  EXTERNAL_VAR {
-    @Override
-    public int getMessage() {
-      return Messages.READ_OF_BURIED_EXTERNAL;
-    }
-
+  EXTERNAL_VAR(Messages.READ_OF_BURIED_EXTERNAL) {
     @Override
     public Object[] getVarArgs(final Object v) {
       return new Object[] { VariableDeclarator.getId((IRNode) v) };
     }    
   };
+
+  private final int msg;
   
-  public abstract int getMessage();
+  private BuriedMessage(final int m) {
+    msg = m;
+  }
+  
+  public final int getMessage() {
+    return msg;
+  }
+  
   public abstract Object[] getVarArgs(Object v);
 }
