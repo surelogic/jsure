@@ -17,6 +17,7 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.persistence.JSureScan;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaStats;
@@ -88,6 +89,11 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 			
 			// Finish initializing
 			Javac.getDefault().loadPreferences(runDir);			
+			out.println("JSure data dir = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
+			out.println("XML diff dir   = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
+			
 			String defaultJRE = null;
 			for(Config c : projects.getConfigs()) {
 				out.println("Looking for JRE in "+c.getProject());
