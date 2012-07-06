@@ -25,7 +25,7 @@ import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.dialogs.ChangeDataDirectoryDialog;
+import com.surelogic.common.ui.dialogs.ChangeDirectoryLocationDialog;
 import com.surelogic.common.ui.dialogs.ErrorDialogUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -90,7 +90,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 			public void handleEvent(final Event event) {
 				final File existing = JSurePreferencesUtility
 						.getJSureXMLDirectory();
-				final ChangeDataDirectoryDialog dialog = new ChangeDataDirectoryDialog(
+				final ChangeDirectoryLocationDialog dialog = new ChangeDirectoryLocationDialog(
 						change.getShell(),
 						existing,
 						I18N.msg("jsure.eclipse.change.data.directory.dialog.title"),
@@ -116,6 +116,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 							I18N.msg("jsure.eclipse.change.data.directory.dialog.failed"),
 							status);
 				}
+				updateDataDirectory();
 			}
 		});
 
