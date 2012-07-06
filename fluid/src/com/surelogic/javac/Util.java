@@ -1103,7 +1103,7 @@ public class Util {
 		ParseUtil.init();
 		
 		startSubTask(monitor, "Parsing promises");
-		final File root = new File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
+		//final File root = new File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
 		Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
 			public void op(CodeInfo info) {
 				if (monitor.isCanceled()) {
