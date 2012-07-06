@@ -98,7 +98,7 @@ public class ClassAdapter extends AbstractAdapter {
 				int lastSlash = name.lastIndexOf('/');
 				String id;
 				if (lastSlash < 0) {
-					id = name;
+					id = "";
 				} else {
 					id = name.substring(0, lastSlash);
 				}
