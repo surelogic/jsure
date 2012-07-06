@@ -125,6 +125,10 @@
 			id="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
+		<page name="Flashlight Generated Lock Models" class="com.surelogic.jsure.client.eclipse.preferences.ModelNamingPreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.ModelNamingPreferencePage"
+			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+		</page>
 	</extension>
 
 	<extension point="org.eclipse.ui.views">
