@@ -9,7 +9,6 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
 import com.surelogic.javac.Javac;
-import com.surelogic.jsure.core.driver.DriverConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -90,6 +89,12 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultStringPreference(
 					IDEPreferences.JSURE_DATA_DIRECTORY, dataDir);
 
+			File xmlDiffDir = new File(dataDir,
+					FileUtility.JSURE_XML_DIFF_PATH_FRAGMENT);
+			EclipseUtility.setDefaultStringPreference(
+					IDEPreferences.JSURE_XML_DIFF_DIRECTORY,
+					xmlDiffDir.getAbsolutePath());
+
 			for (IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
 				// System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
 				EclipseUtility.setDefaultBooleanPreference(
@@ -168,9 +173,24 @@ public final class JSurePreferencesUtility {
 		return result;
 	}
 
+	/**
+	 * Gets the JSure library promises XML directory where local changes to the
+	 * XML are stored. This method ensures that the directory does exist on the
+	 * disk. It checks that is is there and, if not, tries to create it. If it
+	 * can't be created the method throws an exception.
+	 * 
+	 * @return the JSure XML diff directory.
+	 * 
+	 * @throws IllegalStateException
+	 *             if the JSure data directory doesn't exist on the disk and
+	 *             can't be created.
+	 */
 	public static File getJSureXMLDirectory() {
-		File data = getJSureDataDirectory();
-		return new File(data, DriverConstants.XML_PATH_SEGMENT);
+		final String path = EclipseUtility
+				.getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY);
+		final File result = new File(path);
+		FileUtility.ensureDirectoryExists(path);
+		return result;
 	}
 
 	/**

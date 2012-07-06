@@ -2,12 +2,10 @@ package com.surelogic.jsure.core.driver;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.javac.*;
-import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -21,13 +19,7 @@ public class JavacEclipse extends Javac {
     public static JavacEclipse getDefault() {
     	return instance;
     }
-    
-    {
-    	File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
-    	setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, dataDir.getAbsolutePath());
-    	setPreference(IDEPreferences.JSURE_XML_DIRECTORY, JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath());
-    }
-    
+       
     public void synchronizeAnalysisPrefs() {
 		for(String id : getAvailableAnalyses()) {
 			boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);

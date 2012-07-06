@@ -52,8 +52,7 @@ public interface TestXMLParserConstants {
 	public static final String DIR_PREFIX = System.getProperty("user.dir")
 			+ File.separator;
 
-	public static final String PROMISES_XML_PATH = "lib/promises";
-	public static final String LOCAL_XML_PATH = "promises-xml";
+	public static final String PROMISES_XML_REL_PATH = "lib/promises";
 
 	public static final FileFilter XML_FILTER = new FileFilter() {
 		public boolean accept(File f) {
