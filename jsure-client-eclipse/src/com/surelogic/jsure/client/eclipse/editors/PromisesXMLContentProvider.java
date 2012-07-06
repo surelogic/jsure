@@ -212,25 +212,27 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 					if (pkg == null) {
 						// No XML at all, so we have to create something
 						final int lastSlash = path.lastIndexOf('/');
+						final String p, name;
+						final int len = path.length() - 
+							TestXMLParserConstants.SUFFIX.length();
 						if (lastSlash >= 0) {
-							String p = path.substring(0, lastSlash).replace(
+							p = path.substring(0, lastSlash).replace(
 									'/', '.');
-							String name = path.substring(
-									lastSlash + 1,
-									path.length()
-											- TestXMLParserConstants.SUFFIX
-													.length());
-							if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
-								// System.out.println("Making AST for "+p);
-								roots[0] = pkg = PromisesXMLBuilder
-										.makePackageModel(p);
-							} else {
-								// System.out.println("Making AST for "+p+'.'+name);
-								roots[0] = pkg = PromisesXMLBuilder.makeModel(
-										p, name);
-							}
-							PromisesXMLReader.cache(path, pkg);
+							name = path.substring(lastSlash + 1, len);
+						} else {
+							p = null;
+							name = path.substring(0, len);
 						}
+						if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
+							// System.out.println("Making AST for "+p);
+							roots[0] = pkg = PromisesXMLBuilder
+							.makePackageModel(p);
+						} else {
+							// System.out.println("Making AST for "+p+'.'+name);
+							roots[0] = pkg = PromisesXMLBuilder.makeModel(
+									p, name);
+						}
+						PromisesXMLReader.cache(path, pkg);
 					} else {
 						if (PromisesXMLBuilder.updateElements(pkg)) {
 							// System.out.println("Added elements to "+location);
