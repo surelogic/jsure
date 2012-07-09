@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.preferences;
 
 import java.io.File;
 
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.ScaleFieldEditor;
@@ -21,13 +20,12 @@ import org.eclipse.swt.widgets.Listener;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
-import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.dialogs.ChangeDirectoryLocationDialog;
-import com.surelogic.common.ui.dialogs.ErrorDialogUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
+import com.surelogic.common.ui.preferences.PathPreferenceEditor;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -38,8 +36,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	static private final String TIMEOUT_WARNING_LABEL = "jsure.eclipse.preference.page.timeoutWarning";
 	static private final String TIMEOUT_LABEL = "jsure.eclipse.preference.page.timeout";
 
-	private Label f_dataDirectory;
-
+	private PathPreferenceEditor f_xmlDiffDir;
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_selectProjectsToScan;
 	private BooleanFieldEditor f_selectProjectsToUpdateJar;
@@ -75,10 +72,12 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				"preference.page.group.xmlDiffDir");
 		xmlDiffDirGroup.setLayout(new GridLayout(2, false));
 
-		f_dataDirectory = new Label(xmlDiffDirGroup, SWT.NONE);
-		updateDataDirectory();
-		f_dataDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-				false));
+		final Label xmlDiffDir = new Label(xmlDiffDirGroup, SWT.NONE);
+		xmlDiffDir
+				.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		f_xmlDiffDir = new PathPreferenceEditor(xmlDiffDir,
+				IDEPreferences.JSURE_XML_DIFF_DIRECTORY);
+		f_xmlDiffDir.show();
 
 		final Button change = new Button(xmlDiffDirGroup, SWT.PUSH);
 		change.setText(I18N
@@ -105,18 +104,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 					return;
 				}
 
-				final File destination = dialog.getNewDataDirectory();
-				try {
-					JSurePreferencesUtility.setJSureXMLDirectory(destination);
-				} catch (Exception e) {
-					IStatus status = SLEclipseStatusUtility.createErrorStatus(
-							IStatus.ERROR, e);
-					ErrorDialogUtility.open(
-							change.getShell(),
-							I18N.msg("jsure.eclipse.change.data.directory.dialog.failed"),
-							status);
-				}
-				updateDataDirectory();
+				final File path = dialog.getNewDataDirectory();
+				f_xmlDiffDir.set(path.getAbsolutePath());
+				f_xmlDiffDir.show();
 			}
 		});
 
@@ -260,13 +250,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		e.load();
 	}
 
-	private void updateDataDirectory() {
-		f_dataDirectory.setText(JSurePreferencesUtility.getJSureXMLDirectory()
-				.getAbsolutePath());
-	}
-
 	@Override
 	protected void performDefaults() {
+		f_xmlDiffDir.loadDefault();
 		f_balloonFlag.loadDefault();
 		f_selectProjectsToScan.loadDefault();
 		f_selectProjectsToUpdateJar.loadDefault();
@@ -283,6 +269,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 	@Override
 	public boolean performOk() {
+		f_xmlDiffDir.store();
 		f_balloonFlag.store();
 		f_selectProjectsToScan.store();
 		f_selectProjectsToUpdateJar.store();
