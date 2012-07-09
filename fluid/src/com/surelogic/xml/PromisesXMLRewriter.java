@@ -12,7 +12,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 @Deprecated
 public class PromisesXMLRewriter {
 	public static void main(String[] args) {
-		final String path = "c:/work/workspace-3.5.1/fluid/"+TestXMLParserConstants.PROMISES_XML_PATH;
+		final String path = "c:/work/workspace-3.5.1/fluid/"+TestXMLParserConstants.PROMISES_XML_REL_PATH;
 		AnnotationRules.initialize();
 		rewrite(new File(path));
 	}

@@ -1929,6 +1929,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			System.out.println("Copying sources = " + (end - start) + " ms");
 
 			JavacEclipse.initialize();
+			System.out.println("JSure data dir  = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
+			System.out.println("XML diff dir    = "+
+					IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
 			NotificationHub.notifyAnalysisStarting();
 			try {
 				boolean ok = false;

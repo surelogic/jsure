@@ -64,28 +64,25 @@ class TestXMLParser extends DefaultHandler implements
 	 * @param xml
 	 *            The name of the promises.xml file to parse in
 	 * @return The number of annotations added
-	 */	
-	public static int process(ITypeEnvironment tEnv, IRNode root, String xml) throws Exception {
-		return process(tEnv, null, root, xml);
+	 */
+	public static int process(ITypeEnvironment tEnv, IRNode root, String xml)
+			throws Exception {
+		final TestXMLParser handler = new TestXMLParser(tEnv);
+		return handler.processAST(root, xml);
 	}
 	
-	public static int process(ITypeEnvironment tEnv, File f, IRNode root, String xml) throws Exception {
-		TestXMLParser handler = new TestXMLParser(tEnv);
-		return handler.processAST(f, root, xml);
-	}
-	
-	public int processAST(File file, IRNode root, String xml) throws Exception {
+	public int processAST(IRNode root, String xml) throws Exception {
 		String pkgName = VisitUtil.getPackageName(root);
-	    numAnnotationsAdded = 0;
-	    id = xml;
-	    
+		numAnnotationsAdded = 0;
+		id = xml;
+
 		/** Initalize the node stack */
 		nodeStack.push(new NodeElement(pkgName, NodeKind.ROOT, root));
 		/** Initalize the node iterator */
 		nodeIterator = VisitUtil.getTypeDecls(root);
 
-		InputSource in = PackageAccessor.readPackage(file, pkgName, PackageAccessor
-				.promiseFileName(xml));
+		InputSource in = PackageAccessor.readPackage(pkgName,
+				PackageAccessor.promiseFileName(xml));
 		/*
 		if (false) {
 			PromisesXMLReader r = new PromisesXMLReader();

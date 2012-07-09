@@ -98,7 +98,7 @@ public class ClassAdapter extends AbstractAdapter {
 				int lastSlash = name.lastIndexOf('/');
 				String id;
 				if (lastSlash < 0) {
-					id = name;
+					id = "";
 				} else {
 					id = name.substring(0, lastSlash);
 				}
@@ -189,6 +189,7 @@ public class ClassAdapter extends AbstractAdapter {
 			public void visitEnd() {
 				super.visitEnd();
 				annos.add(result);
+				//System.out.println("Added @"+DebugUnparser.toString(result));
 			}
 		};
 	}
@@ -251,7 +252,12 @@ public class ClassAdapter extends AbstractAdapter {
 			}
 			@Override 
 			public void visitEnd() {
-				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
+				/*
+				if (annoList.size() > 0) {
+					System.out.println("Adding annos for "+name);
+				}
+				*/
+ 				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
 				if (isEnumDecl()) {
 			    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
 					IRNode result = SimpleEnumConstantDeclaration.createNode(annos, name, impliedInit);
@@ -585,7 +591,7 @@ public class ClassAdapter extends AbstractAdapter {
 		}
 		*/
 		int mods     = adaptModifiers(access);
-		IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX
+		IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(this.annos.toArray(noNodes)); 
 		IRNode types = TypeFormals.createNode(formals); 
 		IRNode body  = ClassBody.createNode(members.toArray(noNodes));
 		/*
