@@ -8,7 +8,6 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
