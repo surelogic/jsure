@@ -195,30 +195,6 @@ public final class JSurePreferencesUtility {
 	}
 
 	/**
-	 * Sets the JSure library promises XML directory where local changes to the
-	 * XML are stored. This method ensures that the directory does exist on the
-	 * disk. It checks that is is there and, if not, tries to create it. If it
-	 * can't be created the method throws an exception.
-	 * 
-	 * @param dir
-	 *            the JSure XML diff directory.
-	 * 
-	 * @throws IllegalStateException
-	 *             if the JSure data directory doesn't exist on the disk and
-	 *             can't be created.
-	 */
-	public static void setJSureXMLDirectory(File dir) {
-		if (dir == null)
-			throw new IllegalStateException(I18N.err(44, "dir"));
-
-		EclipseUtility.setStringPreference(
-				IDEPreferences.JSURE_XML_DIFF_DIRECTORY, dir.getAbsolutePath());
-
-		// check that everything is okay (throw exception if not)
-		getJSureXMLDirectory();
-	}
-
-	/**
 	 * Gets the switch-to-the-JSure-perspective preferences.
 	 * 
 	 * @return the switch-to-the-JSure-perspective preferences.
