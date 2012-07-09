@@ -116,19 +116,40 @@
 		<page name="JSure"
 			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+			<keywordReference id="com.surelogic.jsure.client.key1" />
+			<keywordReference id="com.surelogic.jsure.client.key2" />
+			<keywordReference id="com.surelogic.jsure.client.key3" />
 		</page>
 		<page name="Verifying Analysis Selection" class="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.AnalysisSelectionPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+			<keywordReference id="com.surelogic.jsure.client.key1" />
+			<keywordReference id="com.surelogic.jsure.client.key2" />
+			<keywordReference id="com.surelogic.jsure.client.key3" />
+			
 		</page>
 		<page name="Modeling Problem Filtering" class="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+			<keywordReference id="com.surelogic.jsure.client.key1" />
+			<keywordReference id="com.surelogic.jsure.client.key2" />
+			<keywordReference id="com.surelogic.jsure.client.key3" />
+			
 		</page>
 		<page name="Flashlight Generated Lock Models" class="com.surelogic.jsure.client.eclipse.preferences.ModelNamingPreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.ModelNamingPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+			<keywordReference id="com.surelogic.jsure.client.key1" />
+			<keywordReference id="com.surelogic.jsure.client.key2" />
+			<keywordReference id="com.surelogic.jsure.client.key3" />
+			
 		</page>
+	</extension>
+	
+	<extension point="org.eclipse.ui.keywords">
+		<keyword label="JSure" id="com.surelogic.jsure.client.key1" />
+		<keyword label="Scan" id="com.surelogic.jsure.client.key2" />
+		<keyword label="Analysis" id="com.surelogic.jsure.client.key3" />
 	</extension>
 
 	<extension point="org.eclipse.ui.views">
