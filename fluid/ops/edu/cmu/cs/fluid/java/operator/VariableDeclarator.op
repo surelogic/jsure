@@ -27,7 +27,11 @@ public operator VariableDeclarator extends VariableDeclaration
     
   public static IRNode getType(IRNode node) {
     if (tree.getOperator(node) instanceof VariableDeclarator) {
-      IRNode gparent = tree.getParent(tree.getParent(node));
+      IRNode parent  = tree.getParent(node);
+      if (tree.getOperator(parent) instanceof VariableResource) {
+        return VariableResource.getType(parent);
+      }
+      IRNode gparent = tree.getParent(parent);
       if (tree.getOperator(gparent) instanceof DeclStatement) {
         return DeclStatement.getType(gparent);
       } else {
@@ -41,7 +45,11 @@ public operator VariableDeclarator extends VariableDeclaration
   
   public static int getMods(IRNode node) {
     if (tree.getOperator(node) instanceof VariableDeclarator) {
-      IRNode gparent = tree.getParent(tree.getParent(node));
+      IRNode parent  = tree.getParent(node);
+      if (tree.getOperator(parent) instanceof VariableResource) {
+        return VariableResource.getMods(parent);
+      }
+      IRNode gparent = tree.getParent(parent);
       if (tree.getOperator(gparent) instanceof DeclStatement) {
         return DeclStatement.getMods(gparent);
       } else {
