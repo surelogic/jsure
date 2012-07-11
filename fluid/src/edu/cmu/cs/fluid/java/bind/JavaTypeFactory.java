@@ -226,7 +226,6 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  }
 	  List<IJavaType> types = new LinkedList<IJavaType>(orig);
 	  Collections.sort(types, new Comparator<IJavaType>() {
-		@Override
 		public int compare(IJavaType o1, IJavaType o2) {
 			return o1.toString().compareTo(o2.toString());
 		}
