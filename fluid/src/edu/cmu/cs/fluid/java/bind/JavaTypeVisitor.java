@@ -709,7 +709,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitUnionType(IRNode node) {
-	throw new NotImplemented();
+	List<IJavaType> types = new ArrayList<IJavaType>();
+	for(IRNode type : UnionType.getTypeIterator(node)) {
+		types.add(doAccept(type));	
+	}	
+	return JavaTypeFactory.getUnionType(types);
   }
   
   @Override
