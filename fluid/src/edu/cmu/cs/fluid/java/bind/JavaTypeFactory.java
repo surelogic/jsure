@@ -224,7 +224,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  if (orig.isEmpty()) {
 		  throw new IllegalArgumentException();
 	  }
-	  List<IJavaType> types = new LinkedList<IJavaType>();
+	  List<IJavaType> types = new LinkedList<IJavaType>(orig);
 	  Collections.sort(types, new Comparator<IJavaType>() {
 		@Override
 		public int compare(IJavaType o1, IJavaType o2) {
