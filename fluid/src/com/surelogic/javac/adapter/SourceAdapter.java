@@ -1481,7 +1481,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     	}   
     	*/ 		
         String id    = node.getName().toString();      
-    	if (kind == TypeKind.ENUM && node.getType().toString().endsWith(className)) {  
+    	if (kind == TypeKind.ENUM && node.getType().toString().endsWith(className) &&
+    		node.getInitializer() instanceof NewClassTree) {  
     	    //System.out.println("Converting "+node+" to an enum constant");
     		return adaptEnumConstant(id, node, context);
     	}
