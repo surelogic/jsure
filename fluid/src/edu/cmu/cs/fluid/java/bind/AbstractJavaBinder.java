@@ -1434,6 +1434,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
+    public Void visitTryResource(IRNode node) {
+        IJavaScope.NestedScope tryScope = new IJavaScope.NestedScope(scope);
+        IRNode resources                = TryResource.getResources(node);
+        for(IRNode res : Resources.getResourceIterator(resources)) {
+        	tryScope.add(VariableResource.getVar(res));
+        }
+        doAcceptForChildren(node, tryScope);
+    	return null;
+    }
+    
+    @Override
     public Void visitCatchClause(IRNode node) {
       IJavaScope.NestedScope catchScope = new IJavaScope.NestedScope(scope);
       catchScope.add(CatchClause.getParam(node));

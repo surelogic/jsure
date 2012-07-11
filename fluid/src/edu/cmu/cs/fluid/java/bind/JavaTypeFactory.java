@@ -217,6 +217,30 @@ public class JavaTypeFactory implements IRType, Cleanable {
     return res;
   }
   
+  private static JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaUnionType> unionTypes =
+      new JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaUnionType>();
+  
+  public static IJavaType getUnionType(List<IJavaType> orig) {
+	  if (orig.isEmpty()) {
+		  throw new IllegalArgumentException();
+	  }
+	  List<IJavaType> types = new LinkedList<IJavaType>(orig);
+	  Collections.sort(types, new Comparator<IJavaType>() {
+		@Override
+		public int compare(IJavaType o1, IJavaType o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+	  });
+	  int size;
+	  while ((size = types.size()) > 1) {
+		  JavaReferenceType b2 = (JavaReferenceType) types.remove(size-1);
+		  JavaReferenceType b1 = (JavaReferenceType) types.remove(size-2);
+		  IJavaType u = new JavaUnionType(b1, b2);
+		  types.add(0, u);
+	  }
+	  return types.get(0);
+  }
+  
   // declared types  
   private static final int NUM_ROOTS = 1 << 4;
   private static final int ROOT_MASK = NUM_ROOTS - 1;
@@ -1093,6 +1117,78 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
 	  return false;
   }
 }
+
+class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
+	  final JavaReferenceType primaryBound;
+	  final JavaReferenceType secondaryBound;
+	  
+	  JavaUnionType(JavaReferenceType b1, JavaReferenceType b2) {
+	    primaryBound = b1;
+	    secondaryBound = b2;
+	  }
+	  
+	  @Override
+	  public IJavaReferenceType getSuperclass(ITypeEnvironment env) {
+		  // Could be very slow if there are a lot of bounds
+		  TypeUtils helper = new TypeUtils(env);
+		  IJavaReferenceType lub2 = helper.getLowestUpperBound((IJavaReferenceType) primaryBound, (IJavaReferenceType) secondaryBound);
+		  return lub2;
+	  }
+
+	  @Override
+	  void writeValue(IROutput out) throws IOException {
+	    out.writeByte('|');
+	    primaryBound.writeValue(out);
+	    secondaryBound.writeValue(out);
+	  }
+
+	  public IJavaReferenceType getFirstType() {
+	    return primaryBound;
+	  }
+	  
+	  public IJavaReferenceType getAlternateType() {
+	    return secondaryBound;
+	  }
+
+	  @Override
+	  public void printStructure(PrintStream out, int indent) {
+	    DebugUtil.println(out, indent, "UnionType:primaryBound"); 
+	    primaryBound.printStructure(out, indent+2);
+	    DebugUtil.println(out, indent, "UnionType:secondaryBound"); 
+	    secondaryBound.printStructure(out, indent+2);
+	  }
+	  
+	  @Override
+	  public String toString() {
+		return primaryBound+" | "+secondaryBound;
+	  }
+	  
+	  @Override
+	  public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+		  if (super.isEqualTo(env, t2)) {
+			  return true;
+		  }
+		  if (t2 instanceof IJavaUnionType) {
+			  IJavaUnionType other = (IJavaUnionType) t2;
+			  if (primaryBound != null) {
+				  if (!primaryBound.isEqualTo(env, other.getFirstType())) {
+					  return false;
+				  }
+			  } else if (other.getFirstType() != null) {
+				  return false;
+			  }
+			  if (secondaryBound != null) {
+				  if (!secondaryBound.isEqualTo(env, other.getAlternateType())) {
+					  return false;
+				  } 		  
+			  } else if (other.getAlternateType() != null) {
+				  return false;
+			  }
+			  return true;
+		  }
+		  return false;
+	  }
+	}
 
 class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   private final JavaReferenceType upperBound;

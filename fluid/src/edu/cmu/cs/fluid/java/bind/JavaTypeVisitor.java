@@ -6,6 +6,7 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
+import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -704,6 +705,15 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     } else {
       return null; // oh well
     }
+  }
+  
+  @Override
+  public IJavaType visitUnionType(IRNode node) {
+	List<IJavaType> types = new ArrayList<IJavaType>();
+	for(IRNode type : UnionType.getTypeIterator(node)) {
+		types.add(doAccept(type));	
+	}	
+	return JavaTypeFactory.getUnionType(types);
   }
   
   @Override
