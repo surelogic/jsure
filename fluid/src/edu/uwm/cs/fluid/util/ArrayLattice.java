@@ -19,9 +19,9 @@ import java.util.List;
  */
 public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
 
-  private final L baseLattice;
+  protected final L baseLattice;
   private final T[] prototype;
-  private final int size;
+  protected final int size;
   
   /**
    * Create an array lattice using the given base lattice and size.
@@ -38,11 +38,11 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
     prototype = p;
   }
   
-  public L getBaseLattice() {
+  public final L getBaseLattice() {
     return baseLattice;
   }
   
-  public boolean lessEq(T[] v1, T[] v2) {
+  public final boolean lessEq(T[] v1, T[] v2) {
     for (int i=0; i < size; ++i) {
       if (!baseLattice.lessEq(v1[i],v2[i])) return false;
     }
@@ -50,7 +50,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
   
   @Override
-  public boolean equals(T[] v1, T[] v2) {
+  public final boolean equals(T[] v1, T[] v2) {
     for (int i=0; i < size; ++i) {
       if (!baseLattice.equals(v1[i],v2[i])) return false;
     }
@@ -58,7 +58,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
   
   @Override
-  public int hashCode(T[] v) {
+  public final int hashCode(T[] v) {
     // we use the requirement for list hashcodes.
     int h = 1;
     for (int i=0; i < size; ++i) {
@@ -79,7 +79,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
    * @return new (uncached) array
    * @see #replaceValue(Object[], int, Object)
    */
-  public T[] set(T[] array, int i, T newValue) {
+  public final T[] set(T[] array, int i, T newValue) {
     if (baseLattice.equals(array[i],newValue)) return array;
     T[] result = array.clone();
     result[i] = newValue;
@@ -94,17 +94,17 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
    * @param newValue
    * @return
    */
-  public T[] replaceValue(T[] array, int i, T newValue) {
+  public final T[] replaceValue(T[] array, int i, T newValue) {
     return cache(set(array,i,newValue));
   }
 
-  protected T[] makeArray(List<T> l) {
+  protected final T[] makeArray(List<T> l) {
     T[] a = size <= prototype.length ? prototype.clone() : prototype;
     return l.toArray(a);
   }
 
   @Override
-  protected T[] computeTop() {
+  protected final T[] computeTop() {
     T top = baseLattice.top();
     List<T> tops = new ArrayList<T>(size);
     for (int i=0; i < size; ++i) {
@@ -114,7 +114,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
 
   @Override
-  protected T[] computeBottom() {
+  protected final T[] computeBottom() {
     T bot = baseLattice.bottom();
     List<T> bots = new ArrayList<T>(size);
     for (int i=0; i < size; ++i) {
@@ -124,7 +124,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
 
   @Override
-  protected T[] computeMeet(T[] v1, T[] v2) {
+  protected final T[] computeMeet(T[] v1, T[] v2) {
     T[] result = v1.clone();
     for (int i=0; i < size; ++i) {
       result[i] = baseLattice.meet(v1[i],v2[i]);
@@ -133,7 +133,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
 
   @Override
-  protected T[] computeJoin(T[] v1, T[] v2) {
+  protected final T[] computeJoin(T[] v1, T[] v2) {
     T[] result = v1.clone();
     for (int i=0; i < size; ++i) {
       result[i] = baseLattice.join(v1[i],v2[i]);
@@ -142,7 +142,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
 
   @Override
-  protected T[] computeWiden(T[] v1, T[] v2) {
+  protected final T[] computeWiden(T[] v1, T[] v2) {
     T[] result = v1.clone();
     for (int i=0; i < size; ++i) {
       result[i] = baseLattice.widen(v1[i],v2[i]);
@@ -151,15 +151,33 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
   }
 
   @Override
-  public String toString(T[] v) {
-    StringBuilder sb = new StringBuilder();
+  public final String toString(final T[] v) {
+    final StringBuilder sb = new StringBuilder();
+    if (v == top()) sb.append("** TOP **").append(toStringPrefixSeparator());
+    else if (v == bottom()) sb.append("** BOTTOM **").append(toStringPrefixSeparator());
+    
     for (int i = 0; i < v.length; ++i) {
-      if (i == 0) sb.append('[');
-      else sb.append(',');
-      sb.append(baseLattice.toString(v[i]));
+      if (i == 0) sb.append(toStringOpen());
+      else sb.append(toStringSeparator());
+      indexToString(sb, i);
+      sb.append(toStringConnector());
+      valueToString(sb, v[i]);
     }
-    sb.append(']');
+    sb.append(toStringClose());
     return sb.toString();
   }
   
+  protected String toStringPrefixSeparator() { return " "; }
+  protected String toStringOpen() { return "["; }
+  protected String toStringSeparator() { return ", "; }
+  protected String toStringConnector() { return "->"; }
+  protected String toStringClose() { return "]"; }
+  
+  protected void indexToString(final StringBuilder sb, final int i) {
+    sb.append(Integer.toString(i));
+  }
+  
+  protected void valueToString(final StringBuilder sb, final T v) {
+    sb.append(baseLattice.toString(v));
+  }
 }

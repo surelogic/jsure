@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.util.ArrayLattice;
+import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.ListLattice;
 import edu.uwm.cs.fluid.util.UnionLattice;
 
@@ -44,7 +44,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * @author aarong
  */
 abstract class AbstractLockStackLattice extends 
-    ArrayLattice< ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>,
+    AssociativeArrayLattice<HeldLock, ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>,
                   ImmutableList<ImmutableSet<IRNode>> > {
   /**
    * In order to keep our analysis transfer functions strict, we need to create
@@ -64,20 +64,16 @@ abstract class AbstractLockStackLattice extends
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
     ImmutableHashOrderSet.<IRNode>emptySet().addCopy(IGNORE_ME);
   
-
-  /**
-   * The list of Locks used as keys for the map. We match locks
-   * against elements of this array using {@link Lock#mustAlias}
-   * to determine the index location in the array lattice.
-   */
-  protected final HeldLock[] locks;
+  
+  
+  protected final IBinder binder;
+  protected final ThisExpressionBinder thisExprBinder;
 
   /**
    * Map from lock expressions to the set of locks that they resolve to.
    */
   protected final Map<IRNode, Set<HeldLock>> lockExprsToLockSets;
   
-
   
   
   /**
@@ -91,12 +87,14 @@ abstract class AbstractLockStackLattice extends
    */
   @SuppressWarnings("unchecked")
   protected AbstractLockStackLattice(
+      final ThisExpressionBinder teb, final IBinder b,
       final HeldLock[] lks, final Map<IRNode, Set<HeldLock>> map) {
     super(
         new ListLattice<UnionLattice<IRNode>,ImmutableSet<IRNode>>(
             new UnionLattice<IRNode>()), lks.length,
-            new ImmutableList[0]);
-    locks = lks;
+            new ImmutableList[0], lks);
+    binder = b;
+    thisExprBinder = teb;
     lockExprsToLockSets = map;
   }
 
@@ -175,33 +173,37 @@ abstract class AbstractLockStackLattice extends
     lockArray = lockList.toArray(lockArray);
     return lockArray;
   }
+
   
-  /**
-   * Get the array index of the given lock expression.
-   * 
-   * @param expr
-   *          The lock expression.
-   * @param binder
-   *          The binder.
-   * @return The index of the lock expression in the array lattice, or
-   *         {@code -1} if the lock expression is not found in the lattice.
-   */
-  protected final int getIndexOf(
-      final HeldLock lock, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    for (int i = 0; i < locks.length; i++) {
-      if (lock.mustAlias(locks[i], thisExprBinder, binder)) {
-        return i;
-      }
-    }
-    // Not found
-    return -1;
+  
+  // ======================================================================
+  // == Associative array methods
+  // ======================================================================
+  
+  @Override
+  protected final boolean indexEquals(final HeldLock lock1, final HeldLock lock2) {
+    return lock1.mustAlias(lock2, thisExprBinder, binder);
   }
-  
+
   /**
-   * Get the number of lock expressions mapped by the lattice.
+   * Get a new empty value the lattice.  
    */
-  public final int size() {
-    return locks.length;
+  @SuppressWarnings("unchecked")
+  @Override
+  public final ImmutableList<ImmutableSet<IRNode>>[] getEmptyValue() {
+    final ImmutableList<ImmutableSet<IRNode>>[] empty = new ImmutableList[size];
+    // Push the singleton set with the bogus method call onto the stack
+    final ImmutableList<ImmutableSet<IRNode>> initValue = ImmutableList.cons(
+        IGNORE_ME_SINGLETON_SET, ImmutableList.<ImmutableSet<IRNode>>nil());
+    for (int i = 0; i < empty.length; i++) {
+      empty[i] = initValue;
+    }
+    return empty;
+  }
+
+  @Override
+  public final boolean isNormal(final ImmutableList<ImmutableSet<IRNode>>[] value) {
+    return value != bottom() && value != top();
   }
   
   
@@ -216,24 +218,22 @@ abstract class AbstractLockStackLattice extends
    * @return
    */
   protected final ImmutableList<ImmutableSet<IRNode>>[] pushCall(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode call, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode call) {
     MethodCall mcall = (MethodCall) JJNode.tree.getOperator(call);
     
     // Get the set of locks for the lock expression
     final IRNode lockExpr = mcall.get_Object(call);
-    return pushLockExpression(oldValue, lockExpr, call, thisExprBinder, binder);
+    return pushLockExpression(oldValue, lockExpr, call);
   }
 
   public ImmutableList<ImmutableSet<IRNode>>[] pushLockExpression(
       final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode lockExpr, final IRNode lockAction,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+      final IRNode lockExpr, final IRNode lockAction) {
     final Set<HeldLock> lockSet = lockExprsToLockSets.get(lockExpr);
     ImmutableList<ImmutableSet<IRNode>>[] result = oldValue;
     if (lockSet != null) {
       for (final HeldLock lock : lockSet) {
-        final int idx = getIndexOf(lock, thisExprBinder, binder);
+        final int idx = indexOf(lock);
         if (idx != -1) {
           // Push the method call onto the stack as a new singleton set
           result = replaceValue(result, idx,
@@ -255,24 +255,21 @@ abstract class AbstractLockStackLattice extends
    * @return
    */
   protected final ImmutableList<ImmutableSet<IRNode>>[] popCall(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode call, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode call) {
     MethodCall mcall = (MethodCall) JJNode.tree.getOperator(call);
     
     // Get the set of locks for the lock expression
     final IRNode lockExpr = mcall.get_Object(call);
-    return popLockExpression(oldValue, lockExpr, thisExprBinder, binder);
+    return popLockExpression(oldValue, lockExpr);
   }
 
   public ImmutableList<ImmutableSet<IRNode>>[] popLockExpression(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode lockExpr, final ThisExpressionBinder thisExprBinder,
-      final IBinder binder) {
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode lockExpr) {
     final Set<HeldLock> lockSet = lockExprsToLockSets.get(lockExpr);
     ImmutableList<ImmutableSet<IRNode>>[] result = oldValue;
     if (lockSet != null) {
       for (final HeldLock lock : lockSet) {
-        final int idx = getIndexOf(lock, thisExprBinder, binder);
+        final int idx = indexOf(lock);
         if (idx != -1) {
           /* If the stack is empty (size == 1 because of the bogus value), then
            * don't do anything.  This prevents the lattice from getting screwed
@@ -299,9 +296,8 @@ abstract class AbstractLockStackLattice extends
    *         set value.
    */
   protected final Set<IRNode> peek(
-      final ImmutableList<ImmutableSet<IRNode>>[] value, final HeldLock lock,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    final int idx = getIndexOf(lock, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] value, final HeldLock lock) {
+    final int idx = indexOf(lock);
     if (idx != -1) {
       /* Special case: if the stack is empty, return the empty set; If we try 
        * to peek on the empty stack we return TOP resulting in poisoning.
@@ -329,11 +325,10 @@ abstract class AbstractLockStackLattice extends
    *         set value.
    */
   protected final Set<IRNode> peek(
-      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr) {
     final Set<IRNode> result = new HashSet<IRNode>();
     for (final HeldLock lock : lockExprsToLockSets.get(lockExpr)) {
-      final Set<IRNode> lockSet = peek(value, lock, thisExprBinder, binder);
+      final Set<IRNode> lockSet = peek(value, lock);
       if (lockSet == null) return null;
       result.addAll(lockSet);
     }
@@ -341,52 +336,23 @@ abstract class AbstractLockStackLattice extends
     result.remove(IGNORE_ME);
     return result;
   }
-
-  /**
-   * Get a new empty value the lattice.  
-   */
-  @SuppressWarnings("unchecked")
-  public final ImmutableList<ImmutableSet<IRNode>>[] getEmptyValue() {
-    final ImmutableList<ImmutableSet<IRNode>>[] empty = new ImmutableList[this.size()];
-    // Push the singleton set with the bogus method call onto the stack
-    final ImmutableList<ImmutableSet<IRNode>> initValue = ImmutableList.cons(
-        IGNORE_ME_SINGLETON_SET, ImmutableList.<ImmutableSet<IRNode>>nil());
-    for (int i = 0; i < empty.length; i++) {
-      empty[i] = initValue;
-    }
-    return empty;
-  }
-
+  
+  
+    
+  @Override protected String toStringPrefixSeparator() { return "\n"; }
+  @Override protected String toStringOpen() { return ""; }
+  @Override protected String toStringSeparator() { return "\n"; }
+  @Override protected String toStringConnector() { return " -> "; }
+  @Override protected String toStringClose() { return "\n"; }
+  
   @Override
-  public final String toString(
-      final ImmutableList<ImmutableSet<IRNode>>[] value) {
-    if (value == top()) {
-      return "top";
-    } 
-    if (value == bottom()) {
-      return "bottom";      
-    }
-    final StringBuilder sb = new StringBuilder();
-    sb.append('[');
-    for (int i = 0; i < locks.length; i++) {
-      final HeldLock key = locks[i];
-      
-      // Unparse key
-      sb.append(key.toString());
-      
-      sb.append("->");
-      
-      // unparse stack
-      final ImmutableList<ImmutableSet<IRNode>> stack = value[i];
-      stackToString(stack, sb);
-      if (i != locks.length-1) { sb.append(' '); }
-    }
-    sb.append(']');
-    return sb.toString();
+  protected final void indexToString(final StringBuilder sb, final HeldLock lock) {
+    sb.append(lock.toString());
   }
-
-  protected final void stackToString(
-      final ImmutableList<ImmutableSet<IRNode>> stack, final StringBuilder sb) {
+  
+  @Override
+  protected final void valueToString(final StringBuilder sb,
+      final ImmutableList<ImmutableSet<IRNode>> stack) {
     if (stack == null) {
       sb.append("NULL STACK");
     } else {
@@ -432,17 +398,6 @@ abstract class AbstractLockStackLattice extends
         if (stackIter.hasNext()) { sb.append("::"); }
       }
     }
-  }
-  
-  protected final String stackToString(
-      final ImmutableList<ImmutableSet<IRNode>> stack) {
-    final StringBuilder sb = new StringBuilder();
-    stackToString(stack, sb);
-    return sb.toString();
-  }
-  
-  public boolean isNormal(final ImmutableList<ImmutableSet<IRNode>>[] value) {
-    return value != bottom() && value != top();
   }
 }
 

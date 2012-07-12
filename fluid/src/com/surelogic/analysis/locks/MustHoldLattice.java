@@ -53,9 +53,10 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    *          the map portion of this lattice.
    */
   private MustHoldLattice(final IRNode fu,
+      final ThisExpressionBinder teb, final IBinder b,
       final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map,
       final Set<HeldLock> req, final Set<HeldLock> st, final Set<HeldLock> ci) {
-    super(locks, map);
+    super(teb, b, locks, map);
     flowUnit = fu;
     requiredLocks = req;
     singleThreaded = st;
@@ -81,7 +82,8 @@ final class MustHoldLattice extends AbstractLockStackLattice {
     final Set<HeldLock> singleThreaded = jucLockUsageManager.getJUCSingleThreaded(flowUnit);
     final Set<HeldLock> classInit = jucLockUsageManager.getJUCClassInit(flowUnit);
     final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder, binder);
-    return new MustHoldLattice(flowUnit, locks, map, required, singleThreaded, classInit);
+    return new MustHoldLattice(flowUnit, thisExprBinder, binder,
+        locks, map, required, singleThreaded, classInit);
   }
  
   
@@ -96,9 +98,8 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    * @return
    */
   public ImmutableList<ImmutableSet<IRNode>>[] foundLock(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode lockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return pushCall(oldValue, lockCall, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode lockCall) {
+    return pushCall(oldValue, lockCall);
   }
 
   /**
@@ -111,9 +112,8 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    * @return
    */
   public ImmutableList<ImmutableSet<IRNode>>[] foundUnlock(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode unlockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return popCall(oldValue, unlockCall, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode unlockCall) {
+    return popCall(oldValue, unlockCall);
   }
   
   /**
@@ -124,9 +124,8 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    *         set value.
    */
   public Set<IRNode> getLocksFor(
-      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return peek(value, lockExpr, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr) {
+    return peek(value, lockExpr);
   }
   
   /**
@@ -141,7 +140,7 @@ final class MustHoldLattice extends AbstractLockStackLattice {
     final ImmutableList<ImmutableSet<IRNode>> bottom = baseLattice.bottom();
     for (int i = 0; i < value.length; i++) {
       // skip bogus locks
-      if (!(locks[i].isBogus())) {
+      if (!(indices[i].isBogus())) {
         final ImmutableList<ImmutableSet<IRNode>> current = value[i];
         /* Bug 1010: Check if the list has a size > 1 because it will always have
          * the bogus element in it to differentiate the empty lattice value
@@ -151,7 +150,7 @@ final class MustHoldLattice extends AbstractLockStackLattice {
           /* TODO Need to retarget the locks here to have the correct source statements.
            * See the history of IntrinsicLockLattice.
            */
-          locked.add(locks[i]);
+          locked.add(indices[i]);
         }
       }
     }

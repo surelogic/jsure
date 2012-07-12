@@ -32,7 +32,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CachedSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.util.ArrayLattice;
+import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.UnionLattice;
 
 /**
@@ -68,7 +68,8 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * use of the lattice because by adding it to the end of the array, it's an
  * element that will never actually be used.
  */
-public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
+public final class BindingContext extends
+    AssociativeArrayLattice<IRNode, UnionLattice<IRNode>, ImmutableSet<IRNode>> {
   // =========================================================================
   // == Bogus values for differentiation empty from bottom
   // =========================================================================
@@ -129,16 +130,6 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   private final IRNode methodDecl;
   
   /**
-   * The VariableDeclarator and ParameterDeclaration nodes of all the parameters
-   * and local variables declared in the method/constructor.  The position of a
-   * declaration in this array is used to index into appropriate array lattice
-   * position.  If we are ignoring primitively typed variables, then they are
-   * not including in this list, but are included in the {@link #ignore} 
-   * list.
-   */
-  private final IRNode[] locals;
-  
-  /**
    * The VariableDeclaration and ParamterDeclaration nodes of all the variables
    * visible in the scope, but not being tracked by analysis.  This includes
    * two classes of variables: 
@@ -168,9 +159,10 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
       final IRNode md, final IRNode[] locals, final IRNode[] ignore, 
       final boolean[] isExternal, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
-    super(new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0]);
+    super(
+        new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0],
+        locals);
     this.methodDecl = md;
-    this.locals = locals;
     this.ignore = ignore;
     this.isExternal = isExternal;
     this.binder = binder;
@@ -201,12 +193,17 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
         ignore.toArray(ignoreArray), isExternal,
         binder);
   }
-  
 
   
-  // =========================================================================
-  // == Extra lattice value methods
-  // =========================================================================
+  
+  // ======================================================================
+  // == Associative array methods
+  // ======================================================================
+
+  @Override
+  protected boolean indexEquals(final IRNode decl1, final IRNode decl2) {
+    return decl1.equals(decl2);
+  }
 
   /**
    * Get the empty value for the lattice.  This is value has the last index
@@ -214,14 +211,29 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * refer to the empty set.
    */
   @SuppressWarnings("unchecked")
+  @Override
   public ImmutableSet<IRNode>[] getEmptyValue() {
-    final ImmutableSet<IRNode>[] empty = new ImmutableSet[locals.length + 1];
-    for (int i = 0; i < locals.length; i++) {
+    final ImmutableSet<IRNode>[] empty = new ImmutableSet[size];
+    for (int i = 0; i < size - 1; i++) {
       empty[i] = CachedSet.<IRNode>getEmpty();
     }
-    empty[locals.length] = ignoreMeSingletonSet;
+    empty[size-1] = ignoreMeSingletonSet;
     return empty;
   }
+  
+  /**
+   * Is the lattice value normal, that is, neither top nor bottom?
+   */
+  @Override
+  public boolean isNormal(final ImmutableSet<IRNode>[] value) {
+    /* Value is good as long as the bogus element is the special ignore set. */
+    final boolean result = value[size-1] == ignoreMeSingletonSet;
+    return result;
+  }
+  
+  // =========================================================================
+  // == Extra lattice value methods
+  // =========================================================================
   
   /**
    * Get the initial value; that is, the lattice value for use on entry to
@@ -229,39 +241,14 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   public ImmutableSet<IRNode>[] getInitialValue() {
     ImmutableSet<IRNode>[] initValue = getEmptyValue();
-    for (int i = 0; i < locals.length; i++) {
-      final IRNode local = locals[i];
+    for (int i = 0; i < size - 1; i++) {
+      final IRNode local = indices[i];
       if (ParameterDeclaration.prototype.includes(JJNode.tree.getOperator(local))) {
         initValue = this.updateDeclaration(initValue, local,
             CachedSet.<IRNode>getEmpty().addElement(local));
       }
     }
     return initValue;
-  }
-  
-  /**
-   * Is the lattice value normal, that is, neither top nor bottom?
-   */
-  public boolean isNormal(final ImmutableSet<IRNode>[] value) {
-    /* Value is good as long as the bogus element is the special ignore set. */
-    final boolean result = value[locals.length] == ignoreMeSingletonSet;
-    return result;
-  }
-  
-  /**
-   * Search the list of local variable declarations and return the index of the
-   * given declaration.
-   * 
-   * @param local
-   *          The declaration to look for.
-   * @return The index of the declaration in {@link #locals} or <code>-1</code>
-   *         if the declaration is not found.
-   */
-  private int findLocal(final IRNode decl) {
-    for (int i = 0; i < locals.length; ++i) {
-      if (locals[i].equals(decl)) return i;
-    }
-    return -1;
   }
   
   /**
@@ -288,9 +275,9 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     /* If findLocal() == -1, then we have two cases (1) the variables is 
      * being ignored by analysis, or (2) we have an error.
      */
-    final int localIdx = findLocal(decl);
+    final int localIdx = indexOf(decl);
     if (localIdx != -1) {
-      return replaceValue(oldValue, findLocal(decl), objects);
+      return replaceValue(oldValue, indexOf(decl), objects);
     } else {
       if (findIgnored(decl) != -1) {
         return oldValue;
@@ -307,7 +294,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
      * If we find a match there, we return the empty set.  Otherwise we 
      * throw an exception.   
      */
-    final int localIdx = findLocal(decl);
+    final int localIdx = indexOf(decl);
     if (localIdx != -1) {
       return value[localIdx];
     } else {
@@ -442,33 +429,34 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   }
 
   // TODO: Probably need to deal with qualified receiver here too
-  private static String localToString(final Object l) {
-    if (l instanceof IRNode) {
-      final IRNode n = (IRNode) l;
-      final Operator op = JJNode.tree.getOperator(n);
-      if (VariableDeclarator.prototype.includes(op)) {
-        return VariableDeclarator.getId(n);
-      } else if (ParameterDeclaration.prototype.includes(op)) {
-        return ParameterDeclaration.getId(n);
-      } else if (ReceiverDeclaration.prototype.includes(op)) {
-        return "this";
-      } else if (ReturnValueDeclaration.prototype.includes(op)) {
-        return "return";
-      } else {
-        return "<" + op.name() + ">";
-      }
+  private static String localToString(final IRNode n) {
+    final Operator op = JJNode.tree.getOperator(n);
+    if (VariableDeclarator.prototype.includes(op)) {
+      return VariableDeclarator.getId(n);
+    } else if (ParameterDeclaration.prototype.includes(op)) {
+      return ParameterDeclaration.getId(n);
+    } else if (ReceiverDeclaration.prototype.includes(op)) {
+      return "this";
+    } else if (ReturnValueDeclaration.prototype.includes(op)) {
+      return "return";
+    } else {
+      return "<" + op.name() + ">";
     }
-    return l.toString();
   }
-
+  
+  @Override protected String toStringPrefixSeparator() { return "\n"; }
+  @Override protected String toStringOpen() { return ""; }
+  @Override protected String toStringSeparator() { return "\n"; }
+  @Override protected String toStringConnector() { return " "; }
+  @Override protected String toStringClose() { return "\n"; }
+  
   @Override
-  public String toString(final ImmutableSet<IRNode>[] value) {
-    final StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < locals.length; ++i) {
-      sb.append(i).append(' ').append(localToString(locals[i])).append(' ').append(setToString(value[i])).append('\n');
-    }
-    return sb.toString();
+  protected void indexToString(final StringBuilder sb, final IRNode key) {
+    sb.append(localToString(key));
   }
-
-  // TODO: Implement toString for the lattice itself?
+  
+  @Override
+  protected void valueToString(final StringBuilder sb, final ImmutableSet<IRNode> value) {
+    sb.append(setToString(value));
+  }
 }

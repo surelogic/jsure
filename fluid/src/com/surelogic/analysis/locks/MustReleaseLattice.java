@@ -41,8 +41,10 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  private MustReleaseLattice(final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map) {
-    super(locks, map);
+  private MustReleaseLattice(
+      final ThisExpressionBinder teb, final IBinder b,
+      final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map) {
+    super(teb, b, locks, map);
   }
   
   /**
@@ -60,7 +62,8 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
       final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
       final JUCLockUsageManager jucLockUsageManager) {    
     final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getJUCLockExprsToLockSets(flowUnit);
-    return new MustReleaseLattice(getLocksFromMap(map, thisExprBinder, binder), map);
+    return new MustReleaseLattice(thisExprBinder, binder, 
+        getLocksFromMap(map, thisExprBinder, binder), map);
   }
   
   
@@ -75,9 +78,8 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    * @return
    */
   public ImmutableList<ImmutableSet<IRNode>>[] foundUnlock(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode unlockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return pushCall(oldValue, unlockCall, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode unlockCall) {
+    return pushCall(oldValue, unlockCall);
   }
 
   /**
@@ -90,9 +92,8 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    * @return
    */
   public ImmutableList<ImmutableSet<IRNode>>[] foundLock(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode lockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return popCall(oldValue, lockCall, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue, final IRNode lockCall) {
+    return popCall(oldValue, lockCall);
   }
   
   /**
@@ -103,9 +104,8 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    *         set value.
    */
   public Set<IRNode> getUnlocksFor(
-      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return peek(value, lockExpr, thisExprBinder, binder);
+      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr) {
+    return peek(value, lockExpr);
   }
 }
 

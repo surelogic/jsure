@@ -60,7 +60,7 @@ public final class MustReleaseAnalysis extends
         final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
       final Set<IRNode> unlockCalls =
-        lattice.getUnlocksFor(rawResult, call.get_Object(mcall), thisExprBinder, binder);
+        lattice.getUnlocksFor(rawResult, call.get_Object(mcall));
       /* Remove ourself from the set---this will happen in the case of a 
        * tryLock() embedded in an if-statement, see 
        * MustReleaseTransfer.transferConditional().
@@ -97,33 +97,11 @@ public final class MustReleaseAnalysis extends
       new JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>(
         "Must Release Analysis", mustReleaseLattice,
         new MustReleaseTransfer(
-            thisExprBinder, binder, lockUtils, mustReleaseLattice,
+            binder, lockUtils, mustReleaseLattice,
             nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
 
-//  /**
-//   * Get the matching unlock.
-//   * @return The IRNode of the matching unlock method call.
-//   */
-//  public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
-//    final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a =
-//      getAnalysis(
-//        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-//            mcall, context));
-//    final MustReleaseLattice lattice = a.getLattice();   
-//    final MethodCall call = (MethodCall) tree.getOperator(mcall);
-//    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
-//    final Set<IRNode> unlockCalls =
-//      lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-//    /* Remove ourself from the set---this will happen in the case of a 
-//     * tryLock() embedded in an if-statement, see 
-//     * MustReleaseTransfer.transferConditional().
-//     */
-//    if (unlockCalls != null) unlockCalls.remove(mcall);
-//    return unlockCalls;
-//  }
-  
   /**
    * @param flowUnit
    *          The MethodDeclaration, ConstructorDeclaration,
@@ -143,18 +121,15 @@ public final class MustReleaseAnalysis extends
   
   private static final class MustReleaseTransfer extends
       JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
-    private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
 
     
     
-    public MustReleaseTransfer(
-        final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
+    public MustReleaseTransfer(final IBinder binder, final LockUtils lu,
         final MustReleaseLattice lattice,
         final SimpleNonnullAnalysis.Query query) {
-      super(binder, lattice, new SubAnalysisFactory(teb, lu, query));
-      thisExprBinder = teb;
+      super(binder, lattice, new SubAnalysisFactory(lu, query));
       lockUtils = lu;
       nonNullAnalysisQuery = query;
     }
@@ -198,7 +173,7 @@ public final class MustReleaseAnalysis extends
              * node for a tryLock() call.
              */
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
-              lattice.foundUnlock(after, node, thisExprBinder, binder);
+              lattice.foundUnlock(after, node);
             return newValue;
           }
         }
@@ -290,7 +265,7 @@ public final class MustReleaseAnalysis extends
             // For exceptional termination, the lock is not acquired
             if (flag) {
               final ImmutableList<ImmutableSet<IRNode>>[] newValue =
-                lattice.foundLock(value, call, thisExprBinder, binder);
+                lattice.foundLock(value, call);
               return newValue;
             } else {
               return value;
@@ -298,7 +273,7 @@ public final class MustReleaseAnalysis extends
           } else { // Must be unlock()
             // The lock is always released, even for abrupt termination.
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
-              lattice.foundUnlock(value, call, thisExprBinder, binder);
+              lattice.foundUnlock(value, call);
             return newValue;
           }
         } else {
@@ -329,14 +304,11 @@ public final class MustReleaseAnalysis extends
 
 
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
-    private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query query;
     
     public SubAnalysisFactory(
-        final ThisExpressionBinder teb, final LockUtils lu,
-        final SimpleNonnullAnalysis.Query q) {
-      thisExprBinder = teb;
+        final LockUtils lu, final SimpleNonnullAnalysis.Query q) {
       lockUtils = lu;
       query = q;
     }
@@ -348,7 +320,7 @@ public final class MustReleaseAnalysis extends
         final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
         final boolean terminationNormal) {
       return new JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>("Must Release Analysis (sub-analysis)", lattice,
-          new MustReleaseTransfer(thisExprBinder, binder, lockUtils, lattice,
+          new MustReleaseTransfer(binder, lockUtils, lattice,
               query.getSubAnalysisQuery(caller)), DebugUnparser.viewer);
     }
     

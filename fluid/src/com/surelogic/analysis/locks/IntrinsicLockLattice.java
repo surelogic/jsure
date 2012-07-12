@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.util.ArrayUtil;
-import edu.uwm.cs.fluid.util.ArrayLattice;
+import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.FlatLattice;
 
 /**
@@ -23,7 +23,8 @@ import edu.uwm.cs.fluid.util.FlatLattice;
  * simplistic structure because of the syntactic constraints on 
  * synchronized blocks.
  */
-final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
+final class IntrinsicLockLattice extends
+    AssociativeArrayLattice<IRNode, FlatLattice, Object> {
   /**
    * Values used in the FlatLattice for tracking each individual 
    * synchronized statement.
@@ -61,11 +62,6 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
   
   
   /**
-   * The list of synchronized blocks tracked by the lattice.
-   */
-  private final IRNode[] syncBlocks;
-  
-  /**
    * The set of of locks acquired by each synchronized block.
    */
   private final Set<HeldLock>[] locks;
@@ -86,8 +82,7 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
    */
   private IntrinsicLockLattice(
       final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
-    super(FlatLattice.prototype, sb.length, ArrayUtil.empty);
-    syncBlocks = sb;
+    super(FlatLattice.prototype, sb.length, ArrayUtil.empty, sb);
     locks = l;
     assumedLocks = assumed;
   }
@@ -110,18 +105,37 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
     return new IntrinsicLockLattice(syncBlocks, locks, assumedLocks);
   }  
   
-  /**
-   * Get the array index of the given sync block
-   * @return The index of the sync block in the array lattice, or
-   *         {@code -1} if the sync block is not found in the lattice.
-   */
-  private int getIndexOf(final IRNode syncBlock) {
-    for (int i = 0; i < syncBlocks.length; i++) {
-      if (syncBlock == syncBlocks[i]) return i;
-    }
-    // Not found
-    return -1;
+  
+  
+  // ======================================================================
+  // == Associative array methods
+  // ======================================================================
+  
+  @Override
+  protected boolean indexEquals(final IRNode sb1, final IRNode sb2) {
+    return sb1.equals(sb2);
   }
+  
+  /**
+   * Get a new empty value the lattice: All the synchronized blocks are inactive.
+   */
+  @Override
+  public final Object[] getEmptyValue() {
+    final Object[] empty = new Object[size];
+    for (int i = 0; i < size; i++) empty[i] = LatticeValues.UNLOCKED;
+    return empty;
+  }
+  
+  /**
+   * Do we have a value that is not the bottom or the top value of the
+   * lattice?
+   */
+  @Override
+  public boolean isNormal(final Object[] value) {
+    return value != bottom() && value != top();
+  }
+
+  
   
   /**
    * Mark the given synchronized block as being active.
@@ -144,7 +158,7 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
    */
   private Object[] updateSyncBlock(
       final Object[] oldValue, final IRNode syncBlock, final LatticeValues status) {
-    final int idx = getIndexOf(syncBlock);
+    final int idx = indexOf(syncBlock);
     Object[] result = oldValue;
     if (idx != -1) {
       result = replaceValue(result, idx, status);
@@ -157,43 +171,30 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
    */
   public Set<HeldLock> getHeldLocks(final Object[] value) {
     final Set<HeldLock> result = new HashSet<HeldLock>(assumedLocks);
-    for (int i = 0; i < syncBlocks.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (value[i] == LatticeValues.LOCKED) result.addAll(locks[i]);
     }    
     return result;
   }
   
-  /**
-   * Get a new empty value the lattice: All the synchronized blocks are inactive.
-   */
-  public final Object[] getEmptyValue() {
-    final Object[] empty = new Object[syncBlocks.length];
-    for (int i = 0; i < empty.length; i++) empty[i] = LatticeValues.UNLOCKED;
-    return empty;
-  }
+
+  
+  @Override protected String toStringPrefixSeparator() { return "\n"; }
+  @Override protected String toStringOpen() { return ""; }
+  @Override protected String toStringSeparator() { return "\n"; }
+  @Override protected String toStringConnector() { return " is "; }
+  @Override protected String toStringClose() { return "\n"; }
 
   @Override
-  public String toString(final Object[] value) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append('[');
-    for (int i = 0; i < syncBlocks.length; i++) {
-      sb.append("synchronized(");
-      sb.append(DebugUnparser.toString(SynchronizedStatement.getLock(syncBlocks[i])));
-      sb.append(")@");
-      sb.append(JavaNode.getSrcRef(syncBlocks[i]).getLineNumber());
-      sb.append("->");
-      sb.append(value[i]);
-      if (i != syncBlocks.length-1) { sb.append(' '); }
-    }
-    sb.append(']');
-    return sb.toString();
+  protected void indexToString(final StringBuilder sb, final IRNode syncBlock) {
+    sb.append("synchronized(");
+    sb.append(DebugUnparser.toString(SynchronizedStatement.getLock(syncBlock)));
+    sb.append(")@");
+    sb.append(JavaNode.getSrcRef(syncBlock).getLineNumber());
   }
   
-  /**
-   * Do we have a value that is not the bottom or the top value of the
-   * lattice?
-   */
-  public boolean isNormal(final Object[] value) {
-    return value != bottom() && value != top();
+  @Override
+  protected void valueToString(final StringBuilder sb, final Object value) {
+    sb.append(value.toString());
   }
 }

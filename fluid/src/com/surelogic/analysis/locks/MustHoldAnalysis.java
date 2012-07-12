@@ -97,7 +97,7 @@ public final class MustHoldAnalysis extends
         final MustHoldLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
-      return lattice.getLocksFor(rawResult, call.get_Object(mcall), thisExprBinder, binder);
+      return lattice.getLocksFor(rawResult, call.get_Object(mcall));
     }
   }
   
@@ -165,7 +165,7 @@ public final class MustHoldAnalysis extends
     final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> analysis =
       new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
         "Must Hold Analysis", mustHoldLattice,
-        new MustHoldTransfer(thisExprBinder, binder, lockUtils, mustHoldLattice,
+        new MustHoldTransfer(binder, lockUtils, mustHoldLattice,
             nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
@@ -182,17 +182,15 @@ public final class MustHoldAnalysis extends
   
   private static final class MustHoldTransfer extends
       JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
-    private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
 
     
     
     public MustHoldTransfer(
-        final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
+        final IBinder binder, final LockUtils lu,
         final MustHoldLattice lattice, final SimpleNonnullAnalysis.Query query) {
-      super(binder, lattice, new SubAnalysisFactory(teb, lu, query));
-      thisExprBinder = teb;
+      super(binder, lattice, new SubAnalysisFactory(lu, query));
       lockUtils = lu;
       nonNullAnalysisQuery = query;
     }
@@ -255,7 +253,7 @@ public final class MustHoldAnalysis extends
              * the future, we could have problems because we are giving it the
              * node for a tryLock() call.
              */
-            final ImmutableList<ImmutableSet<IRNode>>[] out = lattice.foundUnlock(before, node, thisExprBinder, binder);
+            final ImmutableList<ImmutableSet<IRNode>>[] out = lattice.foundUnlock(before, node);
 
 //            System.out.println("  " + lattice.toString(out));
 //            System.out.flush();
@@ -355,7 +353,7 @@ public final class MustHoldAnalysis extends
             // For exceptional termination, the lock is not acquired
             if (flag) {
               final ImmutableList<ImmutableSet<IRNode>>[] newValue =
-                lattice.foundLock(value, call, thisExprBinder, binder);
+                lattice.foundLock(value, call);
 //              System.out.println("  " + lattice.toString(newValue));
 //              System.out.flush();
               return newValue;
@@ -367,7 +365,7 @@ public final class MustHoldAnalysis extends
           } else { // Must be unlock()
             // The lock is always released, even for abrupt termination.
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
-              lattice.foundUnlock(value, call, thisExprBinder, binder);
+              lattice.foundUnlock(value, call);
 //            System.out.println("  " + lattice.toString(newValue));
 //            System.out.flush();
             return newValue;
@@ -405,7 +403,7 @@ public final class MustHoldAnalysis extends
       final IRNode flowUnit = lattice.getFlowUnit();
       
       for (HeldLock requiredLock : lattice.getRequiredLocks()) {
-        final int idx = lattice.getIndexOf(requiredLock, thisExprBinder, binder);
+        final int idx = lattice.indexOf(requiredLock);
         if (idx != -1) {
           // Push the lock precondition onto the stack as a new singleton set
           initValue = lattice.replaceValue(initValue, idx,
@@ -423,14 +421,11 @@ public final class MustHoldAnalysis extends
 
 
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
-    private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query query;
     
     public SubAnalysisFactory(
-        final ThisExpressionBinder teb, final LockUtils lu,
-        final SimpleNonnullAnalysis.Query q) {
-      thisExprBinder = teb;
+        final LockUtils lu, final SimpleNonnullAnalysis.Query q) {
       lockUtils = lu;
       query = q;
     }
@@ -445,7 +440,7 @@ public final class MustHoldAnalysis extends
 //    System.out.flush();
       return new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
           "Must Hold Analysis (sub-analysis)", lattice,
-          new MustHoldTransfer(thisExprBinder, binder, lockUtils, lattice,
+          new MustHoldTransfer(binder, lockUtils, lattice,
               query.getSubAnalysisQuery(caller)), DebugUnparser.viewer);
     }
     

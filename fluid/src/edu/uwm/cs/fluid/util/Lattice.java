@@ -39,7 +39,7 @@ public interface Lattice<E> extends Hashor<E> {
   public E bottom();
   
   /**
-   * Return the least upper bound of two lattice elements.
+   * Return the least upper bound of two lattice elements.  (Moves towards top.)
    * @param v1
    * @param v2
    * @return v1 \/ v2
@@ -47,7 +47,7 @@ public interface Lattice<E> extends Hashor<E> {
   public E join(E v1, E v2);
   
   /**
-   * Return the greatest lower bound of two lattice elements
+   * Return the greatest lower bound of two lattice elements.  (Moves towards bottom.)
    * @param v1
    * @param v2
    * @return v1 /\ v2
