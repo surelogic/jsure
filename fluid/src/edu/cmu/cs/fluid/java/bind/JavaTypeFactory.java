@@ -226,7 +226,6 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  }
 	  List<IJavaType> types = new LinkedList<IJavaType>(orig);
 	  Collections.sort(types, new Comparator<IJavaType>() {
-		@Override
 		public int compare(IJavaType o1, IJavaType o2) {
 			return o1.toString().compareTo(o2.toString());
 		}
@@ -235,10 +234,19 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  while ((size = types.size()) > 1) {
 		  JavaReferenceType b2 = (JavaReferenceType) types.remove(size-1);
 		  JavaReferenceType b1 = (JavaReferenceType) types.remove(size-2);
-		  IJavaType u = new JavaUnionType(b1, b2);
+		  IJavaType u = getUnionType(b1, b2);
 		  types.add(0, u);
 	  }
 	  return types.get(0);
+  }
+  
+  private static IJavaType getUnionType(JavaReferenceType b1, JavaReferenceType b2) {
+	  JavaUnionType t = unionTypes.get(b1, b2);
+	  if (t == null) {
+		  t = new JavaUnionType(b1, b2);
+		  unionTypes.put(b1, b2, t);
+	  }
+	  return t;
   }
   
   // declared types  
@@ -470,6 +478,12 @@ public class JavaTypeFactory implements IRType, Cleanable {
       return getArrayType(bt, 1);
     } else if (op instanceof MoreBounds) {
       return computeGreatestLowerBound(binder, null, nodeType);
+    } else if (op instanceof UnionType) {
+        final List<IJavaType> types = new ArrayList<IJavaType>();
+        for(IRNode t : UnionType.getTypeIterator(nodeType)) {
+      	  types.add(convertNodeTypeToIJavaType(t, binder));
+        }
+        return JavaTypeFactory.getUnionType(types);      
     } else {
       LOG.severe("Cannot convert type " + op);
       return null;
