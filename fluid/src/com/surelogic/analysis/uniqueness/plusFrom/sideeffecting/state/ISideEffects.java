@@ -27,7 +27,7 @@ public interface ISideEffects {
   
   public void recordCompromisingOfUnique(
       IRNode srcOp, Integer topOfStack, State localStatus,
-      ImmutableSet<FieldTriple> fieldStore);
+      ImmutableSet<FieldTriple> fieldStore, int msg, Object... args);
   
   public void recordUndefiningOfUnique(
       IRNode srcOp, Integer topOfStack, State localStatus, Store s);

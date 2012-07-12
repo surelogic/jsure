@@ -12,7 +12,9 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
@@ -79,6 +81,13 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
     
     @Override
     public Void visitVariableUseExpression(final IRNode use) {
+      // Ignore if we are the LHS of an assignment
+      final IRNode parent = JJNode.tree.getParent(use);
+      if (AssignExpression.prototype.includes(parent) &&
+          AssignExpression.getOp1(parent).equals(use)) {
+        return null;
+      }
+      
       // See if the current variable is a primitive or not
       final IJavaType type = getBinder().getJavaType(use);
       if (type instanceof IJavaReferenceType) {

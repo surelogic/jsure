@@ -92,15 +92,6 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     return new JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
-//  /**
-//   * Return the set of variable declarators that are guaranteed not to be null.
-//   * @param node node in AST to denote where to check
-//   * @return variables that are not null at this execution point.
-//   */
-//  public ImmutableSet<IRNode> getNonnullBefore(IRNode node, IRNode constructorContext) {
-//    return getAnalysisResultsBefore(node, constructorContext).second();
-//  }
-
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
   }
@@ -234,9 +225,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return newPair(ImmutableList.<NullInfo>nil(),initSet);
     }
 
-    /* 
-     * In order to make transfer functions strict, we check at the beginning of each whether
-     * we have bottom or not. 
+    /*
+     * In order to make transfer functions strict, we check at the beginning of
+     * each whether we have bottom or not.
      */
     
     @Override
@@ -257,13 +248,11 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
         }
         return newPair(newStack, val.second());
       }
-//      return newPair(ImmutableList.<NullInfo>nil(),val.second());
     }
 
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> push(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      if (!lattice.isNormal(val)) return val;
-      return newPair(lattice.getLL().push(val.first(),NullInfo.MAYBENULL),val.second());
+      return push(val, NullInfo.MAYBENULL);
     }
 
     protected Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> push(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val, NullInfo ni) {
@@ -298,7 +287,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       if (tree.getOperator(node) instanceof DimExprs) {
         val = pop(val, tree.numChildren(node));
       }
-      return newPair(lattice.getLL().push(val.first(),NullInfo.NOTNULL),val.second());
+      return push(val, NullInfo.NOTNULL);
     }
 
     @Override
@@ -320,15 +309,15 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
       NullInfo ni = ll.peek(val.first());
       
-      if (val.second().contains(var)) {
-        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
-          return newPair(val.first(),val.second().removeCopy(var));
+      if (val.second().contains(var)) { // Variable is coming in as NONNULL
+        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value might be null
+          return newPair(val.first(),val.second().removeCopy(var)); // Now variable might be null
         }
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
-      } else {
-        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
-          return newPair(val.first(),val.second().addCopy(var));
+      } else { // Variable is coming in as possibly null
+        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value is not null
+          return newPair(val.first(),val.second().addCopy(var)); // Now the variable is not null
         }
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards

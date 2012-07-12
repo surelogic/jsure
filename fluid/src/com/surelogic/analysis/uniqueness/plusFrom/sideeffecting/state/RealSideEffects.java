@@ -63,8 +63,8 @@ public final class RealSideEffects implements ISideEffects {
    * {@link StoreLattice#opCompromiseNoRelease(Store, IRNode) and
    * {@link StoreLattice#opConsume} when the state is SHARED.
    */
-  private final Map<IRNode, Set<IRNode>> compromisedAt =
-    new HashMap<IRNode, Set<IRNode>>();
+  private final Map<IRNode, Set<CompromisingSite>> compromisedAt =
+    new HashMap<IRNode, Set<CompromisingSite>>();
   
   /**
    * Track which unique fields are made undefined and where. This is a map
@@ -210,9 +210,11 @@ public final class RealSideEffects implements ISideEffects {
   
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
-      final ImmutableSet<FieldTriple> fieldStore) {
-    recordLossOfUniqueness(srcOp, topOfStack, localStatus, fieldStore, compromisedAt);
-    // Do Nothing
+      final ImmutableSet<FieldTriple> fieldStore,
+      int msg, final Object... args) {
+    recordLossOfUniqueness(
+        new CompromisingSite(srcOp, msg, args), topOfStack, localStatus,
+        fieldStore, compromisedAt);
   }
   
   public void recordUndefiningOfUnique(
@@ -233,14 +235,14 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
-  private void recordLossOfUniqueness(final IRNode srcOp, final Integer topOfStack,
+  private <T> void recordLossOfUniqueness(final T v, final Integer topOfStack,
       final State localStatus, final ImmutableSet<FieldTriple> fieldStore,
-      final Map<IRNode, Set<IRNode>> howLostMap) {
+      final Map<IRNode, Set<T>> howLostMap) {
     if (!suppressDrops) {
       if (localStatus == State.UNIQUE || localStatus == State.UNIQUEWRITE) {
         for (final FieldTriple ft : fieldStore) {
           if (ft.third().contains(topOfStack)) {
-            addToMappedSet(howLostMap, ft.second(), srcOp);
+            addToMappedSet(howLostMap, ft.second(), v);
           }
         }
       }
@@ -372,7 +374,7 @@ public final class RealSideEffects implements ISideEffects {
       final Map<IRNode, Set<CompromisedField>> compromisedFields) {
     for (final Map.Entry<IRNode, Set<CompromisedField>> load : compromisedFields.entrySet()) {
       final IRNode fieldDecl = load.getKey();
-      final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
+      final Set<CompromisingSite> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
       final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getUnique(load.getKey()).getDrop();
       
@@ -380,9 +382,9 @@ public final class RealSideEffects implements ISideEffects {
         final ResultDropBuilder r = createResultDrop(
             isAbrupt, uniquePromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
         if (compromises != null) {
-          for (final IRNode compromisedAt : compromises) {
-            r.addSupportingInformation(compromisedAt, Messages.COMPROMISED_BY,
-                DebugUnparser.toString(compromisedAt));
+          for (final CompromisingSite compromisedAt : compromises) {
+            r.addSupportingInformation(
+                compromisedAt.srcOp, compromisedAt.msg, compromisedAt.varargs);
           }
         }
         if (undefines != null) {

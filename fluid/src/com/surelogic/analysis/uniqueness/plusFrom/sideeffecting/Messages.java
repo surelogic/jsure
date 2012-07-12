@@ -71,6 +71,17 @@ public final class Messages  {
   public static final int RETURN_IS_NULL = 347;
   public static final int ASSIGN_IS_NULL = 348;
   public static final int CONTROL_FLOW_ROOT = 349;
+  public static final int COMPROMISED_BY_ARRAY_ASSIGNMENT = 362;
+  public static final int COMPROMISED_BY_FIELD_ASSIGNMENT = 363;
+  public static final int COMPROMISED_BY_VARARGS_ASSIGNMENT = 364;
+  public static final int COMPROMISED_BY_ARRAY_INITIALIZER = 365;
+  public static final int COMPROMISED_BY_THROW = 366;
+  public static final int COMPROMISED_BY_HIDDEN_FIELD = 367;
+  public static final int COMPROMISED_BY_OUTER_OBJECT = 368;
+  public static final int COMPROMISED_BY_SHARED_RECEIVER = 369;
+  public static final int COMPROMISED_BY_SHARED_QUALIFIED_RECEIVER = 370;
+  public static final int COMPROMISED_BY_SHARED_FORMAL = 371;
+  public static final int COMPROMISED_BY_IFQR = 372;
   
   
   
@@ -125,6 +136,17 @@ public final class Messages  {
     code2name.put(CONTROL_FLOW_ROOT, "?");
     code2name.put(RETURN_OF_BURIED, "?");
     code2name.put(READ_OF_BURIED_EXTERNAL, "?");
+    code2name.put(COMPROMISED_BY_ARRAY_ASSIGNMENT, "?");
+    code2name.put(COMPROMISED_BY_FIELD_ASSIGNMENT, "?");
+    code2name.put(COMPROMISED_BY_VARARGS_ASSIGNMENT, "?");
+    code2name.put(COMPROMISED_BY_ARRAY_INITIALIZER, "?");
+    code2name.put(COMPROMISED_BY_THROW, "?");
+    code2name.put(COMPROMISED_BY_HIDDEN_FIELD, "?");
+    code2name.put(COMPROMISED_BY_OUTER_OBJECT, "?");
+    code2name.put(COMPROMISED_BY_SHARED_RECEIVER, "?");
+    code2name.put(COMPROMISED_BY_SHARED_QUALIFIED_RECEIVER, "?");
+    code2name.put(COMPROMISED_BY_SHARED_FORMAL, "?");
+    code2name.put(COMPROMISED_BY_IFQR, "?");
   }
   
   public static String toString(int code) {
