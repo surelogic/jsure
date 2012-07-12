@@ -638,6 +638,13 @@ private long parseIntLiteral(String token) {
 			return result;
 		}
 
+		if (s instanceof IJavaUnionType) {
+			IJavaUnionType us = (IJavaUnionType) s;
+			result = isSubType(us.getFirstType(), t, ignoreGenerics) &&
+			         isSubType(us.getAlternateType(), t, ignoreGenerics);
+			return result;
+		}
+		
 		// need to handle wildcard type parameters:
 		// List<Integer> is NOT a subtype of List<Object>, but 
 		// List<Integer> is a subtype of List<? extends Object>
