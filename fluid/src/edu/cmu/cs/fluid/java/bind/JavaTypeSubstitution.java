@@ -7,6 +7,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -173,7 +174,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     	typeFormals = ClassDeclaration.getTypes(enclosingType);
     }   
     else { // Cannot be a generic type
-    	System.out.println("No subst for "+DebugUnparser.toString(enclosingType));
+    	System.out.println("Not a generic type: "+JavaNames.getFullName(enclosingType));
     	return null;
     }
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {

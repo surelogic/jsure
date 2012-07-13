@@ -120,12 +120,14 @@ public class TypeUtils {
 			}
 		}
 		if (ec.isEmpty()) {
+			System.err.println("Empty candidate set ...");
 			for(IJavaReferenceType t : types) {
-				System.err.println("STs for "+t);
+				System.err.println("STs for "+t+":");
 				for(IJavaDeclaredType s : getST(t)) {
 					System.err.println("\t"+s);
 				}
 			}
+			System.err.println();
 		}
 		return ec;
 	}
