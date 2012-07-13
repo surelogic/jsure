@@ -439,9 +439,12 @@ public class BindUtil implements JavaGlobals {
   public static final boolean isAccessible(ITypeEnvironment tEnv, IRNode decl, IRNode from) {
     IRNode enclosingType = VisitUtil.getEnclosingType(from);
     if (enclosingType == null) {
-    	IRNode cu = VisitUtil.getEnclosingCompilationUnit(from);
+    	final IRNode cu = VisitUtil.getEnclosingCompilationUnit(from);
     	enclosingType = VisitUtil.getPrimaryType(cu);
-
+    	if (enclosingType == null) {
+    		// As a last resort, use the package decl
+    		enclosingType = CompilationUnit.getPkg(cu);    				
+    	}
     }
     boolean rv = isAccessible(tEnv, decl, from, enclosingType);
 	if (!rv && enclosingType == null) {    		
@@ -479,6 +482,9 @@ public class BindUtil implements JavaGlobals {
     return isAccessible(tEnv, visibility, declaringType, declaringType, enclosingType, enclosingType);
   }
   
+  /**
+   * @param enclosingType could be a package decl
+   */
   private static final boolean isAccessible(ITypeEnvironment tEnv, IRNode decl, IRNode from, IRNode enclosingType) {
     // FIX?
     final Visibility viz = Visibility.getVisibilityOf(decl);
@@ -496,8 +502,7 @@ public class BindUtil implements JavaGlobals {
    * @param decl As close to where the decl should be
    * @param declaringType
    * @param from As close to where the access should be
-   * @param enclosingType
-   * @return
+   * @param enclosingType could be a package decl
    */
   private static final boolean isAccessible(ITypeEnvironment tEnv, 
                                             Visibility visibility, IRNode decl, IRNode declaringType,
