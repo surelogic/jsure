@@ -309,18 +309,27 @@ public class JavacClassParser {
 	public void parse(final List<CodeInfo> results) throws IOException {
 		System.out.println("Assuming that the projects are run in dependency order");
 		// TODO otherwise we could load something twice
-		final Map<String,List<CodeInfo>> infos = new HashMap<String,List<CodeInfo>>();
+		final MultiMap<String,CodeInfo> infos = new MultiHashMap<String,CodeInfo>();
 		for(JavacProject jp : projects) {			
 			final List<CodeInfo> temp = new ArrayList<CodeInfo>();
 			//final BatchParser parser = 
 			    parseSources(jp, temp);
-			infos.put(jp.getName(), temp);
+			    
+			// Separate parsed files by project
+			for(CodeInfo info : temp) {
+				infos.put(info.getTypeEnv().getProject().getName(), info);
+			}
 		}
 		for(JavacProject jp : projects) {			
-			final List<CodeInfo> info = infos.get(jp.getName());
+			final Collection<CodeInfo> info = infos.get(jp.getName());
+			if (info == null) {
+				continue;
+			}
 		    final BatchParser parser = parsers.get(jp.getName());
-			handleReferences(parser, info);
-			results.addAll(info);
+		    final List<CodeInfo> temp = new ArrayList<CodeInfo>(info);
+		    
+			handleReferences(parser, temp);
+			results.addAll(temp);
 		}
 		updateTypeEnvs(results);		
 	}
@@ -584,16 +593,17 @@ public class JavacClassParser {
 			*/
 		}		
 				
-		final BatchParser parser = parsers.get(jp.getName());
-		if (parser == null) {
-			throw new NullPointerException();
-		}
-		final References r = parser.refs;
 		final MultiMap<String,String> moreRefs = new MultiHashMap<String,String>();
 		for(CodeInfo cu : newCUs) {
 			//System.out.println("Scanning: "+info.getFileName());
         	final boolean debug = false; //cu.getFileName().contains("EJBContext");
-        	moreRefs.putAll(cu.getFile().getProjectName(), r.scanForReferencedTypes(cu.getNode(), debug));        	
+        	final String proj = cu.getFile().getProjectName();
+    		final BatchParser parser = parsers.get(proj);
+    		if (parser == null) {
+    			throw new NullPointerException();
+    		}
+    		final References r = parser.refs;        	
+        	moreRefs.putAll(proj, r.scanForReferencedTypes(cu.getNode(), debug));        	
 		}		
 		// See if there are still the same outstanding refs for this project
 		if (checkForCycle(refs, moreRefs.get(jp.getName()))) {
@@ -757,10 +767,12 @@ public class JavacClassParser {
 		if (doneWithInitialParse && "java.util.LinkedList".equals(qname)) {
 			System.out.println(qname);
 		}
-		*/		
+		*/
+		/*
 		if (jp.getName().equals("common") && qname.endsWith("junit.framework.Assert")) {
 			System.out.println("Checking: "+qname);
 		}		
+		*/
 		if (jp.getTypeEnv().findNamedType(qname) != null) {
 			return null;
 		}
@@ -820,6 +832,11 @@ public class JavacClassParser {
 		Set<String> scanForReferencedTypes(IRNode cu, boolean debug) {
 			Set<String> r = new HashSet<String>();
 			FASTScanner s = new FASTScanner(jp, r, debug);	
+			IRNode t = VisitUtil.getPrimaryType(cu);
+			String qname = JavaNames.getFullTypeName(t);
+			if (qname.endsWith("DefaultSynthStyle")) {
+				System.out.println("FAST Scanning "+qname);
+			}
 			s.doAccept(cu);
 			refs.put(cu, r);
 			/*
@@ -1044,7 +1061,7 @@ public class JavacClassParser {
 		public Void visitNamedType(IRNode node) {			
 			String qname = NamedType.getType(node);		
 			/*
-			if (qname.contains("javax.swing.WindowConstants") && "jEdit-4.1".equals(jp.getName())) {
+			if (qname.contains("javax.swing.plaf.synth.SynthStyle")) {
 				System.out.println("Checking NT: "+qname);
 			}
 */
