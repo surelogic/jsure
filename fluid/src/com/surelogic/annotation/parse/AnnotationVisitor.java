@@ -34,6 +34,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	public static final String VERIFY = "verify";
 	public static final String ALLOW_RETURN = "allowReturn";
 	public static final String ALLOW_READ = "allowRead";
+	public static final String UPTO = "upTo";
 	
 	static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 

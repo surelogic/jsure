@@ -775,4 +775,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(NullableNode n) {
 	  return defaultValue;
   }
+
+  public T visit(RawNode rawNode) {
+	  return defaultValue;
+  }
 }
