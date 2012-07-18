@@ -59,17 +59,16 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 			if (ParameterDeclaration.prototype.includes(context.getOp())) {
-				throw new NotImplemented();
+				return parser.nothing();
 			}
 			else if (MethodDeclaration.prototype.includes(context.getOp())) {
-				throw new NotImplemented();
+				return parser.rawExpression();
 			}
 			throw new NotImplemented();
 		}		
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new RawNode(offset, context.getProperty(AnnotationVisitor.UPTO), 
-					context.getProperty(AnnotationConstants.VALUE_ATTR));
+			return new RawNode(offset, context.getProperty(AnnotationVisitor.UPTO));
 		}
 		@Override
 		protected IPromiseDropStorage<RawPromiseDrop> makeStorage() {

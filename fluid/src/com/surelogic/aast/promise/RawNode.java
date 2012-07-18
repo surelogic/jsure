@@ -5,25 +5,20 @@ import com.surelogic.annotation.rules.NonNullRules;
 
 public class RawNode extends AbstractBooleanNode 
 { 
-  private final String upTo, value;
+  private final String upTo;
 	
   // Constructors
-  public RawNode(int offset, String upTo, String value) {
+  public RawNode(int offset, String upTo) {
     super(offset);
-    this.upTo = upTo == null ? "*" : upTo;
-    this.value = value == null ? "" : value;    
+    this.upTo = upTo == null ? "*" : upTo; 
   }
 
   @Override
   public String unparse(boolean debug, int indent) {
 	if ("*".equals(upTo)) {
-		if (value.length() == 0) {
-			return NonNullRules.RAW;
-		}
-		return NonNullRules.RAW+'('+value+')';
+		return NonNullRules.RAW;
 	}	
-	return NonNullRules.RAW+"(upTo="+upTo+
-		   (value.length() == 0 ? "" : ", value="+value)+')';
+	return NonNullRules.RAW+"(upTo="+upTo+')';
   }
 
   @Override
@@ -33,7 +28,7 @@ public class RawNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new RawNode(offset, upTo, value);
+  	return new RawNode(offset, upTo);
   }
 }
 

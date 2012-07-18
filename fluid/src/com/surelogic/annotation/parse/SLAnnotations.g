@@ -348,6 +348,10 @@ nonNullExpression
     : varUse | returnValue 
     ;
     
+rawExpression
+    : thisExpr | returnValue // | static(NamedType)
+    ;
+    
 /*************************************************************************************
  * Thread effects rules
  *************************************************************************************/	
