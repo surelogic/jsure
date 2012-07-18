@@ -42,7 +42,7 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  * during control flow analysis.  This is because the meet operation is never 
  * invoked. 
  */
-final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element> {
+public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element> {
   public static interface Element {
     public boolean lessEq(Element other);
     public Element join(Element other);
@@ -174,7 +174,7 @@ final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element> {
     
     @Override
     public String toString() {
-      return type.toString();
+      return "RAW(" + type.toString() + ")";
     }
   }
 
@@ -201,6 +201,14 @@ final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element> {
   }
 
   public Element bottom() {
+    return Specials.NOT_RAW;
+  }
+  
+  public Element getRaw() {
+    return Specials.RAW;
+  }
+  
+  public Element getNotRaw() {
     return Specials.NOT_RAW;
   }
   

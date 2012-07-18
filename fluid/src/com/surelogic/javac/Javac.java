@@ -19,6 +19,7 @@ import com.surelogic.analysis.testing.BCAModule;
 import com.surelogic.analysis.testing.CollectMethodCallsModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
 import com.surelogic.analysis.testing.NonNullModule;
+import com.surelogic.analysis.testing.RawTypeModule;
 import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
@@ -60,7 +61,9 @@ public class Javac extends IDE {
 		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
 
-		init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
+    init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
+    init(RawTypeModule.class, "com.surelogic.jsure.client.eclipse.RawTypes", false, "RawType");
+		
 		init(LocalVariablesModule.class,
 				"com.surelogic.jsure.client.eclipse.LV", false, "LV");
 		init(BCAModule.class, "com.surelogic.jsure.client.eclipse.BCA", false, "BCA");

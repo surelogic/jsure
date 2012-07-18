@@ -18,10 +18,15 @@ final class Messages  {
   
   
   public static final int BINDS_TO = 500;
+  
   public static final int CALLS = 510;
+  
   public static final int LOCAL_VARS = 520;
+  
   public static final int NOT_NULL = 530;
   public static final int MAYBE_NULL = 531;
+  public static final int RAWNESS = 532;
+  
   public static final int ALIASED_PARAMETERS = 540;
   
   

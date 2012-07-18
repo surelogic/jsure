@@ -338,10 +338,13 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     IRNode call,
     boolean flag,
     T value) {
+    // First handle the construction of the object
+    value = transferConstructorCall(call, flag, value);
+    
+    // Then handle any field inits and init blocks
     Operator op = tree.getOperator(call);
-    if (ConstructorCall.prototype.includes(op) //op instanceof ConstructorCall
-      && tree.getOperator(ConstructorCall.getObject(call))
-        instanceof SuperExpression) {
+    if (ConstructorCall.prototype.includes(op) 
+        && SuperExpression.prototype.includes(tree.getOperator(ConstructorCall.getObject(call)))) {
       IRNode p = call;
       while (p != null && !(tree.getOperator(p) instanceof ClassBody)) {
         p = tree.getParentOrNull(p);
@@ -349,23 +352,32 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       if (p != null) {
         return runClassInitializer(call, p, value, flag);
       }
-    } else if (AnonClassExpression.prototype.includes(op)) { // op instanceof AnonClassExpression) {
+    } else if (AnonClassExpression.prototype.includes(op)) {
       return runClassInitializer(
         call,
         AnonClassExpression.getBody(call),
         value,
         flag);
-    } else if (ImpliedEnumConstantInitialization.prototype.includes(op) &&
-        EnumConstantClassDeclaration.prototype.includes(JJNode.tree.getParent(call))) {
+    } else if (ImpliedEnumConstantInitialization.prototype.includes(op)
+        && EnumConstantClassDeclaration.prototype.includes(tree.getParent(call))) {
       return runClassInitializer(
           JJNode.tree.getParent(call),
           EnumConstantClassDeclaration.getBody(JJNode.tree.getParent(call)),
           value,
           flag);
-    } else if (!flag) return null;
+    } // else if (!flag) return null;
     return value;
   }
 
+  /**
+   * Transfer a lattice value over the creation of a new instance of the 
+   * class.  This is called from {@link #transferCallClassInitializer}
+   * before the class initialization (fields and init blocks) are handled.
+   */
+  protected T transferConstructorCall(final IRNode call, final boolean flag, final T value) {
+    return flag ? value : null;
+  }
+  
   /**
 	 * Transfer a lattice value over a use of a local, parameter, receiver,
 	 * field, or array element. This is <em>not</em> called in lvalue
