@@ -66,7 +66,10 @@ public final class StoreLattice
 extends TripleLattice<Element<Integer>,
     ImmutableSet<ImmutableHashOrderSet<Object>>,
     ImmutableSet<FieldTriple>,
-    Store> {
+    Store,
+    FlatLattice2<Integer>,
+    UnionLattice<ImmutableHashOrderSet<Object>>,
+    UnionLattice<FieldTriple>> {
   private static final ImmutableHashOrderSet<Object> EMPTY =
     ImmutableHashOrderSet.<Object>emptySet();
 

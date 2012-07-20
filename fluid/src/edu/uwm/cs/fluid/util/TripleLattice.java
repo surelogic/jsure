@@ -4,15 +4,17 @@ package edu.uwm.cs.fluid.util;
 import edu.cmu.cs.fluid.util.Triple;
 
 /**
- * A lattice built up as the cartesian product of three lattices.
+ * A lattice built up as the Cartesian product of three lattices.
  */
-public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> implements Lattice<V> {
+public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
+    L1 extends Lattice<T1>, L2 extends Lattice<T2>, L3 extends Lattice<T3>>
+    implements Lattice<V> {
   /* Our constituent lattices are public!  Not usually needed, but sometimes
    * useful.  I cannot think of a good reason they should be hidden.
    */
-  public final Lattice<T1> lattice1;
-  public final Lattice<T2> lattice2;
-  public final Lattice<T3> lattice3;
+  public final L1 lattice1;
+  public final L2 lattice2;
+  public final L3 lattice3;
   
   private final V top;
   private final V bottom;
@@ -20,7 +22,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
   
   
   public TripleLattice(
-      final Lattice<T1> l1, final Lattice<T2> l2, final Lattice<T3> l3) {
+      final L1 l1, final L2 l2, final L3 l3) {
     lattice1 = l1;
     lattice2 = l2;
     lattice3 = l3;
@@ -61,24 +63,21 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
     return bottom;
   }
 
-  public V join(
-      final V v1, final V v2) {
+  public V join(final V v1, final V v2) {
     return newTriple(
         lattice1.join(v1.first(), v2.first()),
         lattice2.join(v1.second(), v2.second()),
         lattice3.join(v1.third(), v2.third()));
   }
 
-  public V meet(
-      final V v1, final V v2) {
+  public V meet(final V v1, final V v2) {
     return newTriple(
         lattice1.meet(v1.first(),v2.first()),
         lattice2.meet(v1.second(),v2.second()),
         lattice3.meet(v1.third(), v2.third()));
   }
 
-  public V widen(
-      final V v1, final V v2) {
+  public V widen(final V v1, final V v2) {
     return newTriple(
         lattice1.widen(v1.first(), v2.first()),
         lattice2.widen(v1.second(), v2.second()),

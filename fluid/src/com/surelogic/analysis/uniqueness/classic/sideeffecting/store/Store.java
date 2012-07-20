@@ -18,15 +18,15 @@ extends Triple<Element<Integer>,
   
   
   public Integer getStackSize() {
-    return first().getValue();
+    return elem1.getValue();
   }
   
   public ImmutableSet<ImmutableHashOrderSet<Object>> getObjects() {
-    return second();
+    return elem2;
   }
   
   public ImmutableSet<FieldTriple> getFieldStore() {
-    return third();
+    return elem3;
   }
   
   public boolean isValid() {

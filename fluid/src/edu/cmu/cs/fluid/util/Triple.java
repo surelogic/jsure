@@ -6,11 +6,11 @@ package edu.cmu.cs.fluid.util;
  * also cache the hashCode (assuming that it's immutable)
  */
 public class Triple<T1, T2, T3> {
-  private final T1 elem1;
+  protected final T1 elem1;
 
-  private final T2 elem2;
+  protected final T2 elem2;
 
-  private final T3 elem3;
+  protected final T3 elem3;
 
   private final int hash;
 
@@ -57,16 +57,10 @@ public class Triple<T1, T2, T3> {
   }
 
   private int computeHash() {
-    int hash = 0;
-    if (elem1 != null) {
-      hash += elem1.hashCode();
-    }
-    if (elem2 != null) {
-      hash += elem2.hashCode();
-    }
-    if (elem3 != null) {
-      hash += elem3.hashCode();
-    }
+    int hash = 17;
+    hash += 31 * hash + ((elem1 == null) ? 0 : elem1.hashCode());
+    hash += 31 * hash + ((elem2 == null) ? 0 : elem2.hashCode());
+    hash += 31 * hash + ((elem3 == null) ? 0 : elem3.hashCode());
     return hash;
   }
 }
