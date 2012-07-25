@@ -9,11 +9,19 @@ public final class CompromisingSite {
   public final int msg;
   public final Object[] varargs;
   
+  private int hashCode;
+  
   public CompromisingSite(
       final IRNode s, final int m, final Object... args) {
     srcOp = s;
     msg = m;
     varargs = args;
+    
+    int hc = 17;
+    hc = 31 * hc + msg;
+    hc = 31 * hc + srcOp.hashCode();
+    hc = 31 * hc + Arrays.hashCode(varargs);
+    hashCode = hc;
   }
   
   @Override
@@ -31,10 +39,6 @@ public final class CompromisingSite {
   
   @Override
   public int hashCode() {
-    int v = 17;
-    v += 31 * msg;
-    v += 31 * srcOp.hashCode();
-    v += 32 * Arrays.hashCode(varargs);
-    return v;
+    return hashCode;
   }
 }

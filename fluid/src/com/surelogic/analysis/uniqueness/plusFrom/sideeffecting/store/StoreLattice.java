@@ -851,12 +851,12 @@ extends TripleLattice<Element<Integer>,
           if (UniquenessUtils.isUniqueWrite(t.second())){
         	  if (!State.lattice.lessEq(newStatus,State.UNIQUEWRITE)) {
               sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUEWRITE, t.second());
-        		  return errorStore("loaded compromised unique(allowRead) field");
+//        		  return errorStore("loaded compromised unique(allowRead) field");
         	  }
           } else {
         	  if (newStatus != State.UNIQUE) { 
         	    sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUE, t.second());
-        		  return errorStore("loaded compromised field");
+//        		  return errorStore("loaded compromised field");
         	  }
           }
           if (found.add(newObject)) done = false;
