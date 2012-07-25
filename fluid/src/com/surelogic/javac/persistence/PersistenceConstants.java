@@ -15,6 +15,7 @@ public interface PersistenceConstants {
 	String PROJECT = "project";
 	String NAME = "name";
 	String IS_EXPORTED = "is-exported";
+	String HAS_JLO = "contains-java-lang-object";
 	
 	String SRC = "source";
 	String JAR = "jar";

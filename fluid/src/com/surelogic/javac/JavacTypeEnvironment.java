@@ -96,7 +96,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		this.monitor = monitor;
 		AnnotationRules.initialize();
 
-		if (p.getName().startsWith(JRE_NAME)) {
+		if (p.getName().startsWith(JRE_NAME) || p.containsJavaLangObject()) {
 			initArrayClassDecl();
 		} else {
 			final String jre = IDE.getInstance().getStringPreference(

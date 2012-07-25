@@ -879,7 +879,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
 			final File location = EclipseUtility.resolveIPath(project
 					.getLocation());
-			Config config = new ZippedConfig(project.getName(), location, false);
+			Config config = new ZippedConfig(project.getName(), location, false, containsJavaLangObject(jp));
 			projects.add(config);
 			setOptions(config);
 
@@ -932,7 +932,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 			// TODO what export rules?
-			JavacProject jre = scanForJDK(projects, jp);
+			final JavacProject jre = scanForJDK(projects, jp);
+			final boolean hasSourceForJLO = containsJavaLangObject(jp);
 			System.out.println("Project " + jp);
 
 			for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
@@ -954,7 +955,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				case IClasspathEntry.CPE_LIBRARY:
 					// System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
 					final File f = EclipseUtility.resolveIPath(cpe.getPath());
+					
+					// Check if the jar is already in some other project (e.g, the JRE)
 					String mapped = projects.checkMapping(f);
+					if (hasSourceForJLO && mapped.equals(jre.getName())) {
+						mapped = null; // treat this jar as if it's part of this project
+					}					
 					if (mapped != null) {
 						JavacProject mappedProj = projects.get(mapped);
 						if (mappedProj == null) {
@@ -986,7 +992,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						final File location = EclipseUtility.resolveIPath(proj
 								.getLocation());
 						dep = new ZippedConfig(projName, location,
-								cpe.isExported());
+								cpe.isExported(), containsJavaLangObject(JDTUtility.getJavaProject(projName)));
 						projects.add(dep);
 						setOptions(dep);
 					}
@@ -1000,7 +1006,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					System.out.println("Unexpected: " + cpe);
 				}
 			}
-			if (jre != null) {
+			if (jre != null && !hasSourceForJLO) {
 				// Add JRE if not already added
 				boolean hasJRE = false;
 				for (IClassPathEntry e : config.getClassPath()) {
@@ -1112,11 +1118,15 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 				String name) {
 			System.out.println("Creating shared jar: " + name);
 			// Use its containing directory as a location
-			final Config config = new Config(name, f.getParentFile(), true);
+			final Config config = new Config(name, f.getParentFile(), true, false);
 			config.addJar(f, true);
 			return projects.add(config);
 		}
 
+		/**
+		 * Look for a container in the raw classpath that 
+		 * corresponds to a JRE
+		 */
 		private JavacProject scanForJDK(Projects projects, IJavaProject jp)
 				throws JavaModelException {
 			if (jp == null) {
@@ -1139,7 +1149,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 										+ classpath);
 
 								final Config config = new Config(path, null,
-										true);
+										true, true);
 								for (String jar : classpath
 										.split(File.pathSeparator)) {
 									final File f = new File(jar);
@@ -1213,7 +1223,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		private Config makeConfig(Projects projects,
 				final IClasspathContainer cc) {
 			final String name = cc.getPath().toPortableString();
-			final Config config = new Config(name, null, true);
+			final Config config = new Config(name, null, true, true);
 			for (IClasspathEntry cpe : cc.getClasspathEntries()) {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_LIBRARY:
@@ -1274,6 +1284,15 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		 * final IProject proj = jp.getProject(); if (Nature.hasNature(proj)) {
 		 * building.add(proj); } } }
 		 */
+	}
+
+	/**
+	 * @return true if the given project contains java.lang.Object in source form
+	 * @throws JavaModelException 
+	 */
+	boolean containsJavaLangObject(IJavaProject jp) throws JavaModelException {
+		IType t = jp.findType("java.lang.Object");
+		return t.getCompilationUnit() != null;
 	}
 
 	/**
@@ -1619,14 +1638,14 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	}
 
 	static class ZippedConfig extends Config {
-		ZippedConfig(String name, File location, boolean isExported) {
-			super(name, location, isExported);
+		ZippedConfig(String name, File location, boolean isExported, boolean hasJLO) {
+			super(name, location, isExported, hasJLO);
 		}
 
 		@Override
 		protected Config newConfig(String name, File location,
-				boolean isExported) {
-			return new ZippedConfig(name, location, isExported);
+				boolean isExported, boolean hasJLO) {
+			return new ZippedConfig(name, location, isExported, hasJLO);
 		}
 
 		@Override

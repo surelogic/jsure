@@ -157,7 +157,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	}
 
 	private Config createConfig() throws IOException {
-		Config config = new Config(scan.getProjectName(), null, false); // TODO
+		Config config = new Config(scan.getProjectName(), null, false, false); // TODO
 																		// what
 																		// location?
 		config.setOption(Config.AS_SOURCE, Boolean.TRUE);

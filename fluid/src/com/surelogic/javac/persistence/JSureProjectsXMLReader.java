@@ -84,13 +84,14 @@ public class JSureProjectsXMLReader extends NestedXMLReader implements
 		final String proj = e.getAttribute(NAME);
 		final String location = e.getAttribute(LOCATION);
 		final boolean isExported = "true".equals(e.getAttribute(IS_EXPORTED));
+		final boolean hasJLO = "true".equals(e.getAttribute(HAS_JLO));
 		if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
 			// TODO what if this should be JavacEclipse?
 			Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, proj);
 		}
 
 		final JavacProject p = projects.add(new Config(proj,
-				location == null ? null : new File(location), isExported));
+				location == null ? null : new File(location), isExported, hasJLO));
 		final boolean isSource = "true"
 				.equals(e.getAttribute(Config.AS_SOURCE));
 		if (isSource) {

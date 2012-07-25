@@ -375,6 +375,9 @@ public class Projects extends JavaProjects implements IIRProjects,
 		fileMap.put(f, project);
 	}
 
+	/**
+	 * @return the project that the file is in
+	 */
 	public String checkMapping(File f) {
 		return fileMap.get(f);
 	}

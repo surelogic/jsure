@@ -978,8 +978,8 @@ public class Util {
 						try {
 							b.ensureBindingsOK(n);
 						} catch(RuntimeException e) {
-							System.err.println("Error while binding "+DebugUnparser.toString(n));
-							System.err.println("In "+info.getFileName());
+							SLLogger.getLogger().log(Level.SEVERE, "Error while binding "+DebugUnparser.toString(n)+
+							                         "In "+info.getFileName(), e);
 							throw e;
 						}
 					}
@@ -1447,7 +1447,7 @@ public class Util {
     	location = new File(WORKSPACE+"/SmallWorld");
     	break;
     }
-    final Config config = new Config(which.name(), location, false);
+    final Config config = new Config(which.name(), location, false, which == Demo.JDK6);
     switch (which) {
     case TEST:
     case COMMON:
@@ -1509,7 +1509,7 @@ public class Util {
 	static final NullFilter nullFilter = new NullFilter();
 	
 	public static void addJavaFiles(File loc, Config config, String dependentProject) {
-		Config dep = new Config(dependentProject, loc, true);
+		Config dep = new Config(dependentProject, loc, true, false);
 		File dir = new File(loc, "src");
 		addJavaFiles("", dir, dep, nullFilter);
 		config.addToClassPath(dep);
