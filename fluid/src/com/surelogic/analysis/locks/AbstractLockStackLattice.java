@@ -91,8 +91,7 @@ abstract class AbstractLockStackLattice extends
       final HeldLock[] lks, final Map<IRNode, Set<HeldLock>> map) {
     super(
         new ListLattice<UnionLattice<IRNode>,ImmutableSet<IRNode>>(
-            new UnionLattice<IRNode>()), lks.length,
-            new ImmutableList[0], lks);
+            new UnionLattice<IRNode>()), new ImmutableList[0], lks);
     binder = b;
     thisExprBinder = teb;
     lockExprsToLockSets = map;

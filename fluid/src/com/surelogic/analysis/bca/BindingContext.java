@@ -159,9 +159,7 @@ public final class BindingContext extends
       final IRNode md, final IRNode[] locals, final IRNode[] ignore, 
       final boolean[] isExternal, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
-    super(
-        new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0],
-        locals);
+    super(new UnionLattice<IRNode>(), new ImmutableSet[0], locals);
     this.methodDecl = md;
     this.ignore = ignore;
     this.isExternal = isExternal;
@@ -183,7 +181,7 @@ public final class BindingContext extends
     if (ignorePrimitives) {
       LocalVariableDeclarations.separateDeclarations(binder, lvd.getLocal(), localsOfInterest, ignore);
     }
-    final IRNode[] localArray = new IRNode[localsOfInterest.size()];
+    final IRNode[] localArray = new IRNode[localsOfInterest.size() + 1]; // Add 1 to make space for the bogus element used to differentiate from TOP/BOTTOM
     final IRNode[] ignoreArray = new IRNode[ignore.size()];
     final boolean[] isExternal = new boolean[ignore.size()];
     for (int i = 0; i < lvd.getExternal().size(); i++) isExternal[i] = true;
@@ -452,7 +450,7 @@ public final class BindingContext extends
   
   @Override
   protected void indexToString(final StringBuilder sb, final IRNode key) {
-    sb.append(localToString(key));
+    sb.append(key == null ? "BOGUS" : localToString(key));
   }
   
   @Override

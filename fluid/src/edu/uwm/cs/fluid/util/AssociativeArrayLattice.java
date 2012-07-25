@@ -13,8 +13,8 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
   
   
   protected AssociativeArrayLattice(
-      final L base, final int n, final T[] p, final K[] keys) {
-    super(base, n, p);
+      final L base, final T[] p, final K[] keys) {
+    super(base, keys.length, p);
     indices = keys;
   }
   
@@ -23,6 +23,19 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
   // ======================================================================
   // == New methods for associative arrays
   // ======================================================================
+  
+  public final T[] replaceValue(final T[] array, final K key, final T newValue) {
+    final int index = indexOf(key);
+    if (index != -1) {
+      return replaceValue(array, index, newValue);
+    } else {
+      return array;
+    }
+  }
+  
+  public final K getKey(final int i) {
+    return indices[i];
+  }
   
   /**
    * Search associative values and return the array index of the given value.

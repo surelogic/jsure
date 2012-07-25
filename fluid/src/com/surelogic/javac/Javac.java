@@ -17,6 +17,7 @@ import com.surelogic.analysis.locks.LockAnalysis;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
 import com.surelogic.analysis.testing.CollectMethodCallsModule;
+import com.surelogic.analysis.testing.DefinitelyAssignedModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
 import com.surelogic.analysis.testing.NonNullModule;
 import com.surelogic.analysis.testing.RawTypeModule;
@@ -63,6 +64,7 @@ public class Javac extends IDE {
 
     init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
     init(RawTypeModule.class, "com.surelogic.jsure.client.eclipse.RawTypes", false, "RawType");
+    init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned");
 		
 		init(LocalVariablesModule.class,
 				"com.surelogic.jsure.client.eclipse.LV", false, "LV");

@@ -1,5 +1,7 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.List;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
@@ -13,20 +15,21 @@ import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 public class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Lattice, Assigned> {
   private final Assigned[] empty;
   
-  private AssignedVars(final int n, final IRNode[] modifiedKeys) {
-    super(Assigned.lattice, n, new Assigned[0], modifiedKeys);
+  private AssignedVars(final IRNode[] modifiedKeys) {
+    super(Assigned.lattice, new Assigned[0], modifiedKeys);
 
     // Create a unique reference to the empty value
+    final int n = modifiedKeys.length;
     empty = new Assigned[n];
     for (int i = 0; i < n-1; i++) empty[i] = Assigned.UNASSIGNED;
     empty[n-1] = Assigned.ASSIGNED;
   }
 
-  public static AssignedVars create(final int n, final IRNode[] keys) {
-    final IRNode[] modifiedKeys = new IRNode[n+1];
-    System.arraycopy(keys, 0, modifiedKeys, 0, n);
-    modifiedKeys[n] = null;
-    return new AssignedVars(n+1, modifiedKeys);
+  public static AssignedVars create(final List<IRNode> keys) {
+    final int originalSize = keys.size();
+    final IRNode[] modifiedKeys = keys.toArray(new IRNode[originalSize + 1]);
+    modifiedKeys[originalSize] = null;
+    return new AssignedVars(modifiedKeys);
   }
   
   @Override

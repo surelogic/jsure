@@ -82,7 +82,7 @@ final class IntrinsicLockLattice extends
    */
   private IntrinsicLockLattice(
       final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
-    super(FlatLattice.prototype, sb.length, ArrayUtil.empty, sb);
+    super(FlatLattice.prototype, ArrayUtil.empty, sb);
     locks = l;
     assumedLocks = assumed;
   }
@@ -158,12 +158,13 @@ final class IntrinsicLockLattice extends
    */
   private Object[] updateSyncBlock(
       final Object[] oldValue, final IRNode syncBlock, final LatticeValues status) {
-    final int idx = indexOf(syncBlock);
-    Object[] result = oldValue;
-    if (idx != -1) {
-      result = replaceValue(result, idx, status);
-    }
-    return result;
+    return replaceValue(oldValue, syncBlock, status);
+//    final int idx = indexOf(syncBlock);
+//    Object[] result = oldValue;
+//    if (idx != -1) {
+//      result = replaceValue(result, idx, status);
+//    }
+//    return result;
   }
 
   /**
