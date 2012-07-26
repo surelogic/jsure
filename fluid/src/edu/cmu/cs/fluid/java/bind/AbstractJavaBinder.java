@@ -1460,10 +1460,26 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode parent = JJNode.tree.getParent(node);
       IJavaType type = typeEnvironment.getMyThisType(parent);
       IJavaScope classScope = typeScope(type);
-      doAcceptForChildren(node, new IJavaScope.ShadowingScope(classScope,scope));
+      /**
+       * Within a class C, a declaration d of a member type named n shadows the declarations
+	   * of any other types named n that are in scope at the point where d occurs.
+       */
+      IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope,scope);
+      IJavaScope combined = new IJavaScope.SelectiveShadowingScope(scope, onlyColocatedTypes(parent), shadowing);
+      doAcceptForChildren(node, combined);
       return null;
     }
 
+    private Selector onlyColocatedTypes(final IRNode tdecl) {
+    	final IRNode cu = VisitUtil.findCompilationUnit(tdecl);
+    	return new IJavaScope.AbstractSelector("Types co-located with "+JavaNames.getFieldDecl(tdecl)) {
+			@Override
+			public boolean select(IRNode node) {
+				return cu != null && cu == VisitUtil.findCompilationUnit(node);
+			}    		
+    	};
+    }
+    
     @Override
     public Void visitClassDeclaration(IRNode node) {
       return visitTypeDeclaration(node,ClassDeclaration.getTypes(node));
@@ -1746,11 +1762,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (recType != null) toUse = typeScope(recType);
       }
       if (toUse != null) {        
-    	/*
-        if ("_".equals(name)) {
+    	  /*
+    	  if ("doPrivileged".equals(name)) {
         	String unparse = DebugUnparser.toString(node);
-        	if ("test._".equals(unparse)) {
-        		System.out.println("toArray: "+unparse);
+        	if (unparse.startsWith("AccessController.doPrivileged(new")) {
+        		String args_txt = DebugUnparser.toString(args);
+        		if (args_txt.contains("GetPropertyAction")) {
+        			System.out.println("toArray: "+unparse);
+        		}        		
         	}
         }
         */
@@ -1777,6 +1796,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               success = bindCall(node,targs,args,name, newType2);
             }
             if (!success && pathToTarget == null) {
+              System.out.println("Receiver: "+DebugUnparser.toString(receiver));
+              System.out.println("Args:     "+DebugUnparser.toString(args));
               IJavaType temp = getJavaType(receiver);
               typeScope(temp);
               bindCall(node,targs,args,name, toUse);
