@@ -46,4 +46,11 @@ public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements L
   public void add(final T arg0) {
     throw new UnsupportedOperationException( "add() not supported" );
   }  
+
+  private static final EmptyIterator<Object> prototype = new EmptyIterator<Object>();
+  
+  @SuppressWarnings("unchecked")
+  public static <T> T prototype() {
+	  return (T) prototype;
+  }
 }
