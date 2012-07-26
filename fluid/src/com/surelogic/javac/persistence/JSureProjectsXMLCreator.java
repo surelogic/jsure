@@ -35,6 +35,9 @@ public class JSureProjectsXMLCreator extends AbstractSeaXmlCreator implements Pe
 					Entities.addAttribute(LOCATION, p.getConfig().getLocation().getAbsolutePath(), b);
 				}
 				Entities.addAttribute(IS_EXPORTED, p.getConfig().isExported(), b);
+				if (p.getConfig().containsJavaLangObject()) {
+					Entities.addAttribute(HAS_JLO, p.getConfig().containsJavaLangObject(), b);
+				}
 				p.getConfig().outputOptionsToXML(this, indent, b);
 				Entities.closeStart(b, false);
 				flush();
