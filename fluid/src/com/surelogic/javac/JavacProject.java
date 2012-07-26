@@ -16,6 +16,7 @@ public class JavacProject implements IIRProject, IClassPathContext {
 	private Map<File,File> mappedJars = new HashMap<File, File>();
 	boolean active = true;
 	boolean first = true;
+	final boolean containsJavaLangObject;
 	
 	JavacProject(String name, SLProgressMonitor monitor) {
 		this(null, null, name, monitor);
@@ -25,6 +26,7 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		parent = p;
 		config = cfg;
 		this.name = name;
+		containsJavaLangObject = cfg == null ? false : cfg.containsJavaLangObject();
 		tEnv = new JavacTypeEnvironment(p, this, monitor);		
 		initTEnv();
 	}
@@ -45,6 +47,7 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		name   = oldProject.name;
 		config = oldProject.config.merge(deltaConfig);
 		tEnv   = oldProject.tEnv;
+		containsJavaLangObject = oldProject.containsJavaLangObject();
 		tEnv.setProject(this);
 	}
 
@@ -136,5 +139,9 @@ public class JavacProject implements IIRProject, IClassPathContext {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public boolean containsJavaLangObject() {
+		return containsJavaLangObject;
 	}
 }

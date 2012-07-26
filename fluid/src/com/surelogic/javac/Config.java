@@ -37,11 +37,13 @@ public class Config extends AbstractClassPathEntry {
 	private String run;
 	private final Map<URI,JavaSourceFile> pathMapping = new HashMap<URI, JavaSourceFile>();
 	private Config requiringConfig = null;
+	private final boolean containsJavaLangObject;
 	
-	public Config(String name, File loc, boolean isExported) {
+	public Config(String name, File loc, boolean isExported, boolean hasJLO) {
 		super(isExported);
 		this.name = name;
 		location = loc;
+		containsJavaLangObject = hasJLO;
 	}
 
 	public void outputToXML(JSureProjectsXMLCreator creator, int indent, StringBuilder b) {
@@ -311,8 +313,8 @@ public class Config extends AbstractClassPathEntry {
 		}
 	}
 
-	protected Config newConfig(String name, File location, boolean isExported) {
-		return new Config(name, location, isExported);
+	protected Config newConfig(String name, File location, boolean isExported, boolean hasJLO) {
+		return new Config(name, location, isExported, hasJLO);
 	}
 	
 	Config merge(Config delta) throws MergeException {
@@ -326,7 +328,7 @@ public class Config extends AbstractClassPathEntry {
 		} else if (!location.equals(delta.location)) {
 			throw new IllegalStateException("Locations don't match: "+location+" != "+delta.location);
 		}
-		final Config merged = newConfig(name, location, isExported());
+		final Config merged = newConfig(name, location, isExported(), containsJavaLangObject());
 		mergeClasspath(delta, merged);
 		mergeFiles(delta, merged);
 		merged.pkgs.addAll(this.pkgs);
@@ -468,5 +470,9 @@ public class Config extends AbstractClassPathEntry {
 
 	public Iterable<Map.Entry<String, Object>> getOptions() {
 		return options.entrySet();
+	}
+
+	public boolean containsJavaLangObject() {
+		return containsJavaLangObject;
 	}
 }
