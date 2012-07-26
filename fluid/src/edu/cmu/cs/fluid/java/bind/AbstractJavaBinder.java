@@ -1475,6 +1475,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	return new IJavaScope.AbstractSelector("Types co-located with "+JavaNames.getFieldDecl(tdecl)) {
 			@Override
 			public boolean select(IRNode node) {
+				if (!TypeDeclaration.prototype.includes(node)) {
+					return false;
+				}
 				return cu != null && cu == VisitUtil.findCompilationUnit(node);
 			}    		
     	};
