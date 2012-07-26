@@ -635,6 +635,43 @@ public interface IJavaScope {
     }  
   }
   
+  public static class SelectiveShadowingScope extends ShadowingScope {
+	final Selector selectorForS1;
+	  
+	public SelectiveShadowingScope(IJavaScope sc1, Selector s1, IJavaScope sc2) {
+		super(sc1, sc2);
+		selectorForS1 = s1;
+	}
+	@Override
+	public IBinding lookup(String name, IRNode useSite, Selector selector) {
+		final Selector combined = Util.combineSelectors(selectorForS1, selector);
+		IBinding result = scope1.lookup(name,useSite,combined);
+		if (result == null)
+			return scope2.lookup(name,useSite,selector);
+		return result;
+	}
+	@Override
+	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+		final Selector combined = Util.combineSelectors(selectorForS1, selector);
+		Iteratable<IBinding> result = scope1.lookupAll(name,useSite,combined);
+		/*
+		if (result == null) {
+			scope1.lookupAll(name,useSite,combined);
+		}
+		*/
+		if (!result.hasNext())
+			return scope2.lookupAll(name,useSite,selector);
+		return result;
+	}
+	@Override
+	public void printTrace(PrintStream out, int indent) {
+		DebugUtil.println(out, indent, "[SelectiveShadowingScope"+hashCode()+"-1:"+selectorForS1.label()+"]");
+		scope1.printTrace(out, indent+2);
+		DebugUtil.println(out, indent, "[SelectiveShadowingScope"+hashCode()+"-2]");
+		scope2.printTrace(out, indent+2);
+	}	
+  }
+
   /**
    * A scope wrapper in which all bindings are subject to a substitution.
    * @author boyland
