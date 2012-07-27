@@ -478,13 +478,23 @@ extends AbstractHierarchyScrubber<A> {
 		
 	final Comparator<Map.Entry<IRNode,Collection<A>>> entryComparator = new Comparator<Map.Entry<IRNode,Collection<A>>>() {
 		public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {
-			ISrcRef r1 = JavaNode.getSrcRef(o1.getKey());
-			ISrcRef r2 = JavaNode.getSrcRef(o2.getKey());
+			ISrcRef r1 = getSrcRef(o1.getKey());
+			ISrcRef r2 = getSrcRef(o2.getKey());
 			if (r1 == null || r2 == null) {
 				//throw new IllegalStateException(DebugUnparser.toString(o1));
 				return min(o1.getValue()) - min(o2.getValue());
 			}
 			return r1.getOffset() - r2.getOffset();
+		}
+		private ISrcRef getSrcRef(IRNode n) {
+			while (n != null) {
+				ISrcRef ref = JavaNode.getSrcRef(n);
+				if (ref != null) {
+					return ref;
+				}
+				n = JavaPromise.getParentOrPromisedFor(n);
+			}
+			return null;
 		}
 		private int min(Collection<A> asts) {
 			int min = Integer.MAX_VALUE;

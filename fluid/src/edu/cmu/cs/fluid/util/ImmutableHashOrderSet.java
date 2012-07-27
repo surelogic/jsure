@@ -827,13 +827,25 @@ class SortedArray {
     } catch(ArrayStoreException e) {
       SLLogger.getLogger().log(Level.SEVERE,
 					"Trying to copy a " + a + " to a " + array, e);
-      return a.clone();
+      return clone(a);
     }
     final Logger log = SLLogger.getLogger();
     if (log.isLoggable(Level.FINE)) {
       log.log(Level.FINE, "Need a array of length " + a.length);
 	}
-    return a.clone();
+    // Returns an array of whatever type is passed in
+    //return a.clone();
+    return clone(a);
+  }
+  
+  /**
+   * Created to make sure that the returned array can truly
+   * take any type
+   */
+  private static <V> V[] clone(V[] a) {
+	  V[] clone = (V[]) new Object[a.length];
+      System.arraycopy(a, 0, clone, 0, a.length);
+	  return clone;
   }
   
   // Only used by sort()

@@ -382,6 +382,9 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // No outer methods and constructors
     
     // found nothing:
+    if (rv == null) {
+    	return EmptyIterator.prototype();
+    }
     return rv;
   }  
   

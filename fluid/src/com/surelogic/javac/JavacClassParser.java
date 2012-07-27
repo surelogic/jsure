@@ -322,11 +322,8 @@ public class JavacClassParser {
 		}
 		for(JavacProject jp : projects) {			
 			final Collection<CodeInfo> info = infos.get(jp.getName());
-			if (info == null) {
-				continue;
-			}
 		    final BatchParser parser = parsers.get(jp.getName());
-		    final List<CodeInfo> temp = new ArrayList<CodeInfo>(info);
+		    final List<CodeInfo> temp = new ArrayList<CodeInfo>(info == null ? Collections.<CodeInfo>emptyList() : info);
 		    
 			handleReferences(parser, temp);
 			results.addAll(temp);

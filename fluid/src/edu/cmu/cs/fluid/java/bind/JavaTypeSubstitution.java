@@ -174,7 +174,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     	typeFormals = ClassDeclaration.getTypes(enclosingType);
     }   
     else { // Cannot be a generic type
-    	System.out.println("Not a generic type: "+JavaNames.getFullName(enclosingType));
+    	//System.out.println("Not a generic type: "+JavaNames.getFullName(enclosingType));
     	return null;
     }
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {
