@@ -1465,7 +1465,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	   * of any other types named n that are in scope at the point where d occurs.
        */
       IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope,scope);
-      IJavaScope combined = new IJavaScope.SelectiveShadowingScope(scope, onlyColocatedTypes(parent), shadowing);
+      IJavaScope combined = new IJavaScope.SelectiveShadowingScope(shadowing, onlyColocatedTypes(parent), shadowing);
       doAcceptForChildren(node, combined);
       return null;
     }
