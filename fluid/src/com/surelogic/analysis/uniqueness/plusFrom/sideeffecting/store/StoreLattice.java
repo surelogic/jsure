@@ -649,7 +649,6 @@ extends TripleLattice<Element<Integer>,
   		        uPromise == null ? State.BORROWED :
   		          (uPromise.allowRead() ? State.UNIQUEWRITE : State.UNIQUE),
 		          fieldDecl);
-  			  return errorStore("loaded compromised field");
   		  }
   
   		  // Remove affected nodes:
