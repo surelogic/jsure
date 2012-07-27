@@ -55,12 +55,17 @@ public final class NullSideEffects implements ISideEffects {
     // Do nothing
   }
   
+  public void recordLoadOfCompromisedField(
+      final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
+    // Do nothing
+  }
+  
   public void recordIndirectLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     // Do nothing
   }
   
-
+  
   
   // ==================================================================
   // == Alias burying

@@ -32,10 +32,13 @@ public interface ISideEffects {
   public void recordUndefiningOfUnique(
       IRNode srcOp, Integer topOfStack, State localStatus, Store s);
   
+  public void recordLoadOfCompromisedField(
+      IRNode srcOp, State fieldState, IRNode fieldDecl);
+  
   public void recordIndirectLoadOfCompromisedField(
-      IRNode srcOp, final State fieldState, IRNode fieldDecl);
+      IRNode srcOp, State fieldState, IRNode fieldDecl);
   
-  
+
   
   // ==================================================================
   // == Alias burying

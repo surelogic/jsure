@@ -1473,7 +1473,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     private Selector onlyColocatedTypes(final IRNode tdecl) {
     	final IRNode cu = VisitUtil.findCompilationUnit(tdecl);
     	return new IJavaScope.AbstractSelector("Types co-located with "+JavaNames.getFieldDecl(tdecl)) {
-			@Override
+//			@Override
 			public boolean select(IRNode node) {
 				if (!TypeDeclaration.prototype.includes(node)) {
 					return false;

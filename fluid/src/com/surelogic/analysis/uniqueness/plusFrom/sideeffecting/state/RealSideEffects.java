@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -75,6 +76,18 @@ public final class RealSideEffects implements ISideEffects {
    */
   private final Map<IRNode, Set<IRNode>> undefinedAt =
     new HashMap<IRNode, Set<IRNode>>();
+  
+  /**
+   * Records where compromised fields are loaded.  After analysis is over,
+   * we cross reference this set with {@link #compromisedAt} and {@link #undefinedAt} to determine
+   * where the loaded value may have been compromised.  Map from 
+   * field declaration IRNodes to a set of IRNodes indicating locations where
+   * the field is read and found to be compromised.
+   */
+  private final Map<IRNode, Set<CompromisedField>> loadedCompromisedFields =
+    new HashMap<IRNode, Set<CompromisedField>>();
+  private final Map<IRNode, Set<CompromisedField>> loadedCompromisedFieldsAbrupt =
+    new HashMap<IRNode, Set<CompromisedField>>();
   
   /**
    * Records where compromised fields are loaded as the result of executing a method.  After analysis is over,
@@ -249,6 +262,16 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  public void recordLoadOfCompromisedField(
+      final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
+    if (!suppressDrops) {
+      // Record look up of compromised field
+      addToMappedSet(
+          abruptDrops ? loadedCompromisedFieldsAbrupt : loadedCompromisedFields,
+              fieldDecl, new CompromisedField(fieldState, srcOp));
+    }        
+  }
+  
   public void recordIndirectLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     if (!suppressDrops) {
@@ -376,11 +399,15 @@ public final class RealSideEffects implements ISideEffects {
       final IRNode fieldDecl = load.getKey();
       final Set<CompromisingSite> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
-      final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getUnique(load.getKey()).getDrop();
+      
+      final PromiseDrop<? extends IAASTRootNode> fieldPromise;
+      final IUniquePromise unique = UniquenessUtils.getUnique(fieldDecl);
+      if (unique != null) fieldPromise = unique.getDrop();
+      else fieldPromise = UniquenessUtils.getFieldBorrowed(fieldDecl);
       
       for (final CompromisedField cf : load.getValue()) {
         final ResultDropBuilder r = createResultDrop(
-            isAbrupt, uniquePromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
+            isAbrupt, fieldPromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
         if (compromises != null) {
           for (final CompromisingSite compromisedAt : compromises) {
             r.addSupportingInformation(
@@ -399,6 +426,8 @@ public final class RealSideEffects implements ISideEffects {
 
   public void makeResultDrops() {
     // Link loaded compromised fields with comprising locations
+    crossReferenceKilledFields(Messages.COMPROMISED_READ, false, loadedCompromisedFields);
+    crossReferenceKilledFields(Messages.COMPROMISED_READ, true, loadedCompromisedFieldsAbrupt);
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, false, indirectlyLoadedCompromisedFields);
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, true, indirectlyLoadedCompromisedFieldsAbrupt);
 

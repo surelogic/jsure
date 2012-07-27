@@ -645,6 +645,10 @@ extends TripleLattice<Element<Integer>,
   		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
   		  // Otherwise, we cannot: *shared* (say) becomes undefined.
   		  if (nodeStatus(affected) != State.UNIQUE) {
+  		    sideEffects.recordLoadOfCompromisedField(srcOp,
+  		        uPromise == null ? State.BORROWED :
+  		          (uPromise.allowRead() ? State.UNIQUEWRITE : State.UNIQUE),
+		          fieldDecl);
   			  return errorStore("loaded compromised field");
   		  }
   
@@ -851,12 +855,10 @@ extends TripleLattice<Element<Integer>,
           if (UniquenessUtils.isUniqueWrite(t.second())){
         	  if (!State.lattice.lessEq(newStatus,State.UNIQUEWRITE)) {
               sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUEWRITE, t.second());
-//        		  return errorStore("loaded compromised unique(allowRead) field");
         	  }
           } else {
         	  if (newStatus != State.UNIQUE) { 
         	    sideEffects.recordIndirectLoadOfCompromisedField(srcOp, State.UNIQUE, t.second());
-//        		  return errorStore("loaded compromised field");
         	  }
           }
           if (found.add(newObject)) done = false;
