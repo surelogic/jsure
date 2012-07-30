@@ -19,28 +19,27 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult, Persist
 		location = loc;
 	}
 	
-	public String outputToXML(JSureResultsXMLCreator creator, int indent, StringBuilder sb) {
-		Entities.start(RESULT, sb, indent);
-		attributesToXML(indent+1, sb);
-		Entities.closeStart(sb, false);
-		about.toXML(indent+1, sb, ABOUT_REF);
+	public void outputToXML(JSureResultsXMLCreator creator, XMLCreator.Builder outer) {
+		XMLCreator.Builder b = outer.nest(RESULT);
+		attributesToXML(b);
+		about.toXML(b.nest(ABOUT_REF));
 
 		ISrcRef s = JavaNode.getSrcRef(location);
 		if (location == null) {
 			throw new IllegalArgumentException("No src ref for "+DebugUnparser.toString(location));
 		}		
-		Entities.indent(sb, indent+1);
-		creator.addSrcRef(location, s, "", null);
+		//Entities.indent(sb, indent+1);
+		creator.addSrcRef(b, location, s, 0, null);
 		
-		subEntitiesToXML(indent+1, sb);
-		Entities.end(RESULT, sb, indent);
-		return sb.toString();
+		subEntitiesToXML(b);
+		b.end();
+		//return sb.toString();
 	}
 	
-	protected void attributesToXML(int indent, StringBuilder sb) {
+	protected void attributesToXML(XMLCreator.Builder sb) {
 		// Nothing right now
 	}
-	protected void subEntitiesToXML(int indent, StringBuilder sb) {
+	protected void subEntitiesToXML(XMLCreator.Builder sb) {
 		// Nothing right now
 	}
 }

@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.drops.*;
@@ -41,7 +42,7 @@ implements MaybeTopLevel {
   }
   
   @Override
-  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+  public void snapshotAttrs(XMLCreator.Builder s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute(REQUEST_TOP_LEVEL, true);
   }

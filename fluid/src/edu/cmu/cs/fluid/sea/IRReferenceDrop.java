@@ -8,6 +8,8 @@ import java.util.logging.Level;
 
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.common.xml.XMLCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
@@ -325,7 +327,7 @@ public abstract class IRReferenceDrop extends Drop {
 	}
 
 	@Override
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		super.snapshotAttrs(s);
 		if (getCategory() != null) {
 			s.addAttribute(CATEGORY_ATTR, getCategory().getKey());
@@ -333,10 +335,10 @@ public abstract class IRReferenceDrop extends Drop {
 	}
 
 	@Override
-	public void snapshotRefs(SeaSnapshot s) {
-		super.snapshotRefs(s);
+	public void snapshotRefs(SeaSnapshot s, Builder db) {
+		super.snapshotRefs(s, db);
 		try {
-			s.addSrcRef(getNode(), getSrcRef());
+			s.addSrcRef(db, getNode(), getSrcRef());
 		} catch (SlotUndefinedException e) {
 			SLLogger.getLogger().log(Level.WARNING,
 					"Undefined info for " + getMessage() + " on " + getNode(),
@@ -344,10 +346,10 @@ public abstract class IRReferenceDrop extends Drop {
 			throw e;
 		}
 		for (ISupportingInformation si : getSupportingInformation()) {
-			s.addSupportingInfo(si);
+			s.addSupportingInfo(db, si);
 		}
 		for (ProposedPromiseDrop pd : getProposals()) {
-			s.refDrop(PROPOSED_PROMISE, pd);
+			s.refDrop(db, PROPOSED_PROMISE, pd);
 		}
 	}
 

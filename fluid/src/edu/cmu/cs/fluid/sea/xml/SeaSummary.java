@@ -1,8 +1,15 @@
 package edu.cmu.cs.fluid.sea.xml;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.LINE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
 import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.*;
 
 import java.io.*;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -16,7 +23,9 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
+import com.surelogic.common.jsure.xml.JSureXMLReader;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -105,11 +114,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	private void summarize(String project, Collection<? extends IDropInfo> drops) {
 		Date now = new Date(System.currentTimeMillis());
-		Entities.start(ROOT, b);
-		addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
-		addAttribute(PROJECT_ATTR, project);
-		b.append(">\n");
-		flushBuffer(pw);
+		b.start(ROOT);
+		b.addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
+		b.addAttribute(PROJECT_ATTR, project);
 		
 		outputDropCounts(drops);
 		
@@ -119,8 +126,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				summarizeDrop(id);
 			}
 		}
-		pw.println("</"+ROOT+">\n");
-		pw.close();
+		b.end();
+		close();
 	}
 		
 	private void outputDropCounts(Collection<? extends IDropInfo> drops) {
@@ -132,10 +139,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 		}		
 		for(Map.Entry<String, Integer> e : counts.entrySet()) {
-			Entities.start(COUNT, b);
-			addAttribute(e.getKey(), e.getValue().toString());
-			b.append("/>");
-			flushBuffer(pw);
+			Builder cb = b.nest(COUNT);
+			cb.addAttribute(e.getKey(), e.getValue().toString());
+			cb.end();
 		}
 	}
 
@@ -186,18 +192,27 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return null;
 	}
 
-	private void summarizeDrop(IDropInfo id) {					
-		reset();
-		
+	private Builder summarizeDrop(IDropInfo id) {					
 		final String name = id.getEntityName();	
-		Entities.start(name, b);
-
-		addAttributes(id);
-		b.append("/>\n");
-		//b.append("</"+name+">\n");
-		flushBuffer(pw);
+		final Builder b = this.b.nest(name);
+		addAttributes(b, id);
+		for(ISupportingInformation si : id.getSupportingInformation()) {
+			outputSupportingInfo(b, si);
+		}
+		b.end();
+		return b;
 	}
 
+	// Note: not using addAttribute(), so we can't convert a Snapshot into a Summary properly?
+	private void outputSupportingInfo(Builder outer, ISupportingInformation si) {
+		final Builder b = outer.nest(JSureXMLReader.SUPPORTING_INFO);
+		b.addAttribute(MESSAGE_ATTR, si.getMessage());
+		if (si.getSrcRef() != null) {
+			addLocation(b, si.getSrcRef());
+		}
+		b.end();
+	}
+	
 	private static String computeSimpleType(IDropInfo id) {
 		String type = id.getType();
 		int lastDot = type.lastIndexOf('.');
@@ -207,7 +222,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return type;
 	}
 	
-	private void addAttributes(IDropInfo id) {
+	private void addAttributes(Builder b, IDropInfo id) {
 		String type = computeSimpleType(id);
 		if (type.endsWith("Info")) {
 			System.out.println("Bad drop type: "+type);
@@ -217,14 +232,14 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			System.out.println("Found "+type);
 		}
 		*/
-		addAttribute(TYPE_ATTR, type);
+		b.addAttribute(TYPE_ATTR, type);
 		//addAttribute(MESSAGE_ATTR, id.getMessage());
 		
 		ISrcRef ref = id.getSrcRef();
-		addLocation(ref);
+		addLocation(b, ref);
 		//addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-		addAttribute(HASH_ATTR, id.getTreeHash());
-		addAttribute(CONTEXT_ATTR, id.getContextHash());
+		b.addAttribute(HASH_ATTR, id.getTreeHash());
+		b.addAttribute(CONTEXT_ATTR, id.getContextHash());
 
 		//addAttribute("unparse", unparser.unparseString(id.getNode()));
 		// Omitting supporting info
@@ -233,7 +248,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			computeHash(id.getNode(), true);
 		}
         */		
-		id.snapshotAttrs(this);
+		id.snapshotAttrs(b);
 	}
 	
 	public static long computeHash(IRNode node) {
@@ -326,14 +341,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		for(IDropInfo d : drops) {
 			IDropInfo id = checkIfReady(d);			
 			if (id != null && f.showResource(id)) {
-				s.reset();
-				s.summarizeDrop(id);
+				Builder b = s.summarizeDrop(id);
 				/*
 				if (id.getClass().equals(PromisePromiseDrop.class) && id.getMessage().contains("InRegion(TotalRegion)")) {
 					System.out.println("Found scoped promise: "+id.getMessage());
 				}
 */
-				Entity e = new Entity(id.getEntityName(), s.attributes);
+				Entity e = new Entity(id.getEntityName(), b.getAttributes());
 				newDrops.add(e);
 			} else {
 				//System.out.println("Ignoring "+d.getMessage());

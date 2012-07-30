@@ -4,6 +4,7 @@ package com.surelogic.persistence;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -22,12 +23,12 @@ public class SimpleAnalysisResult extends AbstractAnalysisResult {
 	}
 
 	@Override
-	protected void attributesToXML(int indent, StringBuilder b) {
-		Entities.newLine(b, indent);
-		Entities.addAttribute(PersistenceConstants.MESSAGE, I18N.res(messageCode, (Object[]) args), b);
-		Entities.addAttribute(PersistenceConstants.MESSAGE_CODE, messageCode, b);
+	protected void attributesToXML(XMLCreator.Builder b) {
+		//Entities.newLine(b, indent);
+		b.addAttribute(PersistenceConstants.MESSAGE, I18N.res(messageCode, (Object[]) args));
+		b.addAttribute(PersistenceConstants.MESSAGE_CODE, messageCode);
 		if (args.length == 0) {
-			Entities.addAttribute(PersistenceConstants.MESSAGE_ARGS, "", b);
+			b.addAttribute(PersistenceConstants.MESSAGE_ARGS, "");
 		} else {
 			StringBuilder argsB = new StringBuilder();
 			boolean first = true;
@@ -39,7 +40,7 @@ public class SimpleAnalysisResult extends AbstractAnalysisResult {
 				}
 				argsB.append(arg);
 			}
-			Entities.addAttribute(PersistenceConstants.MESSAGE_ARGS, argsB.toString(), b);
+			b.addAttribute(PersistenceConstants.MESSAGE_ARGS, argsB.toString());
 		}
 	}
 }

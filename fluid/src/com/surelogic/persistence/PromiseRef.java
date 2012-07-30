@@ -4,6 +4,7 @@ package com.surelogic.persistence;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -30,16 +31,11 @@ public class PromiseRef {
 		this(d.getPromiseName(), d.getAST().toString(), d.getNode(), false);
 	}
 
-	public void toXML(int indent, StringBuilder b, String name) {
-		Entities.start(name, b, indent);
-		Entities.newLine(b, indent);
-		Entities.addAttribute(PersistenceConstants.PROMISE_LOCATION, location, b);
-		Entities.newLine(b, indent);
-		Entities.addAttribute(PersistenceConstants.PROMISE, promise, b);
-		Entities.newLine(b, indent);
-		Entities.addAttribute(PersistenceConstants.PROMISE_CONTENTS, contents, b);
-		Entities.newLine(b, indent);
-		Entities.addAttribute(PersistenceConstants.USE_IMPLICATION, useImplication, b);
-		Entities.closeStart(b, true);
+	public void toXML(XMLCreator.Builder b) {
+		b.addAttribute(PersistenceConstants.PROMISE_LOCATION, location);
+		b.addAttribute(PersistenceConstants.PROMISE, promise);
+		b.addAttribute(PersistenceConstants.PROMISE_CONTENTS, contents);
+		b.addAttribute(PersistenceConstants.USE_IMPLICATION, useImplication);
+		b.end();
 	}
 }

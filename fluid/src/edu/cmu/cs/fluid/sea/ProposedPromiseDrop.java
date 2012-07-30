@@ -11,6 +11,8 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -378,7 +380,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements
 	}
 
 	@Override
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		super.snapshotAttrs(s);
 		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
 		s.addAttribute(ANNOTATION_TYPE, getAnnotation());
@@ -391,13 +393,13 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements
 	}
 
 	@Override
-	public void snapshotRefs(SeaSnapshot s) {
-		super.snapshotRefs(s);
-		s.addSrcRef(getAssumptionNode(), getAssumptionRef(), FROM_REF);
-		s.addJavaDeclInfo(FROM_INFO, getFromInfo().snapshot());
-		s.addJavaDeclInfo(TARGET_INFO, getTargetInfo().snapshot());
-		s.addProperties(ANNO_ATTRS, f_attrs);
-		s.addProperties(REPLACED_ATTRS, f_replacedAttrs);
+	public void snapshotRefs(SeaSnapshot s, Builder db) {
+		super.snapshotRefs(s, db);
+		s.addSrcRef(db, getAssumptionNode(), getAssumptionRef(), FROM_REF);
+		s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
+		s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
+		s.addProperties(db, ANNO_ATTRS, f_attrs);
+		s.addProperties(db, REPLACED_ATTRS, f_replacedAttrs);
 	}
 
 	public String getTargetProjectName() {

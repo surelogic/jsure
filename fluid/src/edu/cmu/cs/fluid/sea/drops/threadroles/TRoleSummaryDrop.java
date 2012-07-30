@@ -7,6 +7,7 @@
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRoleMessages;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
@@ -34,7 +35,7 @@ implements PleaseFolderize, PleaseCount, IThreadRoleDrop {
    }
    
    @Override
-   public void snapshotAttrs(AbstractSeaXmlCreator s) {
+   public void snapshotAttrs(XMLCreator.Builder s) {
  	  super.snapshotAttrs(s);
  	  s.addAttribute(COUNT, (long) count());
    } 	  

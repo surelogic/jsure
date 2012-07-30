@@ -7,6 +7,7 @@ import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.*;
 
 /**
@@ -33,12 +34,12 @@ public class JarEntry extends AbstractClassPathEntry {
 		return path;
 	}
 	
-	public void outputToXML(JSureProjectsXMLCreator creator, int indent, StringBuilder b) {
-		Entities.start(PersistenceConstants.JAR, b, indent);
-		creator.addAttribute(PersistenceConstants.PATH, path.getAbsolutePath());
-		creator.addAttribute(PersistenceConstants.ORIG_PATH, origPath.getAbsolutePath());
-		creator.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());
-		Entities.closeStart(b, true);
+	public void outputToXML(XMLCreator.Builder proj) {
+		XMLCreator.Builder b = proj.nest(PersistenceConstants.JAR);
+		b.addAttribute(PersistenceConstants.PATH, path.getAbsolutePath());
+		b.addAttribute(PersistenceConstants.ORIG_PATH, origPath.getAbsolutePath());
+		b.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());
+		b.end();
 	}
 	
 	@Override

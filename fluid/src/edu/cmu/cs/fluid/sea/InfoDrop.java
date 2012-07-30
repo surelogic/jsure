@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.common.xml.XMLCreator;
+
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -13,7 +15,7 @@ public class InfoDrop extends IRReferenceDrop implements IResultDrop {
 	}
 	
 	@Override
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		super.snapshotAttrs(s);
 		if (type != null) {
 			s.addAttribute("result-type", type);

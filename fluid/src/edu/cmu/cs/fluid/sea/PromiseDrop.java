@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -552,7 +554,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	}
 
 	@Override
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		super.snapshotAttrs(s);
 		s.addAttribute(ASSUMED, isAssumed());
 		s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());
@@ -562,11 +564,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	}
 	
 	@Override
-	public void snapshotRefs(SeaSnapshot s) {
-		super.snapshotRefs(s);
+	public void snapshotRefs(SeaSnapshot s, Builder db) {
+		super.snapshotRefs(s, db);
 		if (useCheckedByResults) {
 			for (Drop c : getCheckedBy()) {
-				s.refDrop(CHECKED_BY_RESULTS, c);
+				s.refDrop(db, CHECKED_BY_RESULTS, c);
 			}
 		}
 	}

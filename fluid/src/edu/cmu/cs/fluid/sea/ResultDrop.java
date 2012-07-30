@@ -2,6 +2,9 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.*;
 
+import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.common.xml.XMLCreator.Builder;
+
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -397,7 +400,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	}
 
 	@Override
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		super.snapshotAttrs(s);
 		s.addAttribute(VOUCHED, isVouched());
 		s.addAttribute(CONSISTENT, isConsistent());
@@ -412,18 +415,18 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	}
 
 	@Override
-	public void snapshotRefs(SeaSnapshot s) {
-		super.snapshotRefs(s);
+	public void snapshotRefs(SeaSnapshot s, Builder db) {
+		super.snapshotRefs(s, db);
 		for (Drop c : getChecks()) {
-			s.refDrop(CHECKED_PROMISE, c);
+			s.refDrop(db, CHECKED_PROMISE, c);
 		}
 		for (Drop t : getTrusts()) {
-			s.refDrop(TRUSTED_PROMISE, t);
+			s.refDrop(db, TRUSTED_PROMISE, t);
 		}
 		if (hasOrLogic()) {
 			for (String label : get_or_TrustLabelSet()) {
 				for (Drop t : get_or_Trusts(label)) {
-					s.refDrop(OR_TRUSTED_PROMISE, t, OR_LABEL, label);
+					s.refDrop(db, OR_TRUSTED_PROMISE, t, OR_LABEL, label);
 				}
 			}
 		}

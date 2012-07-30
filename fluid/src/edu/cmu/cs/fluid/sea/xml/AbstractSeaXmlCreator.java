@@ -45,17 +45,19 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		super(location != null ? new FileOutputStream(location) : null);
 	}
 	
-	public void addSrcRef(IRNode context, ISrcRef s, String indent, String flavor) {
+	public void addSrcRef(Builder outer, IRNode context, ISrcRef s, int indent, String flavor) {
 		if (s == null) {
 			return;
 		}
-		attributes.clear();
-		
+		Builder b = outer.nest(SOURCE_REF);
+		/*
 		b.append(indent);
 		Entities.start(SOURCE_REF, b);
-		addLocation(s);		
+		*/
+		//b.start(SOURCE_REF);
+		addLocation(b, s);		
 		if (flavor != null) {
-			addAttribute(FLAVOR_ATTR, flavor);
+			b.addAttribute(FLAVOR_ATTR, flavor);
 		}
 		
 		try {
@@ -80,40 +82,40 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 					}
 				}
 				if (onDecl) {
-					addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(decl));
+					b.addAttribute(JAVA_ID_ATTR, JavaIdentifier.encodeDecl(decl));
 				} else {
-					addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
+					b.addAttribute(WITHIN_DECL_ATTR, JavaIdentifier.encodeDecl(decl));
 				}
 				//addAttribute("unparse", DebugUnparser.unparseCode(context));
 			}
-			addAttribute(HASH_ATTR, getHash(context));			
-			addAttribute(CUNIT_ATTR, s.getCUName());
-			addAttribute(PKG_ATTR, s.getPackage());
-			addAttribute(PROJECT_ATTR, s.getProject());
+			b.addAttribute(HASH_ATTR, getHash(context));			
+			b.addAttribute(CUNIT_ATTR, s.getCUName());
+			b.addAttribute(PKG_ATTR, s.getPackage());
+			b.addAttribute(PROJECT_ATTR, s.getProject());
 		} finally {
-			b.append("/>\n");
+			b.end();
 		}
 	}
 	
-	protected void addLocation(ISrcRef ref) {
+	protected void addLocation(Builder b, ISrcRef ref) {
 		if (ref.getOffset() > 0) {
-			addAttribute(OFFSET_ATTR, (long) ref.getOffset());
+			b.addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		}
 		if (ref.getLength() > 0) {
-			addAttribute(LENGTH_ATTR, (long) ref.getLength());
+			b.addAttribute(LENGTH_ATTR, (long) ref.getLength());
 		}			
-		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
+		b.addAttribute(LINE_ATTR, (long) ref.getLineNumber());
 		String path = ref.getRelativePath();
 		if (path != null) {
-			addAttribute(PATH_ATTR, path);
+			b.addAttribute(PATH_ATTR, path);
 		}
 		URI loc = ref.getEnclosingURI();
 		if (loc != null) {
-			addAttribute(URI_ATTR, loc.toString());
+			b.addAttribute(URI_ATTR, loc.toString());
 		}
 		Object o = ref.getEnclosingFile();
 		if (o != null) {
-			addAttribute(FILE_ATTR, o.toString());		
+			b.addAttribute(FILE_ATTR, o.toString());		
 		}
 	}
 }

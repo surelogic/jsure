@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops;
 
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -36,7 +37,7 @@ public class ProjectDrop extends Drop {
   }	
   
   @Override
-  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+  public void snapshotAttrs(XMLCreator.Builder s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("name", projectName);
   }

@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
@@ -178,7 +179,7 @@ public abstract class CUDrop extends Drop {
   }	
   
   @Override
-  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+  public void snapshotAttrs(XMLCreator.Builder s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("filename", javaOSFileName);
   }

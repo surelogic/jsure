@@ -5,6 +5,7 @@ import java.net.URI;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -54,12 +55,12 @@ public class JavaSourceFile {
 		return new Pair<URI, String>(file.toURI(), relativePath);
 	}
 
-	public void outputToXML(JSureProjectsXMLCreator creator, int indent, StringBuilder b) {
-		Entities.start(PersistenceConstants.FILE, b, indent);		
-		creator.addAttribute(PersistenceConstants.PATH, relativePath);
-		creator.addAttribute(PersistenceConstants.QNAME, qname);
-		creator.addAttribute(PersistenceConstants.LOCATION, file.getAbsolutePath());
-		creator.addAttribute(PersistenceConstants.AS_BINARY, asBinary);
-		Entities.closeStart(b, true);
+	public void outputToXML(XMLCreator.Builder proj) {
+		XMLCreator.Builder b = proj.nest(PersistenceConstants.FILE);		
+		b.addAttribute(PersistenceConstants.PATH, relativePath);
+		b.addAttribute(PersistenceConstants.QNAME, qname);
+		b.addAttribute(PersistenceConstants.LOCATION, file.getAbsolutePath());
+		b.addAttribute(PersistenceConstants.AS_BINARY, asBinary);
+		b.end();
 	}
 }

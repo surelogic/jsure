@@ -9,6 +9,8 @@ import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.common.xml.XMLCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -555,21 +557,21 @@ public abstract class Drop implements IDropInfo {
 		}
 	}
 	
-	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	public void snapshotAttrs(XMLCreator.Builder s) {
 		s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
 		if (resultMessage != null) {
 			s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(resultMessage.getResultStringCanonical()));
 		}
 	}
 
-	public void snapshotRefs(SeaSnapshot s) {
+	public void snapshotRefs(SeaSnapshot s, Builder db) {
 		/*
 		for (Drop dependent : getDependents()) {
 			s.refDrop(DEPENDENT, dependent);
 		}
 		*/
 		for (Drop deponent : getDeponents()) {
-			s.refDrop(DEPONENT, deponent);
+			s.refDrop(db, DEPONENT, deponent);
 		}
 	}
 	

@@ -15,6 +15,7 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.common.jsure.xml.JSureXMLReader;
 import com.surelogic.common.logging.SLLogger;
 
@@ -57,19 +58,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	
 	public void snapshot(String project, final Sea sea) throws IOException {
 		try {
-			reset();
-			Entities.start(ROOT, b);
-			addAttribute(UID_ATTR, UUID.randomUUID().toString());
-			addAttribute(PROJECT_ATTR, project);
-			b.append(">\n");
-			flushBuffer(pw);
+			b.start(ROOT);
+			b.addAttribute(UID_ATTR, UUID.randomUUID().toString());
+			b.addAttribute(PROJECT_ATTR, project);
 
 			for(Drop d : sea.getDrops()) {
 				snapshotDrop(d);
 			}
 		} finally {
-			pw.println("</"+ROOT+">\n");
-			pw.close();
+			b.end();
+			close();
 			//pw = null;
 			//JSureXMLReader.readSnapshot(location, null);
 		}
@@ -145,88 +143,75 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		if (preprocessRefs) {
 			d.preprocessRefs(this);
 		}
-		reset();
-		
+
 		final String name = d.getEntityName();	
 		final String type = d.getClass().getSimpleName();
 		ensureClassMapping(d.getClass());
-		Entities.start(name, b);
-		Entities.addAttribute(TYPE_ATTR, type, b);
+		final Builder db = b.nest(name);
+		db.addAttribute(TYPE_ATTR, type);
 		if (useFullType) {
-			Entities.addAttribute(FULL_TYPE_ATTR, d.getClass().getName(), b);
+			db.addAttribute(FULL_TYPE_ATTR, d.getClass().getName());
 		}
-		Entities.addAttribute(ID_ATTR, id, b);
+		db.addAttribute(ID_ATTR, id);
 		if (d instanceof IRReferenceDrop) {
-			addAttribute(HASH_ATTR, d.getTreeHash());
-			addAttribute(CONTEXT_ATTR, d.getContextHash());
+			db.addAttribute(HASH_ATTR, d.getTreeHash());
+			db.addAttribute(CONTEXT_ATTR, d.getContextHash());
 		}
-		d.snapshotAttrs(this);
-		b.append(">\n");
-		d.snapshotRefs(this);
-		b.append("</"+name+">\n");		
-		flushBuffer(pw);	
+		d.snapshotAttrs(db);
+		d.snapshotRefs(this, db);
+		db.end();
     }
 	
-	public void refDrop(String name, Drop d) {
-		refDrop(name, d, null, null);
+	public void refDrop(Builder db, String name, Drop d) {
+		refDrop(db, name, d, null, null);
 	}
 	
-	public void refDrop(String name, Drop d, String attr, String value) {
-		attributes.clear();
-		b.append("  ");
-		Entities.start(name, b);
-		Entities.addAttribute(ID_ATTR, computeId(d), b);
+	public void refDrop(Builder db, String name, Drop d, String attr, String value) {
+		Builder ref = db.nest(name);
+		ref.addAttribute(ID_ATTR, computeId(d));
 		if (attr != null) {
-			Entities.addAttribute(attr, value, b);
+			ref.addAttribute(attr, value);
 		}
-		b.append("/>\n");
+		ref.end();
 	}
 	
-	public void addSrcRef(IRNode context, ISrcRef srcRef) {
-		addSrcRef(context, srcRef, "    ", null);
+	public void addSrcRef(Builder outer, IRNode context, ISrcRef srcRef) {
+		addSrcRef(outer, context, srcRef, 2, null);
 	}
 	
-	public void addSrcRef(IRNode context, ISrcRef s, String flavor) {
-		addSrcRef(context, s, "    ", flavor);
+	public void addSrcRef(Builder outer, IRNode context, ISrcRef s, String flavor) {
+		addSrcRef(outer, context, s, 2, flavor);
 	}
 	
-	public void addSupportingInfo(ISupportingInformation si) {
-		attributes.clear();
-		b.append("    ");
-		Entities.start(SUPPORTING_INFO, b);
-		addAttribute(Drop.MESSAGE, si.getMessage());
-		b.append(">\n");
-		addSrcRef(si.getLocation(), si.getSrcRef(), "      ", null);		
-		b.append("</"+SUPPORTING_INFO+">\n");
+	public void addSupportingInfo(Builder db, ISupportingInformation si) {
+		Builder sib = db.nest(SUPPORTING_INFO);
+		sib.addAttribute(Drop.MESSAGE, si.getMessage());
+		addSrcRef(sib, si.getLocation(), si.getSrcRef(), 3, null);		
+		sib.end();
 	}
 	
-	public void addJavaDeclInfo(final String flavor, final JavaDeclInfo info) {
-		attributes.clear();
-		b.append("    ");
-		Entities.start(JAVA_DECL_INFO, b);
-		addAttribute(FLAVOR_ATTR, flavor); 
-		addAttribute(JavaDeclInfo.INFO_KIND, info.getKind().toString());
+	public void addJavaDeclInfo(Builder b, final String flavor, final JavaDeclInfo info) {
+		Builder db = b.nest(JAVA_DECL_INFO);
+		db.addAttribute(FLAVOR_ATTR, flavor); 
+		db.addAttribute(JavaDeclInfo.INFO_KIND, info.getKind().toString());
 		
 		for(Map.Entry<String, String> e : info.getAttributes().entrySet()) {
-			addAttribute(e.getKey(), e.getValue());
+			db.addAttribute(e.getKey(), e.getValue());
 		}
-		b.append(">\n");
 		if (info.getParent() != null) {
-			addJavaDeclInfo(JavaDeclInfo.PARENT, info.getParent());		
+			addJavaDeclInfo(db, JavaDeclInfo.PARENT, info.getParent());		
 		}
-		b.append("</"+JAVA_DECL_INFO+">\n");
+		db.end();
 	}
 	
-	public void addProperties(String flavor, Map<String, String> map) {
-		attributes.clear();
-		b.append("    ");
-		Entities.start(PROPERTIES, b);
-		addAttribute(FLAVOR_ATTR, flavor); 
+	public void addProperties(Builder db, String flavor, Map<String, String> map) {
+		Builder pb = db.nest(PROPERTIES);
+		pb.addAttribute(FLAVOR_ATTR, flavor); 
 		
 		for(Map.Entry<String, String> e : map.entrySet()) {
-			addAttribute(e.getKey(), e.getValue());
+			pb.addAttribute(e.getKey(), e.getValue());
 		}
-		Entities.closeStart(b, true, true);
+		pb.end();
 	}
 	
 	/*
@@ -346,7 +331,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		ISrcRef ref;
 		List<ISupportingInformation> supportingInfos;
 		
-		public void snapshotAttrs(AbstractSeaXmlCreator s) {
+		public void snapshotAttrs(XMLCreator.Builder s) {
 			for(Map.Entry<String, String> a : attributes.entrySet()) {
 				s.addAttribute(a.getKey(), a.getValue());
 			}

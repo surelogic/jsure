@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -91,7 +92,7 @@ implements MaybeTopLevel, RegionAggregationDrop, IUniquePromise {
   }
 
   @Override
-  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+  public void snapshotAttrs(XMLCreator.Builder s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute(REQUEST_TOP_LEVEL, true);
   }

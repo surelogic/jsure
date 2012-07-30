@@ -8,6 +8,7 @@ import java.util.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -46,11 +47,11 @@ public class Config extends AbstractClassPathEntry {
 		containsJavaLangObject = hasJLO;
 	}
 
-	public void outputToXML(JSureProjectsXMLCreator creator, int indent, StringBuilder b) {
+	public void outputToXML(XMLCreator.Builder proj) {
 		// Just the reference to this
-		Entities.start(PersistenceConstants.PROJECT, b, indent);
-		creator.addAttribute("name", name);
-		Entities.closeStart(b, true);
+		XMLCreator.Builder b = proj.nest(PersistenceConstants.PROJECT);
+		b.addAttribute("name", name);
+		b.end();
 	}
 	
 	@Override
@@ -95,10 +96,9 @@ public class Config extends AbstractClassPathEntry {
 		setOption(Config.AS_SOURCE, true);
 	}
 	
-	public void outputOptionsToXML(JSureProjectsXMLCreator creator, int indent,	StringBuilder b) {
+	public void outputOptionsToXML(XMLCreator.Builder b) {
 		for(Map.Entry<String,Object> e : options.entrySet()) {
-			Entities.indent(b, indent);
-			creator.addAttribute(e.getKey(), e.getValue().toString());
+			b.addAttribute(e.getKey(), e.getValue().toString());
 		}
 	}
 	

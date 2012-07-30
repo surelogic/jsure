@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.*;
 
+import com.surelogic.common.xml.XMLCreator;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -25,7 +27,7 @@ public interface IDropInfo {
 	void setCategory(Category c);
 	Collection<ISupportingInformation> getSupportingInformation();
 	Collection<? extends IProposedPromiseDropInfo> getProposals();
-	void snapshotAttrs(AbstractSeaXmlCreator s);
+	void snapshotAttrs(XMLCreator.Builder s);
 	Long getTreeHash();
 	Long getContextHash();
 }

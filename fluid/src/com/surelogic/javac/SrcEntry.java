@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -31,12 +32,11 @@ public class SrcEntry extends AbstractClassPathEntry {
 		// TODO Auto-generated method stub
 	}
 
-	public void outputToXML(JSureProjectsXMLCreator creator, int indent,
-			StringBuilder b) {
-		Entities.start(PersistenceConstants.SRC, b, indent);
-		creator.addAttribute(PersistenceConstants.PATH, projectRelativePath);
-		creator.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());
-		Entities.closeStart(b, true);
+	public void outputToXML(XMLCreator.Builder proj) {
+		XMLCreator.Builder b = proj.nest(PersistenceConstants.SRC);
+		b.addAttribute(PersistenceConstants.PATH, projectRelativePath);
+		b.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());
+		b.end();
 	}
 
 	public void relocateJars(File targetDir) throws IOException {

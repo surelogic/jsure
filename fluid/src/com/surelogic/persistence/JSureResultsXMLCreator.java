@@ -4,8 +4,6 @@ package com.surelogic.persistence;
 import java.io.*;
 import java.util.List;
 
-import com.surelogic.common.xml.Entities;
-
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
@@ -16,26 +14,14 @@ public class JSureResultsXMLCreator extends AbstractSeaXmlCreator {
 
 	public void reportResults(CUDrop cud, List<IAnalysisResult> results) {
 		try {
-			Entities.start(PersistenceConstants.COMP_UNIT, b, 0);
-			Entities.addAttribute("path", cud.javaOSFileName, b);
-			Entities.closeStart(b, false);
-			flush();
+			b.start(PersistenceConstants.COMP_UNIT);
+			b.addAttribute("path", cud.javaOSFileName);
 			for(IAnalysisResult r : results) {
-				r.outputToXML(this, 1, b);
-				flush();
+				r.outputToXML(this, b);
 			}
-			Entities.end(PersistenceConstants.COMP_UNIT, b, 0);
-			flush();
+			b.end();
 		} finally {
-			pw.flush();
+			flushBuffer();
 		}
-	}
-
-	private void flush() {
-		flushBuffer(pw);
-		/*
-		System.out.print(b.toString());
-		reset();
-		*/
 	}
 }

@@ -18,66 +18,50 @@ public class JSureProjectsXMLCreator extends AbstractSeaXmlCreator implements Pe
 		try {
 			final int indent = 1;
 			int i=0;
-			Entities.start(PROJECTS, b, 0);
-			Entities.addAttribute("path", projs.getRun(), b);
+			b.start(PROJECTS);
+			b.addAttribute("path", projs.getRun());
 			if (projs.getLocation() != null) {
-				Entities.addAttribute(LOCATION, projs.getLocation().getAbsolutePath(), b);
+				b.addAttribute(LOCATION, projs.getLocation().getAbsolutePath());
 			}
-			Entities.addAttribute(IS_AUTO, projs.isAutoBuild(), b);
-			Entities.addAttribute(LAST_RUN, projs.getPreviousPartialScan(), b);
-			Entities.addAttribute(DATE, SLUtility.toStringHMS(projs.getDate()), b);
-			Entities.closeStart(b, false);
+			b.addAttribute(IS_AUTO, projs.isAutoBuild());
+			b.addAttribute(LAST_RUN, projs.getPreviousPartialScan());
+			b.addAttribute(DATE, SLUtility.toStringHMS(projs.getDate()));
 			for(JavacProject p : projs) {
-				Entities.start(PROJECT, b, indent);
-				Entities.addAttribute("id", i, b);
-				Entities.addAttribute(NAME, p.getName(), b);
+				final Builder pb = b.nest(PROJECT);
+				pb.addAttribute("id", i);
+				pb.addAttribute(NAME, p.getName());
 				if (p.getConfig().getLocation() != null) {
-					Entities.addAttribute(LOCATION, p.getConfig().getLocation().getAbsolutePath(), b);
+					pb.addAttribute(LOCATION, p.getConfig().getLocation().getAbsolutePath());
 				}
-				Entities.addAttribute(IS_EXPORTED, p.getConfig().isExported(), b);
+				pb.addAttribute(IS_EXPORTED, p.getConfig().isExported());
 				if (p.getConfig().containsJavaLangObject()) {
-					Entities.addAttribute(HAS_JLO, p.getConfig().containsJavaLangObject(), b);
+					pb.addAttribute(HAS_JLO, p.getConfig().containsJavaLangObject());
 				}
-				p.getConfig().outputOptionsToXML(this, indent, b);
-				Entities.closeStart(b, false);
-				flush();
+				p.getConfig().outputOptionsToXML(pb);
+
 				for(IClassPathEntry cpe : p.getConfig().getClassPath()) {
-					cpe.outputToXML(this, indent+1, b);
-					flush();
+					cpe.outputToXML(pb);
 				}
 				for(JavaSourceFile f : p.getConfig().getFiles()) {
-					f.outputToXML(this, indent+1, b);
-					flush();
+					f.outputToXML(pb);
 				}
 				for(String pkg : p.getConfig().getPackages()) {
-					Entities.start(PACKAGE, b, indent+1);
-					Entities.addAttribute(NAME, pkg, b);
-					Entities.closeStart(b, true);					
-					flush();
+					final Builder pkb = b.nest(PACKAGE);
+					pkb.addAttribute(NAME, pkg);
+					pkb.end();
 				}
 				for(Map.Entry<String,Object> option : p.getConfig().getOptions()) {
-					Entities.start(OPTION, b, indent+1);
-					Entities.addAttribute(NAME, option.getKey(), b);
-					Entities.addAttribute(VALUE, option.getValue().toString(), b);
-					Entities.closeStart(b, true);	
-					flush();
+					final Builder ob = b.nest(OPTION);
+					ob.addAttribute(NAME, option.getKey());
+					ob.addAttribute(VALUE, option.getValue().toString());
+					ob.end();
 				}
-				Entities.end(PROJECT, b, indent);
-				flush();
+				pb.end();
 				i++;
 			}
-			Entities.end(PROJECTS, b, 0);
-			flush();
+			b.end();
 		} finally {
-			pw.flush();
+			flushBuffer();
 		}
-	}
-	
-	private void flush() {
-		flushBuffer(pw);
-		/*
-		System.out.print(b.toString());
-		reset();
-		*/
 	}
 }

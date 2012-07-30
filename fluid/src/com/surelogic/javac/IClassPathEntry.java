@@ -3,7 +3,7 @@ package com.surelogic.javac;
 import java.io.*;
 import java.net.URI;
 
-import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
+import com.surelogic.common.xml.XMLCreator;
 
 public interface IClassPathEntry {
 	/**
@@ -16,5 +16,5 @@ public interface IClassPathEntry {
 	JavaSourceFile mapPath(URI path);
 	void relocateJars(File targetDir) throws IOException;
 	
-	void outputToXML(JSureProjectsXMLCreator creator, int indent, StringBuilder b);
+	void outputToXML(XMLCreator.Builder b);
 }
