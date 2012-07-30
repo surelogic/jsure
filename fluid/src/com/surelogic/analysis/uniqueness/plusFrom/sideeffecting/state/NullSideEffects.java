@@ -49,6 +49,11 @@ public final class NullSideEffects implements ISideEffects {
     // Do Nothing
   }
   
+  public void recordUndefinedFrom(
+      final IRNode srcOp, final Set<Object> affectedVars, final int msg) {
+    // Do nothing
+  }
+  
   public void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final Store s) {

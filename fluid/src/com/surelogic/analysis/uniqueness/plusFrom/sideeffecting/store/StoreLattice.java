@@ -579,7 +579,8 @@ extends TripleLattice<Element<Integer>,
 	  return s;
   }
 
-  private Store undefineFromNodes(final Store s, Integer n) {
+  private Store undefineFromNodes(
+      final Store s, final IRNode srcOp, final Integer n, final int msg) {
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
       ImmutableHashOrderSet<Object> affected = EMPTY;
       final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
@@ -590,7 +591,12 @@ extends TripleLattice<Element<Integer>,
           affected = affected.union(t.third());
         }
       }
-      return apply(apply(s, new Remove(affected)),new Add(State.UNDEFINED, affected));
+      if (!affected.isEmpty()) {
+        sideEffects.recordUndefinedFrom(srcOp, affected, msg);
+        return apply(apply(s, new Remove(affected)),new Add(State.UNDEFINED, affected));
+      } else {
+        return s;
+      }
   }
   
   /**
@@ -600,7 +606,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opLoad(Store s, final IRNode srcOp, final IRNode fieldDecl) {
 	  if (!s.isValid()) return s;
-	  s = undefineFromNodes(s,getStackTop(s));
+	  s = undefineFromNodes(s, srcOp, getStackTop(s), Messages.MADE_UNDEFINED_BY_FROM_READ);
 	  if (!s.isValid()) return s;
 	  // we don't allow reading of 'from' fields except when this object is 
 	  // independent, because otherwise, the aliasing rules are too tricky to
@@ -715,7 +721,7 @@ extends TripleLattice<Element<Integer>,
   
   public Store opStore(Store s, final IRNode srcOp, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
-    s = undefineFromNodes(s,getUnderTop(s));
+    s = undefineFromNodes(s, srcOp, getUnderTop(s), Messages.MADE_UNDEFINED_BY_FROM_WRITE);
     if (!s.isValid()) return s;
     // avoid checking assignment of final fields in "Immutable" constructors:
     if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
@@ -837,7 +843,7 @@ extends TripleLattice<Element<Integer>,
       final RegionEffectsPromiseDrop fxDrop) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
-    s = undefineFromNodes(s,n);
+    s = undefineFromNodes(s, srcOp, n, Messages.MADE_UNDEFINED_BY_FROM_METHOD);
     if (!s.isValid()) return s;
     final Set<IRNode> loadedFields = new HashSet<IRNode>();
     final Set<Object> affectedM = new HashSet<Object>();

@@ -46,6 +46,9 @@ public interface ISideEffects {
   
   public void recordBuriedRead(IRNode srcOp, Object local, BuriedMessage msg);
   
+  public void recordUndefinedFrom(
+      IRNode srcOp, Set<Object> affectedVars, int msg);
+  
   public void recordBuryingFieldRead(IRNode fieldDecl,
       Set<Object> affectedVars, IRNode srcOp);
   

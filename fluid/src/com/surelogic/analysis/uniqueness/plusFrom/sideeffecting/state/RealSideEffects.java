@@ -117,6 +117,14 @@ public final class RealSideEffects implements ISideEffects {
    */
   private final Map<Object, Map<IRNode, Set<IRNode>>> buryingLoads =
     new HashMap<Object, Map<IRNode, Set<IRNode>>>();
+  
+  /**
+   * Records which local variables are made undefined when a a from field 
+   * is cleared by {@link StoreLattice#undefineFromNodes}.
+   * Map of Local Variable -> set of srcOps
+   */
+  private final Map<Object, Set<UndefinedFrom>> undefinedFroms =
+    new HashMap<Object, Set<UndefinedFrom>>();
 
   /**
    * Records where an UNDEFINED value is assigned to a local variable.  Can
@@ -296,6 +304,13 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  public void recordUndefinedFrom(
+      final IRNode srcOp, final Set<Object> affectedVars, final int msg) {
+    for (final Object lv : affectedVars) {
+      addToMappedSet(undefinedFroms, lv, new UndefinedFrom(msg, srcOp));
+    }
+  }
+  
   private void recordBuryingLoad(final IRNode fieldDecl,
       final Set<Object> affectedVars, final IRNode srcOp) {
     for (final Object lv : affectedVars) {
@@ -431,6 +446,10 @@ public final class RealSideEffects implements ISideEffects {
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, false, indirectlyLoadedCompromisedFields);
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, true, indirectlyLoadedCompromisedFieldsAbrupt);
 
+    /* TODO: Need to make sure we don't create duplicated READ_OF_UNDEFINED_VAR
+     * nodes.  Can be created in the first section, and the second section.
+     */
+    
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
@@ -443,6 +462,17 @@ public final class RealSideEffects implements ISideEffects {
             r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
                 DebugUnparser.toString(buriedAt));
           }
+        }
+      }
+      
+      // Could be undefined because of a cleared FROM field
+      final Set<UndefinedFrom> y = undefinedFroms.get(read.var);
+      if (y != null) {
+        final ResultDropBuilder r = createResultDrop(
+            read.isAbrupt, controlFlowDrop, read.srcOp, false,
+            Messages.READ_OF_UNDEFINED_VAR);
+        for (final UndefinedFrom uf : y) {
+          r.addSupportingInformation(uf.srcOp, uf.message);
         }
       }
       
