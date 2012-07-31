@@ -88,13 +88,13 @@ public final class NullSideEffects implements ISideEffects {
     // Do nothing
   }
   
-  public void recordBuryingFieldRead(final IRNode fieldDecl,
-      final Set<Object> affectedVars, final IRNode srcOp) {
+  public void recordBuryingFieldRead(final IRNode srcOp,
+      final IRNode fieldDecl, final Set<Object> affectedVars) {
     // Do nothing
   }
   
-  public void recordBuryingMethodEffects(final Set<IRNode> loadedFields,
-      final Set<Object> affectedVars, final IRNode srcOp,
+  public void recordBuryingMethodEffects(final IRNode srcOp,
+      final Set<IRNode> loadedFields, final Set<Object> affectedVars,
       final RegionEffectsPromiseDrop fxDrop) {
     // Do nothing
   }

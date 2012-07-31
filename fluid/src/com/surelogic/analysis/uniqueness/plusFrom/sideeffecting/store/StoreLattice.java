@@ -652,7 +652,7 @@ extends TripleLattice<Element<Integer>,
   			  }
   		  }
   		  
-  		  sideEffects.recordBuryingFieldRead(fieldDecl, affected, srcOp);
+  		  sideEffects.recordBuryingFieldRead(srcOp, fieldDecl, affected);
   		  
   		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
   		  // Otherwise, we cannot: *shared* (say) becomes undefined.
@@ -883,7 +883,7 @@ extends TripleLattice<Element<Integer>,
     final ImmutableHashOrderSet<Object> affected =
         new ImmutableHashOrderSet<Object>(affectedM);
     
-    sideEffects.recordBuryingMethodEffects(loadedFields, affected, srcOp, fxDrop);
+    sideEffects.recordBuryingMethodEffects(srcOp, loadedFields, affected, fxDrop);
     
     return
         apply(

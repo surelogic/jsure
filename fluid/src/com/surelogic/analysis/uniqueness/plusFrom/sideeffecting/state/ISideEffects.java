@@ -54,11 +54,11 @@ public interface ISideEffects {
   public void recordUndefinedFrom(
       IRNode srcOp, Set<Object> affectedVars, int msg);
   
-  public void recordBuryingFieldRead(IRNode fieldDecl,
-      Set<Object> affectedVars, IRNode srcOp);
+  public void recordBuryingFieldRead(IRNode srcOp,
+      IRNode fieldDecl, Set<Object> affectedVars);
   
-  public void recordBuryingMethodEffects(Set<IRNode> loadedFields,
-      Set<Object> affectedVars, IRNode srcOp,
+  public void recordBuryingMethodEffects(IRNode srcOp,
+      Set<IRNode> loadedFields, Set<Object> affectedVars,
       RegionEffectsPromiseDrop fxDrop);
 
   

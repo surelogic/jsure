@@ -337,8 +337,8 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
-  public void recordBuryingFieldRead(final IRNode fieldDecl,
-      final Set<Object> affectedVars, final IRNode srcOp) {
+  public void recordBuryingFieldRead(final IRNode srcOp,
+      final IRNode fieldDecl, final Set<Object> affectedVars) {
     if (!suppressDrops) {
       recordBuryingLoad(fieldDecl, affectedVars, srcOp);
       for (final Object v : affectedVars) {
@@ -349,8 +349,8 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
-  public void recordBuryingMethodEffects(final Set<IRNode> loadedFields,
-      final Set<Object> affectedVars, final IRNode srcOp,
+  public void recordBuryingMethodEffects(final IRNode srcOp,
+      final Set<IRNode> loadedFields, final Set<Object> affectedVars,
       final RegionEffectsPromiseDrop fxDrop) {
     if (!suppressDrops) {
       for (final IRNode fieldDecl : loadedFields) {
