@@ -18,10 +18,10 @@ final class BuriedRead {
     this.isAbrupt = a;
     
     int hc = 17;
-    hc = 31 * hc + message.hashCode();
+    hc = 31 * hc + msg.hashCode();
     hc = 31 * hc + var.hashCode();
-    hc = 31 * hc + srcOp.hashCode();
-    hc = 31 * hc + (isAbrupt ? 1 : 0);
+    hc = 31 * hc + n.hashCode();
+    hc = 31 * hc + (a ? 1 : 0);
     hashCode = hc;
   }
   

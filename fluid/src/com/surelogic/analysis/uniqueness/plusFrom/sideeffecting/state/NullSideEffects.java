@@ -2,11 +2,13 @@ package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state;
 
 import java.util.Set;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTriple;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
@@ -42,6 +44,11 @@ public final class NullSideEffects implements ISideEffects {
   // == Compromising unique fields
   // ==================================================================
   
+  public void recordReadOfBorrowedField(final IRNode srcOp,
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop) {
+    // Do nothing
+  }
+
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore,

@@ -86,6 +86,8 @@ public final class Messages  {
   public static final int MADE_UNDEFINED_BY_FROM_READ = 375;
   public static final int MADE_UNDEFINED_BY_FROM_WRITE = 376;
   public static final int MADE_UNDEFINED_BY_FROM_METHOD = 377;
+  public static final int CANNOT_READ_BORROWED_FIELD = 378;
+  
   
   
   private static Map<Integer,String> code2name = new HashMap<Integer, String>();
@@ -154,6 +156,7 @@ public final class Messages  {
     code2name.put(MADE_UNDEFINED_BY_FROM_READ, "?");
     code2name.put(MADE_UNDEFINED_BY_FROM_WRITE, "?");
     code2name.put(MADE_UNDEFINED_BY_FROM_METHOD, "?");
+    code2name.put(CANNOT_READ_BORROWED_FIELD, "?");
   }
   
   public static String toString(int code) {

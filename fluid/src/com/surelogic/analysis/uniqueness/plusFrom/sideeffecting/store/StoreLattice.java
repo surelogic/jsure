@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
@@ -39,6 +40,7 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
@@ -611,17 +613,21 @@ extends TripleLattice<Element<Integer>,
 	  // we don't allow reading of 'from' fields except when this object is 
 	  // independent, because otherwise, the aliasing rules are too tricky to
 	  // figure out.
-	  if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
+	  final PromiseDrop<? extends IAASTRootNode> borrowedPromise =
+	      UniquenessUtils.getFieldBorrowed(fieldDecl);
+    if (borrowedPromise != null) {
 		  final Integer n = getStackTop(s);
 		  for (FieldTriple ft : s.getFieldStore()) {
 			  if (ft.third().contains(n)) {
-				  return errorStore("can't read borrowed field of object except in methods of class");
+			    sideEffects.recordReadOfBorrowedField(srcOp, borrowedPromise);
+			    // Push null on the stack to avoid creating additional strange errors
+			    return opNull(opRelease(s));
 			  }
 		  }
 	  }
     final IUniquePromise uPromise = UniquenessUtils.getUnique(fieldDecl);
 	  if (uPromise != null ||
-	      (UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl))) {
+	      (borrowedPromise != null && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
 
 		  if (localStatus(s,n) == State.IMMUTABLE) {

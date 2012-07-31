@@ -58,6 +58,14 @@ public final class RealSideEffects implements ISideEffects {
   private boolean hasControlFlowResults = false;
   
   /**
+   * Record illegal reads of borrowed fields.  Map from 
+   * Borrowed or BorrowedInRegion annotation to set of locations where the 
+   * field is read.
+   */
+  private final Map<PromiseDrop<? extends IAASTRootNode>, Set<BorrowedRead>> readBorrowedFields =
+    new HashMap<PromiseDrop<? extends IAASTRootNode>, Set<BorrowedRead>>();
+  
+  /**
    * Track which unique fields are possibly compromised and where. This is a map
    * from field declaration IRNodes to a set of IRNodes indicating source
    * locations where the field may have been compromised. Built by
@@ -229,6 +237,12 @@ public final class RealSideEffects implements ISideEffects {
   // == Compromising unique fields
   // ==================================================================
   
+  public void recordReadOfBorrowedField(final IRNode srcOp,
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop) {
+    addToMappedSet(
+        readBorrowedFields, promiseDrop, new BorrowedRead(srcOp, abruptDrops));
+  }
+
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore,
@@ -490,6 +504,17 @@ public final class RealSideEffects implements ISideEffects {
       }
     }
 
+    /* Report reads of borrowed fields */
+    for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<BorrowedRead>> e : readBorrowedFields.entrySet()) {
+      final PromiseDrop<? extends IAASTRootNode> borrowedPromise = e.getKey();
+      for (final BorrowedRead br : e.getValue()) {
+        @SuppressWarnings("unused")
+        final ResultDropBuilder r = createResultDrop(
+            br.isAbrupt, borrowedPromise, br.srcOp, false,
+            Messages.CANNOT_READ_BORROWED_FIELD);
+      }
+    }
+    
     /* TODO: If we haven't already added results to the control flow drop, then 
      * we add a single "invariants respected" positive result.
      */
