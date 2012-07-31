@@ -347,7 +347,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					System.out.println("Found scoped promise: "+id.getMessage());
 				}
 */
-				Entity e = new Entity(id.getEntityName(), b.getAttributes());
+				Entity e = b.build();
 				newDrops.add(e);
 			} else {
 				//System.out.println("Ignoring "+d.getMessage());
