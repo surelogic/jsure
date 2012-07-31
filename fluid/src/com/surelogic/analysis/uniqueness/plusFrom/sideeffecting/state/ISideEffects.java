@@ -43,6 +43,9 @@ public interface ISideEffects {
   public void recordIndirectLoadOfCompromisedField(
       IRNode srcOp, State fieldState, IRNode fieldDecl);
   
+  public void recordLossOfCompromisedField(
+      IRNode srcOp, State fieldState, IRNode fieldDecl);
+  
 
   
   // ==================================================================

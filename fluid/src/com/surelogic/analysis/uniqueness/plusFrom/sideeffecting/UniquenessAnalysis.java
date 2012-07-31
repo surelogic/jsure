@@ -426,7 +426,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     /** Pop and discard value from top of stack */
     @Override
     protected Store pop(final Store s, final IRNode srcOp) {
-      return lattice.opRelease(s);
+      return lattice.opRelease(s, srcOp);
     }
 
     /** Push an unknown shared value onto stack. */
@@ -555,7 +555,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
         // First we load the reference of the target
         if (actualStackDepth == null) {
-        	s = lattice.opExisting(s, State.SHARED, null);
+        	s = lattice.opExisting(s, callSrcOp, State.SHARED, null);
         } else {
         	s = lattice.opDup(s, callSrcOp, actualStackDepth); 
         }
@@ -567,11 +567,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             // it could refer to almost anything
             // everything reachable from this pointer is alias buried:
         	s = lattice.opLoadReachable(s, callSrcOp, fxDrop);
-        	s = lattice.opRelease(s);
+        	s = lattice.opRelease(s, callSrcOp);
         } else {
         	// it's a field, load and discard.
         	s = lattice.opLoad(s, callSrcOp, r.getNode());
-        	s = lattice.opRelease(s);
+        	s = lattice.opRelease(s, callSrcOp);
         }
         
         if (f.isWrite()) {
@@ -806,7 +806,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * Push an abstract value corresponding to the return decl of the method or
      * constructor declared in decl.
      */
-    private Store pushReturnValue(final IRNode decl, final Store s) {
+    private Store pushReturnValue(final IRNode decl, final Store s, final IRNode srcOp) {
       if (decl == null) {
         return lattice.opNull(s);
       }
@@ -828,7 +828,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return lattice.opNull(s);
       }
       
-      return lattice.opGenerate(s, lattice.declStatus(retDecl), retDecl);
+      return lattice.opGenerate(s, srcOp, lattice.declStatus(retDecl), retDecl);
     }
 
     
@@ -914,7 +914,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferBinop(IRNode node, Operator op, Store val) {
     	if (op instanceof StringConcat) {
-    		return lattice.opValue(lattice.opRelease(lattice.opRelease(val)));
+    		return lattice.opValue(
+    		    lattice.opRelease(
+    		        lattice.opRelease(val, node), node), node);
     	} else {
     		return lattice.opNull(pop(pop(val, node), node));
     	}
@@ -978,7 +980,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // we need to set RETURN to the return value,
         // so that allowReturn can be handled while popping actuals
         if (isMethodCall) { // method call
-          s = pushReturnValue(mdecl,s);
+          s = pushReturnValue(mdecl, s, srcOp);
         } else if (s.isValid()) { // constructor call
           s = lattice.opGet(s, srcOp, StoreLattice.getStackTop(s) - numArgs);
         }
@@ -997,7 +999,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             s = lattice.opGet(s, srcOp, ipqr); // read from the parameter
             if (UniquenessRules.isBorrowed(ifqr)) {
               s = lattice.opReturn(s, srcOp, ifqr);
-              s = lattice.opRelease(s);
+              s = lattice.opRelease(s, srcOp);
             } else {
               /* Pretty sure this message is useless because the IFQR can never
                * be unique
@@ -1071,14 +1073,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       	if (lattice.isValueNode(node)) {
       		// force as a value
       		//NB: we don't change the aliases.
-      		return lattice.opValue(lattice.opRelease(value));
+      		return lattice.opValue(lattice.opRelease(value, node), node);
       	}
       	return value; // no change;
   	}
   
   	@Override
   	protected Store transferClassExpression(IRNode node, Store val) {
-  		return lattice.opValue(val);
+  		return lattice.opValue(val, node);
   	}
   
   	@Override
@@ -1098,13 +1100,13 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     			}
     		}
     	}
-    	return lattice.opClear(s,toRemove.toArray());
+    	return lattice.opClear(s, node, toRemove.toArray());
     }
 
     @Override
     protected Store transferCatchOpen(final IRNode node, Store s) {
     	IRNode var = CatchClause.getParam(node);
-    	s = lattice.opExisting(s, State.SHARED, var);
+    	s = lattice.opExisting(s, node, State.SHARED, var);
     	return lattice.opSet(s, node, var);
     }
     
@@ -1131,7 +1133,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
        */
       
       // Static field init, so we push the shared object onto the stack 
-      s = lattice.opExisting(s, State.SHARED, null);
+      s = lattice.opExisting(s, node, State.SHARED, null);
       s = lattice.opDup(s, node, 1); // get value on top of stack
       s = lattice.opStore(s, node, node); // perform store
       
@@ -1157,7 +1159,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferEq(final IRNode node, final boolean flag, final Store s) {
       // compare top two stack values and pop off.
       // then push a boolean value (unused).
-      return lattice.opValue(lattice.opEqual(s, flag));
+      return lattice.opValue(lattice.opEqual(s, node, flag), node);
     }
     
     @Override
@@ -1190,7 +1192,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
       // get class or "this" on stack
       if (TypeUtil.isStatic(node)) {
-        s = lattice.opExisting(s, State.SHARED, null);
+        s = lattice.opExisting(s, node, State.SHARED, null);
         if (fineIsLoggable) {
           LOG.fine("initializing static field '" + JJNode.getInfo(node) + "'");
         }
@@ -1218,7 +1220,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       s = lattice.opDup(s, node, 1); // get value on top of stack
       s = lattice.opStore(s, node, node); // perform store
-      s = lattice.opRelease(s); // throw away the extra copy
+      s = lattice.opRelease(s, node); // throw away the extra copy
       return s;
     }
     
@@ -1239,7 +1241,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 			// debugging hook
 			System.out.println("At " + JJNode.getInfo(node) + ": " + lattice.toString(s));
 		}
-        return lattice.opValue(s); // push a shared String constant
+        return lattice.opValue(s, node); // push a shared String constant
       } else {
         return lattice.opNull(s); // push nothing 
       }
@@ -1268,7 +1270,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           s = lattice.opRemoveFrom(s, rnode);
           if (lattice.isValueNode(rnode)) {
         	  // no check necessary: Java type system handles
-        	  s = lattice.opRelease(s);
+        	  s = lattice.opRelease(s, body);
           } else {
             /* Here we may pass SHARED or UNIQUE to opConsume, which we 
              * normally shouldn't do, but this happens after there is anything
@@ -1280,22 +1282,22 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           if (fineIsLoggable) {
             LOG.fine("After handling return value of " + name + ": " + s);
           }
-          s = lattice.opStop(s);
+          s = lattice.opStop(s, body);
         } else if (kind instanceof NormalExitPort && 
         		ConstructorDeclaration.prototype.includes(mOp)) {
         	final IRNode rnode = JavaPromise.getReceiverNode(mdecl);
         	s = lattice.opRemoveFrom(s,rnode);
-          s = lattice.opStop(s);
+          s = lattice.opStop(s, body);
         } else if (kind instanceof AbruptExitPort) {
           lattice.setAbruptResults(true);
           try {
-            s = lattice.opStop(s);
+            s = lattice.opStop(s, body);
           } finally {
             lattice.setAbruptResults(false);
           }
         } else {
           // SHouldn't get here??? Stop anyway
-          s = lattice.opStop(s);
+          s = lattice.opStop(s, body);
         }
         if (fineIsLoggable) {
           LOG.fine("At end of " + name + ": " + s);
@@ -1423,7 +1425,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
 	@Override
 	protected Store transferType(IRNode node, Store val) {
-		return lattice.opGenerate(val, State.SHARED, node);
+		return lattice.opGenerate(val, node, State.SHARED, node);
 	}
 
 	@Override
@@ -1435,7 +1437,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	} else if (UnboxExpression.prototype.includes(op)) {
     		return lattice.opNull(pop(val, node));
     	} else if (BoxExpression.prototype.includes(op)) {
-    		return lattice.opValue(pop(val, node));
+    		return lattice.opValue(pop(val, node), node);
     	}
 		return super.transferUnop(node, op, info, val);
 	}
@@ -1446,10 +1448,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       if (isBothLhsRhs(aref)) {
         s = dup(dup(s, aref), aref);
       }
-      s = lattice.opRelease(s);
-      s = lattice.opRelease(s);
+      s = lattice.opRelease(s, aref);
+      s = lattice.opRelease(s, aref);
       // If we knew something about the array, we could do better:
-      s = lattice.opExisting(s, State.SHARED, aref);
+      s = lattice.opExisting(s, aref, State.SHARED, aref);
       return s;
     }
     
@@ -1472,7 +1474,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferUseArrayLength(final IRNode alen, Store s) {
       if (!s.isValid()) return s;
-      s = lattice.opRelease(s);
+      s = lattice.opRelease(s, alen);
       return lattice.opNull(s); // push a non-pointer value (a primitive integer in this case)
     }
     

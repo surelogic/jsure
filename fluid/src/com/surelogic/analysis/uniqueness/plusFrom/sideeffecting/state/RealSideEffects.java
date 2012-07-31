@@ -110,12 +110,16 @@ public final class RealSideEffects implements ISideEffects {
     new HashMap<IRNode, Set<CompromisedField>>();
   
   /**
-   * Records where variables with buried references are read. Built by
-   * {@link #opGet(Store, IRNode, Object)}. After analysis, this is cross
-   * referenced with {@link #buriedLocals} to determine where the variable was
-   * buried.
+   * Records where compromised fields are lost.  After analysis is over,
+   * we cross reference this set with {@link #compromisedAt} and {@link #undefinedAt} to determine
+   * where the lost value may have been compromised.  Map from 
+   * field declaration IRNodes to a set of IRNodes indicating locations where
+   * the field is lost.
    */
-  private final Set<BuriedRead> buriedReads = new HashSet<BuriedRead>();  
+  private final Map<IRNode, Set<CompromisedField>> lostFields =
+    new HashMap<IRNode, Set<CompromisedField>>();
+  private final Map<IRNode, Set<CompromisedField>> lostFieldsAbrupt =
+    new HashMap<IRNode, Set<CompromisedField>>();
   
   /**
    * Records which local variables are buried by reads of unique/borrowed fields. Built
@@ -125,6 +129,14 @@ public final class RealSideEffects implements ISideEffects {
    */
   private final Map<Object, Map<IRNode, Set<IRNode>>> buryingLoads =
     new HashMap<Object, Map<IRNode, Set<IRNode>>>();
+  
+  /**
+   * Records where variables with buried references are read. Built by
+   * {@link #opGet(Store, IRNode, Object)}. After analysis, this is cross
+   * referenced with {@link #buriedLocals} to determine where the variable was
+   * buried.
+   */
+  private final Set<BuriedRead> buriedReads = new HashSet<BuriedRead>();  
   
   /**
    * Records which local variables are made undefined when a a from field 
@@ -305,6 +317,14 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  public void recordLossOfCompromisedField(
+      final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
+    if (!suppressDrops) {
+      addToMappedSet(abruptDrops ? lostFieldsAbrupt : lostFields, fieldDecl,
+          new CompromisedField(fieldState, srcOp));
+    }        
+  }
+  
 
   
   // ==================================================================
@@ -459,6 +479,10 @@ public final class RealSideEffects implements ISideEffects {
     crossReferenceKilledFields(Messages.COMPROMISED_READ, true, loadedCompromisedFieldsAbrupt);
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, false, indirectlyLoadedCompromisedFields);
     crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, true, indirectlyLoadedCompromisedFieldsAbrupt);
+    
+    // Link lost compromised fields with compromising locations
+    crossReferenceKilledFields(Messages.LOST_COMPROMISED_FIELD, false, lostFields);
+    crossReferenceKilledFields(Messages.LOST_COMPROMISED_FIELD, true, lostFieldsAbrupt);
 
     /* TODO: Need to make sure we don't create duplicated READ_OF_UNDEFINED_VAR
      * nodes.  Can be created in the first section, and the second section.

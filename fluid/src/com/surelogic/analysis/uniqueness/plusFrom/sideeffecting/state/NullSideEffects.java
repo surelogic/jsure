@@ -77,6 +77,11 @@ public final class NullSideEffects implements ISideEffects {
     // Do nothing
   }
   
+  public void recordLossOfCompromisedField(
+      final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
+    // Do nothing
+  }
+  
   
   
   // ==================================================================
