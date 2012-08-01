@@ -790,7 +790,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				}
 				// TODO Ignore new refs?
 			}
-			final Map<String,Entity> oldDetails = extractDetails(n);
+			final Map<String,Entity> oldDetails = extractDetails(o);
 			final Map<String,Entity> newDetails = extractDetails(n);
 			final List<String> temp = new ArrayList<String>();
 			// Remove matching ones
