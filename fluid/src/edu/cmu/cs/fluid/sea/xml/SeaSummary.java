@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.sea.xml;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LINE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
@@ -9,7 +8,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
 import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.*;
 
 import java.io.*;
-import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -17,13 +15,11 @@ import java.util.logging.Level;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
 import com.surelogic.common.jsure.xml.JSureXMLReader;
 
@@ -598,7 +594,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				}
 				*/
 			}
-			return old.isEmpty() && newer.isEmpty();
+			return !hasChildren();
 		}
 
 		public void addOld(Entity e) {
@@ -780,7 +776,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
 		@Override
 		public String toString() {
-			return "Diffs for "+n.getAttribute(MESSAGE_ATTR);
+			return n.getAttribute(MESSAGE_ATTR);
 		}
 		
 		public static ContentDiff compute(PrintStream out, Entity n, Entity o) {	
@@ -816,7 +812,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			for(String newMsg : sort(newDetails.keySet(), temp)) {
 				out.println("\t\tNewer  : "+newMsg);
 				Entity e = newDetails.get(newMsg);
-				e.setAsOld();
+				e.setAsNewer();
 			}
 			List<Entity> remaining = new ArrayList<Entity>(oldDetails.size()+newDetails.size());
 			remaining.addAll(oldDetails.values());
