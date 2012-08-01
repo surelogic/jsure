@@ -538,14 +538,31 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 	}
 	
+	public interface IViewable {
+		Object[] getChildren();
+		boolean hasChildren();
+		String getText();
+	}
+
+	static final Comparator<Entity> entityComparator = new Comparator<Entity>() {
+		public int compare(Entity o1, Entity o2) {
+			int rv = o1.getAttribute(MESSAGE_ATTR).compareTo(o2.getAttribute(MESSAGE_ATTR));
+			if (rv == 0) {
+				return o1.getDiffStatus().compareTo(o2.getDiffStatus());
+			}
+			return rv;
+		}				
+	};
+	
 	/**
 	 * Storage for old and new drops that might match
 	 */
-	public static class Category {
+	public static class Category implements IViewable {
 		public final String file;
 		public final String name;		
 		final Set<Entity> old = new HashSet<Entity>();
 		final Set<Entity> newer = new HashSet<Entity>();
+		final Set<ContentDiff> diffs = new HashSet<ContentDiff>();
 		
 		public Category(String file, String name) {
 			this.file = file;
@@ -690,6 +707,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 						}
 						old.remove(o);
 						it.remove();
+						ContentDiff d = ContentDiff.compute(out, n, o);
+						if (d != null) {
+							diffs.add(d);
+						}
 						break;
 					}
 				}
@@ -707,10 +728,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		public boolean hasChildren() {
-			return !old.isEmpty() || !newer.isEmpty();
+			return !old.isEmpty() || !newer.isEmpty() || !diffs.isEmpty();
 		}
 
-		public Entity[] getChildren() {
+		public Object[] getChildren() {
 			Entity[] a = new Entity[old.size() + newer.size()];
 			int i=0;
 			for(Entity o : old) {
@@ -723,16 +744,124 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				o.setAsNewer();
 				i++;
 			}
-			Arrays.sort(a, new Comparator<Entity>() {
-				public int compare(Entity o1, Entity o2) {
-					int rv = o1.getAttribute(MESSAGE_ATTR).compareTo(o2.getAttribute(MESSAGE_ATTR));
-					if (rv == 0) {
-						return o1.getDiffStatus().compareTo(o2.getDiffStatus());
-					}
-					return rv;
-				}				
+			Arrays.sort(a, entityComparator);
+			if (diffs.isEmpty()) {
+				return a;
+			}
+			List<Object> temp = new ArrayList<Object>(diffs.size()+a.length);
+			temp.addAll(diffs);
+			Collections.sort(temp, new Comparator<Object>() {
+				public int compare(Object o1, Object o2) {					
+					return o1.toString().compareTo(o2.toString());
+				}
 			});
-			return a;
+			for(Entity e : a) {
+				temp.add(e);
+			}
+			return temp.toArray();
+		}
+
+		public String getText() {
+			if (file == null) {
+				return name;
+			}
+			return name + "  in  " + file;
+		}
+	}
+	
+	public static class ContentDiff implements IViewable {
+		final Entity n, o;
+		final Object[] children;
+		public ContentDiff(Entity n, Entity o, Object[] children) {
+			this.children = children;
+			this.n = n;
+			this.o = o;
+		}
+
+		@Override
+		public String toString() {
+			return "Diffs for "+n.getAttribute(MESSAGE_ATTR);
+		}
+		
+		public static ContentDiff compute(PrintStream out, Entity n, Entity o) {	
+			if (!o.hasRefs()) {
+				if (!n.hasRefs()) {
+					return null;
+				}
+				// TODO Ignore new refs?
+			}
+			final Map<String,Entity> oldDetails = extractDetails(n);
+			final Map<String,Entity> newDetails = extractDetails(n);
+			final List<String> temp = new ArrayList<String>();
+			// Remove matching ones
+			for(String ns : newDetails.keySet()) {
+				Entity oe = oldDetails.remove(ns);				
+				if (oe != null) {
+					temp.add(ns);
+				}
+			}
+			for(String match : temp) {
+				newDetails.remove(match);
+			}
+			
+			if (oldDetails.isEmpty() && newDetails.isEmpty()) {
+				return null;
+			}
+			out.println("\tDiffs in details for "+n.getAttribute(MESSAGE_ATTR));
+			for(String old : sort(oldDetails.keySet(), temp)) {
+				out.println("\t\tOld    : "+old);
+				Entity e = oldDetails.get(old);
+				e.setAsOld();
+			}
+			for(String newMsg : sort(newDetails.keySet(), temp)) {
+				out.println("\t\tNewer  : "+newMsg);
+				Entity e = newDetails.get(newMsg);
+				e.setAsOld();
+			}
+			List<Entity> remaining = new ArrayList<Entity>(oldDetails.size()+newDetails.size());
+			remaining.addAll(oldDetails.values());
+			remaining.addAll(newDetails.values());
+			Collections.sort(remaining, entityComparator);
+			return new ContentDiff(n, o, remaining.toArray());
+		}
+		
+		private static Collection<String> sort(Collection<String> s, List<String> temp) {
+			temp.clear();
+			temp.addAll(s);
+			Collections.sort(temp);
+			return temp;
+		}
+		
+		// Assume that we only have supporting info
+		private static Map<String,Entity> extractDetails(Entity e) {
+			if (!e.hasRefs()) {
+				return Collections.emptyMap();
+			}
+			final Map<String,Entity> rv = new TreeMap<String, Entity>();
+			for(Entity i : e.getReferences()) {
+				String msg = i.getAttribute(MESSAGE_ATTR);
+				if (msg != null) {
+					rv.put(msg, i);
+				} else {
+					System.out.println("No message for "+i.getEntityName());
+				}
+			}
+			return rv;
+		}
+
+		@Override
+		public Object[] getChildren() {
+			return children;
+		}
+
+		@Override
+		public String getText() {
+			return toString();
+		}
+
+		@Override
+		public boolean hasChildren() {
+			return true;
 		}
 	}
 	

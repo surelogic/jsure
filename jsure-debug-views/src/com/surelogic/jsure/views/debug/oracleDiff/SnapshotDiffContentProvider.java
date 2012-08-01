@@ -21,8 +21,7 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary.Category;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
@@ -87,8 +86,8 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	}
 
 	public Object[] getChildren(Object parent) {
-		if (parent instanceof Category) {
-			Category c = (Category) parent;
+		if (parent instanceof IViewable) {
+			IViewable c = (IViewable) parent;
 			return c.getChildren();
 		}
 		return noElements;
@@ -99,20 +98,17 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	}
 
 	public boolean hasChildren(Object element) {
-		if (element instanceof Category) {
-			Category c = (Category) element;
+		if (element instanceof IViewable) {
+			IViewable c = (IViewable) element;
 			return c.hasChildren();
 		}
 		return false;
 	}
 
 	public String getText(Object element) {
-		if (element instanceof Category) {
-			Category c = (Category) element;
-			if (c.file == null) {
-				return c.name;
-			}
-			return c.name + "  in  " + c.file;
+		if (element instanceof IViewable) {
+			IViewable c = (IViewable) element;
+			return c.getText();
 		} else if (element instanceof Entity) {
 			Entity e = (Entity) element;
 			StringBuilder sb = new StringBuilder();
