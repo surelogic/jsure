@@ -726,6 +726,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             s = lattice.opConsumeShared(s, srcOp,
                 Messages.COMPROMISED_BY_SHARED_FORMAL,
                 ParameterDeclaration.getId(formal));
+          } else if (required == State.UNIQUE) {
+            s = lattice.opConsumeUnique(s, srcOp);
           } else {
             s = lattice.opConsume(s, srcOp, required);
           }
@@ -759,6 +761,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (required == State.SHARED) {
           return lattice.opConsumeShared(
               s, srcOp, Messages.COMPROMISED_BY_SHARED_RECEIVER);
+        } else if (required == State.UNIQUE) {
+          return lattice.opConsumeUnique(s, srcOp);
         } else {
           return lattice.opConsume(s, srcOp, required);
         }
@@ -796,6 +800,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	  if (required == State.SHARED) {
     	    return lattice.opConsumeShared(
     	        s, srcOp, Messages.COMPROMISED_BY_SHARED_QUALIFIED_RECEIVER);
+    	  } else if (required == State.UNIQUE) {
+    	    return lattice.opConsumeUnique(s, srcOp);
     	  } else {
     	    return lattice.opConsume(s, srcOp, required);
     	  }

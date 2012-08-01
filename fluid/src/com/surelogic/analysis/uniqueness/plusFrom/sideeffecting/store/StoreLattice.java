@@ -734,10 +734,13 @@ extends TripleLattice<Element<Integer>,
     // avoid checking assignment of final fields in "Immutable" constructors:
     if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
+
+    final State declStatus = declStatus(fieldDecl);
+    
     final Store temp;
     if (UniquenessUtils.isUnique(fieldDecl)) {
     	// added for better/faster error reporting
-    	s = opCheckTopState(s,declStatus(fieldDecl));
+    	s = opCheckTopState(s,declStatus);
     	if (!s.isValid()) return s;
         final Integer undertop = getUnderTop(s);
         final Integer stacktop = getStackTop(s);
@@ -772,18 +775,20 @@ extends TripleLattice<Element<Integer>,
       if (!s.isValid()) return s;
     	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
     	{
-    			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
+    	  s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
     	}
       // Consume the item being assigned to the field as BORROWED
       temp = opConsume(s, srcOp, State.BORROWED);
     } else if (isValueNode(fieldDecl)) {
     	temp = opRelease(s, srcOp); // Java Type system does all we need
-    } else if (declStatus(fieldDecl) == State.SHARED) {
+    } else if (declStatus == State.SHARED) {
       temp = opConsumeShared(
           s, srcOp, Messages.COMPROMISED_BY_FIELD_ASSIGNMENT,
           VariableDeclarator.getId(fieldDecl));
+    } else if (declStatus == State.UNIQUE) {
+      temp = opConsumeUnique(s, srcOp);
     } else {
-    	temp = opConsume(s, srcOp, declStatus(fieldDecl));
+    	temp = opConsume(s, srcOp, declStatus);
     }
     /* Make sure that the object being dereferenced by the field assignment is
      * not undefined.  Can happen if the a @Borrowed parameter is assigned to
@@ -1133,16 +1138,6 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opConsume(final Store s, final IRNode srcOp, final State state) {
     return opConsume(s, srcOp, state, ConsumeSideEffects.NONE);
-//    if (!s.isValid()) return s;
-//    final Integer n = getStackTop(s);
-//    final State localStatus = localStatus(s, n);
-//    if (state == State.SHARED) {
-//      sideEffects.recordCompromisingOfUnique(
-//          srcOp,  n, msg, localStatus, s.getFieldStore());
-//    } else if (state == State.UNIQUE) {
-//      sideEffects.recordUndefiningOfUnique(srcOp, n, localStatus, s);
-//    }
-//	  return opRelease(opYieldTopState(opCheckTopState(s,state),state));
   }
 
   /**

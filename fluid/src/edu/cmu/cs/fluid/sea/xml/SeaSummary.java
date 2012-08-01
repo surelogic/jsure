@@ -849,17 +849,17 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			return rv;
 		}
 
-		@Override
+//		@Override
 		public Object[] getChildren() {
 			return children;
 		}
 
-		@Override
+//		@Override
 		public String getText() {
 			return toString();
 		}
 
-		@Override
+//		@Override
 		public boolean hasChildren() {
 			return true;
 		}
