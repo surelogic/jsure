@@ -784,7 +784,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				if (!n.hasRefs()) {
 					return null;
 				}
-				// TODO Ignore new refs?
+				System.out.println("Temporarily ignoring missing details in old oracles");
+				return null;
 			}
 			final Map<String,Entity> oldDetails = extractDetails(o);
 			final Map<String,Entity> newDetails = extractDetails(n);
