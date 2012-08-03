@@ -65,6 +65,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
 	@Override
 	protected void setUp() throws Exception {
+		// TODO Set to property value, or default (~/.m2/repository)
+		String repo = System.getProperty("user.home")+"/.m2/repository";
+		JavaCore.setClasspathVariable("M2_REPO", new Path(repo), null);
 		if (f_initNeeded) {
 			f_initNeeded = true;
 			Eclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
