@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -29,6 +33,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.commands.ICommandService;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
@@ -39,7 +44,6 @@ import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.jsure.client.eclipse.actions.FindXMLForTypeAction;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
@@ -176,7 +180,9 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	};
 
-	private final Action f_findXML = new FindXMLForTypeAction();
+	// private final Action f_findXML = FindXMLForTypeHandler.adaptToAction();
+
+	// private CommandContributionItem f_findXML;
 
 	@Override
 	protected Control buildViewer(Composite parent) {
@@ -218,10 +224,43 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void makeActions() {
-		f_findXML.setText("Open Library Annotations...");
-		f_findXML.setToolTipText("Open the library annotations for a type");
-		f_findXML.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
+
+		ICommandService service = (ICommandService) getSite().getService(
+				ICommandService.class);
+		Command command = service
+				.getCommand("com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll");
+
+		command.setHandler(new AbstractHandler() {
+			@Override
+			public Object execute(ExecutionEvent event)
+					throws ExecutionException {
+				if (f_viewer != null)
+					f_viewer.collapseAll();
+				return null;
+			}
+		});
+
+		// f_findXML.setText("Open Library Annotations...");
+		// f_findXML.setToolTipText("Open the library annotations for a type");
+		// f_findXML.setImageDescriptor(SLImages
+		// .getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
+
+		// final CommandContributionItemParameter p = new
+		// CommandContributionItemParameter(
+		// EclipseUIUtility.getIWorkbenchWindow(), "",
+		// "com.surelogic.jsure.client.eclipse.command.FindXMLForType",
+		// SWT.PUSH);
+		// // p.label = "Open Library Annotations...";
+		// // p.tooltip = "Open the library annotations for a type";
+		// // p.icon =
+		// SLImages.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE);
+		// f_findXML = new CommandContributionItem(p);
+		//
+		// new CommandContributionItem(EclipseUIUtility.getIWorkbenchWindow(),
+		// "",
+		// "com.surelogic.jsure.client.eclipse.command.FindXMLForType",
+		// parameters, icon, disabledIcon, hoverIcon, label, mnemonic,
+		// tooltip, style);
 
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
@@ -248,10 +287,12 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
+
+		// manager.add(f_findXML);
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
-		manager.add(f_findXML);
+		// manager.add(f_findXML);
 	}
 
 	@Override
@@ -259,7 +300,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(f_toggleShowDiffs);
-		manager.add(f_findXML);
+		// manager.add(f_findXML);
 	}
 
 	@Override
@@ -540,14 +581,14 @@ public class XMLExplorerView extends AbstractJSureView {
 
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof Package) {				
+			if (element instanceof Package) {
 				Package p = (Package) element;
-				return getCachedImage(CommonImages.IMG_PACKAGE, 
+				return getCachedImage(CommonImages.IMG_PACKAGE,
 						p.hasWarning() ? Decorator.WARNING : Decorator.NONE);
 			}
 			if (element instanceof Type) {
 				final Type t = (Type) element;
-				return getCachedImage(CommonImages.IMG_CLASS, 
+				return getCachedImage(CommonImages.IMG_CLASS,
 						t.confirmed ? Decorator.NONE : Decorator.WARNING);
 			}
 			if (element instanceof String) {
@@ -630,7 +671,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 
 		boolean hasWarning() {
-			for(Type t : types) {
+			for (Type t : types) {
 				if (!t.confirmed) {
 					return true;
 				}
@@ -689,7 +730,7 @@ public class XMLExplorerView extends AbstractJSureView {
 			this.pkg = pkg;
 			this.name = name;
 			this.isLocal = isLocal;
-			
+
 			confirmed = JDTUtility.findIType(null, pkg.name, name) != null;
 		}
 

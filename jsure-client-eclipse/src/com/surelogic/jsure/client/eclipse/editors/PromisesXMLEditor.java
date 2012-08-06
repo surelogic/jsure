@@ -417,8 +417,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 
 			if (o instanceof ClassElement) {
 				for (ScopedTargetType t : ScopedTargetType.values()) {
-					makeMenuItem(menu, new AnnotationCreator("Add Scoped Promise For " + t.label
-							+ "...", j, t));
+					makeMenuItem(menu, new AnnotationCreator(
+							"Add Scoped Promise For " + t.label + "...", j, t));
 				}
 			}
 		}
@@ -429,8 +429,8 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		final boolean markUnannotated = provider.markUnannotated();
-		final MenuItem markDecls = makeMenuItem(menu,
-				null, new LoggedSelectionAdapter("Mark Unannotated Methods") {
+		final MenuItem markDecls = makeMenuItem(menu, null,
+				new LoggedSelectionAdapter("Mark Unannotated Methods") {
 					@Override
 					protected void selected(final SelectionEvent e) {
 						provider.setMarkUnannotated(!markUnannotated);
@@ -490,7 +490,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 	private void addActionsForAnnotations(final Menu menu, final IJavaElement o) {
 		if (o instanceof AnnotationElement) {
 			final AnnotationElement a = (AnnotationElement) o;
-			MenuItem m = makeMenuItem(menu, 
+			MenuItem m = makeMenuItem(menu,
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
 					new LoggedSelectionAdapter("Edit Annotation...") {
 						@Override
@@ -500,7 +500,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					});
 			m.setEnabled(a.isEditable());
 
-			MenuItem m2 = makeMenuItem(menu, 
+			MenuItem m2 = makeMenuItem(menu,
 					SLImages.getImage(CommonImages.IMG_ANNOTATION),
 					new LoggedSelectionAdapter("Revert") {
 						@Override
@@ -537,12 +537,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				});
 	}
 
-	abstract class ITypeSelector<T extends IMember> extends LoggedSelectionAdapter {
+	abstract class ITypeSelector<T extends IMember> extends
+			LoggedSelectionAdapter {
 		final ClassElement c;
 		final List<T> members = new ArrayList<T>();
 		final Comparator<T> comparator;
 
-		ITypeSelector(String label, final ClassElement cls, final Comparator<T> compare) {
+		ITypeSelector(String label, final ClassElement cls,
+				final Comparator<T> compare) {
 			super(label);
 			c = cls;
 			comparator = compare;
@@ -608,20 +610,21 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 					}
 				}
 			});
-			makeMenuItem(menu, new LoggedSelectionAdapter("Open Type Hierarchy") {
-				@Override
-				protected void selected(final SelectionEvent e) {
-					final IViewPart view = EclipseUIUtility
-							.showView(JavaUI.ID_TYPE_HIERARCHY);
-					if (view instanceof ITypeHierarchyViewPart) {
-						final ITypeHierarchyViewPart v = (ITypeHierarchyViewPart) view;
-						final IType t = findIType(c, "");
-						if (t != null) {
-							v.setInputElement(t);
+			makeMenuItem(menu,
+					new LoggedSelectionAdapter("Open Type Hierarchy") {
+						@Override
+						protected void selected(final SelectionEvent e) {
+							final IViewPart view = EclipseUIUtility
+									.showView(JavaUI.ID_TYPE_HIERARCHY);
+							if (view instanceof ITypeHierarchyViewPart) {
+								final ITypeHierarchyViewPart v = (ITypeHierarchyViewPart) view;
+								final IType t = findIType(c, "");
+								if (t != null) {
+									v.setInputElement(t);
+								}
+							}
 						}
-					}
-				}
-			});
+					});
 		} else if (o instanceof MethodElement) {
 			result = true;
 			final MethodElement m = (MethodElement) o;
@@ -800,11 +803,13 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return makeMenuItem(menu, null, l);
 	}
 
-	static MenuItem makeMenuItem(Menu menu, Image image, LoggedSelectionAdapter l) {
+	static MenuItem makeMenuItem(Menu menu, Image image,
+			LoggedSelectionAdapter l) {
 		return makeMenuItem(menu, image, l, SWT.PUSH);
 	}
 
-	static MenuItem makeMenuItem(final Menu menu, final Image image, final LoggedSelectionAdapter l, int flags) {
+	static MenuItem makeMenuItem(final Menu menu, final Image image,
+			final LoggedSelectionAdapter l, int flags) {
 		MenuItem item1 = new MenuItem(menu, flags);
 		item1.setText(l.getContext());
 		item1.addSelectionListener(l);
@@ -1033,6 +1038,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 		return map;
 	}
 
+	public static IEditorPart openInXMLEditor(final IType t) {
+		String qname = t.getFullyQualifiedName();
+		int firstDollar = qname.indexOf('$');
+		if (firstDollar >= 0) {
+			// Eliminate any refs to nested classes
+			qname = qname.substring(0, firstDollar);
+			// TODO find nested classes
+		}
+		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')
+				+ TestXMLParserConstants.SUFFIX, false);
+	}
+
 	public static IEditorPart openInEditor(final String path,
 			final boolean readOnly) {
 		final IEditorInput i = makeInput(path, readOnly);
@@ -1090,8 +1107,9 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 				pkg = path.substring(0, lastSlash).replace('/', '.');
 
 			}
-			final String type = name.substring(0, name.length() - TestXMLParserConstants.SUFFIX.length());
-			return JDTUtility.findIType(null, pkg, type) != null;			
+			final String type = name.substring(0, name.length()
+					- TestXMLParserConstants.SUFFIX.length());
+			return JDTUtility.findIType(null, pkg, type) != null;
 		}
 
 		@Override
@@ -1125,7 +1143,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements
 			return path;
 		}
 
-		@SuppressWarnings({"unchecked", "rawtypes"})
+		@SuppressWarnings("rawtypes")
 		@Override
 		public Object getAdapter(final Class adapter) {
 			if (adapter == Object.class) {
