@@ -53,6 +53,10 @@ public class LockRules extends AnnotationRules {
   private static final String REGION_INITIALIZER = "Region Initializer";
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   
+  public static final String WHEN_THREAD_SAFE = "whenThreadSafe";
+  public static final String WHEN_IMMUTABLE = "whenImmutable";
+  public static final String WHEN_CONTAINABLE = "whenContainable";
+  
 	private static final AnnotationRules instance = new LockRules();
 
 	private static final IProtectedRegions protectedRegions = new ProtectedRegions();
@@ -1715,7 +1719,7 @@ public class LockRules extends AnnotationRules {
               // Add derived annotation
               final boolean verify = a.verify();
               final int offset = JavaNode.getSrcRef(sub).getOffset();
-              final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY);
+              final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY, a);
               derived.setPromisedFor(sub);
               derived.setSrcType(a.getSrcType());
               cb.addDerived(derived, originalPromiseDrop);
@@ -1979,7 +1983,7 @@ public class LockRules extends AnnotationRules {
 
 	  protected abstract P createDrop(A node);
 	  
-	  protected abstract A makeDerivedAnnotation(int offset, int mods);
+	  protected abstract A makeDerivedAnnotation(int offset, int mods, A orig);
 	}
   
   public static class Containable_ParseRule 
@@ -1988,8 +1992,8 @@ public class LockRules extends AnnotationRules {
       super(CONTAINABLE, typeDeclOps, ContainableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ContainableNode(offset, mods);
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {      
+      return new ContainableNode(offset, mods, createNamedType(context.getProperty(WHEN_CONTAINABLE)));
     }
     @Override
     protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
@@ -2015,8 +2019,8 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ContainableNode makeDerivedAnnotation(
-            final int offset, final int mods) {
-          return new ContainableNode(offset, mods);
+            final int offset, final int mods, ContainableNode orig) {
+          return new ContainableNode(offset, mods, orig.getWhenTypes());
         }
 
         @Override
@@ -2046,7 +2050,10 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ThreadSafeNode(offset, mods);
+      return new ThreadSafeNode(offset, mods,
+    		  createNamedType(context.getProperty(WHEN_THREAD_SAFE)),
+    		  createNamedType(context.getProperty(WHEN_IMMUTABLE)),
+    		  createNamedType(context.getProperty(WHEN_CONTAINABLE)));
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2092,8 +2099,10 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
-            final int offset, final int mods) {
-          return new ThreadSafeNode(offset, mods);
+            final int offset, final int mods, ThreadSafeNode orig) {
+          return new ThreadSafeNode(offset, mods, orig.getWhenThreadSafe(),
+        		  orig.getWhenImmutable(), 
+        		  orig.getWhenContainable());
         }
 
         @Override
@@ -2220,7 +2229,7 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-    	  return new ImmutableNode(offset, mods);
+    	  return new ImmutableNode(offset, mods, createNamedType(context.getProperty(WHEN_IMMUTABLE)));
       }
       return new ImmutableRefNode(offset);
     }
@@ -2248,8 +2257,8 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ImmutableNode makeDerivedAnnotation(
-            final int offset, final int mods) {
-          return new ImmutableNode(offset, mods);
+            final int offset, final int mods, ImmutableNode orig) {
+          return new ImmutableNode(offset, mods, orig.getWhenTypes());
         }
 
         @Override
