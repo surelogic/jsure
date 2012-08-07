@@ -28,11 +28,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	 *            the source reference to highlight
 	 */
 	protected final void highlightLineInJavaEditor(ISrcRef srcRef) {
-		try {
-			EditorUtil.highlightLineInJavaEditor(srcRef);
-		} catch (org.eclipse.core.runtime.CoreException e) {
-			showMessage("CoreException was thrown");
-		}
+		EditorUtil.highlightLineInJavaEditor(srcRef);
 	}
 
 	/**
@@ -61,19 +57,19 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	 * @return an image that is carefully cached. The image should <i>not</i> be
 	 *         disposed by the calling code.
 	 */
-	public static final Image getCachedImage(ImageDescriptor imageDescriptor, Decorator d) {
+	public static final Image getCachedImage(ImageDescriptor imageDescriptor,
+			Decorator d) {
 		ResultsImageDescriptor rid = new ResultsImageDescriptor(
 				imageDescriptor, d.flag, new Point(22, 16));
 		return rid.getCachedImage();
 	}
-	
+
 	public enum Decorator {
-		NONE(CoE_Constants.NONE), 
-		WARNING(CoE_Constants.INFO_WARNING), 
-		RED_DOT(CoE_Constants.REDDOT);
-		
+		NONE(CoE_Constants.NONE), WARNING(CoE_Constants.INFO_WARNING), RED_DOT(
+				CoE_Constants.REDDOT);
+
 		final int flag;
-		
+
 		Decorator(int flag) {
 			this.flag = flag;
 		}

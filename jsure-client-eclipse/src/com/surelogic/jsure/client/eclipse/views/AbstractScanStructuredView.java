@@ -7,11 +7,17 @@ import java.util.List;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -81,20 +87,33 @@ public abstract class AbstractScanStructuredView<T> extends
 		if (f_viewers.length == 1) {
 			return f_viewers[0].getControl();
 		}
-		return null;
+		return null; // need to call getViewer() to get the control
 	}
 
 	protected abstract StructuredViewer[] newViewers(Composite parent,
 			int extraStyle);
 
 	@Override
+	protected void setupViewer(StructuredViewer viewer) {
+		super.setupViewer(viewer);
+
+		viewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				final ISelection selection = event.getSelection();
+				if (selection instanceof IStructuredSelection) {
+					handleDoubleClick((IStructuredSelection) selection);
+				}
+			}
+		});
+	}
+
+	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
-		// TODO Auto-generated method stub
 	}
 
 	/********************* Methods to handle selections ******************************/
@@ -111,29 +130,33 @@ public abstract class AbstractScanStructuredView<T> extends
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected final void handleDoubleClick(final IStructuredSelection selection) {
-		final T d = (T) selection.getFirstElement();
-		if (d != null) {
-			if (d instanceof IDropInfo) {
-				IDropInfo di = (IDropInfo) d;
-				highlightLineInJavaEditor(di.getSrcRef());
-			}
-			handleDoubleClick(d);
+	private final void handleDoubleClick(final IStructuredSelection selection) {
+		final Object d = selection.getFirstElement();
+		if (d instanceof IDropInfo) {
+			IDropInfo di = (IDropInfo) d;
+			highlightLineInJavaEditor(di.getSrcRef());
+		} else {
+			if (d != null)
+				handleDoubleClick(d);
 		}
 	}
 
-	protected void handleDoubleClick(T d) {
-		// Nothing right now
+	protected void handleDoubleClick(Object d) {
+		// default is to do nothing -- subtypes can override.
 	}
 
 	protected final Action makeCopyAction(String label, String tooltip) {
 		Action a = new Action() {
 			@Override
 			public void run() {
-				f_clipboard.setContents(new Object[] { getSelectedText() },
-						new Transfer[] { TextTransfer.getInstance() });
+				final Clipboard clipboard = new Clipboard(getSite().getShell()
+						.getDisplay());
+				try {
+					clipboard.setContents(new Object[] { getSelectedText() },
+							new Transfer[] { TextTransfer.getInstance() });
+				} finally {
+					clipboard.dispose();
+				}
 			}
 		};
 		a.setText(label);

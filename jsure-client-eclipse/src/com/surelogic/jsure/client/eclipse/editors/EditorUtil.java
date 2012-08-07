@@ -5,7 +5,6 @@ import java.util.logging.Level;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
@@ -20,6 +19,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -30,95 +30,104 @@ import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 public class EditorUtil {
 	/**
 	 * Open and highlight a line within the Java editor, if possible. Otherwise,
-	 * try to open as a text file
+	 * try to open as a text file.
+	 * <p>
+	 * Logs a warning if the method throws an internal exception (this should
+	 * not happen).
 	 * 
 	 * @param srcRef
-	 *            the source reference to highlight
-	 * @throws CoreException
+	 *            the source reference to highlight in the editor.
 	 */
-	public static void highlightLineInJavaEditor(ISrcRef srcRef)
-			throws CoreException {
-		if (srcRef != null) {
-			Object f = srcRef.getEnclosingFile();
-			IFile file;
-			if (f instanceof IFile) {
-				file = (IFile) f;
-			} else if (f instanceof String) {
-				String s = (String) f;
-				if (s.indexOf('/') < 0) {
-					// probably not a file, but see if it's a package
-					handlePackage(s);
-					return;
-				}
-				s = HistoricalSourceView.tryToMapPath(s);
-				file = EclipseUtility.resolveIFile(s);
-
-				if (file == null) {
-					s = srcRef.getRelativePath();
-					file = EclipseUtility.resolveIFile(s);
-				}
-			} else {
-				return;
-			}
-			HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
-					srcRef.getCUName(), srcRef.getLineNumber());
-
-			if (file != null) {
-				IJavaElement elt = JavaCore.create(file);
-				if (elt instanceof IClassFile) {
-					boolean success = handleIClassFile(srcRef);
-					if (success) {
+	public static void highlightLineInJavaEditor(ISrcRef srcRef) {
+		try {
+			if (srcRef != null) {
+				Object f = srcRef.getEnclosingFile();
+				IFile file;
+				if (f instanceof IFile) {
+					file = (IFile) f;
+				} else if (f instanceof String) {
+					String s = (String) f;
+					if (s.indexOf('/') < 0) {
+						// probably not a file, but see if it's a package
+						handlePackage(s);
 						return;
 					}
-				}
-				if (!file.exists()) {
+					s = HistoricalSourceView.tryToMapPath(s);
+					file = EclipseUtility.resolveIFile(s);
+
+					if (file == null) {
+						s = srcRef.getRelativePath();
+						file = EclipseUtility.resolveIFile(s);
+					}
+				} else {
 					return;
 				}
-				if (elt != null) {
-					try {
-						IEditorPart ep = JavaUI.openInEditor(elt);
+				HistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(),
+						srcRef.getCUName(), srcRef.getLineNumber());
 
-						IMarker location = null;
+				if (file != null) {
+					IJavaElement elt = JavaCore.create(file);
+					if (elt instanceof IClassFile) {
+						boolean success = handleIClassFile(srcRef);
+						if (success) {
+							return;
+						}
+					}
+					if (!file.exists()) {
+						return;
+					}
+					if (elt != null) {
 						try {
-							location = ResourcesPlugin.getWorkspace().getRoot()
-									.createMarker("edu.cmu.fluid");
-							final int offset = srcRef.getOffset();
-							if (offset >= 0 && offset != Integer.MAX_VALUE
-									&& srcRef.getLength() >= 0) {
-								location.setAttribute(IMarker.CHAR_START,
-										srcRef.getOffset());
-								location.setAttribute(IMarker.CHAR_END,
-										srcRef.getOffset() + srcRef.getLength());
+							IEditorPart ep = JavaUI.openInEditor(elt);
+
+							IMarker location = null;
+							try {
+								location = ResourcesPlugin.getWorkspace()
+										.getRoot()
+										.createMarker("edu.cmu.fluid");
+								final int offset = srcRef.getOffset();
+								if (offset >= 0 && offset != Integer.MAX_VALUE
+										&& srcRef.getLength() >= 0) {
+									location.setAttribute(IMarker.CHAR_START,
+											srcRef.getOffset());
+									location.setAttribute(
+											IMarker.CHAR_END,
+											srcRef.getOffset()
+													+ srcRef.getLength());
+								}
+								if (srcRef.getLineNumber() > 0) {
+									location.setAttribute(IMarker.LINE_NUMBER,
+											srcRef.getLineNumber());
+								}
+							} catch (org.eclipse.core.runtime.CoreException e) {
+								SLLogger.getLogger().log(Level.SEVERE,
+										"Failure to create an IMarker", e);
 							}
-							if (srcRef.getLineNumber() > 0) {
-								location.setAttribute(IMarker.LINE_NUMBER,
-										srcRef.getLineNumber());
+							if (location != null) {
+								IDE.gotoMarker(ep, location);
 							}
-						} catch (org.eclipse.core.runtime.CoreException e) {
-							SLLogger.getLogger().log(Level.SEVERE,
-									"Failure to create an IMarker", e);
+						} catch (SWTException e) {
+							if (!"Widget is disposed".equals(e.getMessage())) {
+								SLLogger.getLogger().log(
+										Level.WARNING,
+										"Unexpected SWT exception while opening "
+												+ elt.getElementName(), e);
+							}
 						}
-						if (location != null) {
-							IDE.gotoMarker(ep, location);
+					} else { // try to open as a text file
+						IWorkbench bench = PlatformUI.getWorkbench();
+						IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
+						if (win == null && bench.getWorkbenchWindowCount() > 0) {
+							win = bench.getWorkbenchWindows()[0];
 						}
-					} catch (SWTException e) {
-						if (!"Widget is disposed".equals(e.getMessage())) {
-							SLLogger.getLogger().log(
-									Level.WARNING,
-									"Unexpected SWT exception while opening "
-											+ elt.getElementName(), e);
-						}
+						IWorkbenchPage page = win.getActivePage();
+						IDE.openEditor(page, file);
 					}
-				} else { // try to open as a text file
-					IWorkbench bench = PlatformUI.getWorkbench();
-					IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
-					if (win == null && bench.getWorkbenchWindowCount() > 0) {
-						win = bench.getWorkbenchWindows()[0];
-					}
-					IWorkbenchPage page = win.getActivePage();
-					IDE.openEditor(page, file);
 				}
 			}
+		} catch (final Exception e) {
+			SLLogger.getLogger().log(Level.WARNING,
+					I18N.err(254, e.getClass().getSimpleName(), srcRef), e);
 		}
 	}
 

@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -23,6 +23,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
@@ -33,13 +34,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.IViewPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -59,6 +61,25 @@ import com.surelogic.xml.TestXMLParserConstants;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class XMLExplorerView extends AbstractJSureView {
+
+	public static final class CollapseAllHandler extends AbstractHandler {
+		@Override
+		public Object execute(ExecutionEvent event) throws ExecutionException {
+			System.out.println("event:" + event.getCommand().getId());
+			final IViewPart vp = EclipseUIUtility.getView(XMLExplorerView.class
+					.getName());
+			if (vp instanceof XMLExplorerView) {
+				final XMLExplorerView view = (XMLExplorerView) vp;
+				view.attemptCollapseAll();
+			}
+			return null;
+		}
+	}
+
+	void attemptCollapseAll() {
+		if (f_viewer != null)
+			f_viewer.collapseAll();
+	}
 
 	private final Provider f_content = new Provider();
 
@@ -214,7 +235,41 @@ public class XMLExplorerView extends AbstractJSureView {
 		f_viewer.setLabelProvider(f_content);
 		f_content.build();
 		f_viewer.setInput(f_content); // Needed to show something?
+
+		// ICommandService service = (ICommandService) getSite().getService(
+		// ICommandService.class);
+		// Command command = service
+		// .getCommand("com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll");
+		//
+		// System.out.println("Got command: " + command +
+		// " setting handler...");
+		// command.setHandler(new AbstractHandler() {
+		// @Override
+		// public Object execute(ExecutionEvent event)
+		// throws ExecutionException {
+		// if (f_viewer != null)
+		// f_viewer.collapseAll();
+		// return null;
+		// }
+		// });
+		// System.out.println("command state enable=" + command.isEnabled());
+
 		return f_viewer.getControl();
+	}
+
+	@Override
+	protected void setupViewer(StructuredViewer viewer) {
+		super.setupViewer(viewer);
+
+		viewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				final ISelection selection = event.getSelection();
+				if (selection instanceof IStructuredSelection) {
+					handleDoubleClick((IStructuredSelection) selection);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -224,43 +279,6 @@ public class XMLExplorerView extends AbstractJSureView {
 
 	@Override
 	protected void makeActions() {
-
-		ICommandService service = (ICommandService) getSite().getService(
-				ICommandService.class);
-		Command command = service
-				.getCommand("com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll");
-
-		command.setHandler(new AbstractHandler() {
-			@Override
-			public Object execute(ExecutionEvent event)
-					throws ExecutionException {
-				if (f_viewer != null)
-					f_viewer.collapseAll();
-				return null;
-			}
-		});
-
-		// f_findXML.setText("Open Library Annotations...");
-		// f_findXML.setToolTipText("Open the library annotations for a type");
-		// f_findXML.setImageDescriptor(SLImages
-		// .getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE));
-
-		// final CommandContributionItemParameter p = new
-		// CommandContributionItemParameter(
-		// EclipseUIUtility.getIWorkbenchWindow(), "",
-		// "com.surelogic.jsure.client.eclipse.command.FindXMLForType",
-		// SWT.PUSH);
-		// // p.label = "Open Library Annotations...";
-		// // p.tooltip = "Open the library annotations for a type";
-		// // p.icon =
-		// SLImages.getImageDescriptor(CommonImages.IMG_OPEN_XML_TYPE);
-		// f_findXML = new CommandContributionItem(p);
-		//
-		// new CommandContributionItem(EclipseUIUtility.getIWorkbenchWindow(),
-		// "",
-		// "com.surelogic.jsure.client.eclipse.command.FindXMLForType",
-		// parameters, icon, disabledIcon, hoverIcon, label, mnemonic,
-		// tooltip, style);
 
 		f_toggleShowDiffs.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
@@ -343,13 +361,12 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	}
 
-	@Override
-	protected void handleDoubleClick(IStructuredSelection selection) {
+	private void handleDoubleClick(IStructuredSelection selection) {
 		final Object o = selection.getFirstElement();
 		handleDoubleClick(o);
 	}
 
-	void handleDoubleClick(Object o) {
+	private void handleDoubleClick(Object o) {
 		if (o instanceof Type) {
 			Type t = (Type) o;
 			PromisesXMLEditor.openInEditor(t.getPath(), false);
@@ -547,7 +564,7 @@ public class XMLExplorerView extends AbstractJSureView {
 				}
 			}
 			if (parent instanceof String) {
-				return noStrings;
+				return ArrayUtils.EMPTY_STRING_ARRAY;
 			}
 			// return noStrings;
 			return super.getChildren(parent);

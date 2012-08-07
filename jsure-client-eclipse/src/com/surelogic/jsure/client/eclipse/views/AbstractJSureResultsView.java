@@ -13,7 +13,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -48,8 +47,6 @@ public abstract class AbstractJSureResultsView extends ViewPart {
 	protected static final String PLEASE_WAIT = "Performing analysis...please wait";
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected Clipboard clipboard;
-
 	private Action doubleClickAction;
 
 	private final int f_extraStyle;
@@ -71,7 +68,6 @@ public abstract class AbstractJSureResultsView extends ViewPart {
 		treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL
 				| f_extraStyle);
 		setupViewer();
-		clipboard = new Clipboard(getSite().getShell().getDisplay());
 
 		treeViewer.setInput(getViewSite());
 		makeActions_private();
@@ -175,11 +171,7 @@ public abstract class AbstractJSureResultsView extends ViewPart {
 	 *            the source reference to highlight
 	 */
 	protected void highlightLineInJavaEditor(ISrcRef srcRef) {
-		try {
-			EditorUtil.highlightLineInJavaEditor(srcRef);
-		} catch (org.eclipse.core.runtime.CoreException e) {
-			showMessage("CoreException was thrown");
-		}
+		EditorUtil.highlightLineInJavaEditor(srcRef);
 	}
 
 	private void hookDoubleClickAction() {

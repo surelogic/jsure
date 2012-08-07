@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
@@ -211,8 +212,14 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	private final Action f_copy = new Action() {
 		@Override
 		public void run() {
-			clipboard.setContents(new Object[] { getSelectedText() },
-					new Transfer[] { TextTransfer.getInstance() });
+			final Clipboard clipboard = new Clipboard(getSite().getShell()
+					.getDisplay());
+			try {
+				clipboard.setContents(new Object[] { getSelectedText() },
+						new Transfer[] { TextTransfer.getInstance() });
+			} finally {
+				clipboard.dispose();
+			}
 		}
 	};
 

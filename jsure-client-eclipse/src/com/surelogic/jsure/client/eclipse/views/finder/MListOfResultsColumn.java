@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
 import java.util.List;
-import java.util.logging.Level;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,7 +21,6 @@ import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.SLImages;
@@ -38,14 +36,16 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
-public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
+public final class MListOfResultsColumn extends MColumn implements
+		ISelectionObserver {
 
 	/**
 	 * The table used to display the results.
 	 */
 	private Table f_table = null;
 
-	MListOfResultsColumn(final CascadingList cascadingList, final Selection selection, final MColumn previousColumn) {
+	MListOfResultsColumn(final CascadingList cascadingList,
+			final Selection selection, final MColumn previousColumn) {
 		super(cascadingList, selection, previousColumn);
 	}
 
@@ -274,9 +274,11 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
 			@Override
 			public IStatus runInUIThread(final IProgressMonitor monitor) {
 				if (f_table == null) {
-					final int addAfterColumn = getPreviousColumn().getColumnIndex();
+					final int addAfterColumn = getPreviousColumn()
+							.getColumnIndex();
 					// create the display table
-					getCascadingList().addColumnAfter(f_iColumn, addAfterColumn, false);
+					getCascadingList().addColumnAfter(f_iColumn,
+							addAfterColumn, false);
 				} else {
 					// update the table's contents
 					updateTableContents();
@@ -315,7 +317,8 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
 			if (!data.isCheckedByAnalysis())
 				flags |= CoE_Constants.TRUSTED;
 		}
-		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags, new Point(22, 16));
+		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags,
+				new Point(22, 16));
 
 		item.setText(data.getMessage());
 		item.setImage(rid.getCachedImage());
@@ -339,10 +342,6 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
 	 *            the source reference to highlight
 	 */
 	protected void highlightLineInJavaEditor(ISrcRef srcRef) {
-		try {
-			EditorUtil.highlightLineInJavaEditor(srcRef);
-		} catch (Exception e) {
-			SLLogger.getLogger().log(Level.WARNING, "Unexcepted exception thrown trying to highlight a line in the editor", e);
-		}		
+		EditorUtil.highlightLineInJavaEditor(srcRef);
 	}
 }

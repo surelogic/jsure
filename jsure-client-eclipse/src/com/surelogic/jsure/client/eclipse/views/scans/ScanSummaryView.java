@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -418,6 +419,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 								summaries.add(s);
 							}
 						}
+						zf.close();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -512,7 +514,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 
 	class ProjectContentProvider implements IStructuredContentProvider,
 			ILabelProvider {
-		String[] projectNames = new String[0];
+		String[] projectNames = ArrayUtils.EMPTY_STRING_ARRAY;
 
 		/**
 		 * @return true if changed
@@ -582,7 +584,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 
 	class ProjectSelectionListener implements ISelectionChangedListener {
 		boolean alreadyCalled = false;
-		
+
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
 			// Added to prevent infinite loop,
@@ -627,7 +629,7 @@ public class ScanSummaryView extends AbstractJSureView implements
 		}
 		final IAxisSet axisSet = summaryChart.getAxisSet();
 		final IAxis xAxis = axisSet.getXAxis(0);
-		xAxis.setCategorySeries(xLabels.toArray(noStrings));
+		xAxis.setCategorySeries(xLabels.toArray(new String[0]));
 		xAxis.enableCategory(true);
 		xAxis.getTitle().setVisible(false);
 
