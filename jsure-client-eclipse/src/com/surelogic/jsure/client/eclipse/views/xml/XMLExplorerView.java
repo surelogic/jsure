@@ -9,9 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -34,14 +31,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IViewPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -61,20 +56,6 @@ import com.surelogic.xml.TestXMLParserConstants;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class XMLExplorerView extends AbstractJSureView {
-
-	public static final class CollapseAllHandler extends AbstractHandler {
-		@Override
-		public Object execute(ExecutionEvent event) throws ExecutionException {
-			System.out.println("event:" + event.getCommand().getId());
-			final IViewPart vp = EclipseUIUtility.getView(XMLExplorerView.class
-					.getName());
-			if (vp instanceof XMLExplorerView) {
-				final XMLExplorerView view = (XMLExplorerView) vp;
-				view.attemptCollapseAll();
-			}
-			return null;
-		}
-	}
 
 	void attemptCollapseAll() {
 		if (f_viewer != null)
@@ -196,8 +177,7 @@ public class XMLExplorerView extends AbstractJSureView {
 	private final Action f_actionCollapseAll = new Action() {
 		@Override
 		public void run() {
-			if (f_viewer != null)
-				f_viewer.collapseAll();
+			attemptCollapseAll();
 		}
 	};
 
