@@ -1,8 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/IAnnotationParsingContext.java,v 1.9 2007/08/22 20:07:51 chance Exp $ */
 package com.surelogic.annotation;
 
-import java.util.Map;
-
 import com.surelogic.aast.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
