@@ -315,7 +315,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				for (IRNode valuePair : pairs) {
 					final String id = ElementValuePair.getId(valuePair);
 					if (VALUE_ATTR.equals(id)) {
-						contents = extractString(valuePair);
+						contents = extractStringFromPair(valuePair);
 					}
 					else if (ALLOW_READ.equals(id)) {
 						allowRead = extractBoolean(valuePair, allowRead);
@@ -328,9 +328,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
 					}
 					else if (VERIFY.equals(id)) {
 						verify = extractBoolean(valuePair, verify);
-					}					
+					}								
 					else {
-						props.put(id, extractString(valuePair));
+						IRNode val = ElementValuePair.getValue(valuePair);
+						if (ElementValueArrayInitializer.prototype.includes(val)) {
+							props.put(id, reformatStringArray(val));
+						} else {
+							props.put(id, extractString(val));
+						}
 					}
 				}	            
 				return translate(handleJava5Promise(node, node, promise, contents, 
@@ -350,8 +355,23 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return c;
 	}
 	
-	private static String extractString(IRNode valuePair) {
+	private static String reformatStringArray(IRNode strings) {
+		StringBuilder b = new StringBuilder();
+		for(IRNode ev : ElementValueArrayInitializer.getValueIterator(strings)) {
+			if (b.length() != 0) {
+				b.append(',');
+			}
+			b.append(extractString(ev));			
+		}
+		return b.toString();
+	}
+	
+	private static String extractStringFromPair(IRNode valuePair) {
 		IRNode value = ElementValuePair.getValue(valuePair);
+		return extractString(value);
+	}
+	
+	private static String extractString(IRNode value) {
 		if (StringLiteral.prototype.includes(value)) {
 			String c = StringLiteral.getToken(value);
 			return removeQuotes(c);

@@ -24,6 +24,7 @@ import com.surelogic.aast.AASTStatus;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
+import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.IAnnotationParseRule;
@@ -659,5 +660,21 @@ public abstract class AnnotationRules {
 			count += 1;
 		}
 		return positionMap;
+	}
+	
+	protected static final NamedTypeNode[] noTypes = new NamedTypeNode[0];
+	
+	protected static NamedTypeNode[] createNamedType(String val) {
+		if (val == null) {
+			return noTypes;
+		}
+		String[] values = val.split(",");
+		NamedTypeNode[] rv = new NamedTypeNode[values.length];
+		int i=0;
+		for(String s : values) {
+			rv[i] = new NamedTypeNode(0, s);
+			i++;
+		}
+		return rv;
 	}
 }

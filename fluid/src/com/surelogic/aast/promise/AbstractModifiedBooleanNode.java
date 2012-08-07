@@ -1,5 +1,7 @@
 package com.surelogic.aast.promise;
 
+import com.surelogic.aast.java.NamedTypeNode;
+
 import edu.cmu.cs.fluid.java.JavaNode;
 
 public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
@@ -28,12 +30,64 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 					sb.append(" verify=false");
 				}
 			}
+			unparseExtra(debug, indent, sb);
 			sb.append('\n');
 			return sb.toString();
-		} else {
+		} else if (mods != JavaNode.ALL_FALSE || hasChildren()) {
+			StringBuilder sb = new StringBuilder(token);
+			boolean first = true;
+			sb.append('(');			
+			if (JavaNode.isSet(mods, JavaNode.IMPLEMENTATION_ONLY)) {
+				sb.append("implementationOnly=true");
+				first = false;
+			}
+			if (JavaNode.isSet(mods, JavaNode.NO_VERIFY)) {
+				if (!first) {
+					sb.append(", ");
+				}
+				sb.append("verify=false");
+			}
+			if (hasChildren()) {
+				if (!first) {
+					sb.append(", ");
+				}
+				unparseExtra(debug, indent, sb);
+			}
+			sb.append(')');
+			return sb.toString();
+		} else {	 
 			return token;
 		}
+	}	
+	
+	protected abstract void unparseExtra(boolean debug, int indent, StringBuilder sb);
+
+	/**
+	 * @return true if unparsed something
+	 */
+	protected boolean unparseTypes(boolean debug, int indent, StringBuilder sb, String kind, NamedTypeNode[] types) {
+		if (types.length == 0) {
+			return false;
+		}
+		if (debug) {
+			sb.append('\n');
+			indent(sb, indent);
+			sb.append(' ');
+		}
+		sb.append(kind).append('=');
+		boolean first = true;
+		for(NamedTypeNode t : types) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(',');
+			}
+			sb.append(t.unparse(debug, indent));
+		}
+		return true;
 	}
+	
+	protected abstract boolean hasChildren();
 	
 	public final boolean isImplementationOnly() {
 		return getModifier(JavaNode.IMPLEMENTATION_ONLY);
