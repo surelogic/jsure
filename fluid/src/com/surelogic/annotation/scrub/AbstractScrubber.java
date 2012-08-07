@@ -64,10 +64,12 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		return context;
 	}
 	 
+	/*
 	protected static final void markAsUnassociated(IAASTRootNode a) {
 		TestResult expected = AASTStore.getTestResult(a);   
 		TestResult.checkIfMatchesResult(expected, TestResultType.UNASSOCIATED);
 	}
+	*/
 	
 	protected static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
 		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
