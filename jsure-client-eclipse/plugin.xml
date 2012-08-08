@@ -343,17 +343,22 @@
 			id="java" />
 		<include file="lib/templates/default-jsure-java5-templates.xml" />
 	</extension>
+	
+	<!-- JSure main menu -->
 
 	<extension point="org.eclipse.ui.commands">
 		<category description="Commands related to the JSure tool"
 			id="com.surelogic.jsure.client.eclipse.commands" name="JSure">
 		</category>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open the library annotations for a type">
+			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
-			name="Open the Code Verification perspective to examine JSure tool results">
+			name="Open Code Verification Perspective">
 		</command>
 	</extension>
 
@@ -362,40 +367,63 @@
 			locationURI="menu:org.eclipse.ui.main.menu?after=additions">
 			<menu id="com.surelogic.jsure.client.eclipse.menu.jsure" label="JSure"
 				mnemonic="J">
+				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+					mnemonic="V" style="push">
+				</command>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 					icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
-					label="Open Library Annotations..." mnemonic="L" style="push"
-					tooltip="Open the library annotations for a type">
+					mnemonic="L" style="push">
 				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-					label="Open Code Verification Perspective" mnemonic="O" style="push"
-					tooltip="Open the Code Verification perspective to examine JSure tool results">
+					 mnemonic="O" style="push">
 				</command>
-				<separator name="com.surelogic.jsure.client.eclipse.separator"
+				<separator name="com.surelogic.jsure.separator.main1"
 					visible="true">
 				</separator>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
-					id="com.surelogic.jsure.client.eclipse.AddToMenuPlace" label="Open Again"
+					id="com.surelogic.jsure.client.eclipse.AddToMenuPlace" 
 					style="push">
 				</command>
 			</menu>
 		</menuContribution>
+		
+		<menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+    	<menu label="PopKit">
+      		<command
+      			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+      			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+					mnemonic="V" style="push">
+	            <visibleWhen>
+	               <with variable="activeMenuSelection">
+	                  <iterate>
+	                     <adapt type="org.eclipse.core.resources.IProject"/>
+	                  </iterate>
+	               </with>
+	            </visibleWhen>	      			
+      		</command>
+    	</menu>
+  		</menuContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.OpenCodeVerificationPerspectiveHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective">
+			class="com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.FindXMLForTypeHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType">
 		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.OpenCodeVerificationPerspectiveHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective">
+		</handler>
 	</extension>
-
+	
 	<!-- Annotation Explorer view -->
 
 	<extension point="org.eclipse.ui.views">
@@ -426,7 +454,7 @@
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll"
 				icon="platform:/plugin/com.surelogic.common/lib/images/collapse_all.gif"
-				label="Collapse All" style="push" tooltip="Collapse All">
+				style="push" tooltip="Collapse All">
 			</command>
 			<separator name="com.surelogic.jsure.separator.XMLExplorerView.toolbar"
 				visible="true">
@@ -434,12 +462,12 @@
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.toggleShowDiffs"
 				icon="platform:/plugin/com.surelogic.common/lib/images/annotation_delta.gif"
-				label="Show Only User-Added/Modified Library Annotations" style="toggle"
+				style="toggle"
 				tooltip="Show only user-added/modified library annotations">
 			</command>
 			<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 				icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
-				label="Open Library Annotations..." style="push"
+				style="push"
 				tooltip="Open the library annotations for a type">
 			</command>
 		</menuContribution>
@@ -448,7 +476,7 @@
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll"
 				icon="platform:/plugin/com.surelogic.common/lib/images/collapse_all.gif"
-				label="Collapse All" style="push" tooltip="Collapse All">
+				style="push">
 			</command>
 			<separator name="com.surelogic.jsure.separator.XMLExplorerView.menu"
 				visible="true">
@@ -456,11 +484,11 @@
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.toggleShowDiffs"
 				icon="platform:/plugin/com.surelogic.common/lib/images/annotation_delta.gif"
-				label="Show Only User-Added/Modified Library Annotations" style="toggle">
+				style="toggle">
 			</command>
 			<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 				icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
-				label="Open Library Annotations..." style="push">
+				style="push">
 			</command>
 		</menuContribution>
 	</extension>
