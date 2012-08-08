@@ -10,15 +10,15 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -34,13 +34,16 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.menus.UIElement;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
@@ -65,10 +68,9 @@ import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 public class XMLExplorerView extends AbstractSLView implements
 		EclipseUIUtility.IContextMenuFiller {
 
-	void attemptCollapseAll() {
-		if (f_viewer != null)
-			f_viewer.collapseAll();
-	}
+	static abstract class AbstractHandlerElementUpdater extends AbstractHandler
+			implements IElementUpdater {
+	};
 
 	private final Provider f_content = new Provider();
 
@@ -121,16 +123,6 @@ public class XMLExplorerView extends AbstractSLView implements
 		}
 	};
 
-	private final Action f_toggleShowDiffs = new Action(
-			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
-			IAction.AS_CHECK_BOX) {
-		@Override
-		public void run() {
-			f_content.toggleViewingType();
-			f_viewer.refresh();
-		}
-	};
-
 	private final Action f_actionExpand = new Action() {
 		@Override
 		public void run() {
@@ -175,13 +167,6 @@ public class XMLExplorerView extends AbstractSLView implements
 		}
 	};
 
-	private final Action f_actionCollapseAll = new Action() {
-		@Override
-		public void run() {
-			attemptCollapseAll();
-		}
-	};
-
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -213,19 +198,6 @@ public class XMLExplorerView extends AbstractSLView implements
 		f_content.build();
 		f_viewer.setInput(f_content); // Needed to show something?
 
-		IHandlerService hs = (IHandlerService) getSite().getService(
-				IHandlerService.class);
-		hs.activateHandler(
-				"com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll",
-				new AbstractHandler() {
-					@Override
-					public Object execute(ExecutionEvent event)
-							throws ExecutionException {
-						attemptCollapseAll();
-						return null;
-					}
-				});
-
 		return f_viewer.getControl();
 	}
 
@@ -252,13 +224,54 @@ public class XMLExplorerView extends AbstractSLView implements
 	}
 
 	@Override
+	protected void hookHandlersToCommands(IHandlerService hs) {
+		super.hookHandlersToCommands(hs);
+
+		hs.activateHandler(
+				"com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll",
+				new AbstractHandler() {
+					@Override
+					public Object execute(ExecutionEvent event)
+							throws ExecutionException {
+						if (f_viewer != null)
+							f_viewer.collapseAll();
+						return null;
+					}
+				});
+		final String toggleDiffsCmd = "com.surelogic.jsure.client.eclipse.command.XMLExplorerView.toggleShowDiffs";
+		hs.activateHandler(toggleDiffsCmd, new AbstractHandlerElementUpdater() {
+			@Override
+			public Object execute(ExecutionEvent event)
+					throws ExecutionException {
+				final ICommandService service = (ICommandService) PlatformUI
+						.getWorkbench().getService(ICommandService.class);
+				final Command command = service.getCommand(toggleDiffsCmd);
+				final State state = command.getState(toggleDiffsCmd + ".state");
+				f_content.toggleViewingType();
+
+				boolean checked = f_content.getViewingType() == Viewing.DIFFS;
+				state.setValue(checked);
+
+				service.refreshElements(toggleDiffsCmd, null);
+				f_viewer.refresh();
+				return null;
+			}
+
+			@Override
+			public void updateElement(UIElement element,
+					@SuppressWarnings("rawtypes") Map parameters) {
+				final ICommandService service = (ICommandService) PlatformUI
+						.getWorkbench().getService(ICommandService.class);
+				final Command command = service.getCommand(toggleDiffsCmd);
+				final State state = command.getState(toggleDiffsCmd + ".state");
+				final boolean checked = Boolean.TRUE.equals(state.getValue());
+				element.setChecked(checked);
+			}
+		});
+	}
+
+	@Override
 	protected void makeActions() {
-
-		f_toggleShowDiffs.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_ANNOTATION_DELTA));
-		f_toggleShowDiffs.setToolTipText(I18N
-				.msg("jsure.eclipse.xml.explorer.only.abductive.tip"));
-
 		f_actionExpand.setText("Expand");
 		f_actionExpand
 				.setToolTipText("Expand the current selection or all if none");
@@ -270,29 +283,6 @@ public class XMLExplorerView extends AbstractSLView implements
 				.setToolTipText("Collapse the current selection or all if none");
 		f_actionCollapse.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-
-		f_actionCollapseAll.setText("Collapse All");
-		f_actionCollapseAll.setToolTipText("Collapse All");
-		f_actionCollapseAll.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-	}
-
-	@Override
-	protected void fillLocalPullDown(IMenuManager manager) {
-
-		// manager.add(f_findXML);
-		manager.add(f_actionCollapseAll);
-		manager.add(new Separator());
-		manager.add(f_toggleShowDiffs);
-		// manager.add(f_findXML);
-	}
-
-	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(f_actionCollapseAll);
-		manager.add(new Separator());
-		manager.add(f_toggleShowDiffs);
-		// manager.add(f_findXML);
 	}
 
 	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
@@ -443,6 +433,10 @@ public class XMLExplorerView extends AbstractSLView implements
 			if (v != null) {
 				type = v;
 			}
+		}
+
+		Viewing getViewingType() {
+			return type;
 		}
 
 		public void refresh(PackageElement e) {
