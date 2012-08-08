@@ -5,7 +5,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.annotation.rules.LockRules;
 
-public class ImmutableNode extends AbstractModifiedBooleanNode 
+public final class ImmutableNode extends AbstractModifiedBooleanNode 
 { 
   private final NamedTypeNode[] whenImmutable;
 	
@@ -41,8 +41,15 @@ public class ImmutableNode extends AbstractModifiedBooleanNode
 	  return whenImmutable.length > 0;
   }
   
-  public NamedTypeNode[] getWhenTypes() {
-	return whenImmutable;
+  public NamedTypeNode[] getWhenImmutable() {
+    return whenImmutable;
+  }
+  
+  @Override
+  public void visitAnnotationBounds(final WhenVisitor visitor) {
+    for (final NamedTypeNode named : whenImmutable) {
+      visitor.visitWhenType(named);
+    }
   }
 }
 

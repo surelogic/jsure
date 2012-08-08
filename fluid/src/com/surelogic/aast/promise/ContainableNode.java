@@ -5,7 +5,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.annotation.rules.LockRules;
 
-public class ContainableNode extends AbstractModifiedBooleanNode 
+public final class ContainableNode extends AbstractModifiedBooleanNode 
 { 
   private final NamedTypeNode[] whenContainable;
 	
@@ -41,8 +41,15 @@ public class ContainableNode extends AbstractModifiedBooleanNode
 	  return whenContainable.length > 0;
   }
   
-  public NamedTypeNode[] getWhenTypes() {
+  public NamedTypeNode[] getWhenContainable() {
 	  return whenContainable;
+  }
+  
+  @Override
+  public void visitAnnotationBounds(final WhenVisitor visitor) {
+    for (final NamedTypeNode named : whenContainable) {
+      visitor.visitWhenType(named);
+    }
   }
 }
 

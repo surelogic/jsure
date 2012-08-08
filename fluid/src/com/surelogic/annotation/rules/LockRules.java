@@ -1,6 +1,7 @@
 package com.surelogic.annotation.rules;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.runtime.*;
 
@@ -8,6 +9,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.AbstractModifiedBooleanNode.WhenVisitor;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.locks.FieldKind;
@@ -1862,11 +1864,27 @@ public class LockRules extends AnnotationRules {
 	    final NP notDrop = getNotAnnotation(promisedFor);
       if (notDrop != null && !node.isImplementationOnly()) {
         notDrop.invalidate();
-        getContext().reportError(
+        context.reportError(
             node, "Cannot be both @{0} and @{1}", name, notName);
         bad = true;
       }
 	    
+      /* Check that all the formal type parameters named in the annotation
+       * bounds exist.
+       */
+      final AtomicBoolean boundsOkay = new AtomicBoolean(true);
+      final WhenVisitor visitor = new WhenVisitor() {
+        public void visitWhenType(final NamedTypeNode namedType) {
+          if (!namedType.typeExists()) {
+            boundsOkay.set(false);
+            context.reportError(namedType,
+                "No formal type parameter named {0}", namedType.getType());
+            }
+          }
+        };
+      node.visitAnnotationBounds(visitor);
+      bad &= boundsOkay.get();
+      
 	    if (bad) {
 	      return null;
 	    } else {
@@ -2020,7 +2038,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ContainableNode makeDerivedAnnotation(
             final int offset, final int mods, ContainableNode orig) {
-          return new ContainableNode(offset, mods, orig.getWhenTypes());
+          return new ContainableNode(offset, mods, orig.getWhenContainable());
         }
 
         @Override
@@ -2258,7 +2276,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutableNode makeDerivedAnnotation(
             final int offset, final int mods, ImmutableNode orig) {
-          return new ImmutableNode(offset, mods, orig.getWhenTypes());
+          return new ImmutableNode(offset, mods, orig.getWhenImmutable());
         }
 
         @Override

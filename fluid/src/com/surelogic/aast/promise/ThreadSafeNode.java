@@ -6,7 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.annotation.rules.LockRules;
 
-public class ThreadSafeNode extends AbstractModifiedBooleanNode 
+public final class ThreadSafeNode extends AbstractModifiedBooleanNode 
 { 
   private final NamedTypeNode[] whenThreadSafe;	
   private final NamedTypeNode[] whenImmutable;
@@ -70,5 +70,18 @@ public class ThreadSafeNode extends AbstractModifiedBooleanNode
   public NamedTypeNode[] getWhenContainable() {
 	  return whenContainable;
   }  
+  
+  @Override
+  public void visitAnnotationBounds(final WhenVisitor visitor) {
+    for (final NamedTypeNode named : whenContainable) {
+      visitor.visitWhenType(named);
+    }
+    for (final NamedTypeNode named : whenThreadSafe) {
+      visitor.visitWhenType(named);
+    }
+    for (final NamedTypeNode named : whenImmutable) {
+      visitor.visitWhenType(named);
+    }
+  }
 }
 

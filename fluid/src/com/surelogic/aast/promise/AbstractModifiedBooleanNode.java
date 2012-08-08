@@ -96,4 +96,10 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	public final boolean verify() {
 		return !getModifier(JavaNode.NO_VERIFY);
 	}
+	
+	public static interface WhenVisitor {
+	  public void visitWhenType(NamedTypeNode namedType);
+	}
+	
+	public abstract void visitAnnotationBounds(WhenVisitor visitor);
 }
