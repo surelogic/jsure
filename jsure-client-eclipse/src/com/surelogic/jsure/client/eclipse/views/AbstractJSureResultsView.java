@@ -122,13 +122,8 @@ public abstract class AbstractJSureResultsView extends ViewPart {
 
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
-		fillGlobalActionHandlers(bars);
 		fillLocalPullDown(bars.getMenuManager());
 		fillLocalToolBar(bars.getToolBarManager());
-	}
-
-	protected void fillGlobalActionHandlers(IActionBars bars) {
-		// Nothing to do yet
 	}
 
 	private void fillContextMenu_private(IMenuManager manager,

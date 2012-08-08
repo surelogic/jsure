@@ -488,12 +488,4 @@
           </command>
     </menuContribution>
  </extension>
- 
- <extension
-       point="org.eclipse.ui.handlers">
-    <handler
-          class="com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView"
-          commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll">
-    </handler>
- </extension>	
 </plugin>

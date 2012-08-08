@@ -12,6 +12,7 @@ import org.eclipse.ui.part.PageBook;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -20,7 +21,7 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
  * 
  * @author Edwin
  */
-public abstract class AbstractJSureScanView extends AbstractJSureView implements
+public abstract class AbstractJSureScanView extends AbstractSLView implements
 		JSureDataDirHub.CurrentScanChangeListener {
 	protected static final String NO_RESULTS = I18N
 			.msg("jsure.eclipse.view.no.scan.msg");

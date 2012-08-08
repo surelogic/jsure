@@ -518,11 +518,6 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	}
 
 	@Override
-	protected void fillGlobalActionHandlers(final IActionBars bars) {
-		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
-	}
-
-	@Override
 	protected void fillLocalPullDown(final IMenuManager manager) {
 		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
@@ -533,6 +528,9 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			manager.add(f_actionExportZIPForStandAloneResultsViewer);
 			manager.add(f_actionExportXMLForSierra);
 		}
+
+		final IActionBars bars = getViewSite().getActionBars();
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
 	@Override
