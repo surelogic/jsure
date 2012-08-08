@@ -19,6 +19,9 @@ public class ThreadSafeNode extends AbstractModifiedBooleanNode
     this.whenThreadSafe = whenThreadSafe;
     this.whenImmutable = whenImmutable;
     this.whenContainable = whenContainable;
+    setParents(whenThreadSafe);
+    setParents(whenImmutable);
+    setParents(whenContainable);
   }
 
   @Override

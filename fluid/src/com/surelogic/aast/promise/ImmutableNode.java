@@ -13,6 +13,7 @@ public class ImmutableNode extends AbstractModifiedBooleanNode
   public ImmutableNode(int offset, int mods, NamedTypeNode[] when) {
     super(offset, mods);
     whenImmutable = when;
+    setParents(when);
   }
 
   @Override

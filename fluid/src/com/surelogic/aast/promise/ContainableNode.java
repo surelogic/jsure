@@ -13,6 +13,7 @@ public class ContainableNode extends AbstractModifiedBooleanNode
   public ContainableNode(int offset, int mods, NamedTypeNode[] when) {
     super(offset, mods);
     whenContainable = when;    
+    setParents(when);
   }
 
   @Override

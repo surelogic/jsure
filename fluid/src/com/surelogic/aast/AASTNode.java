@@ -35,6 +35,12 @@ public abstract class AASTNode implements IAASTNode {
     parent = p;
   }
 
+  public void setParents(AASTNode[] children) {
+	  for(AASTNode n : children) {
+		  n.setParent(this);
+	  }
+  }
+  
   public int getOffset() {
     return offset;
   }
