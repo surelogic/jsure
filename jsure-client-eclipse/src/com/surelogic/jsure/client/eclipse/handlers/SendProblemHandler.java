@@ -1,18 +1,22 @@
-package com.surelogic.jsure.client.eclipse.actions;
+package com.surelogic.jsure.client.eclipse.handlers;
 
-import org.eclipse.jface.action.IAction;
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.license.SLLicenseProduct;
-import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 import com.surelogic.jsure.client.eclipse.Activator;
 
-public final class SendProblemAction extends AbstractMainAction {
-	public void run(IAction action) {
+public class SendProblemHandler extends AbstractHandler {
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
 		SendServiceMessageWizard.openProblemReport(SLLicenseProduct.JSURE + " "
 				+ EclipseUtility.getVersion(Activator.getDefault()),
 				CommonImages.IMG_JSURE_LOGO);
+		return null;
 	}
 }

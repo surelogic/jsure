@@ -23,7 +23,7 @@ public class AddUpdatePromisesLibraryHandler extends
 		AbstractProjectSelectedMenuHandler implements IHandler {
 
 	@Override
-	protected void runActionOn(List<IJavaProject> selectedProjects) {
+	public void runActionOn(List<IJavaProject> selectedProjects) {
 		/*
 		 * License check: A hack because JSure is not using SLJobs yet.
 		 */

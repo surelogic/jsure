@@ -1,6 +1,9 @@
 package com.surelogic.jsure.client.eclipse.refactor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
@@ -10,7 +13,7 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction;
+import com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler;
 import com.surelogic.jsure.core.JSureUtility;
 
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
@@ -39,21 +42,25 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		}
 		final List<IJavaProject> missing = findProjectsWithoutPromises(selected);
 		if (!missing.isEmpty()) {
-			new AddUpdatePromisesLibraryAction().runActionOn(missing);
-			
+			new AddUpdatePromisesLibraryHandler().runActionOn(missing);
+
 			StringBuilder sb = new StringBuilder();
-			for(IJavaProject p : missing) {
+			for (IJavaProject p : missing) {
 				if (sb.length() > 0) {
 					sb.append(", ");
 				}
 				sb.append(p.getElementName());
 			}
-			MessageDialog.openInformation(EclipseUIUtility.getShell(), 
-					I18N.msg("jsure.eclipse.dialog.promises.addRequiredJars.title"), 
-					I18N.msg("jsure.eclipse.dialog.promises.addRequiredJars.msg", sb));
+			MessageDialog
+					.openInformation(
+							EclipseUIUtility.getShell(),
+							I18N.msg("jsure.eclipse.dialog.promises.addRequiredJars.title"),
+							I18N.msg(
+									"jsure.eclipse.dialog.promises.addRequiredJars.msg",
+									sb));
 			return;
 		}
-		
+
 		final ProposedPromisesChange info = new ProposedPromisesChange(selected);
 		final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 				info);
@@ -67,25 +74,26 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 			// Operation was canceled. Whatever floats their boat.
 		}
 	}
-	
+
 	/**
 	 * Find projects that don't have the promises jar
 	 */
-	private List<IJavaProject> findProjectsWithoutPromises(List<? extends IProposedPromiseDropInfo> proposals) {
+	private List<IJavaProject> findProjectsWithoutPromises(
+			List<? extends IProposedPromiseDropInfo> proposals) {
 		final Set<String> projects = new HashSet<String>();
-		for(IProposedPromiseDropInfo p : proposals) {
+		for (IProposedPromiseDropInfo p : proposals) {
 			// Check the target project for promises
 			projects.add(p.getTargetProjectName());
 		}
 		final List<IJavaProject> missing = new ArrayList<IJavaProject>();
-		for(String name : projects) {		
+		for (String name : projects) {
 			final IJavaProject proj = JDTUtility.getJavaProject(name);
 			if (proj == null) {
 				continue; // Skip this since it's the JRE
 			}
 			if (!JSureUtility.checkForRegionLockPromiseOnClasspathOf(proj)) {
 				missing.add(proj);
-			}			
+			}
 		}
 		return missing;
 	}

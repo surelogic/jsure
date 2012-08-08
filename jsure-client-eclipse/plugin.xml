@@ -137,8 +137,6 @@
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="com.surelogic.jsure"></category>
 
-
-
 		<view name="JSure Scans" allowMultiple="false" category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_drum.gif"
@@ -217,118 +215,7 @@
 		</perspectiveExtension>
 	</extension>
 
-	<!-- JSure menus -->
-
-	<extension point="org.eclipse.ui.actionSets">
-		<actionSet label="JSure ActionSet" visible="true"
-			id="com.surelogic.jsure.client.eclipse.workbenchActionSet">
-			<menu id="com.surelogic.jsure.client.eclipse.workbenchMenu"
-				label="&amp;JSure" path="additions">
-
-				<groupMarker name="client" />
-				<separator name="service" />
-				<separator name="license" />
-				<separator name="additions" />
-			</menu>
-
-			<!-- action class="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction" 
-				id="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction" label="Test 
-				makeModel()" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"> 
-				</action -->
-
-			<!--action class="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction" 
-				id="com.surelogic.jsure.client.eclipse.actions.TestXMLEditorAction" label="Test 
-				XML Editor" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"> 
-				</action -->
-
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
-				label="Save Promises Library As..." tooltip="Save a copy of the promises library to the disk"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
-				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
-				label="Add/Update Promises Library in Project"
-				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
-				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
-				label="Manage SureLogic Licenses" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/license"
-				helpContextId="menu-manage-licenses">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
-				label="Run JSure Tutorials" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
-				helpContextId="menu-run-jsure-tutorials">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationChangesAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SendLibraryAnnotationChangesAction"
-				label="Send Library Annotation Changes" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
-				label="Send Problem Report" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
-				helpContextId="menu-send-problem-report">
-			</action>
-
-			<action class="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction" label="Send Tip for Improvement"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
-				helpContextId="menu-send-tip-for-improvement">
-			</action>
-		</actionSet>
-	</extension>
-
-	<!-- Keyboard shortcut to start a scan: first we associate a command with 
-		the "definitionId" above, then we define a key binding -->
-
-	<extension point="org.eclipse.ui.commands">
-		<command name="Verify Project" id="com.surelogic.jsure.NewScanAction" />
-	</extension>
-
-	<extension point="org.eclipse.ui.bindings">
-		<key sequence="Ctrl+Alt+Shift+V" commandId="com.surelogic.jsure.NewScanAction"
-			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
-		</key>
-	</extension>
-
-	<extension id="dcPopupMenus" point="org.eclipse.ui.popupMenus">
-		<objectContribution id="iprojectContribution"
-			objectClass="org.eclipse.core.resources.IProject" adaptable="true">
-
-			<menu id="jSureMenu" label="JSure">
-				<groupMarker name="nature.grp" />
-			</menu>
-
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
-				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
-				label="Add/Update Promises Library in Project" icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
-				menubarPath="jSureMenu/nature.grp" enablesFor="+">
-			</action>
-			<action id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
-				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
-				label="Verify Project"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
-				menubarPath="jSureMenu/nature.grp" enablesFor="+">
-			</action>
-		</objectContribution>
-	</extension>
+	<!-- What is this? -->
 
 	<extension point="org.eclipse.ui.editors.templates">
 		<contextType name="JSure Java Context"
@@ -336,19 +223,24 @@
 			id="java" />
 		<include file="lib/templates/default-jsure-java5-templates.xml" />
 	</extension>
-	
-	<!-- JSure main menu -->
+
+	<!-- JSure main menu and project context menu -->
 
 	<extension point="org.eclipse.ui.commands">
 		<category description="Commands related to the JSure tool"
 			id="com.surelogic.jsure.client.eclipse.commands" name="JSure">
 		</category>
-		
+
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary" name="Add/Update Promises Library in Project">
+			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
+			name="Add/Update Promises Library in Project">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
+			name="Save Promises Library As...">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
@@ -357,9 +249,29 @@
 			id="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
 			name="Open Code Verification Perspective">
 		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SendTip" name="Send Tip for Improvement">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SendProblem" name="Send Problem Report">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges"
+			name="Send Library Annotation Changes">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
+			name="Run JSure Tutorials">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.ManageLicenses" name="Manage SureLogic Licenses">
+		</command>
 	</extension>
 
 	<extension point="org.eclipse.ui.menus">
+
+		<!-- main menu -->
+
 		<menuContribution allPopups="false"
 			locationURI="menu:org.eclipse.ui.main.menu?after=additions">
 			<menu id="com.surelogic.jsure.client.eclipse.menu.jsure" label="JSure"
@@ -368,9 +280,15 @@
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					mnemonic="V" style="push">
 				</command>
-				<command commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 					mnemonic="A" style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
+					mnemonic="S" style="push">
 				</command>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 					icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
@@ -379,35 +297,64 @@
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-					 mnemonic="O" style="push">
+					mnemonic="O" style="push">
 				</command>
 				<separator name="com.surelogic.jsure.separator.main1"
 					visible="true">
 				</separator>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.SendTip"
+					style="push">
+				</command>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.SendProblem"
+					style="push">
+				</command>
 				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective"
-					id="com.surelogic.jsure.client.eclipse.AddToMenuPlace" 
+					commandId="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges"
+					style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
+					style="push">
+				</command>
+				<separator name="com.surelogic.jsure.separator.main2"
+					visible="true">
+				</separator>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.ManageLicenses"
 					style="push">
 				</command>
 			</menu>
 		</menuContribution>
-		
+
+		<!-- IProject context menu -->
+
 		<menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-    	<menu label="JSure" icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif">
-      		<command
-      			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
-      			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+			<menu label="JSure"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif">
+				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					mnemonic="V" style="push">
-	            <visibleWhen>
-	               <with variable="activeMenuSelection">
-	                  <iterate>
-	                     <adapt type="org.eclipse.core.resources.IProject"/>
-	                  </iterate>
-	               </with>
-	            </visibleWhen>	      			
-      		</command>
-    	</menu>
-  		</menuContribution>
+					<visibleWhen>
+						<with variable="activeMenuSelection">
+							<iterate>
+								<adapt type="org.eclipse.core.resources.IProject" />
+							</iterate>
+						</with>
+					</visibleWhen>
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
+					mnemonic="V" style="push">
+					<visibleWhen>
+						<with variable="activeMenuSelection">
+							<iterate>
+								<adapt type="org.eclipse.core.resources.IProject" />
+							</iterate>
+						</with>
+					</visibleWhen>
+				</command>
+			</menu>
+		</menuContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.handlers">
@@ -420,6 +367,10 @@
 			commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary">
 		</handler>
 		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SavePromisesLibraryAsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs">
+		</handler>
+		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.FindXMLForTypeHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType">
 		</handler>
@@ -427,8 +378,35 @@
 			class="com.surelogic.jsure.client.eclipse.handlers.OpenCodeVerificationPerspectiveHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective">
 		</handler>
+		<handler class="com.surelogic.jsure.client.eclipse.handlers.SendTipHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SendTip">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SendProblemHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SendProblem">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SendLibraryAnnotationHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.ImportTutorialProjectsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.ManageLicensesHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.ManageLicenses">
+		</handler>
 	</extension>
 	
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+Shift+V"
+			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+	</extension>
+	
+
 	<!-- Annotation Explorer view -->
 
 	<extension point="org.eclipse.ui.views">
@@ -467,13 +445,11 @@
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.toggleShowDiffs"
 				icon="platform:/plugin/com.surelogic.common/lib/images/annotation_delta.gif"
-				style="toggle"
-				tooltip="Show only user-added/modified library annotations">
+				style="toggle" tooltip="Show only user-added/modified library annotations">
 			</command>
 			<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 				icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
-				style="push"
-				tooltip="Open the library annotations for a type">
+				style="push" tooltip="Open the library annotations for a type">
 			</command>
 		</menuContribution>
 		<menuContribution allPopups="false"

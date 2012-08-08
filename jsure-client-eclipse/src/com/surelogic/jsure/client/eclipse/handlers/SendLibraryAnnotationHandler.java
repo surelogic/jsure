@@ -1,26 +1,36 @@
-package com.surelogic.jsure.client.eclipse.actions;
+package com.surelogic.jsure.client.eclipse.handlers;
 
-import java.io.*;
-import java.util.*;
+import static com.surelogic.xml.TestXMLParserConstants.PACKAGE_PROMISES;
+import static com.surelogic.xml.TestXMLParserConstants.SUFFIX;
+import static com.surelogic.xml.TestXMLParserConstants.XML_FILTER;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 
-import org.eclipse.jface.action.IAction;
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
 
-import com.surelogic.common.*;
+import com.surelogic.common.CommonImages;
+import com.surelogic.common.FileUtility;
+import com.surelogic.common.TextArchiver;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.serviceability.*;
+import com.surelogic.common.serviceability.MessageWithArchive;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import static com.surelogic.xml.TestXMLParserConstants.*;
 
-public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
-	public void run(IAction action) {
+public class SendLibraryAnnotationHandler extends AbstractHandler {
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
 		File temp = null;
 		Archiver archive = null;
 		try {
@@ -44,7 +54,7 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 						.openInformation(EclipseUIUtility.getShell(),
 								"No Library Annotation Changes",
 								"There are no library annotation changes to send to SureLogic");
-				return;
+				return null;
 			}
 			MessageWithArchive message = new MessageWithArchive(temp);
 			message.setSummary("Proposed library annotation changes");
@@ -54,6 +64,7 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 					+ EclipseUtility.getVersion(Activator.getDefault()),
 					CommonImages.IMG_JSURE_LOGO, message);
 		}
+		return null;
 	}
 
 	private static class Archiver extends TextArchiver {
@@ -87,7 +98,10 @@ public class SendLibraryAnnotationChangesAction extends AbstractMainAction {
 			if (PACKAGE_PROMISES.equals(f.getName())) {
 				changed.add(pkg);
 			} else {
-				final String qname = pkg+'.'+f.getName().substring(0, f.getName().length() - SUFFIX.length());
+				final String qname = pkg
+						+ '.'
+						+ f.getName().substring(0,
+								f.getName().length() - SUFFIX.length());
 				changed.add(qname);
 			}
 		}
