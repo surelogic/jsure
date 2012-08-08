@@ -259,13 +259,6 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
-			<action class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
-				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
-				definitionId="com.surelogic.jsure.NewScanAction" label="&amp;Verify Project"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
@@ -350,8 +343,12 @@
 		<category description="Commands related to the JSure tool"
 			id="com.surelogic.jsure.client.eclipse.commands" name="JSure">
 		</category>
+		
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary" name="Add/Update Promises Library in Project">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
@@ -370,6 +367,10 @@
 				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					mnemonic="V" style="push">
+				</command>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
+					mnemonic="A" style="push">
 				</command>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 					icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
@@ -392,7 +393,7 @@
 		</menuContribution>
 		
 		<menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-    	<menu label="PopKit">
+    	<menu label="JSure" icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif">
       		<command
       			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
       			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
@@ -413,6 +414,10 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.FindXMLForTypeHandler"
