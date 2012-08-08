@@ -22,10 +22,13 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
@@ -36,7 +39,8 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 public class ProposedPromiseView extends
-		AbstractScanStructuredView<IProposedPromiseDropInfo> {
+		AbstractScanStructuredView<IProposedPromiseDropInfo> implements
+		EclipseUIUtility.IContextMenuFiller {
 
 	private final ProposedPromiseContentProvider f_content;
 
@@ -200,6 +204,9 @@ public class ProposedPromiseView extends
 		manager.add(new Separator());
 		manager.add(f_toggleView);
 		manager.add(f_toggleFilter);
+
+		final IActionBars bars = getViewSite().getActionBars();
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
 	@Override
@@ -214,7 +221,13 @@ public class ProposedPromiseView extends
 	}
 
 	@Override
-	protected void fillContextMenu(final IMenuManager manager,
+	protected void setupViewer(StructuredViewer viewer) {
+		super.setupViewer(viewer);
+
+		EclipseUIUtility.hookContextMenu(this, viewer, this);
+	}
+
+	public void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {

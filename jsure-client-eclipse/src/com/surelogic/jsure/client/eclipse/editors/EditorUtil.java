@@ -28,12 +28,16 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class EditorUtil {
+
 	/**
 	 * Open and highlight a line within the Java editor, if possible. Otherwise,
 	 * try to open as a text file.
 	 * <p>
 	 * Logs a warning if the method throws an internal exception (this should
 	 * not happen).
+	 * <p>
+	 * This is JSure specific code due to the use of {@link ISrcRef} as well as
+	 * other types in the implementation.
 	 * 
 	 * @param srcRef
 	 *            the source reference to highlight in the editor.

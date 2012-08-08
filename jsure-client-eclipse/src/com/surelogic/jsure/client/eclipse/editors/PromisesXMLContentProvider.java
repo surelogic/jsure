@@ -37,8 +37,8 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureView.Decorator;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor.Decorator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.AbstractFunctionElement;
@@ -213,11 +213,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 						// No XML at all, so we have to create something
 						final int lastSlash = path.lastIndexOf('/');
 						final String p, name;
-						final int len = path.length() - 
-							TestXMLParserConstants.SUFFIX.length();
+						final int len = path.length()
+								- TestXMLParserConstants.SUFFIX.length();
 						if (lastSlash >= 0) {
-							p = path.substring(0, lastSlash).replace(
-									'/', '.');
+							p = path.substring(0, lastSlash).replace('/', '.');
 							name = path.substring(lastSlash + 1, len);
 						} else {
 							p = null;
@@ -226,11 +225,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 						if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
 							// System.out.println("Making AST for "+p);
 							roots[0] = pkg = PromisesXMLBuilder
-							.makePackageModel(p);
+									.makePackageModel(p);
 						} else {
 							// System.out.println("Making AST for "+p+'.'+name);
-							roots[0] = pkg = PromisesXMLBuilder.makeModel(
-									p, name);
+							roots[0] = pkg = PromisesXMLBuilder.makeModel(p,
+									name);
 						}
 						PromisesXMLReader.cache(path, pkg);
 					} else {
@@ -342,7 +341,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider
 				}
 			}
 		}
-		return AbstractJSureView.getCachedImage(desc, d);
+		return ResultsImageDescriptor.getCachedImage(desc, d);
 	}
 
 	protected ImageDescriptor getImageDescriptor(final Object element) {

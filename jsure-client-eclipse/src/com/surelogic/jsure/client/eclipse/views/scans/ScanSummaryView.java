@@ -25,8 +25,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -64,13 +62,13 @@ import org.swtchart.Range;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.ColumnViewerSorter;
+import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
@@ -79,7 +77,7 @@ import edu.cmu.cs.fluid.sea.SeaStats;
  * A simple view to show what scans are available to be selected as the
  * baseline/current scan
  */
-public class ScanSummaryView extends AbstractJSureView implements
+public class ScanSummaryView extends AbstractSLView implements
 		JSureDataDirHub.CurrentScanChangeListener {
 	final ContentProvider f_content = new ContentProvider();
 	final ProjectContentProvider f_projectsContent = new ProjectContentProvider();
@@ -286,26 +284,6 @@ public class ScanSummaryView extends AbstractJSureView implements
 				}
 			}
 		};
-	}
-
-	@Override
-	protected void makeActions() {
-		// TODO
-	}
-
-	@Override
-	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
-		// TODO
-	}
-
-	@Override
-	protected void fillLocalPullDown(IMenuManager manager) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {
-		// TODO Auto-generated method stub
 	}
 
 	static class Summary {

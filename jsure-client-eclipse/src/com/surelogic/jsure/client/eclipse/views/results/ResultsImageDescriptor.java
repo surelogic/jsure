@@ -10,7 +10,14 @@
  *******************************************************************************/
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import static com.surelogic.common.jsure.xml.CoE_Constants.*;
+import static com.surelogic.common.jsure.xml.CoE_Constants.ASSUME;
+import static com.surelogic.common.jsure.xml.CoE_Constants.CONSISTENT;
+import static com.surelogic.common.jsure.xml.CoE_Constants.INCONSISTENT;
+import static com.surelogic.common.jsure.xml.CoE_Constants.INFO;
+import static com.surelogic.common.jsure.xml.CoE_Constants.INFO_WARNING;
+import static com.surelogic.common.jsure.xml.CoE_Constants.REDDOT;
+import static com.surelogic.common.jsure.xml.CoE_Constants.TRUSTED;
+import static com.surelogic.common.jsure.xml.CoE_Constants.VIRTUAL;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -289,6 +296,54 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 		if ((fFlags & INCONSISTENT) != 0) {
 			ImageData data = getImageData(DESC_INCONSISTENT_DECR);
 			drawImage(data, x, size.y - data.height);
+		}
+	}
+
+	/*
+	 * Convenience methods for getting images
+	 */
+
+	/**
+	 * Gets a cached image with an optional conflict (warning) decorator.
+	 * 
+	 * @param symbolicName
+	 *            a name from {@link CommonImages}.
+	 * @param showWariningDecorator
+	 *            {@code true} if a warning decorator should be shown,
+	 *            {@code false} otherwise.
+	 * @return an image that is carefully cached. The image should <i>not</i> be
+	 *         disposed by the calling code.
+	 */
+	public static final Image getCachedImage(String symbolicName, Decorator d) {
+		return getCachedImage(SLImages.getImageDescriptor(symbolicName), d);
+	}
+
+	/**
+	 * Gets a cached image with an optional conflict (warning) decorator.
+	 * 
+	 * @param imageDescriptor
+	 *            an image descriptor.
+	 * @param showWarningDecorator
+	 *            {@code true} if a warning decorator should be shown,
+	 *            {@code false} otherwise.
+	 * @return an image that is carefully cached. The image should <i>not</i> be
+	 *         disposed by the calling code.
+	 */
+	public static final Image getCachedImage(ImageDescriptor imageDescriptor,
+			Decorator d) {
+		ResultsImageDescriptor rid = new ResultsImageDescriptor(
+				imageDescriptor, d.flag, new Point(22, 16));
+		return rid.getCachedImage();
+	}
+
+	public static enum Decorator {
+		NONE(CoE_Constants.NONE), WARNING(CoE_Constants.INFO_WARNING), RED_DOT(
+				CoE_Constants.REDDOT);
+
+		final int flag;
+
+		Decorator(int flag) {
+			this.flag = flag;
 		}
 	}
 }

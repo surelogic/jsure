@@ -17,6 +17,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -40,7 +41,8 @@ import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ScanAnnotationExplorerView extends
-		AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> {
+		AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> implements
+		EclipseUIUtility.IContextMenuFiller {
 
 	private final Action f_openSource = new Action() {
 		@Override
@@ -55,10 +57,10 @@ public class ScanAnnotationExplorerView extends
 			}
 		}
 	};
-	
+
 	private final Action f_findType = new Action() {
 		@Override
-		public void run() {			
+		public void run() {
 			try {
 				findType();
 			} catch (JavaModelException e) {
@@ -67,7 +69,7 @@ public class ScanAnnotationExplorerView extends
 			}
 		}
 	};
-	
+
 	private final Action f_actionCollapseAll = new Action() {
 		@Override
 		public void run() {
@@ -95,10 +97,16 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	@Override
-	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+	protected void setupViewer(StructuredViewer viewer) {
+		super.setupViewer(viewer);
+
+		EclipseUIUtility.hookContextMenu(this, viewer, this);
+	}
+
+	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(f_openSource);
 	}
-	
+
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		manager.add(f_actionCollapseAll);
@@ -122,23 +130,22 @@ public class ScanAnnotationExplorerView extends
 			int paren = d.getLabel().indexOf('(');
 			if (paren < 0) {
 				// Field?
-				JDTUIUtility.tryToOpenInEditorUsingFieldName(p.getLabel(), t.getLabel(), d.getLabel());
+				JDTUIUtility.tryToOpenInEditorUsingFieldName(p.getLabel(),
+						t.getLabel(), d.getLabel());
 			} else {
-				JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getLabel(), t.getLabel(), 
-						d.getLabel().substring(0, paren));
+				JDTUIUtility.tryToOpenInEditorUsingMethodName(p.getLabel(),
+						t.getLabel(), d.getLabel().substring(0, paren));
 			}
-		}
-		else if (e instanceof Type) {
+		} else if (e instanceof Type) {
 			Type t = (Type) e;
 			Package p = (Package) t.getParent();
 			JDTUIUtility.tryToOpenInEditor(p.getLabel(), t.getLabel());
-		}
-		else if (e instanceof Anno) {
+		} else if (e instanceof Anno) {
 			Anno a = (Anno) e;
 			JDTUIUtility.tryToOpenInEditor(a.getSourceRef());
 		}
 	}
-	
+
 	private static final Package[] NO_ROOTS = new Package[0];
 
 	static class ActualAnnotationsContentProvider implements
@@ -165,12 +172,13 @@ public class ScanAnnotationExplorerView extends
 				return null;
 			}
 			final MultiMap<String, IDropInfo> pkgToDrop = new MultiHashMap<String, IDropInfo>();
-			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {				
+			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
 				final ISrcRef sr = d.getSrcRef();
 				if (sr == null) {
 					continue;
 				}
-				if (ModelingProblemFilterUtility.showResource(sr.getRelativePath())) {
+				if (ModelingProblemFilterUtility.showResource(sr
+						.getRelativePath())) {
 					pkgToDrop.put(sr.getPackage(), d);
 				}
 			}
@@ -259,10 +267,10 @@ public class ScanAnnotationExplorerView extends
 
 		ITypeElement findType(final IType t) {
 			final String pkg = t.getPackageFragment().getElementName();
-			for(Package p : roots) {
+			for (Package p : roots) {
 				if (pkg.equals(p.getLabel())) {
 					String type = t.getElementName();
-					for(ITypeElement te : p.getChildren()) {
+					for (ITypeElement te : p.getChildren()) {
 						if (type.equals(te.getLabel())) {
 							return te;
 						}
@@ -426,7 +434,6 @@ public class ScanAnnotationExplorerView extends
 		public Image getImage() {
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION);
 		}
-		
 
 		public JavaSourceReference getSourceRef() {
 			// Find type
@@ -436,30 +443,31 @@ public class ScanAnnotationExplorerView extends
 			}
 			Type t = (Type) e;
 			ISrcRef r = drop.getSrcRef();
-			return new JavaSourceReference(r.getPackage(), t.getLabel(), r.getLineNumber(), r.getOffset());
+			return new JavaSourceReference(r.getPackage(), t.getLabel(),
+					r.getLineNumber(), r.getOffset());
 		}
 	}
-	
+
 	void findType() throws JavaModelException {
-		final SelectionDialog dialog = 
-			JavaUI.createTypeDialog(EclipseUIUtility.getShell(), EclipseUIUtility.getIWorkbenchWindow(), 
-					SearchEngine.createWorkspaceScope(), 
-					IJavaElementSearchConstants.CONSIDER_ALL_TYPES, 
-					false, "");
+		final SelectionDialog dialog = JavaUI.createTypeDialog(
+				EclipseUIUtility.getShell(),
+				EclipseUIUtility.getIWorkbenchWindow(),
+				SearchEngine.createWorkspaceScope(),
+				IJavaElementSearchConstants.CONSIDER_ALL_TYPES, false, "");
 		dialog.setTitle("Find Annotations on a Type");
-		
-		int result= dialog.open();
+
+		int result = dialog.open();
 		if (result != IDialogConstants.OK_ID) {
 			return;
 		}
-		Object[] types= dialog.getResult();
+		Object[] types = dialog.getResult();
 		if (types == null || types.length == 0) {
 			return;
 		}
 		// Focus on the corresponding type
-		IType t = (IType) types[0];		
-		ActualAnnotationsContentProvider cp = (ActualAnnotationsContentProvider) 
-			getViewer().getContentProvider();
+		IType t = (IType) types[0];
+		ActualAnnotationsContentProvider cp = (ActualAnnotationsContentProvider) getViewer()
+				.getContentProvider();
 		ITypeElement focus = cp.findType(t);
 		if (focus != null) {
 			getViewer().reveal(focus);

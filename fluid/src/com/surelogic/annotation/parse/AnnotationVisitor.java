@@ -331,7 +331,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 					}								
 					else {
 						IRNode val = ElementValuePair.getValue(valuePair);
-						if (ElementValueArrayInitializer.prototype.includes(val)) {
+						if (ArrayInitializer.prototype.includes(val)) {
 							props.put(id, reformatStringArray(val));
 						} else {
 							props.put(id, extractString(val));
@@ -357,7 +357,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	
 	private static String reformatStringArray(IRNode strings) {
 		StringBuilder b = new StringBuilder();
-		for(IRNode ev : ElementValueArrayInitializer.getValueIterator(strings)) {
+		for(IRNode ev : ArrayInitializer.getInitIterator(strings)) {
 			if (b.length() != 0) {
 				b.append(',');
 			}

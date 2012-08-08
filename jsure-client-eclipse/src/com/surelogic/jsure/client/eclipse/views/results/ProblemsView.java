@@ -24,6 +24,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage;
@@ -32,7 +33,8 @@ import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
-public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
+public final class ProblemsView extends AbstractScanTableView<IDropInfo>
+		implements EclipseUIUtility.IContextMenuFiller {
 
 	private final Action f_copy = makeCopyAction(
 			I18N.msg("jsure.problems.view.copy"),
@@ -54,12 +56,13 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	}
 
 	@Override
-	protected void fillGlobalActionHandlers(IActionBars bars) {
-		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
+	protected void setupViewer(StructuredViewer viewer) {
+		super.setupViewer(viewer);
+
+		EclipseUIUtility.hookContextMenu(this, viewer, this);
 	}
 
-	@Override
-	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
 				final IDropInfo info = (IDropInfo) o;
@@ -106,6 +109,12 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo> {
 		manager.add(f_annotate);
 		manager.add(new Separator());
 		manager.add(f_preferences);
+
+		/*
+		 * Add a global action handler for copy
+		 */
+		final IActionBars bars = getViewSite().getActionBars();
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
 	@Override

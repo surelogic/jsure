@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -20,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
 import edu.cmu.cs.fluid.sea.IDropInfo;
@@ -108,14 +107,6 @@ public abstract class AbstractScanStructuredView<T> extends
 		});
 	}
 
-	@Override
-	protected void fillLocalPullDown(IMenuManager manager) {
-	}
-
-	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {
-	}
-
 	/********************* Methods to handle selections ******************************/
 
 	protected final List<? extends T> getSelectedRows() {
@@ -134,7 +125,7 @@ public abstract class AbstractScanStructuredView<T> extends
 		final Object d = selection.getFirstElement();
 		if (d instanceof IDropInfo) {
 			IDropInfo di = (IDropInfo) d;
-			highlightLineInJavaEditor(di.getSrcRef());
+			EditorUtil.highlightLineInJavaEditor(di.getSrcRef());
 		} else {
 			if (d != null)
 				handleDoubleClick(d);

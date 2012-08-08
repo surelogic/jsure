@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -31,20 +34,24 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.handlers.IHandlerService;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor.Decorator;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.MethodElement;
@@ -55,7 +62,8 @@ import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
-public class XMLExplorerView extends AbstractJSureView {
+public class XMLExplorerView extends AbstractSLView implements
+		EclipseUIUtility.IContextMenuFiller {
 
 	void attemptCollapseAll() {
 		if (f_viewer != null)
@@ -112,13 +120,6 @@ public class XMLExplorerView extends AbstractJSureView {
 			}
 		}
 	};
-
-	/*
-	 * private final Action f_new = new Action("New ...") {
-	 * 
-	 * @Override public void run() { //TypeSelectionDialog
-	 * PromisesXMLEditor.openInEditor("", false); } };
-	 */
 
 	private final Action f_toggleShowDiffs = new Action(
 			I18N.msg("jsure.eclipse.xml.explorer.only.abductive"),
@@ -181,10 +182,6 @@ public class XMLExplorerView extends AbstractJSureView {
 		}
 	};
 
-	// private final Action f_findXML = FindXMLForTypeHandler.adaptToAction();
-
-	// private CommandContributionItem f_findXML;
-
 	@Override
 	protected Control buildViewer(Composite parent) {
 		f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -216,23 +213,18 @@ public class XMLExplorerView extends AbstractJSureView {
 		f_content.build();
 		f_viewer.setInput(f_content); // Needed to show something?
 
-		// ICommandService service = (ICommandService) getSite().getService(
-		// ICommandService.class);
-		// Command command = service
-		// .getCommand("com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll");
-		//
-		// System.out.println("Got command: " + command +
-		// " setting handler...");
-		// command.setHandler(new AbstractHandler() {
-		// @Override
-		// public Object execute(ExecutionEvent event)
-		// throws ExecutionException {
-		// if (f_viewer != null)
-		// f_viewer.collapseAll();
-		// return null;
-		// }
-		// });
-		// System.out.println("command state enable=" + command.isEnabled());
+		IHandlerService hs = (IHandlerService) getSite().getService(
+				IHandlerService.class);
+		hs.activateHandler(
+				"com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll",
+				new AbstractHandler() {
+					@Override
+					public Object execute(ExecutionEvent event)
+							throws ExecutionException {
+						attemptCollapseAll();
+						return null;
+					}
+				});
 
 		return f_viewer.getControl();
 	}
@@ -250,6 +242,8 @@ public class XMLExplorerView extends AbstractJSureView {
 				}
 			}
 		});
+
+		EclipseUIUtility.hookContextMenu(this, viewer, this);
 	}
 
 	@Override
@@ -301,8 +295,7 @@ public class XMLExplorerView extends AbstractJSureView {
 		// manager.add(f_findXML);
 	}
 
-	@Override
-	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(f_open);
 		// manager.add(f_new);
 		manager.add(f_openSource);
@@ -580,19 +573,21 @@ public class XMLExplorerView extends AbstractJSureView {
 		public Image getImage(Object element) {
 			if (element instanceof Package) {
 				Package p = (Package) element;
-				return getCachedImage(CommonImages.IMG_PACKAGE,
+				return ResultsImageDescriptor.getCachedImage(
+						CommonImages.IMG_PACKAGE,
 						p.hasWarning() ? Decorator.WARNING : Decorator.NONE);
 			}
 			if (element instanceof Type) {
 				final Type t = (Type) element;
-				return getCachedImage(CommonImages.IMG_CLASS,
-						t.confirmed ? Decorator.NONE : Decorator.WARNING);
+				return ResultsImageDescriptor.getCachedImage(
+						CommonImages.IMG_CLASS, t.confirmed ? Decorator.NONE
+								: Decorator.WARNING);
 			}
 			if (element instanceof String) {
 				return null;
 			}
-			return getCachedImage(super.getImageDescriptor(element),
-					Decorator.NONE);
+			return ResultsImageDescriptor.getCachedImage(
+					super.getImageDescriptor(element), Decorator.NONE);
 		}
 
 		@Override

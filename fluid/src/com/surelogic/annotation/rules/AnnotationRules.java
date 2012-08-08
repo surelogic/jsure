@@ -665,7 +665,7 @@ public abstract class AnnotationRules {
 	protected static final NamedTypeNode[] noTypes = new NamedTypeNode[0];
 	
 	protected static NamedTypeNode[] createNamedType(String val) {
-		if (val == null) {
+		if (val == null || val.length() == 0) {
 			return noTypes;
 		}
 		String[] values = val.split(",");
