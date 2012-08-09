@@ -272,8 +272,7 @@
 
 		<!-- Eclipse main menu -->
 
-		<menuContribution
-			locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
 			<menu id="com.surelogic.jsure.client.eclipse.menu.jsure" label="JSure"
 				mnemonic="J">
 				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
@@ -324,18 +323,18 @@
 				</command>
 			</menu>
 		</menuContribution>
-		
+
 		<!-- Eclipse toolbar -->
-		
+
 		<menuContribution
 			locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-		   <toolbar
-		         id="com.surelogic.jsure.client.eclipse.toolbar.jsure">
-		         <command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+			<toolbar id="com.surelogic.jsure.client.eclipse.toolbar.jsure"
+				label="JSure">
+				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					tooltip="Scan projects with the JSure verification tool" style="push">
 				</command>
-		   </toolbar>
+			</toolbar>
 		</menuContribution>
 
 		<!-- IProject context menu -->
@@ -411,14 +410,14 @@
 			commandId="com.surelogic.jsure.client.eclipse.command.ManageLicenses">
 		</handler>
 	</extension>
-	
+
 	<extension point="org.eclipse.ui.bindings">
 		<key sequence="Ctrl+Alt+Shift+V"
 			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
 		</key>
 	</extension>
-	
+
 
 	<!-- Annotation Explorer view -->
 
