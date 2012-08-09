@@ -25,10 +25,16 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
+import edu.cmu.cs.fluid.java.bind.IJavaNullType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.bind.IJavaUnionType;
+import edu.cmu.cs.fluid.java.bind.IJavaVoidType;
+import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -407,10 +413,10 @@ public class LockAnalysis
           final boolean isDeclaredContainable;
           final Iterable<ContainablePromiseDrop> cDrops;
           final Iterable<IRNode> notContainable;
-          final ContainableAnnotationTester cTester = new ContainableAnnotationTester();
+          final ContainableAnnotationTester cTester = new ContainableAnnotationTester(getBinder());
 
           if (!isPrimitive && !isArray) { // type formal or declared type
-            final ThreadSafeAnnotationTester tsTester = new ThreadSafeAnnotationTester();
+            final ThreadSafeAnnotationTester tsTester = new ThreadSafeAnnotationTester(getBinder());
             final boolean isTS = testFieldType(type, tsTester);
             testedType = true;
             /*
@@ -684,7 +690,7 @@ public class LockAnalysis
 					final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
 
 					final boolean isContainable;
-					final ContainableAnnotationTester tester = new ContainableAnnotationTester();
+					final ContainableAnnotationTester tester = new ContainableAnnotationTester(getBinder());
 					if (isArray) {
             isContainable = isArrayTypeContainable((IJavaArrayType) type, tester);
 					} else { // formal type variable or declared type
@@ -822,7 +828,7 @@ public class LockAnalysis
 					}
 				} else {
 					// REFERENCE-TYPED
-				  final ImmutableAnnotationTester tester = new ImmutableAnnotationTester();
+				  final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(getBinder());
           final boolean isImmutable = testFieldType(type, tester);
 					if (isImmutable) {
 						// IMMUTABLE REFERENCE TYPE
@@ -913,13 +919,58 @@ public class LockAnalysis
 	
 	
 	private static abstract class TypeDeclAnnotationTester<P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> {
+	  private final IJavaDeclaredType javaLangObject;
 	  private final Set<IRNode> tested = new HashSet<IRNode>();
 	  private final Set<P> drops = new HashSet<P>();
 	  private final Set<IRNode> failed = new HashSet<IRNode>();
 	  
-	  public final boolean testTypeDecl(final IRNode type) {
+	  
+	  
+	  protected TypeDeclAnnotationTester(final IBinder binder) {
+	    javaLangObject = binder.getTypeEnvironment().getObjectType();
+	  }
+	  
+	  
+	  
+	  public final boolean testType(final IJavaType type) {
+	    if (type instanceof IJavaNullType) {
+	      return false;
+	    } else if (type instanceof IJavaPrimitiveType) {
+	      return false;
+	    } else if (type instanceof IJavaVoidType) {
+	      return false;
+	    } else if (type instanceof IJavaDeclaredType) {
+	      return testDeclaredType(((IJavaDeclaredType) type).getDeclaration());
+      } else if (type instanceof IJavaArrayType) {
+	      return testArrayType((IJavaArrayType) type);
+	    } else if (type instanceof IJavaCaptureType) {
+        final IJavaType upper = ((IJavaCaptureType) type).getUpperBound();
+        testType((upper == null) ? javaLangObject : upper);
+	    } else if (type instanceof IJavaIntersectionType) {
+	      final IJavaIntersectionType intType = (IJavaIntersectionType) type;
+	      final boolean first = testType(intType.getPrimarySupertype());
+	      final boolean second = testType(intType.getSecondarySupertype());
+	      return first && second;
+	    } else if (type instanceof IJavaTypeFormal) {
+	      // TODO
+	      return false;
+	    } else if (type instanceof IJavaUnionType) {
+	      // Can't get the least upper bound, use object instead
+	      return testType(javaLangObject);
+	    } else if (type instanceof IJavaWildcardType) {
+        // dead case?  Turned into Capture types, I think
+        final IJavaType upper = ((IJavaCaptureType) type).getUpperBound();
+        testType((upper == null) ? javaLangObject : upper);
+	    } 
+	    // shouldn't get here?
+	    return false;
+	  }
+	  
+	  
+	  
+	  protected final boolean testDeclaredType(final IRNode type) {
 	    tested.add(type);
-	    final P drop = testTypeDeclImpl(type);
+	    final P drop = testTypeDeclaration(type);
 	    if (drop != null) {
 	      drops.add(drop);
 	      return true;
@@ -929,7 +980,9 @@ public class LockAnalysis
 	    }
 	  }
 	  
-	  protected abstract P testTypeDeclImpl(IRNode type);
+	  protected abstract boolean testArrayType(IJavaArrayType type);
+	  
+	  protected abstract P testTypeDeclaration(IRNode type);
 	  
 	  public Iterable<IRNode> getTested() {
 	    return tested;
@@ -945,30 +998,66 @@ public class LockAnalysis
 	}
   
   private static final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester<ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> {
+    public ThreadSafeAnnotationTester(final IBinder binder) {
+      super(binder);
+    }
+    
     @Override
-    protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> testTypeDeclImpl(IRNode type) {
+    protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> testTypeDeclaration(IRNode type) {
       return LockRules.getThreadSafeTypePromise(type);
+    }
+    
+    @Override
+    protected boolean testArrayType(final IJavaArrayType type) {
+      return false;
     }
   }
   
   private static final class ImmutableAnnotationTester extends TypeDeclAnnotationTester<ImmutablePromiseDrop> {
+    public ImmutableAnnotationTester(final IBinder binder) {
+      super(binder);
+    }
+    
     @Override
-    protected ImmutablePromiseDrop testTypeDeclImpl(IRNode type) {
+    protected ImmutablePromiseDrop testTypeDeclaration(IRNode type) {
       return LockRules.getImmutableType(type);
     }           
+    
+    @Override
+    protected boolean testArrayType(final IJavaArrayType type) {
+      return false;
+    }
   }
 
   private static final class ContainableAnnotationTester extends TypeDeclAnnotationTester<ContainablePromiseDrop> {
+    public ContainableAnnotationTester(final IBinder binder) {
+      super(binder);
+    }
+    
     @Override
-    protected ContainablePromiseDrop testTypeDeclImpl(IRNode type) {
+    protected ContainablePromiseDrop testTypeDeclaration(IRNode type) {
       return LockRules.getContainableType(type);
+    }
+    
+    @Override
+    protected boolean testArrayType(final IJavaArrayType type) {
+      if (type.getDimensions() == 1) {
+        final IJavaType baseType = type.getBaseType();
+        if (baseType instanceof IJavaPrimitiveType) {
+          return true;
+        } else {
+          return testType(baseType);
+        }
+      } else {
+        return false;
+      }
     }
   }
   
   
 	
-	private boolean testFieldType(
-	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+	private <P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> boolean testFieldType(
+	    final IJavaType type, final TypeDeclAnnotationTester<P> tester) {
     /* We assume the type is a reference type. The upper bound of the field's
      * type is thus an IJavaArrayType, IJavaIntersectionType, or
      * IJavaDeclaredType. (Cannot be null or void in a field declaration).
@@ -989,14 +1078,14 @@ public class LockAnalysis
     }
 	}
 	
-	private static boolean testDeclaredOrIntersectionType(
-	    final IJavaType type, final TypeDeclAnnotationTester tester) {
+	private static <P extends ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode>> boolean testDeclaredOrIntersectionType(
+	    final IJavaType type, final TypeDeclAnnotationTester<P> tester) {
 	  // type is IJavaDeclaredType or IJavaIntersectionType
 	  if (type instanceof IJavaDeclaredType) {
-	    return tester.testTypeDecl(((IJavaDeclaredType) type).getDeclaration());
+	    return tester.testDeclaredType(((IJavaDeclaredType) type).getDeclaration());
 	  } else {
 	    final IJavaIntersectionType iType = (IJavaIntersectionType) type;
-	    /* Avoid short-circuit evaluation of the disjunciton because we want 
+	    /* Avoid short-circuit evaluation of the disjunction because we want 
 	     * to visit all the types in the intersection. 
 	     */
 	    final boolean first = 
