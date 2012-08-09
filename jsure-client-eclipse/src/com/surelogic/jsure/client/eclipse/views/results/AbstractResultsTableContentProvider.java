@@ -27,8 +27,8 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 
 	protected final Comparator<T> sortByLocation = new Comparator<T>() {
 		public int compare(T d1, T d2) {
-			String res1 = getResource(d1);
-			String res2 = getResource(d2);
+			String res1 = DropInfoUtility.getResource(d1);
+			String res2 = DropInfoUtility.getResource(d2);
 			int rv = 0;
 			// Make those with a real path go first
 			if (res1.startsWith("/")) {
@@ -50,7 +50,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 				rv = res1.compareTo(res2);
 			}
 			if (rv == 0) {
-				rv = getLine(d1) - getLine(d2);
+				rv = DropInfoUtility.getLine(d1) - DropInfoUtility.getLine(d2);
 			}
 			if (rv == 0) {
 				rv = d1.getMessage().compareTo(d2.getMessage());
@@ -117,63 +117,16 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
 		case 0:
 			return getMainColumnText(d);
 		case 1:
-			return getResource(d);
+			return DropInfoUtility.getResource(d);
 		case 2:
-			int line = getLine(d);
+			int line = DropInfoUtility.getLine(d);
 			if (line > 0 && line < Integer.MAX_VALUE) {
 				return Integer.toString(line);
-			} else if (line >= 0) {			
+			} else if (line >= 0) {
 				return "(binary)";
 			}
 		}
 		return "";
-	}
-
-	protected final String getResource(T d) {
-		ISrcRef ref = d.getSrcRef();
-		if (ref == null) {
-			return "";
-		}
-		if (ref.getEnclosingURI() != null) {
-			String path = ref.getRelativePath();
-			if (path != null) {
-				return path;
-			}
-		}
-		Object o = ref.getEnclosingFile();
-		if (o instanceof IFile) {
-			IFile f = (IFile) o;
-			return f.getFullPath().toPortableString();
-		} else if (o instanceof String) {
-			String name = (String) o;
-			if (name.indexOf('/') < 0) {
-				// probably not a file
-				return name;
-			}
-			if (name.endsWith(".class")) {
-				return name;
-			}
-			final int bang = name.lastIndexOf('!');
-			if (bang >= 0) {
-				return name.substring(bang + 1);
-			}
-			IFile f = EclipseUtility.resolveIFile(name);
-			if (f == null) {
-				return "";
-			}
-			return f.getFullPath().toPortableString();
-		} else if (o != null) {
-			return o.toString();
-		}
-		return "";
-	}
-
-	protected final int getLine(T d) {
-		ISrcRef ref = d.getSrcRef();
-		if (ref != null) {
-			return ref.getLineNumber();
-		}
-		return Integer.MAX_VALUE;
 	}
 
 	public final void dispose() {

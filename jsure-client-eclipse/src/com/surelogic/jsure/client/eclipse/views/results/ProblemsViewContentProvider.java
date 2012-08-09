@@ -22,7 +22,7 @@ public final class ProblemsViewContentProvider extends
 		super("Description");
 	}
 
-	protected String getAndSortResults(List<IDropInfo> contents) {
+	protected final String getAndSortResults(List<IDropInfo> contents) {
 		final JSureScanInfo info = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (info == null) {
@@ -31,7 +31,7 @@ public final class ProblemsViewContentProvider extends
 		Set<? extends IDropInfo> promiseWarningDrops = info
 				.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
-			final String resource = getResource(id);
+			final String resource = DropInfoUtility.getResource(id);
 			/*
 			 * We filter results based upon the resource.
 			 */

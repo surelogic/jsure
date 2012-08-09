@@ -79,7 +79,7 @@ public final class ProposedPromiseContentProvider extends
 				if (!p.isAbductivelyInferred())
 					it.remove();
 			}
-			final String resource = getResource(p);
+			final String resource = DropInfoUtility.getResource(p);
 			/*
 			 * We filter results based upon the resource.
 			 */
