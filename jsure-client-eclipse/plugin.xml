@@ -270,9 +270,9 @@
 
 	<extension point="org.eclipse.ui.menus">
 
-		<!-- main menu -->
+		<!-- Eclipse main menu -->
 
-		<menuContribution allPopups="false"
+		<menuContribution
 			locationURI="menu:org.eclipse.ui.main.menu?after=additions">
 			<menu id="com.surelogic.jsure.client.eclipse.menu.jsure" label="JSure"
 				mnemonic="J">
@@ -323,6 +323,19 @@
 					style="push">
 				</command>
 			</menu>
+		</menuContribution>
+		
+		<!-- Eclipse toolbar -->
+		
+		<menuContribution
+			locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+		   <toolbar
+		         id="com.surelogic.jsure.client.eclipse.toolbar.jsure">
+		         <command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+					tooltip="Scan projects with the JSure verification tool" style="push">
+				</command>
+		   </toolbar>
 		</menuContribution>
 
 		<!-- IProject context menu -->
@@ -432,7 +445,7 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.menus">
-		<menuContribution allPopups="false"
+		<menuContribution
 			locationURI="toolbar:com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView">
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll"
@@ -452,7 +465,7 @@
 				style="push" tooltip="Open the library annotations for a type">
 			</command>
 		</menuContribution>
-		<menuContribution allPopups="false"
+		<menuContribution
 			locationURI="menu:com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView">
 			<command
 				commandId="com.surelogic.jsure.client.eclipse.command.XMLExplorerView.collapseAll"
