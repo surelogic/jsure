@@ -117,11 +117,11 @@ public class EffectSpecificationNode extends AASTNode {
 	/**
 	 * @return A non-null node
 	 */
-	public ExpressionNode getContext() {
+	public synchronized ExpressionNode getContext() {
 		return context;
 	}
 
-	public void checkForRewriting() {
+	public synchronized void checkForRewriting() {
 		if (context instanceof VariableUseExpressionNode) {
 			VariableUseExpressionNode v = (VariableUseExpressionNode) context;
 			if (!v.bindingExists()) {
@@ -174,7 +174,7 @@ public class EffectSpecificationNode extends AASTNode {
    * @return Whether the specification from the overriding method satisfies the
    *         specification of the ancestor method.
    */
-  public final boolean satisfiesSpecfication(
+  public synchronized final boolean satisfiesSpecfication(
       final EffectSpecificationNode ancestor, 
       final ParameterMap parameterMap,
 //      final Map<IRNode, Integer> positionMap, 
@@ -279,7 +279,7 @@ public class EffectSpecificationNode extends AASTNode {
     return false;
   }
   
-  public final EffectSpecificationNode cloneForProposal(final ParameterMap pm) {
+  public synchronized final EffectSpecificationNode cloneForProposal(final ParameterMap pm) {
     final RegionSpecificationNode regionNode = 
         (RegionSpecificationNode) region.cloneTree();
     final ExpressionNode contextNode;
@@ -299,7 +299,7 @@ public class EffectSpecificationNode extends AASTNode {
    * Returns whether the effect specification node is satisfied by the 
    * effect "writes All".
    */
-  public final boolean satisfiedByWritesAll(final IRegion regionAll) {
+  public synchronized final boolean satisfiedByWritesAll(final IRegion regionAll) {
     /* Ancestor must be writes All (ImplicitQualifierNode) or 
      * writes java.lang.Object:All (TypeExpressionNode)
      */
