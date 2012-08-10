@@ -6,6 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.bind.IType;
 import com.surelogic.aast.java.ExpressionNode;
+import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.java.TypeExpressionNode;
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 public class EffectSpecificationNode extends AASTNode {
 	// Fields
 	private final boolean isWrite;
-	private final ExpressionNode context;
+	private ExpressionNode context;
 	private final RegionSpecificationNode region;
 
 	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
@@ -120,6 +121,17 @@ public class EffectSpecificationNode extends AASTNode {
 		return context;
 	}
 
+	public void checkForRewriting() {
+		if (context instanceof VariableUseExpressionNode) {
+			VariableUseExpressionNode v = (VariableUseExpressionNode) context;
+			if (!v.bindingExists()) {
+				NamedTypeNode t = new NamedTypeNode(v.getOffset(), v.getId());
+				context = new TypeExpressionNode(v.getOffset(), t);
+				context.setParent(this);
+			}
+		}
+	}
+	
 	/**
 	 * @return A non-null node
 	 */

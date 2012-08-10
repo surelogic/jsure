@@ -7,6 +7,7 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.EffectSpecificationNode;
 import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.rules.AnnotationRules;
@@ -168,6 +169,14 @@ extends AbstractHierarchyScrubber<A> {
 				rv = checkForTypeBinding(node, rv);
 			}
 			return rv;
+		}
+		/**
+		 * Used to rewrite the AST if needed to bridge limitations in the parser
+		 */
+		@Override
+		public Boolean visit(EffectSpecificationNode n) {
+			n.checkForRewriting();
+			return super.visit(n);
 		}
 	}
 		
