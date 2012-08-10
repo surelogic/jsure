@@ -30,7 +30,6 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -198,7 +197,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
   
   
   
-  private static final class EnumVerifier extends TypeImplementationProcessor {
+  private static final class EnumVerifier extends TypeImplementationProcessor<SingletonPromiseDrop> {
     private int numElements;
     private IRNode element;
     
@@ -242,7 +241,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
   
   
   
-  private static final class ClassVerifier extends TypeImplementationProcessor {
+  private static final class ClassVerifier extends TypeImplementationProcessor<SingletonPromiseDrop> {
     private final class BodyVisitor extends VoidTreeWalkVisitor {
       private final IRNode fieldDeclToCheck;
       

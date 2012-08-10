@@ -165,7 +165,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 
 
 
-  public static final class UtilityVisitor extends TypeImplementationProcessor {
+  public static final class UtilityVisitor extends TypeImplementationProcessor<UtilityPromiseDrop> {
     /**
      * Visits the entire subtree (including nested types and anonymous classes)
      * to search for new expressions and class declarations that may

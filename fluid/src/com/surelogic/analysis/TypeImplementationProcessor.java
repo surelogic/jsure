@@ -18,16 +18,16 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public abstract class TypeImplementationProcessor {
+public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extends IAASTRootNode>> {
   protected final AbstractWholeIRAnalysis<? extends IBinderClient, ?> analysis;
-  protected final PromiseDrop<? extends IAASTRootNode> promiseDrop;
+  protected final P promiseDrop;
   protected final IRNode typeDecl;
   protected final IRNode typeBody;
   
   
   protected TypeImplementationProcessor(
       final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
-      final PromiseDrop<? extends IAASTRootNode> pd,
+      final P pd,
       final IRNode td, final IRNode tb) {
     analysis = a;
     promiseDrop = pd;
@@ -37,7 +37,7 @@ public abstract class TypeImplementationProcessor {
   
   protected TypeImplementationProcessor(
       final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
-      final PromiseDrop<? extends IAASTRootNode> pd,
+      final P pd,
       final IRNode td) {
     this(a, pd, td, VisitUtil.getClassBody(td));
   }
