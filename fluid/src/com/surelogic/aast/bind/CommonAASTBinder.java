@@ -110,46 +110,16 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
-    IRNode t = findNamedType(name, a.getPromisedFor());    
-    if (t == null) {
-      // Try to find a package-qualified type
-      t = findQualifiedType(a, name); 
-      /*
-      final IRNode context = a.getPromisedFor();
-      
-      // Check if it's a top-level type
-      final String pkg     = JavaNames.getPackageName(context);
-      t = findNamedType(pkg+'.'+name);
-      
-      if (t == null) {
-    	boolean prevWasNested = false;
-       loop:
-    	// Check enclosing types
-    	for(final IRNode td : VisitUtil.getEnclosingTypes(context)) {
-    	  if (nameMatches(name, td)) {
-    		  t = td;
-    		  break loop;
-    	  }
-    		
-    	  // Check for member types
-    	  if (prevWasNested) {
-    		prevWasNested = false;
-    		for(IRNode member : VisitUtil.getClassBodyMembers(td)) {
-    	      Operator mop = JJNode.tree.getOperator(member);
-    	      if (mop instanceof NestedDeclInterface && nameMatches(name, member)) {
-    	    	t = td;
-    	    	break loop;
-    	      }
-    		}
-    	  }
-    	  Operator op = JJNode.tree.getOperator(td);    	  
-    	  if (op instanceof NestedDeclInterface) {    		
-    		prevWasNested = true;
-    	  }
-    	}
-      }
-      */
-    }
+	IRNode t;
+	if (name.indexOf('.') < 0) {
+		t = findQualifiedType(a, name);  
+	} else {
+		t = findNamedType(name, a.getPromisedFor());    
+		if (t == null) {
+			// Try to find a package-qualified type
+			t = findQualifiedType(a, name); 
+		}
+	}
     if (t != null && NamedPackageDeclaration.prototype.includes(t)) {
     	return null;
     }
@@ -160,46 +130,48 @@ public class CommonAASTBinder extends AASTBinder {
 	int lastDot = name.lastIndexOf('.');
 	IRNode t = null;
 	if (lastDot < 0) {
-		t = findNamedType(name, a.getPromisedFor());
-		if (t == null) {
-			final IRNode context = a.getPromisedFor();
-			// Check if it's a type parameter for the method
-			final Operator cop = JJNode.tree.getOperator(context);
-			if (SomeFunctionDeclaration.prototype.includes(cop)) {
-				IRNode typeParams = SomeFunctionDeclaration.getTypes(context);
-				for(IRNode p : JJNode.tree.children(typeParams)) {
-					if (name.equals(TypeFormal.getId(p))) {
-						return p;
-					}
+		final IRNode context = a.getPromisedFor();
+		// Check if it's a type parameter for the method
+		final Operator cop = JJNode.tree.getOperator(context);
+		if (SomeFunctionDeclaration.prototype.includes(cop)) {
+			IRNode typeParams = SomeFunctionDeclaration.getTypes(context);
+			for(IRNode p : JJNode.tree.children(typeParams)) {
+				if (name.equals(TypeFormal.getId(p))) {
+					return p;
 				}
 			}
-			
-			// Check if it's a local type
-			for(IRNode type : VisitUtil.getEnclosingTypes(context, true)) {
-				if (name.equals(JJNode.getInfoOrNull(type))) {
-					return type;
-				}
-				// Check for nested types
-				Operator op = JJNode.tree.getOperator(type);
-				if (op instanceof NestedDeclInterface) {
-					t = findNestedType(type, name);
-					if (t != null) {
-						return t;
-					}
-				}	
-				// Check if it's a type parameter from the type
-				IJavaDeclaredType dt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
-				for(IJavaType param : dt.getTypeParameters()) {
-					IJavaTypeFormal p = (IJavaTypeFormal) param;
-					if (name.equals(TypeFormal.getId(p.getDeclaration()))) {
-						return p.getDeclaration();
-					}
-				}
-			}
-			// Check if it's a top-level type in same package
-			final String pkg = JavaNames.getPackageName(context);
-			return findNamedType(pkg+'.'+name, a.getPromisedFor());			
 		}
+
+		// Check if it's a local type
+		for(IRNode type : VisitUtil.getEnclosingTypes(context, true)) {
+			if (name.equals(JJNode.getInfoOrNull(type))) {
+				return type;
+			}
+			// Check for nested types
+			Operator op = JJNode.tree.getOperator(type);
+			if (op instanceof NestedDeclInterface) {
+				t = findNestedType(type, name);
+				if (t != null) {
+					return t;
+				}
+			}	
+			// Check if it's a type parameter from the type
+			IJavaDeclaredType dt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
+			for(IJavaType param : dt.getTypeParameters()) {
+				IJavaTypeFormal p = (IJavaTypeFormal) param;
+				if (name.equals(TypeFormal.getId(p.getDeclaration()))) {
+					return p.getDeclaration();
+				}
+			}
+		}
+		// Check if it's a top-level type in same package
+		final String pkg = JavaNames.getPackageName(context);
+		t = findNamedType(pkg+'.'+name, a.getPromisedFor());			
+		if (t == null) {
+			// Check if it's in the default package
+			return findNamedType(name, a.getPromisedFor());
+		}
+		return t;
 	} else {
 		t = resolveTypeName(a, name.substring(0, lastDot));
 		if (t != null && !NamedPackageDeclaration.prototype.includes(t)) {

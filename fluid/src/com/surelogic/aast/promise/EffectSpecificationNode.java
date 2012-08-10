@@ -6,6 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.bind.IType;
 import com.surelogic.aast.java.ExpressionNode;
+import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.java.TypeExpressionNode;
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 public class EffectSpecificationNode extends AASTNode {
 	// Fields
 	private final boolean isWrite;
-	private final ExpressionNode context;
+	private ExpressionNode context;
 	private final RegionSpecificationNode region;
 
 	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
@@ -116,10 +117,21 @@ public class EffectSpecificationNode extends AASTNode {
 	/**
 	 * @return A non-null node
 	 */
-	public ExpressionNode getContext() {
+	public synchronized ExpressionNode getContext() {
 		return context;
 	}
 
+	public synchronized void checkForRewriting() {
+		if (context instanceof VariableUseExpressionNode) {
+			VariableUseExpressionNode v = (VariableUseExpressionNode) context;
+			if (!v.bindingExists()) {
+				NamedTypeNode t = new NamedTypeNode(v.getOffset(), v.getId());
+				context = new TypeExpressionNode(v.getOffset(), t);
+				context.setParent(this);
+			}
+		}
+	}
+	
 	/**
 	 * @return A non-null node
 	 */
@@ -162,7 +174,7 @@ public class EffectSpecificationNode extends AASTNode {
    * @return Whether the specification from the overriding method satisfies the
    *         specification of the ancestor method.
    */
-  public final boolean satisfiesSpecfication(
+  public synchronized final boolean satisfiesSpecfication(
       final EffectSpecificationNode ancestor, 
       final ParameterMap parameterMap,
 //      final Map<IRNode, Integer> positionMap, 
@@ -267,7 +279,7 @@ public class EffectSpecificationNode extends AASTNode {
     return false;
   }
   
-  public final EffectSpecificationNode cloneForProposal(final ParameterMap pm) {
+  public synchronized final EffectSpecificationNode cloneForProposal(final ParameterMap pm) {
     final RegionSpecificationNode regionNode = 
         (RegionSpecificationNode) region.cloneTree();
     final ExpressionNode contextNode;
@@ -287,7 +299,7 @@ public class EffectSpecificationNode extends AASTNode {
    * Returns whether the effect specification node is satisfied by the 
    * effect "writes All".
    */
-  public final boolean satisfiedByWritesAll(final IRegion regionAll) {
+  public synchronized final boolean satisfiedByWritesAll(final IRegion regionAll) {
     /* Ancestor must be writes All (ImplicitQualifierNode) or 
      * writes java.lang.Object:All (TypeExpressionNode)
      */
