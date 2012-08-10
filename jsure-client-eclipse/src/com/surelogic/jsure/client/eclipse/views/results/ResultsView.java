@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -41,6 +43,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -54,6 +57,7 @@ import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAc
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -63,6 +67,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
@@ -303,6 +308,16 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					EclipseUIUtility.getShell(), quickRefImage, icon,
 					"Iconography Quick Reference");
 			dialog.open();
+		}
+	};
+
+	private final Action f_modelProblemsIndicator = new Action() {
+		@Override
+		public void run() {
+			/*
+			 * When pressed open the JSure perspective
+			 */
+			EclipseUIUtility.showView(ProblemsView.class.getName());
 		}
 	};
 
@@ -598,6 +613,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		manager.add(new Separator());
 		manager.add(f_showQuickRef);
 		manager.add(f_actionShowInferences);
+		manager.add(f_modelProblemsIndicator);
 	}
 
 	@Override
@@ -637,6 +653,10 @@ public final class ResultsView extends AbstractJSureResultsView implements
 				.setToolTipText("Show the iconography quick reference card");
 		f_showQuickRef.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
+
+		f_modelProblemsIndicator.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
+		f_modelProblemsIndicator.setEnabled(false);
 
 		if (XUtil.useExperimental()) {
 			f_actionExportZIPForStandAloneResultsViewer = new Action() {
@@ -845,6 +865,8 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		if (scanInfo != null) {
 			final long start = System.currentTimeMillis();
 			f_provider.buildModelOfDropSea_internal();
+			final int modelProblemCount = getModelProblemCount(scanInfo);
+			setModelProblemIndicatorState(modelProblemCount);
 			final long end = System.currentTimeMillis();
 			setViewerVisibility(true);
 			System.out.println("Loaded snapshot for " + this + ": "
@@ -882,5 +904,42 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					"Trouble when saving ResultsView UI state to "
 							+ f_viewStatePersistenceFile.getAbsolutePath(), e);
 		}
+	}
+
+	private void setModelProblemIndicatorState(int problemCount) {
+		final boolean problemsExist = problemCount > 0;
+		final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST
+				: CommonImages.IMG_JSURE_MODEL_PROBLEMS;
+		f_modelProblemsIndicator.setImageDescriptor(SLImages
+				.getImageDescriptor(id));
+		f_modelProblemsIndicator.setEnabled(problemsExist);
+		final String tooltip;
+		final String suffix = " in this scan...press to show the Modeling Problems view";
+		if (problemCount < 1) {
+			tooltip = "No modeling problems";
+		} else if (problemCount == 1) {
+			tooltip = "1 modeling problem" + suffix;
+		} else {
+			tooltip = problemCount + " modeling problems" + suffix;
+		}
+		f_modelProblemsIndicator.setToolTipText(tooltip);
+
+	}
+
+	private int getModelProblemCount(final JSureScanInfo info) {
+		int result = 0;
+		if (info != null) {
+			Set<? extends IDropInfo> promiseWarningDrops = info
+					.getDropsOfType(PromiseWarningDrop.class);
+			for (IDropInfo id : promiseWarningDrops) {
+				final String resource = DropInfoUtility.getResource(id);
+				/*
+				 * We filter results based upon the resource.
+				 */
+				if (ModelingProblemFilterUtility.showResource(resource))
+					result++;
+			}
+		}
+		return result;
 	}
 }
