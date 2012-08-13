@@ -259,10 +259,16 @@ public class ClassAdapter extends AbstractAdapter {
 				*/
  				IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
 				if (isEnumDecl()) {
-			    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
-					IRNode result = SimpleEnumConstantDeclaration.createNode(annos, name, impliedInit);
-					members.add(result);
-					return;
+					final String typeName = className.substring(0, className.length() - 6);
+					if (desc.startsWith("L") && desc.endsWith(";") && desc.length() == typeName.length()+2 &&
+						desc.regionMatches(1, typeName, 0, typeName.length())) {
+				    	IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
+						IRNode result = SimpleEnumConstantDeclaration.createNode(annos, name, impliedInit);
+						members.add(result);
+						return;
+					} else {
+						System.out.println("Found a field of type "+desc+" in "+typeName);
+					}
 				} 
 				int mods     = adaptModifiers(access);
 				IRNode type;
