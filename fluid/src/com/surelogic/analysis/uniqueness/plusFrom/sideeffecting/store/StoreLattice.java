@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -784,7 +785,7 @@ extends TripleLattice<Element<Integer>,
     } else if (declStatus == State.SHARED) {
       temp = opConsumeShared(
           s, srcOp, Messages.COMPROMISED_BY_FIELD_ASSIGNMENT,
-          VariableDeclarator.getId(fieldDecl));
+          VariableDeclaration.getId(fieldDecl));
     } else if (declStatus == State.UNIQUE) {
       temp = opConsumeUnique(s, srcOp);
     } else {
