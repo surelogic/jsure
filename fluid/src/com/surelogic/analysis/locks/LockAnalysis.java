@@ -963,7 +963,17 @@ public class LockAnalysis
 	      final IJavaIntersectionType intType = (IJavaIntersectionType) type;
 	      final boolean first = testType(intType.getPrimarySupertype());
 	      final boolean second = testType(intType.getSecondarySupertype());
-	      return first && second;
+        /*
+         * Intersection implies AND, so you would think that we should conjoin
+         * the results below. But an interface that is not annotated with X may
+         * have X-annotated implementations. So mixing an unannotated interface
+         * into the intersection doesn't kill the possibility of X-ness. If the
+         * class portion of the intersection is not-X, then really the whole
+         * intersection should be false, but it's not possible to have a
+         * implementation that is X where the class is not-X and an interface is
+         * X, so it doesn't matter if we let this case through here.
+         */
+	      return first || second;
 	    } else if (type instanceof IJavaTypeFormal) {
 	      // First check the formal against a "when" attribute
 	      if (testFormalAgainstAnnotationBounds(
