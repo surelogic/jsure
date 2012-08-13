@@ -87,7 +87,7 @@ import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -1380,7 +1380,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   	    s = lattice.opCompromise(
   	        lattice.opGet(
   	            s, node, v, BuriedMessage.EXTERNAL_VAR), node,
-  	            Messages.COMPROMISED_BY_HIDDEN_FIELD, VariableDeclarator.getId(v));
+  	            Messages.COMPROMISED_BY_HIDDEN_FIELD, VariableDeclaration.getId(v));
   	  }
   	  
       /* If we used outer things and we aren't in a static context then
