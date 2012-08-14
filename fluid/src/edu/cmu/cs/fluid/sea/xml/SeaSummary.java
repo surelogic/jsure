@@ -40,6 +40,7 @@ import edu.cmu.cs.fluid.util.Hashtable2;
  */
 public class SeaSummary extends AbstractSeaXmlCreator {
 	private static final String COUNT = "count";
+	private static boolean allowMissingSupportingInfos = true;
 	
 	private SeaSummary(File location) throws IOException {
 		super(location);
@@ -802,8 +803,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				if (!n.hasRefs()) {
 					return null;
 				}
-				System.out.println("Temporarily ignoring missing details in old oracles");
-				return null;
+				if (allowMissingSupportingInfos) {
+					System.out.println("Temporarily ignoring missing details in old oracles");
+					return null;
+				}				
 			}
 			final Map<String,Entity> oldDetails = extractDetails(o);
 			final Map<String,Entity> newDetails = extractDetails(n);
@@ -933,8 +936,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		boolean matchSupportingInfo(Entity n, Entity o) {
-			long nh = computeSIHash(n);
-			long oh = computeSIHash(o);
+			final long oh = computeSIHash(o);
+			if (allowMissingSupportingInfos && oh == 0) {				
+				return true;
+			}
+			final long nh = computeSIHash(n);			
 			return nh == oh;
 		}
 		
