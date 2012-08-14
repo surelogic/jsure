@@ -929,7 +929,25 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		boolean match(Entity n, Entity o) {
 			return match(n, o, true, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR) &&
-   			       match(true, n, o, true, PROVED_ATTR);
+   			       match(true, n, o, true, PROVED_ATTR) && matchSupportingInfo(n, o);
+		}
+
+		boolean matchSupportingInfo(Entity n, Entity o) {
+			long nh = computeSIHash(n);
+			long oh = computeSIHash(o);
+			return nh == oh;
+		}
+		
+		long computeSIHash(Entity e) {
+			long rv = 0;
+			for(Entity i : e.getReferences()) {
+				String msg = i.getAttribute(MESSAGE_ATTR);
+				if (msg == null) {
+					continue;
+				}
+				rv += msg.hashCode();
+			}
+			return rv;
 		}
 	}
 	
