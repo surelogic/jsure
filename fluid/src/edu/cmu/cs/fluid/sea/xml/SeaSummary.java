@@ -568,6 +568,24 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		public void write(PrintWriter w) {
 			if (!isEmpty()) {
 				w.println("Category: "+name+" in "+file);
+				if (!diffs.isEmpty()) {
+					for(ContentDiff d : diffs) {						
+						w.println("\tDiffs in details for "+d.n.getAttribute(MESSAGE_ATTR));
+						final Map<String,Entity> oldDetails = extractDetails(d.o);
+						final Map<String,Entity> newDetails = extractDetails(d.n);
+						final List<String> temp = new ArrayList<String>();
+						for(String old : sort(oldDetails.keySet(), temp)) {
+							w.println("\t\tOld    : "+old);
+							Entity e = oldDetails.get(old);
+							e.setAsOld();
+						}
+						for(String newMsg : sort(newDetails.keySet(), temp)) {
+							w.println("\t\tNewer  : "+newMsg);
+							Entity e = newDetails.get(newMsg);
+							e.setAsNewer();
+						}
+					}
+				}
 				for(Entity o : old) {
 					w.println("\tOld    : "+toString(o));
 				}
@@ -821,30 +839,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			Collections.sort(remaining, entityComparator);
 			return new ContentDiff(n, o, remaining.toArray());
 		}
-		
-		private static Collection<String> sort(Collection<String> s, List<String> temp) {
-			temp.clear();
-			temp.addAll(s);
-			Collections.sort(temp);
-			return temp;
-		}
-		
-		// Assume that we only have supporting info
-		private static Map<String,Entity> extractDetails(Entity e) {
-			if (!e.hasRefs()) {
-				return Collections.emptyMap();
-			}
-			final Map<String,Entity> rv = new TreeMap<String, Entity>();
-			for(Entity i : e.getReferences()) {
-				String msg = i.getAttribute(MESSAGE_ATTR);
-				if (msg != null) {
-					rv.put(msg, i);
-				} else {
-					System.out.println("No message for "+i.getEntityName());
-				}
-			}
-			return rv;
-		}
 
 //		@Override
 		public Object[] getChildren() {
@@ -860,6 +854,30 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		public boolean hasChildren() {
 			return true;
 		}
+	}
+	
+	private static Collection<String> sort(Collection<String> s, List<String> temp) {
+		temp.clear();
+		temp.addAll(s);
+		Collections.sort(temp);
+		return temp;
+	}
+	
+	// Assume that we only have supporting info
+	private static Map<String,Entity> extractDetails(Entity e) {
+		if (!e.hasRefs()) {
+			return Collections.emptyMap();
+		}
+		final Map<String,Entity> rv = new TreeMap<String, Entity>();
+		for(Entity i : e.getReferences()) {
+			String msg = i.getAttribute(MESSAGE_ATTR);
+			if (msg != null) {
+				rv.put(msg, i);
+			} else {
+				System.out.println("No message for "+i.getEntityName());
+			}
+		}
+		return rv;
 	}
 	
 	static abstract class Matcher {
