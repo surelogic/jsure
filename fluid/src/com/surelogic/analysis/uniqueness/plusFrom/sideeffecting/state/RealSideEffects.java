@@ -449,10 +449,11 @@ public final class RealSideEffects implements ISideEffects {
       final Set<CompromisingSite> compromises = compromisedAt.get(fieldDecl);
       final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
       
-      final PromiseDrop<? extends IAASTRootNode> fieldPromise;
       final IUniquePromise unique = UniquenessUtils.getUnique(fieldDecl);
-      if (unique != null) fieldPromise = unique.getDrop();
-      else fieldPromise = UniquenessUtils.getFieldBorrowed(fieldDecl);
+      final PromiseDrop<? extends IAASTRootNode> fieldPromise =
+          (unique != null) ? unique.getDrop() : UniquenessUtils.getFieldBorrowed(fieldDecl);
+      // TODO: fix this for real.  Need to handle the 'null' "from" field specailly in the results
+      if (fieldPromise == null) continue;
       
       for (final CompromisedField cf : load.getValue()) {
         final ResultDropBuilder r = createResultDrop(
