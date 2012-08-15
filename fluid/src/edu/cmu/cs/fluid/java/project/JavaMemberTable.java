@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -740,10 +741,46 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return thisType.getSupertypes(binder.getTypeEnvironment());
     }
 
-    /* (non-Javadoc)
+    /**
+     * Checks if the lookup makes no sense because:
+     * 1. it's trying to use the supertype to lookup itself
+     */
+    private boolean isNonsensicalLookup(IRNode useSite) {
+    	if (useSite == null) {
+    		return false;
+    	}
+    	final IRNode type = VisitUtil.getEnclosingType(useSite);
+    	if (!typeDeclaration.equals(type)) {
+    		// The use isn't in this type itself
+    		return false;
+    	}		
+    	for(IRNode n : VisitUtil.getSupertypeNames(type)) {
+    		if (inSubtree(useSite, n)) {
+    			return true;
+    		}
+    	}
+    	return false;
+	}
+    
+    private boolean inSubtree(final IRNode nodeToFind, IRNode here) {
+    	if (nodeToFind.equals(here)) {
+    		return true;
+    	}
+    	for(IRNode n : JJNode.tree.children(here)) {
+    		if (inSubtree(nodeToFind, n)) {
+    			return true;
+    		}
+    	}
+		return false;
+	}
+
+	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
+      if (isNonsensicalLookup(useSite)) {
+    	  return null;
+      }
       //LOG.fine("Looking in superclasses for object/type: " + name);
       for (IJavaType st : getSuperTypes()) {
       	/*
@@ -765,7 +802,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return null;
     }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
     public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
