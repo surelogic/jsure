@@ -804,7 +804,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					return null;
 				}
 				if (allowMissingSupportingInfos) {
-					System.out.println("Temporarily ignoring missing details in old oracles");
+					//System.out.println("Temporarily ignoring missing details in old oracles");
 					return null;
 				}				
 			}
