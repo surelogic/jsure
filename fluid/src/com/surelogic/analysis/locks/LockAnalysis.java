@@ -380,7 +380,7 @@ public class LockAnalysis
 			// Check for vouch
 			final VouchFieldIsPromiseDrop vouchDrop = 
 			    LockRules.getVouchFieldIs(varDecl);
-			if (vouchDrop != null && vouchDrop.isThreadSafe()) {
+			if (vouchDrop != null && (vouchDrop.isThreadSafe() || vouchDrop.isImmutable())) {
 				final String reason = vouchDrop.getReason();
 				final ResultDropBuilder result = 
 				    reason == VouchFieldIsNode.NO_REASON ? createResult(
