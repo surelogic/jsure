@@ -108,8 +108,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitAnonClassExpression(IRNode node) {
-    // return JavaTypeFactory.convertNodeTypeToIJavaType( node, binder );
-    return doAccept(AnonClassExpression.getType(node));
+    return JavaTypeFactory.convertNodeTypeToIJavaType( node, binder );
+	// return doAccept(AnonClassExpression.getType(node));
   }
   
   @Override

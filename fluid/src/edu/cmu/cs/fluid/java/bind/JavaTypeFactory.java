@@ -155,6 +155,18 @@ public class JavaTypeFactory implements IRType, Cleanable {
     return res;
   }
   
+  private static IRNodeHashedMap<IJavaDeclaredType> anonTypes = 
+	    new IRNodeHashedMap<IJavaDeclaredType>();
+	  
+  public static synchronized IJavaDeclaredType getAnonType(IRNode ace) {
+	  IJavaDeclaredType res = anonTypes.get(ace);
+	  if (res == null) {
+		  res = new JavaAnonType(ace);
+		  anonTypes.put(ace,res);
+	  }
+	  return res;
+  }
+  
   private static JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaIntersectionType> intersectionTypes =
        new JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaIntersectionType>();
   
@@ -567,7 +579,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
     TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);    
     if (op instanceof TypeFormal) {
       return JavaTypeFactory.getTypeFormal(tdecl); 
-    }    
+    }
+    if (op instanceof AnonClassExpression) {
+      return JavaTypeFactory.getAnonType(tdecl);
+    }
     IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
     IRNode typeFormals = null;
     if (op instanceof ClassDeclaration) {
@@ -1755,6 +1770,12 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       param.printStructure(out, indent+2);
     }
   }
+}
+
+class JavaAnonType extends JavaDeclaredType implements IJavaDeclaredType {
+	  JavaAnonType(IRNode ace) {
+		  super(ace);
+	  }
 }
 
 /*
