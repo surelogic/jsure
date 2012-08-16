@@ -276,30 +276,32 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");
     }
-    // first try direct import
-    {
-      Entry entry = direct.get(name);
-      if (entry != null) {
-        IJavaScope scope = entry.getScope();
-        if (scope != null) {
-          IBinding b = scope.lookup(name, useSite, selector);
-          if (b != null) {
-        	  /*
+    // Only if it's a simple name
+    if (name.indexOf('.') < 0) {
+      // first try direct import    
+      {
+    	  Entry entry = direct.get(name);
+    	  if (entry != null) {
+    		  IJavaScope scope = entry.getScope();
+    		  if (scope != null) {
+    			  IBinding b = scope.lookup(name, useSite, selector);
+    			  if (b != null) {
+    				  /*
         	  if (!selector.select(b.getNode())) {
         		  System.out.println("Didn't use selector on "+name);
         	  }
-        	  */
-              entry.addUse(useSite);
-        	  return b;
-          } else {
-        	  //System.out.println("Didn't find "+name+" yet");
-          }
-          // Otherwise, keep looking
-        }
+    				   */
+    				  entry.addUse(useSite);
+    				  return b;
+    			  } else {
+    				  //System.out.println("Didn't find "+name+" yet");
+    			  }
+    			  // Otherwise, keep looking
+    		  }
+    	  }    
       }
-    }
-    // next try package
-    {
+      
+      // next try package    
       IRNode pdecl = CompilationUnit.getPkg(compilationUnit);
       String pName = "";
       if (NamedPackageDeclaration.prototype.includes(pdecl)) {
@@ -308,9 +310,8 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       IJavaScope sc = tEnv.getClassTable().packageScope(pName);
       IBinding result = sc.lookup(name,useSite,selector);
       if (result != null) return result;
-    }
-    // try all indirect (demand) imports
-    {
+      
+      // try all indirect (demand) imports    
       for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
     	//IRNode key  = e.getKey();
     	Entry entry = e.getValue();
@@ -325,6 +326,8 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
           }
         }
       }
+    } else {
+    	//System.out.println("Got qname: "+name);
     }
     
     // try top-level package, but not class (class in anonymous package)
