@@ -267,7 +267,7 @@ public class ClassAdapter extends AbstractAdapter {
 						members.add(result);
 						return;
 					} else {
-						System.out.println("Found a field of type "+desc+" in "+typeName);
+						//System.out.println("Found a field of type "+desc+" in "+typeName);
 					}
 				} 
 				int mods     = adaptModifiers(access);
