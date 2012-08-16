@@ -59,6 +59,9 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 	 *            the promise being supported by this result
 	 */
 	public void addCheckedPromise(PromiseDrop promise) {
+		if (promise == null) {
+			throw new NullPointerException();
+		}
 		checks.add(promise);
 	}
 	
