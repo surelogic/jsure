@@ -755,7 +755,8 @@ public class JavacClassParser {
 		*/		
 		int dollar = origName.indexOf('$');
 		String qname;
-		if (dollar >= 0) {
+		if (false && dollar >= 0) {
+			// TODO do I really ever use this?
 			qname = origName.substring(0, dollar);
 		} else {
 			qname = origName;

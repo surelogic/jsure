@@ -1715,13 +1715,14 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 								.get(ze.getName());
 						if (names != null) {
 							for (String name : names) {
-								// System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-
+								if (name.contains("$")) {
+									System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+								}
 								// The last two parameters don't matter because
 								// they'll just be thrown away when we call
 								// setFiles() below
-								srcFiles.add(new JavaSourceFile(name.replace(
-										'$', '.'), f, null, false));
+								srcFiles.add(new JavaSourceFile(name/*.replace(
+										'$', '.')*/, f, null, false));
 							}
 						} else if (ze.getName().endsWith("/package-info.java")) {
 							System.out
