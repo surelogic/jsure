@@ -606,6 +606,20 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return rv;
   }
   
+  public T visit(AnnotationBoundsNode node) {
+	  T rv = defaultValue;
+	  for(NamedTypeNode t : node.getThreadSafe()) {
+		  rv = combineResults(rv, doAccept(t));
+	  }
+	  for(NamedTypeNode t : node.getImmutable()) {
+		  rv = combineResults(rv, doAccept(t));
+	  }
+	  for(NamedTypeNode t : node.getContainable()) {
+		  rv = combineResults(rv, doAccept(t));
+	  }
+	  return rv;
+  }
+  
   public T visit(NotThreadSafeNode node) {
 	  T rv = defaultValue;
 	  return rv;

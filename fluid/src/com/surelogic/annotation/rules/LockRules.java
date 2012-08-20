@@ -54,6 +54,7 @@ public class LockRules extends AnnotationRules {
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
+  public static final String ANNO_BOUNDS = "AnnotationBounds";
   
   public static final String WHEN_THREAD_SAFE = "whenThreadSafe";
   public static final String WHEN_IMMUTABLE = "whenImmutable";
@@ -70,6 +71,7 @@ public class LockRules extends AnnotationRules {
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
+	private static final AnnotationBounds_ParseRule annoBoundsRule = new AnnotationBounds_ParseRule();
   private static final Containable_ParseRule containableRule = new Containable_ParseRule();
   private static final ThreadSafe_ParseRule threadSafeRule = new ThreadSafe_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
@@ -2024,6 +2026,28 @@ public class LockRules extends AnnotationRules {
 	  protected abstract A makeDerivedAnnotation(int offset, int mods, A orig);
 	}
   
+	public static class AnnotationBounds_ParseRule
+	extends SimpleBooleanAnnotationParseRule<AnnotationBoundsNode,AnnotationBoundsPromiseDrop> {
+		public AnnotationBounds_ParseRule() {
+			super(ANNO_BOUNDS, typeDeclOps, AnnotationBoundsNode.class);
+		}
+		@Override
+		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+			return new AnnotationBoundsNode(offset, 
+					createNamedType(context.getProperty(THREAD_SAFE)),
+					createNamedType(context.getProperty(IMMUTABLE)),
+					createNamedType(context.getProperty(CONTAINABLE)));
+		}
+		@Override
+		protected IPromiseDropStorage<AnnotationBoundsPromiseDrop> makeStorage() {
+			return BooleanPromiseDropStorage.create(name(), AnnotationBoundsPromiseDrop.class);
+		}
+		@Override
+	    protected IAnnotationScrubber makeScrubber() {
+			return null;
+		}
+	}
+	
   public static class Containable_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ContainableNode,ContainablePromiseDrop> {
     public Containable_ParseRule() {

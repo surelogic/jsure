@@ -51,5 +51,5 @@ public interface IJavaClassTable {
    * @param qName fully-qualified name of the package
    * @return searchable scope
    */
-  public abstract IJavaScope packageScope(String qName);
+  public abstract IJavaPackageScope packageScope(String qName);
 }
