@@ -421,9 +421,12 @@ public class JavaPromise extends JavaNode {
 		}
 		
 		// typeName may contain $ for local classes
+		/*
 		if (typeName.indexOf('$') >= 0) {
+			System.out.println("Got "+typeName);
 			typeName = typeName.replace('$', '.');
 		}
+		*/
 		
 		// Check for match with IFQR
 		else if (ConstructorDeclaration.prototype.includes(op)) {
