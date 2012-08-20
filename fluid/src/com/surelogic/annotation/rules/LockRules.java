@@ -1874,14 +1874,34 @@ public class LockRules extends AnnotationRules {
        */
       final AtomicBoolean boundsOkay = new AtomicBoolean(true);
       final WhenVisitor visitor = new WhenVisitor() {
+        private final Set<String> names = new HashSet<String>();
+        
         public void visitWhenType(final NamedTypeNode namedType) {
-          if (!namedType.typeExists()) {
+          // Check for duplicates
+          final String name = namedType.getType();
+          if (!names.add(name)) {
+            context.reportError(
+                namedType, "Type formal {0} named more than once", name);
+          }
+            
+          /* Named type must exist, and be associated with the class being
+           * annotated.  (No fair naming type formals of outer classes!)
+           */
+          final ISourceRefType resolvedType = namedType.resolveType();
+          if (resolvedType == null) {
             boundsOkay.set(false);
             context.reportError(namedType,
-                "No formal type parameter named {0}", namedType.getType());
+                "No type formal parameter named {0}", name);
+          } else {
+            final IRNode t = resolvedType.getNode();
+            final IRNode c = JJNode.tree.getParent(JJNode.tree.getParent(t));
+            if (!c.equals(promisedFor)) {
+              context.reportError(namedType,
+                  "Type formal {0} is from a surrounding type", name);
             }
           }
-        };
+        }
+      };
       node.visitAnnotationBounds(visitor);
       bad &= boundsOkay.get();
       

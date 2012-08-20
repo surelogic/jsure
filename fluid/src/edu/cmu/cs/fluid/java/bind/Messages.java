@@ -36,6 +36,7 @@ public final class Messages {
   public static final int ControlFlow = 132;
   public static final int SingletonDrop = 133;
   public static final int RegionAnnotation_borrowedInRegionDrop = 134;
+  public static final int InstantiatedGeneric = 135;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.
