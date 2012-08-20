@@ -75,12 +75,24 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode
   
   @Override
   public void visitAnnotationBounds(final WhenVisitor visitor) {
+    visitThreadSafeBounds(visitor);
+    visitImmutableBounds(visitor);
+    visitContainableBounds(visitor);
+  }
+  
+  public void visitThreadSafeBounds(final WhenVisitor visitor) {
     for (final NamedTypeNode named : threadSafe) {
       visitor.visitWhenType(named);
     }
+  }
+  
+  public void visitImmutableBounds(final WhenVisitor visitor) {
     for (final NamedTypeNode named : immutable) {
       visitor.visitWhenType(named);
     }
+  }
+  
+  public void visitContainableBounds(final WhenVisitor visitor) {
     for (final NamedTypeNode named : containable) {
       visitor.visitWhenType(named);
     }

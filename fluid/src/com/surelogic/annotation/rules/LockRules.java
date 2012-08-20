@@ -2032,6 +2032,7 @@ public class LockRules extends AnnotationRules {
 		public AnnotationBounds_ParseRule() {
 			super(ANNO_BOUNDS, typeDeclOps, AnnotationBoundsNode.class);
 		}
+		
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new AnnotationBoundsNode(offset, 
@@ -2039,13 +2040,74 @@ public class LockRules extends AnnotationRules {
 					createNamedType(offset, context.getProperty(IMMUTABLE)),
 					createNamedType(offset, context.getProperty(CONTAINABLE)));
 		}
+		
 		@Override
 		protected IPromiseDropStorage<AnnotationBoundsPromiseDrop> makeStorage() {
 			return BooleanPromiseDropStorage.create(name(), AnnotationBoundsPromiseDrop.class);
 		}
+		
 		@Override
-	    protected IAnnotationScrubber makeScrubber() {
-			return null;
+    protected IAnnotationScrubber makeScrubber() {
+      return new AbstractAASTScrubber<AnnotationBoundsNode, AnnotationBoundsPromiseDrop>(
+          this, ScrubberType.UNORDERED) {
+        @Override
+        protected AnnotationBoundsPromiseDrop makePromiseDrop(final AnnotationBoundsNode a) {
+          final IAnnotationScrubberContext context = getContext();
+          final IRNode promisedFor = a.getPromisedFor();
+
+          /* Check that all the formal type parameters named in the annotation
+           * bounds exist.
+           */
+          class Visitor implements WhenVisitor {
+            private boolean good = true;
+            private final Set<String> names = new HashSet<String>();
+            
+            public void visitWhenType(final NamedTypeNode namedType) {
+              // Check for duplicates
+              final String name = namedType.getType();
+              if (!names.add(name)) {
+                context.reportError(
+                    namedType, "Type formal {0} named more than once", name);
+              }
+                
+              /* Named type must exist, and be associated with the class being
+               * annotated.  (No fair naming type formals of outer classes!)
+               */
+              final ISourceRefType resolvedType = namedType.resolveType();
+              if (resolvedType == null) {
+                good = false;
+                context.reportError(namedType,
+                    "No type formal parameter named {0}", name);
+              } else {
+                final IRNode t = resolvedType.getNode();
+                final IRNode c = JJNode.tree.getParent(JJNode.tree.getParent(t));
+                if (!c.equals(promisedFor)) {
+                  good = false;
+                  context.reportError(namedType,
+                      "Type formal {0} is from a surrounding type", name);
+                }
+              }
+            }
+            
+            public boolean isGood() {
+              return good;
+            }
+          }
+
+          final Visitor tsVisitor = new Visitor();
+          final Visitor iVisitor = new Visitor();
+          final Visitor cVisitor = new Visitor();
+          a.visitThreadSafeBounds(tsVisitor);
+          a.visitImmutableBounds(iVisitor);
+          a.visitContainableBounds(cVisitor);
+
+          if (tsVisitor.isGood() && iVisitor.isGood() && cVisitor.isGood()) {
+            return new AnnotationBoundsPromiseDrop(a);
+          } else {
+            return null;
+          }
+        }
+      };
 		}
 	}
 	
