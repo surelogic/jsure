@@ -2024,7 +2024,7 @@ public class LockRules extends AnnotationRules {
 		}
 		@Override
 	    protected IAnnotationScrubber makeScrubber() {
-			throw new UnsupportedOperationException();
+			return null;
 		}
 	}
 	
