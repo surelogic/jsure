@@ -664,7 +664,7 @@ public abstract class AnnotationRules {
 	
 	protected static final NamedTypeNode[] noTypes = new NamedTypeNode[0];
 	
-	protected static NamedTypeNode[] createNamedType(String val) {
+	protected static NamedTypeNode[] createNamedType(int offset, String val) {
 		if (val == null || val.length() == 0) {
 			return noTypes;
 		}
@@ -672,7 +672,8 @@ public abstract class AnnotationRules {
 		NamedTypeNode[] rv = new NamedTypeNode[values.length];
 		int i=0;
 		for(String s : values) {
-			rv[i] = new NamedTypeNode(0, s);
+			// FIX can we get the exact offset?
+			rv[i] = new NamedTypeNode(offset, s);
 			i++;
 		}
 		return rv;

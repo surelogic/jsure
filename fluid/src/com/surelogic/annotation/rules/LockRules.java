@@ -348,6 +348,7 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, requiresLockRule);
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
+		registerParseRuleStorage(fw, annoBoundsRule);
     registerParseRuleStorage(fw, containableRule);
     registerParseRuleStorage(fw, threadSafeRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
@@ -2034,9 +2035,9 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new AnnotationBoundsNode(offset, 
-					createNamedType(context.getProperty(THREAD_SAFE)),
-					createNamedType(context.getProperty(IMMUTABLE)),
-					createNamedType(context.getProperty(CONTAINABLE)));
+					createNamedType(offset, context.getProperty(THREAD_SAFE)),
+					createNamedType(offset, context.getProperty(IMMUTABLE)),
+					createNamedType(offset, context.getProperty(CONTAINABLE)));
 		}
 		@Override
 		protected IPromiseDropStorage<AnnotationBoundsPromiseDrop> makeStorage() {
@@ -2055,7 +2056,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {      
-      return new ContainableNode(offset, mods, createNamedType(context.getProperty(WHEN_CONTAINABLE)));
+      return new ContainableNode(offset, mods, createNamedType(offset, context.getProperty(WHEN_CONTAINABLE)));
     }
     @Override
     protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
@@ -2113,9 +2114,9 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new ThreadSafeNode(offset, mods,
-    		  createNamedType(context.getProperty(WHEN_THREAD_SAFE)),
-    		  createNamedType(context.getProperty(WHEN_IMMUTABLE)),
-    		  createNamedType(context.getProperty(WHEN_CONTAINABLE)));
+    		  createNamedType(offset, context.getProperty(WHEN_THREAD_SAFE)),
+    		  createNamedType(offset, context.getProperty(WHEN_IMMUTABLE)),
+    		  createNamedType(offset, context.getProperty(WHEN_CONTAINABLE)));
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2291,7 +2292,7 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-    	  return new ImmutableNode(offset, mods, createNamedType(context.getProperty(WHEN_IMMUTABLE)));
+    	  return new ImmutableNode(offset, mods, createNamedType(offset, context.getProperty(WHEN_IMMUTABLE)));
       }
       return new ImmutableRefNode(offset);
     }
