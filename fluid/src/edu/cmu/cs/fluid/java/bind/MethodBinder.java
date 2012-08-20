@@ -314,7 +314,8 @@ class MethodBinder {
     	final MethodState m = new MethodState(s, mbind);
     	if (s.numTypeArgs != 0 && s.numTypeArgs != m.numTypeFormals) {
     		// No way for this method to be applicable
-    		return null; 
+    		m.match = null;
+    		return m; 
     	}    	
     	m.initSubstMap();
     	

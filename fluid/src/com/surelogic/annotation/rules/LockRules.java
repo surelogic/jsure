@@ -56,6 +56,9 @@ public class LockRules extends AnnotationRules {
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   public static final String ANNO_BOUNDS = "AnnotationBounds";
   
+  public static final String CONTAINABLE_PROP = "containable";
+  public static final String THREAD_SAFE_PROP = "threadSafe";
+  public static final String IMMUTABLE_PROP = "immutable";
   public static final String WHEN_THREAD_SAFE = "whenThreadSafe";
   public static final String WHEN_IMMUTABLE = "whenImmutable";
   public static final String WHEN_CONTAINABLE = "whenContainable";
@@ -2036,9 +2039,9 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new AnnotationBoundsNode(offset, 
-					createNamedType(offset, context.getProperty(THREAD_SAFE)),
-					createNamedType(offset, context.getProperty(IMMUTABLE)),
-					createNamedType(offset, context.getProperty(CONTAINABLE)));
+					createNamedType(offset, context.getProperty(THREAD_SAFE_PROP)),
+					createNamedType(offset, context.getProperty(IMMUTABLE_PROP)),
+					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)));
 		}
 		
 		@Override
