@@ -59,6 +59,14 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
   final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
   //final Map<IRNode,Entry> indirect = new ListMap<IRNode,Entry>(); // for debugging
   
+  final Map<IRNode,Entry> indirectPackages = new HashMap<IRNode,Entry>();
+  
+  private Iterable<Map.Entry<IRNode, Entry>> getIndirectEntries() {
+	  return new AppendIterator<Map.Entry<IRNode,Entry>>(indirectPackages.entrySet().iterator(), 
+			  indirect.entrySet().iterator());
+	  //return indirect.entrySet();
+  }  
+  
   protected abstract IDerivedInformation makeInformation();
   
   protected final void initialize() {
@@ -105,7 +113,11 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     	  resolveImport(itemNode,importNode);
       }
       */
-      addScope(indirect,importNode,scope);
+      if (scope instanceof IJavaPackageScope) {
+    	  addScope(indirectPackages, importNode, scope);
+      } else {
+    	  addScope(indirect,importNode,scope);
+      }
     } else {
       if (name.indexOf('.') >= 0) {
     	  LOG.warning("Got qualified name: "+name);
@@ -312,7 +324,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       if (result != null) return result;
       
       // try all indirect (demand) imports    
-      for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
+      for (Map.Entry<IRNode,Entry> e : getIndirectEntries()) {
     	//IRNode key  = e.getKey();
     	Entry entry = e.getValue();
         IJavaScope scope = entry.getScope();
@@ -364,7 +376,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     
     // try all indirect (demand) imports
     {
-      for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
+      for (Map.Entry<IRNode,Entry> e : getIndirectEntries()) {
        	//IRNode key  = e.getKey();
     	//System.out.println("Looking at import "+DebugUnparser.toString(e.getKey()));
        	Entry entry = e.getValue();
@@ -389,7 +401,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     	return EmptyIterator.prototype();
     }
     return rv;
-  }  
+  }
   
   public void printTrace(PrintStream out, int indent) {
     DebugUtil.println(out, indent,"[Import table: "+this.compilationUnit+"]");

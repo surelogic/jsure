@@ -28,7 +28,7 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#packageScope(java.lang.String)
    */
-  public IJavaScope packageScope(String pName) {
+  public IJavaPackageScope packageScope(String pName) {
     String prefix;
     if (pName.length() == 0) {
     	prefix = "";
@@ -39,7 +39,7 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
     return new PackageScope(prefix);
   }
   
-  private class PackageScope implements IJavaScope {
+  private class PackageScope implements IJavaPackageScope {
 
     private final String prefix;
 
