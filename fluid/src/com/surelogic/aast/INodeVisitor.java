@@ -151,4 +151,5 @@ public interface INodeVisitor<T> {
 	T visit(NonNullNode nonNullNode);
 	T visit(NullableNode nullableNode);
 	T visit(RawNode rawNode);
+	T visit(AnnotationBoundsNode n);
 }
