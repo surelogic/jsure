@@ -173,6 +173,12 @@ public class LockRules extends AnnotationRules {
 	
 	
 	
+	public static AnnotationBoundsPromiseDrop getAnnotationBounds(final IRNode tDecl) {
+	  return getBooleanDrop(annoBoundsRule.getStorage(), tDecl);
+	}
+	
+	
+	
   private static <N extends AbstractModifiedBooleanNode, A extends ModifiedBooleanPromiseDrop<N>> A getX_Type(final IPromiseDropStorage<A> storage, final IRNode tdecl) {
 	  final A drop = getBooleanDrop(storage, tdecl);
     if (drop == null) {
@@ -224,13 +230,6 @@ public class LockRules extends AnnotationRules {
    */
   public static ThreadSafePromiseDrop getThreadSafeType(final IRNode cdecl) {
     return getX_Type(threadSafeRule.getStorage(), cdecl);
-
-//    final ThreadSafePromiseDrop drop = getBooleanDrop(threadSafeRule.getStorage(), cdecl);
-//    if (drop == null) {
-//      return null;
-//    } else {
-//      return drop.isImplementationOnly() ? null : drop;
-//    }
   }
 
   /**
@@ -239,7 +238,6 @@ public class LockRules extends AnnotationRules {
    */
   public static ThreadSafePromiseDrop getThreadSafeImplementation(final IRNode cdecl) {
     return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
-//    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
   }
 
   public static NotThreadSafePromiseDrop getNotThreadSafe(IRNode cdecl) {
@@ -260,12 +258,6 @@ public class LockRules extends AnnotationRules {
    */
   public static ImmutablePromiseDrop getImmutableType(final IRNode cdecl) {
     return getX_Type(immutableRule.getStorage(), cdecl);
-//    final ImmutablePromiseDrop drop = getBooleanDrop(immutableRule.getStorage(), cdecl);
-//    if (drop == null) {
-//      return null;
-//    } else {
-//      return drop.isImplementationOnly() ? null : drop;
-//    }
   }
   
   /**
@@ -274,7 +266,6 @@ public class LockRules extends AnnotationRules {
    */
   public static ImmutablePromiseDrop getImmutableImplementation(final IRNode cdecl) {
     return getBooleanDrop(immutableRule.getStorage(), cdecl);
-//    return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
   /**
@@ -2055,6 +2046,11 @@ public class LockRules extends AnnotationRules {
           this, ScrubberType.UNORDERED) {
         @Override
         protected AnnotationBoundsPromiseDrop makePromiseDrop(final AnnotationBoundsNode a) {
+          return storeDropIfNotNull(a, scrubAnnotationBounds(a));
+        }
+
+        private AnnotationBoundsPromiseDrop scrubAnnotationBounds(
+            final AnnotationBoundsNode a) {
           final IAnnotationScrubberContext context = getContext();
           final IRNode promisedFor = a.getPromisedFor();
 

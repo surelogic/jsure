@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class UniquenessControlFlowDrop extends PromiseDrop<IAASTRootNode> {
+public final class UniquenessControlFlowDrop extends PromiseDrop<IAASTRootNode> {
   /**
    * Construct a new control flow drop that represents the control flow for
    * the given method/constructor declaration.
