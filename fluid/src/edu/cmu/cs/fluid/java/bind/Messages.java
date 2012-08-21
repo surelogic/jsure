@@ -37,6 +37,7 @@ public final class Messages {
   public static final int SingletonDrop = 133;
   public static final int RegionAnnotation_borrowedInRegionDrop = 134;
   public static final int InstantiatedGeneric = 135;
+  public static final int AnnotationBounds = 136;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.
