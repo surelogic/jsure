@@ -347,7 +347,7 @@ public class JavaPromise extends JavaNode {
 	 * types, such as from an XML file.
 	 */
 	public static IRNode getQualifiedReceiverNodeByName(IRNode methodNode, IRNode typeDecl) {
-		String typeName = JavaNames.getFullTypeName(typeDecl);
+		String typeName = JavaNames.getFullTypeName_local(typeDecl);
 		return getQualifiedReceiverNodeByName(methodNode, typeName);
 	}
 
@@ -370,14 +370,14 @@ public class JavaPromise extends JavaNode {
 	 */
 	public static IRNode getQualifiedReceiverNodeByName_Bug1392WorkAround(
 			final IRNode methodNode, final IRNode typeDecl) {
-		String typeName = JavaNames.getFullTypeName(typeDecl);
+		String typeName = JavaNames.getFullTypeName_local(typeDecl);
 		return getQualifiedReceiverNodeByName_Bug1392WorkAround(methodNode, typeName);
 	}	
 	
 	public static IRNode getQualifiedReceiverNodeByName_Bug1392WorkAround(
 			final IRNode methodNode, final String typeName) {
 		IRNode enclosingT        = VisitUtil.getEnclosingType(methodNode);
-		String enclosingTypeName = JavaNames.getFullTypeName(enclosingT);
+		String enclosingTypeName = JavaNames.getFullTypeName_local(enclosingT);
 		if (typeName.equals(enclosingTypeName)) {
 			return JavaPromise.getReceiverNodeOrNull(methodNode);
 		} else {
@@ -411,7 +411,7 @@ public class JavaPromise extends JavaNode {
 		}
 		 */
 		// Check if it's actually a normal receiver node
-		String name = JavaNames.getFullTypeName(type);
+		String name = JavaNames.getFullTypeName_local(type);
 		if (typeName.equals(name)) {
 			if (type != declNode) {
 				return getReceiverNode(declNode);
@@ -420,13 +420,11 @@ public class JavaPromise extends JavaNode {
 			}
 		}
 		
-		// typeName may contain $ for local classes
-		/*
-		if (typeName.indexOf('$') >= 0) {
-			System.out.println("Got "+typeName);
-			typeName = typeName.replace('$', '.');
-		}
-		*/
+		// typeName may contain : for local classes, due to getFullTypeName()
+		if (typeName.indexOf(':') >= 0) {
+			//System.out.println("Got "+typeName);
+			typeName = typeName.replace(':', '.');
+		}		
 		
 		// Check for match with IFQR
 		else if (ConstructorDeclaration.prototype.includes(op)) {
