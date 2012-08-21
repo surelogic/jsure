@@ -163,6 +163,10 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_IMPL = 488;
   public static final int IMMUTABLE_SUPERTYPE = 489;
   
+  public static final int ANNOTATION_BOUNDS_SATISFIED = 495;
+  public static final int ANNOTATION_BOUNDS_NOT_SATISFIED = 496;
+  public static final int BOUND_SATISFIED = 497;
+  public static final int BOUND_NOT_SATISFIED = 498;
   
   
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
