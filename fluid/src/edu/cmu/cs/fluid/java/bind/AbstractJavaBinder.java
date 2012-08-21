@@ -1460,13 +1460,24 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode parent = JJNode.tree.getParent(node);
       IJavaType type = typeEnvironment.getMyThisType(parent);
       IJavaScope classScope = typeScope(type);
-      /**
-       * Within a class C, a declaration d of a member type named n shadows the declarations
-	   * of any other types named n that are in scope at the point where d occurs.
-       */
-      IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope,scope);
-      IJavaScope combined = new IJavaScope.SelectiveShadowingScope(shadowing, onlyColocatedTypes(parent), shadowing);
-      doAcceptForChildren(node, combined);
+      final IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope,scope);
+      if (AnonClassExpression.prototype.includes(parent)) {
+    	  // Start of a different class
+    	  doAcceptForChildren(node, shadowing);
+      } else {
+    	  IRNode gparent = JJNode.tree.getParent(parent);
+    	  if (TypeDeclarationStatement.prototype.includes(gparent)) {
+        	  // Start of a different class
+    		  doAcceptForChildren(node, shadowing);
+    	  } else {
+    		  /**
+    		   * Within a class C, a declaration d of a member type named n shadows the declarations
+    		   * of any other types named n that are in scope at the point where d occurs.
+    		   */
+    		  IJavaScope combined = new IJavaScope.SelectiveShadowingScope(shadowing, onlyColocatedTypes(parent), shadowing);
+    		  doAcceptForChildren(node, combined);
+    	  }
+      }
       return null;
     }
 
