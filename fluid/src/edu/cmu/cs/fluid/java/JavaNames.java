@@ -360,49 +360,68 @@ public final class JavaNames {
 
 		return name.substring(posOfLastDot + 1);
 	}
-
+	
+	/**
+	 * Uses ':' to designate local types
+	 */
+	public static String getFullTypeName_local(final IRNode decl) {
+		return new TypeNameBuilder(true, ':').build(decl);
+	}
+	
 	/**
 	 * @return the fully qualified name of the type
 	 */
 	public static String getFullTypeName(final IRNode decl) {
-		final StringBuilder name = new StringBuilder();
-		computeFullTypeName(name, decl, true);
-		return name.toString();
+		return new TypeNameBuilder(true, '$').build(decl);
 	}
 
 	/**
 	 * @return the name of the type inside this CU (no package)
 	 */
 	public static String getRelativeTypeName(final IRNode decl) {
-		final StringBuilder name = new StringBuilder();
-		computeFullTypeName(name, decl, false);
-		return name.toString();
+		return new TypeNameBuilder(false, '$').build(decl);
 	}
 
-	/**
-	 * Helper function for getFullTypeName
-	 */
-	private static void computeFullTypeName(final StringBuilder name,
-			final IRNode decl, final boolean includePackage) {
-		final IRNode enclosingT = VisitUtil.getEnclosingType(decl);
-		if (enclosingT == null) {
-			if (includePackage) {
-				final String pkg = getPackageName(decl);
-				if (pkg != null && pkg != "") {
-					name.append(pkg).append('.');
-				}
-			}
-			name.append(getTypeName(decl));
-		} else {
-			computeFullTypeName(name, enclosingT, includePackage);
+	private static class TypeNameBuilder {
+		final StringBuilder name = new StringBuilder();
+		final boolean includePackage;
+		final char localSeparator;
+		
+		TypeNameBuilder(boolean needPkg, char sep) {
+			includePackage = needPkg;
+			localSeparator = sep;
+		}
 
-			final IRNode parent = JJNode.tree.getParentOrNull(decl);
-			if (TypeDeclarationStatement.prototype.includes(parent)) {
-				name.append('$');
+		String build(final IRNode decl) {
+			computeFullTypeName(name, decl, includePackage);
+			return name.toString();
+		}
+	
+		/**
+		 * Helper function for getFullTypeName
+		 */
+		void computeFullTypeName(final StringBuilder name,
+				final IRNode decl, final boolean includePackage) {
+			final IRNode enclosingT = VisitUtil.getEnclosingType(decl);
+			if (enclosingT == null) {
+				if (includePackage) {
+					final String pkg = getPackageName(decl);
+					if (pkg != null && pkg != "") {
+						name.append(pkg).append('.');
+					}
+				}
+				name.append(getTypeName(decl));
 			} else {
-				name.append('.');
+				computeFullTypeName(name, enclosingT, includePackage);
+
+				final IRNode parent = JJNode.tree.getParentOrNull(decl);
+				if (TypeDeclarationStatement.prototype.includes(parent)) {
+					name.append(localSeparator);
+				} else {
+					name.append('.');
+				}
+				name.append(getTypeName(decl));
 			}
-			name.append(getTypeName(decl));
 		}
 	}
 
