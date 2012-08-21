@@ -44,12 +44,5 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
   public NamedTypeNode[] getWhenImmutable() {
     return whenImmutable;
   }
-  
-  @Override
-  public void visitAnnotationBounds(final WhenVisitor visitor) {
-    for (final NamedTypeNode named : whenImmutable) {
-      visitor.visitWhenType(named);
-    }
-  }
 }
 

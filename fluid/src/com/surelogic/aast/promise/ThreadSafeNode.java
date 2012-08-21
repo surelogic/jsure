@@ -70,18 +70,5 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
   public NamedTypeNode[] getWhenContainable() {
 	  return whenContainable;
   }  
-  
-  @Override
-  public void visitAnnotationBounds(final WhenVisitor visitor) {
-    for (final NamedTypeNode named : whenContainable) {
-      visitor.visitWhenType(named);
-    }
-    for (final NamedTypeNode named : whenThreadSafe) {
-      visitor.visitWhenType(named);
-    }
-    for (final NamedTypeNode named : whenImmutable) {
-      visitor.visitWhenType(named);
-    }
-  }
 }
 

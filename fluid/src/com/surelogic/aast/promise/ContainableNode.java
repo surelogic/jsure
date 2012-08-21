@@ -44,12 +44,5 @@ public final class ContainableNode extends AbstractModifiedBooleanNode
   public NamedTypeNode[] getWhenContainable() {
 	  return whenContainable;
   }
-  
-  @Override
-  public void visitAnnotationBounds(final WhenVisitor visitor) {
-    for (final NamedTypeNode named : whenContainable) {
-      visitor.visitWhenType(named);
-    }
-  }
 }
 

@@ -9,7 +9,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
-import com.surelogic.aast.promise.AbstractModifiedBooleanNode.WhenVisitor;
+import com.surelogic.aast.promise.AnnotationBoundsNode.BoundsVisitor;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.locks.FieldKind;
@@ -1865,42 +1865,6 @@ public class LockRules extends AnnotationRules {
             node, "Cannot be both @{0} and @{1}", name, notName);
         bad = true;
       }
-	    
-      /* Check that all the formal type parameters named in the annotation
-       * bounds exist.
-       */
-      final AtomicBoolean boundsOkay = new AtomicBoolean(true);
-      final WhenVisitor visitor = new WhenVisitor() {
-        private final Set<String> names = new HashSet<String>();
-        
-        public void visitWhenType(final NamedTypeNode namedType) {
-          // Check for duplicates
-          final String name = namedType.getType();
-          if (!names.add(name)) {
-            context.reportError(
-                namedType, "Type formal {0} named more than once", name);
-          }
-            
-          /* Named type must exist, and be associated with the class being
-           * annotated.  (No fair naming type formals of outer classes!)
-           */
-          final ISourceRefType resolvedType = namedType.resolveType();
-          if (resolvedType == null) {
-            boundsOkay.set(false);
-            context.reportError(namedType,
-                "No type formal parameter named {0}", name);
-          } else {
-            final IRNode t = resolvedType.getNode();
-            final IRNode c = JJNode.tree.getParent(JJNode.tree.getParent(t));
-            if (!c.equals(promisedFor)) {
-              context.reportError(namedType,
-                  "Type formal {0} is from a surrounding type", name);
-            }
-          }
-        }
-      };
-      node.visitAnnotationBounds(visitor);
-      bad &= boundsOkay.get();
       
 	    if (bad) {
 	      return null;
@@ -2057,7 +2021,7 @@ public class LockRules extends AnnotationRules {
           /* Check that all the formal type parameters named in the annotation
            * bounds exist.
            */
-          class Visitor implements WhenVisitor {
+          class Visitor implements BoundsVisitor {
             private boolean good = true;
             private final Set<String> names = new HashSet<String>();
             
