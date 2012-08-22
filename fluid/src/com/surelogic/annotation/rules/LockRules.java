@@ -59,9 +59,6 @@ public class LockRules extends AnnotationRules {
   public static final String CONTAINABLE_PROP = "containable";
   public static final String THREAD_SAFE_PROP = "threadSafe";
   public static final String IMMUTABLE_PROP = "immutable";
-  public static final String WHEN_THREAD_SAFE = "whenThreadSafe";
-  public static final String WHEN_IMMUTABLE = "whenImmutable";
-  public static final String WHEN_CONTAINABLE = "whenContainable";
   
 	private static final AnnotationRules instance = new LockRules();
 
@@ -2081,7 +2078,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {      
-      return new ContainableNode(offset, mods, createNamedType(offset, context.getProperty(WHEN_CONTAINABLE)));
+      return new ContainableNode(offset, mods);
     }
     @Override
     protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
@@ -2108,7 +2105,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ContainableNode makeDerivedAnnotation(
             final int offset, final int mods, ContainableNode orig) {
-          return new ContainableNode(offset, mods, orig.getWhenContainable());
+          return new ContainableNode(offset, mods);
         }
 
         @Override
@@ -2138,10 +2135,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ThreadSafeNode(offset, mods,
-    		  createNamedType(offset, context.getProperty(WHEN_THREAD_SAFE)),
-    		  createNamedType(offset, context.getProperty(WHEN_IMMUTABLE)),
-    		  createNamedType(offset, context.getProperty(WHEN_CONTAINABLE)));
+      return new ThreadSafeNode(offset, mods);
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2188,9 +2182,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
             final int offset, final int mods, ThreadSafeNode orig) {
-          return new ThreadSafeNode(offset, mods, orig.getWhenThreadSafe(),
-        		  orig.getWhenImmutable(), 
-        		  orig.getWhenContainable());
+          return new ThreadSafeNode(offset, mods);
         }
 
         @Override
@@ -2317,7 +2309,7 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-    	  return new ImmutableNode(offset, mods, createNamedType(offset, context.getProperty(WHEN_IMMUTABLE)));
+    	  return new ImmutableNode(offset, mods);
       }
       return new ImmutableRefNode(offset);
     }
@@ -2346,7 +2338,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutableNode makeDerivedAnnotation(
             final int offset, final int mods, ImmutableNode orig) {
-          return new ImmutableNode(offset, mods, orig.getWhenImmutable());
+          return new ImmutableNode(offset, mods);
         }
 
         @Override
