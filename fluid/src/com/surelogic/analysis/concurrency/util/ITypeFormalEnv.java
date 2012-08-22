@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.annotationbounds;
+package com.surelogic.analysis.concurrency.util;
 
 import com.surelogic.aast.IAASTRootNode;
 

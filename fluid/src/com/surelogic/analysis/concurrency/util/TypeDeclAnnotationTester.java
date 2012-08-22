@@ -1,10 +1,9 @@
-package com.surelogic.analysis.concurrency.threadsafe;
+package com.surelogic.analysis.concurrency.util;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.concurrency.annotationbounds.ITypeFormalEnv;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

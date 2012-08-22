@@ -1,7 +1,6 @@
-package com.surelogic.analysis.concurrency.threadsafe;
+package com.surelogic.analysis.concurrency.util;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.concurrency.annotationbounds.ITypeFormalEnv;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -11,7 +10,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 
-final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
+public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   public ImmutableAnnotationTester(
       final IBinder binder, final ITypeFormalEnv formalEnv) {
     super(binder, formalEnv);

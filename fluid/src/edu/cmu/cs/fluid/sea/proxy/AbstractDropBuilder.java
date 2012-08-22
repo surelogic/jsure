@@ -1,18 +1,16 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea.proxy;
 
 import java.text.MessageFormat;
 import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.Triple;
 
 public abstract class AbstractDropBuilder implements IDropBuilder {
-	final String type;
+	/*final*/ String type;
 	private boolean isValid = true;
 	private IRNode node;
 	private String message;
@@ -43,6 +41,10 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 		return node;
 	}
 	
+	public final void setType(final String type) {
+	  this.type = type;
+	}
+	
 	public void setNode(IRNode n) {
 		if (n == null) {
 			throw new IllegalArgumentException("Set node to null");
@@ -63,14 +65,14 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 	public void setResultMessage(int num, Object... args) {
 		messageNum = num;
 		this.args = args;
-		if (num == 207) {
-			String arg0 = args[0].toString();
-			/*
-			if (arg0.startsWith("<test.AnonymousClass.SuperIsNotInner.TestFieldInit.this>:T")) {
-				System.out.println("Got 207");
-			}
-			*/
-		}
+//		if (num == 207) {
+//			String arg0 = args[0].toString();
+//			/*
+//			if (arg0.startsWith("<test.AnonymousClass.SuperIsNotInner.TestFieldInit.this>:T")) {
+//				System.out.println("Got 207");
+//			}
+//			*/
+//		}
 	}
 	
 	public String getMessage() {
