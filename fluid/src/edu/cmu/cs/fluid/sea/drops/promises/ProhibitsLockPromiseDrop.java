@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 /**
  * Promise drop for "ProhibitsLock" promises.
  * 
- * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
+ * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class ProhibitsLockPromiseDrop extends AbstractLockListPromiseDrop<ProhibitsLockNode> {

@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 /**
  * Promise drop for "returnsLock" promises.
  * 
- * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
+ * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {

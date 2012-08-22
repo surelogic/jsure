@@ -4,6 +4,7 @@ import com.surelogic.aast.IAASTRootNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -20,6 +21,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extends IAASTRootNode>> {
   protected final AbstractWholeIRAnalysis<? extends IBinderClient, ?> analysis;
+  protected final IBinder binder;
   protected final P promiseDrop;
   protected final IRNode typeDecl;
   protected final IRNode typeBody;
@@ -30,6 +32,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
       final P pd,
       final IRNode td, final IRNode tb) {
     analysis = a;
+    binder = a.getBinder();
     promiseDrop = pd;
     typeDecl = td;
     typeBody = tb;

@@ -10,7 +10,7 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 /**
  * Promise drop for "NotContainable" promises.
  * 
- * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
+ * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotContainableNode> {

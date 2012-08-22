@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.sea.drops.*;
 /**
  * Promise drop for "ThreadSafe" promises.
  * 
- * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
+ * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class ContainablePromiseDrop extends

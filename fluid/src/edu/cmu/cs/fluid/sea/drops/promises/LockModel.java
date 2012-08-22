@@ -6,7 +6,7 @@ import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
-import com.surelogic.analysis.locks.LockUtils;
+import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.util.*;
 /**
  * Promise drop for "lock" models.
  * 
- * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
+ * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  * 
  * @lock LockModelLock is class protects nameToDrop

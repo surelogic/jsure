@@ -1,7 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.VouchFieldIsNode;
-import com.surelogic.analysis.locks.FieldKind;
+import com.surelogic.analysis.concurrency.heldlocks.FieldKind;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
