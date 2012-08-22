@@ -99,8 +99,8 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
       resolveImport(itemNode,importNode);
       return; // nothing to add
     }
-    Operator op = JJNode.tree.getOperator(itemNode);
-    
+    final Operator op = JJNode.tree.getOperator(itemNode);
+    final boolean isPackageScope = scope instanceof IJavaPackageScope;
     if (op instanceof StaticImport || op instanceof StaticDemandName) {
       scope = new SelectedScope(scope,IJavaScope.Util.isStatic); // types too!
     } else {
@@ -113,7 +113,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     	  resolveImport(itemNode,importNode);
       }
       */
-      if (scope instanceof IJavaPackageScope) {
+      if (isPackageScope) {
     	  addScope(indirectPackages, importNode, scope);
       } else {
     	  addScope(indirect,importNode,scope);
