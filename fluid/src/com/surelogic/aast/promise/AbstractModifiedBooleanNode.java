@@ -60,7 +60,9 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 		}
 	}	
 	
-	protected abstract void unparseExtra(boolean debug, int indent, StringBuilder sb);
+	protected void unparseExtra(boolean debug, int indent, StringBuilder sb) {
+		// Nothing to do yet
+	}
 
 	/**
 	 * @return true if unparsed something
@@ -87,7 +89,9 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 		return true;
 	}
 	
-	protected abstract boolean hasChildren();
+	protected boolean hasChildren() {
+		return false;
+	}
 	
 	public final boolean isImplementationOnly() {
 		return getModifier(JavaNode.IMPLEMENTATION_ONLY);

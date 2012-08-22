@@ -1251,27 +1251,15 @@ public class LockAnalysis
       }
       boolean added = false;
       
-      final ThreadSafePromiseDrop tsDrop = LockRules.getThreadSafeType(type);
+      final AnnotationBoundsPromiseDrop tsDrop = LockRules.getAnnotationBounds(type);
       if (tsDrop != null) {
-        final ThreadSafeNode ast = tsDrop.getAST();
+        final AnnotationBoundsNode ast = tsDrop.getAST();
         added |= addToBounds(bounds, formalIDs,
-            ast.getWhenContainable(), AnnotationBounds.CONTAINABLE);
+            ast.getContainable(), AnnotationBounds.CONTAINABLE);
         added |= addToBounds(bounds, formalIDs,
-            ast.getWhenImmutable(), AnnotationBounds.IMMUTABLE);
+            ast.getImmutable(), AnnotationBounds.IMMUTABLE);
         added |= addToBounds(bounds, formalIDs,
-            ast.getWhenThreadSafe(), AnnotationBounds.THREADSAFE);
-      }
-      
-      final ImmutablePromiseDrop iDrop = LockRules.getImmutableType(type);
-      if (iDrop != null) {
-        added |= addToBounds(bounds, formalIDs,
-            iDrop.getAST().getWhenImmutable(), AnnotationBounds.IMMUTABLE);
-      }
-      
-      final ContainablePromiseDrop cDrop = LockRules.getContainableType(type);
-      if (cDrop != null) {
-        added |= addToBounds(bounds, formalIDs,
-            cDrop.getAST().getWhenContainable(), AnnotationBounds.CONTAINABLE);
+            ast.getThreadSafe(), AnnotationBounds.THREADSAFE);
       }
       
       if (added) {
@@ -1388,6 +1376,9 @@ public class LockAnalysis
       final String name = TypeFormal.getId(decl);
       final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
       final AnnotationBoundsPromiseDrop abDrop = LockRules.getAnnotationBounds(typeDecl);
+      if (abDrop == null) {
+    	  return null;
+      }
       return bounds.testBounds(abDrop.getAST(), name) ? abDrop : null;
     }
 

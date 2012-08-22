@@ -586,23 +586,11 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 
   public T visit(ContainableNode node) {
 	  T rv = defaultValue;
-	  for(NamedTypeNode t : node.getWhenContainable()) {
-		  rv = combineResults(rv, doAccept(t));
-	  }
 	  return rv;
   }
   
   public T visit(ThreadSafeNode node) {
 	  T rv = defaultValue;
-	  for(NamedTypeNode t : node.getWhenThreadSafe()) {
-		  rv = combineResults(rv, doAccept(t));
-	  }
-	  for(NamedTypeNode t : node.getWhenImmutable()) {
-		  rv = combineResults(rv, doAccept(t));
-	  }
-	  for(NamedTypeNode t : node.getWhenContainable()) {
-		  rv = combineResults(rv, doAccept(t));
-	  }
 	  return rv;
   }
   
@@ -635,9 +623,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   
   public T visit(ImmutableNode node) {
 	  T rv = defaultValue;
-	  for(NamedTypeNode t : node.getWhenImmutable()) {
-		  rv = combineResults(rv, doAccept(t));
-	  }
 	  return rv;
   }
 
