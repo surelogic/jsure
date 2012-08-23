@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-abstract class TypeDeclAnnotationTester {
+public abstract class TypeDeclAnnotationTester {
   protected final ITypeFormalEnv formalEnv;
   private final ITypeEnvironment typeEnv;
   private final IJavaDeclaredType javaLangObject;
@@ -101,7 +101,7 @@ abstract class TypeDeclAnnotationTester {
       return testType(javaLangObject);
     } else if (type instanceof IJavaWildcardType) {
       // dead case?  Turned into Capture types, I think
-      final IJavaType upper = ((IJavaCaptureType) type).getUpperBound();
+      final IJavaType upper = ((IJavaWildcardType) type).getUpperBound();
       testType((upper == null) ? javaLangObject : upper);
     } 
     // shouldn't get here?

@@ -7,29 +7,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.concurrency.driver.Messages;
+import com.surelogic.analysis.concurrency.util.ContainableAnnotationTester;
 import com.surelogic.analysis.concurrency.util.ITypeFormalEnv;
+import com.surelogic.analysis.concurrency.util.ImmutableAnnotationTester;
+import com.surelogic.analysis.concurrency.util.ThreadSafeAnnotationTester;
+import com.surelogic.analysis.concurrency.util.TypeDeclAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
-import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
-import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
-import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundVirtualDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -40,36 +43,39 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
 
   private final IBinder binder;
   private final ITypeFormalEnv formalEnv;
-  private final IJavaDeclaredType javaLangObject;
 
-  private final Map<IRNode, List<Pair<String, Set<AnnotationBounds>>>> cachedBounds =
-      new HashMap<IRNode, List<Pair<String, Set<AnnotationBounds>>>>();
+  private final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
+      new HashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
 
   
   
   private enum AnnotationBounds {
     CONTAINABLE {
       @Override
-      public boolean test(final IRNode typeDecl) {
-        return LockRules.isContainableType(typeDecl);
+      public TypeDeclAnnotationTester getTester(
+          final IBinder binder, final ITypeFormalEnv formalEnv) {
+        return new ContainableAnnotationTester(binder, formalEnv);
       }
     },
     
     IMMUTABLE {
       @Override
-      public boolean test(final IRNode typeDecl) {
-        return LockRules.isImmutableType(typeDecl);
+      public TypeDeclAnnotationTester getTester(
+          final IBinder binder, final ITypeFormalEnv formalEnv) {
+        return new ImmutableAnnotationTester(binder, formalEnv);
       }
     },
     
     THREADSAFE {
       @Override
-      public boolean test(final IRNode typeDecl) {
-        return LockRules.getThreadSafeTypePromise(typeDecl) != null;
+      public TypeDeclAnnotationTester getTester(
+          final IBinder binder, final ITypeFormalEnv formalEnv) {
+        return new ThreadSafeAnnotationTester(binder, formalEnv);
       }
     };
     
-    public abstract boolean test(IRNode typeDecl);
+    public abstract TypeDeclAnnotationTester getTester(
+        IBinder binder, ITypeFormalEnv formalEnv);
   }
 
   
@@ -81,7 +87,6 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     analysis = a;
     binder = b;
     formalEnv = fe;
-    javaLangObject = b.getTypeEnvironment().getObjectType();
   }
 
   
@@ -93,7 +98,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     final AnnotationBoundsPromiseDrop boundsDrop = 
         LockRules.getAnnotationBounds(baseTypeDecl);
     if (boundsDrop != null) {
-      final List<Pair<String, Set<AnnotationBounds>>> bounds =
+      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
           getBounds(baseTypeDecl, boundsDrop);
       if (bounds != null) {
         checkActualsAgainstBounds(boundsDrop, pType, bounds);
@@ -106,18 +111,18 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
 
 
   
-  private List<Pair<String, Set<AnnotationBounds>>> getBounds(
+  private List<Pair<IRNode, Set<AnnotationBounds>>> getBounds(
       final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop) {
     final Operator op = JJNode.tree.getOperator(baseTypeDecl);
     if (ClassDeclaration.prototype.includes(op)) {
-      final List<Pair<String, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
+      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
       if (bounds == null) {
         return computeBounds(baseTypeDecl, boundsDrop, ClassDeclaration.getTypes(baseTypeDecl));
       } else {
         return bounds;
       }
     } else if (InterfaceDeclaration.prototype.includes(op)) {
-      final List<Pair<String, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
+      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
       if (bounds == null) {
         return computeBounds(baseTypeDecl, boundsDrop, InterfaceDeclaration.getTypes(baseTypeDecl));
       } else {
@@ -128,7 +133,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     }
   }
 
-  private List<Pair<String, Set<AnnotationBounds>>> computeBounds(
+  private List<Pair<IRNode, Set<AnnotationBounds>>> computeBounds(
         final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop,
         final IRNode typeFormalsNode) {
     // Shouldn't happen, but be safe
@@ -144,13 +149,13 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     final List<IRNode> formalDecls = JJNode.tree.childList(typeFormalsNode);
     final int numFormals = formalDecls.size();
     final String[] formalIDs = new String[numFormals];
-    final List<Pair<String, Set<AnnotationBounds>>> bounds = 
-        new ArrayList<Pair<String, Set<AnnotationBounds>>>(numFormals);
+    final List<Pair<IRNode, Set<AnnotationBounds>>> bounds = 
+        new ArrayList<Pair<IRNode, Set<AnnotationBounds>>>(numFormals);
     for (int i = 0; i < numFormals; i++) {
-      final String formalID = TypeFormal.getId(formalDecls.get(i));
-      bounds.add(new Pair<String, Set<AnnotationBounds>>(
-          formalID, EnumSet.noneOf(AnnotationBounds.class)));
-      formalIDs[i] = formalID;
+      final IRNode formalDecl = formalDecls.get(i);
+      bounds.add(new Pair<IRNode, Set<AnnotationBounds>>(
+          formalDecl, EnumSet.noneOf(AnnotationBounds.class)));
+      formalIDs[i] = TypeFormal.getId(formalDecls.get(i));
     }
     
     final AnnotationBoundsNode ast = boundsDrop.getAST();
@@ -172,7 +177,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
   }
 
   private boolean addToBounds(
-      final List<Pair<String, Set<AnnotationBounds>>> bounds,
+      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds,
       final String[] formalIDs, final NamedTypeNode[] boundedNames,
       final AnnotationBounds bound) {
     boolean added = false;
@@ -194,7 +199,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
   private void checkActualsAgainstBounds(
       final AnnotationBoundsPromiseDrop boundsDrop,
       final IRNode parameterizedType,
-      final List<Pair<String, Set<AnnotationBounds>>> boundsList) {
+      final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {
     /* We create the result before we know whether it is assured or not, so
      * we have to set the result TYPE later too.  We use a dummy type 
      * initially.
@@ -208,60 +213,47 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     final IJavaDeclaredType jTypeOfParameterizedType =
         (IJavaDeclaredType) binder.getJavaType(parameterizedType);
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
+    final IRNode typeActuals = ParameterizedType.getArgs(parameterizedType);
     for (int i = 0; i < boundsList.size(); i++) {
-      final IRNode syntaxNodeOfActual = JJNode.tree.getChild(parameterizedType, i);
-      final String nameOfTypeFormal = boundsList.get(i).first();
+      final IRNode formalDecl = boundsList.get(i).first();
+      final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
       final Set<AnnotationBounds> bounds = boundsList.get(i).second();
+
       final IJavaType jTypeOfActual = actualList.get(i);
-      final IRNode upperDeclaredTypeOfActual =
-          convertToDeclaredType(jTypeOfActual).getDeclaration();
-    
+      final IRNode syntaxNodeOfActual = TypeActuals.getType(typeActuals, i);
+
       for (final AnnotationBounds bound : bounds) {
-        if (bound.test(upperDeclaredTypeOfActual)) {
-          result.addSupportingInformation(
-              syntaxNodeOfActual, Messages.BOUND_SATISFIED, 
-              jTypeOfActual.getName(), bound.name(), nameOfTypeFormal); 
+        final AnnotationBoundVirtualDrop vDrop =
+            new AnnotationBoundVirtualDrop(formalDecl, bound.name(), nameOfTypeFormal);
+        result.addTrustedPromise(vDrop);
+        
+        final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
+        final ResultDropBuilder subResult;
+        if (tester.testType(jTypeOfActual)) {
+          subResult = ResultDropBuilder.create(
+              analysis, Messages.toString(Messages.BOUND_SATISFIED));
+          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toString());
+          subResult.setConsistent();
         } else {
           checks = false;
-          result.addSupportingInformation(
-              syntaxNodeOfActual, Messages.BOUND_NOT_SATISFIED, 
-              jTypeOfActual.getName(), bound.name(), nameOfTypeFormal); 
+          subResult = ResultDropBuilder.create(
+              analysis, Messages.toString(Messages.BOUND_NOT_SATISFIED));
+          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toString());
+          subResult.setInconsistent();
+        }
+        
+        analysis.setResultDependUponDrop(subResult, syntaxNodeOfActual);
+        subResult.addCheckedPromise(vDrop);
+        for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
+          subResult.addTrustedPromise(p);
         }
       }
     }
     
-    if (checks) {
-      result.setType(Messages.toString(Messages.ANNOTATION_BOUNDS_SATISFIED));
-      result.setResultMessage(Messages.ANNOTATION_BOUNDS_SATISFIED,
-          jTypeOfParameterizedType.getName());
-    } else {
-      result.setType(Messages.toString(Messages.ANNOTATION_BOUNDS_NOT_SATISFIED));
-      result.setResultMessage(Messages.ANNOTATION_BOUNDS_NOT_SATISFIED,
-          jTypeOfParameterizedType.getName());
-    }
-  }
-  
-  private IJavaDeclaredType convertToDeclaredType(IJavaType ty) {
-    while (!(ty instanceof IJavaDeclaredType)) {
-      if (ty instanceof IJavaCaptureType) {
-        final IJavaType upper = ((IJavaCaptureType) ty).getUpperBound();
-        ty = (upper == null) ? javaLangObject : upper;
-      } else if (ty instanceof IJavaWildcardType) {
-        // dead case?  Turned into Capture types, I think
-        final IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
-        ty = (upper == null) ? javaLangObject : upper;
-      } else if (ty instanceof IJavaTypeFormal) {
-        final IJavaType upper = ((IJavaTypeFormal) ty).getSuperclass(binder.getTypeEnvironment());
-        ty = (upper == null) ? javaLangObject : upper;
-      } else if (ty instanceof IJavaArrayType) {
-        // Need to be smarter about this for containable arrays
-        ty = javaLangObject;
-      } else if (ty instanceof IJavaIntersectionType) {
-        ty = javaLangObject;
-      } else {
-        throw new IllegalStateException("Unexpected type: " + ty);
-      }
-    }
-    return (IJavaDeclaredType) ty;
+    final int msg = checks ? Messages.ANNOTATION_BOUNDS_SATISFIED
+        : Messages.ANNOTATION_BOUNDS_NOT_SATISFIED;
+    result.setType(Messages.toString(msg));
+    result.setResultMessage(msg, jTypeOfParameterizedType.toString());
+    result.setConsistent(checks);
   }
 }
