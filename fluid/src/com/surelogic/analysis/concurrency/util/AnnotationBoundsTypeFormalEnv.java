@@ -72,6 +72,9 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     final String name = TypeFormal.getId(decl);
     final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
     final AnnotationBoundsPromiseDrop abDrop = LockRules.getAnnotationBounds(typeDecl);
+    if (abDrop == null) {
+    	return null;
+    }
     return bounds.testBounds(abDrop.getAST(), name) ? abDrop : null;
   }
 
