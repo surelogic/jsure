@@ -591,6 +591,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	// TODO is this right?
         //return typeScope(typeEnvironment.getObjectType());
         return IJavaScope.nullScope;
+    } else if (ty instanceof IJavaUnionType) {
+    	IJavaUnionType uty = (IJavaUnionType) ty;
+    	TypeUtils utils = new TypeUtils(typeEnvironment);
+    	IJavaType glb = utils.getGreatestLowerBound(uty.getFirstType(), uty.getAlternateType());
+    	return typeScope(glb);
     } else {    	
       LOG.warning("non-class type! " + ty);      
     }
@@ -2611,10 +2616,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       */
       boolean success = false;
       if (context.couldBeVariable()) {
-    	  success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName), true);
+    	  success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.couldBeNonTypeName, isAccessible), true);
       }
       if (!success && context.couldBeType()) {
-    	  success = bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
+    	  success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.isPkgTypeDecl, isAccessible));
       }
       /*
       String unparse = DebugUnparser.toString(node);
