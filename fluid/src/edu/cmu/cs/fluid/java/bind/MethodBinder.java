@@ -489,17 +489,24 @@ class MethodBinder {
 	}
 
 	private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
-    	if (formal instanceof IJavaPrimitiveType && arg instanceof IJavaDeclaredType) {    
-    		// Could unbox arg?
-    		IJavaDeclaredType argD = (IJavaDeclaredType) arg;
-    		IJavaType unboxed = JavaTypeFactory.getCorrespondingPrimType(argD);
-    		return unboxed != null && isCallCompatible(formal, unboxed);  
+    	if (formal instanceof IJavaPrimitiveType) {
+       		// Could unbox arg?
+    		if (arg instanceof IJavaDeclaredType) {        	
+    			IJavaDeclaredType argD = (IJavaDeclaredType) arg;
+    			IJavaType unboxed = JavaTypeFactory.getCorrespondingPrimType(argD);
+    			return unboxed != null && isCallCompatible(formal, unboxed);  
+    		} 
+    		else if (arg instanceof IJavaReferenceType) {
+    			IJavaPrimitiveType formalP = (IJavaPrimitiveType) formal;
+    			IJavaType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, formalP);
+    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, arg);
+    		}
     	}
-    	else if (formal instanceof IJavaDeclaredType && arg instanceof IJavaPrimitiveType) {
+    	else if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
     		// Could box arg?
     		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
     		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, argP);
-    		return boxed != null && isCallCompatible(formal, boxed);    		 
+    		return boxed != null && isCallCompatible(formal, boxed); 
     	}
     	return false;
     }
