@@ -53,6 +53,7 @@ import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -952,7 +953,14 @@ public final class Effects implements IBinderClient {
                           new AnonClassEvidence(maskedEffect)),
                       context.theEffects);
                 } else {
-                  final IJavaType type = binder.getJavaType(ref);
+                  /* 2012-08-24: We have to clean the type to make sure it is not a 
+                   * type formal.
+                   */
+                  IJavaType type = binder.getJavaType(ref);
+                  if (type instanceof IJavaTypeFormal) {
+                    type = TypeUtil.typeFormalToDeclaredClass(
+                        binder.getTypeEnvironment(), (IJavaTypeFormal) type);
+                  }
                   context.addEffect(Effect.newEffect(expr, maskedEffect.isRead(),
                       targetFactory.createAnyInstanceTarget(
                           (IJavaReferenceType) type, target.getRegion(), 
@@ -1318,7 +1326,14 @@ public final class Effects implements IBinderClient {
          */
         final Target newTarget;
         if (BindingContext.isExternalVar(n)) {
-          final IJavaType type = binder.getJavaType(expr);
+          /* 2012-08-24: We have to clean the type to make sure it is not a 
+           * type formal.
+           */
+          IJavaType type = binder.getJavaType(expr);
+          if (type instanceof IJavaTypeFormal) {
+            type = TypeUtil.typeFormalToDeclaredClass(
+                binder.getTypeEnvironment(), (IJavaTypeFormal) type);
+          }
           newTarget = targetFactory.createAnyInstanceTarget(
               (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
         } else {

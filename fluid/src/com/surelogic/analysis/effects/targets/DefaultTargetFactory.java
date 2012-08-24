@@ -41,9 +41,4 @@ public enum DefaultTargetFactory implements TargetFactory {
   public LocalTarget createLocalTarget(final IRNode varDecl) {
     return new LocalTarget(varDecl);
   }
-
-//
-//  public ClassTarget createClassTarget(final IRNode field) {
-//    return createClassTarget(RegionModel.getInstance(field));
-//  }
 }

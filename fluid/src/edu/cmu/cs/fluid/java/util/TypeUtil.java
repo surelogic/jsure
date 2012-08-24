@@ -17,6 +17,8 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
@@ -449,8 +451,52 @@ public class TypeUtil implements JavaGlobals {
         /* IJavaPrimitiveType, IJavaVoidType, IJavaArrayType,
          * IJavaIntersectionType, IJavaNullType, IJavaDeclaredType.
          */
+        // XXX: Is this really correct for intersection type?
         return type;
       }
+    }
+  }
+  
+  
+  
+  /**
+   * Given a type formal, return the least declared <em>class</em> that is
+   * the upper bound of the formal.  This never returns a declared interface.  
+   *  
+   * @param tf
+   * @return
+   */
+  public static IJavaDeclaredType typeFormalToDeclaredClass(
+      final ITypeEnvironment typeEnv, final IJavaTypeFormal tf) {
+    final IJavaDeclaredType javaLangObject =
+        (IJavaDeclaredType) typeEnv.findJavaTypeByName("java.lang.Object");
+
+    IJavaType current = tf;
+    while (!(current instanceof IJavaDeclaredType)) {
+      if (current instanceof IJavaTypeFormal) {
+        current = ((IJavaTypeFormal) current).getSuperclass(typeEnv);
+      } else if (current instanceof IJavaWildcardType) {
+        /* I think this case is dead because what we are actually going to see is
+         * capture types.
+         */
+        final IJavaType upperBound = ((IJavaWildcardType) current).getUpperBound();
+        current = (upperBound == null) ? javaLangObject : upperBound;
+      } else if (current instanceof IJavaCaptureType) {
+        final IJavaType upperBound = ((IJavaCaptureType) current).getUpperBound();
+        current = (upperBound == null) ? javaLangObject : upperBound;
+      } else if (current instanceof IJavaIntersectionType) {
+        /* Only the first type can be a class, so we return that one.  Then
+         * we check below to see if that is in fact a class or an interface.
+         */
+        current = ((IJavaIntersectionType) current).getPrimarySupertype();
+      }
+    }
+    
+    final IJavaDeclaredType declType = (IJavaDeclaredType) current;
+    if (TypeUtil.isInterface(declType.getDeclaration())) {
+      return javaLangObject;
+    } else {
+      return declType;
     }
   }
 }
