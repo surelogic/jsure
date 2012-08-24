@@ -536,7 +536,8 @@ public class TypeUtils {
 			
 		private boolean deriveForArray(IJavaType elementType, Constraint constraint, IJavaType formalBound) {
 			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			// throw new UnsupportedOperationException();
+			return false;
 		}
 		
 		/**
