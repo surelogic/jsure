@@ -30,6 +30,11 @@ public interface IJavaType extends IType {
   public String getName();
   
   /**
+   * Get an unparse similar to what would appear in source code
+   */
+  public String toSourceText();
+  
+  /**
    * Produce a new type in which any type parameters are substituted
    * by the given substitution
    * @param s the substitution to use for type formals.
