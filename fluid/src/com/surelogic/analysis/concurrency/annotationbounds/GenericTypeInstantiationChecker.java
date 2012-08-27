@@ -232,13 +232,13 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
         if (tester.testType(jTypeOfActual)) {
           subResult = ResultDropBuilder.create(
               analysis, Messages.toString(Messages.BOUND_SATISFIED));
-          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toString());
+          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toSourceText());
           subResult.setConsistent();
         } else {
           checks = false;
           subResult = ResultDropBuilder.create(
               analysis, Messages.toString(Messages.BOUND_NOT_SATISFIED));
-          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toString());
+          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toSourceText());
           subResult.setInconsistent();
         }
         
@@ -253,7 +253,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     final int msg = checks ? Messages.ANNOTATION_BOUNDS_SATISFIED
         : Messages.ANNOTATION_BOUNDS_NOT_SATISFIED;
     result.setType(Messages.toString(msg));
-    result.setResultMessage(msg, jTypeOfParameterizedType.toString());
+    result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText());
     result.setConsistent(checks);
   }
 }

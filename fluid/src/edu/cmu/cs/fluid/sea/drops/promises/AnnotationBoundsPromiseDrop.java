@@ -20,25 +20,47 @@ public final class AnnotationBoundsPromiseDrop extends
   @Override
   protected void computeBasedOnAST() {
     final AnnotationBoundsNode ast = getAST();
-    setResultMessage(Messages.AnnotationBounds,
-        getNameList(ast.getContainable()),
-        getNameList(ast.getImmutable()),
-        getNameList(ast.getThreadSafe()),
+    final String[] attrs = new String[] {
+        getNameList("containable", ast.getContainable()),
+        getNameList("immutable", ast.getImmutable()),
+        getNameList("threadSafe", ast.getThreadSafe()) };
+    final StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (final String a : attrs) {
+      if (a != null) {
+        if (!first) {
+          sb.append(", ");
+        } else {
+          first = false;
+        }
+        sb.append(a);
+      }
+    }
+    
+    setResultMessage(Messages.AnnotationBounds, sb.toString(),
         JavaNames.getTypeName(getNode()));
   }
 
-  private String getNameList(final NamedTypeNode[] list) {
-    final StringBuilder sb = new StringBuilder();
-    boolean first = true;
-    for (final NamedTypeNode namedType : list) {
-      if (!first) {
-        sb.append(", ");
-      } else {
-        first = false;
+  private String getNameList(final String attribute, final NamedTypeNode[] list) {
+    if (list.length > 0) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(attribute);
+      sb.append(" = {");
+      boolean first = true;
+      for (final NamedTypeNode namedType : list) {
+        if (!first) {
+          sb.append("\", \"");
+        } else {
+          first = false;
+          sb.append('\"');
+        }
+        sb.append(namedType.getType());      
       }
-      sb.append(namedType.getType());      
+      sb.append("\"}");
+      return sb.toString();
+    } else {
+      return null;
     }
-    return sb.toString();
   }
   
   public void validated(final AnnotationBoundsPromiseDrop pd) {
