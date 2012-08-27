@@ -200,60 +200,99 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       final AnnotationBoundsPromiseDrop boundsDrop,
       final IRNode parameterizedType,
       final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {
-    /* We create the result before we know whether it is assured or not, so
-     * we have to set the result TYPE later too.  We use a dummy type 
-     * initially.
-     */
-    final ResultDropBuilder result = ResultDropBuilder.create(analysis, "dummy");
-    analysis.setResultDependUponDrop(result, parameterizedType);
-    result.addCheckedPromise(boundsDrop);
+//    /* We create the result before we know whether it is assured or not, so
+//     * we have to set the result TYPE later too.  We use a dummy type 
+//     * initially.
+//     */
+//    final ResultDropBuilder result = ResultDropBuilder.create(analysis, "dummy");
+//    analysis.setResultDependUponDrop(result, parameterizedType);
+//    result.addCheckedPromise(boundsDrop);
+//    
+//    boolean checks = true;
+//    // Should be true: if not, why not?
+//    final IJavaDeclaredType jTypeOfParameterizedType =
+//        (IJavaDeclaredType) binder.getJavaType(parameterizedType);
+//    final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
+//    final IRNode typeActuals = ParameterizedType.getArgs(parameterizedType);
+//    for (int i = 0; i < boundsList.size(); i++) {
+//      final IRNode formalDecl = boundsList.get(i).first();
+//      final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
+//      final Set<AnnotationBounds> bounds = boundsList.get(i).second();
+//
+//      final IJavaType jTypeOfActual = actualList.get(i);
+//      final IRNode syntaxNodeOfActual = TypeActuals.getType(typeActuals, i);
+//
+//      for (final AnnotationBounds bound : bounds) {
+//        final AnnotationBoundVirtualDrop vDrop =
+//            new AnnotationBoundVirtualDrop(formalDecl, bound.name(), nameOfTypeFormal);
+//        result.addTrustedPromise(vDrop);
+//        
+//        final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
+//        final ResultDropBuilder subResult;
+//        if (tester.testType(jTypeOfActual)) {
+//          subResult = ResultDropBuilder.create(
+//              analysis, Messages.toString(Messages.BOUND_SATISFIED));
+//          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toSourceText());
+//          subResult.setConsistent();
+//        } else {
+//          checks = false;
+//          subResult = ResultDropBuilder.create(
+//              analysis, Messages.toString(Messages.BOUND_NOT_SATISFIED));
+//          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toSourceText());
+//          subResult.setInconsistent();
+//        }
+//        
+//        analysis.setResultDependUponDrop(subResult, syntaxNodeOfActual);
+//        subResult.addCheckedPromise(vDrop);
+//        for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
+//          subResult.addTrustedPromise(p);
+//        }
+//      }
+//    }
+//    
+//    final int msg = checks ? Messages.ANNOTATION_BOUNDS_SATISFIED
+//        : Messages.ANNOTATION_BOUNDS_NOT_SATISFIED;
+//    result.setType(Messages.toString(msg));
+//    result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText());
+//    result.setConsistent(checks);
     
-    boolean checks = true;
     // Should be true: if not, why not?
     final IJavaDeclaredType jTypeOfParameterizedType =
         (IJavaDeclaredType) binder.getJavaType(parameterizedType);
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
-    final IRNode typeActuals = ParameterizedType.getArgs(parameterizedType);
     for (int i = 0; i < boundsList.size(); i++) {
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
       final Set<AnnotationBounds> bounds = boundsList.get(i).second();
 
       final IJavaType jTypeOfActual = actualList.get(i);
-      final IRNode syntaxNodeOfActual = TypeActuals.getType(typeActuals, i);
 
       for (final AnnotationBounds bound : bounds) {
-        final AnnotationBoundVirtualDrop vDrop =
-            new AnnotationBoundVirtualDrop(formalDecl, bound.name(), nameOfTypeFormal);
-        result.addTrustedPromise(vDrop);
-        
         final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
-        final ResultDropBuilder subResult;
+        final ResultDropBuilder result;
         if (tester.testType(jTypeOfActual)) {
-          subResult = ResultDropBuilder.create(
-              analysis, Messages.toString(Messages.BOUND_SATISFIED));
-          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toSourceText());
-          subResult.setConsistent();
+          result = ResultDropBuilder.create(
+              analysis, Messages.toString(Messages.ANNOTATION_BOUND_SATISFIED));
+          analysis.setResultDependUponDrop(result, parameterizedType);
+          result.addCheckedPromise(boundsDrop);
+          result.setResultMessage(Messages.ANNOTATION_BOUND_SATISFIED,
+              jTypeOfParameterizedType.toSourceText(),
+              bound.name(), nameOfTypeFormal, jTypeOfActual.toSourceText());
+          result.setConsistent();
         } else {
-          checks = false;
-          subResult = ResultDropBuilder.create(
-              analysis, Messages.toString(Messages.BOUND_NOT_SATISFIED));
-          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toSourceText());
-          subResult.setInconsistent();
+          result = ResultDropBuilder.create(
+              analysis, Messages.toString(Messages.ANNOTATION_BOUND_NOT_SATISFIED));
+          analysis.setResultDependUponDrop(result, parameterizedType);
+          result.addCheckedPromise(boundsDrop);
+          result.setResultMessage(Messages.ANNOTATION_BOUND_NOT_SATISFIED,
+              jTypeOfParameterizedType.toSourceText(),
+              bound.name(), nameOfTypeFormal, jTypeOfActual.toSourceText());
+          result.setInconsistent();
         }
-        
-        analysis.setResultDependUponDrop(subResult, syntaxNodeOfActual);
-        subResult.addCheckedPromise(vDrop);
         for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-          subResult.addTrustedPromise(p);
+          result.addTrustedPromise(p);
         }
       }
     }
-    
-    final int msg = checks ? Messages.ANNOTATION_BOUNDS_SATISFIED
-        : Messages.ANNOTATION_BOUNDS_NOT_SATISFIED;
-    result.setType(Messages.toString(msg));
-    result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText());
-    result.setConsistent(checks);
   }
 }

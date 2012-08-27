@@ -167,6 +167,9 @@ public final class Messages extends AbstractMessages {
   public static final int ANNOTATION_BOUNDS_NOT_SATISFIED = 496;
   public static final int BOUND_SATISFIED = 497;
   public static final int BOUND_NOT_SATISFIED = 498;
+  public static final int ANNOTATION_BOUND_SATISFIED = 499;
+  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 494;
+  
   
   
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
