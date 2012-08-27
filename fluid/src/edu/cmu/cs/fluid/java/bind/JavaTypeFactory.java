@@ -1757,25 +1757,25 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
     
     @Override public String toString() {
-      return JavaDeclaredType.this.toString() + "." + super.toString(false);
+      return JavaDeclaredType.this.toString() + "." + super.toString(false, false);
     }
     
     @Override
     public String toSourceText() {
-    	return JavaDeclaredType.this.toString(false) + "." + super.toString(false);
+    	return JavaDeclaredType.this.toString(false, true) + "." + super.toSourceText();
     }
   }
   
   @Override public String toString() {
-    return toString(true);
+    return toString(true, false);
   }
   
   @Override
   public String toSourceText() {
-	  return toString(false);
+	  return toString(false, true);
   }
   
-  protected final String toString(boolean fullyQualify) {
+  protected final String toString(boolean fullyQualify, boolean asSourceText) {
     if (declaration == null) return "?NULL?";
     if (declaration.identity() == IRNode.destroyedNode) {
     	return "?Destroyed?";
@@ -1803,7 +1803,11 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       } else {
         sb.append(',');
       }
-      sb.append(it.next().toString());
+      if (asSourceText) {
+    	  sb.append(it.next().toSourceText());
+      } else {
+    	  sb.append(it.next().toString());
+      }
     }
     sb.append(">");
     return sb.toString();
