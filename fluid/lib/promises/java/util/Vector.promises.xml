@@ -3,6 +3,9 @@
 <package name="java.util" release="10">
     <class name="Vector">
         <ThreadSafe/>
+        
+        <AnnotationBounds threadSafe="E"/>
+        
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

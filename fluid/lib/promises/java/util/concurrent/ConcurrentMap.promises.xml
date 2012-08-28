@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="3">
     <class name="ConcurrentMap">
         <ThreadSafe/>
+
+        <AnnotationBounds threadSafe="K,V"/>
+
         <method name="putIfAbsent" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>

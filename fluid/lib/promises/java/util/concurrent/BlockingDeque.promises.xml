@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="3">
     <class name="BlockingDeque">
         <ThreadSafe/>
+        
+        <AnnotationBounds threadSafe="E"/>
+        
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
