@@ -194,8 +194,14 @@ public abstract class AnnotationRules {
 				 */
 				// System.out.println("Attribute '"+m.getName()+"' can appear on "+tag);
 				Object value = m.getDefaultValue();
+				Class<?> type = m.getReturnType();
+				if (m.getReturnType().equals(String[].class)) {
+					String[] values = (String[]) value;
+					type = String.class;
+					value = flattenStringArray(values);
+				}
 				l.put(m.getName(),
-						new Attribute(m.getName(), m.getReturnType(),
+						new Attribute(m.getName(), type,
 								value == null ? null : value.toString()));
 			}
 			return Collections.unmodifiableMap(l);
@@ -205,6 +211,21 @@ public abstract class AnnotationRules {
 		return Collections.emptyMap();
 	}
 
+	public static String flattenStringArray(String[] values) {
+		if (values == null || values.length == 0) {
+			return "";
+		} else {
+			StringBuilder b = new StringBuilder();
+			for(String v : values) {
+				if (b.length() != 0) {
+					b.append(", ");
+				}
+				b.append(v);
+				}
+			return b.toString();
+		}
+	}
+	
 	/* *************************************************
 	 * Initialization code ************************************************
 	 */
