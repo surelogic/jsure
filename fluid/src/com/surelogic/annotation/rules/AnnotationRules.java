@@ -694,7 +694,7 @@ public abstract class AnnotationRules {
 		int i=0;
 		for(String s : values) {
 			// FIX can we get the exact offset?
-			rv[i] = new NamedTypeNode(offset, s);
+			rv[i] = new NamedTypeNode(offset, s.trim());
 			i++;
 		}
 		return rv;
