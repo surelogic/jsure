@@ -1157,7 +1157,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 		final Collection<IProofDropInfo> promiseDrops = getDropsOfType(
 				PromiseDrop.class, IProofDropInfo.class);
 		for (IProofDropInfo pd : promiseDrops) {
-			if (pd.isFromSrc()) {
+			if (pd.isFromSrc() || !pd.provedConsistent()) {
 				// System.out.println("Considering: "+pd.getMessage());
 				if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
 					root.add(encloseDrop((T) pd));
