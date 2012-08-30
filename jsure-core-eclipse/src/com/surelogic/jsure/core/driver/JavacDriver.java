@@ -1415,7 +1415,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
 			final File runDir = new File(dataDir, newProjects.getRun());
 			final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
-			final File target = new File(runDir, "srcs");
+			final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
 			target.mkdirs();
 			new File(runDir, JSureScan.INCOMPLETE_SCAN).createNewFile();
 			/*
@@ -1977,8 +1977,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					if (status == SLStatus.OK_STATUS) {
 						ok = true;
 
-						new File(projects.getRunDir(), JSureScan.INCOMPLETE_SCAN).delete();
-						new File(projects.getRunDir(), JSureScan.COMPLETE_SCAN).createNewFile();		
+						final File runDir = projects.getRunDir();
+						// Unneeded after running the scan
+						FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
+						new File(runDir, JSureScan.INCOMPLETE_SCAN).delete();
+						new File(runDir, JSureScan.COMPLETE_SCAN).createNewFile();		
 						
 						// Normally done by Javac, but needs to be repeated
 						// locally
