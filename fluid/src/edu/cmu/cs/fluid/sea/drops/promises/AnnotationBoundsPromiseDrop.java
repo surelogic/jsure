@@ -14,7 +14,7 @@ public final class AnnotationBoundsPromiseDrop extends
     ValidatedDropCallback<AnnotationBoundsPromiseDrop> {
   public AnnotationBoundsPromiseDrop(AnnotationBoundsNode a) {
     super(a); 
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategory(JavaGlobals.ANNO_BOUNDS_CAT);
   }
   
   @Override

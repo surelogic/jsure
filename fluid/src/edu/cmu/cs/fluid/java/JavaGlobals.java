@@ -65,4 +65,5 @@ public interface JavaGlobals {
   static final Category MODULE_CAT = Category.getInstance(118);
   static final Category UTILITY_CAT = Category.getInstance(119);
   static final Category SINGLETON_CAT = Category.getInstance(120);
+  static final Category ANNO_BOUNDS_CAT = Category.getInstance(121);
 }
