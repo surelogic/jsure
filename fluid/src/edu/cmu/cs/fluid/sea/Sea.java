@@ -636,6 +636,8 @@ public final class Sea {
 				// if no immediate result drops are an "X" then we are
 				// consistent
 				pd.provedConsistent = true; // assume true
+				pd.derivedFromSrc = pd.isFromSrc();
+				
 				Set<? extends ResultDrop> analysisResults = pd.getCheckedBy();
 				for (ResultDrop result : analysisResults) {
 					/*
@@ -643,6 +645,9 @@ public final class Sea {
 					 */
 					pd.provedConsistent = pd.provedConsistent
 							&& (result.isConsistent() || result.isVouched());
+					
+					pd.derivedFromSrc = pd.derivedFromSrc 
+							|| result.isFromSrc();
 				}
 			} else if (d instanceof ResultDrop) {
 
@@ -658,13 +663,14 @@ public final class Sea {
 				// record local result
 				rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
+				rd.derivedFromSrc = rd.isFromSrc();
 			} else {
 				LOG.log(Level.SEVERE,
 						"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
 			}
 			worklist.add(d);
 		}
-
+		
 		/*
 		 * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
 		 */
@@ -790,31 +796,116 @@ public final class Sea {
 				// only add to worklist if something changed about the result
 				boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot);
 				if (resultChanged) {
-					nextWorklist.add(d);
-					if (d instanceof PromiseDrop) {
-						PromiseDrop pd = (PromiseDrop) d;
-						// add all result drops trusted by this promise drop
-						nextWorklist.addAll(pd.getTrustedBy());
-						// add all deponent promise drops of this promise drop
-						nextWorklist.addAll(Sea.filterDropsOfType(
-								PromiseDrop.class, pd.getDeponents()));
-					} else if (d instanceof ResultDrop) {
-						ResultDrop rd = (ResultDrop) d;
-						// add all promise drops that this result checks
-						nextWorklist.addAll(rd.getChecks());
-					}
+					addToWorklist(nextWorklist, d);
 				}
 			}
 			worklist.clear();
 			worklist.addAll(nextWorklist);
 		}
-
+		propagateSourceDerivation();
+		
 		timeStamp = System.currentTimeMillis();
 		if (LOG.isLoggable(Level.FINE))
 			LOG.fine("Done updating consistency proof: " + timeStamp);
 		return timeStamp;
 	}
 
+	private void propagateSourceDerivation() {
+		worklist = new LinkedList<ProofDrop>(this.getDropsOfType(ProofDrop.class));
+		/*
+		 * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
+		 */
+		while (!worklist.isEmpty()) {
+			Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
+			// mutation during iteration
+			for (ProofDrop d : worklist) {
+				boolean oldDerivedFromSrc = d.derivedFromSrc;
+
+				if (d instanceof PromiseDrop) {
+
+					/*
+					 * PROMISE DROP
+					 */
+
+					PromiseDrop pd = (PromiseDrop) d;
+
+					// examine dependent analysis results and dependent promises
+					Set<? extends ResultDrop> tpd = pd.getCheckedBy();
+
+					Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(
+							tpd.size());
+					for (ProofDrop t : tpd) {
+						proofDrops.add(t);
+					}
+					proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class,
+							pd.getDependents()));
+					for (ProofDrop result : proofDrops) {
+						pd.derivedFromSrc |= result.derivedFromSrc;	
+					}
+				} else if (d instanceof ResultDrop) {
+
+					/*
+					 * RESULT DROP
+					 */
+
+					ResultDrop rd = (ResultDrop) d;
+
+					// "and" trust promise drops
+					Set<PromiseDrop> andTrusts = rd.getTrusts();
+					for (Iterator<PromiseDrop> j = andTrusts.iterator(); j
+							.hasNext();) {
+						PromiseDrop promise = j.next();
+						// all must be consistent for this drop to be consistent
+						rd.derivedFromSrc &= promise.derivedFromSrc;
+					}
+					// "or" trust promise drops
+					if (rd.hasOrLogic()) { // skip this in the common case
+						boolean overall_or_Result = false;
+						Set<String> orLabels = rd.get_or_TrustLabelSet();
+						for (String orKey : orLabels) {
+							boolean choiceResult = true;
+							Set<? extends PromiseDrop> promiseSet = rd
+									.get_or_Trusts(orKey);
+							for (PromiseDrop promise : promiseSet) {
+								overall_or_Result |= promise.derivedFromSrc;
+							}
+						}
+						// add the choice selected into the overall result for
+						// this drop
+						rd.derivedFromSrc |= overall_or_Result;
+					}
+				} else {
+					LOG.log(Level.SEVERE,
+							"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+				}
+
+				// only add to worklist if something changed about the result
+				boolean resultChanged = !(oldDerivedFromSrc == d.derivedFromSrc);
+				if (resultChanged) {
+					addToWorklist(nextWorklist, d);
+				}
+			}
+			worklist.clear();
+			worklist.addAll(nextWorklist);
+		}
+	}
+
+	private void addToWorklist(Set<ProofDrop> l, ProofDrop d) {
+		l.add(d);
+		if (d instanceof PromiseDrop) {
+			PromiseDrop pd = (PromiseDrop) d;
+			// add all result drops trusted by this promise drop
+			l.addAll(pd.getTrustedBy());
+			// add all deponent promise drops of this promise drop
+			l.addAll(Sea.filterDropsOfType(
+					PromiseDrop.class, pd.getDeponents()));
+		} else if (d instanceof ResultDrop) {
+			ResultDrop rd = (ResultDrop) d;
+			// add all promise drops that this result checks
+			l.addAll(rd.getChecks());
+		}
+	}
+	
 	private List<ProofDrop> worklist;
 
 	/**

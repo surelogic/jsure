@@ -407,6 +407,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 		s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
 		s.addAttribute(OR_PROVED, get_or_provedConsistent());
 		s.addAttribute(TIMEOUT, isTimeout());
+		s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
 		if (type != null) {
 			s.addAttribute("result-type", type);
 		} else {

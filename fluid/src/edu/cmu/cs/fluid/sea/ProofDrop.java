@@ -5,6 +5,8 @@ import java.util.Collection;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -32,6 +34,15 @@ public abstract class ProofDrop extends IRReferenceDrop implements
 		return provedConsistent;
 	}
 
+	/**
+	 * Records whether this result depends on something from source
+	 */
+	boolean derivedFromSrc = false;
+	
+	public boolean derivedFromSrc() {
+		return derivedFromSrc;
+	}
+	
 	/**
 	 * Records if the proof of this element depends upon a "red dot," or a user
 	 * vouching for or assuming something which may not be true, with regards to
@@ -63,7 +74,12 @@ public abstract class ProofDrop extends IRReferenceDrop implements
 	}
 
 	public boolean isFromSrc() {
-		throw new UnsupportedOperationException("Not a PromiseDrop");
+		//throw new UnsupportedOperationException("Not a PromiseDrop");
+		IRNode n = getNode();
+		if (n != null) {
+			return !TypeUtil.isBinary(n);
+		}
+		return false;
 	}
 
 	public Collection<? extends IProofDropInfo> getCheckedBy() {
@@ -129,5 +145,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements
 		s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
 		s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
 		// System.out.println(getMessage()+" proved consistent: "+provedConsistent());
+		s.addAttribute(AbstractXMLReader.DERIVED_FROM_SRC_ATTR, derivedFromSrc());
 	}
 }

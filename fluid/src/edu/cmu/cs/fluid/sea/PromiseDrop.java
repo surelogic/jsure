@@ -39,6 +39,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	public static final String CHECKED_BY_RESULTS = "checked-by-result";
 	
 	public PromiseDrop(A a) {
+		derivedFromSrc = true;
+		
 		// set up dependencies if this is being created within a ScopedPromise
 		ScopedPromises.getInstance().initDrop(this);
 		if (a != null) {
@@ -293,6 +295,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	 * @return <code>true</code> if the promise was created from an annotation
 	 *         in source code, <code>false</code> otherwise
 	 */
+	@Override
 	public final boolean isFromSrc() {
 		return fromSrc;
 	}
@@ -307,6 +310,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	 */
 	public final void setFromSrc(boolean fromSrc) {
 		this.fromSrc = fromSrc;
+		this.derivedFromSrc = fromSrc;
 	}
 
 	/*

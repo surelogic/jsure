@@ -722,6 +722,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		public boolean provedConsistent() {
 			return "true".equals(getAttribute(PROVED_ATTR));
 		}
+		
+		public boolean derivedFromSrc() {
+			return "true".equals(getAttribute(DERIVED_FROM_SRC_ATTR));
+		}
 
 		public Collection<? extends IProofDropInfo> getCheckedBy() {
 			return checkedByResults;

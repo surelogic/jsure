@@ -7,6 +7,10 @@ public interface IProofDropInfo extends IDropInfo {
 	boolean provedConsistent();
 	boolean proofUsesRedDot();
 
+	/**
+	 * Returns true if this result depends on something from source
+	 */
+	boolean derivedFromSrc();
 	boolean isFromSrc();
 	boolean isIntendedToBeCheckedByAnalysis();
 	boolean isConsistent();
