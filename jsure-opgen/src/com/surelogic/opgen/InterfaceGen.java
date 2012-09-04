@@ -271,6 +271,7 @@ public class InterfaceGen extends AbstractSharedASTGenerator {
   
   @Override
   protected void generateFields(final OpSyntax s) {
+	// Nothing to do
   }
   
   @Override
@@ -288,6 +289,7 @@ public class InterfaceGen extends AbstractSharedASTGenerator {
   }
   @Override
   protected void generateUnparse(final OpSyntax s) {
+	// Nothing to do
   }
   
   @Override
@@ -312,12 +314,15 @@ public class InterfaceGen extends AbstractSharedASTGenerator {
       this.label = label;
       this.docs  = docs;
     }
+    /*
     VisitorSpec(String pkg, String name) {
       this(pkg, name, NO_DOCS);
     }
+    */
     abstract void generateVisitMethodBody(OpSyntax s);
 
     void generateRestOfClassBody() {      
+    	// Nothing to do
     }
     
     protected void generateDefaultConstructors(String name) {
@@ -563,9 +568,11 @@ public class InterfaceGen extends AbstractSharedASTGenerator {
         }
         @Override
         protected void doForInfo_NoArgs(OpSyntax s, int i, Attribute a, String type) {
+        	// Nothing to do
         }
         @Override
         protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {
+        	// Nothing to do
         }        
       });
       printJava("    return rv;\n");

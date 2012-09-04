@@ -19,8 +19,6 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 

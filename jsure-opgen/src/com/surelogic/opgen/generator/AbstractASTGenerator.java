@@ -33,7 +33,7 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
   /**
    * If true, getParent() should respect subtyping of the return type
    */
-  protected static final boolean simplifyGetParent = noGetParent || false;
+  protected static final boolean simplifyGetParent = noGetParent;
   
   /**
    * If true, children of type OptFoo are considered the same as Foo,
@@ -80,6 +80,7 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
     return "I"+name+"Node";
   }
   
+  @SuppressWarnings("unused")
   protected String makeConvertedInterfaceName(String name) {
     if (convertOptNodes) {
       String variant = getNonnullVariant(name);
@@ -580,6 +581,7 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
     protected void doForFixedChild(OpSyntax s, int i, Child c) {
       names.add(c.name);
     }
+    @Override
     public Iterator<String> iterator() {
       List<String> l = names;
       names = Collections.emptyList();
@@ -759,6 +761,7 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
   /**
    * @return true if created getParent() 
    */
+  @SuppressWarnings("unused")
   protected boolean generateGetParent(OpSyntax s, boolean forceGeneration) {
     if (noGetParent) {
       return false;

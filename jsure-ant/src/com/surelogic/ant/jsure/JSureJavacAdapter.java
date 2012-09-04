@@ -44,11 +44,12 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		/*
 		 * for(Object key : System.getProperties().keySet()) {
 		 * System.out.println("Key: "+key); }
-		 */
+		 
 		if (false) {
 			checkClassPath("sun.boot.class.path");
 			checkClassPath("java.class.path");
 		}
+		*/
 		try {
 			// Set up prefs
 			System.out.println("project = " + scan.getProjectName());
@@ -148,6 +149,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		};
 	}
 
+	@SuppressWarnings("unused")
 	private void checkClassPath(String key) {
 		StringTokenizer st = new StringTokenizer(System.getProperty(key),
 				File.pathSeparator);
