@@ -10,16 +10,15 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 
-import com.surelogic.common.FileUtility;
-import com.surelogic.common.TextArchiver;
+import com.surelogic.common.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public class MergeLibraryAnnotationsAction extends AbstractMainAction {
-	private static final FileUtility.TempFileFilter filter = 
-		new FileUtility.TempFileFilter("textArchiver", "destDir");
+	//private static final FileUtility.TempFileFilter filter = 
+	//	new FileUtility.TempFileFilter("textArchiver", "destDir");
 	
 	@Override
 	public void run(IAction action) {

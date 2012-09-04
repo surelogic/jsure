@@ -13,9 +13,6 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.team.internal.ccvs.core.ICVSFile;
-import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
-import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
@@ -337,12 +334,13 @@ implements Cloneable, IDiffNode<T2> {
 		attrs.put(ATTR_SOURCE, srcFile.getFullPath() + ".html");
 		attrs.put(ATTR_LINE_NUM, Integer.toString(srcRef.getLineNumber()));
 		if (includeCVS) {
-			final ICVSFile cvsFile = CVSWorkspaceRoot
+			final org.eclipse.team.internal.ccvs.core.ICVSFile cvsFile = 
+					org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot
 					.getCVSFileFor((IFile) srcRef.getEnclosingFile());
 			try {
 				attrs.put(ATTR_CVSSOURCE, cvsFile
 						.getRepositoryRelativePath());
-				ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
+				org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
 				if (fileInfo != null && fileInfo.getRevision() != null) {
 					attrs.put(ATTR_CVSREVISION, fileInfo.getRevision());
 				}
@@ -490,6 +488,7 @@ implements Cloneable, IDiffNode<T2> {
 		public boolean equals(Object o) {
 			//if (o instanceof Identity) {
 			if (Identity.class.isInstance(o)) {
+				@SuppressWarnings("unchecked")
 				T2 c = ((Identity) o).content();
 				if (getDropInfo() == c.getDropInfo()) {
 					return true;

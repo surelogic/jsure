@@ -103,6 +103,7 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo>
 				.msg("jsure.problems.view.filter.tooltip"));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
@@ -117,6 +118,7 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo>
 		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
