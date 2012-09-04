@@ -794,4 +794,16 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(RawNode rawNode) {
 	  return defaultValue;
   }
+
+  public T visit(ValueObjectNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(RefObjectNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(MustInvokeOnOverrideNode n) {
+	  return defaultValue;
+  }
 }

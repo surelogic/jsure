@@ -23,7 +23,7 @@ public abstract class AbstractAnnotationParseRule
 extends AbstractNamedPromiseRule 
 implements ISingleAnnotationParseRule<A,P> {
   @SuppressWarnings("unchecked")
-  private static final Class[] defaultParamTypes = new Class[] { int.class };
+  private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
   private final Class<A> aastType;
   private final IPromiseDropStorage<P> storage;
   private final IAnnotationScrubber scrubber;

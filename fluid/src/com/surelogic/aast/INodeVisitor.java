@@ -152,4 +152,7 @@ public interface INodeVisitor<T> {
 	T visit(NullableNode nullableNode);
 	T visit(RawNode rawNode);
 	T visit(AnnotationBoundsNode n);
+	T visit(ValueObjectNode n);
+	T visit(RefObjectNode n);
+	T visit(MustInvokeOnOverrideNode n);
 }
