@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
-import java.io.File;
 import java.util.*;
 
 import org.eclipse.core.runtime.CoreException;

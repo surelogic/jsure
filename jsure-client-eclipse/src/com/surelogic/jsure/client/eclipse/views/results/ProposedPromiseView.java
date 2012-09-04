@@ -195,6 +195,7 @@ public class ProposedPromiseView extends
 		return f_content.build();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
@@ -209,6 +210,7 @@ public class ProposedPromiseView extends
 		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);

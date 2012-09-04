@@ -8,6 +8,7 @@ import org.eclipse.core.resources.*;
  * @author Edwin
  */
 public abstract class AbstractProjectCommand extends AbstractCommand {
+	@Override
 	public final boolean execute(ICommandContext context, String... contents) throws Exception {
 		boolean changed = false;
 		for(int i=1; i<contents.length; i++) {

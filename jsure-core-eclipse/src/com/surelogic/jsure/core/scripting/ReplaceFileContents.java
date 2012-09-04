@@ -19,6 +19,7 @@ public class ReplaceFileContents extends AbstractCommand {
 	 *      1 - the file to edit 
 	 *      2 - the file containing the new contents of file(1) 
 	 */
+	  @Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		if (contents[1] == null || "".equals(contents[1]) || contents[2] == null

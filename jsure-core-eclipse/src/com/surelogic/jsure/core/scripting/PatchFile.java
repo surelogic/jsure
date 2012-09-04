@@ -23,6 +23,7 @@ public class PatchFile extends AbstractCommand {
 	 *      2 - the patch
 	 */
 	@SuppressWarnings("deprecation")
+	  @Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		if (contents[1] == null || "".equals(contents[1]) || contents[2] == null

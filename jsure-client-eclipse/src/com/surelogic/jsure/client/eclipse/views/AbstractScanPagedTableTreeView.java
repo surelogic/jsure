@@ -62,12 +62,14 @@ public abstract class AbstractScanPagedTableTreeView<T> extends AbstractScanStru
 		return f_content.build();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
 		manager.add(f_toggleView);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
