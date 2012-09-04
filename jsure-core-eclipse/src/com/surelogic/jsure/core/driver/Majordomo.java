@@ -92,10 +92,11 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	private final ASTParser parser = ASTParser.newParser(AST.JLS3);
 
 	private final IAnalysisMonitor monitor = new IAnalysisMonitor() {
+		@Override
 		public void subTask(String name) {
 			setProgressSubTaskName(name);
 		}
-
+		@Override
 		public void worked() {
 			showProgress();
 		}
@@ -107,6 +108,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		/**
 		 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 		 */
+		@Override
 		public void resourceChanged(IResourceChangeEvent event) {
 			if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
 				if (event.getResource() instanceof IProject) {
@@ -138,6 +140,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				new ProjectClosingListner(), IResourceChangeEvent.PRE_CLOSE);
 
 		final Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				if (buildMonitor != null && buildMonitor.isCanceled()) {
 					propagateCancel();
@@ -176,7 +179,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 * @see IncrementalProjectBuilder#build(int, java.util.Map,
 	 *      org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
@@ -287,6 +290,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 * 
 	 * @see org.eclipse.core.resources.IResourceVisitor#visit(org.eclipse.core.resources.IResource)
 	 */
+	@Override
 	public boolean visit(IResource resource) {
 		analyzeResourceCurrentLevel(resource, IResourceDelta.ADDED);
 		return true;
@@ -298,6 +302,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 * 
 	 * @see org.eclipse.core.resources.IResourceDeltaVisitor#visit(org.eclipse.core.resources.IResourceDelta)
 	 */
+	@Override
 	public boolean visit(IResourceDelta delta) {
 		IResource resource = delta.getResource();
 		projectCache.cacheAResource(resource, delta.getKind());
@@ -784,14 +789,15 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		return new Iterator<IAnalysis>() {
 			int i = 0;
 
+			@Override
 			public void remove() {
 				throw new UnsupportedOperationException();
 			}
-
+			@Override
 			public boolean hasNext() {
 				return i < extensions.length;
 			}
-
+			@Override
 			public IAnalysis next() {
 				IAnalysis a = plugin.getAnalysisModule(extensions[i++]);
 				return a;
@@ -1044,6 +1050,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		/**
 		 * @see org.eclipse.core.resources.IResourceVisitor#visit(org.eclipse.core.resources.IResource)
 		 */
+		@Override
 		public boolean visit(IResource resource) {
 			resourceCount++;
 			return true;
@@ -1074,6 +1081,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		 * 
 		 * @see org.eclipse.core.resources.IResourceVisitor#visit(org.eclipse.core.resources.IResource)
 		 */
+		@Override
 		public boolean visit(IResource resource) {
 			analyzeResource(analysisModule, resource, IResourceDelta.ADDED);
 			return true;

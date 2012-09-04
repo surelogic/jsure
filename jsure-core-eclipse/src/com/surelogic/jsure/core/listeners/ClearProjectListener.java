@@ -36,6 +36,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		// Nothing to do
 	}
 	
+	@Override
 	public void resourceChanged(final IResourceChangeEvent event) {
 		synchronized (ClearProjectListener.class) {
 			if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
@@ -132,6 +133,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	
 	private static boolean debug = false;
 	
+	@SuppressWarnings("unused")
 	private static void clearDropSea(final boolean clearAll, Iterable<IProject> removed) {
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
 		if (pd == null) {

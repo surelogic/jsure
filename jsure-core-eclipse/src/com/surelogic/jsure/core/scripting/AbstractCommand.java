@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.*;
 public abstract class AbstractCommand implements ICommand {
   protected static final byte[] noBytes = new byte[0];
   
+  @Override
   public boolean succeeded() {
 	  return true;
   }

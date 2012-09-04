@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.*;
 import org.osgi.framework.BundleContext;
 
@@ -402,6 +401,7 @@ public class DoubleChecker implements IAnalysisContainer {
 		return idToInfoMap.get(id);
 	}
 
+	@Override
 	public Iterable<IAnalysisInfo> getAllAnalysisInfo() {
 		return idToInfoMap.values();
 	}
@@ -619,6 +619,7 @@ public class DoubleChecker implements IAnalysisContainer {
 	 * @return the set of analysis module extension points that are
 	 *         prerequisites for <code>analysisExtension</code>
 	 */
+	@Override
 	public Set<IAnalysisInfo> getPrerequisiteAnalysisExtensionPoints(
 			IAnalysisInfo info) {
 		Set<IAnalysisInfo> result = new HashSet<IAnalysisInfo>();
@@ -704,6 +705,7 @@ public class DoubleChecker implements IAnalysisContainer {
 	 *            the set of included extension identifiers (all must be
 	 *            interned)
 	 */
+	@Override
 	public void updateIncludedExtensions(Set<String> includedExtensions) {
 		// Have we really changed anything?
 		if (isIncludedExtensionsChanged(includedExtensions)) {
@@ -728,6 +730,7 @@ public class DoubleChecker implements IAnalysisContainer {
 	 * @return <code>true</code> if the parameter is different than the current
 	 *         plugin state, <code>false</code> if they are the same
 	 */
+	@Override
 	public boolean isIncludedExtensionsChanged(Set<String> includedExtensions) {
 		return !m_includedExtensions.equals(includedExtensions);
 	}

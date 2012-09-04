@@ -2,8 +2,7 @@ package com.surelogic.jsure.core.driver;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -76,8 +75,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	private static final String SCRIPT_TEMP = "scriptTemp";
 	private static final String CRASH_FILES = "crash.log.txt";
 
-	private static final Logger LOG = SLLogger
-			.getLogger("analysis.JavacDriver");
+	//private static final Logger LOG = SLLogger.getLogger("analysis.JavacDriver");
 
 	/**
 	 * Clear all the JSure state before each build
@@ -115,6 +113,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
 	private JavacDriver() {
 		PeriodicUtility.addHandler(new Runnable() {
+			@Override
 			public void run() {
 				final SLProgressMonitor mon = lastMonitor;
 				if (mon != null && mon.isCanceled()) {
@@ -287,6 +286,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			if (scriptBeingUpdated != null) {
 				final File scriptDir = new File(workspace, temp);
 				updateScriptJob = new AbstractSLJob("Updating script") {
+					@Override
 					public SLStatus run(SLProgressMonitor monitor) {
 						try {
 							// TODO needs to run after the FTA auto-build
@@ -371,6 +371,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			// This is in a job to let it run after plugins are initialized
 			EclipseJob.getInstance().schedule(
 					new AbstractSLJob("Preparing to run update script job") {
+						@Override
 						public SLStatus run(SLProgressMonitor monitor) {
 							// This cannot lock the workspace, since it prevents
 							// builds from happening
@@ -767,6 +768,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	private static final TempFileFilter scriptFilter = new TempFileFilter(
 			SCRIPT_TEMP, ".txt");
 	private static final FilenameFilter updateFilter = new FilenameFilter() {
+		@Override
 		public boolean accept(File dir, String name) {
 			return name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
 		}
@@ -1298,7 +1300,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	/**
 	 * Register resources
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void registerBuild(IProject project, Map args,
 			List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
 		final int k = getBuildKind(args);
@@ -1331,13 +1333,13 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		ModuleRules.clearAsNeededPatterns();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(DriverConstants.BUILD_KIND);
 		return Integer.parseInt(kind);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void doExplicitBuild(Map args, boolean ignoreNature) {
 		if (script != null) {
 			printToScript(ScriptCommands.RUN_JSURE);
@@ -1345,7 +1347,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		configureBuild(args, ignoreNature);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(
@@ -1394,6 +1396,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void doBuild(final Projects newProjects, Map<String, Object> args,
 			SLProgressMonitor monitor, boolean useSeparateJVM) {
 		try {
@@ -1708,6 +1711,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			 */
 			final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
 			final UnzipCallback callback = new UnzipCallback() {
+				@Override
 				public void unzipped(ZipEntry ze, File f) {
 					// Finish setting up srcFiles
 					if (ze.getName().endsWith(".java")) {
@@ -1802,6 +1806,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			this.ignoreNature = ignoreNature;
 		}
 
+		@Override
 		public SLStatus run(SLProgressMonitor monitor) {
 			if (XUtil.testing) {
 				System.out.println("Do I need to do something here to wait?");
@@ -1863,6 +1868,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			afterJob = after;
 		}
 
+		@Override
 		public SLStatus run(SLProgressMonitor monitor) {
 			monitor.begin(3);
 			final long start = System.currentTimeMillis();
@@ -1927,6 +1933,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			this.useSeparateJVM = useSeparateJVM;
 		}
 
+		@Override
 		public SLStatus run(SLProgressMonitor monitor) {
 			lastMonitor = monitor;
 			projects.setMonitor(monitor);
@@ -2080,19 +2087,23 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			System.out.println("run = " + projects.getRun());
 			final String msg = "Running JSure for " + projects.getLabel();
 			ILocalJSureConfig cfg = new ILocalJSureConfig() {
+				@Override
 				public boolean isVerbose() {
 					return SLLogger.getLogger().isLoggable(Level.FINE)
 							|| XUtil.testing;
 				}
 
+				@Override
 				public String getTestCode() {
 					return TestCode.NONE.name();
 				}
 
+				@Override
 				public int getMemorySize() {
 					return JSurePreferencesUtility.getMaxMemorySize();
 				}
 
+				@Override
 				public String getPluginDir(String id, boolean required) {
 					try {
 						return EclipseUtility.getDirectoryOf(id);
@@ -2105,6 +2116,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					}
 				}
 
+				@Override
 				public String getRunDirectory() {
 					return projects.getRunDir().getAbsolutePath();
 				}
@@ -2247,6 +2259,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	}
 
 	// Somehow call scriptChanges
+	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (script != null) {
 			ChangeCollector visitor = new ChangeCollector();
