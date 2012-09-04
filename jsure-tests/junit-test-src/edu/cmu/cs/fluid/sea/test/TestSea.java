@@ -15,6 +15,7 @@ public class TestSea extends TestCase {
 	final private Sea sea = Sea.getDefault();
 
 	class ADrop extends Drop {
+		// Nothing to add
 	}
 
 	class MyDrop extends ADrop {
@@ -222,6 +223,7 @@ public class TestSea extends TestCase {
 	public void testListeners() {
 		Sea sea = Sea.getDefault();
 		DropObserver callback = new DropObserver() {
+			@Override
 			public void dropChanged(Drop drop, DropEvent event) {
 				assertTrue("kind is not Created it is " + event,
 						event == DropEvent.Created);
@@ -233,6 +235,7 @@ public class TestSea extends TestCase {
 		MySubDrop dHearMe = new MySubDrop();
 		sea.unregister(MySubDrop.class, callback);
 		callback = new DropObserver() {
+			@Override
 			public void dropChanged(Drop drop, DropEvent event) {
 				assertTrue("kind is not Invalidated it is " + event,
 						event == DropEvent.Invalidated);

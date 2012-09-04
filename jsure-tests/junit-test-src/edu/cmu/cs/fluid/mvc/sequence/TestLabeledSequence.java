@@ -23,7 +23,7 @@ public class TestLabeledSequence {
     ModelUtils.shutdownChain(seq);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private static int processCmd(
     final LabeledSequence seq,
     final String[] args,

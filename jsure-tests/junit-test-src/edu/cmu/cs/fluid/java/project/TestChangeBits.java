@@ -1,7 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/project/TestChangeBits.java,v 1.1 2007/08/22 15:02:00 boyland Exp $*/
 package edu.cmu.cs.fluid.java.project;
 
-import edu.cmu.cs.fluid.ir.AbstractChangeRecord;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.parse.AstGen;

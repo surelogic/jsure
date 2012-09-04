@@ -5,6 +5,7 @@ public interface IReporter {
   void reportError(String msg);
 
   static final IReporter prototype = new IReporter() {
+	  @Override
     public void reportError(String msg) {
       System.out.println(msg);
     }

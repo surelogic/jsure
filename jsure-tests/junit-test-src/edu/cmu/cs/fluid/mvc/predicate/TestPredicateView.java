@@ -84,7 +84,8 @@ public class TestPredicateView
             final int loc2 = Integer.parseInt( st.nextToken() );
 
             final IRNode node = predModel.elementAt( irloc1 );
-            final SlotInfo si = predModel.getNodeAttribute( SequenceModel.INDEX );
+            @SuppressWarnings("unchecked")
+			final SlotInfo<Integer> si = predModel.getNodeAttribute( SequenceModel.INDEX );
             node.setSlotValue( si, Integer.valueOf(loc2) );
             dumper.waitForBreak();
           }

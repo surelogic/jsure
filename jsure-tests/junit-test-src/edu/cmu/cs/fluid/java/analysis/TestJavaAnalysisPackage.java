@@ -6,7 +6,8 @@ import junit.framework.TestCase;
 public class TestJavaAnalysisPackage extends TestCase {
   final String[] noArgs = new String[0];
 
-  public void testNothing() {        
+  public void testNothing() { 
+	  // Nothing to do
   }
   
   /**

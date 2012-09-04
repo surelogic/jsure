@@ -25,13 +25,13 @@ public class TestMultiMap extends TestCase {
     m.map("bye", "ttyl");
     for(Entry<String,String> e : m.entrySet()) {
       System.out.println("For "+e.getKey());
-      Iterator i = e.getValues().iterator();
+      Iterator<String> i = e.getValues().iterator();
       while (i.hasNext()) {
         System.out.println("\t"+i.next());
       }
     }
     
-    Collection s = m.find("hi");
+    Collection<String> s = m.find("hi");
     assertEquals(2, s.size());
     m.remove("hi", "huh?");
     assertEquals(2, s.size());

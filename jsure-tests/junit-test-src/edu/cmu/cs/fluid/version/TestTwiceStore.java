@@ -2,7 +2,6 @@
 package edu.cmu.cs.fluid.version;
 
 import java.io.BufferedReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -11,7 +10,6 @@ import java.io.Writer;
 
 import edu.cmu.cs.fluid.ir.Bundle;
 import edu.cmu.cs.fluid.ir.IRIntegerType;
-import edu.cmu.cs.fluid.ir.IRList;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRSequence;

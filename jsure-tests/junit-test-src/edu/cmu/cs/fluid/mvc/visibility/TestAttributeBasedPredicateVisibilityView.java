@@ -36,7 +36,8 @@ public class TestAttributeBasedPredicateVisibilityView
   private final SlotInfo<Boolean> isDisplayedSI; 
   private final AttributeBasedPredicateVisibilityView vizModel;
   
-  private TestAttributeBasedPredicateVisibilityView()
+  @SuppressWarnings("unchecked")
+private TestAttributeBasedPredicateVisibilityView()
   throws SlotAlreadyRegisteredException
   {
     /* Model from which we will obtain attribute and predicate models. */
@@ -62,9 +63,9 @@ public class TestAttributeBasedPredicateVisibilityView
 
     final JMenu isVisibleMenu = new JMenu( "Set isDisplayed attr" );
     final JMenu setVisibleMenu = new JMenu( "Invoke setVisible" );
-    final Iterator nodes = attrModel.getNodes();
+    final Iterator<IRNode> nodes = attrModel.getNodes();
     while( nodes.hasNext() ) {
-      final IRNode node = (IRNode) nodes.next();
+      final IRNode node = nodes.next();
       if( attrModel.isNodeAttr( node ) ) {
         final String attrName = attrModel.getName( node );
         isVisibleMenu.add( new SetIsDisplayedAction( attrName, node, Boolean.TRUE ) );
@@ -104,7 +105,7 @@ public class TestAttributeBasedPredicateVisibilityView
       node = n;
       value = v;
     }
-    
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       node.setSlotValue( isDisplayedSI, value );
@@ -125,7 +126,7 @@ public class TestAttributeBasedPredicateVisibilityView
       node = n;
       value = v;
     }
-    
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       vizModel.setDisplayed( node, value );

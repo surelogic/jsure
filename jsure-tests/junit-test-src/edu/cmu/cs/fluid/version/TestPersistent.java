@@ -47,6 +47,7 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
           "TestPersistent.vname",
           IRStringType.prototype);
     } catch (SlotAlreadyRegisteredException ex) {
+    	// Ignore exception
     }
   }
 
@@ -588,6 +589,7 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
   static int passed = 0;
   static int failed = 0;
   
+  @SuppressWarnings("unused")
   static boolean assert_equal(Object value, Object required, String name, Throwable ex) {
     boolean equal = false;
     if (required != null && ex == null) {
@@ -669,7 +671,7 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
     if (!assert_equal(seq_value, any_sequence, n + "." + si, seq_exception)) {
       return;
     }
-    IRSequence seq = (IRSequence) seq_value; // should not throw exception
+    IRSequence<?> seq = (IRSequence<?>) seq_value; // should not throw exception
     Object value;
     Throwable ex = null;
     try {
@@ -801,8 +803,8 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
           System.out.println("isDefined:");
           for (int k = 0; k < era.length; ++k) {
             System.out.println("  " + era[k] + " => " + era[k].isLoaded(st));
-            for (Iterator e = era[k].elements(); e.hasNext();) {
-              Version v = (Version) e.next();
+            for (Iterator<Version> e = era[k].elements(); e.hasNext();) {
+              Version v = e.next();
               System.out.println("  " + v + " => " + v.isLoaded(st));
             }
           }
@@ -812,7 +814,8 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
     }
   }
 
-  static void describeState(Version v, int i) {
+  @SuppressWarnings("deprecation")
+static void describeState(Version v, int i) {
     Version.saveVersion();
     try {
       System.out.print("Version: " + v);
@@ -834,8 +837,8 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
           nodes.addElement(enm.next());
         }
       }
-      for (Iterator enm = region[i].allNodes(v); enm.hasNext();) {
-        IRNode node = (IRNode) enm.next();
+      for (Iterator<IRNode> enm = region[i].allNodes(v); enm.hasNext();) {
+        IRNode node = enm.next();
         System.out.print(" " + pad2(nodes.indexOf(node)) + "  " + pad2(i));
         try {
           IRRegion owner = IRRegion.getOwner(node);
@@ -937,9 +940,9 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
         for (int e = 0; e < era.length; ++e) {
           if (era[e] == null)
             continue;
-          Iterator vs = era[e].elements();
+          Iterator<Version> vs = era[e].elements();
           while (vs.hasNext()) {
-            Version other = (Version) vs.next();
+            Version other = vs.next();
             try {
               System.out.print(ci.changed(node, v, other) ? "*" : "-");
             } catch (SlotUnknownException ex) {
@@ -1044,9 +1047,9 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
                 IRPersistent vcd = ch.getDelta(era[k]);
                 if (verbose > 0) System.out.println("Writing --delta " + j + " " + i + " " + k);
                 vcd.store(floc);
-                Iterator vs = era[k].elements();
+                Iterator<Version> vs = era[k].elements();
                 while (vs.hasNext()) {
-                  Version v = (Version) vs.next();
+                  Version v = vs.next();
                   IRPersistent vcs = ch.getSnapshot(v);
                   if (verbose > 0) System.out.println(
                       "Writing --snapshot "
@@ -1090,7 +1093,7 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
         }
         p.println();
         p.print(" --svrs " + svrs.size());
-        for (Iterator it = svrs.iterator(); it.hasNext();) {
+        for (Iterator<IRRegion> it = svrs.iterator(); it.hasNext();) {
           p.print(" " + ((SharedVersionedRegion) it.next()).getExportedID());
         }
         p.println();
@@ -1232,8 +1235,8 @@ private static final String TESTPERS_FAR_NAME = "testpers.far";
     if (verbose >= 2) {    
       for (int i = 0; i < era.length; ++i) {
         System.out.println("Structure during era " + era[i].getID());
-        for (Iterator enm = era[i].elements(); enm.hasNext();) {
-          Version v = (Version) enm.next();
+        for (Iterator<Version> enm = era[i].elements(); enm.hasNext();) {
+          Version v = enm.next();
           System.out.println("For version #" + v.getEraOffset());
           describeState(v, 0);
           System.out.println();

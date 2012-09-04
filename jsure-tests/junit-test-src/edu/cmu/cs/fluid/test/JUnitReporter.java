@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.test;
 import junit.framework.Assert;
 
 public class JUnitReporter implements IReporter {
+	@Override
   public void reportError(String msg) {
     Assert.fail(msg);
   }

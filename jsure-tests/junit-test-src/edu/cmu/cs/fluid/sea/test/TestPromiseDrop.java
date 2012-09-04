@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea.test;
 
+import com.surelogic.aast.IAASTRootNode;
+
 import junit.framework.TestCase;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
@@ -13,7 +15,8 @@ public class TestPromiseDrop extends TestCase {
 
   static private final IRNode i = new PlainIRNode();
 
-  static class LockPromiseDrop extends PromiseDrop {
+  static class LockPromiseDrop extends PromiseDrop<IAASTRootNode> {
+	  // Nothing to add
   }
 
   @SuppressWarnings("unused")

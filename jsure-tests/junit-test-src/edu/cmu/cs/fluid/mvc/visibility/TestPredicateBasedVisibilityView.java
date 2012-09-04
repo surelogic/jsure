@@ -101,8 +101,8 @@ public class TestPredicateBasedVisibilityView
         System.out.println( "Default visibility = " + vizModel.getDefaultVisibility() );
         System.out.println( "The predicate model state is: " );
         int c = 0;
-        for( Iterator i = predModel.getNodes(); i.hasNext(); c += 1 ) {
-          final IRNode n = (IRNode) i.next();
+        for( Iterator<IRNode> i = predModel.getNodes(); i.hasNext(); c += 1 ) {
+          final IRNode n = i.next();
           System.out.println(
               "  " + c + " = " + seq.getAttributeName( predModel.getAttributeNode(n) )
             + "::" + predModel.getPredicate( n ).getLabel()
@@ -137,7 +137,7 @@ public class TestPredicateBasedVisibilityView
         final int loc2 = Integer.parseInt( st.nextToken() );
 
         final IRNode node = predModel.elementAt( irloc1 );
-        final SlotInfo si = predModel.getNodeAttribute( SequenceModel.INDEX );
+        final SlotInfo<Integer> si = predModel.getNodeAttribute( SequenceModel.INDEX );
         node.setSlotValue( si, Integer.valueOf(loc2) );
         dumper.waitForBreak();
       }

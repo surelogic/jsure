@@ -56,6 +56,7 @@ public final class TestLabeledSet
       removeMenu = menu;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent e ) 
     {
       final IRNode node = new PlainIRNode();
@@ -83,6 +84,7 @@ public final class TestLabeledSet
       self = removeMenu.add( this );
     }
                        
+    @Override
     public void actionPerformed( final ActionEvent e )
     {
       setModel.removeNode( node );

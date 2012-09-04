@@ -41,9 +41,9 @@ public class TestSortedAttributeView
 
     // init list of modeled attributes
     final IRNode[] modeledAttrs = new IRNode[attrModel.size()];
-    final Iterator nodes = attrModel.getNodes();
+    final Iterator<IRNode> nodes = attrModel.getNodes();
     for( int count = 0; nodes.hasNext(); ) {
-      modeledAttrs[count++] = (IRNode)nodes.next();
+      modeledAttrs[count++] = nodes.next();
     }
 
     // Init the list of valid sort attributes

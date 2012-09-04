@@ -141,6 +141,7 @@ public class TestTaskFramework extends TestCase {
 				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
+			@Override
 			public void run() {
 				System.out.println(SEVEN);
 				throw new RuntimeException("This should not hang the system");
@@ -194,6 +195,7 @@ public class TestTaskFramework extends TestCase {
 				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
+			@Override
 			public void run() {
 				System.out.println(SEVEN);
 				throw new ThreadDeath();
@@ -247,6 +249,7 @@ public class TestTaskFramework extends TestCase {
 				new LinkedBlockingQueue<Runnable>(), true);
 		createGraphNoCycles(mgr);
 		Runnable seven = new Runnable() {
+			@Override
 			public void run() {
 				System.out.println(SEVEN);
 				throw new IllegalStateException("This should not hang the system");
@@ -1084,7 +1087,7 @@ public class TestTaskFramework extends TestCase {
 		public String getName() {
 			return name;
 		}
-
+	    @Override
 		public void run() {
 			try {
 				Thread.sleep(500);
@@ -1145,21 +1148,21 @@ public class TestTaskFramework extends TestCase {
 			this.taskCompletedCount = taskCount;
 			this.taskStartedCount = taskCount;
 		}
-
+	    @Override
 		public void allTasksComplete() {
 			allCompletedCalled = true;
 			assertTrue(allCompletedCalled && allStartingCalled && completedCalled
 					&& taskStartedCalled);
 			latch.countDown();
 		}
-
+	    @Override
 		public void startingTasks() {
 			allStartingCalled = true;
 			assertTrue(!allCompletedCalled && allStartingCalled && !completedCalled
 					&& !taskStartedCalled);
 			latch.countDown();
 		}
-
+	    @Override
 		public void taskCompleted(Runnable task) {
 			taskCompletedCount--;
 			if (taskCompletedCount == 0) {
@@ -1169,7 +1172,7 @@ public class TestTaskFramework extends TestCase {
 				latch.countDown();
 			}
 		}
-
+	    @Override
 		public void taskStarted(Runnable task) {
 			taskStartedCount--;
 			if (taskStartedCount == 0) {

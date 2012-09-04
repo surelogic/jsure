@@ -103,6 +103,7 @@ public class TestConfigurableSetView
       value = v;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       model.setHidden( node, value );
@@ -129,6 +130,7 @@ public class TestConfigurableSetView
     }
     
     @SuppressWarnings("unchecked")
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       node.setSlotValue(
@@ -148,6 +150,7 @@ public class TestConfigurableSetView
       this.csv = csv;
     }
     
+    @Override
     public void itemStateChanged( final ItemEvent e )
     {
       csv.setSetEllipsisPolicy( e.getStateChange() == ItemEvent.SELECTED );
@@ -166,7 +169,8 @@ public class TestConfigurableSetView
       srcModel = src;
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
     public AVPair[] attributesFor( final Model model, final Set skippedNodes )
     {
       final StringBuilder sb = new StringBuilder( "ellipsis[" );

@@ -7,12 +7,15 @@ import edu.cmu.cs.fluid.util.SimpleApp;
 public class TestDigraph extends SimpleApp {
   protected boolean verbose = false;
   protected IReporter reporter = new IReporter() {
+	@Override
     public void reportError(String msg) {
       System.out.println(msg);
     }
   };
   
-  public TestDigraph() { }
+  public TestDigraph() { 
+	  // Nothing to do
+  }
   
   public TestDigraph setReporter(IReporter r) {
     if (r != null) {

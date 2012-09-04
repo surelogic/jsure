@@ -396,6 +396,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			public String toString() {
 				return "RegressionTest " + tag;
 			}
+			@Override
 			public String identity() {
 				return super.toString();
 			} 
@@ -421,12 +422,14 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	// private ITest currentTest = null;
 	private final Stack<ITest> currentTest = new Stack<ITest>();
 
+	/*
 	private File findFile(final IProject project, final String file,
 			boolean checkParent) {
 		final String projectPath = project.getLocation().toOSString();
 		final File proj = new File(projectPath);
 		return findFile(proj, file, checkParent);
 	}
+	*/
 
 	private File findFile(File proj, String file, boolean checkParent) {
 		File result = lookForFile(proj, file);
