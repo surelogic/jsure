@@ -4,7 +4,7 @@
 	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
 
 	<!-- ENSURE THAT THIS MATCHES 'pom.xml' in the 'promises' project -->
-	<property name="promises-version" value="4.3.3" />
+	<property name="promises-version" value="4.3.4" />
 
 	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
