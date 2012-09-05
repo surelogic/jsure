@@ -1,11 +1,14 @@
 package com.surelogic.annotation.rules;
 
+import java.util.Iterator;
+
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -15,6 +18,7 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -34,11 +38,11 @@ public class EqualityRules extends AnnotationRules {
 		return instance;
 	}
 
-	public static ValueObjectPromiseDrop getSingletonDrop(IRNode type) {
+	public static ValueObjectPromiseDrop getValueObjectDrop(IRNode type) {
 		return getDrop(valueObjectRule.getStorage(), type);
 	}
 
-	public static RefObjectPromiseDrop getUtilityDrop(IRNode type) {
+	public static RefObjectPromiseDrop getRefObjectDrop(IRNode type) {
 		return getDrop(refObjectRule.getStorage(), type);
 	}
 	
@@ -62,14 +66,40 @@ public class EqualityRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
-			return new AbstractAASTScrubber<ValueObjectNode, ValueObjectPromiseDrop>(this) {
+			return new AbstractAASTScrubber<ValueObjectNode, ValueObjectPromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, REF_OBJECT) {
 				@Override
 				protected PromiseDrop<ValueObjectNode> makePromiseDrop(ValueObjectNode a) {
 					// Check consistency
-					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
+					final IRNode tdecl = a.getPromisedFor();
+					if (getRefObjectDrop(tdecl) != null) {
+						// Conflict w/ RefObject
+						getContext().reportError(a, I18N.res(752, REF_OBJECT));
+						return null;
+					}
+					// Check if abstract or has no subclasses
+					final boolean isInterface = TypeUtil.isInterface(tdecl);
+					if (!isInterface && !TypeUtil.isAbstract(tdecl)) {
+						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
+						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
+						if (it.hasNext()) {
+							getContext().reportError(a, I18N.res(753, JavaNames.getFullTypeName(it.next())));
+							return null;
+						}
+					}
 					
-					computeResults(a.getPromisedFor(), d, true);
+					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
+					if (isInterface) {
+						makeResultDrop(d, true, 754, JavaNames.getTypeName(tdecl));
+					} else {
+						computeResults(a.getPromisedFor(), d, true);
+					}
 					return storeDropIfNotNull(a, d);
+				}
+				
+				@Override 
+			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
+					getContext().reportError(dt.getDeclaration(), I18N.res(756, VALUE_OBJECT));
+					return false;
 				}
 			};
 		}
@@ -89,14 +119,26 @@ public class EqualityRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
-			return new AbstractAASTScrubber<RefObjectNode, RefObjectPromiseDrop>(this) {
+			return new AbstractAASTScrubber<RefObjectNode, RefObjectPromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
 				@Override
 				protected PromiseDrop<RefObjectNode> makePromiseDrop(RefObjectNode a) {
 					// Check consistency
-					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);
+					final IRNode tdecl = a.getPromisedFor();
+					final boolean isInterface = TypeUtil.isInterface(tdecl);
 					
-					computeResults(a.getPromisedFor(), d, false);
+					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);			
+					if (isInterface) {
+						makeResultDrop(d, true, 755, JavaNames.getTypeName(tdecl));
+					} else {
+						computeResults(a.getPromisedFor(), d, false);
+					}
 					return storeDropIfNotNull(a, d);
+				}
+				
+				@Override 
+			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
+					getContext().reportError(dt.getDeclaration(), I18N.res(756, REF_OBJECT));
+					return false;
 				}
 			};
 		}
