@@ -13,6 +13,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.concurrency.detector.ConcurrencyDetector;
 import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.EffectsAnalysis;
+import com.surelogic.analysis.equality.EqualityAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
@@ -48,6 +49,8 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
 		init(LayersAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");
+		init(EqualityAnalysis.class,
+				"com.surelogic.jsure.client.eclipse.EqualityAssurance", true, "Reference equality");
 		init(EffectsAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 		init(LockAnalysis.class,
