@@ -7,7 +7,13 @@ public class SyntaxStrategy {
   protected boolean first = true;
   
   protected void init() { first = true; }
-  protected void doForToken(Token token) {}
-  protected void doForInfo(OpSyntax s, int i, Attribute a, String type) {}
-  protected void doForChild(OpSyntax s, int i, Child c, boolean isVariable) {}
+  protected void doForToken(Token token) {
+	  // Nothing to do
+  }
+  protected void doForInfo(OpSyntax s, int i, Attribute a, String type) {
+	  // Nothing to do
+  }
+  protected void doForChild(OpSyntax s, int i, Child c, boolean isVariable) {
+	  // Nothing to do
+  } 
 }

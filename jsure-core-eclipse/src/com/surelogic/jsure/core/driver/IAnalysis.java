@@ -162,7 +162,7 @@ public interface IAnalysis {
 	/**
 	 * Called after preBuild.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	void setArguments(Map args);
 
 	void cancel();

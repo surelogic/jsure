@@ -7,10 +7,12 @@ final class UnknownProperty implements Property {
     this.name = name;
   }
 
+  @Override
   public String getMessage() {
     return null;
   }
 
+  @Override
   public String getName() {
     return name;
   }

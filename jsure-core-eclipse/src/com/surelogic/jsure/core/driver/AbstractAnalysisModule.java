@@ -122,7 +122,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#setArguments(Map)
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings({ "rawtypes" })
   @Override
 public void setArguments(Map args) {
     // do nothing
