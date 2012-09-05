@@ -257,6 +257,8 @@ public abstract class AnnotationRules {
 		LayerRules.getInstance().register(fw);
 		UtilityRules.getInstance().register(fw);
 		NonNullRules.getInstance().register(fw);
+		EqualityRules.getInstance().register(fw);
+		StructureRules.getInstance().register(fw);
 		PromiseDropStorage.init();
 	}
 
