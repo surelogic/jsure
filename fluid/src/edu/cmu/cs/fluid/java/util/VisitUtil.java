@@ -359,6 +359,26 @@ public class VisitUtil implements JavaGlobals {
  
   }
 
+  public static Iteratable<IRNode> getClassMethodsOnly(final IRNode cl) {
+	  	final IRNode cl1 = cl;
+	  	
+			return new SimpleRemovelessIterator<IRNode>() {
+	      Iterator<IRNode> enm = getClassBodyMembers(cl1);
+				 @Override protected Object computeNext() {
+					 while (enm.hasNext()) {
+						 IRNode n = enm.next();
+						 Operator op = JJNode.tree.getOperator(n);
+
+						 if (op == MethodDeclaration.prototype) {
+							 return n;
+						 }
+					 }
+					 return noElement;
+				 }
+			 };
+	 
+	  }
+  
   /**
    * 
    * @return All the FieldDeclarations in a class
