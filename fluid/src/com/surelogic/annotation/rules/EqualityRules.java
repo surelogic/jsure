@@ -68,21 +68,7 @@ public class EqualityRules extends AnnotationRules {
 					// Check consistency
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
 					
-					final IRNode hashCode = findNonObjectImpl(a.getPromisedFor(), HASHCODE);
-					final IRNode equals = findSingleObjectArgImpl(a.getPromisedFor(), EQUALS);
-					if (hashCode == null) {
-						// FIX
-						makeResultDrop(d, false, "Missing "+HASHCODE+"() implementation", a); 
-					}					
-					if (equals == null) {		
-						// FIX
-						makeResultDrop(d, false, "Missing "+EQUALS+"() implementation", a); 
-					}
-					else if (hashCode != null) {
-						// Has both
-						makeResultDrop(d, true, "Overrides "+HASHCODE+"() implementation");
-						makeResultDrop(d, true, "Overrides "+EQUALS+"() implementation");
-					}
+					computeResults(a.getPromisedFor(), d, true);
 					return storeDropIfNotNull(a, d);
 				}
 			};
@@ -109,26 +95,16 @@ public class EqualityRules extends AnnotationRules {
 					// Check consistency
 					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);
 					
-					final IRNode hashCode = findNonObjectImpl(a.getPromisedFor(), HASHCODE);
-					if (hashCode != null) {
-						makeResultDrop(d, false, "Overrides "+HASHCODE+"() at "+JavaNames.getFullName(hashCode), a); // FIX
-					}
-					final IRNode equals = findSingleObjectArgImpl(a.getPromisedFor(), EQUALS);
-					if (equals != null) {		
-						makeResultDrop(d, false, "Overrides "+EQUALS+"() at "+JavaNames.getFullName(equals), a); // FIX
-					}
-					else if (hashCode == null) {
-						makeResultDrop(d, true, "No "+HASHCODE+'/'+EQUALS+"() implementations");
-					}
+					computeResults(a.getPromisedFor(), d, false);
 					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
 	}
 
-	static void makeResultDrop(PromiseDrop<?> p, boolean consistent, String msg, Object... args) {
+	static void makeResultDrop(PromiseDrop<?> p, boolean consistent, int num, Object... args) {
 		final ResultDrop r = new ResultDrop(Messages.DSC_LAYERS_ISSUES.getMessage());
-		r.setMessage(msg, args);
+		r.setResultMessage(num, args);
 		r.addCheckedPromise(p);
 		if (consistent) {
 			r.setConsistent();
@@ -137,8 +113,25 @@ public class EqualityRules extends AnnotationRules {
 		}
 	}
 	
+	static void computeResults(IRNode tdecl, final PromiseDrop<?> d, boolean ifOverrides) {
+		final IRNode hashCode = findNonObjectImpl(tdecl, HASHCODE);
+		if (hashCode != null) {		
+			makeResultDrop(d, ifOverrides, OVERRIDES, HASHCODE, "", JavaNames.getFullName(hashCode));
+		} else {
+			makeResultDrop(d, !ifOverrides, INHERITS, HASHCODE, "");
+		}
+		final IRNode equals = findSingleObjectArgImpl(tdecl, EQUALS);
+		if (equals != null) {		
+			makeResultDrop(d, ifOverrides, OVERRIDES, EQUALS, "Object", JavaNames.getFullName(equals));
+		} else {
+			makeResultDrop(d, !ifOverrides, INHERITS, EQUALS, "Object");
+		}
+	}
+	
 	static final String HASHCODE = "hashCode";
 	static final String EQUALS = "equals";
+	static final int OVERRIDES = 750;
+	static final int INHERITS = 751;
 	
 	/**
 	 * Look for a no-arg method with the given name in this class or its superclasses
@@ -176,7 +169,7 @@ public class EqualityRules extends AnnotationRules {
 		p.getTypeEnv().getBinder().findClassBodyMembers(tdecl, s, false);
 		return s.getResult();
 	}
-	
+
 	static abstract class AbstractSearch extends AbstractSuperTypeSearchStrategy<IRNode> {
 		AbstractSearch(IBinder bind, String name) {
 			super(bind, "method ", name);
