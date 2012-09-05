@@ -78,7 +78,8 @@ public class EqualityRules extends AnnotationRules {
 					}
 					// Check if abstract or has no subclasses
 					final boolean isInterface = TypeUtil.isInterface(tdecl);
-					if (!isInterface && !TypeUtil.isAbstract(tdecl)) {
+					final boolean isAbstract = TypeUtil.isAbstract(tdecl);
+					if (!isInterface && !isAbstract) {
 						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
 						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
 						if (it.hasNext()) {
@@ -90,6 +91,8 @@ public class EqualityRules extends AnnotationRules {
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
 					if (isInterface) {
 						makeResultDrop(d, true, 754, JavaNames.getTypeName(tdecl));
+					} else if (isAbstract) {
+						makeResultDrop(d, true, 757, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, true);
 					}
@@ -98,8 +101,16 @@ public class EqualityRules extends AnnotationRules {
 				
 				@Override 
 			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
-					getContext().reportError(dt.getDeclaration(), I18N.res(756, VALUE_OBJECT));
-					return false;
+					// Check if superclass has this annotation
+					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
+						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+						if (getValueObjectDrop(sdt.getDeclaration()) != null) {
+							getContext().reportError(dt.getDeclaration(), I18N.res(756, VALUE_OBJECT));
+							return false;
+						}
+					}
+					return true;
 				}
 			};
 		}
@@ -137,8 +148,16 @@ public class EqualityRules extends AnnotationRules {
 				
 				@Override 
 			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
-					getContext().reportError(dt.getDeclaration(), I18N.res(756, REF_OBJECT));
-					return false;
+					// Check if superclass has this annotation
+					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
+						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
+							getContext().reportError(dt.getDeclaration(), I18N.res(756, REF_OBJECT));
+							return false;
+						}
+					}
+					return true;
 				}
 			};
 		}
