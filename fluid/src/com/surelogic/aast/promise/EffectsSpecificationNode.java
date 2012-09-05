@@ -19,7 +19,7 @@ public class EffectsSpecificationNode extends AASTRootNode
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         List<EffectSpecificationNode> effect = ((List) _kids);
         return new EffectsSpecificationNode (_start,
           effect        );

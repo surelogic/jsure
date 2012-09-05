@@ -190,10 +190,12 @@ public class CommonAASTBinder extends AASTBinder {
 	return null;
   }
 
+  /*
   private static boolean nameMatches(String name, IRNode td) {	  
 	  return name.equals(JavaNames.getFullTypeName(td)) ||
 	         name.equals(JJNode.getInfoOrNull(td));
   }
+  */
   
   public boolean isResolvableToType(AASTNode node) {
     if (node instanceof PrimitiveTypeNode) {

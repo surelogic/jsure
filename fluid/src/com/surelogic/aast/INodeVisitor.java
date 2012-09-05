@@ -12,6 +12,7 @@ import com.surelogic.aast.layers.UnidentifiedTargetNode;
 import com.surelogic.aast.layers.UnionTargetNode;
 import com.surelogic.aast.promise.*;
 
+@SuppressWarnings("deprecation")
 public interface INodeVisitor<T> {
   T visit(ThisExpressionNode node);
   T visit(SuperExpressionNode node);

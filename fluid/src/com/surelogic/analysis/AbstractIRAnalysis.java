@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
-  private IIRProject project;
+	//private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
 	
@@ -62,7 +62,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		for(IDropBuilder b : builders) {
 			num += b.build();
 		}
-		System.out.println("\tBuilding "+builders.size()+" results for "+this.getClass().getSimpleName());
+		System.out.println("\tBuilding "+num+" results for "+this.getClass().getSimpleName());
 		builders.clear();
 	}
 		
@@ -79,7 +79,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		//final IIRProject old        = project;
-		project = p;		
+		//project = p;		
 		this.binder = binder;
 		builders.clear();
 		

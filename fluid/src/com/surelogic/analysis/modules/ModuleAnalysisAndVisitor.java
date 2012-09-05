@@ -781,9 +781,8 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     return info;
   }
   
-  @SuppressWarnings("unchecked")
   public static ResultDrop makeResultDrop(
-      final IRNode context, final PromiseDrop p, final boolean isConsistent,
+      final IRNode context, final PromiseDrop<?> p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final ResultDrop result = new ResultDrop("ModuleAnalysis_simpleModulePromiseDrop");

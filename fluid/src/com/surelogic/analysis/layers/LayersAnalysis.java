@@ -197,6 +197,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
+			private static final long serialVersionUID = 1L;
+			
 			final Set<Pair<String,String>> reported = new HashSet<Pair<String,String>>();
 			
 			@Override
