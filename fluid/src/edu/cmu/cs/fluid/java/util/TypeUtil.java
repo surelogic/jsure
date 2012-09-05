@@ -258,6 +258,13 @@ public class TypeUtil implements JavaGlobals {
   }
   
   /**
+   * Is the given type abstract?
+   */
+  public static boolean isAbstract(final IRNode tdecl) {
+    return JavaNode.getModifier(tdecl, JavaNode.ABSTRACT);
+  }
+  
+  /**
    * Is the given node an Interface declaration?  This includes 
    * InterfaceDeclaration and NestedInterfaceDeclaration.
    */
