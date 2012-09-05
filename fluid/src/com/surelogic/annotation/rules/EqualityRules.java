@@ -2,6 +2,7 @@ package com.surelogic.annotation.rules;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.aast.promise.*;
@@ -12,9 +13,12 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class EqualityRules extends AnnotationRules {
@@ -61,25 +65,24 @@ public class EqualityRules extends AnnotationRules {
 			return new AbstractAASTScrubber<ValueObjectNode, ValueObjectPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<ValueObjectNode> makePromiseDrop(ValueObjectNode a) {
-					final IRNode hashCode = findNonObjectImpl(a.getPromisedFor(), HASHCODE);
-					final IRNode equals = findNonObjectImpl(a.getPromisedFor(), EQUALS);
-					if (hashCode == null) {
-						if (equals == null) {
-							// FIX
-							getContext().reportError("Type cannot be @"+VALUE_OBJECT+" due to missing hashCode/equals() implementations", a); 
-						} else {
-							// FIX
-							getContext().reportError("Type cannot be @"+VALUE_OBJECT+" due to missing "+HASHCODE+"() implementation", a); 
-						}
-						return null;
-					}						
-					else if (equals == null) {		
-						// FIX
-						getContext().reportError("Type cannot be @"+VALUE_OBJECT+" due to missing "+EQUALS+"() implementation", a); 
-						return null;
-					}
-					// Has both
+					// Check consistency
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
+					
+					final IRNode hashCode = findNonObjectImpl(a.getPromisedFor(), HASHCODE);
+					final IRNode equals = findSingleObjectArgImpl(a.getPromisedFor(), EQUALS);
+					if (hashCode == null) {
+						// FIX
+						makeResultDrop(d, false, "Missing "+HASHCODE+"() implementation", a); 
+					}					
+					if (equals == null) {		
+						// FIX
+						makeResultDrop(d, false, "Missing "+EQUALS+"() implementation", a); 
+					}
+					else if (hashCode != null) {
+						// Has both
+						makeResultDrop(d, true, "Overrides "+HASHCODE+"() implementation");
+						makeResultDrop(d, true, "Overrides "+EQUALS+"() implementation");
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};
@@ -103,20 +106,34 @@ public class EqualityRules extends AnnotationRules {
 			return new AbstractAASTScrubber<RefObjectNode, RefObjectPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<RefObjectNode> makePromiseDrop(RefObjectNode a) {
+					// Check consistency
+					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);
+					
 					final IRNode hashCode = findNonObjectImpl(a.getPromisedFor(), HASHCODE);
 					if (hashCode != null) {
-						getContext().reportError("Type cannot be @"+REF_OBJECT+" due to "+JavaNames.getFullName(hashCode), a); // FIX
-						return null;
+						makeResultDrop(d, false, "Overrides "+HASHCODE+"() at "+JavaNames.getFullName(hashCode), a); // FIX
 					}
-					final IRNode equals = findNonObjectImpl(a.getPromisedFor(), EQUALS);
+					final IRNode equals = findSingleObjectArgImpl(a.getPromisedFor(), EQUALS);
 					if (equals != null) {		
-						getContext().reportError("Type cannot be @"+REF_OBJECT+" due to "+JavaNames.getFullName(equals), a); // FIX
-						return null;
+						makeResultDrop(d, false, "Overrides "+EQUALS+"() at "+JavaNames.getFullName(equals), a); // FIX
 					}
-					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);
+					else if (hashCode == null) {
+						makeResultDrop(d, true, "No "+HASHCODE+'/'+EQUALS+"() implementations");
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};
+		}
+	}
+
+	static void makeResultDrop(PromiseDrop<?> p, boolean consistent, String msg, Object... args) {
+		final ResultDrop r = new ResultDrop(Messages.DSC_LAYERS_ISSUES.getMessage());
+		r.setMessage(msg, args);
+		r.addCheckedPromise(p);
+		if (consistent) {
+			r.setConsistent();
+		} else {
+			r.setInconsistent();
 		}
 	}
 	
@@ -128,47 +145,68 @@ public class EqualityRules extends AnnotationRules {
 	 * (not counting java.lang.Object)
 	 */
 	static IRNode findNonObjectImpl(final IRNode tdecl, final String methodName) {
-		if (tdecl == null) {
-			return null;
-		}
-		IRNode impl = checkForNonObjectImpl(tdecl, methodName);
-		if (impl != null) {
-			return impl;
-		}
-		IIRProject p = JavaProjects.getEnclosingProject(tdecl);
-		IJavaType t = p.getTypeEnv().convertNodeTypeToIJavaType(tdecl);
-		return findNonObjectImpl(p.getTypeEnv(), t.getSuperclass(p.getTypeEnv()), methodName);
+		final IIRProject p = JavaProjects.getEnclosingProject(tdecl);
+		final AbstractSearch s = new AbstractSearch(p.getTypeEnv().getBinder(), methodName) {
+			@Override
+			boolean matchesArgs(IRNode params) {
+				return JJNode.tree.numChildren(params) == 0;
+			}			
+		};
+		p.getTypeEnv().getBinder().findClassBodyMembers(tdecl, s, false);
+		return s.getResult();
 	}
 	
-	static IRNode findNonObjectImpl(final ITypeEnvironment env, final IJavaType t, final String methodName) {		
-		if (t == null) {
-			return null;
+	/**
+	 * Look for a single-Object-typed-arg method with the given name in this class or its superclasses
+	 * (not counting java.lang.Object)
+	 */
+	static IRNode findSingleObjectArgImpl(IRNode tdecl, final String name) {
+		final IIRProject p = JavaProjects.getEnclosingProject(tdecl);
+		final AbstractSearch s = new AbstractSearch(p.getTypeEnv().getBinder(), name) {
+			@Override
+			boolean matchesArgs(IRNode params) {
+				if (JJNode.tree.numChildren(params) != 1) {
+					return false;
+				}
+				final IRNode param = Parameters.getFormal(params, 0);
+				final IRNode type  = ParameterDeclaration.getType(param);
+				return p.getTypeEnv().getObjectType().equals(p.getTypeEnv().getBinder().getJavaType(type));
+			}			
+		};
+		p.getTypeEnv().getBinder().findClassBodyMembers(tdecl, s, false);
+		return s.getResult();
+	}
+	
+	static abstract class AbstractSearch extends AbstractSuperTypeSearchStrategy<IRNode> {
+		AbstractSearch(IBinder bind, String name) {
+			super(bind, "method ", name);
 		}
-		if (t instanceof IJavaDeclaredType) {
-			// Check this type
-			IJavaDeclaredType dt = (IJavaDeclaredType) t;
-			IRNode impl = checkForNonObjectImpl(dt.getDeclaration(), methodName);
-			if (impl != null) {
-				return impl;
+		
+		@Override
+		protected void visitClass_internal(IRNode tdecl) {
+			final String tName = JavaNames.getFullTypeName(tdecl);
+			if (JavaGlobals.JLObject.equals(tName)) {
+				result = null;
+				searchAfterLastType = false;
 			}
-		}
-		return findNonObjectImpl(env, t.getSuperclass(env), methodName);
-	}
-	
-	static IRNode checkForNonObjectImpl(final IRNode tdecl, final String methodName) {
-		final String tName = JavaNames.getFullTypeName(tdecl);
-		if (JavaGlobals.JLObject.equals(tName)) {
-			return null;
-		}
-		for(IRNode m : VisitUtil.getClassMethods(tdecl)) {
-			String name = MethodDeclaration.getId(m);
-			if (methodName.equals(name)) {
-				IRNode params = MethodDeclaration.getParams(m);
-				if (JJNode.tree.numChildren(params) == 0) {
-					return m;
+			for(IRNode m : VisitUtil.getClassMethodsOnly(tdecl)) {
+				String name = MethodDeclaration.getId(m);
+				if (this.name.equals(name)) {
+					IRNode params = MethodDeclaration.getParams(m);
+					if (matchesArgs(params)) {
+						result = m;
+						searchAfterLastType = false;
+						return;
+					}				
 				}
 			}
 		}
-		return null;
+		
+		abstract boolean matchesArgs(IRNode params);
+		
+		@Override
+		public final boolean visitSuperifaces() {
+			return false;
+		}
 	}
 }
