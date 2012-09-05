@@ -71,7 +71,7 @@ public class LayerRules extends AnnotationRules {
 
 	public static LayerPromiseDrop findLayer(IRNode pkgNode, String name) {
 		for(LayerPromiseDrop d : getDrops(layerRule.getStorage(), pkgNode)) {
-			if (name.equals(d.getAST().getId())) {
+			if (name.equals(d.getAAST().getId())) {
 				return d;
 			}
 		}
@@ -80,7 +80,7 @@ public class LayerRules extends AnnotationRules {
 
 	public static TypeSetPromiseDrop findTypeSet(IRNode pkgNode, String name) {
 		for(TypeSetPromiseDrop d : getDrops(typeSetRule.getStorage(), pkgNode)) {
-			if (name.equals(d.getAST().getId())) {
+			if (name.equals(d.getAAST().getId())) {
 				return d;
 			}
 		}

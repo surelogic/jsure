@@ -19,7 +19,7 @@ public final class AnnotationBoundsPromiseDrop extends
   
   @Override
   protected void computeBasedOnAST() {
-    final AnnotationBoundsNode ast = getAST();
+    final AnnotationBoundsNode ast = getAAST();
     final String[] attrs = new String[] {
         getNameList("containable", ast.getContainable()),
         getNameList("immutable", ast.getImmutable()),

@@ -158,7 +158,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       formalIDs[i] = TypeFormal.getId(formalDecls.get(i));
     }
     
-    final AnnotationBoundsNode ast = boundsDrop.getAST();
+    final AnnotationBoundsNode ast = boundsDrop.getAAST();
     boolean added = false;
     added |= addToBounds(
         bounds, formalIDs, ast.getContainable(), AnnotationBounds.CONTAINABLE);

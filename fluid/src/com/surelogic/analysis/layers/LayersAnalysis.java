@@ -249,7 +249,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			                      Map<String, List<IRNode>> layers) {		
 		// Collect direct layer references
 		for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 
-			for(LayerPromiseDrop ref : e.getValue().getAST().getReferencedLayers()) {
+			for(LayerPromiseDrop ref : e.getValue().getAAST().getReferencedLayers()) {
 				String qname = computePackage(ref.getNode())+'.'+ref.getId();
 				detector.addRef(e.getKey(), qname);
 			}
@@ -264,7 +264,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			final IRNode type = pd.getNode();
 			List<String> inLayers = null; // Initialized if needed
 			for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 				
-				if (e.getValue().getAST().check(type)) {
+				if (e.getValue().getAAST().check(type)) {
 					// Accessible, so add to layerRefs
 					if (inLayers == null) {
 						inLayers = computeLayerNames(pd);
@@ -295,7 +295,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		List<String> layers = new ArrayList<String>();
 		String pkg = null; // Initialized if needed
 		
-		for(String name : pd.getAST().getLayers().getNames()) {						
+		for(String name : pd.getAAST().getLayers().getNames()) {						
 			if (name.indexOf('.') >= 0) {
 				// Already qualified
 				layers.add(name);
@@ -329,7 +329,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		}
 
 		public Iterable<LayerPromiseDrop> findLayers(final InLayerPromiseDrop inLayer) {
-			return new FilterIterator<String,LayerPromiseDrop>(inLayer.getAST().getLayers().getNames().iterator()) {
+			return new FilterIterator<String,LayerPromiseDrop>(inLayer.getAAST().getLayers().getNames().iterator()) {
 				@Override
 				protected Object select(String qname) {
 					if (!qname.contains(".")) {

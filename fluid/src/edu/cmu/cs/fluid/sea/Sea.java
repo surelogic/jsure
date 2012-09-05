@@ -161,8 +161,8 @@ public final class Sea {
 	 * @throws IllegalArgumentException
 	 *             if any of the parameters are null.
 	 */
-	@SuppressWarnings("unchecked")
-	public static <T extends Drop> Set<T> filterDropsOfTypeMutate(
+  @SuppressWarnings("unchecked")
+	public static <T extends Drop> Set<? extends T> filterDropsOfTypeMutate(
 			Class<T> dropType, Set<Drop> mutableDropSet) {
 		if (dropType == null)
 			throw new IllegalArgumentException("type must be non-null");

@@ -17,6 +17,6 @@ public final class RawPromiseDrop extends BooleanPromiseDrop<RawNode> {
 
 	@Override
 	protected void computeBasedOnAST() {
-		setMessage(getAST()+" on "+DebugUnparser.toString(getNode()));
+		setMessage(getAAST()+" on "+DebugUnparser.toString(getNode()));
 	}
 }

@@ -76,7 +76,7 @@ public class FieldRegion extends AbstractRegion {
     final InRegionPromiseDrop mipd = RegionRules.getInRegion(field);
 
     if (mipd != null) {
-      min = mipd.getAST();
+      min = mipd.getAAST();
       if (min != null) {
         RegionSpecificationNode rsn = min.getSpec();
         if (rsn != null) {

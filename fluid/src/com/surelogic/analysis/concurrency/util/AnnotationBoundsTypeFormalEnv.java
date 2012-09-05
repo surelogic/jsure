@@ -75,7 +75,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     if (abDrop == null) {
       return null;
     } else {
-      return bounds.testBounds(abDrop.getAST(), name) ? abDrop : null;
+      return bounds.testBounds(abDrop.getAAST(), name) ? abDrop : null;
     }
   }
 

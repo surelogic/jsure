@@ -14,10 +14,10 @@ public class ModifiedBooleanPromiseDrop<A extends AbstractModifiedBooleanNode> e
   }
 
   public final boolean isImplementationOnly() {
-	  return getAST().isImplementationOnly();
+	  return getAAST().isImplementationOnly();
   }
 	
   public final boolean verify() {
-	return getAST().verify();  
+	return getAAST().verify();  
   }
 }

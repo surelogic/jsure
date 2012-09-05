@@ -55,7 +55,7 @@ extends PromiseDrop<N> {
 	  
 	@Override
 	protected void computeBasedOnAST() {
-		String lock = getAST() != null ? getAST().toString() : DebugUnparser.toString(lockNode);
+		String lock = getAAST() != null ? getAAST().toString() : DebugUnparser.toString(lockNode);
 		setResultMessage(Messages.LockAnnotation_requiresLockDrop, 
 				lock, JavaNames.genMethodConstructorName(getNode()));
 	}

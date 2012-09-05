@@ -509,7 +509,7 @@ public abstract class AnnotationRules {
 			pd = factory.createDrop(n, a);
 			return pd == null ? null : stor.add(mapped, pd);
 		} else {
-			pd.addAST(a);
+			pd.setAAST(a);
 		}
 		return pd;
 	}
@@ -519,7 +519,7 @@ public abstract class AnnotationRules {
 	 */
 	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> void removeDrop(
 			IPromiseDropStorage<P> stor, P pd) {
-		final IRNode n = pd.getAST().getPromisedFor();
+		final IRNode n = pd.getAAST().getPromisedFor();
 		final IRNode mapped = PromiseFramework.getInstance().getProxyNode(n);
 		stor.remove(mapped, pd);
 		// pd.invalidate();

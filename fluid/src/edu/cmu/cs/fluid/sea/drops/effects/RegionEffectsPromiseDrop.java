@@ -33,14 +33,14 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
 	 *         possible effects, current 2, Reads and Writes.
 	 */
 	public Iterable<EffectsSpecificationNode> getEffects() {
-		return getAST().getEffectsList();
+		return getAAST().getEffectsList();
 	}
 
 	@Override
 	protected void computeBasedOnAST() {
 		final IRNode declNode = getNode();
 		final String target = JavaNames.genMethodConstructorName(declNode);
-		final List<EffectsSpecificationNode> effects = getAST().getEffectsList();
+		final List<EffectsSpecificationNode> effects = getAAST().getEffectsList();
 
 		if (effects.size() > 0) {
 			StringBuilder sb = new StringBuilder();

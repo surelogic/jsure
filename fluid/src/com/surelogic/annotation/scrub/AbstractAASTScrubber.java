@@ -261,7 +261,7 @@ extends AbstractHierarchyScrubber<A> {
 		final boolean defined    = stor.isDefined(promisedFor);
 		if (defined) {
 			PromiseDrop pd = promisedFor.getSlotValue(stor.getSlotInfo());
-			A old          = (A) pd.getAST();
+			A old          = (A) pd.getAAST();
 			if (/*!pd.isValid() ||*/ old == null) {
 				return true;
 			}
@@ -332,7 +332,7 @@ extends AbstractHierarchyScrubber<A> {
 			if (pd instanceof ValidatedDropCallback<?>) {
 				AASTStore.triggerWhenValidated(clone, (ValidatedDropCallback<?>) pd);
 			}
-			AASTStore.cloneTestResult(pd.getAST(), clone);
+			AASTStore.cloneTestResult(pd.getAAST(), clone);
 		}
 	}
 	
@@ -383,7 +383,7 @@ extends AbstractHierarchyScrubber<A> {
 								if (sp != null) {
 									getContext().reportError(sp.getMessage()+" ("+JavaNames.getFullName(sp.getNode())+
 											") overridden by explicit annotation "+
-											a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", sp.getAST());
+											a+" ("+JavaNames.getFullName(a.getPromisedFor())+")", sp.getAAST());
 								} else {
 									getContext().reportError(a2+" ("+JavaNames.getFullName(a2.getPromisedFor())+
 											            ") overridden by explicit annotation "+
@@ -452,7 +452,7 @@ extends AbstractHierarchyScrubber<A> {
 			if (d != null) {
 				a.markAsValid();
 				d.setFromSrc(a.getSrcType().isFromSource());
-				d.setAST(a);
+				d.setAAST(a);
 				d.dependUponCompilationUnitOf(a.getPromisedFor());
 				TestResult.addDrop(expected, d);
 				AASTStore.validate(d);

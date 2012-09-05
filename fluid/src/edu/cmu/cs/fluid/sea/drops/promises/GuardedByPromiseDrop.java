@@ -15,7 +15,7 @@ implements IDerivedDropCreator<LockModel> {
 	
 	@Override
 	protected void computeBasedOnAST() {  
-		setMessage(getAST().toString());    
+		setMessage(getAAST().toString());    
 	}
 	
 	public void validated(final LockModel lm) {

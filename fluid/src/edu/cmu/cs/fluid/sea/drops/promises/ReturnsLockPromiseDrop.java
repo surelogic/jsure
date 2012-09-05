@@ -40,10 +40,10 @@ public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
   
   @Override
   protected void computeBasedOnAST() {
-    if (getAST() != null) {
-      IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAST().getPromisedFor());
+    if (getAAST() != null) {
+      IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAAST().getPromisedFor());
       setResultMessage(Messages.LockAnnotation_returnsLockDrop,
-          getAST().getLock(),
+          getAAST().getLock(),
           JavaNames.genMethodConstructorName(mdecl));
     }
   }

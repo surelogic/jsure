@@ -46,9 +46,9 @@ implements RegionAggregationDrop {
   
   @Override
   protected void computeBasedOnAST() {    
-    if (getAST() != null) {
+    if (getAAST() != null) {
       final String name = JavaNames.getFieldDecl(getNode());
-      final String mappings = getAST().getMapping().unparse(false);
+      final String mappings = getAAST().getMapping().unparse(false);
       setResultMessage(
           Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name); 
     }
@@ -61,7 +61,7 @@ implements RegionAggregationDrop {
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
     for (final RegionMappingNode mapping :
-        this.getAST().getMapping().getMappingList()) {
+        this.getAAST().getMapping().getMappingList()) {
       aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
                          mapping.getTo().resolveBinding().getRegion());
     }

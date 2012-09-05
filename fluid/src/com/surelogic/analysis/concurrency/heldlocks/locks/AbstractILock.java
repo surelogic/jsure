@@ -30,7 +30,7 @@ abstract class AbstractILock implements ILock {
    * Get the lock declaration node.
    */
   public final AbstractLockDeclarationNode getLockDecl() {
-    return lockPromise.getAST();
+    return lockPromise.getAAST();
   }
   
   /**

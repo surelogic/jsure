@@ -14,11 +14,11 @@ public class TypeSetPromiseDrop extends AbstractReferenceCheckDrop<TypeSetNode> 
 		return false;
 	}	
 	public String getId() {
-		return getAST().getId();
+		return getAAST().getId();
 	}
 
 	public boolean isPartOf(IRNode type) {
-		return getAST().check(type);
+		return getAAST().check(type);
 	}
 	public int getResultMessageKind() {
 		throw new UnsupportedOperationException();

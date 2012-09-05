@@ -30,12 +30,12 @@ implements RegionAggregationDrop {
   protected void computeBasedOnAST() {
     final IRNode node = getNode();
     setResultMessage(Messages.UniquenessAnnotation_borrowedDrop, 
-               getAST().allowReturn() ? JavaNames.getFieldDecl(node)+", allowReturn=true": JavaNames.getFieldDecl(node), 
+               getAAST().allowReturn() ? JavaNames.getFieldDecl(node)+", allowReturn=true": JavaNames.getFieldDecl(node), 
                JavaNames.getFullName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
   }
   
   public final boolean allowReturn() {
-      return getAST().allowReturn();
+      return getAAST().allowReturn();
   }
   
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {

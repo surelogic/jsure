@@ -84,7 +84,7 @@ implements MaybeTopLevel, RegionAggregationDrop, IUniquePromise {
   }
   
   public final boolean allowRead() {
-      return getAST().allowRead();
+      return getAAST().allowRead();
   }
   
   public UniquePromiseDrop getDrop() {
