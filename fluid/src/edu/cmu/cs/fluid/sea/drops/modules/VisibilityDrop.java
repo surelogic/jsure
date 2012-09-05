@@ -79,7 +79,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
     synchronized (VisibilityDrop.class) {
       allVisDrops.add(res);
 //      newVisDrops.add(res);
-      final IRNode locInIR = res.getAST().getPromisedFor();
+      final IRNode locInIR = res.getAAST().getPromisedFor();
       Set<VisibilityDrop<? extends ModuleAnnotationNode>> dropsHere = edMap.get(locInIR);
       if (dropsHere == null) {
         dropsHere = new HashSet<VisibilityDrop<? extends ModuleAnnotationNode>>(2);

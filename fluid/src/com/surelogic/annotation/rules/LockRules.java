@@ -461,7 +461,7 @@ public class LockRules extends AnnotationRules {
           final Map<IRNode, Integer> positionMap =
             buildParameterMap(annotatedMethod, parent);
           
-          final LockNameNode superLock = superDrop.getAST().getLock();
+          final LockNameNode superLock = superDrop.getAAST().getLock();
           if (!lockName.namesSameLockAs(superLock, positionMap, LockSpecificationNode.How.COVARIANT)) {
             okay = false;
             context.reportError(annotatedMethod,
@@ -626,7 +626,7 @@ public class LockRules extends AnnotationRules {
 	         * We can only name a read lock or a write lock if the underlying
 	         * lock is a ReadWriteLock.
 	         */
-				  if (!lockModel.getAST().isReadWriteLock()) {
+				  if (!lockModel.getAAST().isReadWriteLock()) {
 				    currentGood = false;
 				    context.reportError(
 				        "Lock is not a ReadWriteLock: cannot require the read or write lock",
@@ -637,7 +637,7 @@ public class LockRules extends AnnotationRules {
   				 * We cannot require a ReadWriteLock directly, only its
   				 * component read/write locks.
   				 */
-  				if (lockModel.getAST().isReadWriteLock()) {
+  				if (lockModel.getAAST().isReadWriteLock()) {
   					currentGood = false;
   					context.reportError(
   					    "Cannot require a ReadWriteLock: must require either the read or the write lock",
@@ -655,7 +655,7 @@ public class LockRules extends AnnotationRules {
 					final ExpressionNode expression = qLockName.getBase();
 					lockRefsThis = (expression instanceof ThisExpressionNode);
 				} else if (lockName instanceof SimpleLockNameNode) {
-					lockRefsThis = !lockModel.getAST().isLockStatic();
+					lockRefsThis = !lockModel.getAAST().isLockStatic();
 				} else {
 					// Shouldn't get here
 					lockRefsThis = false;
@@ -688,7 +688,7 @@ public class LockRules extends AnnotationRules {
 				 * method/constructor.
 				 */
 				boolean staticLockFromSameClass = false;
-				if (lockModel.getAST().isLockStatic()) {
+				if (lockModel.getAAST().isLockStatic()) {
 					final IRNode lockDeclClass =
 					  VisitUtil.getClosestType(lockModel.getNode());
 					final IRNode methodDeclClass =
@@ -698,7 +698,7 @@ public class LockRules extends AnnotationRules {
 				}
 				if (lockRefsThis || staticLockFromSameClass) {
 					final Visibility lockViz =
-					  getLockFieldVisibility(lockModel.getAST(), context.getBinder(annotatedMethod));
+					  getLockFieldVisibility(lockModel.getAAST(), context.getBinder(annotatedMethod));
 					final Visibility methodViz = Visibility.getVisibilityOf(annotatedMethod);
 					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
@@ -762,7 +762,7 @@ public class LockRules extends AnnotationRules {
            */
           final Map<IRNode, Integer> positionMap =
             buildParameterMap(annotatedMethod, parent);
-          final List<LockSpecificationNode> parentLocks = parentDrop.getAST().getLockList();
+          final List<LockSpecificationNode> parentLocks = parentDrop.getAAST().getLockList();
           outer: for (final LockSpecificationNode lock : locks) {
             for (final LockSpecificationNode parentLock : parentLocks) {
               if (lock.satisfiesSpecfication(parentLock, positionMap, LockSpecificationNode.How.CONTRAVARIANT)) {
@@ -997,7 +997,7 @@ public class LockRules extends AnnotationRules {
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        model.setAST(lockDecl);
+        model.setAAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_lockModel,
             model.getQualifiedName(), field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
@@ -1041,7 +1041,7 @@ public class LockRules extends AnnotationRules {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor());
-        model.setAST(lockDecl);
+        model.setAAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_policyLockModel,
             model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
@@ -1343,12 +1343,12 @@ public class LockRules extends AnnotationRules {
 					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
-						    TypeUtil.isStatic(member), returnedLock.getAST().getLock(),
+						    TypeUtil.isStatic(member), returnedLock.getAAST().getLock(),
 						    null, true);
 						// Check for null because the requiresLock annotation
 						// could be bad
 						if (returnedLockModel != null
-								&& returnedLockModel.getAST().equals(lockDeclNode)) {
+								&& returnedLockModel.getAAST().equals(lockDeclNode)) {
 							// check the viz of the method
 							final Visibility methodViz = Visibility.getVisibilityOf(member);
 							if (methodViz.atLeastAsVisibleAs(maxViz)) {
@@ -1611,7 +1611,7 @@ public class LockRules extends AnnotationRules {
             lockName);
         isBad = true;
       } else {
-        final boolean lockIsStatic = boundLock.getModel().getAST()
+        final boolean lockIsStatic = boundLock.getModel().getAAST()
             .isLockStatic();
         if (deferCheckForStaticUseOfThis) {
           staticUseOfThis = !lockIsStatic;

@@ -43,12 +43,12 @@ implements IDerivedDropCreator<InRegionPromiseDrop>
 
   @Override
   protected void computeBasedOnAST() {
-    if (getAST() == null) {
+    if (getAAST() == null) {
       return;
     }
     StringBuffer fieldNames = new StringBuffer();
     boolean first = true;
-    for(RegionSpecificationNode reg : getAST().getFieldsList()) {
+    for(RegionSpecificationNode reg : getAAST().getFieldsList()) {
       if (first) {
         first = false;
       } else {
@@ -56,7 +56,7 @@ implements IDerivedDropCreator<InRegionPromiseDrop>
       }
       fieldNames.append(reg);
     }
-    String regionName = getAST().getTo().toString();
+    String regionName = getAAST().getTo().toString();
     setResultMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames,
                regionName);
   }

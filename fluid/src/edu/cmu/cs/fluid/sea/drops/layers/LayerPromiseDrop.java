@@ -19,7 +19,7 @@ public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
 	}
 	*/
 	public String getId() {
-		return getAST().getId();
+		return getAAST().getId();
 	}
 	public int getResultMessageKind() {
 		return 350;
@@ -30,13 +30,13 @@ public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
 	public boolean isPartOf(IRNode type) {
 		// Compute qualified name for this layer
 		final IRNode cu    = VisitUtil.getEnclosingCompilationUnit(getNode());
-		final String qname = VisitUtil.getPackageName(cu)+'.'+getAST().getId();
+		final String qname = VisitUtil.getPackageName(cu)+'.'+getAAST().getId();
 		// Check if matches the layer for the type 
 		final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(type);
 		if (bindInLayer == null) {
 			return false;
 		}
-		return bindInLayer.getAST().getLayers().matches(qname);
+		return bindInLayer.getAAST().getLayers().matches(qname);
 	}	
 }
 

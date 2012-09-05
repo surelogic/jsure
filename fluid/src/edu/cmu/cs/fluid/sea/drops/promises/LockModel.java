@@ -95,7 +95,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	}
 
 	public String getSimpleName() {
-		AbstractLockDeclarationNode ld = getAST();
+		AbstractLockDeclarationNode ld = getAAST();
 		return ld.getId();
 	}
 
@@ -136,18 +136,18 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	}
 
 	public boolean isReadWriteLock() {
-		return getAST().isReadWriteLock();
+		return getAAST().isReadWriteLock();
 	}
 
 	public boolean isJUCLock() {
-		return getAST().isJUCLock();
+		return getAAST().isJUCLock();
 	}
 
 	public boolean isJUCLock(LockUtils u) {
-		return getAST().isJUCLock(u);
+		return getAAST().isJUCLock(u);
 	}
 
 	public boolean isLockStatic() {
-		return getAST().isLockStatic();
+		return getAAST().isLockStatic();
 	}
 }

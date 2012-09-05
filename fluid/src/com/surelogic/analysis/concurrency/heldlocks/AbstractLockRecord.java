@@ -51,8 +51,8 @@ abstract class AbstractLockRecord {
       final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) throws GlobalLockModel.UnsupportedLockException {
     lockDecl = ld;
     classDecl = cd;
-    name = ld.getAST().getId();
-    lockImpl = GlobalLockModel.canonicalizeLockImpl(binder, ld.getAST().getField());
+    name = ld.getAAST().getId();
+    lockImpl = GlobalLockModel.canonicalizeLockImpl(binder, ld.getAAST().getField());
   }
   
   /**

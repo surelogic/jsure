@@ -16,10 +16,10 @@ implements IReferenceCheckDrop {
 	
 	@Override
 	protected final void computeBasedOnAST() {
-		setMessage(getAST().toString());
+		setMessage(getAAST().toString());
 	}
 	
 	public final boolean check(IRNode type) {
-		return getAST().check(type);
+		return getAAST().check(type);
 	}
 }

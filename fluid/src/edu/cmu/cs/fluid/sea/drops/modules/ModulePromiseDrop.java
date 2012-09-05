@@ -266,7 +266,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
       // already defined as a simple (dotted) module that is not a leaf module?
       ModuleModel model = ModuleModel.query(md.modName);
       // if it's there, and has no parent
-      if (model != null && !model.changeToWrapperMod(md.getAST().getModWrapper())) {
+      if (model != null && !model.changeToWrapperMod(md.getAAST().getModWrapper())) {
         // error case.
         md.badDecl = true;
       }
@@ -319,7 +319,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     
     Collection<ModuleModel> wraps = new LinkedList<ModuleModel>();
     for (ModuleWrapperPromiseDrop mwd : safeWrappingModules) {
-      ModuleModel mm = ModuleModel.confirmDrop(mwd.modName, mwd.getAST().getModWrapper());
+      ModuleModel mm = ModuleModel.confirmDrop(mwd.modName, mwd.getAAST().getModWrapper());
       mm.setMessage(mwd.getMessage());
       wraps.addAll(ModuleModel.queryModulesDefinedBy(mwd.modName));
       mwd.addDeponents(wraps); // do we really want to do this?? asdfasdf

@@ -48,9 +48,9 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
   
   @Override
   protected void computeBasedOnAST() {
-    if (getAST() != null) {
+    if (getAAST() != null) {
       final String name       = JavaNames.getFieldDecl(getNode());
-      final String regionName = getAST().getSpec().unparse(false);
+      final String regionName = getAAST().getSpec().unparse(false);
       setResultMessage(
           Messages.RegionAnnotation_borrowedInRegionDrop, regionName, name);
     }
@@ -63,7 +63,7 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
   
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
-    final IRegion dest = this.getAST().getSpec().resolveBinding().getRegion();
+    final IRegion dest = this.getAAST().getSpec().resolveBinding().getRegion();
     return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
   }
 }

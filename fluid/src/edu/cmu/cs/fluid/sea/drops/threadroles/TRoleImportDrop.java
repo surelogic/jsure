@@ -49,7 +49,7 @@ implements IThreadRoleDrop {
     super(n);
     importedUnit = null;
     setNodeAndCompilationUnitDependency(n.getPromisedFor());
-    setMessage("@ThreadRoleImport " + getAST().getId() + " (incomplete)");
+    setMessage("@ThreadRoleImport " + getAAST().getId() + " (incomplete)");
     setCategory(JavaGlobals.THREAD_ROLES_CAT);
   }
 
@@ -63,9 +63,9 @@ implements IThreadRoleDrop {
    */
   public void computeImportName() {
     final boolean debuggingNames = false;
-    importedUnit = getAST().getId();
+    importedUnit = getAAST().getId();
    
-    boundImportedUnit = getAST().getTRoleImport();
+    boundImportedUnit = getAAST().getTRoleImport();
     if (boundImportedUnit == null) {
       // report an error on the @colorImport drop.
       ResultDrop error = new ResultDrop("TROLEANALYSIS_BADIMPORT");

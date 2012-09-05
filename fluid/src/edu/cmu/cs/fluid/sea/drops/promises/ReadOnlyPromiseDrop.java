@@ -33,7 +33,7 @@ implements MaybeTopLevel {
              JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
     }
     */
-    setMessage(getAST().toString());
+    setMessage(getAAST().toString());
   }
 
   @Override

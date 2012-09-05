@@ -44,7 +44,7 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
         throw new Error("unexpected dependence on CUDrop: "+DebugUnparser.toString(cud.cu));
       }
       clearNode();
-      clearAST();      
+      clearAAST();      
       //System.out.println("Clearing "+this.getMessage()+" due to invalidated "+invalidDeponent.getMessage());
     } else {
       /*

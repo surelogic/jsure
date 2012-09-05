@@ -25,8 +25,8 @@ public final class ThreadSafePromiseDrop extends
   @Override
   protected void computeBasedOnAST() {
     final String name = JavaNames.getTypeName(getNode());
-    final boolean isImplementationOnly = getAST().isImplementationOnly();
-    final boolean isVerify = getAST().verify();
+    final boolean isImplementationOnly = getAAST().isImplementationOnly();
+    final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
         setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
