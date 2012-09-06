@@ -9,9 +9,7 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 import java.util.Collection;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.RegionAnnotation;
 import edu.cmu.cs.fluid.sea.PhantomDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 
 public class RegionReportTRolesDeclDrop extends PhantomDrop implements IThreadRoleDrop {
@@ -55,8 +53,10 @@ public class RegionReportTRolesDeclDrop extends PhantomDrop implements IThreadRo
         } else {
           first = true;
         }
+        /*
         RegionModel regModel = RegionAnnotation.getRegionDrop(reg);
         sb.append(regModel.regionName);
+        */
       }
       image = sb.toString();
     }

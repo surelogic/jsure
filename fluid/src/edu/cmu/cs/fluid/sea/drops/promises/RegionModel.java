@@ -39,7 +39,6 @@ import edu.cmu.cs.fluid.util.*;
  * Actual drop for "region" models.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  * 
  * @lock RegionModelLock is class protects nameToDrop
  */

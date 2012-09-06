@@ -13,7 +13,6 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropEvent;
 import edu.cmu.cs.fluid.sea.DropObserver;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.promises.SimpleCallGraphDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;
@@ -176,13 +175,14 @@ public class TRoleStats implements DropObserver {
     res.append("TRoleCtxSummary, " + Integer.toString(numCtxSummary) + ", -1\n");
     res.append("TRoleReqSummary, " + Integer.toString(numReqSummary) + ", -1\n");
 
+    /*
     SimpleCallGraphDrop.CGStats cgStats = SimpleCallGraphDrop.getStats();
     res.append("\n\n");
     res.append("numCallGraphDrops, numWithCallers, numWithCallees, numAPI, numAPInoCallers, numAPInoCallees\n");
     res.append(cgStats.numDrops + ", " + cgStats.numWithCallers + ", ");
     res.append(cgStats.numWithCallees + ", " + cgStats.numAPI +", ");
     res.append(cgStats.numAPInoCallers + ", " + cgStats.numAPInoCallees + "\n");
-    
+    */
     
     return res;
   }
