@@ -35,7 +35,7 @@ public final class ResultFolderDrop extends AbstractResultDrop {
    * @param result
    *          an analysis result.
    */
-  public void addResult(AbstractResultDrop result) {
+  public void add(AbstractResultDrop result) {
     if (result == null)
       return;
 

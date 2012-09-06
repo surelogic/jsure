@@ -3,8 +3,8 @@ package edu.cmu.cs.fluid.sea.proxy;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IIRAnalysis;
@@ -13,23 +13,21 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 /**
- * Temporary builder to help analyses be parallelized
- * 
- * @author Edwin
+ * Temporary builder for {@link ResultDrop} instances to help analyses be
+ * parallelized.
  */
-@SuppressWarnings("rawtypes")
-public final class ResultDropBuilder extends AbstractDropBuilder {
+public final class ResultDropBuilder extends AbstractResultDropBuilder {
   private boolean isTimeout = false;
   private boolean isConsistent = false;
-  private Set<PromiseDrop> checks = new HashSet<PromiseDrop>();
-  private Set<PromiseDrop> trusted = new HashSet<PromiseDrop>();
-  private Map<String, Set<PromiseDrop>> trustedOr = new HashMap<String, Set<PromiseDrop>>();
+
+  private Set<PromiseDrop<? extends IAASTRootNode>> trusted = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  private Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> trustedOr = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
 
   private ResultDropBuilder() {
   }
 
   public static ResultDropBuilder create(IIRAnalysis a) {
-    ResultDropBuilder rv = new ResultDropBuilder();
+    final ResultDropBuilder rv = new ResultDropBuilder();
     a.handleBuilder(rv);
     return rv;
   }
@@ -55,39 +53,17 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
     return isConsistent;
   }
 
-  /**
-   * Adds a promise to the set of promises this result establishes, or
-   * <i>checks</i>.
-   * 
-   * @param promise
-   *          the promise being supported by this result
-   */
-  public void addCheckedPromise(PromiseDrop promise) {
-    if (promise == null) {
-      throw new NullPointerException();
-    }
-    checks.add(promise);
-  }
-
-  /**
-   * @return the set of promise drops established, or checked, by this result.
-   *         All members of the returned set will are of the PromiseDrop type.
-   */
-  public Set<? extends PromiseDrop> getChecks() {
-    return checks;
-  }
-
-  public void addTrustedPromise(PromiseDrop promise) {
+  public void addTrustedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
     trusted.add(promise);
   }
 
-  public void addTrustedPromise_or(String label, PromiseDrop drop) {
+  public void addTrustedPromise_or(String label, PromiseDrop<? extends IAASTRootNode> drop) {
     if (drop == null) {
       throw new IllegalArgumentException();
     }
-    Set<PromiseDrop> drops = trustedOr.get(label);
+    Set<PromiseDrop<? extends IAASTRootNode>> drops = trustedOr.get(label);
     if (drops == null) {
-      drops = new HashSet<PromiseDrop>();
+      drops = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
       trustedOr.put(label, drops);
     }
     drops.add(drop);
@@ -109,7 +85,7 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
     for (PromiseDrop<? extends IAASTRootNode> t : trusted) {
       rd.addTrustedPromise(t);
     }
-    for (Entry<String, Set<PromiseDrop>> e : trustedOr.entrySet()) {
+    for (Entry<String, Set<PromiseDrop<? extends IAASTRootNode>>> e : trustedOr.entrySet()) {
       for (PromiseDrop<? extends IAASTRootNode> d : e.getValue()) {
         rd.addTrustedPromise_or(e.getKey(), d);
       }

@@ -24,9 +24,6 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
   private List<Triple<IRNode, Integer, Object[]>> supportingInfos2 = new ArrayList<Triple<IRNode, Integer, Object[]>>();
   private List<ProposedPromiseBuilder> proposals = new ArrayList<ProposedPromiseBuilder>();
 
-  AbstractDropBuilder() {
-  }
-
   public boolean isValid() {
     return isValid;
   }
@@ -102,6 +99,7 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
     } else {
       d.setResultMessage(messageNum, args);
     }
+    // TODO should the next 4 lines be commented out??? EDWIN
     if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
       final IRNode decl = VisitUtil.getClosestType(node);
       // System.out.println("\tMaking: "+d.getMessage()+"  from  "+JavaNames.getRelativeTypeName(decl));
