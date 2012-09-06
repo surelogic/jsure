@@ -34,7 +34,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class ScopedPromiseRules extends AnnotationRules {
   private static final boolean lookForFullWildcardScopedPromises = false;
@@ -234,15 +233,19 @@ public class ScopedPromiseRules extends AnnotationRules {
 
         @Override
         protected Collection<ScopedPromiseNode> preprocessAASTsForSeq(Collection<ScopedPromiseNode> l) {
+          return l;
+          /*
           if (!lookForFullWildcardScopedPromises) {
             return l;
           }
+          */
           /*
            * if (l.size() > 1) {
            * System.out.println("Preprocessing AASTs for "+JavaNames
            * .getFullName(l.iterator().next().getPromisedFor())); }
            */
           // Check for wildcard promises that subsume other promises
+          /*
           final Hashtable2<String, IRNode, Promises> promises = new Hashtable2<String, IRNode, Promises>();
           for (ScopedPromiseNode p : l) {
             Promises processed = promises.get(p.getPromise(), p.getPromisedFor());
@@ -253,6 +256,7 @@ public class ScopedPromiseRules extends AnnotationRules {
             }
           }
           return l;
+          */
         }
 
         @Override
@@ -479,7 +483,7 @@ public class ScopedPromiseRules extends AnnotationRules {
    * Used to note the creation of an AAST (discarded afterwards)
    */
   static class Proxy extends AnnotationParsingContextProxy {
-    private final IAnnotationParseRule<?, ?> rule;
+    final IAnnotationParseRule<?, ?> rule;
     private boolean reported;
     private final Operator op;
     private final String contents;

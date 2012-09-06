@@ -104,7 +104,7 @@ public class ThreadRoleRules extends AnnotationRules {
 	private static SlotInfo<SimpleCallGraphDrop> simpleCGDropSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
 
-	private static SlotInfo<TRoleReqSummaryDrop> regionTRoleDeclDropSI = SimpleSlotFactory.prototype
+	static SlotInfo<TRoleReqSummaryDrop> regionTRoleDeclDropSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
 	private static SlotInfo<Set<RegionTRoleDeclDrop>> regionTRoleDeclDropSetSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
@@ -658,7 +658,7 @@ public class ThreadRoleRules extends AnnotationRules {
 	 * @param si
 	 *            the SlotInfo to get the set from.
 	 */
-	private static <T extends Drop> void purgeMutableSet(IRNode node,
+	static <T extends Drop> void purgeMutableSet(IRNode node,
 			SlotInfo<Set<T>> si) {
 		Set<T> old = getMutableSet(node, si);
 		final int newSize = Math.max(old.size() - 1, 0);
