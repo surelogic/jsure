@@ -13,7 +13,6 @@ import com.surelogic.persistence.JavaIdentifier;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
@@ -41,8 +40,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   public PromiseDrop(A a) {
     derivedFromSrc = true;
 
-    // set up dependencies if this is being created within a ScopedPromise
-    ScopedPromises.getInstance().initDrop(this);
     if (a != null) {
       setAAST(a);
     } else {
@@ -388,6 +385,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *          The new value
    * @return true if already set
    */
+  @SuppressWarnings("unchecked")
   protected boolean checkASTs(A a, A ast) {
     if (a == null) {
       throw new NullPointerException("null ast");
