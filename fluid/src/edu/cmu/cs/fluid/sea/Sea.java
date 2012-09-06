@@ -669,6 +669,7 @@ public final class Sea {
       for (ProofDrop d : worklist) {
         boolean oldProofIsConsistent = d.provedConsistent;
         boolean oldProofUsesRedDot = d.proofUsesRedDot;
+        boolean oldDerivedFromSrc = d.derivedFromSrc;
 
         if (d instanceof PromiseDrop) {
 
@@ -693,137 +694,7 @@ public final class Sea {
             // any red dot means this drop depends upon a red dot
             if (result.proofUsesRedDot)
               pd.proofUsesRedDot = true;
-          }
-        } else if (d instanceof ResultDrop) {
-
-          /*
-           * RESULT DROP
-           */
-
-          ResultDrop rd = (ResultDrop) d;
-
-          // "and" trust promise drops
-          Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop<? extends IAASTRootNode> promise = j.next();
-            // all must be consistent for this drop to be consistent
-            rd.provedConsistent &= promise.provedConsistent;
-            // any red dot means this drop depends upon a red dot
-            if (promise.proofUsesRedDot)
-              rd.proofUsesRedDot = true;
-          }
-          // "or" trust promise drops
-          if (rd.hasOrLogic()) { // skip this in the common case
-            boolean overall_or_Result = false;
-            boolean overall_or_UsesRedDot = false;
-            Set<String> orLabels = rd.get_or_TrustLabelSet();
-            for (String orKey : orLabels) {
-              boolean choiceResult = true;
-              boolean choiceUsesRedDot = false;
-              Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
-              for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
-                // all must be consistent for this choice to be
-                // consistent
-                choiceResult &= promise.provedConsistent;
-                // any red dot means this choice depends upon a
-                // red dot
-                if (promise.proofUsesRedDot)
-                  choiceUsesRedDot = true;
-              }
-              // should we choose this choice? Recall our lattice
-              // is:
-              // o consistent
-              // o consistent/red dot
-              // o inconsistent/red dot
-              // o inconsistent
-              // so we want to pick the "highest" result
-              if (choiceResult) {
-                if (!choiceUsesRedDot) {
-                  // best possible outcome
-                  overall_or_Result = choiceResult;
-                  overall_or_UsesRedDot = choiceUsesRedDot;
-                } else {
-                  if (!overall_or_Result) {
-                    // take it, since so far we think we are
-                    // inconsistent
-                    overall_or_Result = choiceResult;
-                    overall_or_UsesRedDot = choiceUsesRedDot;
-                  }
-                }
-              } else {
-                if (!choiceUsesRedDot) {
-                  if (!overall_or_Result) {
-                    // take it, since so far we might be
-                    // sure we are wrong
-                    overall_or_Result = choiceResult;
-                    overall_or_UsesRedDot = choiceUsesRedDot;
-                  }
-                }
-                // ignore bottom of lattice, this was our
-                // default (set above)
-              }
-            }
-            // add the choice selected into the overall result for
-            // this drop
-            // all must be consistent for this drop to be consistent
-            rd.provedConsistent &= overall_or_Result;
-            // any red dot means this drop depends upon a red dot
-            if (overall_or_UsesRedDot)
-              rd.proofUsesRedDot = true;
-            // save in the drop
-            rd.or_provedConsistent = overall_or_Result;
-            rd.or_proofUsesRedDot = overall_or_UsesRedDot;
-          }
-        } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
-        }
-
-        // only add to worklist if something changed about the result
-        boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot);
-        if (resultChanged) {
-          addToWorklist(nextWorklist, d);
-        }
-      }
-      worklist.clear();
-      worklist.addAll(nextWorklist);
-    }
-    propagateSourceDerivation();
-
-    timeStamp = System.currentTimeMillis();
-    if (LOG.isLoggable(Level.FINE))
-      LOG.fine("Done updating consistency proof: " + timeStamp);
-    return timeStamp;
-  }
-
-  private void propagateSourceDerivation() {
-    worklist = new LinkedList<ProofDrop>(this.getDropsOfType(ProofDrop.class));
-    /*
-     * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
-     */
-    while (!worklist.isEmpty()) {
-      Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
-      // mutation during iteration
-      for (ProofDrop d : worklist) {
-        boolean oldDerivedFromSrc = d.derivedFromSrc;
-
-        if (d instanceof PromiseDrop) {
-
-          /*
-           * PROMISE DROP
-           */
-
-          @SuppressWarnings("unchecked")
-          final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-
-          // examine dependent analysis results and dependent promises
-          Set<? extends ResultDrop> tpd = pd.getCheckedBy();
-
-          Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(tpd.size());
-          for (ProofDrop t : tpd) {
-            proofDrops.add(t);
-          }
-          proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
-          for (ProofDrop result : proofDrops) {
+            // push along if derived from source code
             pd.derivedFromSrc |= result.derivedFromSrc;
           }
         } else if (d instanceof ResultDrop) {
@@ -836,31 +707,89 @@ public final class Sea {
 
           // "and" trust promise drops
           Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop<? extends IAASTRootNode> promise = j.next();
+          for (final PromiseDrop<? extends IAASTRootNode> promise : andTrusts) {
             // all must be consistent for this drop to be consistent
-            rd.derivedFromSrc &= promise.derivedFromSrc;
+            rd.provedConsistent &= promise.provedConsistent;
+            // any red dot means this drop depends upon a red dot
+            if (promise.proofUsesRedDot)
+              rd.proofUsesRedDot = true;
+            // if anything is derived from source we will be as well
+            rd.derivedFromSrc |= promise.derivedFromSrc;
           }
+
           // "or" trust promise drops
           if (rd.hasOrLogic()) { // skip this in the common case
             boolean overall_or_Result = false;
+            boolean overall_or_UsesRedDot = false;
+            boolean overall_or_derivedFromSource = false;
             Set<String> orLabels = rd.get_or_TrustLabelSet();
             for (String orKey : orLabels) {
+              boolean choiceResult = true;
+              boolean choiceUsesRedDot = false;
               Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
               for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
-                overall_or_Result |= promise.derivedFromSrc;
+                // all must be consistent for this choice to be consistent
+                choiceResult &= promise.provedConsistent;
+                // any red dot means this choice depends upon a red dot
+                if (promise.proofUsesRedDot)
+                  choiceUsesRedDot = true;
+                // if anything is derived from source we will be as well
+                overall_or_derivedFromSource |= promise.derivedFromSrc;
+              }
+              // should we choose this choice? Our lattice is:
+              // o consistent
+              // o consistent/red dot
+              // o inconsistent/red dot
+              // o inconsistent
+              // so we want to pick the "highest" result
+              if (choiceResult) {
+                if (!choiceUsesRedDot) {
+                  // best possible outcome
+                  overall_or_Result = choiceResult;
+                  overall_or_UsesRedDot = choiceUsesRedDot;
+                } else {
+                  if (!overall_or_Result) {
+                    // take it, since so far we think we are inconsistent
+                    overall_or_Result = choiceResult;
+                    overall_or_UsesRedDot = choiceUsesRedDot;
+                  }
+                }
+              } else {
+                if (!choiceUsesRedDot) {
+                  if (!overall_or_Result) {
+                    // take it, since so far we might be sure we are wrong
+                    overall_or_Result = choiceResult;
+                    overall_or_UsesRedDot = choiceUsesRedDot;
+                  }
+                }
+                // ignore bottom of lattice, this was our default (set above)
               }
             }
-            // add the choice selected into the overall result for
-            // this drop
-            rd.derivedFromSrc |= overall_or_Result;
+            /*
+             * add the choice selected into the overall result for this drop all
+             * must be consistent for this drop to be consistent
+             */
+            rd.provedConsistent &= overall_or_Result;
+            /*
+             * any red dot means this drop depends upon a red dot
+             */
+            if (overall_or_UsesRedDot)
+              rd.proofUsesRedDot = true;
+            /*
+             * save in the frop
+             */
+            rd.or_provedConsistent = overall_or_Result;
+            rd.or_proofUsesRedDot = overall_or_UsesRedDot;
+            rd.derivedFromSrc |= overall_or_derivedFromSource;
           }
         } else {
           LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
         }
 
-        // only add to worklist if something changed about the result
-        boolean resultChanged = !(oldDerivedFromSrc == d.derivedFromSrc);
+        /*
+         * only add to worklist if something changed about the result
+         */
+        boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot && oldDerivedFromSrc == d.derivedFromSrc);
         if (resultChanged) {
           addToWorklist(nextWorklist, d);
         }
@@ -868,6 +797,11 @@ public final class Sea {
       worklist.clear();
       worklist.addAll(nextWorklist);
     }
+
+    timeStamp = System.currentTimeMillis();
+    if (LOG.isLoggable(Level.FINE))
+      LOG.fine("Done updating consistency proof: " + timeStamp);
+    return timeStamp;
   }
 
   private void addToWorklist(Set<ProofDrop> l, ProofDrop d) {
