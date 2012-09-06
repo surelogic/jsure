@@ -108,7 +108,7 @@ public abstract class AbstractPromiseAnnotation
   private boolean registerParseRule(
     IPromiseFramework frame,
     IPromiseParseRule rule) {
-    return frame.registerParseRule(rule.name(), rule);
+    return false;//frame.registerParseRule(rule.name(), rule);
   }
 
   private boolean registerBindRule(
@@ -122,7 +122,7 @@ public abstract class AbstractPromiseAnnotation
         LOG.severe(
           "Trying to register a bind rule for something not IBindable: " + op);
       } else {
-        ok = ok && frame.registerBindRule(op, rule);
+        //ok = ok && frame.registerBindRule(op, rule);
       }
     }
     return ok;
@@ -134,7 +134,7 @@ public abstract class AbstractPromiseAnnotation
     boolean ok = true;
     Operator[] ops = rule.getOps(IPromiseCheckRule.class);
     for (int j = 0; j < ops.length; j++) {
-      ok = ok && frame.registerCheckRule(ops[j], rule);
+      //ok = ok && frame.registerCheckRule(ops[j], rule);
     }
     return ok;
   }
@@ -207,7 +207,7 @@ public abstract class AbstractPromiseAnnotation
     // Check and register operators that it shows up on
     boolean ok = true;
 		for (int j = 0; j < ops.length; j++) {
-			ok = ok && frame.registerStorage(ops[j], stor);
+			//ok = ok && frame.registerStorage(ops[j], stor);
 		}
 		return ok;
   }

@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.colors.ColorMessages;
+import com.surelogic.analysis.threadroles.Messages;
 import com.surelogic.analysis.threadroles.TRExpr;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
@@ -24,12 +24,13 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleSummaryDrop;
  * @author dfsuther
  *
  */
+@SuppressWarnings("unchecked")
 @Deprecated
 public abstract class ColorExprDrop extends PromiseDrop {
   private final TRExpr rawExpr;
   private TRExpr renamedExpr = null;
   
-  private final boolean inherited;
+  final boolean inherited;
   
   static final Logger LOG = SLLogger.getLogger("ColorDropBuilding");
   
@@ -44,7 +45,7 @@ public abstract class ColorExprDrop extends PromiseDrop {
     } else { 
       setFromSrc(true);
     }
-    this.setCategory(ColorMessages.assuranceCategory);
+    this.setCategory(Messages.assuranceCategory);
   }
   
   protected ColorExprDrop(String kind, TRExpr theExpr, IRNode locInIR, boolean inherited) {

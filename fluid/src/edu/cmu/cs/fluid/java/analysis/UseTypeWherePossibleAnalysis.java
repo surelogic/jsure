@@ -360,8 +360,8 @@ public final class UseTypeWherePossibleAnalysis {
       IJavaType jt = getJavaType(type); // bind into the field type
       if (jt instanceof IJavaDeclaredType) {
         IRNode typeBinding = ((IJavaDeclaredType) jt).getDeclaration();
-        final IRNode promisedType = UseTypeWherePossibleAnnotation
-        .getPromisedType(typeBinding); // look for a @useTypeWherePossible
+        final IRNode promisedType = null;//UseTypeWherePossibleAnnotation
+        	//.getPromisedType(typeBinding); // look for a @useTypeWherePossible
         if (promisedType != null) {
           System.out.println("@useTypeWherePossible interesting field use: \""
               + DebugUnparser.toString(fieldRef) + "\" of type \""
@@ -398,8 +398,8 @@ public final class UseTypeWherePossibleAnalysis {
     IJavaType jt = getJavaType(type);
     if (jt instanceof IJavaDeclaredType) {
       IRNode typeBinding = ((IJavaDeclaredType) jt).getDeclaration();
-      final IRNode promisedType = UseTypeWherePossibleAnnotation
-      .getPromisedType(typeBinding); // look for a @useTypeWherePossible
+      final IRNode promisedType = null;//UseTypeWherePossibleAnnotation
+    	  //.getPromisedType(typeBinding); // look for a @useTypeWherePossible
       if (promisedType != null) {
         System.out.println("@useTypeWherePossible interesting variable use: \""
             + DebugUnparser.toString(varRef) + "\" of type \""

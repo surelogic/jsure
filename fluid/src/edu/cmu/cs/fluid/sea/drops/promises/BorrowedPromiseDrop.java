@@ -18,7 +18,6 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
  * uniqueness analysis.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.UniqueAnalysis
- * @see edu.cmu.cs.fluid.java.bind.UniquenessAnnotation
  */
 public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode>
 implements RegionAggregationDrop {

@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.util.*;
  * uniqueness analysis.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.EffectsAnalysis
- * @see edu.cmu.cs.fluid.java.bind.EffectsAnnotation
  */
 public class MethodEffectsPromiseDrop extends PromiseDrop<EffectsSpecificationNode> {
   // One of the belows is stored as the default AST (in PromiseDrop)

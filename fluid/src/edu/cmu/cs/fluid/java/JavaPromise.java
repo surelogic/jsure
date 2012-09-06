@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -30,7 +29,9 @@ import edu.cmu.cs.fluid.util.*;
  * Summary of promise representation
  */
 public class JavaPromise extends JavaNode {
-  // For debugging
+	private static final long serialVersionUID = 1L;
+
+// For debugging
 	//private StackTraceElement[] trace = new Throwable().getStackTrace();
   //private Version created = Version.getVersion();
 
@@ -1118,7 +1119,8 @@ public class JavaPromise extends JavaNode {
 		}
 		
 		final Operator op = u.getTree().getOperator(node);
-		final Iterator<TokenInfo> tokenInfos = PromiseFramework.getInstance().getTokenInfos(op);
+		final Iterator<TokenInfo> tokenInfos = EmptyIterator.prototype();
+		//PromiseFramework.getInstance().getTokenInfos(op);
 
 		while (style.unparsePromises() && tokenInfos.hasNext()) {
 			final TokenInfo info = tokenInfos.next();
@@ -1173,6 +1175,7 @@ public class JavaPromise extends JavaNode {
 				LOG.warning("Got unexpected type for unparsing: "+type);
 			}
 		}
+		/*
 		// handle enumerated method effects
 		Iterator<IRNode> fx = EffectsAnnotation.methodEffects(node);
 		if (style.unparsePromiseEffects() && fx != null) {
@@ -1197,7 +1200,7 @@ public class JavaPromise extends JavaNode {
 			}
 			methodEffectsStopToken.emit(u, node);
 		}
-
+        */
 		if (!isSub) {
 			IRNode subnode;
 			if (MethodDeclaration.prototype.includes(op) ||

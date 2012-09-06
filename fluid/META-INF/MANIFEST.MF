@@ -23,7 +23,6 @@ Export-Package:
  com.surelogic.analysis.batch,
  com.surelogic.analysis.bca,
  com.surelogic.analysis.cfg,
- com.surelogic.analysis.colors,
  com.surelogic.analysis.concurrency.detector,
  com.surelogic.analysis.concurrency.heldlocks.locks,
  com.surelogic.analysis.effects,

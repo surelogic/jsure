@@ -623,8 +623,10 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
       addFieldMappings(type, result);
       results.add(result);
 
+      /*
       // to link up the various drops
       ScopedPromises.getInstance().setCurrentDrop(getMapFieldsDrop(result));
+      */
       try {
         // XXX hack to get src ref produced early
         cb.parsed(result);
@@ -655,7 +657,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
           rv = false;
         }
       } finally {
-        ScopedPromises.getInstance().clearCurrentDrop();
+    	//ScopedPromises.getInstance().clearCurrentDrop();
       }
       return rv;
     }
@@ -883,7 +885,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
         while (iter.hasNext()) {
           regions.put(iter.next(), new MapRecord());
         }
-
+        /*
         // Check that the field is also declared to be unique
         if (!UniquenessAnnotation.isUnique(promisedFor)) {
           report
@@ -892,11 +894,11 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
                   aggPromise);
           result = false;
         }
-
+        */
         ExplicitUniqueInRegionPromiseDrop ap = getAggregateDrop(promisedFor);
         ap.setNode(aggPromise);
         ap.dependUponCompilationUnitOf(promisedFor);
-        PromiseDrop unique = UniquenessAnnotation.getUniqueDrop(promisedFor);
+        PromiseDrop unique = null;//UniquenessAnnotation.getUniqueDrop(promisedFor);
         if (unique != null) {
           ResultDrop link = new ResultDrop();
           link.addCheckedPromise(ap);
