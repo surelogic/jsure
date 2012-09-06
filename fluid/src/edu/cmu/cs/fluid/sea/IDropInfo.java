@@ -166,7 +166,7 @@ public interface IDropInfo {
    * output builder.
    * <p>
    * This is used to persist the IR drop-sea so that it can be loaded into the
-   * info drop-sea.
+   * IR-free drop-sea.
    * 
    * @param s
    *          an XML builder.
