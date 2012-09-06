@@ -685,13 +685,29 @@ public final class Sea {
           proofDrops.addAll(pd.getCheckedBy());
           proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
           for (ProofDrop result : proofDrops) {
-            // all must be consistent for this drop to be consistent
+            // all must be consistent for this promise to be consistent
             pd.provedConsistent &= result.provedConsistent;
-            // any red dot means this drop depends upon a red dot
+            // any red dot means this promise depends upon a red dot
             if (result.proofUsesRedDot)
               pd.proofUsesRedDot = true;
             // push along if derived from source code
             pd.derivedFromSrc |= result.derivedFromSrc;
+          }
+        } else if (d instanceof ResultFolderDrop) {
+
+          /*
+           * RESULT FOLDER DROP
+           */
+
+          final ResultFolderDrop dfd = (ResultFolderDrop) d;
+          for (AbstractResultDrop result : dfd.getContents()) {
+            // all must be consistent for this folder to be consistent
+            dfd.provedConsistent &= result.provedConsistent;
+            // any red dot means this folder depends upon a red dot
+            if (result.proofUsesRedDot)
+              dfd.proofUsesRedDot = true;
+            // push along if derived from source code
+            dfd.derivedFromSrc |= result.derivedFromSrc;
           }
         } else if (d instanceof ResultDrop) {
 
@@ -779,7 +795,8 @@ public final class Sea {
             rd.derivedFromSrc |= overall_or_derivedFromSource;
           }
         } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+          final String msg = I18N.err(246);
+          LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
         }
 
         /*

@@ -48,7 +48,7 @@ public final class ResultFolderDrop extends AbstractResultDrop {
    * 
    * @return a non-null (possibly empty) set of analysis results.
    */
-  public Set<ResultDrop> getResults() {
+  public Set<ResultDrop> getAnalysisResults() {
     final Set<ResultDrop> result = Sea.filterDropsOfType(ResultDrop.class, getDeponents());
     return result;
   }
@@ -63,6 +63,17 @@ public final class ResultFolderDrop extends AbstractResultDrop {
     return result;
   }
 
+  /**
+   * Gets all the analysis results and sub-folders within this folder.
+   * 
+   * @return a non-null (possibly empty) set of analysis results and
+   *         sub-folders.
+   */
+  public Set<AbstractResultDrop> getContents() {
+    final Set<AbstractResultDrop> result = Sea.filterDropsOfType(AbstractResultDrop.class, getDeponents());
+    return result;
+  }
+
   @Override
   public String getXMLElementName() {
     return "result-folder-drop";
@@ -74,7 +85,7 @@ public final class ResultFolderDrop extends AbstractResultDrop {
     for (Drop t : getSubFolders()) {
       s.snapshotDrop(t);
     }
-    for (Drop t : getResults()) {
+    for (Drop t : getAnalysisResults()) {
       s.snapshotDrop(t);
     }
   }
@@ -85,7 +96,7 @@ public final class ResultFolderDrop extends AbstractResultDrop {
     for (Drop t : getSubFolders()) {
       s.refDrop(db, SUB_FOLDER, t);
     }
-    for (Drop t : getResults()) {
+    for (Drop t : getAnalysisResults()) {
       s.refDrop(db, RESULT, t);
     }
   }
