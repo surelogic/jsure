@@ -12,9 +12,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -31,13 +32,13 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
@@ -174,7 +175,7 @@ public class ResultsViewContentProvider {
    */
   private void add_and_TrustedPromises(Content mutableContentSet, ResultDrop result) {
     // Create a folder to contain the preconditions
-    Set<PromiseDrop> trustedPromiseDrops = result.getTrusts();
+    Set<PromiseDrop<? extends IAASTRootNode>> trustedPromiseDrops = result.getTrusts();
     int count = trustedPromiseDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
@@ -278,7 +279,7 @@ public class ResultsViewContentProvider {
       // PROMISE DROP //
       // ///////////////
       if (drop instanceof PromiseDrop) {
-        PromiseDrop promiseDrop = (PromiseDrop) drop;
+        final PromiseDrop<? extends IAASTRootNode> promiseDrop = (PromiseDrop<? extends IAASTRootNode>) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -901,9 +902,9 @@ public class ResultsViewContentProvider {
     Collection<Content> root = new HashSet<Content>(); // show at the
     // viewer root
 
-    Set<? extends PromiseDrop> promiseDrops = Sea.getDefault().getDropsOfType(PromiseDrop.class);
-    for (PromiseDrop pd : promiseDrops) {
-      // PromiseDrop pd = (PromiseDrop) i.next();
+    final Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseDrops = (Set<? extends PromiseDrop<? extends IAASTRootNode>>) Sea
+        .getDefault().getDropsOfType(PromiseDrop.class);
+    for (PromiseDrop<? extends IAASTRootNode> pd : promiseDrops) {
       if (pd.isFromSrc()) {
         if (!pd.hasMatchingDeponents(DropPredicateFactory.matchType(PromiseDrop.class))) {
           root.add(encloseDrop(pd));
@@ -911,7 +912,7 @@ public class ResultsViewContentProvider {
       }
     }
 
-    Set<? extends InfoDrop> infoDrops = Sea.getDefault().getDropsOfType(InfoDrop.class);
+    final Set<? extends InfoDrop> infoDrops = Sea.getDefault().getDropsOfType(InfoDrop.class);
     if (!infoDrops.isEmpty()) {
       final String msg = "Suggestions and warnings";
       Content infoFolder = new Content(msg);
@@ -929,7 +930,7 @@ public class ResultsViewContentProvider {
       root.add(infoFolder);
     }
 
-    Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
+    final Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
     for (PromiseWarningDrop id : promiseWarningDrops) {
       // PromiseWarningDrop id = (PromiseWarningDrop) j.next();
       // only show info drops at the main level if they are not attached
@@ -937,7 +938,7 @@ public class ResultsViewContentProvider {
       root.add(encloseDrop(id));
     }
 
-    Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(ResultDrop.class);
+    final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(ResultDrop.class);
     for (ResultDrop id : resultDrops) {
       // ResultDrop id = (ResultDrop) j.next();
       // only show result drops at the main level if they are not attached

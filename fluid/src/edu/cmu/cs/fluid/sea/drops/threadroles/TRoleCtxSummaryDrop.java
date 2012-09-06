@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
@@ -31,32 +32,31 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * @author dfsuther
  */
-public class TRoleCtxSummaryDrop extends IRReferenceDrop 
-implements PleaseFolderize, IThreadRoleDrop {
+public class TRoleCtxSummaryDrop extends IRReferenceDrop implements PleaseFolderize, IThreadRoleDrop {
 
   // private static final String kind = "colorContext summary";
 
   private static final Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 
-//  public boolean containsGrantOrRevoke = false;
+  // public boolean containsGrantOrRevoke = false;
 
-//  private boolean localEmpty = true;
+  // private boolean localEmpty = true;
 
   private JBDD simpleExpr;
 
   private JBDD fullExpr;
 
-//  private JBDD localSimpleExpr;
-//
-//  private JBDD localFullExpr;
+  // private JBDD localSimpleExpr;
+  //
+  // private JBDD localFullExpr;
 
   private ResultDrop resDrop;
 
   private String methodName;
 
-//  private Set localCtxts = new HashSet(0);
-  
-  private Set<PromiseDrop> userDeponents = new HashSet<PromiseDrop>(1);
+  // private Set localCtxts = new HashSet(0);
+
+  private Set<PromiseDrop<? extends IAASTRootNode>> userDeponents = new HashSet<PromiseDrop<? extends IAASTRootNode>>(1);
 
   public static TRoleCtxSummaryDrop getSummaryFor(IRNode node) {
     TRoleCtxSummaryDrop res = ThreadRoleRules.getCtxSummDrop(node);
@@ -67,42 +67,42 @@ implements PleaseFolderize, IThreadRoleDrop {
     }
 
     String msg;
-    
+
     res = new TRoleCtxSummaryDrop(node);
 
     final Operator op = JJNode.tree.getOperator(node);
-    if ((MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype
-        .includes(op))) {
+    if ((MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op))) {
       // summaries of calling context go on decls
       // these are always created "empty" and computed by inference.
       msg = "Calling color context for " + JJNode.getInfo(node);
 
-//      Collection<ColorContextDrop> ctxDrops = ColorRules.getCtxDrops(node);
-//      if (!ctxDrops.isEmpty()) {
-        res.fullExpr = TRoleBDDPack.zero();
-//      }
-//      for (ColorContextDrop protoCtx : ctxDrops) {
-////        ColorContextDrop protoCtx = (ColorContextDrop) ctxIter.next();
-//
-//        LOG.fine("adding " + protoCtx.getRenamedExpr() + " to " + msg);
-//
-//        final CExpr renamed = protoCtx.getRenamedExpr();
-//        JBDD tSimpleExpr = renamed.computeExpr(false);
-//        Set<String> refdNames = renamed.posReferencedColorNames();
-//        final IRNode cu = VisitUtil.computeOutermostEnclosingTypeOrCU(node);
-//
-//        // use refdNames to get the proper conflicts needed to compute tFullExpr
-//        JBDD conflictExpr = res.namesToConflictExpr(refdNames, cu);
-//        JBDD tFullExpr = tSimpleExpr.and(conflictExpr);
-//
-//        res.simpleExpr = res.simpleExpr.or(tSimpleExpr);
-//        res.fullExpr = res.fullExpr.or(tFullExpr);
-//        protoCtx.addDependent(res);
-//        res.userDeponents.add(protoCtx);
-//      }
-////      ResultDrop rd = res.getResDrop();
-////      rd.addCheckedPromise(res);
-//      //rd.addTrustedPromises(ctxDrops); // Wrong!
+      // Collection<ColorContextDrop> ctxDrops = ColorRules.getCtxDrops(node);
+      // if (!ctxDrops.isEmpty()) {
+      res.fullExpr = TRoleBDDPack.zero();
+      // }
+      // for (ColorContextDrop protoCtx : ctxDrops) {
+      // // ColorContextDrop protoCtx = (ColorContextDrop) ctxIter.next();
+      //
+      // LOG.fine("adding " + protoCtx.getRenamedExpr() + " to " + msg);
+      //
+      // final CExpr renamed = protoCtx.getRenamedExpr();
+      // JBDD tSimpleExpr = renamed.computeExpr(false);
+      // Set<String> refdNames = renamed.posReferencedColorNames();
+      // final IRNode cu = VisitUtil.computeOutermostEnclosingTypeOrCU(node);
+      //
+      // // use refdNames to get the proper conflicts needed to compute
+      // tFullExpr
+      // JBDD conflictExpr = res.namesToConflictExpr(refdNames, cu);
+      // JBDD tFullExpr = tSimpleExpr.and(conflictExpr);
+      //
+      // res.simpleExpr = res.simpleExpr.or(tSimpleExpr);
+      // res.fullExpr = res.fullExpr.or(tFullExpr);
+      // protoCtx.addDependent(res);
+      // res.userDeponents.add(protoCtx);
+      // }
+      // // ResultDrop rd = res.getResDrop();
+      // // rd.addCheckedPromise(res);
+      // //rd.addTrustedPromises(ctxDrops); // Wrong!
 
     } else {
       // an internal context. These are always created empty. It's the caller's
@@ -111,25 +111,26 @@ implements PleaseFolderize, IThreadRoleDrop {
       msg = "Internal color context";
     }
 
-    // ColorCtxSummaryDrops are ALWAYS virtual, because they summarize context changes
-    // that come either from one or more callers, or from grants or revokes.  In
+    // ColorCtxSummaryDrops are ALWAYS virtual, because they summarize context
+    // changes
+    // that come either from one or more callers, or from grants or revokes. In
     // any of these cases, the context summary is a derived item.
-//    res.setVirtual(true);
+    // res.setVirtual(true);
     res.setMessage(msg);
     return res;
   }
 
-  //  public static ColorCtxSummaryDrop getSummaryFor(final ColorContextDrop
+  // public static ColorCtxSummaryDrop getSummaryFor(final ColorContextDrop
   // proto) {
-  //    final IRNode node = proto.getNode();
-  //    ColorCtxSummaryDrop res = ColorRules.getCtxSummDrop(node);
-  //    
-  //    if (res == null) {
-  //      res = new ColorCtxSummaryDrop(proto, TRoleReqSummaryDrop.Inherited.NO);
-  //    }
-  //    
-  //    return res;
-  //  }
+  // final IRNode node = proto.getNode();
+  // ColorCtxSummaryDrop res = ColorRules.getCtxSummDrop(node);
+  //
+  // if (res == null) {
+  // res = new ColorCtxSummaryDrop(proto, TRoleReqSummaryDrop.Inherited.NO);
+  // }
+  //
+  // return res;
+  // }
 
   /**
    * Build a ColorCtxSummary drop for a node that has no user-written
@@ -142,13 +143,13 @@ implements PleaseFolderize, IThreadRoleDrop {
   private TRoleCtxSummaryDrop(IRNode node) {
     simpleExpr = TRoleBDDPack.zero();
     fullExpr = TRoleBDDPack.zero();
-//    localSimpleExpr = ColorBDDPack.zero();
-//    localFullExpr = ColorBDDPack.zero();
+    // localSimpleExpr = ColorBDDPack.zero();
+    // localFullExpr = ColorBDDPack.zero();
     resDrop = null;
 
     methodName = JJNode.getInfoOrNull(node);
     if (methodName == null) {
-    	System.out.println("Got null methodName");
+      System.out.println("Got null methodName");
     }
 
     setNodeAndCompilationUnitDependency(node);
@@ -159,46 +160,47 @@ implements PleaseFolderize, IThreadRoleDrop {
     setCategory(TRoleMessages.assuranceCategory);
   }
 
-  //  private ColorCtxSummaryDrop(ColorContextDrop proto,
+  // private ColorCtxSummaryDrop(ColorContextDrop proto,
   // TRoleReqSummaryDrop.Inherited isit) {
-  //    CExpr rawExpr = proto.getRawExpr();
-  //    final IRNode node = proto.getNode();
-  //    methodName = JavaNode.getInfo(node);
-  //    
-  //    simpleExpr = rawExpr.computeExpr(false);
-  //    JBDD conflictExpr = namesToConflictExpr(rawExpr.posReferencedColorNames());
-  //    fullExpr = simpleExpr.and(conflictExpr);
-  //    
-  //    localSimpleExpr = simpleExpr.copy();
-  //    localFullExpr = fullExpr.copy();
-  //    
-  //    resDrop = null;
+  // CExpr rawExpr = proto.getRawExpr();
+  // final IRNode node = proto.getNode();
+  // methodName = JavaNode.getInfo(node);
   //
-  //    proto.addDependent(this);
-  //    if (isit == Inherited.NO) {
-  //      assert (ColorRules.getCtxSummDrop(node) == null);
-  //      ColorRules.setCtxSummDrop(node, this);
-  //      setMessage("summary of colorContext for " + methodName);
-  //    } else if (isit == Inherited.YES) {
-  //      assert (ColorRules.getInheritedCtxSummDrop(node) == null);
-  //      ColorRules.setInheritedCtxSummDrop(node, this);
-  //      setMessage("summary of Inherited colorContext for " + methodName);
-  //    }
-  //    setCategory(TRoleMessages.assuranceCategory);
-  //    setFromSrc(proto.isFromSrc());
-  //  }
-  //  
+  // simpleExpr = rawExpr.computeExpr(false);
+  // JBDD conflictExpr = namesToConflictExpr(rawExpr.posReferencedColorNames());
+  // fullExpr = simpleExpr.and(conflictExpr);
+  //
+  // localSimpleExpr = simpleExpr.copy();
+  // localFullExpr = fullExpr.copy();
+  //
+  // resDrop = null;
+  //
+  // proto.addDependent(this);
+  // if (isit == Inherited.NO) {
+  // assert (ColorRules.getCtxSummDrop(node) == null);
+  // ColorRules.setCtxSummDrop(node, this);
+  // setMessage("summary of colorContext for " + methodName);
+  // } else if (isit == Inherited.YES) {
+  // assert (ColorRules.getInheritedCtxSummDrop(node) == null);
+  // ColorRules.setInheritedCtxSummDrop(node, this);
+  // setMessage("summary of Inherited colorContext for " + methodName);
+  // }
+  // setCategory(TRoleMessages.assuranceCategory);
+  // setFromSrc(proto.isFromSrc());
+  // }
+  //
   private JBDD namesToConflictExpr(Collection<String> names, final IRNode cu) {
-    if ((names == null) || names.isEmpty()) return TRoleBDDPack.one();
+    if ((names == null) || names.isEmpty())
+      return TRoleBDDPack.one();
 
     JBDD res = TRoleBDDPack.one();
-//    Iterator<String> nameIter = names.iterator();
-//    while (nameIter.hasNext()) {
-//      String name = nameIter.next();
+    // Iterator<String> nameIter = names.iterator();
+    // while (nameIter.hasNext()) {
+    // String name = nameIter.next();
     for (String name : names) {
       TRoleNameModel model = TRoleNameModel.getInstance(name, cu);
-//      TRoleName tc = model.getCanonicalTColor();
-//      TRoleNameModel canonModel = tc.getCanonicalNameModel();
+      // TRoleName tc = model.getCanonicalTColor();
+      // TRoleNameModel canonModel = tc.getCanonicalNameModel();
       final TRoleNameModel canonModel = model.getCanonicalNameModel();
       TRoleIncSummaryDrop incSumm = canonModel.getIncompatibleSummary();
 
@@ -216,19 +218,19 @@ implements PleaseFolderize, IThreadRoleDrop {
     return fullExpr.copy();
   }
 
-//  /**
-//   * @return Returns the localFullExpr.
-//   */
-//  public JBDD getLocalFullExpr() {
-//    return localFullExpr.copy();
-//  }
-//
-//  /**
-//   * @return Returns the localSimpleExpr.
-//   */
-//  public JBDD getLocalSimpleExpr() {
-//    return localSimpleExpr.copy();
-//  }
+  // /**
+  // * @return Returns the localFullExpr.
+  // */
+  // public JBDD getLocalFullExpr() {
+  // return localFullExpr.copy();
+  // }
+  //
+  // /**
+  // * @return Returns the localSimpleExpr.
+  // */
+  // public JBDD getLocalSimpleExpr() {
+  // return localSimpleExpr.copy();
+  // }
 
   /**
    * @return Returns the simpleExpr.
@@ -245,60 +247,65 @@ implements PleaseFolderize, IThreadRoleDrop {
     this.fullExpr = fullExpr;
   }
 
-//  /**
-//   * @return Returns the resDrop. NEVER !isValid(), but may be null.
-//   */
-//  public ResultDrop getResDrop() {
-//    if ((resDrop == null) || (!resDrop.isValid())) {
-//      resDrop = TRoleMessages.createResultDrop("Color Requirement summary for "
-//          + methodName, getNode());
-//      resDrop.addCheckedPromise(this);
-//    }
-//
-//    Collection ctxDrops = Sea.filterDropsOfType(ColorContextDrop.class,
-//                                                getDeponents());
-//    resDrop.addTrustedPromises(ctxDrops);
-//    return resDrop;
-//  }
+  // /**
+  // * @return Returns the resDrop. NEVER !isValid(), but may be null.
+  // */
+  // public ResultDrop getResDrop() {
+  // if ((resDrop == null) || (!resDrop.isValid())) {
+  // resDrop = TRoleMessages.createResultDrop("Color Requirement summary for "
+  // + methodName, getNode());
+  // resDrop.addCheckedPromise(this);
+  // }
+  //
+  // Collection ctxDrops = Sea.filterDropsOfType(ColorContextDrop.class,
+  // getDeponents());
+  // resDrop.addTrustedPromises(ctxDrops);
+  // return resDrop;
+  // }
 
-  //  /**
-  //   * @param resDrop The resDrop to set.
-  //   */
-  //  public void setResDrop(ResultDrop resDrop) {
-  //    this.resDrop = resDrop;
-  //  }
-//  /**
-//   * @return Returns the localCtxts.
-//   */
-//  public Set getLocalCtxts() {
-//    return localCtxts;
-//  }
+  // /**
+  // * @param resDrop The resDrop to set.
+  // */
+  // public void setResDrop(ResultDrop resDrop) {
+  // this.resDrop = resDrop;
+  // }
+  // /**
+  // * @return Returns the localCtxts.
+  // */
+  // public Set getLocalCtxts() {
+  // return localCtxts;
+  // }
 
-//  /**
-//   * @return Returns the empty.
-//   */
-//  public boolean isLocalEmpty() {
-//    return localEmpty;
-//  }
+  // /**
+  // * @return Returns the empty.
+  // */
+  // public boolean isLocalEmpty() {
+  // return localEmpty;
+  // }
 
   public boolean isEmpty() {
-    if (fullExpr == null) return true;
+    if (fullExpr == null)
+      return true;
     return fullExpr.isZero();
   }
+
   /**
    * @return Returns the userDeponents.
    */
-  public Set<PromiseDrop> getUserDeponents() {
+  public Set<PromiseDrop<? extends IAASTRootNode>> getUserDeponents() {
     return userDeponents;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()
    */
   @Override
   protected void deponentInvalidAction(Drop invalidDeponent) {
-//    TRolesFirstPass.trackCUchanges(this);
-    // NO! ColorCtxSummaryDrops belong to colorSecondPass, and should not request
+    // TRolesFirstPass.trackCUchanges(this);
+    // NO! ColorCtxSummaryDrops belong to colorSecondPass, and should not
+    // request
     // re-running CFP on the enclosing CU.
     super.deponentInvalidAction(invalidDeponent);
   }

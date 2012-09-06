@@ -11,6 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -615,7 +616,8 @@ public final class Sea {
          * PROMISE DROP
          */
 
-        PromiseDrop pd = (PromiseDrop) d;
+        @SuppressWarnings("unchecked")
+        final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
 
         // for a promise drop we flag a red dot if it is not checked by
         // analysis
@@ -674,7 +676,8 @@ public final class Sea {
            * PROMISE DROP
            */
 
-          PromiseDrop pd = (PromiseDrop) d;
+          @SuppressWarnings("unchecked")
+          final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
 
           // examine dependent analysis results and dependent promises
           Set<? extends ResultDrop> tpd = pd.getCheckedBy();
@@ -700,9 +703,9 @@ public final class Sea {
           ResultDrop rd = (ResultDrop) d;
 
           // "and" trust promise drops
-          Set<PromiseDrop> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop promise = j.next();
+          Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
+          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
+            PromiseDrop<? extends IAASTRootNode> promise = j.next();
             // all must be consistent for this drop to be consistent
             rd.provedConsistent &= promise.provedConsistent;
             // any red dot means this drop depends upon a red dot
@@ -717,8 +720,8 @@ public final class Sea {
             for (String orKey : orLabels) {
               boolean choiceResult = true;
               boolean choiceUsesRedDot = false;
-              Set<? extends PromiseDrop> promiseSet = rd.get_or_Trusts(orKey);
-              for (PromiseDrop promise : promiseSet) {
+              Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
+              for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
                 // all must be consistent for this choice to be
                 // consistent
                 choiceResult &= promise.provedConsistent;
@@ -809,7 +812,8 @@ public final class Sea {
            * PROMISE DROP
            */
 
-          PromiseDrop pd = (PromiseDrop) d;
+          @SuppressWarnings("unchecked")
+          final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
 
           // examine dependent analysis results and dependent promises
           Set<? extends ResultDrop> tpd = pd.getCheckedBy();
@@ -831,9 +835,9 @@ public final class Sea {
           ResultDrop rd = (ResultDrop) d;
 
           // "and" trust promise drops
-          Set<PromiseDrop> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop promise = j.next();
+          Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
+          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
+            PromiseDrop<? extends IAASTRootNode> promise = j.next();
             // all must be consistent for this drop to be consistent
             rd.derivedFromSrc &= promise.derivedFromSrc;
           }
@@ -842,9 +846,8 @@ public final class Sea {
             boolean overall_or_Result = false;
             Set<String> orLabels = rd.get_or_TrustLabelSet();
             for (String orKey : orLabels) {
-              boolean choiceResult = true;
-              Set<? extends PromiseDrop> promiseSet = rd.get_or_Trusts(orKey);
-              for (PromiseDrop promise : promiseSet) {
+              Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
+              for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
                 overall_or_Result |= promise.derivedFromSrc;
               }
             }
@@ -870,7 +873,8 @@ public final class Sea {
   private void addToWorklist(Set<ProofDrop> l, ProofDrop d) {
     l.add(d);
     if (d instanceof PromiseDrop) {
-      PromiseDrop pd = (PromiseDrop) d;
+      @SuppressWarnings("unchecked")
+      PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
       // add all result drops trusted by this promise drop
       l.addAll(pd.getTrustedBy());
       // add all deponent promise drops of this promise drop
@@ -907,7 +911,7 @@ public final class Sea {
     }
     // notify all registered observers of the status change
     Set<DropObserver> observers = new HashSet<DropObserver>();
-    for (Class dropType : f_dropTypeToObservers.keySet()) {
+    for (Class<?> dropType : f_dropTypeToObservers.keySet()) {
       if (dropType.isInstance(drop)) {
         observers.addAll(f_dropTypeToObservers.get(dropType));
       }
@@ -952,7 +956,7 @@ public final class Sea {
    * A map from drop subtypes to a set of registered observers interested in
    * status changes about the knowledge status of those drops.
    */
-  private final Map<Class, Set<DropObserver>> f_dropTypeToObservers = new ConcurrentHashMap<Class, Set<DropObserver>>();
+  private final Map<Class<?>, Set<DropObserver>> f_dropTypeToObservers = new ConcurrentHashMap<Class<?>, Set<DropObserver>>();
 
   private final List<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
 }

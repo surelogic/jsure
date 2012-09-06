@@ -385,7 +385,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *          The new value
    * @return true if already set
    */
-  @SuppressWarnings("unchecked")
   protected boolean checkASTs(A a, A ast) {
     if (a == null) {
       throw new NullPointerException("null ast");
