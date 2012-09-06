@@ -25,13 +25,13 @@ public interface IDropInfo {
 
   boolean isValid();
 
-  boolean hasMatchingDeponents(IDropPredicate p);
+  boolean hasMatchingDeponents(DropPredicate p);
 
-  Set<? extends IDropInfo> getMatchingDeponents(IDropPredicate p);
+  Set<? extends IDropInfo> getMatchingDeponents(DropPredicate p);
 
-  boolean hasMatchingDependents(IDropPredicate p);
+  boolean hasMatchingDependents(DropPredicate p);
 
-  Set<? extends IDropInfo> getMatchingDependents(IDropPredicate p);
+  Set<? extends IDropInfo> getMatchingDependents(DropPredicate p);
 
   boolean requestTopLevel();
 

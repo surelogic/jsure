@@ -35,7 +35,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropPredicate;
+import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
@@ -1049,14 +1049,14 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     }
   }
 
-  private static IDropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
+  private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
 
-  private static IDropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
+  private static DropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
 
   /**
    * Matches non-@Promise PromiseDrops
    */
-  private static IDropPredicate predicate = new IDropPredicate() {
+  private static DropPredicate predicate = new DropPredicate() {
     public boolean match(IDropInfo d) {
       return promisePred.match(d) && !scopedPromisePred.match(d);
     }

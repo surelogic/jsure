@@ -252,7 +252,7 @@ public abstract class Drop implements IDropInfo {
    * @return <code>true</code> if at least one of this drop's dependent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDependents(IDropPredicate p) {
+  final public boolean hasMatchingDependents(DropPredicate p) {
     return Sea.hasMatchingDrops(p, dependents);
   }
 
@@ -265,7 +265,7 @@ public abstract class Drop implements IDropInfo {
    * @return <code>true</code> if at least one of this drop's deponent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDeponents(IDropPredicate p) {
+  final public boolean hasMatchingDeponents(DropPredicate p) {
     return Sea.hasMatchingDrops(p, deponents);
   }
 
@@ -277,7 +277,7 @@ public abstract class Drop implements IDropInfo {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  public Set<Drop> getMatchingDependents(IDropPredicate p) {
+  public Set<Drop> getMatchingDependents(DropPredicate p) {
     final Set<Drop> result = new HashSet<Drop>();
     Sea.addMatchingDropsFrom(deponents, p, result);
     return result;
@@ -291,7 +291,7 @@ public abstract class Drop implements IDropInfo {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  public Set<Drop> getMatchingDeponents(IDropPredicate p) {
+  public Set<Drop> getMatchingDeponents(DropPredicate p) {
     final Set<Drop> result = new HashSet<Drop>();
     Sea.addMatchingDropsFrom(deponents, p, result);
     return result;

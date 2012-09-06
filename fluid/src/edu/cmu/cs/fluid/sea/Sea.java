@@ -319,7 +319,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> Set<T> filter(IDropPredicate pred, Set<T> dropSet) {
+  public static <T extends Drop> Set<T> filter(DropPredicate pred, Set<T> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -342,7 +342,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> void filterMutate(IDropPredicate pred, Set<T> mutableDropSet) {
+  public static <T extends Drop> void filterMutate(DropPredicate pred, Set<T> mutableDropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (mutableDropSet == null)
@@ -370,7 +370,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static boolean hasMatchingDrops(IDropPredicate pred, Set<? extends Drop> dropSet) {
+  public static boolean hasMatchingDrops(DropPredicate pred, Set<? extends Drop> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -398,7 +398,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends IDropInfo> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, IDropPredicate pred,
+  public static <T extends IDropInfo> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, DropPredicate pred,
       Set<T> mutableResultDropSet) {
     if (sourceDropSet == null)
       throw new IllegalArgumentException(I18N.err(44, "sourceDropSet"));
@@ -557,7 +557,7 @@ public final class Sea {
    * @param pred
    *          The predicate to match drops against.
    */
-  public void invalidateMatching(IDropPredicate pred) {
+  public void invalidateMatching(DropPredicate pred) {
     if (pred == null)
       return;
 

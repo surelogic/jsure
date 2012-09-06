@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.IDropPredicate;
+import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
@@ -390,7 +390,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
 
   }
 
-  private static IDropPredicate definingDropPred = new IDropPredicate() {
+  private static DropPredicate definingDropPred = new DropPredicate() {
     public boolean match(IDropInfo d) {
       return (d.isValid()) && d.instanceOf(CUDrop.class) || d.instanceOf(BinaryCUDrop.class);
     }

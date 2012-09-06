@@ -30,7 +30,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IDropPredicate;
+import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
@@ -350,7 +350,7 @@ public class ModuleDrop extends PromiseDrop {
     
   }
   
-  private static IDropPredicate definingDropPred = new IDropPredicate() {
+  private static DropPredicate definingDropPred = new DropPredicate() {
     public boolean match(IDropInfo d) {
       return (d.isValid()) &&
         d.instanceOf(CUDrop.class) ||

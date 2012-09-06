@@ -9,7 +9,7 @@ import com.surelogic.common.i18n.I18N;
 @Utility
 public final class DropPredicateFactory {
 
-  private static Map<Class<?>, IDropPredicate> f_type = new HashMap<Class<?>, IDropPredicate>();
+  private static Map<Class<?>, DropPredicate> f_type = new HashMap<Class<?>, DropPredicate>();
 
   /**
    * Returns a drop predicate that matches all drops that are instances of the
@@ -22,15 +22,15 @@ public final class DropPredicateFactory {
    *          of {@link Drop}).
    * @return the drop predicate.
    */
-  public static IDropPredicate matchType(final Class<?> dropClass) {
+  public static DropPredicate matchType(final Class<?> dropClass) {
     if (dropClass == null)
       throw new IllegalArgumentException(I18N.err(44, "dropClass"));
 
-    IDropPredicate result;
+    DropPredicate result;
     synchronized (f_type) {
       result = f_type.get(dropClass);
       if (result == null) {
-        result = new IDropPredicate() {
+        result = new DropPredicate() {
           public boolean match(IDropInfo d) {
             /*
              * This comparison has to work for all IDropInfo instances.
@@ -44,7 +44,7 @@ public final class DropPredicateFactory {
     return result;
   }
 
-  private static Map<Class<?>, IDropPredicate> f_exactType = new HashMap<Class<?>, IDropPredicate>();
+  private static Map<Class<?>, DropPredicate> f_exactType = new HashMap<Class<?>, DropPredicate>();
 
   /**
    * Returns a drop predicate that matches all drops that are instances of the
@@ -57,15 +57,15 @@ public final class DropPredicateFactory {
    *          {@link Drop}).
    * @return the drop predicate.
    */
-  public static IDropPredicate matchExactType(final Class<?> dropClass) {
+  public static DropPredicate matchExactType(final Class<?> dropClass) {
     if (dropClass == null)
       throw new IllegalArgumentException(I18N.err(44, "dropClass"));
 
-    IDropPredicate result;
+    DropPredicate result;
     synchronized (f_exactType) {
       result = f_exactType.get(dropClass);
       if (result == null) {
-        result = new IDropPredicate() {
+        result = new DropPredicate() {
           public boolean match(IDropInfo d) {
             /*
              * This comparison has to work for all IDropInfo instances.

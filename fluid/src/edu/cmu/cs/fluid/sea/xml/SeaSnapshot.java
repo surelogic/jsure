@@ -587,7 +587,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return type.isAssignableFrom(thisType);
     }
 
-    public boolean hasMatchingDeponents(IDropPredicate p) {
+    public boolean hasMatchingDeponents(DropPredicate p) {
       for (Info i : deponents) {
         if (p.match(i)) {
           return true;
@@ -597,7 +597,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     @Override
-    public Set<? extends IDropInfo> getMatchingDeponents(IDropPredicate p) {
+    public Set<? extends IDropInfo> getMatchingDeponents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : deponents) {
         if (p.match(i)) {
@@ -608,7 +608,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     @Override
-    public boolean hasMatchingDependents(IDropPredicate p) {
+    public boolean hasMatchingDependents(DropPredicate p) {
       for (Info i : dependents) {
         if (p.match(i)) {
           return true;
@@ -618,7 +618,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     @Override
-    public Set<? extends IDropInfo> getMatchingDependents(IDropPredicate p) {
+    public Set<? extends IDropInfo> getMatchingDependents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : dependents) {
         if (p.match(i)) {

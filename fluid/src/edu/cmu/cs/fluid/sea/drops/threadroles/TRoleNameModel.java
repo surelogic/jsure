@@ -161,7 +161,7 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comp
     }
   }
 
-  private static IDropPredicate definingDropPred = new IDropPredicate() {
+  private static DropPredicate definingDropPred = new DropPredicate() {
 
     public boolean match(IDropInfo d) {
       return d.instanceOf(TRoleDeclareDrop.class) || d.instanceOf(TRoleRevokeDrop.class) || d.instanceOf(TRoleGrantDrop.class)

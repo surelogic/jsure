@@ -99,7 +99,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 		return ld.getId();
 	}
 
-	private static IDropPredicate definingDropPred = new IDropPredicate() {
+	private static DropPredicate definingDropPred = new DropPredicate() {
 		public boolean match(IDropInfo d) {
 			return d.instanceOf(RequiresLockPromiseDrop.class)
 					|| d.instanceOf(ReturnsLockPromiseDrop.class);

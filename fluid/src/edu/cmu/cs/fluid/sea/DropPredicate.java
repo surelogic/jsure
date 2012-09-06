@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea;
 /**
  * Defines a predicate used to filter a set of drops.
  */
-public interface IDropPredicate {
+public interface DropPredicate {
 
 	/**
 	 * Decides if a specific drop should be an element of the resulting set.
