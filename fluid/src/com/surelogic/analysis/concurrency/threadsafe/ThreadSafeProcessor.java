@@ -66,11 +66,6 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
   }
 
   @Override
-  protected String message2string(final int msg) {
-    return Messages.toString(msg);
-  }
-
-  @Override
   protected void processSuperType(final IRNode tdecl) {
     final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
         LockRules.getThreadSafeImplPromise(tdecl);

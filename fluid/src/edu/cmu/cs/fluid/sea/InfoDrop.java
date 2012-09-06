@@ -1,34 +1,20 @@
 package edu.cmu.cs.fluid.sea;
 
-import com.surelogic.common.xml.XMLCreator;
-
 /**
  * Drops for reporting inferred or information to the user, "i" results.
  */
 public class InfoDrop extends IRReferenceDrop implements IResultDrop {
-  private final String type;
 
-  public InfoDrop(String t) {
-    type = t;
-  }
-
-  @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    super.snapshotAttrs(s);
-    if (type != null) {
-      s.addAttribute("result-type", type);
-    } else {
-      System.out.println("InfoDrop result-type is null");
-    }
+  public InfoDrop() {
   }
 
   public interface Factory {
-    InfoDrop create(String type);
+    InfoDrop create();
   }
 
   public static final Factory factory = new Factory() {
-    public InfoDrop create(String type) {
-      return new InfoDrop(type);
+    public InfoDrop create() {
+      return new InfoDrop();
     }
   };
 }

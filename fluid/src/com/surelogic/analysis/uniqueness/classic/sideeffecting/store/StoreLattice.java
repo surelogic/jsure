@@ -1651,8 +1651,7 @@ extends TripleLattice<Element<Integer>,
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
-    final ResultDropBuilder result =
-      ResultDropBuilder.create(analysis, Messages.toString(msg));
+    final ResultDropBuilder result = ResultDropBuilder.create(analysis);
     drops.add(result);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);

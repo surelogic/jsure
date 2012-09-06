@@ -20,6 +20,10 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Not intended to be subclassed.
  */
 public final class ResultDrop extends ProofDrop implements IResultDrop {
+
+  /*
+   * XML attribute constants
+   */
   public static final String TIMEOUT = "timeout";
   public static final String VOUCHED = "vouched";
   public static final String CONSISTENT = "consistent";
@@ -30,20 +34,10 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   public static final String OR_USES_RED_DOT = "or-uses-red-dot";
   public static final String OR_PROVED = "or-proved-consistent";
 
-  /**
-   * Holds key that describes which message this result is.
+  /*
+   * Constructs a new result.
    */
-  private final String type;
-
-  /**
-   * @param t
-   *          Key that describes which message this result drop represents.
-   */
-  public ResultDrop(String t) {
-    if (t == null) {
-      throw new RuntimeException();
-    }
-    type = t;
+  public ResultDrop() {
   }
 
   /**
@@ -422,11 +416,6 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
     s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
-    if (type != null) {
-      s.addAttribute("result-type", type);
-    } else {
-      System.out.println("ResultDrop result-type is null");
-    }
   }
 
   @Override

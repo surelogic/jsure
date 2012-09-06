@@ -14,13 +14,12 @@ import edu.cmu.cs.fluid.sea.InfoDrop.Factory;
 public class InfoDropBuilder extends AbstractDropBuilder {
 	private final Factory factory;
 	
-	private InfoDropBuilder(String type, Factory f) {
-		super(type);
+	private InfoDropBuilder(Factory f) {
 		factory = f;
 	}
 	
-	public static InfoDropBuilder create(IIRAnalysis a, String type, Factory f) {
-		InfoDropBuilder rv = new InfoDropBuilder(type, f);
+	public static InfoDropBuilder create(IIRAnalysis a, Factory f) {
+		InfoDropBuilder rv = new InfoDropBuilder( f);
 		a.handleBuilder(rv);
 		return rv;
 	}
@@ -30,7 +29,7 @@ public class InfoDropBuilder extends AbstractDropBuilder {
 		if (!isValid()) {
 			return 0;
 		}
-		InfoDrop rd = factory.create(type);
+		InfoDrop rd = factory.create();
 		return buildDrop(rd);
 	}
 }

@@ -164,7 +164,7 @@ public class EqualityRules extends AnnotationRules {
 	}
 
 	static void makeResultDrop(PromiseDrop<?> p, boolean consistent, int num, Object... args) {
-		final ResultDrop r = new ResultDrop(Messages.DSC_LAYERS_ISSUES.getMessage());
+		final ResultDrop r = new ResultDrop();
 		r.setResultMessage(num, args);
 		r.addCheckedPromise(p);
 		if (consistent) {

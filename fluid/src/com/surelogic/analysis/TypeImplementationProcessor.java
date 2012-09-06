@@ -25,33 +25,22 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
   protected final P promiseDrop;
   protected final IRNode typeDecl;
   protected final IRNode typeBody;
-  
-  
-  protected TypeImplementationProcessor(
-      final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
-      final P pd,
-      final IRNode td, final IRNode tb) {
+
+  protected TypeImplementationProcessor(final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a, final P pd, final IRNode td,
+      final IRNode tb) {
     analysis = a;
     binder = a.getBinder();
     promiseDrop = pd;
     typeDecl = td;
     typeBody = tb;
   }
-  
-  protected TypeImplementationProcessor(
-      final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
-      final P pd,
-      final IRNode td) {
+
+  protected TypeImplementationProcessor(final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a, final P pd, final IRNode td) {
     this(a, pd, td, VisitUtil.getClassBody(td));
   }
-  
-  
-  
-  protected final ResultDropBuilder createResult(
-      final IRNode node, final boolean isConsistent, 
-      final int msg, final Object... args) {
-    final ResultDropBuilder result =
-      ResultDropBuilder.create(analysis, message2string(msg));
+
+  protected final ResultDropBuilder createResult(final IRNode node, final boolean isConsistent, final int msg, final Object... args) {
+    final ResultDropBuilder result = ResultDropBuilder.create(analysis);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     result.setConsistent(isConsistent);
@@ -59,19 +48,15 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     return result;
   }
 
-  protected abstract String message2string(int msg);
-  
-  
-  
-  
   public final void processType() {
     preProcess();
-    
+
     // First process the super type list
     if (EnumConstantClassDeclaration.prototype.includes(typeDecl)) {
-      /* VisitUtil.getSupertypeNames() doesn't work EnumConstantClassDeclarations.
-       * We want the enumeration that contains the declaration to be the 
-       * supertype.
+      /*
+       * VisitUtil.getSupertypeNames() doesn't work
+       * EnumConstantClassDeclarations. We want the enumeration that contains
+       * the declaration to be the supertype.
        */
       processSuperType(JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
     } else {
@@ -79,7 +64,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
         processSuperType(analysis.getBinder().getBinding(name));
       }
     }
-    
+
     // Then process the body elements
     for (final IRNode decl : ClassBody.getDeclIterator(typeBody)) {
       final Operator op = JJNode.tree.getOperator(decl);
@@ -95,14 +80,14 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
         processEnumConstantDeclaration(decl);
       }
     }
-    
+
     postProcess();
   }
-  
+
   protected void preProcess() {
     // Do nothing by default
   }
-  
+
   protected void postProcess() {
     // Do nothing by default
   }
@@ -110,21 +95,19 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
   protected void processSuperType(final IRNode decl) {
     // Do nothing by default
   }
-  
+
   protected void processFieldDeclaration(final IRNode decl) {
     // Visit variable declarators by default
     final boolean isStatic = JavaNode.getModifier(decl, JavaNode.STATIC);
-    for (final IRNode varDecl : VariableDeclarators.getVarIterator(
-        FieldDeclaration.getVars(decl))) {
+    for (final IRNode varDecl : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(decl))) {
       processVariableDeclarator(decl, varDecl, isStatic);
     }
   }
 
-  protected void processVariableDeclarator(
-      final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
+  protected void processVariableDeclarator(final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
     // Do nothing by default
   }
-  
+
   protected void processMethodDeclaration(final IRNode decl) {
     // Do nothing by default
   }
@@ -136,7 +119,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
   protected void processClassInitializer(final IRNode decl) {
     // Do nothing by default
   }
-  
+
   protected void processEnumConstantDeclaration(final IRNode element) {
     // Do nothing by default
   }

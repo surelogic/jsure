@@ -135,7 +135,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	}
 	
 	private ResultDropBuilder createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this, "Layers -- no errors");
+		ResultDropBuilder rd = ResultDropBuilder.create(this);
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);			
 		rd.addCheckedPromise(checked);
@@ -144,7 +144,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	}
 	
 	private ResultDropBuilder createFailureDrop(IRNode type) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this, "Layers");
+		ResultDropBuilder rd = ResultDropBuilder.create(this);
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);	
 		rd.setInconsistent();

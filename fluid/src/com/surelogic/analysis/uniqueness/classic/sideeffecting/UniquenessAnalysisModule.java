@@ -81,8 +81,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      * each control flow drop, and that would be dumb.
      */
     for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
-      final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-          this, Messages.toString(Messages.CONTROL_FLOW_ROOT));
+      final ResultDropBuilder middleDrop = ResultDropBuilder.create(this);
       middleDrop.addCheckedPromise(entry.getKey());
       middleDrop.setConsistent();
       middleDrop.setNode(entry.getKey().getNode());
@@ -174,7 +173,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         final InfoDropBuilder info =
-          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
+          InfoDropBuilder.create(this, WarningDrop.factory);
         this.setResultDependUponDrop(info, mr.mdecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
@@ -193,8 +192,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDropBuilder timeOutResult = 
-        ResultDropBuilder.create(this, Messages.toString(Messages.TIMEOUT));
+      final ResultDropBuilder timeOutResult = ResultDropBuilder.create(this);
       setResultDependUponDrop(timeOutResult, mr.mdecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);

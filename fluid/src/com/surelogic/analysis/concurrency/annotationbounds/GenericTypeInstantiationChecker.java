@@ -27,12 +27,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
-import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundVirtualDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -271,8 +269,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
         final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
         final ResultDropBuilder result;
         if (tester.testType(jTypeOfActual)) {
-          result = ResultDropBuilder.create(
-              analysis, Messages.toString(Messages.ANNOTATION_BOUND_SATISFIED));
+          result = ResultDropBuilder.create(analysis);
           analysis.setResultDependUponDrop(result, parameterizedType);
           result.addCheckedPromise(boundsDrop);
           result.setResultMessage(Messages.ANNOTATION_BOUND_SATISFIED,
@@ -280,8 +277,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
               bound.name(), nameOfTypeFormal, jTypeOfActual.toSourceText());
           result.setConsistent();
         } else {
-          result = ResultDropBuilder.create(
-              analysis, Messages.toString(Messages.ANNOTATION_BOUND_NOT_SATISFIED));
+          result = ResultDropBuilder.create(analysis);
           analysis.setResultDependUponDrop(result, parameterizedType);
           result.addCheckedPromise(boundsDrop);
           result.setResultMessage(Messages.ANNOTATION_BOUND_NOT_SATISFIED,

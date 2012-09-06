@@ -774,7 +774,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final WarningDrop info = new WarningDrop(msgTemplate);
+    final WarningDrop info = new WarningDrop();
     setResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
@@ -785,7 +785,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final IRNode context, final PromiseDrop<?> p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final ResultDrop result = new ResultDrop("ModuleAnalysis_simpleModulePromiseDrop");
+    final ResultDrop result = new ResultDrop();
     setResultDep(result, context);
     result.setMessage(msg);
     result.addCheckedPromise(p);

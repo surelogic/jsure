@@ -68,7 +68,7 @@ implements IThreadRoleDrop {
     boundImportedUnit = getAAST().getTRoleImport();
     if (boundImportedUnit == null) {
       // report an error on the @colorImport drop.
-      ResultDrop error = new ResultDrop("TROLEANALYSIS_BADIMPORT");
+      ResultDrop error = new ResultDrop();
       error.addCheckedPromise(this);
       error.setInconsistent();
 

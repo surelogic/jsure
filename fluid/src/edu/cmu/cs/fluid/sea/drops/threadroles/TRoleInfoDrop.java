@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import edu.cmu.cs.fluid.sea.InfoDrop;
@@ -7,7 +6,7 @@ public class TRoleInfoDrop extends InfoDrop implements IThreadRoleDrop {
 
 	// No changes from super, except to implement IThreadRoleDrop so that
 	// regression tests can distinguish ThreadRole results from other results.
-	public TRoleInfoDrop(String t) {
-		super(t);
+	public TRoleInfoDrop() {
+		super();
 	}
 }

@@ -859,8 +859,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDropBuilder makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate), InfoDrop.factory);
+		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot, InfoDrop.factory);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -870,8 +869,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDropBuilder makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate), WarningDrop.factory);
+		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot, WarningDrop.factory);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -882,8 +880,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final PromiseDrop<? extends IAASTRootNode> p,
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate));
+		final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot);
 		setLockResultDep(result, context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);

@@ -223,15 +223,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       super(a, uDrop, classDecl, classBody);
       binder = b;
     }
-
-    
-    
-    @Override
-    protected String message2string(final int msg) {
-      return Messages.toString(msg);
-    }
-
-    
+   
     
     @Override
     protected void preProcess() {
@@ -242,7 +234,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       // Prefer the class to be final
       if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
         final InfoDropBuilder db =
-          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), WarningDrop.factory);
+          InfoDropBuilder.create(analysis, WarningDrop.factory);
         analysis.setResultDependUponDrop(db, typeDecl);
         db.setResultMessage(Messages.CONSIDER_FINAL);
       }

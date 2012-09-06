@@ -33,7 +33,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   /**
-   * Records whether this result depends on something from source
+   * Records whether this result depends on something from source code.
    */
   boolean derivedFromSrc = false;
 

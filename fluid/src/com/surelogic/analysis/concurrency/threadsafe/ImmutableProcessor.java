@@ -37,11 +37,6 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
   }
 
   @Override
-  protected String message2string(final int msg) {
-    return Messages.toString(msg);
-  }
-
-  @Override
   protected void processSuperType(final IRNode tdecl) {
     final ImmutablePromiseDrop pDrop =
         LockRules.getImmutableImplementation(tdecl);

@@ -1,7 +1,5 @@
 package com.surelogic.analysis.utility;
 
-import java.util.*;
-
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
 public final class Messages extends AbstractMessages {
@@ -9,9 +7,7 @@ public final class Messages extends AbstractMessages {
   private Messages() {
     super();
   }
-  
-  
-  
+
   // Drop-sea result messages
   public static final int CLASS_IS_PUBLIC = 600;
   public static final int CLASS_IS_NOT_PUBLIC = 601;
@@ -31,18 +27,4 @@ public final class Messages extends AbstractMessages {
   public static final int SUBCLASSED = 619;
   public static final int CONSIDER_FINAL = 620;
   public static final int CONSTRUCTOR_COMPILED = 621;
-  
-  
-  
-  private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
-
-  /** To support JSure-Sierra integration
-  */
-  public static String toString(int code) {
-	  return code2name.get(code);
-  }
-
-  static {
-    collectCodeNames(Messages.class, code2name);
-  }
 }

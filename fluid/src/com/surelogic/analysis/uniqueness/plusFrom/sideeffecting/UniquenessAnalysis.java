@@ -326,7 +326,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long duration = endTime - startTime;
         if (duration > tooLongDuration) {
           final InfoDropBuilder info =
-            InfoDropBuilder.create(analysis, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
+            InfoDropBuilder.create(analysis, WarningDrop.factory);
           analysis.setResultDependUponDrop(info, flowUnit);
           info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
               methodName, duration / NANO_SECONDS_PER_SECOND);
@@ -339,8 +339,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long duration = endTime - startTime;
         gaveUp = true;
         
-        final ResultDropBuilder timeOutResult = 
-            ResultDropBuilder.create(analysis, Messages.toString(Messages.TIMEOUT));
+        final ResultDropBuilder timeOutResult = ResultDropBuilder.create(analysis);
         analysis.setResultDependUponDrop(timeOutResult, flowUnit);
         timeOutResult.setTimeout();
         timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);

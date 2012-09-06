@@ -22,7 +22,7 @@ public class WarningDropOutput extends AbstractTestOutput {
   }
   
   private IRReferenceDrop newDrop(ITest o, String msg, boolean success) {
-    IRReferenceDrop drop = success ? new InfoDrop(null) : new PromiseWarningDrop();
+    IRReferenceDrop drop = success ? new InfoDrop() : new PromiseWarningDrop();
     drop.setMessage(msg);
     if (category != null) {
       drop.setCategory(null);
