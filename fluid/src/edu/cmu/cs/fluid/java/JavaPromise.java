@@ -1122,6 +1122,7 @@ public class JavaPromise extends JavaNode {
 		final Iterator<TokenInfo> tokenInfos = EmptyIterator.prototype();
 		//PromiseFramework.getInstance().getTokenInfos(op);
 
+		/*
 		while (style.unparsePromises() && tokenInfos.hasNext()) {
 			final TokenInfo info = tokenInfos.next();
 			final IRType type = info.si.getType();
@@ -1140,7 +1141,7 @@ public class JavaPromise extends JavaNode {
 			/*
 			else if (type instanceof IRIntegerType) {				
 			}
-			 */
+			
 			else if (type instanceof IRNodeType) {					  
 				IRNode sub = AbstractPromiseAnnotation.getXorNull_filtered(info.si, node);
 
@@ -1175,7 +1176,7 @@ public class JavaPromise extends JavaNode {
 				LOG.warning("Got unexpected type for unparsing: "+type);
 			}
 		}
-		/*
+		
 		// handle enumerated method effects
 		Iterator<IRNode> fx = EffectsAnnotation.methodEffects(node);
 		if (style.unparsePromiseEffects() && fx != null) {
