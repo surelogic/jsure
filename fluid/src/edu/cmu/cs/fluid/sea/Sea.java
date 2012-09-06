@@ -79,8 +79,8 @@ public final class Sea {
   }
 
   /**
-   * Returns the set of drops within <code>dropSet</code> that are of
-   * <code>dropType</code> or any of its subtypes.
+   * Returns a new set that contains drops within <code>dropSet</code> that are
+   * of <code>dropType</code> or any of its subtypes.
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
    * subset are assignment compatible with a specific type, as shown in the
@@ -207,8 +207,8 @@ public final class Sea {
   }
 
   /**
-   * Returns the set of drops within <code>dropSet</code> that are of
-   * <code>dropType</code> (subtypes are <i>not</i> included).
+   * Returns a new set that contains of drops within <code>dropSet</code> that
+   * are of <code>dropType</code> (subtypes are <i>not</i> included).
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
    * subset are of a specific type, as shown in the below code snippet.
@@ -306,8 +306,8 @@ public final class Sea {
   }
 
   /**
-   * Returns the set of drops within <code>dropSet</code> that match the given
-   * drop predicate.
+   * Returns a new set that contains drops within <code>dropSet</code> that
+   * match the given drop predicate.
    * 
    * @param pred
    *          the drop predicate to apply to the drop set.

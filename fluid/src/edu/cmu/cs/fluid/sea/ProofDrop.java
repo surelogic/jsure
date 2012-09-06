@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
 
+import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 
@@ -144,6 +145,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   @Override
+  @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());

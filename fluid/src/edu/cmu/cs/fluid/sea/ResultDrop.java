@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * <p>
  * Not intended to be subclassed.
  */
-public final class ResultDrop extends ProofDrop implements IResultDrop {
+public final class ResultDrop extends AbstractResultDrop implements IResultDrop {
 
   /*
    * XML attribute constants
@@ -27,69 +27,34 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   public static final String TIMEOUT = "timeout";
   public static final String VOUCHED = "vouched";
   public static final String CONSISTENT = "consistent";
-  public static final String CHECKED_PROMISE = "checked-promise";
   public static final String TRUSTED_PROMISE = "trusted-promise";
   public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
   public static final String OR_LABEL = "or-label";
   public static final String OR_USES_RED_DOT = "or-uses-red-dot";
   public static final String OR_PROVED = "or-proved-consistent";
 
-  /*
-   * Constructs a new result.
+  /**
+   * Constructs a new analysis result.
    */
   public ResultDrop() {
   }
 
   /**
-   * The set of promise drops being checked, or established, by this result.
-   */
-  private Set<PromiseDrop<? extends IAASTRootNode>> checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-
-  /**
    * The set of promise drops trusted by this result, its preconditions.
    */
-  private Set<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  private final Set<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   /**
    * Map from "or" logic trust labels (String) to sets of drop promises. One
    * complete set of promises must be proved consistent for this result to be
    * consistent.
    */
-  private Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
+  private final Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
 
   /**
    * Flags if this result indicates consistency with code.
    */
   private boolean consistent = false;
-
-  /**
-   * Adds a promise to the set of promises this result establishes, or
-   * <i>checks</i>.
-   * 
-   * @param promise
-   *          the promise being supported by this result
-   */
-  public void addCheckedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
-    checks.add(promise);
-    promise.addDependent(this);
-  }
-
-  /**
-   * Adds a set of promises to the set of promises this result establishes, or
-   * <i>checks</i>.
-   * 
-   * @param promises
-   *          the promises being supported by this result
-   */
-  public void addCheckedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
-    // no null check -- fail-fast
-    for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
-      // Iterator promiseIter = promises.iterator();
-      // while (promiseIter.hasNext()) {
-      // PromiseDrop promise = (PromiseDrop) promiseIter.next();
-      addCheckedPromise(promise);
-    }
-  }
 
   /**
    * Adds a promise to the set of promises this result uses as a precondition,
@@ -139,19 +104,9 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   }
 
   /**
-   * Gets the set of promise drops established, or checked, by this result.
-   * 
-   * @return the non-null (possibly empty) set of promise drops established, or
-   *         checked, by this result.
-   */
-  public Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
-    return checks;
-  }
-
-  /**
    * Returns the preconditions of this result, including any "or" preconditions.
-   * However, using this call it is impossible to distingish "and" preconditions
-   * from "or"preconditions.
+   * However, using this call it is impossible to distinguish "and"
+   * preconditions from "or"preconditions.
    * 
    * @return the non-null (possibly empty) set of promises trusted by this
    *         result, its preconditions. All members of the returned set will are
@@ -392,9 +347,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 
   @Override
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getChecks()) {
-      s.snapshotDrop(c);
-    }
+    super.preprocessRefs(s);
     for (Drop t : getTrusts()) {
       s.snapshotDrop(t);
     }
@@ -421,9 +374,6 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop c : getChecks()) {
-      s.refDrop(db, CHECKED_PROMISE, c);
-    }
     for (Drop t : getTrusts()) {
       s.refDrop(db, TRUSTED_PROMISE, t);
     }
