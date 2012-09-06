@@ -135,8 +135,10 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   }
 
   /**
-   * @return the set of promise drops established, or checked, by this result.
-   *         All members of the returned set will are of the PromiseDrop type.
+   * Gets the set of promise drops established, or checked, by this result.
+   * 
+   * @return the non-null (possibly empty) set of promise drops established, or
+   *         checked, by this result.
    */
   public Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
     return checks;
@@ -147,8 +149,9 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * However, using this call it is impossible to distingish "and" preconditions
    * from "or"preconditions.
    * 
-   * @return the set of promises trusted by this result, its preconditions. All
-   *         members of the returned set will are of the PromiseDrop type.
+   * @return the non-null (possibly empty) set of promises trusted by this
+   *         result, its preconditions. All members of the returned set will are
+   *         of the PromiseDrop type.
    * 
    * @see #getTrusts()
    * @see #hasOrLogic()
@@ -173,8 +176,8 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * "or" preconditions. Use the "get_or_" methods to obtain those
    * preconditions.
    * 
-   * @return the set of promises trusted by this result, its preconditions. All
-   *         members of the returned set will are of the PromiseDrop type.
+   * @return the non-null (possibly empty) set of promises trusted by this
+   *         result, its preconditions.
    * 
    * @see #hasOrLogic()
    * @see #get_or_TrustLabelSet()
@@ -232,7 +235,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * }
    * </pre>
    * 
-   * @return the set of "or" keys used by this promise
+   * @return the non-null (possibly empty) set of "or" keys used by this promise
    */
   public Set<String> get_or_TrustLabelSet() {
     return or_TrustLabelToTrusts.keySet();
@@ -259,13 +262,15 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * 
    * @param key
    *          the key to provide the promise drop set for
-   * @return the promise drop set
+   * @return the non-null (possibly empty) promise drop set
    */
   public Set<PromiseDrop<? extends IAASTRootNode>> get_or_Trusts(String key) {
     return or_TrustLabelToTrusts.get(key);
   }
 
   /**
+   * Gets if this result indicates model/code consistency.
+   * 
    * @return <code>true</code> if the result indicates model/code consistency,
    *         <code>false</code> otherwise.
    */

@@ -212,8 +212,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Returns a copy of the set of result drops which directly check this promise
    * drop.
    * 
-   * @return a set, all members of the type {@link ResultDrop}, which check this
-   *         promise drop
+   * @return a non-null (possibly empty) set which check this promise drop
    */
   public final Set<? extends ResultDrop> getCheckedBy() {
     final Set<ResultDrop> result = new HashSet<ResultDrop>();
@@ -253,6 +252,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Gets if this promise is assumed.
+   * 
    * @return <code>true</code> if the promise is assumed, <code>false</code>
    *         otherwise.
    */
@@ -261,6 +262,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Sets if this promise is assumed.
+   * 
    * @param isAssumed
    *          <code>true</code> if the promise is assumed, <code>false</code>
    *          otherwise.
@@ -270,6 +273,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Gets if this promise is virtual.
+   * 
    * @return <code>true</code> if the promise is virtual, <code>false</code>
    *         otherwise.
    */
