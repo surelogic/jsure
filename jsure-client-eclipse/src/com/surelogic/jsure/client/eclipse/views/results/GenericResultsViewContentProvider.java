@@ -39,7 +39,7 @@ import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
@@ -241,13 +241,13 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    */
   @SuppressWarnings("unchecked")
   private void addProposedPromises(C mutableContentSet, IDrop about) {
-    Collection<? extends IProposedPromiseDropInfo> proposals = about.getProposals();
+    Collection<? extends IProposedPromiseDrop> proposals = about.getProposals();
     int size = proposals.size();
     if (size == 0) {
       // no proposed promises, thus bail out
       return;
     } else if (size == 1) {
-      IProposedPromiseDropInfo pp = proposals.iterator().next();
+      IProposedPromiseDrop pp = proposals.iterator().next();
       final C proposalItem = makeContent("proposed promise: " + pp.getJavaAnnotation(), (T) pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       mutableContentSet.addChild(proposalItem);
@@ -257,7 +257,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     C siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
     siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
-    for (IProposedPromiseDropInfo pp : proposals) {
+    for (IProposedPromiseDrop pp : proposals) {
       final C proposalItem = makeContent(pp.getJavaAnnotation(), (T) pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       siFolder.addChild(proposalItem);

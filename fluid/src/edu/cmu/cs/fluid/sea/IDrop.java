@@ -159,7 +159,7 @@ public interface IDrop {
    * @return the, possibly empty but non-null, set of proposed promises for this
    *         drop.
    */
-  Collection<? extends IProposedPromiseDropInfo> getProposals();
+  Collection<? extends IProposedPromiseDrop> getProposals();
 
   /**
    * Places the needed attributes for persistence of this drop on the passed XML

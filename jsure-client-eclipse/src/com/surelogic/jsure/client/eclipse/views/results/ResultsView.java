@@ -63,7 +63,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
@@ -229,7 +229,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
 
 		@Override
-		protected List<IProposedPromiseDropInfo> getProposedDrops() {
+		protected List<IProposedPromiseDrop> getProposedDrops() {
 			/*
 			 * There are two cases: (1) a single proposed promise drop in the
 			 * tree is selected and (2) a container folder for multiple proposed
@@ -240,7 +240,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				return Collections.emptyList();
 			}
-			final List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
+			final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
 			for (final Object element : selection.toList()) {
 				if (element instanceof AbstractContent) {
 					@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -250,7 +250,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					 * is selected.
 					 */
 					if (c.getDropInfo().instanceOf(ProposedPromiseDrop.class)) {
-						final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
+						final IProposedPromiseDrop pp = (IProposedPromiseDrop) c
 								.getDropInfo();
 						if (pp != null) {
 							proposals.add(pp);
@@ -268,7 +268,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 									.getChildrenAsCollection()) {
 								if (content.getDropInfo().instanceOf(
 										ProposedPromiseDrop.class)) {
-									final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
+									final IProposedPromiseDrop pp = (IProposedPromiseDrop) c
 											.getDropInfo();
 									if (pp != null) {
 										proposals.add(pp);

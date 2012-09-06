@@ -611,7 +611,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return result;
     }
 
-    public Collection<? extends IProposedPromiseDropInfo> getProposals() {
+    public Collection<? extends IProposedPromiseDrop> getProposals() {
       return proposals;
     }
 
@@ -762,7 +762,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
   }
 
-  static class ProposedPromiseInfo extends Info implements IProposedPromiseDropInfo, IJavaDeclInfoClient,
+  static class ProposedPromiseInfo extends Info implements IProposedPromiseDrop, IJavaDeclInfoClient,
       Comparable<ProposedPromiseInfo> {
     static {
       internString(ProposedPromiseDrop.FROM_INFO);
@@ -891,7 +891,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       }
     }
 
-    public boolean isSameProposalAs(IProposedPromiseDropInfo other) {
+    public boolean isSameProposalAs(IProposedPromiseDrop other) {
       if (this == other)
         return true;
       if (other == null)

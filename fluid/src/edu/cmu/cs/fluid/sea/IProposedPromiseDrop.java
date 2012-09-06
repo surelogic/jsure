@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea;
 
 import java.util.Map;
@@ -8,7 +7,7 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
-public interface IProposedPromiseDropInfo extends IDrop {
+public interface IProposedPromiseDrop extends IDrop {
 	String getAnnotation();
 	String getContents();
 	Map<String,String> getAnnoAttributes();
@@ -25,5 +24,5 @@ public interface IProposedPromiseDropInfo extends IDrop {
 	ISrcRef getAssumptionRef();
 	
 	long computeHash();
-	boolean isSameProposalAs(IProposedPromiseDropInfo i);
+	boolean isSameProposalAs(IProposedPromiseDrop i);
 }

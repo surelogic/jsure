@@ -591,7 +591,7 @@ public abstract class Drop implements IDrop {
     return null;
   }
 
-  public Collection<? extends IProposedPromiseDropInfo> getProposals() {
+  public Collection<? extends IProposedPromiseDrop> getProposals() {
     return Collections.emptyList();
   }
 

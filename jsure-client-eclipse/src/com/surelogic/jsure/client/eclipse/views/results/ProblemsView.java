@@ -31,7 +31,7 @@ import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePa
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
 import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public final class ProblemsView extends AbstractScanTableView<IDrop>
 		implements EclipseUIUtility.IContextMenuFiller {
@@ -128,8 +128,8 @@ public final class ProblemsView extends AbstractScanTableView<IDrop>
 	}
 
 	@Override
-	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
-		List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
+	protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
+		List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
 		for (IDrop info : getSelectedRows()) {
 			proposals.addAll(info.getProposals());
 		}
