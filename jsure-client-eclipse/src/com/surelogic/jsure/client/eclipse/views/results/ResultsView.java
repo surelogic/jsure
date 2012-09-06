@@ -249,7 +249,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					 * Deal with the case where a single proposed promise drop
 					 * is selected.
 					 */
-					if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
+					if (c.getDropInfo().instanceOf(ProposedPromiseDrop.class)) {
 						final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
 								.getDropInfo();
 						if (pp != null) {
@@ -266,7 +266,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 							for (@SuppressWarnings("rawtypes")
 							AbstractContent content : c
 									.getChildrenAsCollection()) {
-								if (content.getDropInfo().isInstance(
+								if (content.getDropInfo().instanceOf(
 										ProposedPromiseDrop.class)) {
 									final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c
 											.getDropInfo();
@@ -351,9 +351,9 @@ public final class ResultsView extends AbstractJSureResultsView implements
 					result = -1;
 				} else {
 					final boolean c1isPromise = c1.getDropInfo() != null
-							&& c1.getDropInfo().isInstance(PromiseDrop.class);
+							&& c1.getDropInfo().instanceOf(PromiseDrop.class);
 					final boolean c2isPromise = c2.getDropInfo() != null
-							&& c2.getDropInfo().isInstance(PromiseDrop.class);
+							&& c2.getDropInfo().instanceOf(PromiseDrop.class);
 					// Separating promise drops from other proof drops
 					if (c1isPromise && !c2isPromise) {
 						result = 1;
@@ -556,7 +556,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 				final AbstractContent c = (AbstractContent) first;
 				final IDropInfo dropInfo = c.getDropInfo();
 				if (dropInfo != null) {
-					if (dropInfo.isInstance(ProposedPromiseDrop.class)) {
+					if (dropInfo.instanceOf(ProposedPromiseDrop.class)) {
 						manager.add(f_addPromiseToCode);
 						f_addPromiseToCode.setText(I18N
 								.msg("jsure.eclipse.proposed.promise.edit"));

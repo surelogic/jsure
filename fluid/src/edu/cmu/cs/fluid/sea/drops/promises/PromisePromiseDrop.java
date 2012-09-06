@@ -20,7 +20,7 @@ public final class PromisePromiseDrop extends ScopedPromiseDrop {
   
   @Override
   protected void computeBasedOnAST() {  
-    setMessage("Promise "+getAST());    
+    setMessage("Promise "+getAAST());    
   }
   /*
   @Override

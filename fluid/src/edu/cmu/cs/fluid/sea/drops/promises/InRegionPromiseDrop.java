@@ -11,7 +11,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * Promise drop for "InRegion" promise annotations defining a region.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
   public InRegionPromiseDrop(InRegionNode n) {
@@ -40,9 +39,9 @@ public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
   
   @Override
   protected void computeBasedOnAST() {
-    if (getAST() != null) {
+    if (getAAST() != null) {
       String name       = JavaNames.getFieldDecl(getNode());
-      String regionName = getAST().getSpec().unparse(false);
+      String regionName = getAAST().getSpec().unparse(false);
       setResultMessage(Messages.RegionAnnotation_inRegionDrop, regionName, name); //$NON-NLS-1$
 //    
 //      IRegionBinding b = getAST().getSpec().resolveBinding();

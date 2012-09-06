@@ -116,7 +116,7 @@ public class PersistentDropInfo implements SeaObserver {
 
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
 		for (IDropInfo i : dropInfo) {
-			if (i.isInstance(type)) {
+			if (i.instanceOf(type)) {
 				return true;
 			}
 		}
@@ -129,7 +129,7 @@ public class PersistentDropInfo implements SeaObserver {
 		if (!dropInfo.isEmpty()) {
 			final Set<T> result = new HashSet<T>();
 			for (IDropInfo i : dropInfo) {
-				if (i.isInstance(dropType)) {
+				if (i.instanceOf(dropType)) {
 					result.add((T) i);
 				}
 			}

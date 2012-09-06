@@ -28,8 +28,8 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -39,7 +39,6 @@ import edu.cmu.cs.fluid.util.*;
  * Actual drop for "region" models.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  * 
  * @lock RegionModelLock is class protects nameToDrop
  */
@@ -167,11 +166,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 				|| NewRegionDeclaration.prototype.includes(n);
 	}
 
-	private static DropPredicate definingDropPred = new AbstractDropPredicate() {
-		public boolean match(Drop d) {
-			return d instanceof InRegionPromiseDrop
-			// || d instanceof RegionDeclarationDrop
-					|| d instanceof ExplicitUniqueInRegionPromiseDrop;
+	private static DropPredicate definingDropPred = new DropPredicate() {
+		public boolean match(IDropInfo d) {
+			return d.instanceOf(InRegionPromiseDrop.class)
+					|| d.instanceOf(ExplicitUniqueInRegionPromiseDrop.class);
 		}
 	};
 
@@ -180,7 +178,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		final String project = p == null ? "" : p.getName();
 		RegionModel drop = nameToDrop.get(key, project);
 		if (drop != null) {
-			drop.clearAST();
+			drop.clearAAST();
 		}
 	}
 
@@ -220,7 +218,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			if (!regionDefinedInCode) {
 				keepAnyways = drop.isValid()
 						&& activeProjects.contains(key.second())
-						&& (drop.colorInfo != null || drop.getAST() != null
+						&& (drop.colorInfo != null || drop.getAAST() != null
 								|| key.first().equals(INSTANCE)
 								|| key.first().endsWith(RegionRules.STATIC_SUFFIX)
 								|| key.first().equals(ALL));
@@ -293,7 +291,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		 * instanceof VariableDeclarator)) {
 		 * System.out.println("Got non-VarDecl for "+regionName); }
 		 */
-		final NewRegionDeclarationNode ast = getAST();
+		final NewRegionDeclarationNode ast = getAAST();
 		if (ast == null) {
 			return;
 		}
@@ -318,11 +316,11 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 *         region, i.e., @Region
 	 */
 	public boolean isAbstract() {
-		return (this.getAST() != null);
+		return (this.getAAST() != null);
 	}
 
 	public boolean isFinal() {
-		final NewRegionDeclarationNode ast = getAST();
+		final NewRegionDeclarationNode ast = getAAST();
 		if (ast != null) {
 			return false;
 		} else {
@@ -332,7 +330,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	}
 
 	public boolean isVolatile() {
-		final NewRegionDeclarationNode ast = getAST();
+		final NewRegionDeclarationNode ast = getAAST();
 		if (ast != null) {
 			return false;
 		} else {
@@ -342,8 +340,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	}
 
 	public boolean isStatic() {
-		if (getAST() != null) {
-			return getAST().isStatic();
+		if (getAAST() != null) {
+			return getAAST().isStatic();
 		}
 		// FIX From IR
 		IRNode decl = getNode();
@@ -364,8 +362,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	}
 
 	public Visibility getVisibility() {
-		if (getAST() != null) {
-			return getAST().getVisibility();
+		if (getAAST() != null) {
+			return getAAST().getVisibility();
 		}
 		// FIX From IR
 		IRNode decl = getNode();
@@ -378,9 +376,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	public boolean isAccessibleFromType(ITypeEnvironment tEnv, IRNode t) {
 
-		if (getAST() != null) {
-			return BindUtil.isAccessibleInsideType(tEnv, getAST()
-					.getVisibility(), getAST().getPromisedFor(), t);
+		if (getAAST() != null) {
+			return BindUtil.isAccessibleInsideType(tEnv, getAAST()
+					.getVisibility(), getAAST().getPromisedFor(), t);
 		}
 		return BindUtil.isAccessibleInsideType(tEnv, getNode(), t);
 	}
@@ -394,7 +392,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 *             If a IRegionBinding doesn't exist
 	 */
 	public RegionModel getParentRegion() {
-		final NewRegionDeclarationNode nrdn = this.getAST();
+		final NewRegionDeclarationNode nrdn = this.getAAST();
 		RegionModel model = null;
 		final RegionSpecificationNode rsn;
 		final IRegionBinding binding;
@@ -428,7 +426,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 					.getNode());
 
 			if (mipd != null) {
-				min = mipd.getAST();
+				min = mipd.getAAST();
 				if (min != null) {
 					rsn = min.getSpec();
 					if (rsn != null) {

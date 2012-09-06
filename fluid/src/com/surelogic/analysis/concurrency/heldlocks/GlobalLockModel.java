@@ -27,7 +27,9 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
  */
 public final class GlobalLockModel {
   public static final class UnsupportedLockException extends Exception {
-    private final ExpressionNode bad;
+	private static final long serialVersionUID = 1L;
+	
+	private final ExpressionNode bad;
     
     public UnsupportedLockException(final ExpressionNode en) { bad = en; }
     

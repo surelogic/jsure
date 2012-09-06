@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import SableJBDD.bdd.JBDD;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.common.logging.SLLogger;
 
@@ -53,7 +54,6 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleSummaryDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
-
 /**
  * @author dfsuther
  * 
@@ -67,15 +67,14 @@ public class TRoleSecondPass implements IBinderClient {
   }
 
   private TRoleSecondPass() {
-	  // Nothing to do here
+    // Nothing to do here
   }
 
   private static IBinder binder = null;
 
   private static final Logger LOG = SLLogger.getLogger("TRoleSecondPass"); //$NON-NLS-1$
 
-  private static final Logger LOG1 = SLLogger
-      .getLogger("analysis.callgraph.stats"); //$NON-NLS-1$
+  private static final Logger LOG1 = SLLogger.getLogger("analysis.callgraph.stats"); //$NON-NLS-1$
 
   private Drop resultDependUpon = null;
 
@@ -167,17 +166,16 @@ public class TRoleSecondPass implements IBinderClient {
     final TRoleStats cStats = TRoleStats.getInstance();
     cStats.afterTRsp = cStats.getTRoleStats("After TRoleSecondPass:"); //$NON-NLS-1$
 
-    
     try {
-    	// InfoDrop rd = TRoleMessages.createInfoDrop(cStats.beforeCfp.toString(),
-    	// null);
-    	LOG.info(cStats.beforeTRfp.toString());
-    	// rd = TRoleMessages.createInfoDrop(cStats.afterCfp.toString(), null);
-    	LOG.info(cStats.afterTRfp.toString());
-    	// rd = TRoleMessages.createInfoDrop(cStats.afterCsp.toString(), null);
-    	LOG.info(cStats.afterTRsp.toString());
-    } catch(NullPointerException e) {
-    	// Ignore
+      // InfoDrop rd = TRoleMessages.createInfoDrop(cStats.beforeCfp.toString(),
+      // null);
+      LOG.info(cStats.beforeTRfp.toString());
+      // rd = TRoleMessages.createInfoDrop(cStats.afterCfp.toString(), null);
+      LOG.info(cStats.afterTRfp.toString());
+      // rd = TRoleMessages.createInfoDrop(cStats.afterCsp.toString(), null);
+      LOG.info(cStats.afterTRsp.toString());
+    } catch (NullPointerException e) {
+      // Ignore
     }
   }
 
@@ -221,12 +219,11 @@ public class TRoleSecondPass implements IBinderClient {
 
       TRoleReqSummaryDrop summary = TRoleReqSummaryDrop.getSummaryFor(mDecl);
       if (summary == null) {
-    	  System.err.println("No summary for "+methodName);
-    	  continue;
+        System.err.println("No summary for " + methodName);
+        continue;
       }
-      if ((!summary.isInferred() || aCGD.tRolesNeedBodyTraversal())
-          && aCGD.foundABody()) {
-    	if (LOG.isLoggable(Level.FINER))
+      if ((!summary.isInferred() || aCGD.tRolesNeedBodyTraversal()) && aCGD.foundABody()) {
+        if (LOG.isLoggable(Level.FINER))
           LOG.finer("Adding " + methodName + "to worklist 1st time"); //$NON-NLS-1$ //$NON-NLS-2$
         wList.addToWorkList(mDecl);
       }
@@ -244,7 +241,7 @@ public class TRoleSecondPass implements IBinderClient {
     // method. This constraint was either a) written by the user (==>isUser),
     // b) inherited from one or more parents (==>isInherited), or c) inferred by
     // this analysis (==>isInferred).
-    // 
+    //
     // IF !containsGrantOrRevoke THEN
     // OR the TRoleContextSummary into the TRoleContextSummaries of all methods
     // from callees. If a callee's TRoleContextSummary changes, add him to the
@@ -268,7 +265,7 @@ public class TRoleSecondPass implements IBinderClient {
       JBDD localCtx = null;
       if (LOG.isLoggable(Level.FINER))
         LOG.finer("Got " + methodName + " from worklist."); //$NON-NLS-1$ //$NON-NLS-2$
-      Collection<PromiseDrop> ctxDependsOn = new ArrayList<PromiseDrop>(2);
+      Collection<PromiseDrop<? extends IAASTRootNode>> ctxDependsOn = new ArrayList<PromiseDrop<? extends IAASTRootNode>>(2);
 
       localCtx = computeInitialCtx(mDecl, ctxDependsOn);
 
@@ -305,10 +302,10 @@ public class TRoleSecondPass implements IBinderClient {
   }
 
   /**
-   * Given an mDecl (and thus its ThreadRole anno summaries), compute the initial
-   * ThreadRole context needed for context tree traversal. Also update the contents
-   * of localSummaries with the appropriate annos to depend on w.r.t. the
-   * context.
+   * Given an mDecl (and thus its ThreadRole anno summaries), compute the
+   * initial ThreadRole context needed for context tree traversal. Also update
+   * the contents of localSummaries with the appropriate annos to depend on
+   * w.r.t. the context.
    * 
    * @param mDecl
    *          The method to process
@@ -317,19 +314,19 @@ public class TRoleSecondPass implements IBinderClient {
    *          depend on.
    * @return The context expression.
    */
-  private static JBDD computeInitialCtx(final IRNode mDecl,
-      Collection<PromiseDrop> ctxDependsOn) {
+  private static JBDD computeInitialCtx(final IRNode mDecl, Collection<PromiseDrop<? extends IAASTRootNode>> ctxDependsOn) {
     StringBuilder debugMessage = new StringBuilder();
     TRoleReqSummaryDrop reqSum = TRoleReqSummaryDrop.getSummaryFor(mDecl);
     if (reqSum.isInferred()) {
       // inferred constraints ARE the calling context.
-    	final TRoleCtxSummaryDrop ctxSum = TRoleCtxSummaryDrop.getSummaryFor(mDecl);
+      final TRoleCtxSummaryDrop ctxSum = TRoleCtxSummaryDrop.getSummaryFor(mDecl);
       // update the reqSum's constraint expression.
       reqSum.setFullExpr(ctxSum.getFullExpr());
-      final Set userDeponents = reqSum.getUserDeponents();
+      final Set<PromiseDrop<? extends IAASTRootNode>> userDeponents = reqSum.getUserDeponents();
       // Don't clear userDeponents if reqSum is an API method. API methods may
       // or may not have calls to them, and so must have their own
-      // requirementSummary as a userDeponent just in case there is nothing else to use.
+      // requirementSummary as a userDeponent just in case there is nothing else
+      // to use.
       if (!ModuleModel.isAPIinParentModule(mDecl)) {
         userDeponents.clear();
       }
@@ -340,8 +337,7 @@ public class TRoleSecondPass implements IBinderClient {
     return localCtx;
   }
 
-  static boolean contextImpliesReq(IRNode mDecl, boolean ctxIsEmpty,
-      JBDD ctxFullExpr, TRoleReqSummaryDrop req) {
+  static boolean contextImpliesReq(IRNode mDecl, boolean ctxIsEmpty, JBDD ctxFullExpr, TRoleReqSummaryDrop req) {
     assert ((mDecl != null) && (ctxFullExpr != null) && (req != null));
 
     final String mName = JJNode.getInfo(mDecl);
@@ -350,8 +346,7 @@ public class TRoleSecondPass implements IBinderClient {
     final boolean reqEmpty = req.isEmpty();
     final JBDD reqFullExpr = req.getFullExpr();
 
-    return coreContextImpliesReq(ctxIsEmpty, ctxFullExpr, tRoleNR, localEmpty,
-        reqFullExpr);
+    return coreContextImpliesReq(ctxIsEmpty, ctxFullExpr, tRoleNR, localEmpty, reqFullExpr);
   }
 
   /**
@@ -362,9 +357,8 @@ public class TRoleSecondPass implements IBinderClient {
    * @param reqFullExpr
    * @return
    */
-  private static boolean coreContextImpliesReq(boolean ctxIsEmpty,
-      JBDD ctxFullExpr, final boolean tRoleNR, final boolean localEmpty,
-      final JBDD reqFullExpr) {
+  private static boolean coreContextImpliesReq(boolean ctxIsEmpty, JBDD ctxFullExpr, final boolean tRoleNR,
+      final boolean localEmpty, final JBDD reqFullExpr) {
     if (ctxIsEmpty) {
       // empty context is OK if transparent on mDecl
       if (tRoleNR) {
@@ -461,8 +455,7 @@ public class TRoleSecondPass implements IBinderClient {
   private final ArrayList<CGData> statList = new ArrayList<CGData>();
 
   // addStat(aCGD, methodCanBeOveridden, !aCGD.partOfAPI && aCGD.foundABody());
-  private void addStat(SimpleCallGraphDrop aCGD, boolean canOverride,
-      boolean seenAll) {
+  private void addStat(SimpleCallGraphDrop aCGD, boolean canOverride, boolean seenAll) {
     final int fanout = aCGD.numOverridingMethods + 1;
     CGData stat = null;
     if (statList.size() > fanout) {
@@ -488,18 +481,15 @@ public class TRoleSecondPass implements IBinderClient {
     }
   }
 
-  private void setResultDep(final IRReferenceDrop drop,
-      final Drop resultDependUpon) {
+  private void setResultDep(final IRReferenceDrop drop, final Drop resultDependUpon) {
     if (resultDependUpon != null && resultDependUpon.isValid()) {
       resultDependUpon.addDependent(drop);
     } else {
-      LOG.log(Level.SEVERE,
-          "setResultDep found invalid or null resultDependUpon drop"); //$NON-NLS-1$
+      LOG.log(Level.SEVERE, "setResultDep found invalid or null resultDependUpon drop"); //$NON-NLS-1$
     }
   }
 
-  private InfoDrop makeWarningDrop(final Category category,
-      final IRNode context, final Drop resultDependUpon,
+  private InfoDrop makeWarningDrop(final Category category, final IRNode context, final Drop resultDependUpon,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final InfoDrop info = TRoleMessages.createWarningDrop(msg, context);
@@ -508,9 +498,8 @@ public class TRoleSecondPass implements IBinderClient {
     return info;
   }
 
-  private ResultDrop makeResultDrop(final IRNode context, final PromiseDrop p,
-      final boolean isConsistent, final Drop resultDependUpon,
-      final String msgTemplate, final Object... msgArgs) {
+  private ResultDrop makeResultDrop(final IRNode context, final PromiseDrop p, final boolean isConsistent,
+      final Drop resultDependUpon, final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final ResultDrop result;
     if (isConsistent) {
@@ -524,32 +513,29 @@ public class TRoleSecondPass implements IBinderClient {
     return result;
   }
 
-  private void addSupportingInformation(final IRReferenceDrop drop,
-      final IRNode link, final String msgTemplate, final Object... msgArgs) {
+  private void addSupportingInformation(final IRReferenceDrop drop, final IRNode link, final String msgTemplate,
+      final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     drop.addSupportingInformation(msg, link);
   }
 
   private static void computeCanonicalBddImages() {
     TRoleBDDPack.resetCanonicalImages();
-    for (TRoleRequireDrop tRoleReqd : Sea.getDefault().getDropsOfType(
-        TRoleRequireDrop.class)) {
+    for (TRoleRequireDrop tRoleReqd : Sea.getDefault().getDropsOfType(TRoleRequireDrop.class)) {
       final TRExpr rawExpr = tRoleReqd.getRawExpr();
       final String image = rawExpr.toString();
       final JBDD rawBDD = tRoleReqd.getRenamedExpr().computeExpr(true);
       TRoleBDDPack.registerCanonicalImage(image, rawBDD);
     }
 
-    for (RegionTRoleDeclDrop rtrd : Sea.getDefault().getDropsOfType(
-        RegionTRoleDeclDrop.class)) {
+    for (RegionTRoleDeclDrop rtrd : Sea.getDefault().getDropsOfType(RegionTRoleDeclDrop.class)) {
       final TRExpr rawExpr = rtrd.getUserConstraint();
       final String image = rawExpr.toString();
       final JBDD rawBDD = rtrd.getRenamedConstraint().computeExpr(true);
       TRoleBDDPack.registerCanonicalImage(image, rawBDD);
     }
 
-    for (TRoleRenameDrop tRoleRenamed : Sea.getDefault().getDropsOfType(
-        TRoleRenameDrop.class)) {
+    for (TRoleRenameDrop tRoleRenamed : Sea.getDefault().getDropsOfType(TRoleRenameDrop.class)) {
       final Object cookie = TRoleRenamePerCU.startACU(tRoleRenamed.getMyPerCU().getCu());
       final String image = tRoleRenamed.simpleName;
       final JBDD rawBDD = tRoleRenamed.getFullExpr();
@@ -558,12 +544,10 @@ public class TRoleSecondPass implements IBinderClient {
     }
   }
 
-  private boolean possibleMultipleThreads(final JBDD expr,
-      final TRoleCtxSummaryDrop ctxDrop) {
+  private boolean possibleMultipleThreads(final JBDD expr, final TRoleCtxSummaryDrop ctxDrop) {
     final IRNode where = ctxDrop.getNode();
 
-    final Set<TRoleNameModel> tRoleNames = canonicalTRoleNamesFromJBDD(expr,
-        where);
+    final Set<TRoleNameModel> tRoleNames = canonicalTRoleNamesFromJBDD(expr, where);
 
     if (tRoleNames.size() > 1) {
       return true;
@@ -579,12 +563,10 @@ public class TRoleSecondPass implements IBinderClient {
    * @return A HashSet of (canonicalized) ColorNameModels, one for each truly
    *         distinct variable referred to positively in expr.
    */
-  private Set<TRoleNameModel> canonicalTRoleNamesFromJBDD(final JBDD expr,
-      final IRNode where) {
+  private Set<TRoleNameModel> canonicalTRoleNamesFromJBDD(final JBDD expr, final IRNode where) {
     final Set<String> posTRoles = expr.supportingPosVars();
 
-    final Set<TRoleNameModel> tRoleNames = new HashSet<TRoleNameModel>(
-        posTRoles.size());
+    final Set<TRoleNameModel> tRoleNames = new HashSet<TRoleNameModel>(posTRoles.size());
     for (String tRoleName : posTRoles) {
       tRoleNames.add(TRoleNameModel.getCanonicalInstance(tRoleName, where));
     }
@@ -608,30 +590,24 @@ public class TRoleSecondPass implements IBinderClient {
 
     Set<IRNode> mthWithBodiesToTraverse = new HashSet<IRNode>();
 
-    TRoleSummaryDrop usefulInferDependOn = new TRoleSummaryDrop(
-        "Inferred @ThreadRole"); //$NON-NLS-1$
+    TRoleSummaryDrop usefulInferDependOn = new TRoleSummaryDrop("Inferred @ThreadRole"); //$NON-NLS-1$
     int usefulInferCount = 0;
-    TRoleSummaryDrop noInfoInferDependOn = new TRoleSummaryDrop(
-        "ThreadRole model not inferrable"); //$NON-NLS-1$
+    TRoleSummaryDrop noInfoInferDependOn = new TRoleSummaryDrop("ThreadRole model not inferrable"); //$NON-NLS-1$
     int noInfoInferCount = 0;
 
     TRoleSummaryDrop transparentDependOn = new TRoleSummaryDrop("@transparent methods"); //$NON-NLS-1$
     int trnrCount = 0;
 
-    TRoleSummaryDrop inheritDependOn = new TRoleSummaryDrop(
-        "ThreadRole model via inheritance"); //$NON-NLS-1$
+    TRoleSummaryDrop inheritDependOn = new TRoleSummaryDrop("ThreadRole model via inheritance"); //$NON-NLS-1$
     int inheritCount = 0;
 
-    TRoleSummaryDrop tRoleReportDataDependOn = new TRoleSummaryDrop(
-        "ThreadRole Reporting Regions"); //$NON-NLS-1$
+    TRoleSummaryDrop tRoleReportDataDependOn = new TRoleSummaryDrop("ThreadRole Reporting Regions"); //$NON-NLS-1$
     int regionReportingTRoleCount = 0;
 
-    TRoleSummaryDrop threadRoleConstrainedResultsDependOn = new TRoleSummaryDrop(
-        "ThreadRole Constrained Regions"); //$NON-NLS-1$
+    TRoleSummaryDrop threadRoleConstrainedResultsDependOn = new TRoleSummaryDrop("ThreadRole Constrained Regions"); //$NON-NLS-1$
     int tRoleConstrainedRegionCount = 0;
 
-    TRoleSummaryDrop methodConstraintResultsDependOn = new TRoleSummaryDrop(
-    "ThreadRoleConstraint methods"); //$NON-NLS-1$
+    TRoleSummaryDrop methodConstraintResultsDependOn = new TRoleSummaryDrop("ThreadRoleConstraint methods"); //$NON-NLS-1$
     int methodConstraintCount = 0;
     resultDependUpon.addDependent(methodConstraintResultsDependOn);
 
@@ -653,31 +629,30 @@ public class TRoleSecondPass implements IBinderClient {
       final ModuleModel mod = ModuleModel.getModuleDrop(aCGD.getNode());
       final boolean isAPI = mod.isAPI(aCGD.getNode());
 
-      final TRoleCtxSummaryDrop ctxSumm = TRoleCtxSummaryDrop
-          .getSummaryFor(mDecl);
-      final TRoleReqSummaryDrop reqSumm = TRoleReqSummaryDrop
-          .getSummaryFor(mDecl);
-      
+      final TRoleCtxSummaryDrop ctxSumm = TRoleCtxSummaryDrop.getSummaryFor(mDecl);
+      final TRoleReqSummaryDrop reqSumm = TRoleReqSummaryDrop.getSummaryFor(mDecl);
+
       final String expandedMName = JavaNames.genQualifiedMethodConstructorName(mDecl);
       if (reqSumm == null) {
-    	  System.out.println("Continuing ... no summary for "+expandedMName);
-    	  continue;
+        System.out.println("Continuing ... no summary for " + expandedMName);
+        continue;
       }
-      
-//      if (expandedMName.startsWith("jpl.gds.monitor.gui.EvrComposite.createControls")) {
-//	      LOG.severe("found createControls");
-//	    }
-//      
-      
+
+      // if
+      // (expandedMName.startsWith("jpl.gds.monitor.gui.EvrComposite.createControls"))
+      // {
+      // LOG.severe("found createControls");
+      // }
+      //
+
       // final String mName =
       // JavaNames.genMethodConstructorName(reqSumm.getNode());
 
       if (LOG1.isLoggable(Level.FINEST)) {
         if (!log1HeaderPrinted) {
           log1HeaderPrinted = true;
-          LOG1
-              .finest("Method Name; (!IsAPI && foundABody); Total Number of Callees; Total Number of Concrete Callees; " + //$NON-NLS-1$
-                  "Overridable; Possible methods invocable by a call to this method; Syntactic Call Sites; "); //$NON-NLS-1$
+          LOG1.finest("Method Name; (!IsAPI && foundABody); Total Number of Callees; Total Number of Concrete Callees; " + //$NON-NLS-1$
+              "Overridable; Possible methods invocable by a call to this method; Syntactic Call Sites; "); //$NON-NLS-1$
         }
         final String numCallees = Integer.toString(aCGD.getCallees().size());
         int numConcreteCallees = 0;
@@ -718,7 +693,7 @@ public class TRoleSecondPass implements IBinderClient {
       // final ResultDrop ctxResDrop = ctxSumm.getResDrop();
       // resultDependUpon.addDependent(ctxResDrop);
       final ResultDrop reqResDrop = reqSumm.getResDrop();
-//      resultDependUpon.addDependent(reqResDrop);
+      // resultDependUpon.addDependent(reqResDrop);
       methodConstraintResultsDependOn.addDependent(reqSumm);
       reqResDrop.setCategory(TRoleMessages.assuranceCategory);
       methodConstraintCount += 1;
@@ -727,9 +702,8 @@ public class TRoleSecondPass implements IBinderClient {
 
         if (reqSumm.isEmpty()) {
           if (aCGD.isPotentiallyCallable()) {
-            InfoDrop wd = makeWarningDrop(null, reqSumm.getNode(),
-        	noInfoInferDependOn,
-        	"ThreadRole model not inferrable for {0}", expandedMName); //$NON-NLS-1$
+            InfoDrop wd = makeWarningDrop(null, reqSumm.getNode(), noInfoInferDependOn,
+                "ThreadRole model not inferrable for {0}", expandedMName); //$NON-NLS-1$
             // reqSumm.setMessage("Thread Color model not inferable for " +
             // mName);
             // noInfoInferDependOn.addDependent(reqSumm);
@@ -742,8 +716,7 @@ public class TRoleSecondPass implements IBinderClient {
             // this API method.", null);
           }
         } else {
-          reqSumm.setMessage(Messages.ColorSecondPass_inferredColor, reqSumm
-              .getReqString(), expandedMName); //$NON-NLS-1$
+          reqSumm.setMessage(Messages.ColorSecondPass_inferredColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
           if (reqSumm.isEmpty()) {
             usefulInferDependOn.addDependent(reqSumm);
           } else {
@@ -753,11 +726,9 @@ public class TRoleSecondPass implements IBinderClient {
         }
       } else if (reqSumm.isInherited()) {
         if (reqSumm.reqsAreRelevant()) {
-          reqSumm.setMessage(Messages.ColorSecondPass_inheritedColor, reqSumm
-              .getReqString(), expandedMName); //$NON-NLS-1$
+          reqSumm.setMessage(Messages.ColorSecondPass_inheritedColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
         } else {
-          reqSumm.setMessage(Messages.ColorSecondPass_inheritedTransparent,
-              expandedMName); //$NON-NLS-1$
+          reqSumm.setMessage(Messages.ColorSecondPass_inheritedTransparent, expandedMName); //$NON-NLS-1$
         }
         inheritDependOn.addDependent(reqSumm);
         inheritCount += 1;
@@ -842,8 +813,7 @@ public class TRoleSecondPass implements IBinderClient {
             StringBuilder msg = new StringBuilder();
             msg.append("This method has no callers. "); //$NON-NLS-1$
             if (isAPI) {
-              msg
-              .append("That's OK, because it's part of the API for module " + mod.name + ", and may be called from other modules."); //$NON-NLS-1$ //$NON-NLS-2$
+              msg.append("That's OK, because it's part of the API for module " + mod.name + ", and may be called from other modules."); //$NON-NLS-1$ //$NON-NLS-2$
             } else {
               msg.append("Suspicious, because we've seen all possible callers."); //$NON-NLS-1$
             }
@@ -852,8 +822,7 @@ public class TRoleSecondPass implements IBinderClient {
         }
       } else {
         if (ctxSumm.isEmpty()) {
-          reqSumm.addSupportingInformation(
-              "Union of calling contexts is EMPTY!", //$NON-NLS-1$
+          reqSumm.addSupportingInformation("Union of calling contexts is EMPTY!", //$NON-NLS-1$
               null);
         } else {
           reqSumm.addSupportingInformation("Union of calling contexts is " //$NON-NLS-1$
@@ -890,8 +859,7 @@ public class TRoleSecondPass implements IBinderClient {
           StringBuilder sb = new StringBuilder();
           sb.append(expandedMName);
           sb.append(" may be invoked from more than one thread."); //$NON-NLS-1$
-          InfoDrop id = TRoleMessages.createInfoDrop(sb.toString(), ctxSumm
-              .getNode());
+          InfoDrop id = TRoleMessages.createInfoDrop(sb.toString(), ctxSumm.getNode());
           id.setCategory(TRoleMessages.multiThreadedInfoCategory);
           sb.setLength(0);
           sb.append("Union of calling contexts is "); //$NON-NLS-1$
@@ -924,20 +892,17 @@ public class TRoleSecondPass implements IBinderClient {
 
     checkCallSites(mthWithBodiesToTraverse);
 
-    Collection<RegionTRoleModel> regTroleMods = RegionTRoleModel
-        .getAllValidRegionTRoleMods();
+    Collection<RegionTRoleModel> regTroleMods = RegionTRoleModel.getAllValidRegionTRoleMods();
     for (RegionTRoleModel regTRoleMod : regTroleMods) {
       // StringBuilder sb = new StringBuilder();
       final JBDD userConstraint = regTRoleMod.getAndOfUserConstraints();
       if (userConstraint == null || userConstraint.isOne()) {
-        regTRoleMod.setMessage(Messages.ColorSecondPass_colorContextDrop, regTRoleMod
-            .getMessage(), TRoleRenamePerCU.jbddMessageName(regTRoleMod
-            .getComputedContext()));
+        regTRoleMod.setMessage(Messages.ColorSecondPass_colorContextDrop, regTRoleMod.getMessage(),
+            TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext()));
         // just report the computed constraint
-        final String colorizedRegion_OK = "{0} is accessed from ThreadRole context {1}."; 
-        ResultDrop rd = makeResultDrop(null, regTRoleMod, true, tRoleReportDataDependOn,
-            colorizedRegion_OK, regTRoleMod.getMessage(), TRoleRenamePerCU
-                .jbddMessageName(regTRoleMod.getComputedContext()));
+        final String colorizedRegion_OK = "{0} is accessed from ThreadRole context {1}.";
+        ResultDrop rd = makeResultDrop(null, regTRoleMod, true, tRoleReportDataDependOn, colorizedRegion_OK,
+            regTRoleMod.getMessage(), TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext()));
         tRoleReportDataDependOn.addDependent(regTRoleMod);
         regionReportingTRoleCount += 1;
         rd.addCheckedPromises(regTRoleMod.getUserDeponents());
@@ -947,38 +912,30 @@ public class TRoleSecondPass implements IBinderClient {
       } else {
         // Check whether the computed context satisfies the user constraint
         final JBDD computedContext = regTRoleMod.getComputedContext();
-        final boolean compCtxIsEmpty = (computedContext == null)
-            || computedContext.isOne();
+        final boolean compCtxIsEmpty = (computedContext == null) || computedContext.isOne();
         ResultDrop rd;
-        if (coreContextImpliesReq(compCtxIsEmpty, computedContext, false,
-            userConstraint.isOne(), userConstraint)) {
+        if (coreContextImpliesReq(compCtxIsEmpty, computedContext, false, userConstraint.isOne(), userConstraint)) {
           // all is well. Report this.
           final String ok_CCR = "All accesses to " + regTRoleMod.getMessage() + " are consistent with constraint " + //$NON-NLS-1$ //$NON-NLS-2$
               TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext());
-          rd = makeResultDrop(null, regTRoleMod, true, threadRoleConstrainedResultsDependOn,
-              ok_CCR, regTRoleMod.getMessage());
+          rd = makeResultDrop(null, regTRoleMod, true, threadRoleConstrainedResultsDependOn, ok_CCR, regTRoleMod.getMessage());
         } else {
           // context does not satisfy constraint!
           final String bad_CCR = "ThreadRole Constrained Region \"{0}\" has inconsistent accesses."; //$NON-NLS-1$
           final String contextFormat = "Context ({0}) does not imply requirements ({1})."; //$NON-NLS-1$
-          rd = makeResultDrop(null, regTRoleMod, false,
-              threadRoleConstrainedResultsDependOn, bad_CCR,
+          rd = makeResultDrop(null, regTRoleMod, false, threadRoleConstrainedResultsDependOn, bad_CCR,
               regTRoleMod.getMasterRegion().regionName);
-          
-          String contextStr = 
-            TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext());
 
-          String constraintStr = 
-            TRoleRenamePerCU.jbddMessageName(regTRoleMod.getAndOfUserConstraints());
-          
+          String contextStr = TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext());
+
+          String constraintStr = TRoleRenamePerCU.jbddMessageName(regTRoleMod.getAndOfUserConstraints());
+
           if (contextStr.equals(constraintStr)) {
-            contextStr = 
-              TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext(), true);
-            constraintStr = 
-              TRoleRenamePerCU.jbddMessageName(regTRoleMod.getAndOfUserConstraints(), true);
+            contextStr = TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext(), true);
+            constraintStr = TRoleRenamePerCU.jbddMessageName(regTRoleMod.getAndOfUserConstraints(), true);
           }
-          
-	  addSupportingInformation(rd, null, contextFormat, contextStr, constraintStr);
+
+          addSupportingInformation(rd, null, contextFormat, contextStr, constraintStr);
         }
         threadRoleConstrainedResultsDependOn.addDependent(regTRoleMod);
         tRoleConstrainedRegionCount += 1;
@@ -990,17 +947,17 @@ public class TRoleSecondPass implements IBinderClient {
       }
     }
     /*
-     * colorizedDataDependOn.setMessage(colorizedDataDependOn.getMessage() + " (" +
-     * Integer.toString(colorizedRegionCount) + " issues)");
-     * colorConstrainedResultsDependOn.setMessage(colorConstrainedResultsDependOn.getMessage() + " (" +
+     * colorizedDataDependOn.setMessage(colorizedDataDependOn.getMessage() +
+     * " (" + Integer.toString(colorizedRegionCount) + " issues)");
+     * colorConstrainedResultsDependOn
+     * .setMessage(colorConstrainedResultsDependOn.getMessage() + " (" +
      * Integer.toString(colorConstrainedRegionCount) + " issues)");
      */
     tRoleReportDataDependOn.setCount(regionReportingTRoleCount);
     threadRoleConstrainedResultsDependOn.setCount(tRoleConstrainedRegionCount);
 
     // make a top-level result drop for each color name.
-    Collection<TRoleNameModel> allTRNameModels = TRoleNameModel
-        .getAllValidTRoleNameModels();
+    Collection<TRoleNameModel> allTRNameModels = TRoleNameModel.getAllValidTRoleNameModels();
     for (final TRoleNameModel aTRNM : allTRNameModels) {
       // if (!aCNM.isDeclared()) {
       // ResultDrop pd = TRoleMessages.createProblemDrop(aCNM.getMessage()
@@ -1015,8 +972,7 @@ public class TRoleSecondPass implements IBinderClient {
     }
 
     if (LOG1.isLoggable(Level.INFO)) {
-      LOG1
-          .info("There are " + Integer.toString(numMethodsWithBodies) + " methods with bodies."); //$NON-NLS-1$ //$NON-NLS-2$
+      LOG1.info("There are " + Integer.toString(numMethodsWithBodies) + " methods with bodies."); //$NON-NLS-1$ //$NON-NLS-2$
       for (Iterator<CGData> statIter = statList.iterator(); statIter.hasNext();) {
         CGData stat = statIter.next();
         if (stat != null) {
@@ -1026,21 +982,16 @@ public class TRoleSecondPass implements IBinderClient {
     }
 
     final Sea sea = Sea.getDefault();
-    folderizeDrops(
-        "@ThreadRole annotations", sea.getDropsOfExactType(TRoleDeclareDrop.class), true); //$NON-NLS-1$
-    folderizeDrops(
-        "@ThreadRoleGrant annotations", sea.getDropsOfExactType(TRoleGrantDrop.class), false); //$NON-NLS-1$
-    folderizeDrops(
-        "@ThreadRole annotations", sea.getDropsOfExactType(TRoleRequireDrop.class), false); //$NON-NLS-1$
-    folderizeDrops(
-        "@ThreadRoleRename annotations", sea.getDropsOfExactType(TRoleRenameDrop.class), true); //$NON-NLS-1$
+    folderizeDrops("@ThreadRole annotations", sea.getDropsOfExactType(TRoleDeclareDrop.class), true); //$NON-NLS-1$
+    folderizeDrops("@ThreadRoleGrant annotations", sea.getDropsOfExactType(TRoleGrantDrop.class), false); //$NON-NLS-1$
+    folderizeDrops("@ThreadRole annotations", sea.getDropsOfExactType(TRoleRequireDrop.class), false); //$NON-NLS-1$
+    folderizeDrops("@ThreadRoleRename annotations", sea.getDropsOfExactType(TRoleRenameDrop.class), true); //$NON-NLS-1$
     // folderizeDrops("@colorizedRegion annotations",
     // sea.getDropsOfExactType(ColorizedRegionDeclDrop.class), false);
     // ColorBDDPack.resetCanonicalImages();
   }
 
-  private <T extends Drop> void folderizeDrops(String name, Set<T> drops,
-      boolean wantBinary) {
+  private <T extends Drop> void folderizeDrops(String name, Set<T> drops, boolean wantBinary) {
     if (drops.isEmpty()) {
       return;
     }
@@ -1052,8 +1003,7 @@ public class TRoleSecondPass implements IBinderClient {
     for (Drop d : drops) {
       boolean fromBinaryCU = false;
       if (!wantBinary) {
-        Set<BinaryCUDrop> bCUs = Sea.filterDropsOfExactType(BinaryCUDrop.class,
-            d.getDeponents());
+        Set<BinaryCUDrop> bCUs = Sea.filterDropsOfExactType(BinaryCUDrop.class, d.getDeponents());
         fromBinaryCU = !bCUs.isEmpty();
       }
       if (wantBinary || !fromBinaryCU) {
@@ -1087,11 +1037,11 @@ public class TRoleSecondPass implements IBinderClient {
 
   /**
    * Walk each method in methodsToCheck looking for call sites where the context
-   * fails to imply the requirement on the callee. These call sites
-   * are the location of problems, and should be flagged as such. The only
-   * difference between setting up for this traversal and setting up for a
-   * context traversal is that we set the checkingErrors flag for this one, and
-   * not for the initial context computation.
+   * fails to imply the requirement on the callee. These call sites are the
+   * location of problems, and should be flagged as such. The only difference
+   * between setting up for this traversal and setting up for a context
+   * traversal is that we set the checkingErrors flag for this one, and not for
+   * the initial context computation.
    * 
    * @param methodsToCheck
    *          a <code>Set</code> holding the methodDecls that are possible
@@ -1108,7 +1058,7 @@ public class TRoleSecondPass implements IBinderClient {
       SimpleCallGraphDrop aCGD = SimpleCallGraphDrop.getCGDropFor(mth);
       TRoleRenamePerCU.startACU(aCGD.getOuterTypeOrCU());
 
-      Collection<PromiseDrop> ctxDependsOn = new ArrayList<PromiseDrop>(2);
+      Collection<PromiseDrop<? extends IAASTRootNode>> ctxDependsOn = new ArrayList<PromiseDrop<? extends IAASTRootNode>>(2);
       JBDD localCtx = computeInitialCtx(mth, ctxDependsOn);
 
       walkMethod(mth, localCtx, ctxDependsOn, null, true);
@@ -1118,21 +1068,19 @@ public class TRoleSecondPass implements IBinderClient {
 
   }
 
-  private void walkMethod(IRNode mth, JBDD localCtx,
-      Collection<PromiseDrop> userDeponents, WorkList wList,
-      boolean checkingCallsites) {
+  private void walkMethod(IRNode mth, JBDD localCtx, Collection<PromiseDrop<? extends IAASTRootNode>> userDeponents,
+      WorkList wList, boolean checkingCallsites) {
     assert (checkingCallsites ? (wList == null) : (wList != null));
 
     final TRSPStruct walker = TRSPStruct.getInstance();
     walker.startedHere = mth;
     walker.currCtx = localCtx.copy();
-    walker.userDeponents = new HashSet<PromiseDrop>(userDeponents.size());
+    walker.userDeponents = new HashSet<PromiseDrop<? extends IAASTRootNode>>(userDeponents.size());
     walker.userDeponents.addAll(userDeponents);
     walker.wList = wList;
     walker.checkingErrors = checkingCallsites;
     walker.cu = VisitUtil.computeOutermostEnclosingTypeOrCU(mth);
-    final TRoleCtxSummaryDrop mthCtxSumm = TRoleCtxSummaryDrop
-        .getSummaryFor(mth);
+    final TRoleCtxSummaryDrop mthCtxSumm = TRoleCtxSummaryDrop.getSummaryFor(mth);
     walker.ctxIsEmpty = mthCtxSumm.isEmpty() & !hasTRoleCutpoint(mth);
 
     TRoleStaticMeth cMeth = TRoleStaticMeth.getStaticMeth(mth);
@@ -1164,10 +1112,9 @@ public class TRoleSecondPass implements IBinderClient {
    * @param userDeponents
    * @param callee
    */
-  static void updateACallee(WorkList wList, JBDD localCtx,
-      Collection<PromiseDrop> userDeponents, IRNode callee) {
-    TRoleCtxSummaryDrop calleeCtxSumm = TRoleCtxSummaryDrop
-        .getSummaryFor(callee);
+  static void updateACallee(WorkList wList, JBDD localCtx, Collection<PromiseDrop<? extends IAASTRootNode>> userDeponents,
+      IRNode callee) {
+    TRoleCtxSummaryDrop calleeCtxSumm = TRoleCtxSummaryDrop.getSummaryFor(callee);
 
     JBDD newCalleeCtx = calleeCtxSumm.getFullExpr();
     newCalleeCtx = newCalleeCtx.or(localCtx);
@@ -1180,13 +1127,11 @@ public class TRoleSecondPass implements IBinderClient {
   }
 
   static void updateCallees(final WorkList wList, final JBDD localCtx,
-      final Collection<PromiseDrop> userDeponents, final IRNode callee,
-      final IRNode receiver) {
+      final Collection<PromiseDrop<? extends IAASTRootNode>> userDeponents, final IRNode callee, final IRNode receiver) {
 
     final boolean methodCanBeOveridden = methodCanBeOverridden(callee);
     if (methodCanBeOveridden) {
-      Iterator<IRNode> overrides = 
-    	  binder.findOverridingMethodsFromType(callee, receiver);
+      Iterator<IRNode> overrides = binder.findOverridingMethodsFromType(callee, receiver);
       while (overrides.hasNext()) {
         IRNode oCallee = overrides.next();
         updateACallee(wList, localCtx, userDeponents, oCallee);
@@ -1209,7 +1154,7 @@ public class TRoleSecondPass implements IBinderClient {
   }
 
   static void updateSomeTRRMs(List<RegionTRoleModel> regTRoleMods, JBDD localCtx,
-      Collection<PromiseDrop> userDeponents) {
+      Collection<PromiseDrop<? extends IAASTRootNode>> userDeponents) {
     if (regTRoleMods == null) {
       return;
     }
@@ -1226,17 +1171,15 @@ public class TRoleSecondPass implements IBinderClient {
     }
   }
 
-  static void checkSomeTRRMs(List<RegionTRoleModel> regTRoleMods, IRNode locInIR,
-      JBDD localCtx, final boolean LocalCtxIsEmpty,
-      final Set<PromiseDrop> userDeponents) {
+  static void checkSomeTRRMs(List<RegionTRoleModel> regTRoleMods, IRNode locInIR, JBDD localCtx, final boolean LocalCtxIsEmpty,
+      final Set<PromiseDrop<? extends IAASTRootNode>> userDeponents) {
     if (regTRoleMods == null) {
       return;
     }
     for (RegionTRoleModel regTroleMod : regTRoleMods) {
       final JBDD constraint = regTroleMod.getAndOfUserConstraints();
       final boolean reqIsEmpty = (constraint == null);
-      final boolean constraintMet = coreContextImpliesReq(LocalCtxIsEmpty,
-          localCtx, false, reqIsEmpty, constraint);
+      final boolean constraintMet = coreContextImpliesReq(LocalCtxIsEmpty, localCtx, false, reqIsEmpty, constraint);
       final RegionModel rmod = regTroleMod.getMasterRegion();
 
       if (!constraintMet) {
@@ -1248,8 +1191,7 @@ public class TRoleSecondPass implements IBinderClient {
         msg.append("Thread role model not consistent with code at reference to " //$NON-NLS-1$
             + rmod.regionName);
         msg.append('.');
-        ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(),
-            "TODO: Fill Me In", locInIR);
+        ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", locInIR);
         prd.addSupportingInformation("Local thread role context is " + //$NON-NLS-1$
             TRoleRenamePerCU.jbddMessageName(localCtx) + "; constraint is " + //$NON-NLS-1$
             TRoleRenamePerCU.jbddMessageName(constraint) + '.', null);
@@ -1279,7 +1221,7 @@ public class TRoleSecondPass implements IBinderClient {
     private static final TRSPStruct INSTANCE = new TRSPStruct();
 
     private TRSPStruct() {
-    	//Default initializations only
+      // Default initializations only
     }
 
     JBDD currCtx = null;
@@ -1288,7 +1230,7 @@ public class TRoleSecondPass implements IBinderClient {
 
     IRNode startedHere = null;
 
-    Set<PromiseDrop> userDeponents = null;
+    Set<PromiseDrop<? extends IAASTRootNode>> userDeponents = null;
 
     WorkList wList = null;
 
@@ -1300,8 +1242,7 @@ public class TRoleSecondPass implements IBinderClient {
 
     IRNode cu = null;
 
-    private JBDD revokeForInfer(JBDD ctx,
-        final Collection<TRoleRevokeDrop> revokes) {
+    private JBDD revokeForInfer(JBDD ctx, final Collection<TRoleRevokeDrop> revokes) {
       if ((revokes == null) || revokes.isEmpty())
         return ctx;
       if ((ctx == null) || ctx.isOne() || ctx.isZero())
@@ -1314,11 +1255,9 @@ public class TRoleSecondPass implements IBinderClient {
       while (revIter.hasNext()) {
         TRoleRevokeDrop aRevoke = revIter.next();
         Collection<String> rNames = aRevoke.getRevokedNames();
-        Collection<TRoleNameModel> rModels = 
-        	TRoleNameModel.getTRoleNameModelInstances(rNames, cu);
+        Collection<TRoleNameModel> rModels = TRoleNameModel.getTRoleNameModelInstances(rNames, cu);
 
-        for (Iterator<TRoleNameModel> rModelIter = rModels.iterator(); rModelIter
-            .hasNext();) {
+        for (Iterator<TRoleNameModel> rModelIter = rModels.iterator(); rModelIter.hasNext();) {
           final TRoleNameModel canonTRNM = rModelIter.next().getCanonicalNameModel();
           tCtx = tCtx.exist(canonTRNM.getSelfExpr());
           tCtx.andWith(canonTRNM.getSelfExprNeg());
@@ -1376,12 +1315,10 @@ public class TRoleSecondPass implements IBinderClient {
       while (grantIter.hasNext()) {
         TRoleGrantDrop aGrant = grantIter.next();
         Collection<String> gNames = aGrant.getGrantedNames();
-        Collection<TRoleNameModel> gModels = TRoleNameModel
-            .getTRoleNameModelInstances(gNames, cu);
+        Collection<TRoleNameModel> gModels = TRoleNameModel.getTRoleNameModelInstances(gNames, cu);
         final IRNode node = aGrant.getNode();
 
-        for (Iterator<TRoleNameModel> rModelIter = gModels.iterator(); rModelIter
-            .hasNext();) {
+        for (Iterator<TRoleNameModel> rModelIter = gModels.iterator(); rModelIter.hasNext();) {
           final TRoleNameModel canonTRNM = rModelIter.next().getCanonicalNameModel();
           tCtx = tCtx.exist(canonTRNM.getSelfExpr());
 
@@ -1399,8 +1336,7 @@ public class TRoleSecondPass implements IBinderClient {
 
               msg.append("Error: Granting thread role " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" yields unsatisfiable context."); //$NON-NLS-1$
-              ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(),
-                  "TODO: Fill Me In", node);
+              ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", node);
               prd.addTrustedPromise(aGrant);
               prd.addCheckedPromises(userDeponents);
               prd.setInconsistent();
@@ -1412,8 +1348,7 @@ public class TRoleSecondPass implements IBinderClient {
 
               // The context is empty now, whether it was before or not!
               ctxIsEmpty = true;
-            } else if (ctxIsEmpty
-                && !canonTRNM.getSelfExpr().equals(canonTRNM.getConflictExpr())) {
+            } else if (ctxIsEmpty && !canonTRNM.getSelfExpr().equals(canonTRNM.getConflictExpr())) {
               // Can't grant a thread role in an empty context if the role has
               // conflicts.
               // This is because we can't justify the & !foo part of the
@@ -1427,8 +1362,7 @@ public class TRoleSecondPass implements IBinderClient {
                   + canonTRNM.getTRoleName());
               msg.append(", because " + canonTRNM.getTRoleName() //$NON-NLS-1$
                   + " has conflicts that are not satisfied."); //$NON-NLS-1$
-              ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(),
-                  "TODO: Fill Me In", node);
+              ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", node);
               prd.addTrustedPromise(aGrant);
               prd.addCheckedPromises(userDeponents);
               prd.setInconsistent();
@@ -1441,8 +1375,7 @@ public class TRoleSecondPass implements IBinderClient {
 
               msg.append("@grant of " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" successful."); //$NON-NLS-1$
-              ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(),
-                  "TODO: fill me in", node);
+              ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", node);
               rd.addTrustedPromise(aGrant);
               rd.addCheckedPromises(userDeponents);
               msg = new StringBuilder();
@@ -1483,8 +1416,7 @@ public class TRoleSecondPass implements IBinderClient {
     private void visitChildReferences(TRoleStaticBlockish blockish) {
       for (TRoleStaticRef aRef : blockish.interestingRefs) {
         if (checkingErrors) {
-          checkSomeTRRMs(aRef.trTargetsHere, aRef.getNode(), currCtx,
-              ctxIsEmpty, userDeponents);
+          checkSomeTRRMs(aRef.trTargetsHere, aRef.getNode(), currCtx, ctxIsEmpty, userDeponents);
         } else {
           updateSomeTRRMs(aRef.trTargetsHere, currCtx, userDeponents);
         }
@@ -1494,7 +1426,9 @@ public class TRoleSecondPass implements IBinderClient {
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visit(edu.cmu.cs.fluid.java.analysis.ColorStaticStructure)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visit(edu.cmu.cs.fluid
+     * .java.analysis.ColorStaticStructure)
      */
     @Override
     public void visit(TRoleStaticStructure node) {
@@ -1506,7 +1440,9 @@ public class TRoleSecondPass implements IBinderClient {
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitBlock(edu.cmu.cs.fluid.java.analysis.ColorStaticBlock)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitBlock(edu.cmu.
+     * cs.fluid.java.analysis.ColorStaticBlock)
      */
     @Override
     public void visitBlock(TRoleStaticBlock node) {
@@ -1521,8 +1457,8 @@ public class TRoleSecondPass implements IBinderClient {
         JBDD currCtxSAVE = currCtx;
         TRoleCtxSummaryDrop ctxSummSAVE = currCtxSumm;
         currCtx = currCtxSAVE.copy();
-        Set<PromiseDrop> deponentsSAVE = 
-        	new HashSet<PromiseDrop>(userDeponents.size());
+        Set<PromiseDrop<? extends IAASTRootNode>> deponentsSAVE = new HashSet<PromiseDrop<? extends IAASTRootNode>>(
+            userDeponents.size());
         deponentsSAVE.addAll(userDeponents);
         boolean ctxIsEmptySAVE = ctxIsEmpty;
 
@@ -1531,8 +1467,7 @@ public class TRoleSecondPass implements IBinderClient {
           currCtxSumm.setFullExpr(currCtx);
           if (ctxSummSAVE != null) {
             ctxSummSAVE.addDependent(currCtxSumm);
-            currCtxSumm.getUserDeponents().addAll(
-                ctxSummSAVE.getUserDeponents());
+            currCtxSumm.getUserDeponents().addAll(ctxSummSAVE.getUserDeponents());
           }
         }
 
@@ -1568,10 +1503,16 @@ public class TRoleSecondPass implements IBinderClient {
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCall(edu.cmu.cs.fluid.java.analysis.ColorStaticCall)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCall(edu.cmu.cs
+     * .fluid.java.analysis.ColorStaticCall)
      */
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCall(edu.cmu.cs.fluid.java.analysis.ColorStaticCall)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCall(edu.cmu.cs
+     * .fluid.java.analysis.ColorStaticCall)
      */
     @Override
     public void visitCall(TRoleStaticCall node) {
@@ -1590,32 +1531,28 @@ public class TRoleSecondPass implements IBinderClient {
           msg.append("Thread role model not consistent with code at call to " //$NON-NLS-1$
               + mName);
           msg.append('.');
-          ResultDrop prd = TRoleMessages
-              .createProblemDrop(msg.toString(), "TODO: Fill Me In", root);
+          ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", root);
           String ctxStr = TRoleRenamePerCU.jbddMessageName(currCtx, true);
-          
-          
+
           final CUDrop cud = TRolesFirstPass.getCUDropOf(mDecl);
           final IRNode theCUsRoot = cud.cu;
-          //final TRoleRenamePerCU theCUsCRpCU = TRoleRenamePerCU.getTRoleRenamePerCU(theCUsRoot);
+          // final TRoleRenamePerCU theCUsCRpCU =
+          // TRoleRenamePerCU.getTRoleRenamePerCU(theCUsRoot);
           final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
-          
+
           String reqStr;
           try {
-           reqStr = reqSumm.getReqString(true);
+            reqStr = reqSumm.getReqString(true);
           } finally {
             TRoleRenamePerCU.endACU(saveCookie);
           }
           if (ctxStr.equals(reqStr)) {
             LOG.severe("matching exprs: " + ctxStr);
           }
-          prd
-              .addSupportingInformation(
-                  "Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx, true) //$NON-NLS-1$
-                      + "; constraint is " + reqStr + '.', null); //$NON-NLS-1$
+          prd.addSupportingInformation("Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx, true) //$NON-NLS-1$
+              + "; constraint is " + reqStr + '.', null); //$NON-NLS-1$
           prd.addCheckedPromises(userDeponents);
-          final TRoleReqSummaryDrop mReqSumm = TRoleReqSummaryDrop
-              .getSummaryFor(mDecl);
+          final TRoleReqSummaryDrop mReqSumm = TRoleReqSummaryDrop.getSummaryFor(mDecl);
           prd.addTrustedPromise(mReqSumm);
         } else {
           // this call is NOT one of the error sites we're looking for.
@@ -1623,10 +1560,8 @@ public class TRoleSecondPass implements IBinderClient {
           msg.append("Thread role context OK for call to " + mName); //$NON-NLS-1$
           msg.append('.');
           ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", root);
-          rd
-              .addSupportingInformation(
-                  "Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx) //$NON-NLS-1$
-                      + "; constraint is " + reqSumm.getReqString() + '.', null); //$NON-NLS-1$
+          rd.addSupportingInformation("Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx) //$NON-NLS-1$
+              + "; constraint is " + reqSumm.getReqString() + '.', null); //$NON-NLS-1$
           rd.addCheckedPromises(userDeponents);
           rd.addTrustedPromise(TRoleReqSummaryDrop.getSummaryFor(mDecl));
           rd.setConsistent();
@@ -1639,16 +1574,16 @@ public class TRoleSecondPass implements IBinderClient {
       }
       // Don't mess with CRMs for the call itself, because we really don't
       // want to be doing global effects (3/22/07)
-//      if (ColorizedRegionModel.haveColorizedRegions()) {
-//        // List<ColorizedRegionModel> regTroleMods = node.colorTargetsHere;
-//
-//        if (checkingErrors) {
-//          checkSomeCRMs(node.colorCRMsHere, root, currCtx, ctxIsEmpty,
-//              userDeponents);
-//        } else {
-//          updateSomeCRMs(node.colorCRMsHere, currCtx, userDeponents);
-//        }
-//      }
+      // if (ColorizedRegionModel.haveColorizedRegions()) {
+      // // List<ColorizedRegionModel> regTroleMods = node.colorTargetsHere;
+      //
+      // if (checkingErrors) {
+      // checkSomeCRMs(node.colorCRMsHere, root, currCtx, ctxIsEmpty,
+      // userDeponents);
+      // } else {
+      // updateSomeCRMs(node.colorCRMsHere, currCtx, userDeponents);
+      // }
+      // }
       super.visitCall(node);
     }
 
@@ -1668,8 +1603,7 @@ public class TRoleSecondPass implements IBinderClient {
       } else {
         return null;
       }
-      final IRNode receiverNode = ((IJavaSourceRefType) receiverType)
-          .getDeclaration();
+      final IRNode receiverNode = ((IJavaSourceRefType) receiverType).getDeclaration();
       return receiverNode;
     }
 
@@ -1686,7 +1620,9 @@ public class TRoleSecondPass implements IBinderClient {
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCU(edu.cmu.cs.fluid.java.analysis.ColorStaticCU)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitCU(edu.cmu.cs.
+     * fluid.java.analysis.ColorStaticCU)
      */
     @Override
     public void visitCU(TRoleStaticCU node) {
@@ -1697,30 +1633,35 @@ public class TRoleSecondPass implements IBinderClient {
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitMeth(edu.cmu.cs.fluid.java.analysis.ColorStaticMeth)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitMeth(edu.cmu.cs
+     * .fluid.java.analysis.ColorStaticMeth)
      */
     @Override
     public void visitMeth(TRoleStaticMeth node) {
-    	// don't traverse nested method decls.
-    	if (!node.getNode().equals(startedHere))
-    		return;
-    	final CUDrop cud = TRolesFirstPass.getCUDropOf(node.getNode());
-    	final IRNode theCUsRoot = cud.cu;
-    	//final TRoleRenamePerCU theCUsCRpCU = TRoleRenamePerCU.getColorRenamePerCU(theCUsRoot);
-    	final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
+      // don't traverse nested method decls.
+      if (!node.getNode().equals(startedHere))
+        return;
+      final CUDrop cud = TRolesFirstPass.getCUDropOf(node.getNode());
+      final IRNode theCUsRoot = cud.cu;
+      // final TRoleRenamePerCU theCUsCRpCU =
+      // TRoleRenamePerCU.getColorRenamePerCU(theCUsRoot);
+      final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
 
-    	try {	
-    		visitChildReferences(node);
-    		super.visitMeth(node);
-    	} finally {
-    		TRoleRenamePerCU.endACU(saveCookie);
-    	}
+      try {
+        visitChildReferences(node);
+        super.visitMeth(node);
+      } finally {
+        TRoleRenamePerCU.endACU(saveCookie);
+      }
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitReference(edu.cmu.cs.fluid.java.analysis.ColorStaticRef)
+     * @see
+     * edu.cmu.cs.fluid.java.analysis.ColorStructVisitor#visitReference(edu.
+     * cmu.cs.fluid.java.analysis.ColorStaticRef)
      */
     @Override
     public void visitReference(TRoleStaticRef node) {
@@ -1744,8 +1685,8 @@ public class TRoleSecondPass implements IBinderClient {
     return binder;
   }
 
-public void clearCaches() {
-	// TODO Auto-generated method stub
-	
-}
+  public void clearCaches() {
+    // TODO Auto-generated method stub
+
+  }
 }

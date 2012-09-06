@@ -173,11 +173,11 @@ public class LockAnalysis
 				lockDrop.invalidate();
 				continue;
 			}
-			if (lockDrop.getAST() == null) {
+			if (lockDrop.getAAST() == null) {
 				LOG.warning("No AST for " + lockDrop.getMessage());
 				continue;
 			}
-			if (lockDrop.getAST() instanceof LockDeclarationNode) {
+			if (lockDrop.getAAST() instanceof LockDeclarationNode) {
 				if (!lockDrop.hasMatchingDependents(DropPredicateFactory
 						.matchExactType(RegionModel.class))) {
 					// This is not really valid, but properly invalidated due to

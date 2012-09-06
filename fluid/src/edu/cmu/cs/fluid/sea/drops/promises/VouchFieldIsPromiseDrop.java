@@ -17,26 +17,26 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
 	@Override
 	protected void computeBasedOnAST() {
 		String name = JavaNames.getFieldDecl(getNode());
-		setResultMessage(Messages.LockAnnotation_vouchFieldIsDrop, getAST().getKind(), name);
+		setResultMessage(Messages.LockAnnotation_vouchFieldIsDrop, getAAST().getKind(), name);
 	}
   
   public boolean isFinal() {
-    return getAST().getKind() == FieldKind.Final;
+    return getAAST().getKind() == FieldKind.Final;
   }
   
   public boolean isContainable() {
-    return getAST().getKind() == FieldKind.Containable;
+    return getAAST().getKind() == FieldKind.Containable;
   }
   
   public boolean isImmutable() {
-    return getAST().getKind() == FieldKind.Immutable;
+    return getAAST().getKind() == FieldKind.Immutable;
   }
   
   public boolean isThreadSafe() {
-    return getAST().getKind() == FieldKind.ThreadSafe;
+    return getAAST().getKind() == FieldKind.ThreadSafe;
   }
   
   public String getReason() {
-    return getAST().getReason();
+    return getAAST().getReason();
   }
 }

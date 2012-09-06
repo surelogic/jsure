@@ -15,6 +15,6 @@ public final class AssumePromiseDrop extends ScopedPromiseDrop {
   
   @Override
   protected void computeBasedOnAST() {  
-    setMessage("Assume "+getAST());    
+    setMessage("Assume "+getAAST());    
   }
 }

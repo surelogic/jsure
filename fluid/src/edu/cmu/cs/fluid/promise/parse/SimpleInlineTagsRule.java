@@ -185,9 +185,11 @@ public abstract class SimpleInlineTagsRule extends AbstractParseRule {
 
   	IPromiseParseRule[] inlineRules =
     {
+  	  /*
       new BooleanTagRule("Unique", matchOps, UniquenessAnnotation.getIsUniqueSlotInfo()),
       new BooleanTagRule("Borrowed", matchOps, UniquenessAnnotation.getIsBorrowedSlotInfo()),
       new BooleanTagRule("NotNull", matchOps, NotNullAnnotation.getIsNotNullSlotInfo()),
+      */
       new StandardTagRule("link"),
     };
     return inlineRules;

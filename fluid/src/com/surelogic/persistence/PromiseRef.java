@@ -28,7 +28,7 @@ public class PromiseRef {
 	}
 	
 	public <T extends IAASTRootNode> PromiseRef(PromiseDrop<T> d) {
-		this(d.getPromiseName(), d.getAST().toString(), d.getNode(), false);
+		this(d.getPromiseName(), d.getAAST().toString(), d.getNode(), false);
 	}
 
 	public void toXML(XMLCreator.Builder b) {

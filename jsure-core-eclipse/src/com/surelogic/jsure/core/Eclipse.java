@@ -143,15 +143,15 @@ public final class Eclipse extends IDE {
 			new LoadPromise();
 			// PromiseFramework.getInstance().setParser(
 			// EclipsePromiseParser.getInstance());
-			RegionAnnotation.getInstance();
-			EffectsAnnotation.getInstance();
-			NotNullAnnotation.getInstance();
-			UniquenessAnnotation.getInstance();
-			ColorPromises.getInstance();
-			UseTypeWherePossibleAnnotation.getInstance();
-			ScopedPromises.getInstance();
-			MutabilityAnnotation.getInstance();
-			ModulePromises.getInstance();
+			//RegionAnnotation.getInstance();
+			//EffectsAnnotation.getInstance();
+			//NotNullAnnotation.getInstance();
+			//UniquenessAnnotation.getInstance();
+			//ColorPromises.getInstance();
+			//UseTypeWherePossibleAnnotation.getInstance();
+			//ScopedPromises.getInstance();
+			//MutabilityAnnotation.getInstance();
+			//ModulePromises.getInstance();
 
 			// EclipsePromiseParser.setup();
 			initVersionedStuff(eclipse);

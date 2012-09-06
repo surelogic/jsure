@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * Promise drop for "InRegion" promise annotations defining a region.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInRegionNode> 
 implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop, IUniquePromise {
@@ -48,9 +47,9 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop, IUni
   
   @Override
   protected void computeBasedOnAST() {
-    if (getAST() != null) {
+    if (getAAST() != null) {
       final String name       = JavaNames.getFieldDecl(getNode());
-      final String regionName = getAST().getSpec().unparse(false);
+      final String regionName = getAAST().getSpec().unparse(false);
       setResultMessage(
           Messages.RegionAnnotation_uniqueInRegionDrop, regionName, name);
     }
@@ -62,7 +61,7 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop, IUni
   }
   
   public boolean allowRead() {
-	  return getAST().allowRead();
+	  return getAAST().allowRead();
   }
   
   public SimpleUniqueInRegionPromiseDrop getDrop() {
@@ -71,7 +70,7 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop, IUni
   
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
-    final IRegion dest = this.getAST().getSpec().resolveBinding().getRegion();
+    final IRegion dest = this.getAAST().getSpec().resolveBinding().getRegion();
     return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
   }
 }

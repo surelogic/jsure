@@ -13,6 +13,6 @@ public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	}
 	@Override
 	protected void computeBasedOnAST() {
-		setMessage(getAST().toString());
+		setMessage(getAAST().toString());
 	}
 }

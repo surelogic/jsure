@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea;
 /**
  * Defines a predicate used to filter a set of drops.
  */
-public interface DropPredicate extends IDropPredicate {
+public interface DropPredicate {
 
 	/**
 	 * Decides if a specific drop should be an element of the resulting set.
@@ -13,5 +13,5 @@ public interface DropPredicate extends IDropPredicate {
 	 * @return <code>true</code> if the drop should be included,
 	 *         <code>false</code> if the drop should be omitted.
 	 */
-	boolean match(Drop d);
+	boolean match(IDropInfo d);
 }

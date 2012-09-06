@@ -133,7 +133,7 @@ public class TestResult implements ITest {
     if (result == null) {
       return;
     }
-    IAASTRootNode n = d.getAST();
+    IAASTRootNode n = d.getAAST();
     if (n != null && n != result.ast) {
       AnnotationRules.XML_LOG.reportFailure(result, "ASTs don't match: "+result.ast+" and "+n);
     }

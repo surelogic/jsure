@@ -487,7 +487,7 @@ public final class JavaIdentifier {
 			// Compare to the promise
 			final IAASTRootNode aast = c.created.get(0);
 			for(PromiseDrop<?> d : r.getStorage().getDrops(decl)) {
-				if (useImplication ? d.getAST().implies(aast) : d.getAST().isSameAs(aast)) {
+				if (useImplication ? d.getAAST().implies(aast) : d.getAAST().isSameAs(aast)) {
 					return d;
 				}
 			}

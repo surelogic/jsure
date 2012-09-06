@@ -292,7 +292,7 @@ public final class MListOfResultsColumn extends MColumn implements
 	private void setTableItemInfo(TableItem item, IProofDropInfo data) {
 		int flags = 0;
 		final ImageDescriptor img;
-		if (data.isInstance(ResultDrop.class)) {
+		if (data.instanceOf(ResultDrop.class)) {
 			if (data.isVouched()) {
 				img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS_VOUCH);
 			} else if (data.isConsistent()) {

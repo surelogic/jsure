@@ -871,7 +871,7 @@ public final class LockUtils {
     if (reqLockD == null) {
       return locks;
     }
-    final List<LockSpecificationNode> lockNames = reqLockD.getAST().getLockList();
+    final List<LockSpecificationNode> lockNames = reqLockD.getAAST().getLockList();
     if (!lockNames.isEmpty()) {
       final Map<IRNode, IRNode> m =
         MethodCallUtils.constructFormalToActualMap(binder, mcall, mdecl, callingDecl);
@@ -1154,7 +1154,7 @@ public final class LockUtils {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
           binder, mcall, mdecl, callingDecl);
       return convertHeldLockNameToCallerContext(
-          mdecl, heldLockFactory, returnedLock.getAST().getLock(), type, src, m);
+          mdecl, heldLockFactory, returnedLock.getAAST().getLock(), type, src, m);
     } else {
       return null;
     }
@@ -1446,7 +1446,7 @@ public final class LockUtils {
     final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
     /* No RequiresLock means no lock precondition. */
     if (drop != null) {
-      for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
+      for(final LockSpecificationNode requiredLock : drop.getAAST().getLockList()) {
         final LockModel lm = requiredLock.resolveBinding().getModel();
         if (howTo.acceptsLock(lm)) {
           final HeldLock lock = convertLockNameToMethodContext(

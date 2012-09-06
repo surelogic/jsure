@@ -186,18 +186,18 @@ public final class AASTStore {
 
   public static synchronized <A extends IAASTRootNode>
   void validate(PromiseDrop<A> pd) {  
-    if (pd.getAST() == null) {
+    if (pd.getAAST() == null) {
       if (pd instanceof MethodEffectsPromiseDrop) {
         // continue         
       } else {
         throw new IllegalArgumentException("No AST for "+pd);
       }
     }
-    else if (pd.getAST().getStatus() != AASTStatus.VALID) {
+    else if (pd.getAAST().getStatus() != AASTStatus.VALID) {
       throw new IllegalArgumentException("AAST is not valid");
     }
     @SuppressWarnings("rawtypes")
-    List<ValidatedDropCallback> l = triggers.remove(pd.getAST());
+    List<ValidatedDropCallback> l = triggers.remove(pd.getAAST());
     if (l != null) {
       for(ValidatedDropCallback<PromiseDrop<A>> cb : l) {
         cb.validated(pd);
@@ -219,7 +219,7 @@ public final class AASTStore {
 	  add(clone);
 	  setPromiseSource(clone, pd);
 	  triggerWhenValidated(clone, r);
-	  cloneTestResult(pd.getAST(), clone);
+	  cloneTestResult(pd.getAAST(), clone);
   }
   
   public static synchronized void associateTestResult(IAASTRootNode root, TestResult result) {

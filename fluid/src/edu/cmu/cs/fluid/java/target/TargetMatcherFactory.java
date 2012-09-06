@@ -225,7 +225,7 @@ public class TargetMatcherFactory implements JavaGlobals {
       
       IRNode scopedPromise = jtree.getParent(target);
       String promise       = ScopedPromise.getPromise(scopedPromise);
-      IPromiseRule rule    = PromiseFramework.getInstance().getParser().getRule(promise);
+      IPromiseRule rule    = null;//PromiseFramework.getInstance().getParser().getRule(promise);
       ops                  = rule.getOps(null);
     }
 

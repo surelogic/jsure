@@ -100,7 +100,7 @@ public final class FilterAnalysisResult extends Filter {
 	}
 
 	private String getFilterValueOrNull(IProofDropInfo d) {
-		if (d.isInstance(ResultDrop.class)) {
+		if (d.instanceOf(ResultDrop.class)) {
 			final String value;
 			if (d.isVouched())
 				value = VOUCHED;

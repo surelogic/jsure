@@ -7,7 +7,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 public class AdapterUtil {
@@ -58,17 +57,6 @@ public class AdapterUtil {
 		 */
 		return true;
 	}
-	
-	private static IPromiseProcessor destroyer = new AbstractNodePromiseProcessor() {
-		public String getIdentifier() {
-			return "Promise destroyer";
-		}
-
-		@Override
-		protected void process(IRNode n) {
-			destroyNode(n);
-		}
-	};
 
 	/**
 	 * Destroy an IRNode and all the promises on it
@@ -77,7 +65,7 @@ public class AdapterUtil {
 	 */
 	@SuppressWarnings("deprecation")
 	private static void destroyNode(IRNode n) {
-		PromiseFramework.getInstance().processPromises(n, destroyer);
+		//PromiseFramework.getInstance().processPromises(n, destroyer);
 		if (n != null) {
 			n.destroy();
 			if (n.identity() != IRNode.destroyedNode) {

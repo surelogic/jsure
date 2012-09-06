@@ -5,6 +5,8 @@ import java.util.*;
 
 // From A to B,C,D
 public class CycleDetector extends HashMap<String, Set<String>> {
+	private static final long serialVersionUID = 1L;
+
 	public void addRef(String here, String qname) {
 		Set<String> references = this.get(here);
 		if (references == null) {

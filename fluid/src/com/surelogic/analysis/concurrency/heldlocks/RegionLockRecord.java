@@ -36,7 +36,7 @@ public final class RegionLockRecord extends AbstractLockRecord {
   public RegionLockRecord(
       final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) throws GlobalLockModel.UnsupportedLockException {
     super(binder, cd, ld);
-    LockDeclarationNode lock = (LockDeclarationNode) ld.getAST(); 
+    LockDeclarationNode lock = (LockDeclarationNode) ld.getAAST(); 
     if (lock != null) {
       final IRegionBinding b = lock.getRegion().resolveBinding();
       if (b == null) {

@@ -94,7 +94,7 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 		new Comparator<PromiseDrop<? extends IAASTRootNode>>() {
 			public int compare(PromiseDrop<? extends IAASTRootNode> o1,
 					PromiseDrop<? extends IAASTRootNode> o2) {
-				return aastComparator.compare(o1.getAST(), o2.getAST());
+				return aastComparator.compare(o1.getAAST(), o2.getAAST());
 			}
 	
 	};

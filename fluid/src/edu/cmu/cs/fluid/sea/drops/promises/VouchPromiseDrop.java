@@ -15,6 +15,6 @@ public class VouchPromiseDrop extends PromiseDrop<VouchSpecificationNode> {
   
   @Override
   protected void computeBasedOnAST() {  
-    setMessage("Vouch "+getAST());    
+    setMessage("Vouch "+getAAST());    
   }
 }

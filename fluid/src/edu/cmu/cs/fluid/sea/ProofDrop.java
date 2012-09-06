@@ -7,7 +7,6 @@ import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Represents a promise or a result used in the code/model consistency proof.

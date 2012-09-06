@@ -393,7 +393,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
 
   private String getPromiseContents(final RegionEffectsPromiseDrop declEffDrop) {
-	  return declEffDrop.getAST().toString().substring("RegionEffects".length()).trim();
+	  return declEffDrop.getAAST().toString().substring("RegionEffects".length()).trim();
   }
 	
 	/**

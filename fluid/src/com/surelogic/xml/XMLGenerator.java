@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /** This class is not thread safe!  Multiple instances of an XMLGenerator can 
  * not be run at the same time.
@@ -291,8 +292,8 @@ public class XMLGenerator
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static String generatePromises(IRNode node, Operator op, String space) {
 		/** NOTE: <promise> tags to identify a "promise field" are depreciated */ 
-		final Iterator<TokenInfo> tokenInfos = 
-			PromiseFramework.getInstance().getTokenInfos(op);
+		final Iterator<TokenInfo> tokenInfos = EmptyIterator.prototype();
+			//PromiseFramework.getInstance().getTokenInfos(op);
 
 		StringBuffer s = new StringBuffer();
 

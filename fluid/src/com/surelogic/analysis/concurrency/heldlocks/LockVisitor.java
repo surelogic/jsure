@@ -2543,7 +2543,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (returnedLockName != null) {
 				ctxtReturnsLockDrop = returnedLockName;
 				ctxtReturnedLock = LockUtils.convertLockNameToMethodContext(
-						mdecl, heldLockFactory, returnedLockName.getAST()
+						mdecl, heldLockFactory, returnedLockName.getAAST()
 								.getLock(), false, null, ctxtTheReceiverNode,
 								returnsLocksOnParameters);
 			}

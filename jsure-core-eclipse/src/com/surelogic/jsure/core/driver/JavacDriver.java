@@ -1300,7 +1300,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 	/**
 	 * Register resources
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	public void registerBuild(IProject project, Map args,
 			List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
 		final int k = getBuildKind(args);
@@ -1333,13 +1333,13 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		ModuleRules.clearAsNeededPatterns();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(DriverConstants.BUILD_KIND);
 		return Integer.parseInt(kind);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	public void doExplicitBuild(Map args, boolean ignoreNature) {
 		if (script != null) {
 			printToScript(ScriptCommands.RUN_JSURE);
@@ -1347,7 +1347,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		configureBuild(args, ignoreNature);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	public void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(

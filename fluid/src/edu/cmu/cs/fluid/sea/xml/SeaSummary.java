@@ -154,7 +154,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	@SuppressWarnings("unchecked")
 	private static IDropInfo checkIfReady(IDropInfo d) {
-		if (d.isInstance(PromiseDrop.class)) {
+		if (d.instanceOf(PromiseDrop.class)) {
 			IProofDropInfo pd = (IProofDropInfo) d;
 			if (!pd.isFromSrc()) {
 				// no need to do anything
@@ -162,13 +162,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			} 
 		}
 		// TODO skipping for now
-		if (d.isInstance(IThreadRoleDrop.class)) {
+		if (d.instanceOf(IThreadRoleDrop.class)) {
 			return null;
 		}
-		if (d.isInstance(PromiseWarningDrop.class) && d.getMessage().contains("ThreadRole")) {
+		if (d.instanceOf(PromiseWarningDrop.class) && d.getMessage().contains("ThreadRole")) {
 			return null;
 		}
-		if (d.isInstance(IRReferenceDrop.class)) {
+		if (d.instanceOf(IRReferenceDrop.class)) {
 			// Need a location to report
 			ISrcRef ref = d.getSrcRef();
 			if (ref == null) {

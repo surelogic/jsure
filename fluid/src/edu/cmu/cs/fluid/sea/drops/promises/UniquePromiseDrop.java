@@ -23,7 +23,6 @@ import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
  * uniqueness analysis.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.UniqueAnalysis
- * @see edu.cmu.cs.fluid.java.bind.UniquenessAnnotation
  */
 public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> 
 implements MaybeTopLevel, RegionAggregationDrop, IUniquePromise {
@@ -84,7 +83,7 @@ implements MaybeTopLevel, RegionAggregationDrop, IUniquePromise {
   }
   
   public final boolean allowRead() {
-      return getAST().allowRead();
+      return getAAST().allowRead();
   }
   
   public UniquePromiseDrop getDrop() {
