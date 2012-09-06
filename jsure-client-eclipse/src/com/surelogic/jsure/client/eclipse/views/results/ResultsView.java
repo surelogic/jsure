@@ -71,8 +71,8 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.sea.xml.IRFreeDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public final class ResultsView extends AbstractJSureResultsView implements
 		JSureDataDirHub.CurrentScanChangeListener {
@@ -413,8 +413,8 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		}
 	}
 
-	static class Content extends AbstractContent<Info, Content> {
-		Content(String msg, Collection<Content> content, Info drop) {
+	static class Content extends AbstractContent<IRFreeDrop, Content> {
+		Content(String msg, Collection<Content> content, IRFreeDrop drop) {
 			super(msg, content, drop);
 		}
 
@@ -423,11 +423,11 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		}
 	}
 
-	private GenericResultsViewContentProvider<Info, Content> f_provider;
+	private GenericResultsViewContentProvider<IRFreeDrop, Content> f_provider;
 
 	private IResultsViewContentProvider makeContentProvider() {
 		// return new ResultsViewContentProvider();
-		return new GenericResultsViewContentProvider<Info, Content>(
+		return new GenericResultsViewContentProvider<IRFreeDrop, Content>(
 				Sea.getDefault()) {
 			{
 				f_provider = this;
@@ -490,7 +490,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			}
 
 			@Override
-			protected Content makeContent(String msg, Info drop) {
+			protected Content makeContent(String msg, IRFreeDrop drop) {
 				return new Content(msg, Collections.<Content> emptyList(), drop);
 			}
 

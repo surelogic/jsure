@@ -21,18 +21,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.CallInterface;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.ImportName;
-import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.promise.TextFile;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
@@ -40,7 +29,6 @@ import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -54,7 +42,6 @@ import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class GenericResultsViewContentProvider<T extends IDrop, C extends AbstractContent<T, C>> implements
