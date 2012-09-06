@@ -598,8 +598,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
     @Override
     public Set<? extends IDropInfo> getMatchingDeponents(IDropPredicate p) {
-      // TODO Auto-generated method stub
-      return null;
+      final Set<Info> result = new HashSet<Info>();
+      for (Info i : deponents) {
+        if (p.match(i)) {
+          result.add(i);
+        }
+      }
+      return result;
     }
 
     @Override
@@ -614,8 +619,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
     @Override
     public Set<? extends IDropInfo> getMatchingDependents(IDropPredicate p) {
-      // TODO Auto-generated method stub
-      return null;
+      final Set<Info> result = new HashSet<Info>();
+      for (Info i : dependents) {
+        if (p.match(i)) {
+          result.add(i);
+        }
+      }
+      return result;
     }
 
     public Collection<? extends IProposedPromiseDropInfo> getProposals() {
