@@ -681,12 +681,8 @@ public final class Sea {
           final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
 
           // examine dependent analysis results and dependent promises
-          Set<? extends ResultDrop> tpd = pd.getCheckedBy();
-
-          Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(tpd.size());
-          for (ProofDrop t : tpd) {
-            proofDrops.add(t);
-          }
+          final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>();
+          proofDrops.addAll(pd.getCheckedBy());
           proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
           for (ProofDrop result : proofDrops) {
             // all must be consistent for this drop to be consistent
@@ -703,7 +699,7 @@ public final class Sea {
            * RESULT DROP
            */
 
-          ResultDrop rd = (ResultDrop) d;
+          final ResultDrop rd = (ResultDrop) d;
 
           // "and" trust promise drops
           Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();

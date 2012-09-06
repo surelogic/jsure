@@ -46,10 +46,6 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     type = t;
   }
 
-  public ResultDrop() {
-    this(null);
-  }
-
   /**
    * The set of promise drops being checked, or established, by this result.
    */
@@ -84,6 +80,13 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     promise.addDependent(this);
   }
 
+  /**
+   * Adds a set of promises to the set of promises this result establishes, or
+   * <i>checks</i>.
+   * 
+   * @param promises
+   *          the promises being supported by this result
+   */
   public void addCheckedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
     // no null check -- fail-fast
     for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
@@ -106,6 +109,13 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     promise.addDependent(this);
   }
 
+  /**
+   * Adds a set of promises to the set of promises this result uses as a
+   * precondition, or <i>trusts</i>.
+   * 
+   * @param promises
+   *          the promises being trusted by this result
+   */
   public void addTrustedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
     // no null check -- fail-fast
     for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
