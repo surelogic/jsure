@@ -22,10 +22,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDropPredicate;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
@@ -99,11 +99,9 @@ public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolder
 //    newVisDrops.clear();
   }
 
-  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
-    public boolean match(Drop d) {
-      return (d.isValid()) &&
-        d instanceof CUDrop ||
-        d instanceof BinaryCUDrop;
+  private static IDropPredicate definingDropPred = new IDropPredicate() {
+    public boolean match(IDropInfo d) {
+      return (d.isValid()) && d.isInstance(CUDrop.class) || d.isInstance(BinaryCUDrop.class);
     }    
   };
   

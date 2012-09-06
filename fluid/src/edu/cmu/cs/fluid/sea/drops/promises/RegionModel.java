@@ -28,9 +28,9 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDropPredicate;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -39,7 +39,6 @@ import edu.cmu.cs.fluid.util.*;
  * Actual drop for "region" models.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  * 
  * @lock RegionModelLock is class protects nameToDrop
  */
@@ -167,11 +166,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 				|| NewRegionDeclaration.prototype.includes(n);
 	}
 
-	private static DropPredicate definingDropPred = new AbstractDropPredicate() {
-		public boolean match(Drop d) {
-			return d instanceof InRegionPromiseDrop
-			// || d instanceof RegionDeclarationDrop
-					|| d instanceof ExplicitUniqueInRegionPromiseDrop;
+	private static IDropPredicate definingDropPred = new IDropPredicate() {
+		public boolean match(IDropInfo d) {
+			return d.isInstance(InRegionPromiseDrop.class)
+					|| d.isInstance(ExplicitUniqueInRegionPromiseDrop.class);
 		}
 	};
 

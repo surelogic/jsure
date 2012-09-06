@@ -247,30 +247,54 @@ public abstract class Drop implements IDropInfo {
    * Queries if any of this drop's dependent drops matches the given drop
    * predicate.
    * 
-   * @param pred
+   * @param p
    *          the drop predicate to use.
    * @return <code>true</code> if at least one of this drop's dependent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDependents(DropPredicate pred) {
-    return Sea.hasMatchingDrops(pred, dependents);
+  final public boolean hasMatchingDependents(IDropPredicate p) {
+    return Sea.hasMatchingDrops(p, dependents);
   }
 
   /**
    * Queries if any of this drop's deponent drops matches the given drop
    * predicate.
    * 
-   * @param pred
+   * @param p
    *          the drop predicate to use.
    * @return <code>true</code> if at least one of this drop's deponent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDeponents(DropPredicate pred) {
-    return Sea.hasMatchingDrops(pred, deponents);
+  final public boolean hasMatchingDeponents(IDropPredicate p) {
+    return Sea.hasMatchingDrops(p, deponents);
   }
 
-  public final boolean hasMatchingDeponents(IDropPredicate pred) {
-    return Sea.hasMatchingDrops((DropPredicate) pred, deponents);
+  /**
+   * Returns the set of this drop's dependents drops matches the given drop
+   * predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return a set of drops. This may be empty but will never be {@code null}.
+   */
+  public Set<Drop> getMatchingDependents(IDropPredicate p) {
+    final Set<Drop> result = new HashSet<Drop>();
+    Sea.addMatchingDropsFrom(deponents, p, result);
+    return result;
+  }
+
+  /**
+   * Returns the set of this drop's deponent drops matches the given drop
+   * predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return a set of drops. This may be empty but will never be {@code null}.
+   */
+  public Set<Drop> getMatchingDeponents(IDropPredicate p) {
+    final Set<Drop> result = new HashSet<Drop>();
+    Sea.addMatchingDropsFrom(deponents, p, result);
+    return result;
   }
 
   /**
@@ -294,34 +318,12 @@ public abstract class Drop implements IDropInfo {
   }
 
   /**
-   * Adds the matching deponent drops to the set passed in
-   */
-  final public void addMatchingDeponentsTo(Set<Drop> drops, DropPredicate pred) {
-    Sea.addMatchingDropsFrom(deponents, pred, drops);
-  }
-
-  /**
-   * Adds the matching dependents to the set passed in
-   */
-  final public void addMatchingDependentsTo(Set<Drop> drops, DropPredicate pred) {
-    Sea.addMatchingDropsFrom(dependents, pred, drops);
-  }
-
-  final public void addMatchingDependentsTo(Set<IDropInfo> drops, IDropPredicate pred) {
-    Set<Drop> temp = new HashSet<Drop>();
-    Sea.addMatchingDropsFrom(dependents, (DropPredicate) pred, temp);
-    drops.addAll(temp);
-  }
-
-  /**
    * Invalidates, makes false, the information that this drop represents.
    */
   final public void invalidate() {
     if (!valid) {
       return;
     }
-    // System.out.println("Invalidating drop: "+getMessage());
-    // new Throwable().printStackTrace();
     invalidate_internal();
 
     valid = false;

@@ -161,12 +161,12 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comp
     }
   }
 
-  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
+  private static IDropPredicate definingDropPred = new IDropPredicate() {
 
-    public boolean match(Drop d) {
-      return d instanceof TRoleDeclareDrop || d instanceof TRoleRevokeDrop
-          || d instanceof TRoleGrantDrop || d instanceof TRoleIncompatibleDrop
-          || d instanceof TRoleRenameDrop || d instanceof TRoleImportDrop;
+    public boolean match(IDropInfo d) {
+      return d.isInstance(TRoleDeclareDrop.class) || d.isInstance(TRoleRevokeDrop.class) || d.isInstance(TRoleGrantDrop.class)
+          || d.isInstance(TRoleIncompatibleDrop.class) || d.isInstance(TRoleRenameDrop.class)
+          || d.isInstance(TRoleImportDrop.class);
     }
   };
 
