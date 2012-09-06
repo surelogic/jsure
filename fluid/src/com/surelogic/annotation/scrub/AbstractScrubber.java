@@ -3,8 +3,6 @@ package com.surelogic.annotation.scrub;
 import java.util.Comparator;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.annotation.test.TestResult;
-import com.surelogic.annotation.test.TestResultType;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;

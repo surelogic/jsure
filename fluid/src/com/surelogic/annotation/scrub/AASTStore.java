@@ -30,8 +30,8 @@ public final class AASTStore {
    */
   @SuppressWarnings("rawtypes")
   @UniqueInRegion("Store")
-  protected static final Map<Class,Collection<? extends IAASTRootNode>> byClass = 
-    new HashMap<Class,Collection<? extends IAASTRootNode>>();
+  protected static final Map<Class<?>,Collection<? extends IAASTRootNode>> byClass = 
+    new HashMap<Class<?>,Collection<? extends IAASTRootNode>>();
   
   /**
    * The AASTs organized by promisedFor
@@ -59,7 +59,7 @@ public final class AASTStore {
   /**
    * Callbacks to be run after the AAST is scrubbed
    */
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @UniqueInRegion("Store")
   protected static final Map<IAASTRootNode,List<ValidatedDropCallback>> triggers = 
     new HashMap<IAASTRootNode,List<ValidatedDropCallback>>();
@@ -174,7 +174,7 @@ public final class AASTStore {
 	  return cu;
   }
   
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static synchronized void triggerWhenValidated(IAASTRootNode root, ValidatedDropCallback r) {
     List<ValidatedDropCallback> l = triggers.get(root);
     if (l == null) {
@@ -184,7 +184,8 @@ public final class AASTStore {
     l.add(r);
   }
 
-  public static synchronized <A extends IAASTRootNode>
+  @SuppressWarnings("unchecked")
+public static synchronized <A extends IAASTRootNode>
   void validate(PromiseDrop<A> pd) {  
     if (pd.getAAST() == null) {
       if (pd instanceof MethodEffectsPromiseDrop) {

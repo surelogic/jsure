@@ -273,7 +273,7 @@ public abstract class AnnotationRules {
 	 * storage/scrubber
 	 */
 	protected void registerParseRuleStorage(PromiseFramework fw,
-			IAnnotationParseRule r) {
+			IAnnotationParseRule<?,?> r) {
 		fw.registerParseDropRule(r);
 
 		@SuppressWarnings("unchecked")
@@ -436,7 +436,7 @@ public abstract class AnnotationRules {
 	 * ************************************************
 	 */
 
-	private static boolean isBogus(PromiseDrop p) {
+	private static boolean isBogus(PromiseDrop<?> p) {
 		return !p.isValid();
 	}
 
@@ -460,7 +460,7 @@ public abstract class AnnotationRules {
 		return stor.add(mapped, pd);
 	}
 
-	private static <P extends PromiseDrop> P getMappedValue(SlotInfo<P> si,
+	private static <P extends PromiseDrop<?>> P getMappedValue(SlotInfo<P> si,
 			final IRNode n) {
 		final PromiseFramework frame = PromiseFramework.getInstance();
 		final IRNode mapped = frame.getProxyNode(n);
@@ -472,7 +472,7 @@ public abstract class AnnotationRules {
 		return getMappedValue(si, n, mapped, frame);
 	}
 
-	private static <P extends PromiseDrop> P getMappedValue(SlotInfo<P> si,
+	private static <P extends PromiseDrop<?>> P getMappedValue(SlotInfo<P> si,
 			final IRNode n, final IRNode mapped, PromiseFramework frame) {
 		P rv;
 
@@ -529,7 +529,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for BooleanPromiseDrops
 	 */
-	protected static <D extends BooleanPromiseDrop> D getBooleanDrop(
+	protected static <D extends BooleanPromiseDrop<?>> D getBooleanDrop(
 			IPromiseDropStorage<D> s, IRNode n) {
 		IBooleanPromiseDropStorage<D> storage = (IBooleanPromiseDropStorage<D>) s;
 		if (n == null) {
@@ -545,7 +545,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for single PromiseDrops
 	 */
-	protected static <D extends PromiseDrop> D getDrop(
+	protected static <D extends PromiseDrop<?>> D getDrop(
 			IPromiseDropStorage<D> s, IRNode n) {
 		ISinglePromiseDropStorage<D> storage = (ISinglePromiseDropStorage<D>) s;
 		if (n == null) {
@@ -558,7 +558,7 @@ public abstract class AnnotationRules {
 		return d;
 	}
 
-	private static <D extends PromiseDrop> Iterator<D> getIterator(
+	private static <D extends PromiseDrop<?>> Iterator<D> getIterator(
 			SlotInfo<List<D>> si, IRNode n) {
 		if (n == null) {
 			return new EmptyIterator<D>();
@@ -573,7 +573,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for lists of PromiseDrops
 	 */
-	protected static <D extends PromiseDrop> Iterable<D> getDrops(
+	protected static <D extends PromiseDrop<?>> Iterable<D> getDrops(
 			IPromiseDropStorage<D> s, IRNode n) {
 		if (n == null) {
 			return new EmptyIterator<D>();

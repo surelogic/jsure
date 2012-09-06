@@ -30,7 +30,7 @@ public class TRolePromisesSupport extends AbstractPromiseAnnotation {
     // do nothing
   }
   
-  private static SlotInfo<Set<TRoleImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
+  static SlotInfo<Set<TRoleImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
 
   //private static SlotInfo renameDropSI = SimpleSlotFactory.prototype.newAttribute(null);
   
@@ -48,11 +48,11 @@ public class TRolePromisesSupport extends AbstractPromiseAnnotation {
   private static SlotInfo<Set<TRoleRevokeDrop>> revokeDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<Set<TRoleIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
+  static SlotInfo<Set<TRoleIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   private static SlotInfo<Set<RegionTRoleDeclDrop>> regionTRoleDeclDropSetSI = 
     SimpleSlotFactory.prototype.newAttribute(null);
-  private static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
+  static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
 
@@ -141,7 +141,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
    * @param node the node whose set should be updated
    * @param si the SlotInfo to get the set from.
    */
-  private static <T extends Drop> void purgeMutableSet(IRNode node, SlotInfo<Set<T>> si) {
+  static <T extends Drop> void purgeMutableSet(IRNode node, SlotInfo<Set<T>> si) {
     Set<T> old = getMutableSet(node, si);
     final int newSize = Math.max(old.size()-1, 0);
     Set<T> newSet = new HashSet<T>(newSize);
