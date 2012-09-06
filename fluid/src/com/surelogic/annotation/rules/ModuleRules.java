@@ -54,10 +54,12 @@ public class ModuleRules extends AnnotationRules {
     return instance;
   }
   
+  /*
   private static final NoVis_ParseRule noVisRule = new NoVis_ParseRule();
   private static final Vis_ParseRule visRule = new Vis_ParseRule();
   private static final Module_ParseRule moduleRule = new Module_ParseRule();
   private static final Export_ParseRule exportRule = new Export_ParseRule();
+  */
 
   public static class NoVis_ParseRule 
   extends SimpleBooleanAnnotationParseRule<NoVisClauseNode,NoVisPromiseDrop> {
@@ -179,15 +181,17 @@ public class ModuleRules extends AnnotationRules {
   }
   @Override
   public void register(PromiseFramework fw) {
+	/*
     registerParseRuleStorage(fw, noVisRule);
     registerParseRuleStorage(fw, visRule);
     registerParseRuleStorage(fw, moduleRule);
     registerParseRuleStorage(fw, exportRule);
-    
+    */
   }
   
   public static ModulePromiseDrop getModule(IRNode where) {
-    return getDrop(moduleRule.getStorage(), where); 
+	  //return getDrop(moduleRule.getStorage(), where); 
+	  return null;
   }
   /**
    * @return The representation of the module name, or
