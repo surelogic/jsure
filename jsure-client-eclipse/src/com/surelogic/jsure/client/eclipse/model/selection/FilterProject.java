@@ -8,7 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 
 public final class FilterProject extends Filter {
 
@@ -43,10 +43,10 @@ public final class FilterProject extends Filter {
 	}
 
 	@Override
-	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDrop> incomingResults) {
 		f_counts.clear();
 		int runningTotal = 0;
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final ISrcRef sr = d.getSrcRef();
 			if (sr != null) {
 				final String value = getProject(sr);
@@ -65,9 +65,9 @@ public final class FilterProject extends Filter {
 	}
 
 	@Override
-	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
+	protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
 		f_porousDrops.clear();
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final ISrcRef sr = d.getSrcRef();
 			if (sr != null) {
 				final String value = getProject(sr);

@@ -155,7 +155,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	@SuppressWarnings("unchecked")
 	private static IDrop checkIfReady(IDrop d) {
 		if (d.instanceOf(PromiseDrop.class)) {
-			IProofDropInfo pd = (IProofDropInfo) d;
+			IProofDrop pd = (IProofDrop) d;
 			if (!pd.isFromSrc()) {
 				// no need to do anything
 				return null;

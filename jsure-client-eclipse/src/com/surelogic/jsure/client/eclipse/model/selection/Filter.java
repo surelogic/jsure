@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.swt.graphics.Image;
 
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 
 /**
  * Abstract base class for all JSure results filters. Intended to be subclassed.
@@ -494,16 +494,16 @@ public abstract class Filter {
 		return getResultCountPorous() > 0;
 	}
 
-	protected final List<IProofDropInfo> f_porousDrops = new ArrayList<IProofDropInfo>();
+	protected final List<IProofDrop> f_porousDrops = new ArrayList<IProofDrop>();
 
 	/**
 	 * Gets a copy of the list of results that this filter allows through it.
 	 * 
 	 * @return the list of results that this filter allows through it.
 	 */
-	public final List<IProofDropInfo> getPorousDrops() {
+	public final List<IProofDrop> getPorousDrops() {
 		synchronized (this) {
-			return new ArrayList<IProofDropInfo>(f_porousDrops);
+			return new ArrayList<IProofDrop>(f_porousDrops);
 		}
 	}
 
@@ -525,7 +525,7 @@ public abstract class Filter {
 	 */
 
 	void refresh() {
-		final List<IProofDropInfo> incomingResults = getPreviousPorusDrops();
+		final List<IProofDrop> incomingResults = getPreviousPorusDrops();
 		synchronized (this) {
 			refreshCounts(incomingResults);
 			deriveAllValues();
@@ -544,8 +544,8 @@ public abstract class Filter {
 	 * @return a non-empty list of scan results coming through the previous
 	 *         filter.
 	 */
-	private List<IProofDropInfo> getPreviousPorusDrops() {
-		final List<IProofDropInfo> result;
+	private List<IProofDrop> getPreviousPorusDrops() {
+		final List<IProofDrop> result;
 		if (f_previous == null) {
 			result = f_selection.getDropsFromSea();
 		} else {
@@ -566,7 +566,7 @@ public abstract class Filter {
 	 * @param incomingResults
 	 *            the list of scan results coming through the previous filter.
 	 */
-	protected abstract void refreshCounts(List<IProofDropInfo> incomingResults);
+	protected abstract void refreshCounts(List<IProofDrop> incomingResults);
 
 	/**
 	 * May need to be overridden if the set of values includes values not able
@@ -642,5 +642,5 @@ public abstract class Filter {
 	 *            the list of scan results coming through the previous filter.
 	 */
 	protected abstract void refreshPorousDrops(
-			List<IProofDropInfo> incomingResults);
+			List<IProofDrop> incomingResults);
 }

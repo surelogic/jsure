@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
  * 
  * @subtypedBy edu.cmu.cs.fluid.sea.PromiseDrop, edu.cmu.cs.fluid.sea.ResultDrop
  */
-public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInfo {
+public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   /**
    * Records if this element is able to be proved consistent with regards to the
@@ -69,11 +69,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInf
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
-  public Collection<? extends IProofDropInfo> getTrusts() {
+  public Collection<? extends IProofDrop> getTrusts() {
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
-  public Collection<? extends IProofDropInfo> getChecks() {
+  public Collection<? extends IProofDrop> getChecks() {
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
@@ -86,11 +86,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInf
     return false;
   }
 
-  public Collection<? extends IProofDropInfo> getCheckedBy() {
+  public Collection<? extends IProofDrop> getCheckedBy() {
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
-  public Collection<? extends IProofDropInfo> getTrustsComplete() {
+  public Collection<? extends IProofDrop> getTrustsComplete() {
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
@@ -98,7 +98,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInf
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
-  public Collection<? extends IProofDropInfo> get_or_Trusts(String key) {
+  public Collection<? extends IProofDrop> get_or_Trusts(String key) {
     throw new UnsupportedOperationException("Not a ResultDrop");
   }
 

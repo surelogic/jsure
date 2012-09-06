@@ -19,7 +19,7 @@ import com.surelogic.javac.persistence.JSureScan;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -165,11 +165,11 @@ public class JSureScanInfo {
 		return Collections.emptySet();
 	}
 
-	public synchronized List<IProofDropInfo> getProofDropInfo() {
-		final List<IProofDropInfo> result = new ArrayList<IProofDropInfo>();
+	public synchronized List<IProofDrop> getProofDropInfo() {
+		final List<IProofDrop> result = new ArrayList<IProofDrop>();
 		for (IDrop i : loadOrGetDropInfo()) {
-			if (i instanceof IProofDropInfo) {
-				final IProofDropInfo ipd = (IProofDropInfo) i;
+			if (i instanceof IProofDrop) {
+				final IProofDrop ipd = (IProofDrop) i;
 				result.add(ipd);
 			}
 		}

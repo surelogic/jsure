@@ -33,7 +33,7 @@ import com.surelogic.jsure.client.eclipse.views.results.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class MListOfResultsColumn extends MColumn implements
@@ -135,7 +135,7 @@ public final class MListOfResultsColumn extends MColumn implements
 
 	private final Listener f_rowSelection = new Listener() {
 		public void handleEvent(final Event event) {
-			final IProofDropInfo info = getSelectedItem();
+			final IProofDrop info = getSelectedItem();
 			if (info != null) {
 				DropInfoUtility.showDrop(info);
 			}
@@ -144,7 +144,7 @@ public final class MListOfResultsColumn extends MColumn implements
 
 	private final Listener f_doubleClick = new Listener() {
 		public void handleEvent(final Event event) {
-			final IProofDropInfo info = getSelectedItem();
+			final IProofDrop info = getSelectedItem();
 			if (info != null) {
 				/*
 				 * Highlight this line in the editor if possible.
@@ -215,14 +215,14 @@ public final class MListOfResultsColumn extends MColumn implements
 
 		f_table.setRedraw(false);
 
-		final List<IProofDropInfo> rows = getSelection().getPorousDrops();
+		final List<IProofDrop> rows = getSelection().getPorousDrops();
 
-		final IProofDropInfo selected = getSelectedItem();
+		final IProofDrop selected = getSelectedItem();
 		f_table.removeAll();
 
-		IProofDropInfo lastSelected = null;
+		IProofDrop lastSelected = null;
 		int i = 0;
-		for (final IProofDropInfo data : rows) {
+		for (final IProofDrop data : rows) {
 			final boolean rowSelected = data == selected;
 			final TableItem item = new TableItem(f_table, SWT.NONE);
 			setTableItemInfo(item, data);
@@ -253,18 +253,18 @@ public final class MListOfResultsColumn extends MColumn implements
 		}
 	}
 
-	private void selectItem(int i, IProofDropInfo data) {
+	private void selectItem(int i, IProofDrop data) {
 		if (i != -1) {
 			f_table.select(i);
 		}
 	}
 
-	private IProofDropInfo getSelectedItem() {
+	private IProofDrop getSelectedItem() {
 		final TableItem[] selected = f_table.getSelection();
 		if (selected.length > 0) {
 			final Object data = selected[0].getData();
-			if (data instanceof IProofDropInfo)
-				return (IProofDropInfo) data;
+			if (data instanceof IProofDrop)
+				return (IProofDrop) data;
 		}
 		return null;
 	}
@@ -289,7 +289,7 @@ public final class MListOfResultsColumn extends MColumn implements
 		job.schedule();
 	}
 
-	private void setTableItemInfo(TableItem item, IProofDropInfo data) {
+	private void setTableItemInfo(TableItem item, IProofDrop data) {
 		int flags = 0;
 		final ImageDescriptor img;
 		if (data.instanceOf(ResultDrop.class)) {

@@ -426,7 +426,7 @@ public final class Sea {
    *          the promise drop information.
    * @return the annotation name or {@code null}.
    */
-  public static String getAnnotationName(IProofDropInfo promiseDropInfo) {
+  public static String getAnnotationName(IProofDrop promiseDropInfo) {
     final String suffix = "PromiseDrop";
     if (!promiseDropInfo.instanceOf(PromiseDrop.class))
       return null;

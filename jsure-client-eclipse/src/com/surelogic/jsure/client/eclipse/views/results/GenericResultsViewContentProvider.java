@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
@@ -286,9 +286,9 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          the result to add "and" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_and_TrustedPromises(C mutableContentSet, IProofDropInfo result) {
+  private void add_and_TrustedPromises(C mutableContentSet, IProofDrop result) {
     // Create a folder to contain the preconditions
-    Collection<? extends IProofDropInfo> trustedPromiseDrops = result.getTrusts();
+    Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrusts();
     int count = trustedPromiseDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
@@ -299,7 +299,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     boolean elementsProvedConsistent = true; // assume true
 
     // add trusted promises to the folder
-    for (IProofDropInfo trustedDrop : trustedPromiseDrops) {
+    for (IProofDrop trustedDrop : trustedPromiseDrops) {
       // ProofDrop trustedDrop = (ProofDrop) j.next();
       preconditionFolder.addChild(encloseDrop((T) trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
@@ -322,7 +322,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          the result to add "or" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_or_TrustedPromises(C mutableContentSet, IProofDropInfo result) {
+  private void add_or_TrustedPromises(C mutableContentSet, IProofDrop result) {
     if (!result.hasOrLogic()) {
       // no "or" logic on this result, thus bail out
       return;
@@ -349,10 +349,10 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       // set proof bits properly
       boolean choiceConsistent = true;
       boolean choiceUsesRedDot = false;
-      Collection<? extends IProofDropInfo> choiceSet = result.get_or_Trusts(key);
+      Collection<? extends IProofDrop> choiceSet = result.get_or_Trusts(key);
 
       // fill in the folder with choices
-      for (IProofDropInfo trustedDrop : choiceSet) {
+      for (IProofDrop trustedDrop : choiceSet) {
         // ProofDrop trustedDrop = (ProofDrop) j.next();
         choiceFolder.addChild(encloseDrop((T) trustedDrop));
         choiceConsistent &= trustedDrop.provedConsistent();
@@ -399,7 +399,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
          * PROMISE DROP
          */
 
-        IProofDropInfo promiseDrop = (IProofDropInfo) drop;
+        IProofDrop promiseDrop = (IProofDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -428,7 +428,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         /*
          * RESULT DROP
          */
-        IProofDropInfo resultDrop = (IProofDropInfo) drop;
+        IProofDrop resultDrop = (IProofDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -579,13 +579,13 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       categoryFolder.freezeCount();
 
       // image (try to show proof status if it makes sense)
-      Set<IProofDropInfo> proofDrops = new HashSet<IProofDropInfo>();
+      Set<IProofDrop> proofDrops = new HashSet<IProofDrop>();
       Set<IDrop> warningDrops = new HashSet<IDrop>();
       Set<IDrop> infoDrops = new HashSet<IDrop>();
 
       for (C item : categoryFolder.children()) {
         if (item.getDropInfo().instanceOf(ProofDrop.class)) {
-          proofDrops.add((IProofDropInfo) item.getDropInfo());
+          proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
           infoDrops.add(item.getDropInfo());
           if (item.getDropInfo().instanceOf(WarningDrop.class)) {
@@ -605,7 +605,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         boolean choiceConsistent = true;
         boolean choiceUsesRedDot = false;
         // boolean localConsistent = true;
-        for (IProofDropInfo proofDrop : proofDrops) {
+        for (IProofDrop proofDrop : proofDrops) {
           choiceConsistent &= proofDrop.provedConsistent();
           /*
            * if (proofDrop.isInstance(ResultDrop.class)) { localConsistent &=
@@ -775,8 +775,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     boolean consistent = true;
     boolean hasRedDot = false;
     for (C node : c.children()) {
-      if (node.getDropInfo() instanceof IProofDropInfo) {
-        IProofDropInfo d = (IProofDropInfo) node.getDropInfo();
+      if (node.getDropInfo() instanceof IProofDrop) {
+        IProofDrop d = (IProofDrop) node.getDropInfo();
         hasAResult = true;
         consistent = consistent && d.provedConsistent();
         hasRedDot = hasRedDot || d.proofUsesRedDot();
@@ -1020,8 +1020,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     // show at the viewer root
     Collection<C> root = new HashSet<C>();
 
-    final Collection<IProofDropInfo> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDropInfo.class);
-    for (IProofDropInfo pd : promiseDrops) {
+    final Collection<IProofDrop> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDrop.class);
+    for (IProofDrop pd : promiseDrops) {
       if (pd.isFromSrc() || pd.derivedFromSrc()) {
         // System.out.println("Considering: "+pd.getMessage());
         if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
@@ -1046,8 +1046,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       root.add(infoFolder);
     }
 
-    final Collection<IProofDropInfo> resultDrops = getDropsOfType(ResultDrop.class, IProofDropInfo.class);
-    for (IProofDropInfo id : resultDrops) {
+    final Collection<IProofDrop> resultDrops = getDropsOfType(ResultDrop.class, IProofDrop.class);
+    for (IProofDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
       if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {

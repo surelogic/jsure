@@ -3,7 +3,12 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
 
-public interface IProofDropInfo extends IDrop {
+/**
+ * The interface for the base class for all proof drops within the sea, intended
+ * to allow multiple implementations. The analysis uses the IR drop-sea and the
+ * Eclipse client loads snapshots using a IR-free drop-sea.
+ */
+public interface IProofDrop extends IDrop {
 
   /**
    * Returns if this element is able to be proved consistent (model/code
@@ -126,7 +131,7 @@ public interface IProofDropInfo extends IDrop {
    * @see #get_or_TrustLabelSet()
    * @see #get_or_Trusts(String)
    */
-  Collection<? extends IProofDropInfo> getTrusts();
+  Collection<? extends IProofDrop> getTrusts();
 
   /**
    * Gets the set of promise drops established, or checked, by this result.
@@ -134,7 +139,7 @@ public interface IProofDropInfo extends IDrop {
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  Collection<? extends IProofDropInfo> getChecks();
+  Collection<? extends IProofDrop> getChecks();
 
   /**
    * Flags if this result has groups of "or" precondition sets which must be
@@ -224,7 +229,7 @@ public interface IProofDropInfo extends IDrop {
    *          the key to provide the promise drop set for
    * @return the non-null (possibly empty) promise drop set
    */
-  Collection<? extends IProofDropInfo> get_or_Trusts(String key);
+  Collection<? extends IProofDrop> get_or_Trusts(String key);
 
   /**
    * Returns a copy of the set of result drops which directly check this promise
@@ -232,7 +237,7 @@ public interface IProofDropInfo extends IDrop {
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
-  Collection<? extends IProofDropInfo> getCheckedBy();
+  Collection<? extends IProofDrop> getCheckedBy();
 
   /**
    * Returns the preconditions of this result, including any "or" preconditions.
@@ -248,5 +253,5 @@ public interface IProofDropInfo extends IDrop {
    * @see #get_or_TrustLabelSet()
    * @see #get_or_Trusts(String)
    */
-  Collection<? extends IProofDropInfo> getTrustsComplete();
+  Collection<? extends IProofDrop> getTrustsComplete();
 }

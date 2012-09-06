@@ -7,7 +7,7 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class FilterAnalysisResult extends Filter {
@@ -69,10 +69,10 @@ public final class FilterAnalysisResult extends Filter {
 	}
 
 	@Override
-	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDrop> incomingResults) {
 		f_counts.clear();
 		int runningTotal = 0;
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final String value = getFilterValueOrNull(d);
 			if (value != null) {
 				Integer count = f_counts.get(value);
@@ -88,9 +88,9 @@ public final class FilterAnalysisResult extends Filter {
 	}
 
 	@Override
-	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
+	protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
 		f_porousDrops.clear();
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final String value = getFilterValueOrNull(d);
 			if (value != null) {
 				if (f_porousValues.contains(value))
@@ -99,7 +99,7 @@ public final class FilterAnalysisResult extends Filter {
 		}
 	}
 
-	private String getFilterValueOrNull(IProofDropInfo d) {
+	private String getFilterValueOrNull(IProofDrop d) {
 		if (d.instanceOf(ResultDrop.class)) {
 			final String value;
 			if (d.isVouched())

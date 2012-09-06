@@ -625,7 +625,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
   }
 
-  static class ProofInfo extends Info implements IProofDropInfo {
+  static class ProofInfo extends Info implements IProofDrop {
     /**
      * Only for PromiseDrops
      */
@@ -678,11 +678,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       }
     }
 
-    public Collection<? extends IProofDropInfo> getChecks() {
+    public Collection<? extends IProofDrop> getChecks() {
       return checkedPromises;
     }
 
-    public Collection<? extends IProofDropInfo> getTrusts() {
+    public Collection<? extends IProofDrop> getTrusts() {
       return trustedPromises;
     }
 
@@ -703,11 +703,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return "true".equals(getAttribute(DERIVED_FROM_SRC_ATTR));
     }
 
-    public Collection<? extends IProofDropInfo> getCheckedBy() {
+    public Collection<? extends IProofDrop> getCheckedBy() {
       return checkedByResults;
     }
 
-    public Collection<? extends IProofDropInfo> getTrustsComplete() {
+    public Collection<? extends IProofDrop> getTrustsComplete() {
       Collection<ProofInfo> rv = new HashSet<ProofInfo>(trustedPromises);
       rv.addAll(orTrustedPromises.values());
       return rv;
@@ -717,7 +717,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return orTrustedPromises.keySet();
     }
 
-    public Collection<? extends IProofDropInfo> get_or_Trusts(String key) {
+    public Collection<? extends IProofDrop> get_or_Trusts(String key) {
       return orTrustedPromises.get(key);
     }
 

@@ -9,11 +9,11 @@ import com.surelogic.common.ui.EclipseUIUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 
 @Utility
 public final class DropInfoUtility {
-	public static void showDrop(IProofDropInfo d) {
+	public static void showDrop(IProofDrop d) {
 		final ResultsView view = (ResultsView) EclipseUIUtility.showView(
 				ResultsView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
 		view.showDrop(d);
