@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.javac.*;
 
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
@@ -16,7 +15,6 @@ public class JSureProjectsXMLCreator extends AbstractSeaXmlCreator implements Pe
 
 	public void write(Projects projs) {
 		try {
-			final int indent = 1;
 			int i=0;
 			b.start(PROJECTS);
 			b.addAttribute("path", projs.getRun());
