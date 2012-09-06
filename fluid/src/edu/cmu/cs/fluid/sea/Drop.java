@@ -569,7 +569,7 @@ public abstract class Drop implements IDropInfo {
     return getClass().getName();
   }
 
-  public boolean isInstance(Class<?> type) {
+  public boolean instanceOf(Class<?> type) {
     return type.isInstance(this);
   }
 

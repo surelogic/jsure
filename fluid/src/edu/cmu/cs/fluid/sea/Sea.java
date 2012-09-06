@@ -427,7 +427,7 @@ public final class Sea {
    */
   public static String getAnnotationName(IProofDropInfo promiseDropInfo) {
     final String suffix = "PromiseDrop";
-    if (!promiseDropInfo.isInstance(PromiseDrop.class))
+    if (!promiseDropInfo.instanceOf(PromiseDrop.class))
       return null;
     final String result = promiseDropInfo.getType();
     if (result == null)

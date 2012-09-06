@@ -19,7 +19,7 @@ public interface IDropInfo {
   /**
    * receiver <tt>instanceof</tt> type.
    */
-  boolean isInstance(Class<?> type);
+  boolean instanceOf(Class<?> type);
 
   String getMessage();
 

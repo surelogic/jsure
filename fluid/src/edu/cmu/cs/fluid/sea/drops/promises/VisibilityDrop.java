@@ -101,7 +101,7 @@ public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolder
 
   private static IDropPredicate definingDropPred = new IDropPredicate() {
     public boolean match(IDropInfo d) {
-      return (d.isValid()) && d.isInstance(CUDrop.class) || d.isInstance(BinaryCUDrop.class);
+      return (d.isValid()) && d.instanceOf(CUDrop.class) || d.instanceOf(BinaryCUDrop.class);
     }    
   };
   

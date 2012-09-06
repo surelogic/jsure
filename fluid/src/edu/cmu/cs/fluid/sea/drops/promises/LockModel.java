@@ -101,8 +101,8 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 
 	private static IDropPredicate definingDropPred = new IDropPredicate() {
 		public boolean match(IDropInfo d) {
-			return d.isInstance(RequiresLockPromiseDrop.class)
-					|| d.isInstance(ReturnsLockPromiseDrop.class);
+			return d.instanceOf(RequiresLockPromiseDrop.class)
+					|| d.instanceOf(ReturnsLockPromiseDrop.class);
 		}
 	};
 

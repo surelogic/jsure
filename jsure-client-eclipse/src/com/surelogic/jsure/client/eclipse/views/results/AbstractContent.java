@@ -234,7 +234,7 @@ implements Cloneable, IDiffNode<T2> {
 				name = f.toString();
 			}
 
-			final boolean referencesAResultDrop = getDropInfo() != null && getDropInfo().isInstance(ResultDrop.class);
+			final boolean referencesAResultDrop = getDropInfo() != null && getDropInfo().instanceOf(ResultDrop.class);
 			if (ref.getLineNumber() > 0) {
 				if (referencesAResultDrop) {
 					result += " at line " + ref.getLineNumber();
@@ -377,7 +377,7 @@ implements Cloneable, IDiffNode<T2> {
 	}
 
 	public Category getCategory() {
-		if (getDropInfo() != null && getDropInfo().isInstance(IRReferenceDrop.class)) {
+		if (getDropInfo() != null && getDropInfo().instanceOf(IRReferenceDrop.class)) {
 			return getDropInfo().getCategory();
 		}
 		return null;

@@ -226,7 +226,7 @@ private static int cuCount = 0;
     
     private IDropPredicate tRoleDeclPred = new IDropPredicate() {
       public boolean match(IDropInfo d) {
-        return d.isInstance(TRoleDeclareDrop.class);
+        return d.instanceOf(TRoleDeclareDrop.class);
       }
     };
     

@@ -168,8 +168,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	private static IDropPredicate definingDropPred = new IDropPredicate() {
 		public boolean match(IDropInfo d) {
-			return d.isInstance(InRegionPromiseDrop.class)
-					|| d.isInstance(ExplicitUniqueInRegionPromiseDrop.class);
+			return d.instanceOf(InRegionPromiseDrop.class)
+					|| d.instanceOf(ExplicitUniqueInRegionPromiseDrop.class);
 		}
 	};
 

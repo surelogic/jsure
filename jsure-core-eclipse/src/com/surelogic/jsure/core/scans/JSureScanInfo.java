@@ -142,7 +142,7 @@ public class JSureScanInfo {
 
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
 		for (IDropInfo i : loadOrGetDropInfo()) {
-			if (i.isInstance(type)) {
+			if (i.instanceOf(type)) {
 				return true;
 			}
 		}
@@ -156,7 +156,7 @@ public class JSureScanInfo {
 		if (!info.isEmpty()) {
 			final Set<T> result = new HashSet<T>();
 			for (IDropInfo i : info) {
-				if (i.isInstance(dropType)) {
+				if (i.instanceOf(dropType)) {
 					result.add((T) i);
 				}
 			}

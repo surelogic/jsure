@@ -353,8 +353,8 @@ public class ModuleDrop extends PromiseDrop {
   private static IDropPredicate definingDropPred = new IDropPredicate() {
     public boolean match(IDropInfo d) {
       return (d.isValid()) &&
-        d.isInstance(CUDrop.class) ||
-        d.isInstance(BinaryCUDrop.class);
+        d.instanceOf(CUDrop.class) ||
+        d.instanceOf(BinaryCUDrop.class);
     }    
   };
   /* (non-Javadoc)

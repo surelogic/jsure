@@ -393,7 +393,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       result = makeContent(drop.getMessage(), drop);
       putInContentCache(drop, result); // to avoid infinite recursion
 
-      if (drop.isInstance(PromiseDrop.class)) {
+      if (drop.instanceOf(PromiseDrop.class)) {
 
         /*
          * PROMISE DROP
@@ -423,7 +423,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         addDrops(result, (Collection<? extends T>) matching);
         addDrops(result, (Collection<? extends T>) promiseDrop.getCheckedBy());
 
-      } else if (drop.isInstance(ResultDrop.class)) {
+      } else if (drop.instanceOf(ResultDrop.class)) {
 
         /*
          * RESULT DROP
@@ -449,23 +449,23 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromises(result, resultDrop);
 
-      } else if (drop.isInstance(InfoDrop.class)) {
+      } else if (drop.instanceOf(InfoDrop.class)) {
 
         /*
          * INFO DROP
          */
 
         // image
-        result.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
+        result.setBaseImageName(drop.instanceOf(WarningDrop.class) ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
 
         // children
         addSupportingInformation(result, drop);
         addProposedPromises(result, drop);
 
         result.f_isInfo = true;
-        result.f_isInfoWarning = drop.isInstance(WarningDrop.class);
+        result.f_isInfoWarning = drop.instanceOf(WarningDrop.class);
 
-      } else if (drop.isInstance(PromiseWarningDrop.class)) {
+      } else if (drop.instanceOf(PromiseWarningDrop.class)) {
 
         /*
          * PROMISE WARNING DROP
@@ -531,8 +531,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       } else {
         toBeCategorized.add(item);
         final IDropInfo info = item.getDropInfo();
-        if (info != null && info.isInstance(PromiseDrop.class) && !atRoot && !(info.isInstance(RequiresLockPromiseDrop.class))
-            && !(info.isInstance(PleaseFolderize.class))) {
+        if (info != null && info.instanceOf(PromiseDrop.class) && !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
+            && !(info.instanceOf(PleaseFolderize.class))) {
           /*
            * Only categorize promise drops at the root level
            */
@@ -584,11 +584,11 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
 
       for (C item : categoryFolder.children()) {
-        if (item.getDropInfo().isInstance(ProofDrop.class)) {
+        if (item.getDropInfo().instanceOf(ProofDrop.class)) {
           proofDrops.add((IProofDropInfo) item.getDropInfo());
-        } else if (item.getDropInfo().isInstance(InfoDrop.class)) {
+        } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
           infoDrops.add(item.getDropInfo());
-          if (item.getDropInfo().isInstance(WarningDrop.class)) {
+          if (item.getDropInfo().instanceOf(WarningDrop.class)) {
             warningDrops.add(item.getDropInfo());
           }
         }
@@ -687,9 +687,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         final IDropInfo drop = item.getDropInfo();
         boolean hasJavaContext = false;
         if (drop != null
-            && (drop.isInstance(ResultDrop.class) || drop.isInstance(InfoDrop.class) || drop.isInstance(PleaseFolderize.class))) {
-          boolean resultHasACategory = drop.isInstance(ResultDrop.class) && drop.getCategory() != null;
-          if (resultHasACategory || drop.isInstance(InfoDrop.class) || drop.isInstance(PleaseFolderize.class)) {
+            && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class))) {
+          boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
+          if (resultHasACategory || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class)) {
             ContentJavaContext<T, C> context = new ContentJavaContext<T, C>(item);
             if (context.complete) {
               hasJavaContext = true;
@@ -839,7 +839,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     node.f_isInfoDecorated = node.f_isInfo;
     node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
-    if (node.getDropInfo() != null && node.getDropInfo().isInstance(PleaseCount.class)) {
+    if (node.getDropInfo() != null && node.getDropInfo().instanceOf(PleaseCount.class)) {
       node.setCount(node.getDropInfo().count());
     }
 
@@ -1123,7 +1123,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 
   protected static <T extends IDropInfo> boolean shouldBeTopLevel(T d) {
     // System.out.println("???: "+d.getMessage());
-    return d != null && d.isInstance(MaybeTopLevel.class) && d.requestTopLevel();
+    return d != null && d.instanceOf(MaybeTopLevel.class) && d.requestTopLevel();
   }
 
   public Object[] getLastElements() {

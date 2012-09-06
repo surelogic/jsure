@@ -581,7 +581,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return getAttribute(TYPE_ATTR);
     }
 
-    public boolean isInstance(Class<?> type) {
+    public boolean instanceOf(Class<?> type) {
       final String thisTypeName = getAttribute(useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
       final Class<?> thisType = findType(thisTypeName);
       return type.isAssignableFrom(thisType);
@@ -663,7 +663,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     ProofInfo(String name, Attributes a) {
       super(name, a);
 
-      if (isInstance(ResultDrop.class)) {
+      if (instanceOf(ResultDrop.class)) {
         checkedPromises = new ArrayList<ProofInfo>();
         trustedPromises = new ArrayList<ProofInfo>();
         orTrustedPromises = new MultiHashMap<String, ProofInfo>();
@@ -672,7 +672,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         checkedPromises = Collections.emptyList();
         trustedPromises = Collections.emptyList();
         orTrustedPromises = null;
-        if (isInstance(PromiseDrop.class)) {
+        if (instanceOf(PromiseDrop.class)) {
           checkedByResults = new ArrayList<ProofInfo>();
         } else {
           checkedByResults = Collections.emptyList();

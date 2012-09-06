@@ -35,7 +35,7 @@ public final class DropPredicateFactory {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
-            return d != null ? d.isInstance(dropClass) : false;
+            return d != null ? d.instanceOf(dropClass) : false;
           }
         };
         f_type.put(dropClass, result);
