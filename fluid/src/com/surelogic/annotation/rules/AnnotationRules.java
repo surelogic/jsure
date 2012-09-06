@@ -259,6 +259,7 @@ public abstract class AnnotationRules {
 		NonNullRules.getInstance().register(fw);
 		EqualityRules.getInstance().register(fw);
 		StructureRules.getInstance().register(fw);
+		// This should always be last after registering any rules
 		PromiseDropStorage.init();
 	}
 
