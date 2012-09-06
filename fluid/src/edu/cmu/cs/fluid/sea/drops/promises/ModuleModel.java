@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
-import edu.cmu.cs.fluid.java.bind.ModulePromises;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
@@ -412,7 +411,7 @@ public final class ModuleModel extends ModelDrop {
   }
 
   public static ModuleModel getModuleDrop(final IRNode node) {
-    final IRNode modDecl = ModulePromises.getModuleDecl(node);
+	final IRNode modDecl = null;//ModulePromises.getModuleDecl(node);
     if (modDecl == null) { return theWorldDrop; }
 
     final String modName = Module.getId(modDecl);
