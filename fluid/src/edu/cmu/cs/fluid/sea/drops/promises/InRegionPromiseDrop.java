@@ -11,7 +11,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * Promise drop for "InRegion" promise annotations defining a region.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
   public InRegionPromiseDrop(InRegionNode n) {

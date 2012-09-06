@@ -19,7 +19,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * Promise drop for "aggregate" promise annotations defining a region.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> 
 implements RegionAggregationDrop, IUniquePromise {

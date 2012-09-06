@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
 // This is for code that is used to lookup and bind names to declarations
@@ -257,6 +258,7 @@ public class BindUtil implements JavaGlobals {
   }
 
   /// findRegionInType
+  @Deprecated
   public static IRNode findRegionInType(IRNode typeDecl, String name) {
     if (jtree.getOperator(typeDecl) instanceof ArrayDeclaration) {
       return null;
@@ -267,7 +269,7 @@ public class BindUtil implements JavaGlobals {
     if (fine) {
       LOG.fine("Searching for " + name + " in " + qname);
     }
-    Iterator<IRNode> regions = RegionAnnotation.classRegions(typeDecl);
+    Iterator<IRNode> regions = EmptyIterator.prototype();//RegionAnnotation.classRegions(typeDecl);
     while (regions.hasNext()) {
       IRNode region = regions.next();
 
@@ -293,6 +295,7 @@ public class BindUtil implements JavaGlobals {
   }
 
   /// getRegionParent
+  @Deprecated
   public static IRNode getRegionParent(ITypeEnvironment tEnv, IRNode region) {
     final boolean debug = LOG.isLoggable(Level.FINE);
     IBinder binder = tEnv.getBinder();
@@ -305,7 +308,7 @@ public class BindUtil implements JavaGlobals {
           "Getting parent of region/field " + VariableDeclarator.getId(region));
       }
       // fields are inside of a region...      
-      IRNode fieldRegion = RegionAnnotation.getFieldRegionOrNull(region);
+      IRNode fieldRegion = null;//RegionAnnotation.getFieldRegionOrNull(region);
       if (fieldRegion != null) {      
         return binder.getBinding(fieldRegion);
       }
