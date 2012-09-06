@@ -398,7 +398,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends IDropInfo> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, DropPredicate pred,
+  public static <T extends IDrop> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, DropPredicate pred,
       Set<T> mutableResultDropSet) {
     if (sourceDropSet == null)
       throw new IllegalArgumentException(I18N.err(44, "sourceDropSet"));

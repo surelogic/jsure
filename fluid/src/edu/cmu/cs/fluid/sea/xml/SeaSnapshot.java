@@ -209,7 +209,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
    * private void outputPromiseDropAttrs(StringBuilder b, PromiseDrop d) {
    * d.isAssumed(); d.isCheckedByAnalysis(); d.isFromSrc(); }
    */
-  public static List<IDropInfo> loadSnapshot(File location) throws Exception {
+  public static List<IDrop> loadSnapshot(File location) throws Exception {
     XMLListener l = new XMLListener();
     new JSureXMLReader(l).read(location);
     return l.getEntities();
@@ -218,8 +218,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   static class XMLListener extends AbstractXMLResultListener {
     private final List<Info> entities = new ArrayList<Info>();
 
-    List<IDropInfo> getEntities() {
-      List<IDropInfo> rv = new ArrayList<IDropInfo>();
+    List<IDrop> getEntities() {
+      List<IDrop> rv = new ArrayList<IDrop>();
       for (Info i : entities) {
         if (i != null) {
           rv.add(i);
@@ -304,7 +304,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
   }
 
-  public static class Info extends Entity implements IDropInfo {
+  public static class Info extends Entity implements IDrop {
     static {
       for (Category c : Category.getAll()) {
         internString(c.getMessage());
@@ -580,7 +580,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     @Override
-    public Set<? extends IDropInfo> getMatchingDeponents(DropPredicate p) {
+    public Set<? extends IDrop> getMatchingDeponents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : deponents) {
         if (p.match(i)) {
@@ -601,7 +601,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     @Override
-    public Set<? extends IDropInfo> getMatchingDependents(DropPredicate p) {
+    public Set<? extends IDrop> getMatchingDependents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : dependents) {
         if (p.match(i)) {

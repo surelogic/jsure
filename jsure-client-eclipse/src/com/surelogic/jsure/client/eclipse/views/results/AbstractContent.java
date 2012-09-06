@@ -26,7 +26,7 @@ import edu.cmu.cs.fluid.sea.*;
 /**
  * Class used to represent derived viewer nodes.
  */
-public abstract class AbstractContent<T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
+public abstract class AbstractContent<T extends IDrop, T2 extends AbstractContent<T, T2>> 
 implements Cloneable, IDiffNode<T2> {
 	/**
 	 * Status for diffing
@@ -351,7 +351,7 @@ implements Cloneable, IDiffNode<T2> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
+	public static <T extends IDrop, T2 extends AbstractContent<T, T2>> 
 	Object[] filterNonInfo(Object[] items) {
 		Set<T2> result = new HashSet<T2>();
 		for (int i = 0; i < items.length; i++) {
@@ -411,7 +411,7 @@ implements Cloneable, IDiffNode<T2> {
 		return f_children;
 	}
 
-	public static <T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
+	public static <T extends IDrop, T2 extends AbstractContent<T, T2>> 
 	Collection<T2> diffChildren(Collection<T2> last,
 			Collection<T2> now) {
 		Collection<T2> diffs = Diff.diff(last, now, false);

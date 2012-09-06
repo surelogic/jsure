@@ -39,7 +39,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @see Sea
  */
-public abstract class Drop implements IDropInfo {
+public abstract class Drop implements IDrop {
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
   public static final String DEPONENT = "deponent";
   public static final String DEPENDENT = "dependent";

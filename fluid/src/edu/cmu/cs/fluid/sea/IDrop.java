@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
  * allow multiple implementations. The analysis uses the IR drop-sea and the
  * Eclipse client loads snapshots using a IR-free drop-sea.
  */
-public interface IDropInfo {
+public interface IDrop {
 
   /**
    * Gets the requested XML attribute or {@code null}. Only used for persisting
@@ -91,7 +91,7 @@ public interface IDropInfo {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  Set<? extends IDropInfo> getMatchingDeponents(DropPredicate p);
+  Set<? extends IDrop> getMatchingDeponents(DropPredicate p);
 
   /**
    * Queries if any of this drop's dependent drops matches the given drop
@@ -112,7 +112,7 @@ public interface IDropInfo {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  Set<? extends IDropInfo> getMatchingDependents(DropPredicate p);
+  Set<? extends IDrop> getMatchingDependents(DropPredicate p);
 
   /**
    * Indicates if this drop wants to be displayed at the top level in the user

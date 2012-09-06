@@ -37,7 +37,7 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ScanAnnotationExplorerView extends
@@ -171,8 +171,8 @@ public class ScanAnnotationExplorerView extends
 				roots = NO_ROOTS;
 				return null;
 			}
-			final MultiMap<String, IDropInfo> pkgToDrop = new MultiHashMap<String, IDropInfo>();
-			for (IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
+			final MultiMap<String, IDrop> pkgToDrop = new MultiHashMap<String, IDrop>();
+			for (IDrop d : info.getDropsOfType(PromiseDrop.class)) {
 				final ISrcRef sr = d.getSrcRef();
 				if (sr == null) {
 					continue;
@@ -185,10 +185,10 @@ public class ScanAnnotationExplorerView extends
 			// Organize by type
 			roots = new Package[pkgToDrop.size()];
 			int i = 0;
-			for (Map.Entry<String, Collection<IDropInfo>> e : pkgToDrop
+			for (Map.Entry<String, Collection<IDrop>> e : pkgToDrop
 					.entrySet()) {
-				final MultiMap<String, IDropInfo> cuToDrop = new MultiHashMap<String, IDropInfo>();
-				for (IDropInfo d : e.getValue()) {
+				final MultiMap<String, IDrop> cuToDrop = new MultiHashMap<String, IDrop>();
+				for (IDrop d : e.getValue()) {
 					cuToDrop.put(computeTypeName(d.getSrcRef().getCUName()), d);
 				}
 				roots[i] = new Package(e.getKey(), cuToDrop);
@@ -335,16 +335,16 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Package extends AbstractElement {
-		Package(String qname, MultiMap<String, IDropInfo> cuToDrop) {
+		Package(String qname, MultiMap<String, IDrop> cuToDrop) {
 			super(null, qname, cuToDrop.size());
 
 			// Init types
 			int i = 0;
-			for (Map.Entry<String, Collection<IDropInfo>> e : cuToDrop
+			for (Map.Entry<String, Collection<IDrop>> e : cuToDrop
 					.entrySet()) {
-				final MultiMap<String, IDropInfo> idToDrop = new MultiHashMap<String, IDropInfo>();
+				final MultiMap<String, IDrop> idToDrop = new MultiHashMap<String, IDrop>();
 				String name = e.getKey();
-				for (IDropInfo d : e.getValue()) {
+				for (IDrop d : e.getValue()) {
 					String label = JavaIdentifier.extractDecl(name, d
 							.getSrcRef().getJavaId());
 					idToDrop.put(label, d);
@@ -369,8 +369,8 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static int computeTypeChildren(String name,
-			MultiMap<String, IDropInfo> idToDrop) {
-		Collection<IDropInfo> onType = idToDrop.get(name);
+			MultiMap<String, IDrop> idToDrop) {
+		Collection<IDrop> onType = idToDrop.get(name);
 		if (onType == null) {
 			return idToDrop.size();
 		}
@@ -378,19 +378,19 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Type extends AbstractElement {
-		Type(Package p, String name, MultiMap<String, IDropInfo> idToDrop) {
+		Type(Package p, String name, MultiMap<String, IDrop> idToDrop) {
 			super(p, name, computeTypeChildren(name, idToDrop));
 
 			// Init decls
 			int i = 0;
-			Collection<IDropInfo> onType = idToDrop.remove(name);
+			Collection<IDrop> onType = idToDrop.remove(name);
 			if (onType != null) {
-				for (IDropInfo d : onType) {
+				for (IDrop d : onType) {
 					getChildren()[i] = new Anno(this, d);
 					i++;
 				}
 			}
-			for (Map.Entry<String, Collection<IDropInfo>> e : idToDrop
+			for (Map.Entry<String, Collection<IDrop>> e : idToDrop
 					.entrySet()) {
 				getChildren()[i] = new Decl(this, e.getKey(), e.getValue());
 				i++;
@@ -405,12 +405,12 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Decl extends AbstractElement {
-		Decl(Type t, String id, Collection<IDropInfo> drops) {
+		Decl(Type t, String id, Collection<IDrop> drops) {
 			super(t, id, drops.size());
 
 			// Sort by message
 			int i = 0;
-			for (IDropInfo d : drops) {
+			for (IDrop d : drops) {
 				getChildren()[i] = new Anno(this, d);
 				i++;
 			}
@@ -423,9 +423,9 @@ public class ScanAnnotationExplorerView extends
 	}
 
 	static class Anno extends AbstractElement {
-		private final IDropInfo drop;
+		private final IDrop drop;
 
-		public Anno(ITypeElement e, IDropInfo d) {
+		public Anno(ITypeElement e, IDrop d) {
 			super(e, d.getMessage(), 0);
 			drop = d;
 		}

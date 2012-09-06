@@ -37,7 +37,7 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProofDropInfo;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
@@ -57,7 +57,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
-abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>> implements
+abstract class GenericResultsViewContentProvider<T extends IDrop, C extends AbstractContent<T, C>> implements
     IResultsViewContentProvider {
   private static final boolean allowDuplicateNodes = true;
   protected static final Object[] noObjects = ArrayUtil.empty;
@@ -193,7 +193,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the {@link Drop}to add supporting information about
    */
   @SuppressWarnings("unchecked")
-  private void addSupportingInformation(C mutableContentSet, IDropInfo about) {
+  private void addSupportingInformation(C mutableContentSet, IDrop about) {
     Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
     int size = supportingInformation.size();
     if (size == 0) {
@@ -240,7 +240,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the {@link Drop}to add proposed promises about
    */
   @SuppressWarnings("unchecked")
-  private void addProposedPromises(C mutableContentSet, IDropInfo about) {
+  private void addProposedPromises(C mutableContentSet, IDrop about) {
     Collection<? extends IProposedPromiseDropInfo> proposals = about.getProposals();
     int size = proposals.size();
     if (size == 0) {
@@ -417,7 +417,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         addSupportingInformation(result, promiseDrop);
         addProposedPromises(result, promiseDrop);
 
-        final Set<IDropInfo> matching = new HashSet<IDropInfo>();
+        final Set<IDrop> matching = new HashSet<IDrop>();
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(InfoDrop.class)));
         addDrops(result, (Collection<? extends T>) matching);
@@ -530,7 +530,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         categorizedChildren.add(item);
       } else {
         toBeCategorized.add(item);
-        final IDropInfo info = item.getDropInfo();
+        final IDrop info = item.getDropInfo();
         if (info != null && info.instanceOf(PromiseDrop.class) && !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
             && !(info.instanceOf(PleaseFolderize.class))) {
           /*
@@ -580,8 +580,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 
       // image (try to show proof status if it makes sense)
       Set<IProofDropInfo> proofDrops = new HashSet<IProofDropInfo>();
-      Set<IDropInfo> warningDrops = new HashSet<IDropInfo>();
-      Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
+      Set<IDrop> warningDrops = new HashSet<IDrop>();
+      Set<IDrop> infoDrops = new HashSet<IDrop>();
 
       for (C item : categoryFolder.children()) {
         if (item.getDropInfo().instanceOf(ProofDrop.class)) {
@@ -684,7 +684,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
          * If the drop the C "item" references has a package and a type we'll
          * generate folders for it.
          */
-        final IDropInfo drop = item.getDropInfo();
+        final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
         if (drop != null
             && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class))) {
@@ -946,7 +946,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 
   // Map<C,Integer> counts = new HashMap<C, Integer>();
 
-  static private class ContentJavaContext<T extends IDropInfo, C extends AbstractContent<T, C>> {
+  static private class ContentJavaContext<T extends IDrop, C extends AbstractContent<T, C>> {
 
     /**
      * {@code true} if the entire Java context is well-defined, {@code false}
@@ -968,7 +968,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
      *          the viewer content item to obtain the Java context for
      */
     public ContentJavaContext(final C content) {
-      final IDropInfo info = content.getDropInfo();
+      final IDrop info = content.getDropInfo();
       final ISrcRef ref = info.getSrcRef();
       if (ref != null) {
         packageName = ref.getPackage();
@@ -1006,14 +1006,14 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    * Matches non-@Promise PromiseDrops
    */
   private static DropPredicate predicate = new DropPredicate() {
-    public boolean match(IDropInfo d) {
+    public boolean match(IDrop d) {
       return promisePred.match(d) && !scopedPromisePred.match(d);
     }
   };
 
   protected abstract boolean dropsExist(Class<? extends Drop> type);
 
-  protected abstract <R extends IDropInfo> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
+  protected abstract <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
 
   @SuppressWarnings("unchecked")
   protected IResultsViewContentProvider buildModelOfDropSea_internal() {
@@ -1032,13 +1032,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       }
     }
 
-    final Collection<IDropInfo> infoDrops = getDropsOfType(InfoDrop.class, IDropInfo.class);
+    final Collection<IDrop> infoDrops = getDropsOfType(InfoDrop.class, IDrop.class);
     if (!infoDrops.isEmpty()) {
       final String msg = "Suggestions and warnings";
       C infoFolder = makeContent(msg);
       infoFolder.setCount(infoDrops.size());
 
-      for (IDropInfo id : infoDrops) {
+      for (IDrop id : infoDrops) {
         infoFolder.addChild(encloseDrop((T) id));
       }
       infoFolder.setBaseImageName(CommonImages.IMG_INFO);
@@ -1070,7 +1070,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     return this;
   }
 
-  protected static <T extends IDropInfo> boolean shouldBeTopLevel(T d) {
+  protected static <T extends IDrop> boolean shouldBeTopLevel(T d) {
     // System.out.println("???: "+d.getMessage());
     return d != null && d.instanceOf(MaybeTopLevel.class) && d.requestTopLevel();
   }

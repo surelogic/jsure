@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.*;
 
-public interface IProofDropInfo extends IDropInfo {
+public interface IProofDropInfo extends IDrop {
 	boolean provedConsistent();
 	boolean proofUsesRedDot();
 

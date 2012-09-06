@@ -54,7 +54,7 @@ import com.surelogic.test.xml.JUnitXMLOutput;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
@@ -610,7 +610,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}
-		Collection<IDropInfo> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
+		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
 		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
 
 		String diffPath = new File(workspaceFile, projectName

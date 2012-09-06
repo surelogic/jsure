@@ -103,13 +103,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		s.summarize(project, sea.getDrops());
 	}
 
-	public static void summarize(String project, Collection<? extends IDropInfo> drops, File location) 
+	public static void summarize(String project, Collection<? extends IDrop> drops, File location) 
 	throws IOException {
 		SeaSummary s = new SeaSummary(location);
 		s.summarize(project, drops);
 	}
 	
-	private void summarize(String project, Collection<? extends IDropInfo> drops) {
+	private void summarize(String project, Collection<? extends IDrop> drops) {
 		Date now = new Date(System.currentTimeMillis());
 		b.start(ROOT);
 		b.addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
@@ -117,8 +117,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		outputDropCounts(drops);
 		
-		for(IDropInfo d : drops) {
-			final IDropInfo id = checkIfReady(d);
+		for(IDrop d : drops) {
+			final IDrop id = checkIfReady(d);
 			if (id != null) {
 				summarizeDrop(id);
 			}
@@ -127,10 +127,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		close();
 	}
 		
-	private void outputDropCounts(Collection<? extends IDropInfo> drops) {
+	private void outputDropCounts(Collection<? extends IDrop> drops) {
 		final Map<String,Integer> counts = new HashMap<String, Integer>();
-		for(IDropInfo d : drops) {
-			final IDropInfo id = checkIfReady(d);
+		for(IDrop d : drops) {
+			final IDrop id = checkIfReady(d);
 			if (id != null) {
 				incr(counts, computeSimpleType(id));
 			}
@@ -153,7 +153,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static IDropInfo checkIfReady(IDropInfo d) {
+	private static IDrop checkIfReady(IDrop d) {
 		if (d.instanceOf(PromiseDrop.class)) {
 			IProofDropInfo pd = (IProofDropInfo) d;
 			if (!pd.isFromSrc()) {
@@ -189,7 +189,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return null;
 	}
 
-	private Builder summarizeDrop(IDropInfo id) {					
+	private Builder summarizeDrop(IDrop id) {					
 		final String name = id.getXMLElementName();	
 		final Builder b = this.b.nest(name);
 		addAttributes(b, id);
@@ -210,7 +210,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		b.end();
 	}
 	
-	private static String computeSimpleType(IDropInfo id) {
+	private static String computeSimpleType(IDrop id) {
 		String type = id.getTypeName();
 		int lastDot = type.lastIndexOf('.');
 		if (lastDot > 0) {
@@ -219,7 +219,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return type;
 	}
 	
-	private void addAttributes(Builder b, IDropInfo id) {
+	private void addAttributes(Builder b, IDrop id) {
 		String type = computeSimpleType(id);
 		if (type.endsWith("Info")) {
 			System.out.println("Bad drop type: "+type);
@@ -303,7 +303,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	public interface Filter {
-		boolean showResource(IDropInfo d);
+		boolean showResource(IDrop d);
 		boolean showResource(String path);
 	}
 
@@ -311,7 +311,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		public boolean showResource(String path) {
 			return true;
 		}
-		public boolean showResource(IDropInfo d) {
+		public boolean showResource(IDrop d) {
 			return true;
 		}
 	};
@@ -328,15 +328,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return drops;
 	}
 	
-	public static Diff diff(Collection<? extends IDropInfo> drops, File location, Filter f) throws Exception {
+	public static Diff diff(Collection<? extends IDrop> drops, File location, Filter f) throws Exception {
 		// Load up current contents
 		final Listener l = read(location);
 		
 		final List<Entity> oldDrops = filter(f, l);	
 		final SeaSummary s = new SeaSummary(null);
 		final List<Entity> newDrops = new ArrayList<Entity>();
-		for(IDropInfo d : drops) {
-			IDropInfo id = checkIfReady(d);			
+		for(IDrop d : drops) {
+			IDrop id = checkIfReady(d);			
 			if (id != null && f.showResource(id)) {
 				Builder b = s.summarizeDrop(id);
 				/*

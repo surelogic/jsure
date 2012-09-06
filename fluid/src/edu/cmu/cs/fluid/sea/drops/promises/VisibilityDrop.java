@@ -24,7 +24,7 @@ import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
@@ -100,7 +100,7 @@ public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolder
   }
 
   private static DropPredicate definingDropPred = new DropPredicate() {
-    public boolean match(IDropInfo d) {
+    public boolean match(IDrop d) {
       return (d.isValid()) && d.instanceOf(CUDrop.class) || d.instanceOf(BinaryCUDrop.class);
     }    
   };

@@ -8,7 +8,7 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
-public interface IProposedPromiseDropInfo extends IDropInfo {
+public interface IProposedPromiseDropInfo extends IDrop {
 	String getAnnotation();
 	String getContents();
 	Map<String,String> getAnnoAttributes();

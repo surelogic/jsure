@@ -21,7 +21,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 
 /**
@@ -123,8 +123,8 @@ public abstract class AbstractScanStructuredView<T> extends
 
 	private final void handleDoubleClick(final IStructuredSelection selection) {
 		final Object d = selection.getFirstElement();
-		if (d instanceof IDropInfo) {
-			IDropInfo di = (IDropInfo) d;
+		if (d instanceof IDrop) {
+			IDrop di = (IDrop) d;
 			EditorUtil.highlightLineInJavaEditor(di.getSrcRef());
 		} else {
 			if (d != null)

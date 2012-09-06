@@ -87,7 +87,7 @@ public class Report {
       /*
        * Used to catch every drop that gets added, so we can get its dependents
        */
-      public boolean match(IDropInfo d) {
+      public boolean match(IDrop d) {
         if (!(d instanceof Drop)) {
           return false;
         }
@@ -125,7 +125,7 @@ public class Report {
       /*
        * Used to catch every drop that gets added, so we can get its dependents
        */
-      public boolean match(IDropInfo d) {
+      public boolean match(IDrop d) {
         if (!(d instanceof Drop)) {
           return false;
         }

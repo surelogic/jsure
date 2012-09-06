@@ -62,7 +62,7 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
@@ -244,7 +244,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			for (final Object element : selection.toList()) {
 				if (element instanceof AbstractContent) {
 					@SuppressWarnings({ "unchecked", "rawtypes" })
-					final AbstractContent<IDropInfo, ?> c = (AbstractContent) element;
+					final AbstractContent<IDrop, ?> c = (AbstractContent) element;
 					/*
 					 * Deal with the case where a single proposed promise drop
 					 * is selected.
@@ -468,7 +468,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			}
 
 			@Override
-			protected <R extends IDropInfo> Collection<R> getDropsOfType(
+			protected <R extends IDrop> Collection<R> getDropsOfType(
 					Class<? extends Drop> type, Class<R> rType) {
 				final JSureScanInfo scan = JSureDataDirHub.getInstance()
 						.getCurrentScanInfo();
@@ -554,7 +554,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			if (first instanceof AbstractContent) {
 				@SuppressWarnings("rawtypes")
 				final AbstractContent c = (AbstractContent) first;
-				final IDropInfo dropInfo = c.getDropInfo();
+				final IDrop dropInfo = c.getDropInfo();
 				if (dropInfo != null) {
 					if (dropInfo.instanceOf(ProposedPromiseDrop.class)) {
 						manager.add(f_addPromiseToCode);
@@ -592,7 +592,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 			if (!s.isEmpty()) {
 				@SuppressWarnings("rawtypes")
 				final AbstractContent c = (AbstractContent) s.getFirstElement();
-				final IDropInfo d = c.getDropInfo();
+				final IDrop d = c.getDropInfo();
 				if (d != null) {
 					f_actionShowUnderlyingDropType.setText("Type: "
 							+ d.getTypeName());
@@ -819,7 +819,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		}
 	}
 
-	public void showDrop(IDropInfo d) {
+	public void showDrop(IDrop d) {
 		// Find the corresponding Content
 		Object c = findContent(d);
 		if (c == null) {
@@ -830,7 +830,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		treeViewer.setSelection(new StructuredSelection(c), true);
 	}
 
-	private Object findContent(IDropInfo d) {
+	private Object findContent(IDrop d) {
 		for (Object o : f_contentProvider.getElements(null)) {
 			Object rv = findContent((AbstractContent<?, ?>) o, d);
 			if (rv != null) {
@@ -840,7 +840,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 		return null;
 	}
 
-	private Object findContent(AbstractContent<?, ?> c, IDropInfo d) {
+	private Object findContent(AbstractContent<?, ?> c, IDrop d) {
 		if (c == null) {
 			return null;
 		}
@@ -927,9 +927,9 @@ public final class ResultsView extends AbstractJSureResultsView implements
 	private int getModelProblemCount(final JSureScanInfo info) {
 		int result = 0;
 		if (info != null) {
-			Set<? extends IDropInfo> promiseWarningDrops = info
+			Set<? extends IDrop> promiseWarningDrops = info
 					.getDropsOfType(PromiseWarningDrop.class);
-			for (IDropInfo id : promiseWarningDrops) {
+			for (IDrop id : promiseWarningDrops) {
 				final String resource = DropInfoUtility.getResource(id);
 				/*
 				 * We filter results based upon the resource.

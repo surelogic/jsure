@@ -13,19 +13,19 @@ public final class SeaStats {
 	}
 	
 	public interface Splitter<T> {
-		T getLabel(IDropInfo d);
+		T getLabel(IDrop d);
 	}
 	
-	public static final <T> Map<T,Set<IDropInfo>> split(Collection<? extends IDropInfo> d, Splitter<T> split) {
-		final Map<T,Set<IDropInfo>> rv = new HashMap<T, Set<IDropInfo>>();
-		for(IDropInfo i : d) {
+	public static final <T> Map<T,Set<IDrop>> split(Collection<? extends IDrop> d, Splitter<T> split) {
+		final Map<T,Set<IDrop>> rv = new HashMap<T, Set<IDrop>>();
+		for(IDrop i : d) {
 			final T label = split.getLabel(i);
 			if (label == null) {
 			    continue;
 			}
-			Set<IDropInfo> labelled = rv.get(label);
+			Set<IDrop> labelled = rv.get(label);
 			if (labelled == null) {
-				labelled = new HashSet<IDropInfo>();
+				labelled = new HashSet<IDrop>();
 				rv.put(label, labelled);
 			}
 			labelled.add(i);
@@ -34,12 +34,12 @@ public final class SeaStats {
 	}
 	
 	public interface Counter {
-		String count(IDropInfo d);
+		String count(IDrop d);
 	}
 	
-	public static final Map<String,Integer> count(Collection<? extends IDropInfo> d, Counter[] counters) {
+	public static final Map<String,Integer> count(Collection<? extends IDrop> d, Counter[] counters) {
 		Map<String,Integer> counts = new HashMap<String, Integer>();
-		for(IDropInfo i : d) {
+		for(IDrop i : d) {
 			for(Counter c : counters) {
 				String label = c.count(i);
 				if (label != null) {
@@ -55,9 +55,9 @@ public final class SeaStats {
 		return counts;
 	}
 	
-	public static final <T> Map<T,Map<String,Integer>> count(Map<T,Set<IDropInfo>> info, Counter[] counters) {
+	public static final <T> Map<T,Map<String,Integer>> count(Map<T,Set<IDrop>> info, Counter[] counters) {
 		Map<T,Map<String,Integer>> rv = new HashMap<T, Map<String,Integer>>();
-		for(Map.Entry<T,Set<IDropInfo>> e : info.entrySet()) {
+		for(Map.Entry<T,Set<IDrop>> e : info.entrySet()) {
 			rv.put(e.getKey(), count(e.getValue(), counters));
 		}
 		return rv;
@@ -85,7 +85,7 @@ public final class SeaStats {
 	}
 	
 	public static final Splitter<String> splitByProject = new Splitter<String>() {
-        public String getLabel(IDropInfo d) {
+        public String getLabel(IDrop d) {
             ISrcRef sr = d.getSrcRef();
             if (sr != null) {            	
             	/*
@@ -107,7 +107,7 @@ public final class SeaStats {
 	
 	public static final Counter[] STANDARD_COUNTERS = {
 		new Counter() {
-            public String count(IDropInfo d) {
+            public String count(IDrop d) {
             	ISrcRef sr = d.getSrcRef();
                 if (sr == null || !sr.getRelativePath().endsWith(".java")) {
                 	return null; // Not from source
@@ -130,7 +130,7 @@ public final class SeaStats {
 	
 	public static final String ALL_PROJECTS = "all projects";
 	
-	public static void createSummaryZip(File zip, Collection<? extends IDropInfo> info, 
+	public static void createSummaryZip(File zip, Collection<? extends IDrop> info, 
 	   		                            Splitter<String> split, Counter[] counters) 
 	throws IOException {
 		final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));

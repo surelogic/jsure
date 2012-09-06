@@ -9,9 +9,9 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 
-abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
+abstract class AbstractResultsTableContentProvider<T extends IDrop>
 		implements IResultsTableContentProvider {
 	private final List<T> f_contents = new ArrayList<T>();
 	private final String[] f_labels;

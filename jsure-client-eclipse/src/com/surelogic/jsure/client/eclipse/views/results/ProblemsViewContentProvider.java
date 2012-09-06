@@ -12,25 +12,25 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
 public final class ProblemsViewContentProvider extends
-		AbstractResultsTableContentProvider<IDropInfo> {
+		AbstractResultsTableContentProvider<IDrop> {
 
 	ProblemsViewContentProvider() {
 		super("Description");
 	}
 
-	protected final String getAndSortResults(List<IDropInfo> contents) {
+	protected final String getAndSortResults(List<IDrop> contents) {
 		final JSureScanInfo info = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (info == null) {
 			return null;
 		}
-		Set<? extends IDropInfo> promiseWarningDrops = info
+		Set<? extends IDrop> promiseWarningDrops = info
 				.getDropsOfType(PromiseWarningDrop.class);
-		for (IDropInfo id : promiseWarningDrops) {
+		for (IDrop id : promiseWarningDrops) {
 			final String resource = DropInfoUtility.getResource(id);
 			/*
 			 * We filter results based upon the resource.
@@ -44,8 +44,8 @@ public final class ProblemsViewContentProvider extends
 
 	public Image getColumnImage(Object element, int columnIndex) {
 		if (columnIndex == 0) {
-			if (element instanceof IDropInfo) {
-				IDropInfo id = (IDropInfo) element;
+			if (element instanceof IDrop) {
+				IDrop id = (IDrop) element;
 				if (!id.getProposals().isEmpty()) {
 					return SLImages
 							.getImage(CommonImages.IMG_ANNOTATION_ERROR_PROPOSED);
