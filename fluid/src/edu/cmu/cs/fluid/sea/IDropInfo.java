@@ -9,13 +9,13 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * The interface for the base class for all drops within the sea, intended to
- * allow multiple implementations. The analysis uses the full drop-sea and the
- * Eclipse client loads snapshots using a lightweight drop-sea.
+ * allow multiple implementations. The analysis uses the IR drop-sea and the
+ * Eclipse client loads snapshots using a IR-free drop-sea.
  */
 public interface IDropInfo {
 
   /**
-   * Gets the requested XML attribute or {@code null}. Only used for persisted
+   * Gets the requested XML attribute or {@code null}. Only used for persisting
    * drops.
    * 
    * @param key
@@ -32,24 +32,25 @@ public interface IDropInfo {
   String getXMLElementName();
 
   /**
-   * Gets the real drop-sea type name, descended from {@link Drop}, even if this
-   * is the info drop-sea used for saving and restoring.
+   * Gets the IR drop-sea type name, descended from {@link Drop}, even if this
+   * is the IR-free drop-sea used for saving and restoring.
    * 
-   * @return the real drop-sea type name, descended from {@link Drop}
+   * @return the IR drop-sea type name, descended from {@link Drop}
    */
   String getTypeName();
 
   /**
-   * Checks if this drop, in the real-drop sea, is an instance of the passed
+   * Checks if this drop, in the IR drop-sea, is an instance of the passed
    * class. Typically this replaces code like: <i>receiver<i>
    * <tt>instanceof</tt> <i>type</i>.
    * <p>
-   * This allows type checks in the info drop-sea used for saving and restoring.
-   * In particular this call should be used in {@link DropPredicate} instances.
+   * This allows type checks in the IR-free drop-sea used for saving and
+   * restoring. In particular this call should be used in {@link DropPredicate}
+   * instances.
    * 
    * @param a
-   *          type in the real drop-sea, descended from {@link Drop}.
-   * @return {@code true} if this drop, in the read drop-sea, is an instance of
+   *          type in the IR drop-sea, descended from {@link Drop}.
+   * @return {@code true} if this drop, in the IR drop-sea, is an instance of
    *         the passed type, {@code false} otherwise.
    */
   boolean instanceOf(Class<?> type);
@@ -164,7 +165,7 @@ public interface IDropInfo {
    * Places the needed attributes for persistence of this drop on the passed XML
    * output builder.
    * <p>
-   * This is used to persist the real drop-sea so that it can be loaded into the
+   * This is used to persist the IR drop-sea so that it can be loaded into the
    * info drop-sea.
    * 
    * @param s
