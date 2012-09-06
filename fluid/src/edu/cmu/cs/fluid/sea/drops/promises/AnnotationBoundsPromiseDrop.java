@@ -23,7 +23,9 @@ public final class AnnotationBoundsPromiseDrop extends
     final String[] attrs = new String[] {
         getNameList("containable", ast.getContainable()),
         getNameList("immutable", ast.getImmutable()),
-        getNameList("threadSafe", ast.getThreadSafe()) };
+        getNameList("referenceObject", ast.getReference()),
+        getNameList("threadSafe", ast.getThreadSafe()),
+        getNameList("valueObject", ast.getValue()) };
     final StringBuilder sb = new StringBuilder();
     boolean first = true;
     for (final String a : attrs) {

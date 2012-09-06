@@ -1,7 +1,6 @@
 package com.surelogic.annotation.rules;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.runtime.*;
 
@@ -56,9 +55,11 @@ public class LockRules extends AnnotationRules {
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   public static final String ANNO_BOUNDS = "AnnotationBounds";
   
-  public static final String CONTAINABLE_PROP = "containable";
-  public static final String THREAD_SAFE_PROP = "threadSafe";
   public static final String IMMUTABLE_PROP = "immutable";
+  public static final String CONTAINABLE_PROP = "containable";
+  public static final String REFERENCE_PROP = "referenceObject";
+  public static final String THREAD_SAFE_PROP = "threadSafe";
+  public static final String VALUE_PROP = "valueObject";
   
 	private static final AnnotationRules instance = new LockRules();
 
@@ -1991,9 +1992,11 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new AnnotationBoundsNode(offset, 
-					createNamedType(offset, context.getProperty(THREAD_SAFE_PROP)),
+					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)),
 					createNamedType(offset, context.getProperty(IMMUTABLE_PROP)),
-					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)));
+					createNamedType(offset, context.getProperty(REFERENCE_PROP)),
+					createNamedType(offset, context.getProperty(THREAD_SAFE_PROP)),
+					createNamedType(offset, context.getProperty(VALUE_PROP)));
 		}
 		
 		@Override
@@ -2054,14 +2057,19 @@ public class LockRules extends AnnotationRules {
             }
           }
 
-          final Visitor tsVisitor = new Visitor();
-          final Visitor iVisitor = new Visitor();
           final Visitor cVisitor = new Visitor();
-          a.visitThreadSafeBounds(tsVisitor);
+          final Visitor iVisitor = new Visitor();
+          final Visitor rVisitor = new Visitor();
+          final Visitor tsVisitor = new Visitor();
+          final Visitor vVisitor = new Visitor();
           a.visitImmutableBounds(iVisitor);
           a.visitContainableBounds(cVisitor);
+          a.visitReferenceBounds(rVisitor);
+          a.visitThreadSafeBounds(tsVisitor);
+          a.visitValueBounds(vVisitor);
 
-          if (tsVisitor.isGood() && iVisitor.isGood() && cVisitor.isGood()) {
+          if (cVisitor.isGood() && iVisitor.isGood() && rVisitor.isGood() &&
+              tsVisitor.isGood() && vVisitor.isGood()) {
             return new AnnotationBoundsPromiseDrop(a);
           } else {
             return null;
