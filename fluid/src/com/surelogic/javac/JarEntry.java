@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.*;
 

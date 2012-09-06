@@ -3,7 +3,6 @@ package com.surelogic.javac;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 

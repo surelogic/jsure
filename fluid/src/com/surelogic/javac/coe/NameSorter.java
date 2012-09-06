@@ -22,6 +22,7 @@ public abstract class NameSorter {
 
   public abstract String getEnclosingFilePath(Object file);
 
+  @SuppressWarnings("unchecked")
   public int compare(Object e1, Object e2) {
     int result; // = super.compare(viewer, e1, e2);
     boolean bothContent = (e1 instanceof Content) && (e2 instanceof Content);

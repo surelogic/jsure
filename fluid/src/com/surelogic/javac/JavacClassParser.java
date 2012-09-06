@@ -703,7 +703,7 @@ public class JavacClassParser {
 	private class ImportHandler {
 		final JavacProject jp;
 		final Set<String> demandImports = new TreeSet<String>();	
-		final Map<String,String> namedImports = new HashMap<String,String>();	
+		//final Map<String,String> namedImports = new HashMap<String,String>();	
 		
 		ImportHandler(JavacProject p) {
 			jp = p;
@@ -741,26 +741,27 @@ public class JavacClassParser {
 			}
 			return false;
 		}
-
+		/*
 		void addByName(String name, String qname) {
 			namedImports.put(name, qname);
 		} 
+		*/
 	}
-	
+
 	String couldBeUnknownType(JavacProject jp, String origName) {		
 		/*
 		if ("ConcurrentHashSet".equals(origName)) {
 			System.out.println("Got ConcurrentHashSet");
 		}
 		*/		
-		int dollar = origName.indexOf('$');
-		String qname;
-		if (false && dollar >= 0) {
+		//int dollar = origName.indexOf('$');
+		String qname;		
+		//if (false && dollar >= 0) {
 			// TODO do I really ever use this?
-			qname = origName.substring(0, dollar);
-		} else {
+		//	qname = origName.substring(0, dollar);
+		//} else {
 			qname = origName;
-		}
+		//}
 		/*
 		if (doneWithInitialParse && "java.util.LinkedList".equals(qname)) {
 			System.out.println(qname);
@@ -905,6 +906,7 @@ public class JavacClassParser {
 	 */
 	private class FASTScanner extends Visitor<Void> {
 		final JavacProject jp;		
+		@SuppressWarnings("unused")
 		final boolean debug;
 		final Set<String> refs;
 		final ImportHandler demandImports;

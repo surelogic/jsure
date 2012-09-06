@@ -118,10 +118,12 @@ public class Config extends AbstractClassPathEntry {
 		}
 		if (!classPath.contains(e)) {
 			classPath.add(e);
+			/*
 			if (followRefs && e != this && e instanceof Config) {				
 				Config c = (Config) e;
 				c.requiringConfig = this;
 			}
+			*/
 		} else if (e != this) {
 			//System.out.println("Ignoring duplicate: "+e);
 		}
@@ -237,8 +239,8 @@ public class Config extends AbstractClassPathEntry {
 			return;
 		}
 		
-		final boolean processSources = !followRefs || 
-		                               (requiringConfig != null && requiringConfig.requiringConfig == null);
+		final boolean processSources = !followRefs;
+		                               //|| (requiringConfig != null && requiringConfig.requiringConfig == null);
 		// TODO which are actually exported, and which are not?
 		if (processSources) {
 			int num = 0;
