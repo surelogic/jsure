@@ -174,7 +174,7 @@ public abstract class CUDrop extends Drop {
   public abstract boolean isAsSource();
  
   @Override
-  public String getEntityName() {
+  public String getXMLElementName() {
 	  return "cu-drop";
   }	
   

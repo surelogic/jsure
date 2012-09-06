@@ -70,7 +70,7 @@ public final class DropPredicateFactory {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
-            return d != null ? d.getType().equals(dropClass.getName()) : false;
+            return d != null ? d.getTypeName().equals(dropClass.getName()) : false;
           }
         };
         f_exactType.put(dropClass, result);

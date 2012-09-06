@@ -840,7 +840,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
     if (node.getDropInfo() != null && node.getDropInfo().instanceOf(PleaseCount.class)) {
-      node.setCount(node.getDropInfo().count());
+      String value = node.getDropInfo().getAttribute(PleaseCount.COUNT);
+      int count = 0;
+      if (value != null) {
+        count = Integer.valueOf(value);
+      }
+      node.setCount(count);
+      return;
     }
 
     onPath.add(node);
@@ -941,8 +947,10 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
   // Map<C,Integer> counts = new HashMap<C, Integer>();
 
   static private class ContentJavaContext<T extends IDropInfo, C extends AbstractContent<T, C>> {
+
     /**
-     * Flags if the entire Java context is well-defined
+     * {@code true} if the entire Java context is well-defined, {@code false}
+     * otherwise.
      */
     public boolean complete = false;
 
@@ -961,72 +969,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
      */
     public ContentJavaContext(final C content) {
       final IDropInfo info = content.getDropInfo();
-      final IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
-      if (ird == null) {
-        final ISrcRef ref = info.getSrcRef();
-        if (ref != null) {
-          packageName = ref.getPackage();
-          int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
-          typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator + 1);
-          complete = true;
-        }
-        return;
+      final ISrcRef ref = info.getSrcRef();
+      if (ref != null) {
+        packageName = ref.getPackage();
+        int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
+        typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator + 1);
+        complete = true;
       }
-      // Get reference IRNode
-      final IRNode node = ird.getNode();
-      if (node == null) {
-        return;
-      }
-      /*
-       * if (!node.equals(content.referencedLocation)) { LOG.warning("Node from
-       * ref drop != node in content: "+content.referencedLocation); }
-       */
-      final Operator op = JavaNames.getOperator(node);
-      final boolean isCU = CompilationUnit.prototype.includes(op);
-      final boolean isPkg = PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op);
-
-      // determine package
-      IRNode cu = null;
-      if (isCU) {
-        cu = node;
-      } else {
-        cu = VisitUtil.getEnclosingCompilationUnit(node);
-      }
-      if (cu != null) {
-        String proposedPackageName = VisitUtil.getPackageName(cu);
-        if (proposedPackageName != null) {
-          packageName = proposedPackageName;
-        }
-
-        // determine enclosing type
-        IRNode type = null;
-        if (isCU) {
-          type = VisitUtil.getPrimaryType(node);
-        } else if (!isPkg) {
-          type = VisitUtil.getClosestType(node);
-          while (type != null && JJNode.tree.getOperator(type) instanceof CallInterface) {
-            type = VisitUtil.getEnclosingType(type);
-          }
-        }
-        if (type != null) {
-          typeName = JavaNames.getRelativeTypeName(type);
-          final Operator top = JavaNames.getOperator(type);
-          typeIsAnInterface = InterfaceDeclaration.prototype.includes(top);
-        } else if (isPkg) {
-          typeName = "package";
-          typeIsAnInterface = false;
-        } else {
-          LOG.severe("No enclosing type for: " + DebugUnparser.toString(node));
-        }
-      } else if (TextFile.prototype.includes(op)) {
-        typeName = TextFile.getId(node);
-        packageName = null;
-      } else if (node.identity() == IRNode.destroyedNode) {
-        System.out.println("Ignoring destroyed node: " + content.getDropInfo().getMessage());
-      } else {
-        LOG.warning("Unable to get Java context for " + DebugUnparser.toString(node));
-      }
-      complete = !typeName.equals(JavaNames.getTypeName(null));
     }
   }
 

@@ -254,8 +254,9 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   /**
-   * @return the set of supporting information about this drop, all elements are
-   *         of type {@link edu.cmu.cs.fluid.sea.SupportingInformation}
+   * Gets the supporting information about this drop.
+   * 
+   * @return the set of supporting information about this drop.
    */
   public List<ISupportingInformation> getSupportingInformation() {
     if (supportingInformation == null) {
@@ -306,15 +307,19 @@ public abstract class IRReferenceDrop extends Drop {
   private Category category = null;
 
   /**
-   * @return Returns the category.
+   * Gets the user interface reporting category for this drop.
+   * 
+   * @return a category, or {@code null} if none is set.
    */
   public final Category getCategory() {
     return category;
   }
 
   /**
+   * Sets the user interface reporting category for this drop.
+   * 
    * @param category
-   *          The category to set.
+   *          a category to set, or {@code null} to clear the category.
    */
   @Override
   public final void setCategory(Category category) {
@@ -322,7 +327,7 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   @Override
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "ir-drop";
   }
 

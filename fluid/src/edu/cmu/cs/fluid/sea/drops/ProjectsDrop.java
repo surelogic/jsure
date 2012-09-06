@@ -36,7 +36,7 @@ public class ProjectsDrop extends Drop {
 	}
 
 	@Override
-	public String getEntityName() {
+	public String getXMLElementName() {
 		return "projects-drop";
 	}
 

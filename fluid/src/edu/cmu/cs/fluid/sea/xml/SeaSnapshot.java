@@ -135,7 +135,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       d.preprocessRefs(this);
     }
 
-    final String name = d.getEntityName();
+    final String name = d.getXMLElementName();
     final String type = d.getClass().getSimpleName();
     ensureClassMapping(d.getClass());
     final Builder db = b.nest(name);
@@ -528,19 +528,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       };
     }
 
-    /*
-     * private boolean createSourceLocation(SourceLocationBuilder loc, SourceRef
-     * s) { if (s != null) { final String cu = s.getAttribute(CUNIT_ATTR);
-     * loc.compilation(cu); if (cu.endsWith(".java")) {
-     * loc.className(cu.substring(0, cu.length() - 5)); } else {
-     * loc.className(cu); } loc.packageName(s.getAttribute(PKG_ATTR));
-     * 
-     * final int line = Integer.parseInt(s.getLine()); loc.lineOfCode(line);
-     * loc.endLine(line); loc.hash(Long.decode(s.getAttribute(HASH_ATTR)));
-     * loc.identifier("unknown"); loc.type(IdentifierType.CLASS); loc.build();
-     * return true; } return false; }
-     */
-
     public int count() {
       String value = getAttribute(PleaseCount.COUNT);
       if (value == null) {
@@ -551,10 +538,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
     public boolean requestTopLevel() {
       return "true".equals(getAttribute(MaybeTopLevel.REQUEST_TOP_LEVEL));
-    }
-
-    public <T> T getAdapter(Class<T> type) {
-      return null;
     }
 
     public boolean isValid() {
@@ -577,7 +560,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return ref;
     }
 
-    public String getType() {
+    public String getTypeName() {
       return getAttribute(TYPE_ATTR);
     }
 
@@ -634,6 +617,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
     public Collection<ISupportingInformation> getSupportingInformation() {
       return supportingInfos;
+    }
+
+    @Override
+    public String getXMLElementName() {
+      return getEntityName();
     }
   }
 

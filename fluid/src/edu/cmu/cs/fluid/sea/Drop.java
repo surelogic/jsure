@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -529,7 +530,7 @@ public abstract class Drop implements IDropInfo {
    */
   final private Sea mySea;
 
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "drop";
   }
 
@@ -557,6 +558,7 @@ public abstract class Drop implements IDropInfo {
   }
 
   /****************************************************************/
+
   @SuppressWarnings("unchecked")
   public <T> T getAdapter(Class<T> type) {
     if (type.isInstance(this)) {
@@ -565,7 +567,7 @@ public abstract class Drop implements IDropInfo {
     throw new UnsupportedOperationException();
   }
 
-  public String getType() {
+  public String getTypeName() {
     return getClass().getName();
   }
 
@@ -574,10 +576,6 @@ public abstract class Drop implements IDropInfo {
   }
 
   public boolean requestTopLevel() {
-    throw new UnsupportedOperationException();
-  }
-
-  public int count() {
     throw new UnsupportedOperationException();
   }
 
@@ -594,11 +592,11 @@ public abstract class Drop implements IDropInfo {
   }
 
   public Collection<? extends IProposedPromiseDropInfo> getProposals() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   public Collection<ISupportingInformation> getSupportingInformation() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   public Long getTreeHash() {

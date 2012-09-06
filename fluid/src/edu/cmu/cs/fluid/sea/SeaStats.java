@@ -112,7 +112,7 @@ public final class SeaStats {
                 if (sr == null || !sr.getRelativePath().endsWith(".java")) {
                 	return null; // Not from source
                 }
-                String l = labelMap.get(d.getType());
+                String l = labelMap.get(d.getTypeName());
                 if (l != null) {
                     return l;
                 }

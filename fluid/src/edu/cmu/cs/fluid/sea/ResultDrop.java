@@ -377,7 +377,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   }
 
   @Override
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "result-drop";
   }
 

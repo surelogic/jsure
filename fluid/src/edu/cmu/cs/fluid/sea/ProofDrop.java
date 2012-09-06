@@ -134,7 +134,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements
 	}
 
 	@Override
-	public String getEntityName() {
+	public String getXMLElementName() {
 		return "proof-drop";
 	}
 

@@ -190,7 +190,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 
 	private Builder summarizeDrop(IDropInfo id) {					
-		final String name = id.getEntityName();	
+		final String name = id.getXMLElementName();	
 		final Builder b = this.b.nest(name);
 		addAttributes(b, id);
 		for(ISupportingInformation si : id.getSupportingInformation()) {
@@ -211,7 +211,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	private static String computeSimpleType(IDropInfo id) {
-		String type = id.getType();
+		String type = id.getTypeName();
 		int lastDot = type.lastIndexOf('.');
 		if (lastDot > 0) {
 			type = type.substring(lastDot+1);

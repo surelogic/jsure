@@ -595,7 +595,7 @@ public final class ResultsView extends AbstractJSureResultsView implements
 				final IDropInfo d = c.getDropInfo();
 				if (d != null) {
 					f_actionShowUnderlyingDropType.setText("Type: "
-							+ d.getType());
+							+ d.getTypeName());
 				} else {
 					f_actionShowUnderlyingDropType.setText("Type: n/a");
 				}

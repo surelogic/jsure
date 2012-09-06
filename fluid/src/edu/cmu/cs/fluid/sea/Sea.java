@@ -430,7 +430,7 @@ public final class Sea {
     final String suffix = "PromiseDrop";
     if (!promiseDropInfo.instanceOf(PromiseDrop.class))
       return null;
-    final String result = promiseDropInfo.getType();
+    final String result = promiseDropInfo.getTypeName();
     if (result == null)
       return null;
     // Special cases

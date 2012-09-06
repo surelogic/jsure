@@ -551,7 +551,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   private PromiseDrop<? extends IAASTRootNode> f_source;
 
   @Override
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "promise-drop";
   }
 
