@@ -296,8 +296,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
 
       final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
-      final ResultDropBuilder result =
-          ResultDropBuilder.create(analysis);
+      final ResultDropBuilder result = ResultDropBuilder.create(analysis);
       analysis.setResultDependUponDrop(result, parameterizedType);
       result.addCheckedPromise(boundsDrop);
       result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText(),
