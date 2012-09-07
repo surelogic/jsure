@@ -8,6 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.sea.IProofDrop;
+import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class FilterAnalysisResult extends Filter {
@@ -101,12 +102,13 @@ public final class FilterAnalysisResult extends Filter {
 
 	private String getFilterValueOrNull(IProofDrop d) {
 		if (d.instanceOf(ResultDrop.class)) {
+			IResultDrop rd = (IResultDrop) d; 
 			final String value;
-			if (d.isVouched())
+			if (rd.isVouched())
 				value = VOUCHED;
-			else if (d.isTimeout())
+			else if (rd.isTimeout())
 				value = TIMEOUT;
-			else if (d.isConsistent())
+			else if (rd.isConsistent())
 				value = CONSISTENT;
 			else
 				value = INCONSISTENT;

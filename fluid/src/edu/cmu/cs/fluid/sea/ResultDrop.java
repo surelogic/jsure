@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
@@ -342,7 +343,7 @@ public final class ResultDrop extends AbstractResultDrop implements IResultDrop 
 
   @Override
   public String getXMLElementName() {
-    return "result-drop";
+    return AbstractXMLReader.RESULT_DROP;
   }
 
   @Override

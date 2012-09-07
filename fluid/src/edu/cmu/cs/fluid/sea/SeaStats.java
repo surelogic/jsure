@@ -120,7 +120,7 @@ public final class SeaStats {
                     return PROMISES;
                 }
                 else if (d.instanceOf(ResultDrop.class)) {
-                    IProofDrop pd = (IProofDrop) d;
+                    IResultDrop pd = (IResultDrop) d;
                     return pd.isConsistent() ? CONSISTENT : INCONSISTENT;
                 }
                 return null;

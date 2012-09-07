@@ -22,7 +22,8 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Within the Fluid system, promises represent models of design intent or
  * cutpoints for the analyses.
  */
-public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements ISrcRef, IHasPromisedFor {
+public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop 
+implements IPromiseDrop, ISrcRef, IHasPromisedFor {
 
   public static final String VIRTUAL = "virtual";
 
