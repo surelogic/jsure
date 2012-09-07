@@ -226,7 +226,7 @@ public final class Sea {
    * 
    * @param pred
    *          the drop predicate to apply to the drop set.
-   * @param dropSet
+   * @param drops
    *          the set of drops to subset. This set is not modified.
    * @return the set of drops in <code>dropSet</code> that matched the drop
    *         predicate.
@@ -234,14 +234,14 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> Set<T> filter(DropPredicate pred, Collection<T> dropSet) {
+  public static <T extends Drop> List<T> filterDropsMatching(DropPredicate pred, Collection<T> drops) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
-    if (dropSet == null)
-      throw new IllegalArgumentException(I18N.err(44, "dropSet"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final Set<T> result = new HashSet<T>(dropSet);
-    filterMutate(pred, result);
+    final List<T> result = new ArrayList<T>(drops);
+    filterDropsMatchingMutate(pred, result);
     return result;
   }
 
@@ -251,20 +251,20 @@ public final class Sea {
    * 
    * @param pred
    *          the drop predicate to apply to the drop set.
-   * @param mutableDropSet
+   * @param mutableDrops
    *          the set of drops to mutate.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> void filterMutate(DropPredicate pred, Collection<T> mutableDropSet) {
+  public static <T extends Drop> void filterDropsMatchingMutate(DropPredicate pred, Collection<T> mutableDrops) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
-    if (mutableDropSet == null)
-      throw new IllegalArgumentException(I18N.err(44, "mutableDropSet"));
+    if (mutableDrops == null)
+      throw new IllegalArgumentException(I18N.err(44, "mutableDrops"));
 
-    for (Iterator<T> i = mutableDropSet.iterator(); i.hasNext();) {
-      Drop drop = i.next();
+    for (final Iterator<T> i = mutableDrops.iterator(); i.hasNext();) {
+      final T drop = i.next();
       if (!pred.match(drop)) {
         i.remove();
       }
@@ -634,13 +634,15 @@ public final class Sea {
         pd.provedConsistent = true; // assume true
         pd.derivedFromSrc = pd.isFromSrc();
 
-        Collection<ResultDrop> analysisResults = pd.getCheckedBy();
-        for (ResultDrop result : analysisResults) {
+        Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
+        for (AnalysisResultDrop result : analysisResults) {
           /*
            * & in local result
            */
-          pd.provedConsistent = pd.provedConsistent && (result.isConsistent() || result.isVouched());
-
+          if (result instanceof ResultDrop) {
+        	  ResultDrop r = (ResultDrop) result;
+        	  pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
+          }
           pd.derivedFromSrc = pd.derivedFromSrc || result.isFromSrc();
         }
       } else if (d instanceof ResultDrop) {
@@ -660,18 +662,18 @@ public final class Sea {
         rd.derivedFromSrc = rd.isFromSrc();
       } else if (d instanceof ResultFolderDrop) {
 
-          /*
-           * RESULT FOLDER DROP
-           */
+        /*
+         * RESULT FOLDER DROP
+         */
 
-    	  ResultFolderDrop rd = (ResultFolderDrop) d;
+        ResultFolderDrop rd = (ResultFolderDrop) d;
 
-          // result drops, by definition, can not start off with a red dot
-          rd.proofUsesRedDot = false;
+        // result drops, by definition, can not start off with a red dot
+        rd.proofUsesRedDot = false;
 
-          rd.provedConsistent = true;
+        rd.provedConsistent = true;
 
-          rd.derivedFromSrc = rd.isFromSrc();
+        rd.derivedFromSrc = rd.isFromSrc();
       } else {
         LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
       }
