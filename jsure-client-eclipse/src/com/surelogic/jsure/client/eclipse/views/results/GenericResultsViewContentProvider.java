@@ -450,6 +450,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
 
           // image
           int flags = 0; // assume no adornments
+          flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+          flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
           result.setImageFlags(flags);
           result.setBaseImageName(CommonImages.IMG_FOLDER);
           addDrops(result, (Collection<? extends T>) resultDrop.getContents());
