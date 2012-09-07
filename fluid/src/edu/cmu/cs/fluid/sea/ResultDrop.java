@@ -33,7 +33,8 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   public static final String OR_LABEL = "or-label";
   public static final String OR_USES_RED_DOT = "or-uses-red-dot";
   public static final String OR_PROVED = "or-proved-consistent";
-
+  public static final String ENCLOSED_IN_FOLDER = "enclosed-in-folder";
+  
   /**
    * Constructs a new analysis result.
    */
@@ -57,6 +58,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   private boolean consistent = false;
 
+  public boolean hasEnclosingFolder() {
+	  return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
+  }
+  
   /**
    * Adds a promise to the set of promises this result uses as a precondition,
    * or <i>trusts</i>.
@@ -369,6 +374,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
+    s.addAttribute(ENCLOSED_IN_FOLDER, hasEnclosingFolder());
     s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
   }
 

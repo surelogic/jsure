@@ -21,7 +21,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
   final List<IRFreePromiseDrop> checkedPromises;
   final List<IRFreePromiseDrop> trustedPromises;
   final MultiMap<String, IRFreePromiseDrop> orTrustedPromises;
-
+  
   void addCheckedPromise(IRFreePromiseDrop info) {
     checkedPromises.add(info);
   }
@@ -42,6 +42,10 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
     orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
   }
 
+  public boolean hasEnclosingFolder() {
+	return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
+  }
+  
   public Collection<? extends IPromiseDrop> getChecks() {
     return checkedPromises;
   }
