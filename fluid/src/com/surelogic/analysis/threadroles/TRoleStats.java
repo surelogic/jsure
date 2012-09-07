@@ -11,7 +11,6 @@ import java.util.Iterator;
 
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropEvent;
-import edu.cmu.cs.fluid.sea.DropObserver;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
@@ -24,15 +23,17 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 
 /**
  * @author dfsuther
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * 
+ *         TODO To change the template for this generated type comment go to
+ *         Window - Preferences - Java - Code Generation - Code and Comments
+ *         
+ *         THIS IS BUSTED -- NO MORE DROP OBSERVERS ALLOWED
  */
-public class TRoleStats implements DropObserver {
-  
+public class TRoleStats {
+
   private static final TRoleStats INSTANCE = new TRoleStats();
   private boolean registered = false;
-  
+
   private int numContext = 0;
   private int numContextFromSrc = 0;
   private int numRequire = 0;
@@ -49,106 +50,115 @@ public class TRoleStats implements DropObserver {
   private int numGrantFromSrc = 0;
   private int numNameModel = 0;
   private int numNameModelFromSrc = 0;
-  
-  
+
   public StringBuilder beforeTRfp = null;
   public StringBuilder afterTRfp = null;
   public StringBuilder afterTRsp = null;
-  
+
   private TRoleStats() {
     final Sea theSea = Sea.getDefault();
-//     theSea.register(ColorContextDrop.class, this);
-     theSea.register(TRoleRequireDrop.class,this);
-//     theSea.register(ColorCtxSummaryDrop.class,this);
-     theSea.register(TRoleReqSummaryDrop.class,this);
-     theSea.register(TRoleDeclareDrop.class,this);
-     theSea.register(TRoleIncompatibleDrop.class,this);
-     theSea.register(TRoleRevokeDrop.class,this);
-     theSea.register(TRoleGrantDrop.class,this);
+    // theSea.register(ColorContextDrop.class, this);
+    // theSea.register(TRoleRequireDrop.class,this);
+    // theSea.register(ColorCtxSummaryDrop.class,this);
+    // theSea.register(TRoleReqSummaryDrop.class,this);
+    // theSea.register(TRoleDeclareDrop.class,this);
+    // theSea.register(TRoleIncompatibleDrop.class,this);
+    // theSea.register(TRoleRevokeDrop.class,this);
+    // theSea.register(TRoleGrantDrop.class,this);
   }
-  
+
   public static final TRoleStats getInstance() {
     return INSTANCE;
   }
-  
-  
+
   public static final void resetForAFullBuild() {
-//    INSTANCE.numContext = 0;
-//    INSTANCE.numContextFromSrc = 0;
-//    INSTANCE.numRequire = 0;
-//    INSTANCE.numRequireFromSrc = 0;
-//    INSTANCE.numCtxSummary = 0;
-//    INSTANCE.numReqSummary = 0;
-//    INSTANCE.numDeclare = 0;
-//    INSTANCE.numDeclareFromSrc = 0;
-//    INSTANCE.numIncompatible = 0;
-//    INSTANCE.numIncompatibleFromSrc = 0;
-//    INSTANCE.numRevoke = 0;
-//    INSTANCE.numRevokeFromSrc = 0;
-//    INSTANCE.numGrant = 0;
-//    INSTANCE.numGrantFromSrc = 0;
-//    INSTANCE.numNameModel = 0;
-//    INSTANCE.numNameModelFromSrc = 0;
+    // INSTANCE.numContext = 0;
+    // INSTANCE.numContextFromSrc = 0;
+    // INSTANCE.numRequire = 0;
+    // INSTANCE.numRequireFromSrc = 0;
+    // INSTANCE.numCtxSummary = 0;
+    // INSTANCE.numReqSummary = 0;
+    // INSTANCE.numDeclare = 0;
+    // INSTANCE.numDeclareFromSrc = 0;
+    // INSTANCE.numIncompatible = 0;
+    // INSTANCE.numIncompatibleFromSrc = 0;
+    // INSTANCE.numRevoke = 0;
+    // INSTANCE.numRevokeFromSrc = 0;
+    // INSTANCE.numGrant = 0;
+    // INSTANCE.numGrantFromSrc = 0;
+    // INSTANCE.numNameModel = 0;
+    // INSTANCE.numNameModelFromSrc = 0;
   }
-  
+
   public void dropChanged(Drop drop, DropEvent event) {
-	  
-	if (event == DropEvent.Created) {
-//      if (drop instanceof ColorContextDrop) {
-//        numContext += 1;
-//        if (((ColorContextDrop) drop).isFromSrc()) numContextFromSrc += 1;
-//      } else
-        if (drop instanceof TRoleRequireDrop) {
+
+    if (event == DropEvent.Created) {
+      // if (drop instanceof ColorContextDrop) {
+      // numContext += 1;
+      // if (((ColorContextDrop) drop).isFromSrc()) numContextFromSrc += 1;
+      // } else
+      if (drop instanceof TRoleRequireDrop) {
         numRequire += 1;
-        if (((TRoleRequireDrop) drop).isFromSrc()) numRequireFromSrc += 1;
+        if (((TRoleRequireDrop) drop).isFromSrc())
+          numRequireFromSrc += 1;
       } else if (drop instanceof TRoleCtxSummaryDrop) {
         numCtxSummary += 1;
       } else if (drop instanceof TRoleReqSummaryDrop) {
         numReqSummary += 1;
       } else if (drop instanceof TRoleDeclareDrop) {
         numDeclare += 1;
-        if (((TRoleDeclareDrop) drop).isFromSrc()) numDeclareFromSrc += 1;
+        if (((TRoleDeclareDrop) drop).isFromSrc())
+          numDeclareFromSrc += 1;
       } else if (drop instanceof TRoleIncompatibleDrop) {
         numIncompatible += 1;
-        if (((TRoleIncompatibleDrop) drop).isFromSrc()) numIncompatibleFromSrc += 1;
+        if (((TRoleIncompatibleDrop) drop).isFromSrc())
+          numIncompatibleFromSrc += 1;
       } else if (drop instanceof TRoleGrantDrop) {
         numGrant += 1;
-        if (((TRoleGrantDrop) drop).isFromSrc()) numGrantFromSrc += 1;
+        if (((TRoleGrantDrop) drop).isFromSrc())
+          numGrantFromSrc += 1;
       } else if (drop instanceof TRoleRevokeDrop) {
         numRevoke += 1;
-        if (((TRoleRevokeDrop) drop).isFromSrc()) numRevokeFromSrc += 1;
+        if (((TRoleRevokeDrop) drop).isFromSrc())
+          numRevokeFromSrc += 1;
       }
-	} else if (event == DropEvent.Invalidated) {
-//      if (drop instanceof ColorContextDrop) {
-//        numContext -= 1;
-//        if (((ColorContextDrop) drop).isFromSrc()) numContextFromSrc -= 1;
-//      } else 
-	  if (drop instanceof TRoleRequireDrop) {
+    } else if (event == DropEvent.Invalidated) {
+      // if (drop instanceof ColorContextDrop) {
+      // numContext -= 1;
+      // if (((ColorContextDrop) drop).isFromSrc()) numContextFromSrc -= 1;
+      // } else
+      if (drop instanceof TRoleRequireDrop) {
         numRequire -= 1;
-        if (((TRoleRequireDrop) drop).isFromSrc()) numRequireFromSrc -= 1;
+        if (((TRoleRequireDrop) drop).isFromSrc())
+          numRequireFromSrc -= 1;
       } else if (drop instanceof TRoleCtxSummaryDrop) {
         numCtxSummary -= 1;
       } else if (drop instanceof TRoleReqSummaryDrop) {
         numReqSummary -= 1;
       } else if (drop instanceof TRoleDeclareDrop) {
         numDeclare -= 1;
-        if (((TRoleDeclareDrop) drop).isFromSrc()) numDeclareFromSrc -= 1;
+        if (((TRoleDeclareDrop) drop).isFromSrc())
+          numDeclareFromSrc -= 1;
       } else if (drop instanceof TRoleIncompatibleDrop) {
         numIncompatible -= 1;
-        if (((TRoleIncompatibleDrop) drop).isFromSrc()) numIncompatibleFromSrc -= 1;
+        if (((TRoleIncompatibleDrop) drop).isFromSrc())
+          numIncompatibleFromSrc -= 1;
       } else if (drop instanceof TRoleGrantDrop) {
         numGrant -= 1;
-        if (((TRoleGrantDrop) drop).isFromSrc()) numGrantFromSrc -= 1;
+        if (((TRoleGrantDrop) drop).isFromSrc())
+          numGrantFromSrc -= 1;
       } else if (drop instanceof TRoleRevokeDrop) {
         numRevoke -= 1;
-        if (((TRoleRevokeDrop) drop).isFromSrc()) numRevokeFromSrc -= 1;
+        if (((TRoleRevokeDrop) drop).isFromSrc())
+          numRevokeFromSrc -= 1;
       }
     }
-    
+
   }
+
   public StringBuilder getTRoleStats(String when) {
     StringBuilder res = new StringBuilder(when + " ");
-    
+
     res.append("TRole Statistics:\n");
     res.append("Dropkind, Total Number, FromSrc Number\n");
     // --------------------------------------------------
@@ -159,7 +169,7 @@ public class TRoleStats implements DropObserver {
     numNameModelFromSrc = 0;
     for (Iterator<TRoleNameModel> nmIter = nModels.iterator(); nmIter.hasNext();) {
       TRoleNameModel aName = nmIter.next();
-      
+
       numNameModel += 1;
       if (aName.isFromSrc()) {
         numNameModelFromSrc += 1;
@@ -176,17 +186,16 @@ public class TRoleStats implements DropObserver {
     res.append("TRoleReqSummary, " + Integer.toString(numReqSummary) + ", -1\n");
 
     /*
-    SimpleCallGraphDrop.CGStats cgStats = SimpleCallGraphDrop.getStats();
-    res.append("\n\n");
-    res.append("numCallGraphDrops, numWithCallers, numWithCallees, numAPI, numAPInoCallers, numAPInoCallees\n");
-    res.append(cgStats.numDrops + ", " + cgStats.numWithCallers + ", ");
-    res.append(cgStats.numWithCallees + ", " + cgStats.numAPI +", ");
-    res.append(cgStats.numAPInoCallers + ", " + cgStats.numAPInoCallees + "\n");
-    */
-    
+     * SimpleCallGraphDrop.CGStats cgStats = SimpleCallGraphDrop.getStats();
+     * res.append("\n\n"); res.append(
+     * "numCallGraphDrops, numWithCallers, numWithCallees, numAPI, numAPInoCallers, numAPInoCallees\n"
+     * ); res.append(cgStats.numDrops + ", " + cgStats.numWithCallers + ", ");
+     * res.append(cgStats.numWithCallees + ", " + cgStats.numAPI +", ");
+     * res.append(cgStats.numAPInoCallers + ", " + cgStats.numAPInoCallees +
+     * "\n");
+     */
+
     return res;
   }
-  
+
 }
-
-

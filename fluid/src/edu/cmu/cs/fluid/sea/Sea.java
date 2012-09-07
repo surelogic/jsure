@@ -5,9 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +18,11 @@ import com.surelogic.common.logging.SLLogger;
  * Represents a <i>sea</i> of knowledge, not intended to be subclassed. Sea
  * instances contain and manage <i>drops</i> of information. Instances form a
  * truth maintenance system by managing dependent and deponent drops.
+ * <p>
+ * The sea is intended to be shared between threads when analysis is run. Locks
+ * are acquired on the object returned from {@link #getSeaLock()}. The code
+ * locks internally, however, the lock can be acquired to perform a transaction
+ * of many calls together.
  * 
  * @see Drop
  */
@@ -393,81 +396,6 @@ public final class Sea {
     }
   }
 
-  /**
-   * Registers an observer interested in status changes to drops of a specific
-   * type and any of its subtypes.
-   * <p>
-   * Typical use would be to register a subtype of {@link Drop} that is of
-   * interest to analysis code, as shown in the below code snippet.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *      
-   *    Sea.getDefault().register(MyDrop.class, new DropObserver() {
-   *      public void dropChanged(Drop drop, DropEvent event) {
-   *        // do something because a MyDrop status change has occurred
-   *      }
-   *    });
-   * </pre>
-   * 
-   * @param dropType
-   *          the drop subtype of interest.
-   * @param observer
-   *          the concrete observer object.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> void register(Class<T> dropType, DropObserver observer) {
-    if (dropType == null)
-      throw new IllegalArgumentException("dropType must be non-null");
-    if (observer == null)
-      throw new IllegalArgumentException("observer must be non-null");
-    Set<DropObserver> observers = getObservers(dropType);
-    observers.add(observer);
-  }
-
-  /**
-   * Removes an observer interested in status changes to drops of a specific
-   * type.
-   * <p>
-   * If the observer had not registered with this sea then this call has no
-   * effect.
-   * 
-   * @param dropType
-   *          the drop subtype of interest.
-   * @param observer
-   *          the concrete observer object.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> void unregister(Class<T> dropType, DropObserver observer) {
-    if (dropType == null)
-      throw new IllegalArgumentException("dropType must be non-null");
-    if (observer == null)
-      throw new IllegalArgumentException("observer must be non-null");
-    Set<DropObserver> observers = getObservers(dropType);
-    observers.remove(observer);
-  }
-
-  /**
-   * Gets the set of observers registered with this sea for a particular type of
-   * drops. The set is created if it doesn't exist.
-   * 
-   * @param dropType
-   *          the drop subtype of interest
-   * @return the set of observers for <code>dropType</code>.
-   */
-  private <T extends Drop> Set<DropObserver> getObservers(Class<T> dropType) {
-    Set<DropObserver> observers = f_dropTypeToObservers.get(dropType);
-    if (observers == null) {
-      observers = new HashSet<DropObserver>();
-      f_dropTypeToObservers.put(dropType, observers);
-    }
-    return observers;
-  }
-
   public void addSeaObserver(SeaObserver o) {
     f_seaObservers.add(o);
   }
@@ -819,16 +747,6 @@ public final class Sea {
       // remove the drop from this sea's list of valid drops
       f_validDrops.remove(drop);
     }
-    // notify all registered observers of the status change
-    Set<DropObserver> observers = new HashSet<DropObserver>();
-    for (Class<?> dropType : f_dropTypeToObservers.keySet()) {
-      if (dropType.isInstance(drop)) {
-        observers.addAll(f_dropTypeToObservers.get(dropType));
-      }
-    }
-    for (DropObserver observer : observers) {
-      observer.dropChanged(drop, event);
-    }
   }
 
   public long getTimeStamp() {
@@ -879,12 +797,6 @@ public final class Sea {
    * The set of valid drops within this sea.
    */
   private final List<Drop> f_validDrops = new ArrayList<Drop>(5000);
-
-  /**
-   * A map from drop subtypes to a set of registered observers interested in
-   * status changes about the knowledge status of those drops.
-   */
-  private final Map<Class<?>, Set<DropObserver>> f_dropTypeToObservers = new ConcurrentHashMap<Class<?>, Set<DropObserver>>();
 
   private final CopyOnWriteArrayList<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
 

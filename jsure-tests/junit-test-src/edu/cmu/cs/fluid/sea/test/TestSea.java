@@ -6,8 +6,6 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropEvent;
-import edu.cmu.cs.fluid.sea.DropObserver;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 
@@ -167,30 +165,6 @@ public class TestSea extends TestCase {
     n.add(msd1);
     n.add(msd2);
     assertTrue("MySubDrop instances are wrong", mySubDropSet.containsAll(n));
-  }
-
-  public void testListeners() {
-    Sea sea = Sea.getDefault();
-    DropObserver callback = new DropObserver() {
-      @Override
-      public void dropChanged(Drop drop, DropEvent event) {
-        assertTrue("kind is not Created it is " + event, event == DropEvent.Created);
-      }
-    };
-    sea.register(MySubDrop.class, callback);
-    Drop dIgnore = new ADrop(); // shouldn't be noticed
-    dIgnore.invalidate();
-    MySubDrop dHearMe = new MySubDrop();
-    sea.unregister(MySubDrop.class, callback);
-    callback = new DropObserver() {
-      @Override
-      public void dropChanged(Drop drop, DropEvent event) {
-        assertTrue("kind is not Invalidated it is " + event, event == DropEvent.Invalidated);
-      }
-    };
-    sea.register(MySubDrop.class, callback);
-    dHearMe.invalidate();
-    sea.unregister(MySubDrop.class, callback);
   }
 
   public void testMarkNewDrops() {
