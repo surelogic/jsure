@@ -13,6 +13,8 @@ public interface SeaConsistencyProofHook {
   /**
    * Called prior to the consistency proof being executed on every call to
    * {@link Sea#updateConsistencyProof()}.
+   * <p>
+   * <b>Warning:</b> this method is called holding {@link Sea#getSeaLock()}.
    * 
    * @param sea
    *          a sea.
@@ -22,6 +24,8 @@ public interface SeaConsistencyProofHook {
   /**
    * Called after the consistency proof has been executed on every call to
    * {@link Sea#updateConsistencyProof()}.
+   * <p>
+   * <b>Warning:</b> this method is called holding {@link Sea#getSeaLock()}.
    * 
    * @param sea
    *          a sea.
