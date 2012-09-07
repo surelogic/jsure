@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea.dependencies;
 
 import java.util.*;
@@ -203,7 +202,7 @@ public class Dependencies {
 	 * @return 
 	 */
 	private Collection<PromiseWarningDrop> processPromiseWarningDrops() {
-		final Set<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
+		final List<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
 		for(Drop d : warnings) {	
 			System.out.println("Processing PWD: "+d.getMessage());
 			try {
@@ -685,7 +684,7 @@ public class Dependencies {
 		private void scanForPublic(ITypeEnvironment te, Set<IRNode> decls) {
 			System.out.println("Scanning for public dependencies: "+this);
 			// TODO do i need to check binaries?
-			final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
+			final List<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
 			for(CUDrop cud : allCus) {
 				scanCUDrop(te.getBinder(), cud, decls);
 			}

@@ -991,7 +991,7 @@ public class TRoleSecondPass implements IBinderClient {
     // ColorBDDPack.resetCanonicalImages();
   }
 
-  private <T extends Drop> void folderizeDrops(String name, Set<T> drops, boolean wantBinary) {
+  private <T extends Drop> void folderizeDrops(String name, Collection<T> drops, boolean wantBinary) {
     if (drops.isEmpty()) {
       return;
     }
@@ -1003,7 +1003,7 @@ public class TRoleSecondPass implements IBinderClient {
     for (Drop d : drops) {
       boolean fromBinaryCU = false;
       if (!wantBinary) {
-        Set<BinaryCUDrop> bCUs = Sea.filterDropsOfExactType(BinaryCUDrop.class, d.getDeponents());
+        List<BinaryCUDrop> bCUs = Sea.filterDropsOfExactType(BinaryCUDrop.class, d.getDeponents());
         fromBinaryCU = !bCUs.isEmpty();
       }
       if (wantBinary || !fromBinaryCU) {

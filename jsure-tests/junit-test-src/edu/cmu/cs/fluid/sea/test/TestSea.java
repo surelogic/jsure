@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea.test;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,13 +39,13 @@ public class TestSea extends TestCase {
     List<Drop> r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
-    Set<Drop> r1 = Sea.filterDropsOfType(Drop.class, r);
+    List<Drop> r1 = Sea.filterDropsOfType(Drop.class, r);
     assertTrue("Drop count is " + r1.size() + " should be 6", r1.size() == 6);
 
-    Set<MyDrop> r2 = Sea.filterDropsOfType(MyDrop.class, r);
+    List<MyDrop> r2 = Sea.filterDropsOfType(MyDrop.class, r);
     assertTrue("Drop count is " + r2.size() + " should be 4", r2.size() == 4);
 
-    Set<MySubDrop> r3 = Sea.filterDropsOfType(MySubDrop.class, r);
+    List<MySubDrop> r3 = Sea.filterDropsOfType(MySubDrop.class, r);
     assertTrue("Drop count is " + r3.size() + " should be 2", r3.size() == 2);
 
     r = sea.getDrops();
@@ -66,25 +65,16 @@ public class TestSea extends TestCase {
     List<Drop> r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
-    Collection<MyDrop> r2 = Sea.filterDropsOfTypeMutate(MyDrop.class, r);
+    List<Drop> r2 = Sea.filterDropsOfTypeMutate(MyDrop.class, r);
     assertTrue("Drop count is " + r2.size() + " should be 4", r2.size() == 4);
     assertEquals(r2, r);
 
     r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
-    Collection<MySubDrop> r3 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
+    List<Drop> r3 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
     assertTrue("Drop count is " + r3.size() + " should be 2", r3.size() == 2);
     assertEquals(r3, r);
-    r.add(d1); // mutation violates up-cast
-    try {
-      for (MySubDrop d : r3) {
-        d.toString(); // make compiler happy
-      }
-      fail();
-    } catch (ClassCastException e) {
-      // Ignore, this is what is expected
-    }
 
     r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
@@ -99,15 +89,6 @@ public class TestSea extends TestCase {
     r3 = Sea.filterDropsOfExactTypeMutate(MySubDrop.class, r);
     assertTrue("Drop count is " + r3.size() + " should be 2", r3.size() == 2);
     assertEquals(r3, r);
-    r.add(d1); // mutation violates up-cast
-    try {
-      for (MySubDrop d : r3) {
-        d.toString(); // make compiler happy
-      }
-      fail();
-    } catch (ClassCastException e) {
-      // Ignore, this is what is expected
-    }
   }
 
   public void testFilter() {
@@ -126,7 +107,7 @@ public class TestSea extends TestCase {
   }
 
   public void testHasMatchingDrops() {
-    Set<MyDrop> r2 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, Sea.getDefault().getDrops());
+    List<Drop> r2 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, Sea.getDefault().getDrops());
     assertTrue("Drop count is " + r2.size() + " should be 2", r2.size() == 2);
     assertFalse(Sea.hasMatchingDrops(DropPredicateFactory.matchExactType(Drop.class), r2));
     assertFalse(Sea.hasMatchingDrops(DropPredicateFactory.matchExactType(ADrop.class), r2));
@@ -144,7 +125,7 @@ public class TestSea extends TestCase {
 
   public void testGetDropsOfType() {
     // test getting drops of type (i.e., including subtypes)
-    Set<Drop> dropSet = sea.getDropsOfType(Drop.class); // should get all
+    List<Drop> dropSet = sea.getDropsOfType(Drop.class); // should get all
     // drops
     assertTrue("Drop count is " + dropSet.size() + " should be 6", dropSet.size() == 6);
     Set<Drop> n = new HashSet<Drop>();
@@ -155,7 +136,7 @@ public class TestSea extends TestCase {
     n.add(msd1);
     n.add(msd2);
     assertTrue("Drop instances are wrong", dropSet.containsAll(n));
-    Set<MyDrop> myDropSet = sea.getDropsOfType(MyDrop.class);
+    List<MyDrop> myDropSet = sea.getDropsOfType(MyDrop.class);
     assertTrue("MyDrop count is " + myDropSet.size() + " should be 4", myDropSet.size() == 4);
     n = new HashSet<Drop>();
     n.add(md1);
@@ -163,7 +144,7 @@ public class TestSea extends TestCase {
     n.add(msd1);
     n.add(msd2);
     assertTrue("MyDrop instances are wrong", myDropSet.containsAll(n));
-    Set<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
+    List<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
     assertTrue("MySubDrop count is " + mySubDropSet.size() + " should be 2", mySubDropSet.size() == 2);
     n = new HashSet<Drop>();
     n.add(msd1);
@@ -174,19 +155,19 @@ public class TestSea extends TestCase {
   public void testGetDropsOfExactType() {
     Sea sea = Sea.getDefault();
     // test getting drops of a exact type
-    Set<ADrop> dropSet = sea.getDropsOfExactType(ADrop.class);
+    List<ADrop> dropSet = sea.getDropsOfExactType(ADrop.class);
     assertTrue("Drop count is " + dropSet.size() + " should be 2", dropSet.size() == 2);
     Set<Drop> n = new HashSet<Drop>();
     n.add(d1);
     n.add(d2);
     assertTrue("Drop instances are wrong", dropSet.containsAll(n));
-    Set<MyDrop> myDropSet = sea.getDropsOfExactType(MyDrop.class);
+    List<MyDrop> myDropSet = sea.getDropsOfExactType(MyDrop.class);
     assertTrue("MyDrop count is " + myDropSet.size() + " should be 2", myDropSet.size() == 2);
     n = new HashSet<Drop>();
     n.add(md1);
     n.add(md2);
     assertTrue("MyDrop instances are wrong", myDropSet.containsAll(n));
-    Set<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
+    List<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
     assertTrue("MySubDrop count is " + mySubDropSet.size() + " should be 2", mySubDropSet.size() == 2);
     n = new HashSet<Drop>();
     n.add(msd1);

@@ -163,8 +163,7 @@ public class LockAnalysis
 		 */
 
 		// Run through the LockModel and add them to the GlobalLockModel
-		final Set<? extends LockModel> lockModelDrops = Sea.getDefault()
-				.getDropsOfType(LockModel.class);
+    final List<LockModel> lockModelDrops = Sea.getDefault().getDropsOfType(LockModel.class);
 		for (LockModel lockDrop : lockModelDrops) {
 			final IRNode classDecl = lockDrop.getNode();
 
