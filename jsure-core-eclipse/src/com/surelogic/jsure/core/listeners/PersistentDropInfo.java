@@ -23,7 +23,7 @@ import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
-public class PersistentDropInfo implements SeaObserver {
+public class PersistentDropInfo {
 	private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
 
 	private long timestamp = Long.MIN_VALUE;
@@ -47,10 +47,6 @@ public class PersistentDropInfo implements SeaObserver {
 		}
 		this.location = location;
 		System.out.println("Drop location = " + location);
-
-		// subscribe to listen for analysis notifications
-		// NotificationHub.addAnalysisListener(this);
-		Sea.getDefault().addSeaObserver(this);
 	}
 
 	private static final PersistentDropInfo instance = new PersistentDropInfo();
@@ -140,12 +136,5 @@ public class PersistentDropInfo implements SeaObserver {
 
 	public void addListener(SeaObserver v) {
 		listeners.add(v);
-	}
-
-	@Override
-	public void seaChanged() {
-		for (SeaObserver v : listeners) {
-			v.seaChanged();
-		}
 	}
 }
