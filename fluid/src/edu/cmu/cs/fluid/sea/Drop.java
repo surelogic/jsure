@@ -97,7 +97,7 @@ public abstract class Drop implements IDrop {
    * For now, this depends on the drop having the info to create a
    * JavaSourceReference
    */
-  public void setResultMessage(int number, Object... args) {
+  public final void setResultMessage(int number, Object... args) {
     if (number < 1) {
       LOG.warning("Ignoring negative result number: " + number);
       return;
@@ -121,7 +121,7 @@ public abstract class Drop implements IDrop {
    * 
    * @return the message set for this drop, usually used by the UI.
    */
-  public String getMessage() {
+  public final String getMessage() {
     synchronized (f_seaLock) {
       return f_message;
     }
@@ -133,7 +133,7 @@ public abstract class Drop implements IDrop {
    * @param message
    *          the message to set for the UI about this drop.
    */
-  public void setMessage(String message) {
+  public final void setMessage(String message) {
     synchronized (f_seaLock) {
       this.f_message = message;
       this.f_resultMessage = null;
@@ -155,7 +155,7 @@ public abstract class Drop implements IDrop {
    * @param message
    *          the message to set for the UI about this drop.
    */
-  public void setMessage(String message, Object... args) {
+  public final void setMessage(String message, Object... args) {
     synchronized (f_seaLock) {
       this.f_message = (args.length == 0) ? message : MessageFormat.format(message, args);
       this.f_resultMessage = null;
@@ -170,7 +170,7 @@ public abstract class Drop implements IDrop {
    * @param dependent
    *          the drop this drop is a deponent for.
    */
-  final public void addDependent(Drop dependent) {
+  public final void addDependent(Drop dependent) {
     synchronized (f_seaLock) {
       if (!f_valid || dependent == null || !dependent.isValid()) {
         return;
@@ -192,7 +192,7 @@ public abstract class Drop implements IDrop {
    * @param dependents
    *          the array of drops this drop is a deponent for.
    */
-  final public void addDependents(Drop[] dependents) {
+  public final void addDependents(Drop[] dependents) {
     synchronized (f_seaLock) {
       if (!f_valid || dependents == null) {
         return;
@@ -211,7 +211,7 @@ public abstract class Drop implements IDrop {
    * @param dependents
    *          the collection of drops this drop is a deponent for.
    */
-  final public void addDependents(Collection<? extends Drop> dependents) {
+  public final void addDependents(Collection<? extends Drop> dependents) {
     synchronized (f_seaLock) {
       if (!f_valid || dependents == null) {
         return;
@@ -231,7 +231,7 @@ public abstract class Drop implements IDrop {
    * @param dependonts
    *          the collection of drops this drop is a dependent of.
    */
-  final public void addDeponents(Collection<? extends Drop> deponents) {
+  public final void addDeponents(Collection<? extends Drop> deponents) {
     synchronized (f_seaLock) {
       if (!f_valid || f_dependents == null) {
         return;
@@ -247,7 +247,7 @@ public abstract class Drop implements IDrop {
    * 
    * @return the set of dependent drops
    */
-  final public HashSet<Drop> getDependents() {
+  public final HashSet<Drop> getDependents() {
     synchronized (f_seaLock) {
       return new HashSet<Drop>(f_dependents);
     }
@@ -260,7 +260,7 @@ public abstract class Drop implements IDrop {
    */
   @RequiresLock("SeaLock")
   @Vouch("controlled alias of f_dependents for performance")
-  final protected Set<Drop> getDependentsReference() {
+  protected final Set<Drop> getDependentsReference() {
     return f_dependents;
   }
 
@@ -269,7 +269,7 @@ public abstract class Drop implements IDrop {
    * 
    * @return the set of deponent drops
    */
-  final public HashSet<Drop> getDeponents() {
+  public final HashSet<Drop> getDeponents() {
     synchronized (f_seaLock) {
       return new HashSet<Drop>(f_deponents);
     }
@@ -282,7 +282,7 @@ public abstract class Drop implements IDrop {
    */
   @RequiresLock("SeaLock")
   @Vouch("controlled alias of f_dependents for performance")
-  final protected Set<Drop> getDeponentsReference() {
+  protected final Set<Drop> getDeponentsReference() {
     return f_deponents;
   }
 
@@ -295,7 +295,7 @@ public abstract class Drop implements IDrop {
    * @return <code>true</code> if at least one of this drop's dependent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDependents(DropPredicate pred) {
+  public final boolean hasMatchingDependents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_dependents);
     }
@@ -310,7 +310,7 @@ public abstract class Drop implements IDrop {
    * @return <code>true</code> if at least one of this drop's deponent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDeponents(DropPredicate pred) {
+  public final boolean hasMatchingDeponents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_deponents);
     }
@@ -324,7 +324,7 @@ public abstract class Drop implements IDrop {
    *          a drop predicate.
    * @return a list of drops. This may be empty but will never be {@code null}.
    */
-  public ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
+  public final ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
     final ArrayList<Drop> result;
     synchronized (f_seaLock) {
       result = Sea.filterDropsMatching(pred, f_dependents);
@@ -340,7 +340,7 @@ public abstract class Drop implements IDrop {
    *          a drop predicate.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  public ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
+  public final ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
     final ArrayList<Drop> result;
     synchronized (f_seaLock) {
       result = Sea.filterDropsMatching(pred, f_deponents);
@@ -354,7 +354,7 @@ public abstract class Drop implements IDrop {
    * @return <code>true</code> if this drop has one or more deponent drops,
    *         <code>false</code> otherwise.
    */
-  final public boolean hasDeponents() {
+  public final boolean hasDeponents() {
     synchronized (f_seaLock) {
       return !f_deponents.isEmpty();
     }
@@ -366,7 +366,7 @@ public abstract class Drop implements IDrop {
    * @return <code>true</code> if this drop has one or more dependent drops,
    *         <code>false</code> otherwise.
    */
-  final public boolean hasDependents() {
+  public final boolean hasDependents() {
     synchronized (f_seaLock) {
       return !f_dependents.isEmpty();
     }
@@ -375,7 +375,7 @@ public abstract class Drop implements IDrop {
   /**
    * Invalidates, makes false, the information that this drop represents.
    */
-  final public void invalidate() {
+  public final void invalidate() {
     synchronized (f_seaLock) {
       if (!f_valid) {
         return;
@@ -412,7 +412,7 @@ public abstract class Drop implements IDrop {
    * @return <code>true</code> if the drop is invalid, <code>false</code>
    *         otherwise
    */
-  final public boolean isValid() {
+  public final boolean isValid() {
     synchronized (f_seaLock) {
       return f_valid;
     }
@@ -439,7 +439,7 @@ public abstract class Drop implements IDrop {
    *          the fAST node specifying the compilation unit this drop needs to
    *          depend upon. If this is <code>null</code> no dependency is added.
    */
-  final public void dependUponCompilationUnitOf(IRNode node) {
+  public final void dependUponCompilationUnitOf(IRNode node) {
     if (node == null)
       return;
     try {
