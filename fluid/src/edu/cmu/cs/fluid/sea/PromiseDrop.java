@@ -584,6 +584,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
+  @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
     IRNode n = getNode();
     if (n == null) {

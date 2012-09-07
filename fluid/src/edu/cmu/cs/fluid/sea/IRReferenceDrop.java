@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
@@ -357,6 +358,7 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   @Override
+  @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
     return createSourceRef(getNode(), getSrcRef());
   }
