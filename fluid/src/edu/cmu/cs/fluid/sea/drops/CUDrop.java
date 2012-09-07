@@ -23,13 +23,13 @@ import edu.cmu.cs.fluid.sea.Drop;
 /**
  * Drop representing a compilation unit, suitable for promise and result drops
  * to depend upon. Created and invalidated by the eAST to fAST converter.
- * 
- * @see edu.cmu.cs.fluid.analysis.util.ConvertToIR
  */
 public abstract class CUDrop extends Drop {
+
   private static SlotInfo<CUDrop> si = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
 
   protected final CodeInfo info;
+
   public final String javaOSFileName;
 
   public final IRNode cu;

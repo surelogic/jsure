@@ -1,7 +1,3 @@
-/*
- * Created on Jun 22, 2004
- *
- */
 package edu.cmu.cs.fluid.sea.drops;
 
 import java.util.*;
@@ -19,15 +15,15 @@ import edu.cmu.cs.fluid.sea.Sea;
  */
 public class SourceCUDrop extends CUDrop {
   private static Map<ICodeFile, SourceCUDrop> cachedDrops = null;
-  
+
   public SourceCUDrop(CodeInfo info, ProjectsDrop p) {
     super(info);
-    //System.out.println("Creating SourceCUDrop for "+info.getFileName());
+    // System.out.println("Creating SourceCUDrop for "+info.getFileName());
     javaFile = info.getFile();
-    source   = info.getSource();
+    source = info.getSource();
     adaptedAsSource = info.isAsSource();
     this.projects = p;
-    
+
     synchronized (SourceCUDrop.class) {
       // clear cached drops, since we're creating new ones
       cachedDrops = null;
@@ -54,12 +50,12 @@ public class SourceCUDrop extends CUDrop {
         SourceCUDrop d = cachedDrops.put(drop.javaFile, drop);
         if (d != null) {
           // duplicate drop?
-          LOG.severe("Got 2+ drops with same javaFile: "+drop.javaFile);
+          LOG.severe("Got 2+ drops with same javaFile: " + drop.javaFile);
         }
       }
     }
   }
-  
+
   /**
    * Looks up the drop corresponding to the given ICompilationUnit.
    * 
@@ -70,15 +66,12 @@ public class SourceCUDrop extends CUDrop {
    */
   static public SourceCUDrop queryCU(ICodeFile javaFile) {
     /*
-    Set<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
-    for (SourceCUDrop drop : drops) {
-      if (drop.javaFile == null) {
-        System.out.println("javaFile is null");  
-      }
-      else if (drop.javaFile.equals(javaFile)) return drop;
-    }
-    return null;
-    */
+     * Set<SourceCUDrop> drops =
+     * Sea.getDefault().getDropsOfExactType(SourceCUDrop.class); for
+     * (SourceCUDrop drop : drops) { if (drop.javaFile == null) {
+     * System.out.println("javaFile is null"); } else if
+     * (drop.javaFile.equals(javaFile)) return drop; } return null;
+     */
     synchronized (SourceCUDrop.class) {
       if (cachedDrops == null) {
         initCachedDrops();
@@ -88,8 +81,8 @@ public class SourceCUDrop extends CUDrop {
   }
 
   /**
-   * Invalidates all SourceCUDrops contained within this sea. 
-   * Can be used as a reset method when closing a project.
+   * Invalidates all SourceCUDrops contained within this sea. Can be used as a
+   * reset method when closing a project.
    * 
    */
   public static Collection<SourceCUDrop> invalidateAll(final Collection<IIRProject> projects) {
@@ -98,22 +91,22 @@ public class SourceCUDrop extends CUDrop {
     }
     final List<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
     final List<SourceCUDrop> invalidated = new ArrayList<SourceCUDrop>();
-    for(SourceCUDrop d : cuds) {
-    	boolean invalidate = projects == null;
-    	if (!invalidate) {
-    		// TODO use hash map?
-    		final ITypeEnvironment dTEnv = d.getTypeEnv();
-    		for(IIRProject p : projects) {
-    			if (dTEnv == p.getTypeEnv()) {
-    				invalidate = true;
-    				break;
-    			}
-    		}
-    	}
-    	if (invalidate) {
-    		d.invalidate();    	
-    		invalidated.add(d);
-    	}
+    for (SourceCUDrop d : cuds) {
+      boolean invalidate = projects == null;
+      if (!invalidate) {
+        // TODO use hash map?
+        final ITypeEnvironment dTEnv = d.getTypeEnv();
+        for (IIRProject p : projects) {
+          if (dTEnv == p.getTypeEnv()) {
+            invalidate = true;
+            break;
+          }
+        }
+      }
+      if (invalidate) {
+        d.invalidate();
+        invalidated.add(d);
+      }
     }
     return invalidated;
   }
@@ -122,18 +115,17 @@ public class SourceCUDrop extends CUDrop {
   public boolean isAsSource() {
     return adaptedAsSource;
   }
+
   /*
-  @Override
-  protected void invalidate_internal() {
-	  System.out.println("Invalidating "+javaOSFileName);
-  }
-*/
+   * @Override protected void invalidate_internal() {
+   * System.out.println("Invalidating "+javaOSFileName); }
+   */
 
   public synchronized void setProject(ProjectsDrop p) {
-	  projects = p;
+    projects = p;
   }
 
   public synchronized ProjectsDrop getProject() {
-	  return projects;
+    return projects;
   }
 }

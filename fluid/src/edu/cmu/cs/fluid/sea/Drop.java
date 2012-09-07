@@ -94,6 +94,15 @@ public abstract class Drop implements IDrop {
   }
 
   /**
+   * Gets the lock for this sea that this drop is part of.
+   * 
+   * @return the non-null lock for this sea that this drop is part of.
+   */
+  public final Object getSeaLock() {
+    return f_seaLock;
+  }
+
+  /**
    * For now, this depends on the drop having the info to create a
    * JavaSourceReference
    */
@@ -601,7 +610,7 @@ public abstract class Drop implements IDrop {
   /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.
    */
-  final private Object f_seaLock;
+  final protected Object f_seaLock;
 
   /*
    * XML Methods are invoked single-threaded

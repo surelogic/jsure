@@ -787,6 +787,11 @@ public final class Sea {
 
   private final Object f_seaLock = new Object();
 
+  /**
+   * Gets the lock for this sea.
+   * 
+   * @return the non-null lock for this sea.
+   */
   @ReturnsLock("f_seaLock")
   public final Object getSeaLock() {
     return f_seaLock;
