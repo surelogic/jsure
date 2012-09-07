@@ -634,13 +634,15 @@ public final class Sea {
         pd.provedConsistent = true; // assume true
         pd.derivedFromSrc = pd.isFromSrc();
 
-        Collection<ResultDrop> analysisResults = pd.getCheckedBy();
-        for (ResultDrop result : analysisResults) {
+        Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
+        for (AnalysisResultDrop result : analysisResults) {
           /*
            * & in local result
            */
-          pd.provedConsistent = pd.provedConsistent && (result.isConsistent() || result.isVouched());
-
+          if (result instanceof ResultDrop) {
+        	  ResultDrop r = (ResultDrop) result;
+        	  pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
+          }
           pd.derivedFromSrc = pd.derivedFromSrc || result.isFromSrc();
         }
       } else if (d instanceof ResultDrop) {
