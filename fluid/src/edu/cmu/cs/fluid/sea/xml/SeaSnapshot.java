@@ -596,7 +596,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return false;
     }
 
-    @Override
+//    @Override
     public Set<? extends IDropInfo> getMatchingDeponents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : deponents) {
@@ -607,7 +607,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return result;
     }
 
-    @Override
+//    @Override
     public boolean hasMatchingDependents(DropPredicate p) {
       for (Info i : dependents) {
         if (p.match(i)) {
@@ -617,7 +617,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       return false;
     }
 
-    @Override
+//    @Override
     public Set<? extends IDropInfo> getMatchingDependents(DropPredicate p) {
       final Set<Info> result = new HashSet<Info>();
       for (Info i : dependents) {
