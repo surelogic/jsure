@@ -33,6 +33,11 @@ public interface IResultDrop extends IAnalysisResultDrop {
 	boolean isTimeout();
 
 	/**
+	 * @return true if enclosed in a folder
+	 */
+	boolean hasEnclosingFolder();
+ 	
+	/**
 	 * Returns the preconditions of this result, this set does not include any
 	 * "or" preconditions. Use the "get_or_" methods to obtain those
 	 * preconditions.

@@ -536,9 +536,19 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       } else {
         toBeCategorized.add(item);
         final IDrop info = item.getDropInfo();
-        if (info != null && info.instanceOf(PromiseDrop.class) && !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
-            && !(info.instanceOf(PleaseFolderize.class))) {
-          /*
+        boolean dontCategorize = false;
+        if (info != null) { 
+        	if (info.instanceOf(PromiseDrop.class)) {
+        		dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
+        		                 && !(info.instanceOf(PleaseFolderize.class));
+            }
+        	else if (info.instanceOf(ResultDrop.class)) {
+        		IResultDrop r = (IResultDrop) info;
+        		dontCategorize = r.hasEnclosingFolder();
+        	}
+        }
+        if (dontCategorize) {
+        	/*
            * Only categorize promise drops at the root level
            */
           categorizedChildren.add(item);
@@ -1055,7 +1065,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
+      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.hasEnclosingFolder()) || shouldBeTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }
