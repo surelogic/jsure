@@ -295,7 +295,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         fromE.addProposal((IRFreeProposedPromiseDrop) toE);
       } else if (fromE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
-          final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;        
+          final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;        
           if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
               fromPI.addCheckedByResult(toPI);
           }
@@ -303,7 +303,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
         final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
   
-        if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
           fromPI.addCheckedPromise(toPI);
         } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
           fromPI.addTrustedPromise(toPI);
@@ -313,7 +313,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         }
       } else if (fromE instanceof IRFreeResultFolderDrop) {
           final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
-          if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
               final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;    	              
               fromPI.addCheckedPromise(toPI);
           } else if (ResultFolderDrop.RESULT.equals(refType)) {
