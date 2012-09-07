@@ -101,10 +101,12 @@ public class TestSea extends TestCase {
     r1 = Sea.filterDropsMatching(DropPredicateFactory.matchType(MyDrop.class), r);
     assertTrue("Drop count is " + r1.size() + " should be 4", r1.size() == 4);
 
-    Sea.filterDropsMatchingMutate(DropPredicateFactory.matchType(ADrop.class), r);
+    List<Drop> rr = Sea.filterDropsMatchingMutate(DropPredicateFactory.matchType(ADrop.class), r);
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
-    Sea.filterDropsMatchingMutate(DropPredicateFactory.matchType(MyDrop.class), r);
+    assertSame(rr, r);
+    rr = Sea.filterDropsMatchingMutate(DropPredicateFactory.matchType(MyDrop.class), r);
     assertTrue("Drop count is " + r.size() + " should be 4", r.size() == 4);
+    assertSame(rr, r);
   }
 
   public void testHasMatchingDrops() {
