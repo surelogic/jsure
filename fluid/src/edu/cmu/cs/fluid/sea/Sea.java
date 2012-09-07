@@ -6,10 +6,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.InRegion;
+import com.surelogic.Region;
+import com.surelogic.RegionLock;
+import com.surelogic.ReturnsLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -26,6 +31,8 @@ import com.surelogic.common.logging.SLLogger;
  * 
  * @see Drop
  */
+@Region("SeaState")
+@RegionLock("SeaLock is f_seaLock protects SeaState")
 public final class Sea {
 
   /**
@@ -396,20 +403,6 @@ public final class Sea {
     }
   }
 
-  public void addSeaObserver(SeaObserver o) {
-    f_seaObservers.add(o);
-  }
-
-  public void removeSeaObserver(SeaObserver o) {
-    f_seaObservers.remove(o);
-  }
-
-  public void notifySeaObservers() {
-    for (SeaObserver o : f_seaObservers) {
-      o.seaChanged();
-    }
-  }
-
   /**
    * Invalidates all drops contained within this sea. Acts as a straightforward
    * reset method to invalidate all that is currently known.
@@ -738,19 +731,23 @@ public final class Sea {
    *          what happened to the drop.
    */
   void notify(Drop drop, DropEvent event) {
-    f_timeStamp = INVALIDATED;
+    synchronized (f_seaLock) {
+      f_timeStamp = INVALIDATED;
 
-    if (event == DropEvent.Created) {
-      // add the new drop to this sea's list of valid drops
-      f_validDrops.add(drop);
-    } else if (event == DropEvent.Invalidated) {
-      // remove the drop from this sea's list of valid drops
-      f_validDrops.remove(drop);
+      if (event == DropEvent.Created) {
+        // add the new drop to this sea's list of valid drops
+        f_validDrops.add(drop);
+      } else if (event == DropEvent.Invalidated) {
+        // remove the drop from this sea's list of valid drops
+        f_validDrops.remove(drop);
+      }
     }
   }
 
   public long getTimeStamp() {
-    return f_timeStamp;
+    synchronized (f_seaLock) {
+      return f_timeStamp;
+    }
   }
 
   /**
@@ -763,6 +760,7 @@ public final class Sea {
   /**
    * A timestamp of when the sea last updated the consistency proof
    */
+  @InRegion("SeaState")
   private long f_timeStamp = INVALIDATED;
 
   /**
@@ -789,6 +787,7 @@ public final class Sea {
 
   private final Object f_seaLock = new Object();
 
+  @ReturnsLock("f_seaLock")
   public final Object getSeaLock() {
     return f_seaLock;
   }
@@ -796,9 +795,11 @@ public final class Sea {
   /**
    * The set of valid drops within this sea.
    */
+  @UniqueInRegion("SeaState")
   private final List<Drop> f_validDrops = new ArrayList<Drop>(5000);
 
-  private final CopyOnWriteArrayList<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
-
-  private final CopyOnWriteArrayList<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArrayList<SeaConsistencyProofHook>();
+  /**
+   * The set of consistency proof hooks.
+   */
+  private final CopyOnWriteArraySet<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArraySet<SeaConsistencyProofHook>();
 }
