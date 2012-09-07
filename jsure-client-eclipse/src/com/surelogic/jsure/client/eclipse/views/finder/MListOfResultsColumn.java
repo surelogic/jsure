@@ -33,7 +33,10 @@ import com.surelogic.jsure.client.eclipse.views.results.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
+import edu.cmu.cs.fluid.sea.IResultDrop;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class MListOfResultsColumn extends MColumn implements
@@ -293,16 +296,18 @@ public final class MListOfResultsColumn extends MColumn implements
 		int flags = 0;
 		final ImageDescriptor img;
 		if (data.instanceOf(ResultDrop.class)) {
-			if (data.isVouched()) {
+			IResultDrop rd = (IResultDrop) data;
+			if (rd.isVouched()) {
 				img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS_VOUCH);
-			} else if (data.isConsistent()) {
+			} else if (rd.isConsistent()) {
 				img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS);
-			} else if (data.isTimeout()) {
+			} else if (rd.isTimeout()) {
 				img = SLImages.getImageDescriptor(CommonImages.IMG_TIMEOUT_X);
 			} else {
 				img = SLImages.getImageDescriptor(CommonImages.IMG_RED_X);
 			}
-		} else {
+		} else if (data.instanceOf(PromiseDrop.class)) {
+			IPromiseDrop pd = (IPromiseDrop) data;
 			img = SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION);
 			if (data.provedConsistent())
 				flags |= CoE_Constants.CONSISTENT;
@@ -310,12 +315,14 @@ public final class MListOfResultsColumn extends MColumn implements
 				flags |= CoE_Constants.INCONSISTENT;
 			if (data.proofUsesRedDot())
 				flags |= CoE_Constants.REDDOT;
-			if (data.isAssumed())
+			if (pd.isAssumed())
 				flags |= CoE_Constants.ASSUME;
-			if (data.isVirtual())
+			if (pd.isVirtual())
 				flags |= CoE_Constants.VIRTUAL;
-			if (!data.isCheckedByAnalysis())
+			if (!pd.isCheckedByAnalysis())
 				flags |= CoE_Constants.TRUSTED;
+		} else {
+			img = SLImages.getImageDescriptor(CommonImages.IMG_FOLDER);
 		}
 		ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags,
 				new Point(22, 16));

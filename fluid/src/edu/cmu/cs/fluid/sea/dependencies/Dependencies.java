@@ -256,7 +256,7 @@ public class Dependencies {
 					// Clear info/warnings
 					// Clear results
 					for(Drop dd : d.getDependents()) {
-						if (dd instanceof IResultDrop || dd instanceof PromiseWarningDrop) {
+						if (dd instanceof IAnalysisResultDrop || dd instanceof PromiseWarningDrop) {
 							dd.invalidate();
 						} else {
 							System.out.println("\tIgnoring "+dd.getMessage());

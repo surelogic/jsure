@@ -716,7 +716,7 @@ public class Util {
 	private static void clearOldResults(CUDrop cud) {		
 		System.out.println("Clearing old results for "+cud);
 		for(Drop d : cud.getDependents()) {
-			if (d instanceof IResultDrop) {
+			if (d instanceof IAnalysisResultDrop) {
 				if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
 					System.err.println("\t"+d.getMessage());
 				}

@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea;
 /**
  * Drops for reporting inferred or information to the user, "i" results.
  */
-public class InfoDrop extends IRReferenceDrop implements IResultDrop {
+public class InfoDrop extends IRReferenceDrop implements IAnalysisResultDrop {
 
   public InfoDrop() {
   }

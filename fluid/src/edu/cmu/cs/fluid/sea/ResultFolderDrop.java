@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Set;
 
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
@@ -14,7 +15,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * <p>
  * Not intended to be subclassed.
  */
-public final class ResultFolderDrop extends AbstractResultDrop {
+public final class ResultFolderDrop extends AbstractResultDrop implements IResultFolderDrop {
 
   /*
    * XML attribute constants
@@ -76,7 +77,7 @@ public final class ResultFolderDrop extends AbstractResultDrop {
 
   @Override
   public String getXMLElementName() {
-    return "result-folder-drop";
+    return AbstractXMLReader.RESULT_FOLDER_DROP;
   }
 
   @Override
