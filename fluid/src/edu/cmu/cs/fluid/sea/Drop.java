@@ -489,6 +489,7 @@ public abstract class Drop implements IDrop {
    * behavior is consistent with truth maintenance system use, as the truth of
    * this drop should not depend upon the truth of any dependent drop.
    */
+  @RequiresLock("SeaLock")
   protected void dependentInvalidAction() {
     // by default do nothing
   }
@@ -502,6 +503,7 @@ public abstract class Drop implements IDrop {
    * @param invalidDeponent
    *          the deponent that became invalid.
    */
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     invalidate();
   }

@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
 
@@ -253,6 +254,7 @@ public class TRoleRenamePerCU extends PhantomDrop implements IThreadRoleDrop {
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     if (invalidDeponent instanceof TRoleSummaryDrop) {
       return;

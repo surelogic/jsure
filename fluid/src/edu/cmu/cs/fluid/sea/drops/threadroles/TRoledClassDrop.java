@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -57,6 +58,7 @@ public class TRoledClassDrop extends PhantomDrop implements IThreadRoleDrop {
    * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     super.deponentInvalidAction(invalidDeponent);
     allTRCDs.remove(file);

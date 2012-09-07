@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -87,6 +88,7 @@ public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop 
    * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     super.deponentInvalidAction(invalidDeponent);
     synchronized (SimpleCallGraphDrop.class) {
