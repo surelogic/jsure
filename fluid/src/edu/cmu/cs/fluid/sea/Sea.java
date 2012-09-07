@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -542,8 +544,7 @@ public final class Sea {
   public void invalidateAll() {
     // we need to make a copy of the set of drops in the sea as the set will
     // be changing (rapidly) as we invalidate drops within it
-    final Set<Drop> safeCopy = new HashSet<Drop>();
-    safeCopy.addAll(f_validDrops);
+    final Collection<Drop> safeCopy = new ArrayList<Drop>(f_validDrops);
     for (Drop drop : safeCopy) {
       drop.invalidate();
     }
@@ -597,17 +598,15 @@ public final class Sea {
     if (timeStamp != INVALIDATED) {
       return timeStamp;
     }
-    if (LOG.isLoggable(Level.FINE))
-      LOG.fine("Updating consistency proof: " + timeStamp);
 
-    if (proofInit != null) {
-      proofInit.init(this);
-    }
+    // TODO BAD TO DO THIS HOLDING LOCK
+    for (SeaConsistencyProofHook hook : f_proofHooks)
+      hook.preConsistencyProof(this);
 
     /*
      * Initialize drop-sea flow analysis "proof" (a drop-sea query)
      */
-    worklist = new LinkedList<ProofDrop>();
+    final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
     Set<? extends ProofDrop> s = this.getDropsOfType(ProofDrop.class);
     for (ProofDrop d : s) {
       if (d instanceof PromiseDrop) {
@@ -788,7 +787,7 @@ public final class Sea {
             if (overall_or_UsesRedDot)
               rd.proofUsesRedDot = true;
             /*
-             * save in the frop
+             * save in the drop
              */
             rd.or_provedConsistent = overall_or_Result;
             rd.or_proofUsesRedDot = overall_or_UsesRedDot;
@@ -804,7 +803,19 @@ public final class Sea {
          */
         boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot && oldDerivedFromSrc == d.derivedFromSrc);
         if (resultChanged) {
-          addToWorklist(nextWorklist, d);
+          nextWorklist.add(d);
+          if (d instanceof PromiseDrop) {
+            @SuppressWarnings("unchecked")
+            PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
+            // add all result drops trusted by this promise drop
+            nextWorklist.addAll(pd.getTrustedBy());
+            // add all deponent promise drops of this promise drop
+            nextWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
+          } else if (d instanceof ResultDrop) {
+            ResultDrop rd = (ResultDrop) d;
+            // add all promise drops that this result checks
+            nextWorklist.addAll(rd.getChecks());
+          }
         }
       }
       worklist.clear();
@@ -814,26 +825,12 @@ public final class Sea {
     timeStamp = System.currentTimeMillis();
     if (LOG.isLoggable(Level.FINE))
       LOG.fine("Done updating consistency proof: " + timeStamp);
+
+    for (SeaConsistencyProofHook hook : f_proofHooks)
+      hook.postConsistencyProof(this);
+
     return timeStamp;
   }
-
-  private void addToWorklist(Set<ProofDrop> l, ProofDrop d) {
-    l.add(d);
-    if (d instanceof PromiseDrop) {
-      @SuppressWarnings("unchecked")
-      PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-      // add all result drops trusted by this promise drop
-      l.addAll(pd.getTrustedBy());
-      // add all deponent promise drops of this promise drop
-      l.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
-    } else if (d instanceof ResultDrop) {
-      ResultDrop rd = (ResultDrop) d;
-      // add all promise drops that this result checks
-      l.addAll(rd.getChecks());
-    }
-  }
-
-  private List<ProofDrop> worklist;
 
   /**
    * Notification to this sea that something about the knowledge status of a
@@ -884,14 +881,26 @@ public final class Sea {
    */
   private long timeStamp = INVALIDATED;
 
-  public interface ProofInitializer {
-    void init(Sea sea);
+  /**
+   * Adds code to run before and/or after the consistency proof is run on every
+   * call to {@link Sea#updateConsistencyProof()}.
+   * 
+   * @param hook
+   *          an consistency proof hook instance.
+   */
+  public void addConsistencyProofHook(SeaConsistencyProofHook hook) {
+    f_proofHooks.add(hook);
   }
 
-  private ProofInitializer proofInit;
-
-  public void setProofInitializer(ProofInitializer init) {
-    proofInit = init;
+  /**
+   * Removes code to run before and/or after the consistency proof is run on
+   * every call to {@link Sea#updateConsistencyProof()}.
+   * 
+   * @param hook
+   *          an consistency proof hook instance.
+   */
+  public void removeConsistencyProofHook(SeaConsistencyProofHook hook) {
+    f_proofHooks.remove(hook);
   }
 
   /**
@@ -905,5 +914,7 @@ public final class Sea {
    */
   private final Map<Class<?>, Set<DropObserver>> f_dropTypeToObservers = new ConcurrentHashMap<Class<?>, Set<DropObserver>>();
 
-  private final List<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
+  private final CopyOnWriteArrayList<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
+
+  private final CopyOnWriteArrayList<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArrayList<SeaConsistencyProofHook>();
 }
