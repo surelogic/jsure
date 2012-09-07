@@ -40,6 +40,15 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
     },
     
+    REFERENCE {
+      @Override
+      public boolean testBounds(
+          final AnnotationBoundsNode abNode, final String formalName) {
+        return testFormalAgainstAnnotationBounds(
+            formalName, abNode.getReference());
+      }
+    },
+    
     THREADSAFE {
       @Override
       public boolean testBounds(
@@ -49,6 +58,15 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
                 formalName, abNode.getImmutable()) ||
             testFormalAgainstAnnotationBounds(
                 formalName, abNode.getThreadSafe());
+      }
+    },
+      
+    VALUE {
+      @Override
+      public boolean testBounds(
+          final AnnotationBoundsNode abNode, final String formalName) {
+        return testFormalAgainstAnnotationBounds(
+            formalName, abNode.getValue());
       }
     };
     
@@ -67,7 +85,8 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
 
   
   
-  private PromiseDrop<? extends IAASTRootNode> isX(final Bounds bounds, final IJavaTypeFormal formal) {
+  private PromiseDrop<? extends IAASTRootNode> isX(
+      final Bounds bounds, final IJavaTypeFormal formal) {
     final IRNode decl = formal.getDeclaration();
     final String name = TypeFormal.getId(decl);
     final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
@@ -90,7 +109,15 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     return isX(Bounds.IMMUTABLE, formal);
   }
 
+  public PromiseDrop<? extends IAASTRootNode> isReferenceObject(final IJavaTypeFormal formal) {
+    return isX(Bounds.REFERENCE, formal);
+  }
+
   public PromiseDrop<? extends IAASTRootNode> isThreadSafe(final IJavaTypeFormal formal) {
     return isX(Bounds.THREADSAFE, formal);
+  }
+
+  public PromiseDrop<? extends IAASTRootNode> isValueObject(final IJavaTypeFormal formal) {
+    return isX(Bounds.VALUE, formal);
   }
 }

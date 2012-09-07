@@ -71,13 +71,13 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> List<T> filterDropsOfType(Class<T> dropType, Collection<Drop> drops) {
+  public static <T extends Drop> ArrayList<T> filterDropsOfType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
       throw new IllegalArgumentException(I18N.err(44, "dropType"));
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final List<T> result = new ArrayList<T>();
+    final ArrayList<T> result = new ArrayList<T>();
     for (final Drop drop : drops) {
       if (dropType.isInstance(drop)) {
         @SuppressWarnings("unchecked")
@@ -119,13 +119,13 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> List<T> filterDropsOfExactType(Class<T> dropType, Collection<Drop> drops) {
+  public static <T extends Drop> ArrayList<T> filterDropsOfExactType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
       throw new IllegalArgumentException(I18N.err(44, "dropType"));
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final List<T> result = new ArrayList<T>();
+    final ArrayList<T> result = new ArrayList<T>();
     for (final Drop drop : drops) {
       if (drop.getClass().equals(dropType)) {
         @SuppressWarnings("unchecked")
@@ -221,43 +221,45 @@ public final class Sea {
   }
 
   /**
-   * Returns a new set that contains drops within <code>dropSet</code> that
-   * match the given drop predicate.
+   * Returns a new list of drops within <code>drops</code> that match the given
+   * drop predicate.
    * 
    * @param pred
-   *          the drop predicate to apply to the drop set.
+   *          a drop predicate.
    * @param drops
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops in <code>dropSet</code> that matched the drop
-   *         predicate.
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> List<T> filterDropsMatching(DropPredicate pred, Collection<T> drops) {
+  public static <T extends Drop> ArrayList<T> filterDropsMatching(DropPredicate pred, Collection<T> drops) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final List<T> result = new ArrayList<T>(drops);
+    final ArrayList<T> result = new ArrayList<T>(drops);
     filterDropsMatchingMutate(pred, result);
     return result;
   }
 
   /**
    * Mutates the given drop set by removing all drops within it that do not
-   * match the given drop predicate.
+   * match the given drop predicate. This method returns a reference to
+   * <code>mutableDrops</code>.
    * 
    * @param pred
    *          the drop predicate to apply to the drop set.
    * @param mutableDrops
    *          the set of drops to mutate.
+   * @return a reference to <tt>mutableDrops</tt>.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> void filterDropsMatchingMutate(DropPredicate pred, Collection<T> mutableDrops) {
+  public static <T extends Drop, C extends Collection<T>> C filterDropsMatchingMutate(DropPredicate pred, C mutableDrops) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (mutableDrops == null)
@@ -269,6 +271,7 @@ public final class Sea {
         i.remove();
       }
     }
+    return mutableDrops;
   }
 
   /**
@@ -366,7 +369,7 @@ public final class Sea {
    * 
    * @return a list of drops.
    */
-  public List<Drop> getDrops() {
+  public ArrayList<Drop> getDrops() {
     synchronized (f_validDrops) {
       return new ArrayList<Drop>(f_validDrops);
     }
@@ -640,8 +643,8 @@ public final class Sea {
            * & in local result
            */
           if (result instanceof ResultDrop) {
-        	  ResultDrop r = (ResultDrop) result;
-        	  pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
+            ResultDrop r = (ResultDrop) result;
+            pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
           }
           pd.derivedFromSrc = pd.derivedFromSrc || result.isFromSrc();
         }
