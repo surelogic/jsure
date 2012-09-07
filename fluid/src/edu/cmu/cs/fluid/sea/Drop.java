@@ -15,6 +15,7 @@ import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
+import com.surelogic.Vouch;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
@@ -258,6 +259,7 @@ public abstract class Drop implements IDrop {
    * Callers <b>must not</b> mutate this set.
    */
   @RequiresLock("SeaLock")
+  @Vouch("controlled alias of f_dependents for performance")
   final protected Set<Drop> getDependentsReference() {
     return f_dependents;
   }
@@ -279,6 +281,7 @@ public abstract class Drop implements IDrop {
    * Callers <b>must not</b> mutate this set.
    */
   @RequiresLock("SeaLock")
+  @Vouch("controlled alias of f_dependents for performance")
   final protected Set<Drop> getDeponentsReference() {
     return f_deponents;
   }
