@@ -20,7 +20,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * <p>
  * Not intended to be subclassed.
  */
-public final class ResultDrop extends AbstractResultDrop implements IResultDrop {
+public final class ResultDrop extends AnalysisResultDrop implements IResultDrop {
 
   /*
    * XML attribute constants

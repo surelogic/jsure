@@ -2,15 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
 
-public interface IResultFolderDrop extends IProofDrop, IAnalysisResultDrop {
-	/**
-	 * Gets the set of promise drops established, or checked, by this result.
-	 * 
-	 * @return the non-null (possibly empty) set of promise drops established, or
-	 *         checked, by this result.
-	 */
-	Collection<? extends IProofDrop> getChecks();
-
+public interface IResultFolderDrop extends IAnalysisResultDrop {
 	/**
 	 * Gets all the analysis results directly within this folder. If sub-folders
 	 * exist, analysis results within the sub-folders are <b>not</b> returned.
@@ -32,5 +24,5 @@ public interface IResultFolderDrop extends IProofDrop, IAnalysisResultDrop {
 	 * @return a non-null (possibly empty) set of analysis results and
 	 *         sub-folders.
 	 */
-	Collection<? extends IProofDrop> getContents();	
+	Collection<? extends IAnalysisResultDrop> getContents();	
 }

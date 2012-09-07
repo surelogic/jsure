@@ -5,7 +5,7 @@ import java.util.Collection;
 
 /**
  */
-public interface IResultDrop extends IProofDrop, IAnalysisResultDrop {
+public interface IResultDrop extends IAnalysisResultDrop {
 	/**
 	 * Gets if this result indicates model/code consistency.
 	 * 
@@ -45,14 +45,6 @@ public interface IResultDrop extends IProofDrop, IAnalysisResultDrop {
 	 * @see #get_or_Trusts(String)
 	 */
 	Collection<? extends IPromiseDrop> getTrusts();
-
-	/**
-	 * Gets the set of promise drops established, or checked, by this result.
-	 * 
-	 * @return the non-null (possibly empty) set of promise drops established, or
-	 *         checked, by this result.
-	 */
-	Collection<? extends IPromiseDrop> getChecks();
 
 	/**
 	 * Returns the preconditions of this result, including any "or" preconditions.

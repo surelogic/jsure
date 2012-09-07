@@ -6,7 +6,7 @@ import java.util.Set;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IIRAnalysis;
 
-import edu.cmu.cs.fluid.sea.AbstractResultDrop;
+import edu.cmu.cs.fluid.sea.AnalysisResultDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 
@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.sea.ResultFolderDrop;
  * parallelized.
  * 
  * TODO This isn't going to work. The problem is that it wants actual
- * {@link AbstractResultDrop} instances directly added to this class when we
+ * {@link AnalysisResultDrop} instances directly added to this class when we
  * should really be adding {@link AbstractResultDropBuilder} instances as
  * elements.
  * 
@@ -26,7 +26,7 @@ import edu.cmu.cs.fluid.sea.ResultFolderDrop;
  * We also need example code on how to create results in a folder.
  */
 public final class ResultFolderDropBuilder extends AbstractResultDropBuilder {
-  private Set<AbstractResultDrop> contents = new HashSet<AbstractResultDrop>();
+  private Set<AnalysisResultDrop> contents = new HashSet<AnalysisResultDrop>();
 
   private ResultFolderDropBuilder() {
   }
@@ -37,7 +37,7 @@ public final class ResultFolderDropBuilder extends AbstractResultDropBuilder {
     return rv;
   }
 
-  public void add(AbstractResultDrop result) {
+  public void add(AnalysisResultDrop result) {
     contents.add(result);
   }
 
@@ -50,7 +50,7 @@ public final class ResultFolderDropBuilder extends AbstractResultDropBuilder {
     for (PromiseDrop<? extends IAASTRootNode> check : checks) {
       f.addCheckedPromise(check);
     }
-    for (AbstractResultDrop d : contents) {
+    for (AnalysisResultDrop d : contents) {
       f.add(d);
     }
     return buildDrop(f);
