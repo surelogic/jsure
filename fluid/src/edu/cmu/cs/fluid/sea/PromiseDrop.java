@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,7 +23,8 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Within the Fluid system, promises represent models of design intent or
  * cutpoints for the analyses.
  */
-public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements ISrcRef, IHasPromisedFor {
+public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop 
+implements IPromiseDrop, ISrcRef, IHasPromisedFor {
 
   public static final String VIRTUAL = "virtual";
 
@@ -196,10 +198,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       /*
        * check if any of our dependent promise drops are checked
        */
-      @SuppressWarnings("unchecked")
-      final Set<PromiseDrop<IAASTRootNode>> p = (Set<PromiseDrop<IAASTRootNode>>) Sea.filterDropsOfTypeMutate(PromiseDrop.class,
-          getDependents());
-      for (PromiseDrop<IAASTRootNode> promise : p) {
+      @SuppressWarnings("rawtypes")
+      final Collection<PromiseDrop> p = Sea.filterDropsOfTypeMutate(PromiseDrop.class, getDependents());
+      for (PromiseDrop<?> promise : p) {
         if (promise.isCheckedByAnalysis(examinedPromiseDrops)) {
           return true;
         }
@@ -214,13 +215,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
-  public final Set<? extends ResultDrop> getCheckedBy() {
+  public final Collection<ResultDrop> getCheckedBy() {
     final Set<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    Set<? extends ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
+    Collection<ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
     for (ResultDrop rd : s) {
       if (rd.getChecks().contains(this)) {
         result.add(rd);
@@ -236,13 +237,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return a set, all members of the type {@link ResultDrop}, which trust this
    *         promise drop
    */
-  public final Set<? extends ResultDrop> getTrustedBy() {
+  public final Collection<ResultDrop> getTrustedBy() {
     final Set<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
-    Set<? extends ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
+    Collection<ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
     for (ResultDrop rd : s) {
       if (rd.getTrustsComplete().contains(this)) {
         result.add(rd);
