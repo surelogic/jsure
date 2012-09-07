@@ -31,12 +31,14 @@ import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.IResultDrop;
+import edu.cmu.cs.fluid.sea.IResultFolderDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
@@ -437,7 +439,21 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         addProposedPromises(result, resultDrop);
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromises(result, resultDrop);
+        // TODO add checked promises?
+        
+      } else if (drop.instanceOf(ResultFolderDrop.class)) {
+    	
+          /*
+           * RESULT DROP
+           */
+          IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
+          // image
+          int flags = 0; // assume no adornments
+          result.setImageFlags(flags);
+          result.setBaseImageName(CommonImages.IMG_FOLDER);
+          addDrops(result, (Collection<? extends T>) resultDrop.getContents());
+          
       } else if (drop.instanceOf(InfoDrop.class)) {
 
         /*
