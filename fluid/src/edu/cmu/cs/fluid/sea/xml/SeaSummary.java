@@ -328,7 +328,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   }
 
   public static Diff diff(final Sea sea, File location) throws Exception {
-    Set<Drop> drops = sea.getDrops();
+    List<Drop> drops = sea.getDrops();
     return diff(drops, location, nullFilter);
   }
 

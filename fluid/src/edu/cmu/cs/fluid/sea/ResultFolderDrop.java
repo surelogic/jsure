@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.util.Set;
+import java.util.List;
 
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -49,8 +49,8 @@ public final class ResultFolderDrop extends AbstractResultDrop implements IResul
    * 
    * @return a non-null (possibly empty) set of analysis results.
    */
-  public Set<ResultDrop> getAnalysisResults() {
-    final Set<ResultDrop> result = Sea.filterDropsOfType(ResultDrop.class, getDeponents());
+  public List<ResultDrop> getAnalysisResults() {
+    final List<ResultDrop> result = Sea.filterDropsOfType(ResultDrop.class, getDeponentsReference());
     return result;
   }
 
@@ -59,8 +59,8 @@ public final class ResultFolderDrop extends AbstractResultDrop implements IResul
    * 
    * @return a non-null (possibly empty) set of analysis result folders.
    */
-  public Set<ResultFolderDrop> getSubFolders() {
-    final Set<ResultFolderDrop> result = Sea.filterDropsOfType(ResultFolderDrop.class, getDeponents());
+  public List<ResultFolderDrop> getSubFolders() {
+    final List<ResultFolderDrop> result = Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference());
     return result;
   }
 
@@ -70,8 +70,8 @@ public final class ResultFolderDrop extends AbstractResultDrop implements IResul
    * @return a non-null (possibly empty) set of analysis results and
    *         sub-folders.
    */
-  public Set<AbstractResultDrop> getContents() {
-    final Set<AbstractResultDrop> result = Sea.filterDropsOfType(AbstractResultDrop.class, getDeponents());
+  public List<AbstractResultDrop> getContents() {
+    final List<AbstractResultDrop> result = Sea.filterDropsOfType(AbstractResultDrop.class, getDeponentsReference());
     return result;
   }
 

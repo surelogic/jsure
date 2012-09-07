@@ -236,12 +236,30 @@ public abstract class Drop implements IDrop {
   }
 
   /**
+   * Returns the internal set that tracks dependent drops of this drop.
+   * <p>
+   * Callers <b>must not</b> mutate this set.
+   */
+  final protected Set<Drop> getDependentsReference() {
+    return dependents;
+  }
+
+  /**
    * Returns all immediate deponent drops of this drop.
    * 
    * @return the set of deponent drops
    */
   final public Set<Drop> getDeponents() {
     return new HashSet<Drop>(deponents);
+  }
+
+  /**
+   * Returns the internal set that tracks deponent drops of this drop.
+   * <p>
+   * Callers <b>must not</b> mutate this set.
+   */
+  final protected Set<Drop> getDeponentsReference() {
+    return deponents;
   }
 
   /**

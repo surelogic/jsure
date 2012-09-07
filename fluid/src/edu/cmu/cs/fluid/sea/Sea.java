@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 
@@ -41,46 +40,7 @@ public final class Sea {
   }
 
   /**
-   * Gets the set of all valid drops in this sea.
-   * 
-   * @return the set of all valid drops in this sea.
-   */
-  public Set<Drop> getDrops() {
-    return new HashSet<Drop>(f_validDrops);
-  }
-
-  /**
-   * Returns the set of drops within this sea that are of <code>dropType</code>
-   * or any of its subtypes.
-   * <p>
-   * Typical use would be to extract all drops in the sea that are assignment
-   * compatible with a specific type, as shown in the below code snippet.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Sea.getDefault().getDropsOfType(Drop.class) = { d1 , d2, d3 }
-   *    Sea.getDefault().getDropsOfType(MyDrop.class) = { d2, d3 }
-   *    Sea.getDefault().getDropsOfType(MySubDrop.class) = { d3 }
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops desired.
-   * @return the set of drops found.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> Set<T> getDropsOfType(Class<T> dropType) {
-    return filterDropsOfType(dropType, f_validDrops);
-  }
-
-  /**
-   * Returns a new set that contains drops within <code>dropSet</code> that are
+   * Returns a new list that contains drops within <code>drops</code> that are
    * of <code>dropType</code> or any of its subtypes.
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
@@ -90,126 +50,47 @@ public final class Sea {
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;Drop&gt; r1 = Sea.filterDropsOfType(Drop.class, r);
-   *    (NOTE) r1 = { d1, d2, d3 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfType(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;MyDrop&gt; r1 = Sea.filterDropsOfType(MyDrop.class, r);
+   *    (NOTE) r1 = { d1, d2 }
+   *    List&lt;MySubDrop&gt; r2 = Sea.filterDropsOfType(MySubDrop.class, r);
+   *    (NOTE) r2 = { d2 }
    * </pre>
    * 
    * @param dropType
    *          the type of drops desired.
-   * @param dropSet
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops found.
+   * @param drops
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfType(Class<T> dropType, Set<Drop> dropSet) {
+  public static <T extends Drop> List<T> filterDropsOfType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (dropSet == null)
-      throw new IllegalArgumentException("dropSet must be non-null");
-    final Set<T> result = new HashSet<T>();
-    for (Drop drop : dropSet) {
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
+
+    final List<T> result = new ArrayList<T>();
+    for (final Drop drop : drops) {
       if (dropType.isInstance(drop)) {
-        result.add((T) drop);
+        @SuppressWarnings("unchecked")
+        final T dropToAdd = (T) drop;
+        result.add(dropToAdd);
       }
     }
     return result;
   }
 
   /**
-   * Mutates <code>mutableDropSet</code> removing all drops from it that are not
-   * of <code>dropType</code> or any of its subtypes. This method returns a
-   * references to the mutated set that is up-cast (the client is warned that
-   * subsequent mutations to <code>mutableDropSet</code> via the reference
-   * passed to this method could invalidate the up-cast).
-   * <p>
-   * Due to the up-cast, this method is less "safe" than
-   * {@link #filterDropsOfType(Class, Set)}, however, it can improve performance
-   * by avoiding creating a copy if the original drop set is no longer needed.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
-   *    (NOTE) r2.equals(r)
-   *    r.add(d1); // bad! set mutation violates up-cast
-   *    for (MySubDrop d : r2) { ... } // throws a ClassCastException
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops desired.
-   * @param mutableDropSet
-   *          the set of drops to mutate.
-   * @return an up-cast reference to <code>mutableDropSet</code>.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<? extends T> filterDropsOfTypeMutate(Class<T> dropType, Set<Drop> mutableDropSet) {
-    if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (mutableDropSet == null)
-      throw new IllegalArgumentException("mutableDropSet must be non-null");
-    for (Iterator<Drop> i = mutableDropSet.iterator(); i.hasNext();) {
-      Drop drop = i.next();
-      if (!dropType.isInstance(drop)) {
-        i.remove();
-      }
-    }
-    return (Set<T>) mutableDropSet;
-  }
-
-  /**
-   * Returns the set of drops within this sea that are of <code>dropType</code>
-   * (subtypes are <i>not</i> included).
-   * <p>
-   * Typical use would be to extract all drops in the sea that are of a specific
-   * type, as shown in the below code snippet.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Sea.getDefault().getDropsOfExactType(Drop.class) = { d1 }
-   *    Sea.getDefault().getDropsOfExactType(MyDrop.class) = { d2 }
-   *    Sea.getDefault().getDropsOfExactType(MySubDrop.class) = { d3 }
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops to look for in the sea
-   * @return the set of drops found
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> Set<T> getDropsOfExactType(Class<T> dropType) {
-    return filterDropsOfExactType(dropType, f_validDrops);
-  }
-
-  /**
-   * Returns a new set that contains of drops within <code>dropSet</code> that
-   * are of <code>dropType</code> (subtypes are <i>not</i> included).
+   * Returns a new list that contains drops within <code>drops</code> that are
+   * of <code>dropType</code>&mdash;subtypes are <i>not</i> included.
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
    * subset are of a specific type, as shown in the below code snippet.
@@ -217,93 +98,126 @@ public final class Sea {
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;Drop&gt; r1 = Sea.filterDropsOfExactType(Drop.class, r);
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;MyDrop&gt; r1 = Sea.filterDropsOfExactType(MyDrop.class, r);
    *    (NOTE) r1 = { d1 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfExactType(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
+   *    List&lt;MySubDrop&gt; r2 = Sea.filterDropsOfExactType(MySubDrop.class, r);
+   *    (NOTE) r2 = { d2 }
    * </pre>
    * 
    * @param dropType
    *          the exact type of drops desired.
-   * @param dropSet
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops found
+   * @param drops
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfExactType(Class<T> dropType, Set<Drop> dropSet) {
+  public static <T extends Drop> List<T> filterDropsOfExactType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (dropSet == null)
-      throw new IllegalArgumentException("dropSet must be non-null");
-    final Set<T> result = new HashSet<T>();
-    for (Drop drop : dropSet) {
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
+
+    final List<T> result = new ArrayList<T>();
+    for (final Drop drop : drops) {
       if (drop.getClass().equals(dropType)) {
-        T dr = (T) drop;
-        result.add(dr);
+        @SuppressWarnings("unchecked")
+        final T dropToAdd = (T) drop;
+        result.add(dropToAdd);
       }
     }
     return result;
   }
 
   /**
-   * Mutates <code>mutableDropSet</code> removing all drops from it that are not
-   * of <code>dropType</code> (subtypes are <i>not</i> included). This method
-   * returns a references to the mutated set that is up-cast (the client is
-   * warned that subsequent mutations to <code>mutableDropSet</code> via the
-   * reference passed to this method could invalidate the up-cast).
-   * <p>
-   * Due to the up-cast, this method is less "safe" than
-   * {@link #filterDropsOfExactType(Class, Set)}, however, it can improve
-   * performance by avoiding creating a copy if the original drop set is no
-   * longer needed.
+   * Mutates the <code>mutableDrops</code> collection removing all drops from it
+   * that are not of <code>dropType</code> or any of its subtypes. This method
+   * returns a reference to <code>mutableDrops</code>.
    * 
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;MyDrop&gt; r2 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, r);
-   *    (NOTE) r2 = { d2 }
-   *    (NOTE) r2.equals(r)
-   *    r.add(d1); // bad! set mutation violates up-cast
-   *    for (MyDrop d : r2) { ... } // throws a ClassCastException
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;Drop&gt; r1 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
+   *    (NOTE) r1 = { d2 }
+   *    (NOTE) r1.equals(r)
    * </pre>
    * 
    * @param dropType
    *          the type of drops desired.
-   * @param mutableDropSet
-   *          the set of drops to mutate.
-   * @return an up-cast reference to <code>mutableDropSet</code>.
+   * @param mutableDrops
+   *          the collection of drops to mutate.
+   * @return a reference to <tt>mutableDrops</tt>.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfExactTypeMutate(Class<T> dropType, Set<Drop> mutableDropSet) {
+  public static <T extends Drop, C extends Collection<Drop>> C filterDropsOfTypeMutate(Class<T> dropType, C mutableDrops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (mutableDropSet == null)
-      throw new IllegalArgumentException("mutableDropSet must be non-null");
-    for (Iterator<Drop> i = mutableDropSet.iterator(); i.hasNext();) {
-      Drop drop = i.next();
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (mutableDrops == null)
+      throw new IllegalArgumentException(I18N.err(44, "mutableDrops"));
+
+    for (final Iterator<Drop> i = mutableDrops.iterator(); i.hasNext();) {
+      final Drop drop = i.next();
+      if (!dropType.isInstance(drop)) {
+        i.remove();
+      }
+    }
+    return mutableDrops;
+  }
+
+  /**
+   * Mutates the <code>mutableDrops</code> collection removing all drops from it
+   * that are not of <code>dropType</code>&mdash;subtypes are removed. This
+   * method returns a reference to <code>mutableDrops</code>.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
+   *      
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;Drop&gt; r1 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, r);
+   *    (NOTE) r1 = { d1 }
+   *    (NOTE) r1.equals(r)
+   * </pre>
+   * 
+   * @param dropType
+   *          the exact type of drops desired.
+   * @param mutableDrops
+   *          the collection of drops to mutate.
+   * @return a reference to <tt>mutableDrops</tt>.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public static <T extends Drop, C extends Collection<Drop>> C filterDropsOfExactTypeMutate(Class<T> dropType, C mutableDrops) {
+    if (dropType == null)
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (mutableDrops == null)
+      throw new IllegalArgumentException(I18N.err(44, "mutableDrops"));
+
+    for (final Iterator<Drop> i = mutableDrops.iterator(); i.hasNext();) {
+      final Drop drop = i.next();
       if (!drop.getClass().equals(dropType)) {
         i.remove();
       }
     }
-    return (Set<T>) mutableDropSet;
+    return mutableDrops;
   }
 
   /**
@@ -320,7 +234,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> Set<T> filter(DropPredicate pred, Set<T> dropSet) {
+  public static <T extends Drop> Set<T> filter(DropPredicate pred, Collection<T> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -343,7 +257,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> void filterMutate(DropPredicate pred, Set<T> mutableDropSet) {
+  public static <T extends Drop> void filterMutate(DropPredicate pred, Collection<T> mutableDropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (mutableDropSet == null)
@@ -371,7 +285,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static boolean hasMatchingDrops(DropPredicate pred, Set<? extends Drop> dropSet) {
+  public static boolean hasMatchingDrops(DropPredicate pred, Collection<? extends Drop> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -399,8 +313,8 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends IDrop> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, DropPredicate pred,
-      Set<T> mutableResultDropSet) {
+  public static <T extends IDrop> void addMatchingDropsFrom(Collection<? extends T> sourceDropSet, DropPredicate pred,
+      Collection<T> mutableResultDropSet) {
     if (sourceDropSet == null)
       throw new IllegalArgumentException(I18N.err(44, "sourceDropSet"));
     if (pred == null)
@@ -445,6 +359,96 @@ public final class Sea {
     if (!result.endsWith(suffix))
       return null;
     return result.substring(0, result.length() - suffix.length());
+  }
+
+  /**
+   * Gets a new list of all the valid drops in this sea.
+   * 
+   * @return a list of drops.
+   */
+  public List<Drop> getDrops() {
+    synchronized (f_validDrops) {
+      return new ArrayList<Drop>(f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops within this sea that are of
+   * <code>dropType</code> or any of its subtypes.
+   * <p>
+   * Typical use would be to extract all drops in the sea that are assignment
+   * compatible with a specific type, as shown in the below code snippet.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    Drop d1 = new Drop();
+   *    MyDrop d2 = new MyDrop();
+   *    MySubDrop d3 = new MySubDrop();
+   *      
+   *    Sea.getDefault().getDropsOfType(Drop.class) = { d1, d2, d3 }
+   *    Sea.getDefault().getDropsOfType(MyDrop.class) = { d2, d3 }
+   *    Sea.getDefault().getDropsOfType(MySubDrop.class) = { d3 }
+   * </pre>
+   * 
+   * @param dropType
+   *          the type of drops desired.
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public <T extends Drop> List<T> getDropsOfType(Class<T> dropType) {
+    synchronized (f_validDrops) {
+      return filterDropsOfType(dropType, f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops within this sea that are of
+   * <code>dropType</code>&mdash;subtypes are <i>not</i> included.
+   * <p>
+   * Typical use would be to extract all drops in the sea that are of a specific
+   * type, as shown in the below code snippet.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    Drop d1 = new Drop();
+   *    MyDrop d2 = new MyDrop();
+   *    MySubDrop d3 = new MySubDrop();
+   *      
+   *    Sea.getDefault().getDropsOfExactType(Drop.class) = { d1 }
+   *    Sea.getDefault().getDropsOfExactType(MyDrop.class) = { d2 }
+   *    Sea.getDefault().getDropsOfExactType(MySubDrop.class) = { d3 }
+   * </pre>
+   * 
+   * @param dropType
+   *          the type of drops desired.
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public <T extends Drop> List<T> getDropsOfExactType(Class<T> dropType) {
+    synchronized (f_validDrops) {
+      return filterDropsOfExactType(dropType, f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops that is matched by <tt>pred</tt>.
+   * 
+   * @param pred
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public List<Drop> getDropsMatching(DropPredicate pred) {
+    synchronized (f_validDrops) {
+      return null; // TODO
+    }
   }
 
   /**
@@ -543,11 +547,13 @@ public final class Sea {
   public void invalidateAll() {
     // we need to make a copy of the set of drops in the sea as the set will
     // be changing (rapidly) as we invalidate drops within it
-    final Collection<Drop> safeCopy = new ArrayList<Drop>(f_validDrops);
+    final Collection<Drop> safeCopy;
+    synchronized (f_validDrops) {
+      safeCopy = new ArrayList<Drop>(f_validDrops);
+    }
     for (Drop drop : safeCopy) {
       drop.invalidate();
     }
-    assert (f_validDrops.isEmpty());
   }
 
   /**
@@ -594,8 +600,8 @@ public final class Sea {
    * @see ProofDrop#proofUsesRedDot()
    */
   public synchronized long updateConsistencyProof() {
-    if (timeStamp != INVALIDATED) {
-      return timeStamp;
+    if (f_timeStamp != INVALIDATED) {
+      return f_timeStamp;
     }
 
     // TODO BAD TO DO THIS HOLDING LOCK
@@ -606,7 +612,7 @@ public final class Sea {
      * Initialize drop-sea flow analysis "proof" (a drop-sea query)
      */
     final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
-    Set<? extends ProofDrop> s = this.getDropsOfType(ProofDrop.class);
+    final List<ProofDrop> s = this.getDropsOfType(ProofDrop.class);
     for (ProofDrop d : s) {
       if (d instanceof PromiseDrop) {
 
@@ -628,7 +634,7 @@ public final class Sea {
         pd.provedConsistent = true; // assume true
         pd.derivedFromSrc = pd.isFromSrc();
 
-        Set<? extends ResultDrop> analysisResults = pd.getCheckedBy();
+        Collection<ResultDrop> analysisResults = pd.getCheckedBy();
         for (ResultDrop result : analysisResults) {
           /*
            * & in local result
@@ -652,6 +658,20 @@ public final class Sea {
         rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
         rd.derivedFromSrc = rd.isFromSrc();
+      } else if (d instanceof ResultFolderDrop) {
+
+          /*
+           * RESULT FOLDER DROP
+           */
+
+    	  ResultFolderDrop rd = (ResultFolderDrop) d;
+
+          // result drops, by definition, can not start off with a red dot
+          rd.proofUsesRedDot = false;
+
+          rd.provedConsistent = true;
+
+          rd.derivedFromSrc = rd.isFromSrc();
       } else {
         LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
       }
@@ -821,14 +841,14 @@ public final class Sea {
       worklist.addAll(nextWorklist);
     }
 
-    timeStamp = System.currentTimeMillis();
+    f_timeStamp = System.currentTimeMillis();
     if (LOG.isLoggable(Level.FINE))
-      LOG.fine("Done updating consistency proof: " + timeStamp);
+      LOG.fine("Done updating consistency proof: " + f_timeStamp);
 
     for (SeaConsistencyProofHook hook : f_proofHooks)
       hook.postConsistencyProof(this);
 
-    return timeStamp;
+    return f_timeStamp;
   }
 
   /**
@@ -843,7 +863,7 @@ public final class Sea {
    *          what happened to the drop.
    */
   void notify(Drop drop, DropEvent event) {
-    timeStamp = INVALIDATED;
+    f_timeStamp = INVALIDATED;
 
     if (event == DropEvent.Created) {
       // add the new drop to this sea's list of valid drops
@@ -865,7 +885,7 @@ public final class Sea {
   }
 
   public long getTimeStamp() {
-    return timeStamp;
+    return f_timeStamp;
   }
 
   /**
@@ -878,7 +898,7 @@ public final class Sea {
   /**
    * A timestamp of when the sea last updated the consistency proof
    */
-  private long timeStamp = INVALIDATED;
+  private long f_timeStamp = INVALIDATED;
 
   /**
    * Adds code to run before and/or after the consistency proof is run on every
@@ -905,7 +925,7 @@ public final class Sea {
   /**
    * The set of valid drops within this sea.
    */
-  private final Set<Drop> f_validDrops = new ConcurrentHashSet<Drop>(5000);
+  private final List<Drop> f_validDrops = new ArrayList<Drop>(5000);
 
   /**
    * A map from drop subtypes to a set of registered observers interested in

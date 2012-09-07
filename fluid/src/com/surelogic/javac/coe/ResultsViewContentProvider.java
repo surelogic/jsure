@@ -110,11 +110,10 @@ public class ResultsViewContentProvider {
    * @param dropsToAdd
    *          the set of drops to enclose and add to the content set
    */
-  private void addDrops(Content mutableContentSet, Set<? extends Drop> dropsToAdd) {
+  private void addDrops(Content mutableContentSet, Collection<? extends Drop> dropsToAdd) {
     for (Iterator<? extends Drop> i = dropsToAdd.iterator(); i.hasNext();) {
       Drop drop = i.next();
       mutableContentSet.addChild(encloseDrop(drop));
-
     }
   }
 

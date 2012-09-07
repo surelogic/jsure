@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.sea;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -23,8 +24,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Within the Fluid system, promises represent models of design intent or
  * cutpoints for the analyses.
  */
-public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop 
-implements IPromiseDrop, ISrcRef, IHasPromisedFor {
+public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements IPromiseDrop, ISrcRef, IHasPromisedFor {
 
   public static final String VIRTUAL = "virtual";
 
@@ -199,7 +199,7 @@ implements IPromiseDrop, ISrcRef, IHasPromisedFor {
        * check if any of our dependent promise drops are checked
        */
       @SuppressWarnings("rawtypes")
-      final Collection<PromiseDrop> p = Sea.filterDropsOfTypeMutate(PromiseDrop.class, getDependents());
+      final List<PromiseDrop> p = Sea.filterDropsOfType(PromiseDrop.class, getDependentsReference());
       for (PromiseDrop<?> promise : p) {
         if (promise.isCheckedByAnalysis(examinedPromiseDrops)) {
           return true;
@@ -221,8 +221,8 @@ implements IPromiseDrop, ISrcRef, IHasPromisedFor {
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    Collection<ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
-    for (ResultDrop rd : s) {
+    List<ResultDrop> ss = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    for (ResultDrop rd : ss) {
       if (rd.getChecks().contains(this)) {
         result.add(rd);
       }
@@ -243,7 +243,7 @@ implements IPromiseDrop, ISrcRef, IHasPromisedFor {
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
-    Collection<ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
+    final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
     for (ResultDrop rd : s) {
       if (rd.getTrustsComplete().contains(this)) {
         result.add(rd);

@@ -1,6 +1,8 @@
 package edu.cmu.cs.fluid.sea.test;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -35,7 +37,7 @@ public class TestSea extends TestCase {
   private MySubDrop msd1, msd2;
 
   public void testFiterDrops() {
-    Set<Drop> r = sea.getDrops();
+    List<Drop> r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
     Set<Drop> r1 = Sea.filterDropsOfType(Drop.class, r);
@@ -61,17 +63,17 @@ public class TestSea extends TestCase {
   }
 
   public void testFilterDropsMutable() {
-    Set<Drop> r = sea.getDrops();
+    List<Drop> r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
-    Set<? extends MyDrop> r2 = Sea.filterDropsOfTypeMutate(MyDrop.class, r);
+    Collection<MyDrop> r2 = Sea.filterDropsOfTypeMutate(MyDrop.class, r);
     assertTrue("Drop count is " + r2.size() + " should be 4", r2.size() == 4);
     assertEquals(r2, r);
 
     r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
-    Set<? extends MySubDrop> r3 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
+    Collection<MySubDrop> r3 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
     assertTrue("Drop count is " + r3.size() + " should be 2", r3.size() == 2);
     assertEquals(r3, r);
     r.add(d1); // mutation violates up-cast
@@ -109,7 +111,7 @@ public class TestSea extends TestCase {
   }
 
   public void testFilter() {
-    Set<Drop> r = sea.getDrops();
+    List<Drop> r = sea.getDrops();
     assertTrue("Drop count is " + r.size() + " should be 6", r.size() == 6);
 
     Set<Drop> r1 = Sea.filter(DropPredicateFactory.matchType(ADrop.class), r);
@@ -133,7 +135,7 @@ public class TestSea extends TestCase {
   }
 
   public void testAddMatchingDrops() {
-    Set<Drop> r = sea.getDrops();
+    List<Drop> r = sea.getDrops();
     Set<Drop> r1 = new HashSet<Drop>();
     Sea.addMatchingDropsFrom(r, DropPredicateFactory.matchExactType(ADrop.class), r1);
     Sea.filterDropsOfExactTypeMutate(ADrop.class, r);
