@@ -160,10 +160,7 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_IMPL = 488;
   public static final int IMMUTABLE_SUPERTYPE = 489;
   
-  public static final int ANNOTATION_BOUNDS_SATISFIED = 495;
-  public static final int ANNOTATION_BOUNDS_NOT_SATISFIED = 496;
-  public static final int BOUND_SATISFIED = 497;
-  public static final int BOUND_NOT_SATISFIED = 498;
-  public static final int ANNOTATION_BOUND_SATISFIED = 499;
-  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 494;
+  public static final int ANNOTATION_BOUNDS_FOLDER = 495;
+  public static final int ANNOTATION_BOUND_SATISFIED = 496;
+  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
 }

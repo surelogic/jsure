@@ -34,8 +34,9 @@ import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.ResultFolderDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -278,6 +279,14 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     final IJavaDeclaredType jTypeOfParameterizedType =
         (IJavaDeclaredType) binder.getJavaType(parameterizedType);
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
+    
+
+    final ResultFolderDropBuilder folder = ResultFolderDropBuilder.create(analysis);
+    analysis.setResultDependUponDrop(folder, parameterizedType);
+    folder.setResultMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
+        jTypeOfParameterizedType.toSourceText());
+    folder.addCheckedPromise(boundsDrop);
+    
     for (int i = 0; i < boundsList.size(); i++) {
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
@@ -296,7 +305,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
 
       final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
-      final ResultDropBuilder result = ResultDropBuilder.create(analysis);
+      final ResultDrop result = new ResultDrop();
       analysis.setResultDependUponDrop(result, parameterizedType);
       result.addCheckedPromise(boundsDrop);
       result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText(),
@@ -305,6 +314,8 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       for (final PromiseDrop<? extends IAASTRootNode> p : promises) {
         result.addTrustedPromise(p);
       }
+      
+      folder.add(result);
     }
   }
 }
