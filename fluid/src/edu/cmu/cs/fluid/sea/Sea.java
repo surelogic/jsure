@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -653,6 +652,20 @@ public final class Sea {
         rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
         rd.derivedFromSrc = rd.isFromSrc();
+      } else if (d instanceof ResultFolderDrop) {
+
+          /*
+           * RESULT FOLDER DROP
+           */
+
+    	  ResultFolderDrop rd = (ResultFolderDrop) d;
+
+          // result drops, by definition, can not start off with a red dot
+          rd.proofUsesRedDot = false;
+
+          rd.provedConsistent = true;
+
+          rd.derivedFromSrc = rd.isFromSrc();
       } else {
         LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
       }
