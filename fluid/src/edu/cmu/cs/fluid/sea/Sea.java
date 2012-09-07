@@ -251,7 +251,7 @@ public final class Sea {
    * <code>mutableDrops</code>.
    * 
    * @param pred
-   *          the drop predicate to apply to the drop set.
+   *          a drop predicate.
    * @param mutableDrops
    *          the set of drops to mutate.
    * @return a reference to <tt>mutableDrops</tt>.
@@ -275,61 +275,31 @@ public final class Sea {
   }
 
   /**
-   * Queries if at least one drop in the given set is matched by the given drop
+   * Queries if at least one drop in <tt>drops</tt> is matched by a drop
    * predicate.
    * 
    * @param pred
    *          the drop predicate to use.
-   * @param dropSet
-   *          the drop set to examine.
+   * @param drops
+   *          the set of drops to examine.
    * @return <code>true</code> if at least one drop matches, <code>false</code>
    *         otherwise.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static boolean hasMatchingDrops(DropPredicate pred, Collection<? extends Drop> dropSet) {
+  public static boolean hasMatchingDrops(DropPredicate pred, Collection<? extends Drop> drops) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
-    if (dropSet == null)
-      throw new IllegalArgumentException(I18N.err(44, "dropSet"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    for (Drop drop : dropSet) {
+    for (final Drop drop : drops) {
       if (pred.match(drop)) {
         return true;
       }
     }
     return false;
-  }
-
-  /**
-   * Adds references to those drops in the source set that match the given drop
-   * predicate into the result set.
-   * 
-   * @param sourceDropSet
-   *          the source drop set. This set is not modified.
-   * @param pred
-   *          the drop predicate to apply to the source drop set.
-   * @param mutableResultDropSet
-   *          the result set to add matching drops into.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public static <T extends IDrop> void addMatchingDropsFrom(Collection<? extends T> sourceDropSet, DropPredicate pred,
-      Collection<T> mutableResultDropSet) {
-    if (sourceDropSet == null)
-      throw new IllegalArgumentException(I18N.err(44, "sourceDropSet"));
-    if (pred == null)
-      throw new IllegalArgumentException(I18N.err(44, "pred"));
-    if (mutableResultDropSet == null)
-      throw new IllegalArgumentException(I18N.err(44, "mutableResultDropSet"));
-
-    for (T drop : sourceDropSet) {
-      if (pred.match(drop)) {
-        mutableResultDropSet.add(drop);
-      }
-    }
   }
 
   /**
@@ -440,9 +410,10 @@ public final class Sea {
   }
 
   /**
-   * Returns a new list of drops that is matched by <tt>pred</tt>.
+   * Returns a new list of drops that is matched by a drop predicate.
    * 
    * @param pred
+   *          a drop predicate
    * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
@@ -450,7 +421,7 @@ public final class Sea {
    */
   public List<Drop> getDropsMatching(DropPredicate pred) {
     synchronized (f_validDrops) {
-      return null; // TODO
+      return filterDropsMatching(pred, f_validDrops);
     }
   }
 
@@ -568,14 +539,14 @@ public final class Sea {
    */
   public void invalidateMatching(DropPredicate pred) {
     if (pred == null)
-      return;
+      throw new IllegalArgumentException(I18N.err(44, "pred"));
 
     /*
      * we need to make a copy of the set of drops in the sea as the set will be
      * changing (rapidly) as we invalidate drops within it
      */
-    final Set<Drop> safeCopy = new HashSet<Drop>();
-    addMatchingDropsFrom(f_validDrops, pred, safeCopy);
+
+    final Collection<Drop> safeCopy = Sea.filterDropsMatching(pred, f_validDrops);
     for (final Drop drop : safeCopy) {
       drop.invalidate();
     }

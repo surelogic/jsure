@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -266,39 +267,38 @@ public abstract class Drop implements IDrop {
    * Queries if any of this drop's dependent drops matches the given drop
    * predicate.
    * 
-   * @param p
-   *          the drop predicate to use.
+   * @param pred
+   *          a drop predicate.
    * @return <code>true</code> if at least one of this drop's dependent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDependents(DropPredicate p) {
-    return Sea.hasMatchingDrops(p, dependents);
+  final public boolean hasMatchingDependents(DropPredicate pred) {
+    return Sea.hasMatchingDrops(pred, dependents);
   }
 
   /**
    * Queries if any of this drop's deponent drops matches the given drop
    * predicate.
    * 
-   * @param p
-   *          the drop predicate to use.
+   * @param pred
+   *          a drop predicate.
    * @return <code>true</code> if at least one of this drop's deponent drops
    *         matches the specified drop predicate.
    */
-  final public boolean hasMatchingDeponents(DropPredicate p) {
-    return Sea.hasMatchingDrops(p, deponents);
+  final public boolean hasMatchingDeponents(DropPredicate pred) {
+    return Sea.hasMatchingDrops(pred, deponents);
   }
 
   /**
-   * Returns the set of this drop's dependents drops matches the given drop
-   * predicate.
+   * Returns a new list containing of this drop's dependents drops that match a
+   * drop predicate.
    * 
-   * @param p
-   *          the drop predicate to use.
-   * @return a set of drops. This may be empty but will never be {@code null}.
+   * @param pred
+   *          a drop predicate.
+   * @return a list of drops. This may be empty but will never be {@code null}.
    */
-  public Set<Drop> getMatchingDependents(DropPredicate p) {
-    final Set<Drop> result = new HashSet<Drop>();
-    Sea.addMatchingDropsFrom(deponents, p, result);
+  public ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
+    final ArrayList<Drop> result = Sea.filterDropsMatching(pred, dependents);
     return result;
   }
 
@@ -306,13 +306,12 @@ public abstract class Drop implements IDrop {
    * Returns the set of this drop's deponent drops matches the given drop
    * predicate.
    * 
-   * @param p
-   *          the drop predicate to use.
+   * @param pred
+   *          a drop predicate.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  public Set<Drop> getMatchingDeponents(DropPredicate p) {
-    final Set<Drop> result = new HashSet<Drop>();
-    Sea.addMatchingDropsFrom(deponents, p, result);
+  public ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
+    final ArrayList<Drop> result = Sea.filterDropsMatching(pred, deponents);
     return result;
   }
 

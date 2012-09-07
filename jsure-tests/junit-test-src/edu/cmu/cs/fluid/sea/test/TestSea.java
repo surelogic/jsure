@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea.test;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -116,14 +115,6 @@ public class TestSea extends TestCase {
     assertFalse(Sea.hasMatchingDrops(DropPredicateFactory.matchExactType(ADrop.class), r2));
     assertTrue(Sea.hasMatchingDrops(DropPredicateFactory.matchExactType(MyDrop.class), r2));
     assertFalse(Sea.hasMatchingDrops(DropPredicateFactory.matchExactType(MySubDrop.class), r2));
-  }
-
-  public void testAddMatchingDrops() {
-    List<Drop> r = sea.getDrops();
-    List<Drop> r1 = new ArrayList<Drop>();
-    Sea.addMatchingDropsFrom(r, DropPredicateFactory.matchExactType(ADrop.class), r1);
-    Sea.filterDropsOfExactTypeMutate(ADrop.class, r);
-    assertTrue(r1.equals(r));
   }
 
   public void testGetDropsOfType() {
