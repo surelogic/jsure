@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * <p>
  * Not intended to be subclassed.
  */
-public final class ResultFolderDrop extends AbstractResultDrop implements IResultFolderDrop {
+public final class ResultFolderDrop extends AnalysisResultDrop implements IResultFolderDrop {
 
   /*
    * XML attribute constants
@@ -36,7 +36,7 @@ public final class ResultFolderDrop extends AbstractResultDrop implements IResul
    * @param result
    *          an analysis result.
    */
-  public void add(AbstractResultDrop result) {
+  public void add(AnalysisResultDrop result) {
     if (result == null)
       return;
 
@@ -70,8 +70,8 @@ public final class ResultFolderDrop extends AbstractResultDrop implements IResul
    * @return a non-null (possibly empty) set of analysis results and
    *         sub-folders.
    */
-  public List<AbstractResultDrop> getContents() {
-    final List<AbstractResultDrop> result = Sea.filterDropsOfType(AbstractResultDrop.class, getDeponentsReference());
+  public List<AnalysisResultDrop> getContents() {
+    final List<AnalysisResultDrop> result = Sea.filterDropsOfType(AnalysisResultDrop.class, getDeponentsReference());
     return result;
   }
 

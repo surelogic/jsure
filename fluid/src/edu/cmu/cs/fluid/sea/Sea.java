@@ -718,7 +718,7 @@ public final class Sea {
            */
 
           final ResultFolderDrop dfd = (ResultFolderDrop) d;
-          for (AbstractResultDrop result : dfd.getContents()) {
+          for (AnalysisResultDrop result : dfd.getContents()) {
             // all must be consistent for this folder to be consistent
             dfd.provedConsistent &= result.provedConsistent;
             // any red dot means this folder depends upon a red dot

@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * @see ResultDrop
  * @see ResultFolderDrop
  */
-public abstract class AbstractResultDrop extends ProofDrop implements IAnalysisResultDrop {
+public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisResultDrop {
 
   /*
    * XML attribute constants
