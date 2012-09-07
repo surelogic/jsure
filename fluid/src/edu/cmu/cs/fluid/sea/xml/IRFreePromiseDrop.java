@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.xml.sax.Attributes;
 
+import edu.cmu.cs.fluid.sea.IAnalysisResultDrop;
 import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -14,9 +15,9 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
   /**
    * Only for PromiseDrops
    */
-  final List<IRFreeResultDrop> checkedByResults;
+  final List<IAnalysisResultDrop> checkedByResults;
 
-  void addCheckedByResult(IRFreeResultDrop info) {
+  void addCheckedByResult(IAnalysisResultDrop info) {
     if (PromiseDrop.useCheckedByResults) {
       checkedByResults.add(info);
     }
@@ -24,10 +25,10 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
 
   IRFreePromiseDrop(String name, Attributes a) {
     super(name, a);
-    checkedByResults = new ArrayList<IRFreeResultDrop>(0);
+    checkedByResults = new ArrayList<IAnalysisResultDrop>(0);
   }
 
-  public Collection<? extends IResultDrop> getCheckedBy() {
+  public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
     return checkedByResults;
   }
 

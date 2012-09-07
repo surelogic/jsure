@@ -215,14 +215,14 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
-  public final Collection<ResultDrop> getCheckedBy() {
-    final Set<ResultDrop> result = new HashSet<ResultDrop>();
+  public final Collection<AnalysisResultDrop> getCheckedBy() {
+    final Set<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    List<ResultDrop> ss = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
-    for (ResultDrop rd : ss) {
+    List<AnalysisResultDrop> ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+    for (AnalysisResultDrop rd : ss) {
       if (rd.getChecks().contains(this)) {
         result.add(rd);
       }
