@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.xml.sax.Attributes;
 
+import edu.cmu.cs.fluid.sea.IAnalysisResultDrop;
 import edu.cmu.cs.fluid.sea.IPromiseDrop;
-import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.IResultFolderDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
@@ -57,8 +57,8 @@ public final class IRFreeResultFolderDrop extends IRFreeProofDrop implements IRe
     return "true".equals(getAttribute(ResultDrop.CONSISTENT));
   }
 
-  public Collection<? extends IProofDrop> getContents() {
-    Collection<IProofDrop> rv = new HashSet<IProofDrop>(results);
+  public Collection<? extends IAnalysisResultDrop> getContents() {
+    Collection<IAnalysisResultDrop> rv = new HashSet<IAnalysisResultDrop>(results);
     rv.addAll(subFolders);
     return rv;
   }
