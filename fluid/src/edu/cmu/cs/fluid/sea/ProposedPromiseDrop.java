@@ -35,7 +35,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop implements IResultDrop, IProposedPromiseDrop {
+public final class ProposedPromiseDrop extends IRReferenceDrop implements IAnalysisResultDrop, IProposedPromiseDrop {
   public static final String ANNOTATION_TYPE = "annotation-type";
   public static final String CONTENTS = "contents";
   public static final String REPLACED_ANNO = "replaced-annotation";

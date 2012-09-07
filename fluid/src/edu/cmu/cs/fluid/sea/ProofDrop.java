@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.util.Collection;
-
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
@@ -66,18 +64,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     return proofUsesRedDot;
   }
 
-  public boolean isConsistent() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public Collection<? extends IProofDrop> getTrusts() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public Collection<? extends IProofDrop> getChecks() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
   public boolean isFromSrc() {
     // throw new UnsupportedOperationException("Not a PromiseDrop");
     IRNode n = getNode();
@@ -85,58 +71,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       return !TypeUtil.isBinary(n);
     }
     return false;
-  }
-
-  public Collection<? extends IProofDrop> getCheckedBy() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public Collection<? extends IProofDrop> getTrustsComplete() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public Collection<String> get_or_TrustLabelSet() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public Collection<? extends IProofDrop> get_or_Trusts(String key) {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public boolean get_or_proofUsesRedDot() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public boolean get_or_provedConsistent() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public boolean hasOrLogic() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public boolean isAssumed() {
-    throw new UnsupportedOperationException("Not a PromiseDrop");
-  }
-
-  public boolean isCheckedByAnalysis() {
-    throw new UnsupportedOperationException("Not a PromiseDrop");
-  }
-
-  public boolean isIntendedToBeCheckedByAnalysis() {
-    throw new UnsupportedOperationException("Not a PromiseDrop");
-  }
-
-  public boolean isVirtual() {
-    throw new UnsupportedOperationException("Not a PromiseDrop");
-  }
-
-  public boolean isVouched() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
-  }
-
-  public boolean isTimeout() {
-    throw new UnsupportedOperationException("Not a ResultDrop");
   }
 
   @Override

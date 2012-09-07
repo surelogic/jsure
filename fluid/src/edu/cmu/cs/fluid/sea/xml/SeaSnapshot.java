@@ -32,15 +32,7 @@ import com.surelogic.common.xml.Entity;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.ISupportingInformation;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ProofDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
@@ -265,9 +257,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         if (thisType != null) {
           if (ProposedPromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeProposedPromiseDrop(name, a);
-          } else if (ProofDrop.class.isAssignableFrom(thisType)) {
-            return new IRFreeProofDrop(name, a);
-          }
+          } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
+            return new IRFreePromiseDrop(name, a);
+          } else if (ResultDrop.class.isAssignableFrom(thisType)) {
+      	    return new IRFreeResultDrop(name, a);
+          } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
+            return new IRFreeResultFolderDrop(name, a);
+          } 
         }
       }
       return new IRFreeDrop(name, a);
@@ -297,13 +293,17 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         toE.addDependent(fromE);
       } else if (IRReferenceDrop.PROPOSED_PROMISE.equals(refType)) {
         fromE.addProposal((IRFreeProposedPromiseDrop) toE);
-      } else if (fromE instanceof IRFreeProofDrop) {
-        final IRFreeProofDrop fromPI = (IRFreeProofDrop) fromE;
-        final IRFreeProofDrop toPI = (IRFreeProofDrop) toE;
-
-        if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
-          fromPI.addCheckedByResult(toPI);
-        } else if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+      } else if (fromE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
+          final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;        
+          if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
+              fromPI.addCheckedByResult(toPI);
+          }
+      } else if (fromE instanceof IRFreeResultDrop) {
+        final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
+        final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+  
+        if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
           fromPI.addCheckedPromise(toPI);
         } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
           fromPI.addTrustedPromise(toPI);
@@ -311,6 +311,18 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           final String label = to.getAttribute(ResultDrop.OR_LABEL);
           fromPI.addOrTrustedPromise(label, toPI);
         }
+      } else if (fromE instanceof IRFreeResultFolderDrop) {
+          final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
+          if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+              final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;    	              
+              fromPI.addCheckedPromise(toPI);
+          } else if (ResultFolderDrop.RESULT.equals(refType)) {
+              final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;    	        	  
+    		  fromPI.addResult(toPI);
+    	  } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
+              final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;    	      	  
+    		  fromPI.addSubFolder(toPI);
+    	  }
       } else {
         throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }

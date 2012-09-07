@@ -27,8 +27,10 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -273,7 +275,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          the result to add "and" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_and_TrustedPromises(C mutableContentSet, IProofDrop result) {
+  private void add_and_TrustedPromises(C mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
     Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrusts();
     int count = trustedPromiseDrops.size();
@@ -309,7 +311,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          the result to add "or" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_or_TrustedPromises(C mutableContentSet, IProofDrop result) {
+  private void add_or_TrustedPromises(C mutableContentSet, IResultDrop result) {
     if (!result.hasOrLogic()) {
       // no "or" logic on this result, thus bail out
       return;
@@ -386,7 +388,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
          * PROMISE DROP
          */
 
-        IProofDrop promiseDrop = (IProofDrop) drop;
+        IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -415,7 +417,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         /*
          * RESULT DROP
          */
-        IProofDrop resultDrop = (IProofDrop) drop;
+        IResultDrop resultDrop = (IResultDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -1033,8 +1035,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       root.add(infoFolder);
     }
 
-    final Collection<IProofDrop> resultDrops = getDropsOfType(ResultDrop.class, IProofDrop.class);
-    for (IProofDrop id : resultDrops) {
+    final Collection<IResultDrop> resultDrops = getDropsOfType(ResultDrop.class, IResultDrop.class);
+    for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
       if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
