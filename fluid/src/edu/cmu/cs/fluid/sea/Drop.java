@@ -10,6 +10,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.InRegion;
+import com.surelogic.Region;
+import com.surelogic.RegionLock;
+import com.surelogic.RequiresLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
@@ -40,7 +45,10 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @see Sea
  */
+@Region("DropState")
+@RegionLock("SeaLock is f_seaLock protects DropState")
 public abstract class Drop implements IDrop {
+
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
   public static final String DEPONENT = "deponent";
   public static final String DEPENDENT = "dependent";
@@ -67,18 +75,12 @@ public abstract class Drop implements IDrop {
    *          the sea to create the drop within.
    */
   private Drop(Sea sea) {
-    mySea = sea;
-    mySea.notify(this, DropEvent.Created);
-  }
+    if (sea == null)
+      sea = Sea.getDefault();
 
-  @Override
-  public final int hashCode() {
-    return super.hashCode();
-  }
-
-  @Override
-  public final boolean equals(Object o) {
-    return super.equals(o);
+    f_mySea = sea;
+    f_seaLock = sea.getSeaLock();
+    f_mySea.notify(this, DropEvent.Created);
   }
 
   /**
@@ -87,14 +89,7 @@ public abstract class Drop implements IDrop {
    * @return the sea this drop exists within.
    */
   public final Sea getSea() {
-    return mySea;
-  }
-
-  /**
-   * Gets this drop's result message
-   */
-  public AnalysisResultMessage getResultMessage() {
-    return resultMessage;
+    return f_mySea;
   }
 
   /**
@@ -106,13 +101,18 @@ public abstract class Drop implements IDrop {
       LOG.warning("Ignoring negative result number: " + number);
       return;
     }
-    JavaSourceReference srcRef = createSourceRef();
-    this.resultMessage = AnalysisResultMessage.getInstance(srcRef, number, args);
-    this.message = resultMessage.getResultString();
+    synchronized (f_seaLock) {
+      JavaSourceReference srcRef = createSourceRef();
+      if (srcRef == null)
+        srcRef = new JavaSourceReference();
+      this.f_resultMessage = AnalysisResultMessage.getInstance(srcRef, number, args);
+      this.f_message = f_resultMessage.getResultString();
+    }
   }
 
+  @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
-    throw new UnsupportedOperationException();
+    return new JavaSourceReference();
   }
 
   /**
@@ -121,7 +121,9 @@ public abstract class Drop implements IDrop {
    * @return the message set for this drop, usually used by the UI.
    */
   public String getMessage() {
-    return message;
+    synchronized (f_seaLock) {
+      return f_message;
+    }
   }
 
   /**
@@ -131,8 +133,10 @@ public abstract class Drop implements IDrop {
    *          the message to set for the UI about this drop.
    */
   public void setMessage(String message) {
-    this.message = message;
-    this.resultMessage = null;
+    synchronized (f_seaLock) {
+      this.f_message = message;
+      this.f_resultMessage = null;
+    }
   }
 
   /**
@@ -151,8 +155,10 @@ public abstract class Drop implements IDrop {
    *          the message to set for the UI about this drop.
    */
   public void setMessage(String message, Object... args) {
-    this.message = (args.length == 0) ? message : MessageFormat.format(message, args);
-    this.resultMessage = null;
+    synchronized (f_seaLock) {
+      this.f_message = (args.length == 0) ? message : MessageFormat.format(message, args);
+      this.f_resultMessage = null;
+    }
   }
 
   /**
@@ -164,14 +170,16 @@ public abstract class Drop implements IDrop {
    *          the drop this drop is a deponent for.
    */
   final public void addDependent(Drop dependent) {
-    if (!valid || dependent == null || !dependent.isValid()) {
-      return;
-    }
-    if (dependent == this) {
-      return;
-    }
-    if (dependents.add(dependent)) {
-      dependent.addDeponent(this);
+    synchronized (f_seaLock) {
+      if (!f_valid || dependent == null || !dependent.isValid()) {
+        return;
+      }
+      if (dependent == this) {
+        return;
+      }
+      if (f_dependents.add(dependent)) {
+        dependent.addDeponent(this);
+      }
     }
   }
 
@@ -184,11 +192,13 @@ public abstract class Drop implements IDrop {
    *          the array of drops this drop is a deponent for.
    */
   final public void addDependents(Drop[] dependents) {
-    if (!valid || dependents == null) {
-      return;
-    }
-    for (int i = 0; i < dependents.length; i++) {
-      addDependent(dependents[i]);
+    synchronized (f_seaLock) {
+      if (!f_valid || dependents == null) {
+        return;
+      }
+      for (int i = 0; i < dependents.length; i++) {
+        addDependent(dependents[i]);
+      }
     }
   }
 
@@ -201,11 +211,13 @@ public abstract class Drop implements IDrop {
    *          the collection of drops this drop is a deponent for.
    */
   final public void addDependents(Collection<? extends Drop> dependents) {
-    if (!valid || dependents == null) {
-      return;
-    }
-    for (Drop drop : dependents) {
-      addDependent(drop);
+    synchronized (f_seaLock) {
+      if (!f_valid || dependents == null) {
+        return;
+      }
+      for (Drop drop : dependents) {
+        addDependent(drop);
+      }
     }
   }
 
@@ -219,11 +231,13 @@ public abstract class Drop implements IDrop {
    *          the collection of drops this drop is a dependent of.
    */
   final public void addDeponents(Collection<? extends Drop> deponents) {
-    if (!valid || dependents == null) {
-      return;
-    }
-    for (Drop drop : deponents) {
-      drop.addDependent(this);
+    synchronized (f_seaLock) {
+      if (!f_valid || f_dependents == null) {
+        return;
+      }
+      for (Drop drop : deponents) {
+        drop.addDependent(this);
+      }
     }
   }
 
@@ -232,8 +246,10 @@ public abstract class Drop implements IDrop {
    * 
    * @return the set of dependent drops
    */
-  final public Set<Drop> getDependents() {
-    return new HashSet<Drop>(dependents);
+  final public HashSet<Drop> getDependents() {
+    synchronized (f_seaLock) {
+      return new HashSet<Drop>(f_dependents);
+    }
   }
 
   /**
@@ -241,8 +257,9 @@ public abstract class Drop implements IDrop {
    * <p>
    * Callers <b>must not</b> mutate this set.
    */
+  @RequiresLock("SeaLock")
   final protected Set<Drop> getDependentsReference() {
-    return dependents;
+    return f_dependents;
   }
 
   /**
@@ -250,8 +267,10 @@ public abstract class Drop implements IDrop {
    * 
    * @return the set of deponent drops
    */
-  final public Set<Drop> getDeponents() {
-    return new HashSet<Drop>(deponents);
+  final public HashSet<Drop> getDeponents() {
+    synchronized (f_seaLock) {
+      return new HashSet<Drop>(f_deponents);
+    }
   }
 
   /**
@@ -259,8 +278,9 @@ public abstract class Drop implements IDrop {
    * <p>
    * Callers <b>must not</b> mutate this set.
    */
+  @RequiresLock("SeaLock")
   final protected Set<Drop> getDeponentsReference() {
-    return deponents;
+    return f_deponents;
   }
 
   /**
@@ -273,7 +293,9 @@ public abstract class Drop implements IDrop {
    *         matches the specified drop predicate.
    */
   final public boolean hasMatchingDependents(DropPredicate pred) {
-    return Sea.hasMatchingDrops(pred, dependents);
+    synchronized (f_seaLock) {
+      return Sea.hasMatchingDrops(pred, f_dependents);
+    }
   }
 
   /**
@@ -286,7 +308,9 @@ public abstract class Drop implements IDrop {
    *         matches the specified drop predicate.
    */
   final public boolean hasMatchingDeponents(DropPredicate pred) {
-    return Sea.hasMatchingDrops(pred, deponents);
+    synchronized (f_seaLock) {
+      return Sea.hasMatchingDrops(pred, f_deponents);
+    }
   }
 
   /**
@@ -298,7 +322,10 @@ public abstract class Drop implements IDrop {
    * @return a list of drops. This may be empty but will never be {@code null}.
    */
   public ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
-    final ArrayList<Drop> result = Sea.filterDropsMatching(pred, dependents);
+    final ArrayList<Drop> result;
+    synchronized (f_seaLock) {
+      result = Sea.filterDropsMatching(pred, f_dependents);
+    }
     return result;
   }
 
@@ -311,7 +338,10 @@ public abstract class Drop implements IDrop {
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
   public ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
-    final ArrayList<Drop> result = Sea.filterDropsMatching(pred, deponents);
+    final ArrayList<Drop> result;
+    synchronized (f_seaLock) {
+      result = Sea.filterDropsMatching(pred, f_deponents);
+    }
     return result;
   }
 
@@ -322,7 +352,9 @@ public abstract class Drop implements IDrop {
    *         <code>false</code> otherwise.
    */
   final public boolean hasDeponents() {
-    return !deponents.isEmpty();
+    synchronized (f_seaLock) {
+      return !f_deponents.isEmpty();
+    }
   }
 
   /**
@@ -332,36 +364,41 @@ public abstract class Drop implements IDrop {
    *         <code>false</code> otherwise.
    */
   final public boolean hasDependents() {
-    return !dependents.isEmpty();
+    synchronized (f_seaLock) {
+      return !f_dependents.isEmpty();
+    }
   }
 
   /**
    * Invalidates, makes false, the information that this drop represents.
    */
   final public void invalidate() {
-    if (!valid) {
-      return;
-    }
-    invalidate_internal();
+    synchronized (f_seaLock) {
+      if (!f_valid) {
+        return;
+      }
+      invalidate_internal();
 
-    valid = false;
-    // inform deponent drops
-    for (Iterator<Drop> i = deponents.iterator(); i.hasNext();) {
-      Drop deponent = i.next();
-      deponent.removeDependent(this);
+      f_valid = false;
+      // inform deponent drops
+      for (Iterator<Drop> i = f_deponents.iterator(); i.hasNext();) {
+        Drop deponent = i.next();
+        deponent.removeDependent(this);
+      }
+      f_deponents.clear(); // consistent state
+      // inform dependents
+      for (Iterator<Drop> i = f_dependents.iterator(); i.hasNext();) {
+        Drop dependent = i.next();
+        dependent.removeDeponent(this);
+      }
+      f_dependents.clear(); // consistent state
+      f_mySea.notify(this, DropEvent.Invalidated);
     }
-    deponents.clear(); // consistent state
-    // inform dependents
-    for (Iterator<Drop> i = dependents.iterator(); i.hasNext();) {
-      Drop dependent = i.next();
-      dependent.removeDeponent(this);
-    }
-    dependents.clear(); // consistent state
-    mySea.notify(this, DropEvent.Invalidated);
   }
 
+  @RequiresLock("SeaLock")
   protected void invalidate_internal() {
-    // Nothing to do right now
+    // by default do nothing
   }
 
   /**
@@ -373,7 +410,9 @@ public abstract class Drop implements IDrop {
    *         otherwise
    */
   final public boolean isValid() {
-    return valid;
+    synchronized (f_seaLock) {
+      return f_valid;
+    }
   }
 
   /**
@@ -421,8 +460,9 @@ public abstract class Drop implements IDrop {
             LOG.log(Level.WARNING, "unable to find compilation unit drop for " + DebugUnparser.toString(node));
           }
         } else {
-          // the promise depends upon the compilation unit it is
-          // within
+          /*
+           * the promise depends upon the compilation unit it is within
+           */
           cuDrop.addDependent(this);
         }
       }
@@ -438,7 +478,7 @@ public abstract class Drop implements IDrop {
    * this drop should not depend upon the truth of any dependent drop.
    */
   protected void dependentInvalidAction() {
-    // do nothing
+    // by default do nothing
   }
 
   /**
@@ -462,15 +502,16 @@ public abstract class Drop implements IDrop {
    * @param dependent
    *          the dependent drop to remove
    */
+  @RequiresLock("SeaLock")
   private void removeDependent(Drop dependent) {
-    if (!valid || dependent == null) {
+    if (!f_valid || dependent == null) {
       return;
     }
     if (dependent == this) {
       return;
     }
-    if (dependents.remove(dependent)) {
-      mySea.notify(this, DropEvent.DependentInvalidated);
+    if (f_dependents.remove(dependent)) {
+      f_mySea.notify(this, DropEvent.DependentInvalidated);
       dependentInvalidAction();
     }
   }
@@ -483,14 +524,15 @@ public abstract class Drop implements IDrop {
    * @param deponent
    *          the deponent drop to add
    */
+  @RequiresLock("SeaLock")
   private void addDeponent(Drop deponent) {
-    if (!valid || deponent == null) {
+    if (!f_valid || deponent == null) {
       return;
     }
     if (deponent == this) {
       return;
     }
-    deponents.add(deponent);
+    f_deponents.add(deponent);
   }
 
   /**
@@ -501,12 +543,13 @@ public abstract class Drop implements IDrop {
    * @param deponent
    *          the deponent drop to remove
    */
+  @RequiresLock("SeaLock")
   private void removeDeponent(Drop deponent) {
-    if (!valid || deponent == null) {
+    if (!f_valid || deponent == null) {
       return;
     }
-    if (deponents.remove(deponent)) {
-      mySea.notify(this, DropEvent.DeponentInvalidated);
+    if (f_deponents.remove(deponent)) {
+      f_mySea.notify(this, DropEvent.DeponentInvalidated);
       deponentInvalidAction(deponent);
     }
   }
@@ -514,17 +557,20 @@ public abstract class Drop implements IDrop {
   /**
    * Notes if the drop has been invalidated by a call to {@link #invalidate()}.
    */
-  private boolean valid = true;
+  @InRegion("DropState")
+  private boolean f_valid = true;
 
   /**
    * A mutable text message about this drop, usually used by the UI.
    */
-  private String message = this.getClass().getSimpleName() + " (EMPTY)";
+  @InRegion("DropState")
+  private String f_message = this.getClass().getSimpleName() + " (EMPTY)";
 
   /**
    * A mutable result message about this drop, usually used by the UI.
    */
-  private AnalysisResultMessage resultMessage;
+  @InRegion("DropState")
+  private AnalysisResultMessage f_resultMessage;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -532,7 +578,8 @@ public abstract class Drop implements IDrop {
    * <b>Dependent</b>: (definition) Contingent on another. Subordinate. Relying
    * on or requiring the aid of another for support.
    */
-  final private Set<Drop> dependents = new HashSet<Drop>();
+  @UniqueInRegion("DropState")
+  final private Set<Drop> f_dependents = new HashSet<Drop>();
 
   /**
    * The set of drops upon whose truth this drop depends upon.
@@ -540,36 +587,46 @@ public abstract class Drop implements IDrop {
    * <b>Deponent</b>: (definition) One who testifies under oath, especially in
    * writing.
    */
-  final private Set<Drop> deponents = new HashSet<Drop>();
+  @UniqueInRegion("DropState")
+  final private Set<Drop> f_deponents = new HashSet<Drop>();
 
   /**
    * A link to the {@link Sea} object this drop exists within.
    */
-  final private Sea mySea;
+  final private Sea f_mySea;
 
+  /**
+   * An alias to the object returned by {@link Sea#getSeaLock()}.
+   */
+  final private Object f_seaLock;
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
+  @RequiresLock("SeaLock")
   public String getXMLElementName() {
     return "drop";
   }
 
+  @RequiresLock("SeaLock")
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop deponent : getDeponents()) {
+    for (Drop deponent : getDeponentsReference()) {
       s.snapshotDrop(deponent);
     }
   }
 
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XMLCreator.Builder s) {
     s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
-    if (resultMessage != null) {
-      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(resultMessage.getResultStringCanonical()));
+    if (f_resultMessage != null) {
+      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_resultMessage.getResultStringCanonical()));
     }
   }
 
+  @RequiresLock("SeaLock")
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    /*
-     * for (Drop dependent : getDependents()) { s.refDrop(DEPENDENT, dependent);
-     * }
-     */
-    for (Drop deponent : getDeponents()) {
+    for (Drop deponent : getDeponentsReference()) {
       s.refDrop(db, DEPONENT, deponent);
     }
   }
@@ -580,8 +637,8 @@ public abstract class Drop implements IDrop {
   public <T> T getAdapter(Class<T> type) {
     if (type.isInstance(this)) {
       return (T) this;
-    }
-    throw new UnsupportedOperationException();
+    } else
+      throw new UnsupportedOperationException();
   }
 
   public String getTypeName() {

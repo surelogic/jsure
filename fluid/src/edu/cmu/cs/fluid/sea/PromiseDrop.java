@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
@@ -374,6 +375,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
+  @RequiresLock("SeaLock")
   protected void invalidate_internal() {
     super.invalidate_internal();
 

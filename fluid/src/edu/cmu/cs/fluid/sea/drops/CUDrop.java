@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.sea.drops;
 
 import java.util.*;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
@@ -185,6 +186,7 @@ public abstract class CUDrop extends Drop {
   }
   
   @Override
+  @RequiresLock("SeaLock")
   protected void invalidate_internal() {
 	  //System.out.println("Invalidating "+javaOSFileName);
   }
