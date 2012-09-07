@@ -35,7 +35,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop implements IResultDrop, IProposedPromiseDropInfo {
+public final class ProposedPromiseDrop extends IRReferenceDrop implements IAnalysisResultDrop, IProposedPromiseDrop {
   public static final String ANNOTATION_TYPE = "annotation-type";
   public static final String CONTENTS = "contents";
   public static final String REPLACED_ANNO = "replaced-annotation";
@@ -287,7 +287,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IResul
     return getJavaAnnotation();
   }
 
-  public boolean isSameProposalAs(IProposedPromiseDropInfo other) {
+  public boolean isSameProposalAs(IProposedPromiseDrop other) {
     if (this == other)
       return true;
     if (other == null)
@@ -332,27 +332,27 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IResul
    *          the list of proposed promises.
    * @return the filtered list of proposals.
    */
-  public static List<IProposedPromiseDropInfo> filterOutDuplicates(Collection<IProposedPromiseDropInfo> proposals) {
-    List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
+  public static List<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
     // Hash results
-    MultiMap<Long, IProposedPromiseDropInfo> hashed = new MultiHashMap<Long, IProposedPromiseDropInfo>();
-    for (IProposedPromiseDropInfo info : proposals) {
+    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
+    for (IProposedPromiseDrop info : proposals) {
       long hash = info.computeHash();
       hashed.put(hash, info);
     }
     // Filter each list the old way
-    for (Map.Entry<Long, Collection<IProposedPromiseDropInfo>> e : hashed.entrySet()) {
+    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
       result.addAll(filterOutDuplicates_slow(e.getValue()));
     }
     return result;
   }
 
   // n^2 comparisons
-  private static List<IProposedPromiseDropInfo> filterOutDuplicates_slow(Collection<IProposedPromiseDropInfo> proposals) {
-    List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
-    for (IProposedPromiseDropInfo h : proposals) {
+  private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    for (IProposedPromiseDrop h : proposals) {
       boolean addToResult = true;
-      for (IProposedPromiseDropInfo i : result) {
+      for (IProposedPromiseDrop i : result) {
         if (h.isSameProposalAs(i)) {
           addToResult = false;
           break;

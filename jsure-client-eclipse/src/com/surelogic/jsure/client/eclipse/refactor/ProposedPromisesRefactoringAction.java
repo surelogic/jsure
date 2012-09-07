@@ -16,7 +16,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler;
 import com.surelogic.jsure.core.JSureUtility;
 
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public abstract class ProposedPromisesRefactoringAction extends Action {
@@ -30,13 +30,13 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 	 * @return the list of proposed promise drops for the source code
 	 *         modification. Should not contain duplicate.
 	 */
-	protected abstract List<? extends IProposedPromiseDropInfo> getProposedDrops();
+	protected abstract List<? extends IProposedPromiseDrop> getProposedDrops();
 
 	protected abstract String getDialogTitle();
 
 	@Override
 	public void run() {
-		final List<? extends IProposedPromiseDropInfo> selected = getProposedDrops();
+		final List<? extends IProposedPromiseDrop> selected = getProposedDrops();
 		if (selected.isEmpty()) {
 			return;
 		}
@@ -79,9 +79,9 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 	 * Find projects that don't have the promises jar
 	 */
 	private List<IJavaProject> findProjectsWithoutPromises(
-			List<? extends IProposedPromiseDropInfo> proposals) {
+			List<? extends IProposedPromiseDrop> proposals) {
 		final Set<String> projects = new HashSet<String>();
-		for (IProposedPromiseDropInfo p : proposals) {
+		for (IProposedPromiseDrop p : proposals) {
 			// Check the target project for promises
 			projects.add(p.getTargetProjectName());
 		}

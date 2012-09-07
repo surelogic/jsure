@@ -51,7 +51,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 			if ("java.lang.Object.MUTEX".equals(key)) {
 				result.setFromSrc(true); // Make it show up in the view
 				final String msg = "java.lang.Object.MUTEX is consistent with the code in java.lang.Object";
-				ResultDrop rd = new ResultDrop(msg);
+				ResultDrop rd = new ResultDrop();
 				rd.addCheckedPromise(result);
 				rd.setConsistent();
 				rd.setMessage(msg);
@@ -100,7 +100,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	}
 
 	private static DropPredicate definingDropPred = new DropPredicate() {
-		public boolean match(IDropInfo d) {
+		public boolean match(IDrop d) {
 			return d.instanceOf(RequiresLockPromiseDrop.class)
 					|| d.instanceOf(ReturnsLockPromiseDrop.class);
 		}

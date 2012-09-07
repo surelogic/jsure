@@ -3,7 +3,6 @@ package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;

@@ -32,11 +32,11 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public final class ProposedPromiseContentProvider extends
-		AbstractResultsTableContentProvider<IProposedPromiseDropInfo> implements
+		AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
 		IResultsTableContentProvider, IJSureTreeContentProvider {
 	private static final Package[] noPackages = new Package[0];
 	private static final String[] nothingToShow = new String[] { "No proposals to show" };
@@ -57,23 +57,23 @@ public final class ProposedPromiseContentProvider extends
 		return asTree;
 	}
 
-	protected String getAndSortResults(List<IProposedPromiseDropInfo> contents) {
+	protected String getAndSortResults(List<IProposedPromiseDrop> contents) {
 		final JSureScanInfo info = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (info == null) {
 			packages = noPackages;
 			return null;
 		}
-		List<IProposedPromiseDropInfo> proposedPromiseDrops = ProposedPromiseDrop
+		List<IProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop
 				.filterOutDuplicates(info
-						.<IProposedPromiseDropInfo, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
+						.<IProposedPromiseDrop, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
 		final boolean showAbductiveOnly = EclipseUtility
 				.getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
 
-		final Iterator<IProposedPromiseDropInfo> it = proposedPromiseDrops
+		final Iterator<IProposedPromiseDrop> it = proposedPromiseDrops
 				.iterator();
 		while (it.hasNext()) {
-			IProposedPromiseDropInfo p = it.next();
+			IProposedPromiseDrop p = it.next();
 			boolean remove = false;
 			if (showAbductiveOnly) {
 				if (!p.isAbductivelyInferred())
@@ -89,7 +89,7 @@ public final class ProposedPromiseContentProvider extends
 			if (remove)
 				it.remove();
 		}
-		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
+		for (IProposedPromiseDrop id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
 				contents.add(id);
 			}
@@ -102,9 +102,9 @@ public final class ProposedPromiseContentProvider extends
 		return info.getLabel();
 	}
 
-	private static final Comparator<IProposedPromiseDropInfo> sortByProposal = new Comparator<IProposedPromiseDropInfo>() {
-		public int compare(IProposedPromiseDropInfo d1,
-				IProposedPromiseDropInfo d2) {
+	private static final Comparator<IProposedPromiseDrop> sortByProposal = new Comparator<IProposedPromiseDrop>() {
+		public int compare(IProposedPromiseDrop d1,
+				IProposedPromiseDrop d2) {
 			return d1.getJavaAnnotation().compareTo(d2.getJavaAnnotation());
 		}
 	};
@@ -118,14 +118,14 @@ public final class ProposedPromiseContentProvider extends
 	}
 
 	@Override
-	protected String getMainColumnText(IProposedPromiseDropInfo d) {
+	protected String getMainColumnText(IProposedPromiseDrop d) {
 		return d.getJavaAnnotation().substring(1);
 	}
 
 	@Override
 	public String getText(Object element) {
-		if (element instanceof IProposedPromiseDropInfo) {
-			IProposedPromiseDropInfo d = (IProposedPromiseDropInfo) element;
+		if (element instanceof IProposedPromiseDrop) {
+			IProposedPromiseDrop d = (IProposedPromiseDrop) element;
 			return getMainColumnText(d);
 		}
 		return element.toString();
@@ -136,7 +136,7 @@ public final class ProposedPromiseContentProvider extends
 		if (element instanceof Treeable) {
 			return ((Treeable) element).getImage();
 		}
-		if (element instanceof IProposedPromiseDropInfo) {
+		if (element instanceof IProposedPromiseDrop) {
 			return SLImages.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
 		}
 		return null;
@@ -220,7 +220,7 @@ public final class ProposedPromiseContentProvider extends
 	}
 
 	static class Package extends AbstractTreeable<Type> {
-		Package(String p, Collection<IProposedPromiseDropInfo> drops) {
+		Package(String p, Collection<IProposedPromiseDrop> drops) {
 			super("".equals(p) ? SLUtility.JAVA_DEFAULT_PACKAGE : p, Type
 					.organize(drops));
 		}
@@ -230,9 +230,9 @@ public final class ProposedPromiseContentProvider extends
 			return SLImages.getImage(CommonImages.IMG_PACKAGE);
 		}
 
-		static Package[] organize(Collection<IProposedPromiseDropInfo> drops) {
-			MultiMap<String, IProposedPromiseDropInfo> map = new MultiHashMap<String, IProposedPromiseDropInfo>();
-			for (IProposedPromiseDropInfo d : drops) {
+		static Package[] organize(Collection<IProposedPromiseDrop> drops) {
+			MultiMap<String, IProposedPromiseDrop> map = new MultiHashMap<String, IProposedPromiseDrop>();
+			for (IProposedPromiseDrop d : drops) {
 				if (d.getSrcRef() == null) {
 					continue;
 				}
@@ -240,7 +240,7 @@ public final class ProposedPromiseContentProvider extends
 				map.put(key, d);
 			}
 			List<Package> things = new ArrayList<Package>();
-			for (Map.Entry<String, Collection<IProposedPromiseDropInfo>> e : map
+			for (Map.Entry<String, Collection<IProposedPromiseDrop>> e : map
 					.entrySet()) {
 				things.add(new Package(e.getKey(), e.getValue()));
 			}
@@ -259,7 +259,7 @@ public final class ProposedPromiseContentProvider extends
 		final Map<String, Decl> fields = new HashMap<String, Decl>();
 		final Map<String, Decl> methods = new HashMap<String, Decl>();
 		final List<Decl> params = new ArrayList<Decl>();
-		final List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
+		final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
 
 		Decl(String id) {
 			this.id = id;
@@ -292,8 +292,8 @@ public final class ProposedPromiseContentProvider extends
 			return d;
 		}
 
-		IProposedPromiseDropInfo[] getProposals() {
-			return proposals.toArray(new IProposedPromiseDropInfo[proposals
+		IProposedPromiseDrop[] getProposals() {
+			return proposals.toArray(new IProposedPromiseDrop[proposals
 					.size()]);
 		}
 
@@ -362,9 +362,9 @@ public final class ProposedPromiseContentProvider extends
 		}
 	}
 
-	static Decl organize(Collection<IProposedPromiseDropInfo> drops) {
+	static Decl organize(Collection<IProposedPromiseDrop> drops) {
 		Decl root = new Decl("/root");
-		for (IProposedPromiseDropInfo p : drops) {
+		for (IProposedPromiseDrop p : drops) {
 			Decl d = findDecl(root, p.getTargetInfo());
 			d.proposals.add(p);
 		}
@@ -372,10 +372,10 @@ public final class ProposedPromiseContentProvider extends
 	}
 
 	static abstract class Member<T extends Member<?>> extends
-			AbstractTreeable<IProposedPromiseDropInfo> {
+			AbstractTreeable<IProposedPromiseDrop> {
 		final T[] members;
 
-		Member(String id, IProposedPromiseDropInfo[] c, T[] members,
+		Member(String id, IProposedPromiseDrop[] c, T[] members,
 				boolean sort) {
 			super(id, c, sort);
 			this.members = members;
@@ -412,19 +412,19 @@ public final class ProposedPromiseContentProvider extends
 	}
 
 	static class FieldMember extends Member<Type> {
-		FieldMember(String id, IProposedPromiseDropInfo[] c, Type[] types) {
+		FieldMember(String id, IProposedPromiseDrop[] c, Type[] types) {
 			super(id, c, types, false);
 		}
 	}
 
 	static class MethodMember extends Member<Type> {
-		MethodMember(String sig, IProposedPromiseDropInfo[] c, Type[] types) {
+		MethodMember(String sig, IProposedPromiseDrop[] c, Type[] types) {
 			super(sig, c, types, false);
 		}
 	}
 
 	static class Type extends Member<Member<?>> {
-		Type(String t, IProposedPromiseDropInfo[] drops, Member<?>[] members) {
+		Type(String t, IProposedPromiseDrop[] drops, Member<?>[] members) {
 			super(t, drops, members, true);
 		}
 
@@ -433,7 +433,7 @@ public final class ProposedPromiseContentProvider extends
 			return SLImages.getImage(CommonImages.IMG_CLASS);
 		}
 
-		static Type[] organize(Collection<IProposedPromiseDropInfo> proposals) {
+		static Type[] organize(Collection<IProposedPromiseDrop> proposals) {
 			Decl root = ProposedPromiseContentProvider.organize(proposals);
 			return root.getTypes();
 		}

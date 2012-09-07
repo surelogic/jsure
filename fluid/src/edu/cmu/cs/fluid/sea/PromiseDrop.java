@@ -1,7 +1,9 @@
 package edu.cmu.cs.fluid.sea;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -22,7 +24,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Within the Fluid system, promises represent models of design intent or
  * cutpoints for the analyses.
  */
-public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements ISrcRef, IHasPromisedFor {
+public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements IPromiseDrop, ISrcRef, IHasPromisedFor {
 
   public static final String VIRTUAL = "virtual";
 
@@ -196,10 +198,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       /*
        * check if any of our dependent promise drops are checked
        */
-      @SuppressWarnings("unchecked")
-      final Set<PromiseDrop<IAASTRootNode>> p = (Set<PromiseDrop<IAASTRootNode>>) Sea.filterDropsOfTypeMutate(PromiseDrop.class,
-          getDependents());
-      for (PromiseDrop<IAASTRootNode> promise : p) {
+      @SuppressWarnings("rawtypes")
+      final List<PromiseDrop> p = Sea.filterDropsOfType(PromiseDrop.class, getDependentsReference());
+      for (PromiseDrop<?> promise : p) {
         if (promise.isCheckedByAnalysis(examinedPromiseDrops)) {
           return true;
         }
@@ -212,17 +213,16 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Returns a copy of the set of result drops which directly check this promise
    * drop.
    * 
-   * @return a set, all members of the type {@link ResultDrop}, which check this
-   *         promise drop
+   * @return a non-null (possibly empty) set which check this promise drop
    */
-  public final Set<? extends ResultDrop> getCheckedBy() {
+  public final Collection<ResultDrop> getCheckedBy() {
     final Set<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    Set<? extends ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
-    for (ResultDrop rd : s) {
+    List<ResultDrop> ss = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    for (ResultDrop rd : ss) {
       if (rd.getChecks().contains(this)) {
         result.add(rd);
       }
@@ -237,13 +237,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return a set, all members of the type {@link ResultDrop}, which trust this
    *         promise drop
    */
-  public final Set<? extends ResultDrop> getTrustedBy() {
+  public final Collection<ResultDrop> getTrustedBy() {
     final Set<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
-    Set<? extends ResultDrop> s = Sea.filterDropsOfTypeMutate(ResultDrop.class, getDependents());
+    final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
     for (ResultDrop rd : s) {
       if (rd.getTrustsComplete().contains(this)) {
         result.add(rd);
@@ -253,6 +253,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Gets if this promise is assumed.
+   * 
    * @return <code>true</code> if the promise is assumed, <code>false</code>
    *         otherwise.
    */
@@ -261,6 +263,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Sets if this promise is assumed.
+   * 
    * @param isAssumed
    *          <code>true</code> if the promise is assumed, <code>false</code>
    *          otherwise.
@@ -270,6 +274,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /**
+   * Gets if this promise is virtual.
+   * 
    * @return <code>true</code> if the promise is virtual, <code>false</code>
    *         otherwise.
    */
@@ -551,7 +557,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   private PromiseDrop<? extends IAASTRootNode> f_source;
 
   @Override
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "promise-drop";
   }
 

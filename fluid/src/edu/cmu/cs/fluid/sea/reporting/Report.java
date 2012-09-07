@@ -1,7 +1,3 @@
-/*
- * Created on Dec 2, 2004
- *
- */
 package edu.cmu.cs.fluid.sea.reporting;
 
 import java.io.PrintWriter;
@@ -20,9 +16,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 /**
  * Code initially extracted out of the COE ResultsView
- * 
- * @author Edwin
- * 
  */
 public class Report {
   private static String computeKey(Drop drop) {
@@ -43,13 +36,13 @@ public class Report {
   }
 
   public static Map<String, Integer> generateDropCounts() {
-    Set<? extends Drop> drops = Sea.getDefault().getDropsOfType(Drop.class);
+    List<? extends Drop> drops = Sea.getDefault().getDropsOfType(Drop.class);
     // @SuppressWarnings("unchecked")
     // Set<Drop> drops = Sea.getDefault().getDropsOfType(Drop.class);
     return generateDropCounts(drops);
   }
 
-  public static Map<String, Integer> generateDropCounts(Set<? extends Drop> drops) {
+  public static Map<String, Integer> generateDropCounts(Collection<? extends Drop> drops) {
     if (drops.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -87,7 +80,7 @@ public class Report {
       /*
        * Used to catch every drop that gets added, so we can get its dependents
        */
-      public boolean match(IDropInfo d) {
+      public boolean match(IDrop d) {
         if (!(d instanceof Drop)) {
           return false;
         }
@@ -125,7 +118,7 @@ public class Report {
       /*
        * Used to catch every drop that gets added, so we can get its dependents
        */
-      public boolean match(IDropInfo d) {
+      public boolean match(IDrop d) {
         if (!(d instanceof Drop)) {
           return false;
         }
@@ -197,7 +190,7 @@ public class Report {
 
     long plusResults = 0;
     long redXResults = 0;
-    Set<? extends ResultDrop> results = Sea.getDefault().getDropsOfType(ResultDrop.class);
+    List<? extends ResultDrop> results = Sea.getDefault().getDropsOfType(ResultDrop.class);
     for (ResultDrop result : results) {
       // ResultDrop result = i.next();
       line(out);

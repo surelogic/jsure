@@ -50,7 +50,7 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -225,7 +225,7 @@ private static int cuCount = 0;
     }
     
     private DropPredicate tRoleDeclPred = new DropPredicate() {
-      public boolean match(IDropInfo d) {
+      public boolean match(IDrop d) {
         return d.instanceOf(TRoleDeclareDrop.class);
       }
     };

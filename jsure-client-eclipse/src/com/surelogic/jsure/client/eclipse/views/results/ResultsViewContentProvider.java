@@ -18,7 +18,7 @@ extends GenericResultsViewContentProvider<Drop,Content> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected <R extends IDropInfo>
+	protected <R extends IDrop>
 	Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
 		return (Collection<R>) Sea.getDefault().getDropsOfType(type);
 	}

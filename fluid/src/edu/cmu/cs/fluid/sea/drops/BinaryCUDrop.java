@@ -66,7 +66,7 @@ public class BinaryCUDrop extends CUDrop {
 
   public static Collection<BinaryCUDrop> invalidateAll() {	  
 	  //Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
-	  final Set<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
+	  final List<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
 	  for(BinaryCUDrop d : drops) {
 		  d.invalidate();
 	  }

@@ -42,8 +42,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
   IWarningReport reporter = SilentWarningReport.prototype;
 
-  final Collection<IPromiseAnnotation> annos = new ArrayList<IPromiseAnnotation>();
-
   final Map<String, IAnnotationParseRule> parseMap = new HashMap<String, IAnnotationParseRule>(); 
   final Map<String, IPromiseDropStorage> storageMap = new HashMap<String, IPromiseDropStorage>(); 
   
@@ -81,11 +79,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
   public IWarningReport getReporter() {
     return reporter;
-  }
-
-  public void registerAnnotation(IPromiseAnnotation anno) {
-    annos.add(anno);
-    anno.register(this);
   }
 
   /**
@@ -228,54 +221,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
       }
       
     };
-  }
-
-  static class CheckReport implements IPromiseCheckReport {
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.bind.IPromiseCheckReport#reportWarning(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.ir.IRNode)
-     */
-    public void reportWarning(String description, IRNode promise) {
-      PromiseFramework.getInstance().getReporter().reportWarning(description, promise);
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.bind.IPromiseCheckReport#reportError(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.ir.IRNode)
-     */
-    public void reportError(String description, IRNode promise) {
-      PromiseFramework.getInstance().getReporter().reportProblem(description, promise);
-      if (promise != null) {
-        AbstractPromiseAnnotation.setBogus(promise, true);
-        LOG.info("Setting as BOGUS due to "+description+": "+DebugUnparser.toString(promise));
-      }
-    }
-  }
-
-  final IPromiseCheckReport checkReporter = new CheckReport();
-
-  /**
-   * Get all the infos available
-   * @return
-   */
-  public Iterator<TokenInfo> getTokenInfos() {
-    Iterator<IPromiseStorage> it = storSet.iterator();
-    if (!it.hasNext()) {
-      return new EmptyIterator<TokenInfo>();
-    }
-    return new FilterIterator<IPromiseStorage,TokenInfo>(it) {
-      @Override protected Object select(IPromiseStorage o) {
-        return AbstractPromiseAnnotation.getInfo(o);
-      }
-    };
-  }
-  
-  public <T extends PromiseDrop> 
-  SlotInfo<T> findSlotInfo(String promise, Class<T> cls) {
-    for(IPromiseStorage s : storSet) {
-      if (promise.equals(s.name())) {
-        return AbstractPromiseAnnotation.getInfo(s).si;
-      }
-    }
-    return null;
   }
 
   /**

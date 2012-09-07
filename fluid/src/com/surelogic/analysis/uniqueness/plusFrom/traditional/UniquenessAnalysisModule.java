@@ -225,8 +225,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         System.out.println("______________________ too long ______________: " + methodName);
-        final InfoDropBuilder info =
-          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
+        final InfoDropBuilder info = InfoDropBuilder.create(this, WarningDrop.factory);
         this.setResultDependUponDrop(info, node.methodDecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
@@ -529,8 +528,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		    if (uniqueFields.isEmpty()) {
 		      aggregatedUniqueFields = null;
 		    } else {
-          final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-              UniquenessAnalysisModule.this, Messages.toString(Messages.AGGREGATED_UNIQUE_FIELDS));
+          final ResultDropBuilder middleDrop = ResultDropBuilder.create(UniquenessAnalysisModule.this);
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
@@ -551,8 +549,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (myUniqueParams.isEmpty()) {
           aggregatedUniqueParams = null;
         } else {
-          final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-              UniquenessAnalysisModule.this, Messages.toString(Messages.AGGREGATED_UNIQUE_PARAMS));
+          final ResultDropBuilder middleDrop = ResultDropBuilder.create(UniquenessAnalysisModule.this);
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
@@ -573,7 +570,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	ResultDropBuilder getMethodControlFlowDrop(final IRNode block) {
     ResultDropBuilder drop = cachedControlFlow.get(block);
     if (drop == null || !drop.isValid()) {
-      drop = ResultDropBuilder.create(this, Messages.toString(Messages.METHOD_CONTROL_FLOW));
+      drop = ResultDropBuilder.create(this);
       drop.setConsistent();
       setResultDependUponDrop(drop, block);
 
@@ -935,8 +932,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         final Set<ResultDropBuilder> allCallDrops = new HashSet<ResultDropBuilder>();
         final String label = DebugUnparser.toString(currentNode);
         if (!uniqueReturns.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.UNIQUE_RETURN),
-              currentNode, uniqueReturns, Messages.UNIQUE_RETURN, label);
+          final ResultDropBuilder callDrop = getMethodCallDrop(currentNode, uniqueReturns, Messages.UNIQUE_RETURN, label);
           if (!isConstructorCall) {
             allCallDrops.add(callDrop);
             // Unique returns is a singleton set
@@ -951,8 +947,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           }
         }
         if (!borrowedParams.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.BORROWED_PARAMETERS),
-              currentNode, borrowedParams, Messages.BORROWED_PARAMETERS, label);
+          final ResultDropBuilder callDrop = getMethodCallDrop(currentNode, borrowedParams, Messages.BORROWED_PARAMETERS, label);
           allCallDrops.add(callDrop);
           pr.calledBorrowedParams.add(callDrop);
           
@@ -971,7 +966,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           /* Here we hold off setting the message and category until the 
            * call is actually assured in checkMethodCall()
            */
-          final ResultDropBuilder callDrop = ResultDropBuilder.create(this, Messages.toString(Messages.UNIQUE_PARAMETERS_SATISFIED));
+          final ResultDropBuilder callDrop = ResultDropBuilder.create(this);
           callDrop.setConsistent();
           setResultDependUponDrop(callDrop, currentNode);
           // This result checks the uniqueness promises of the parameters
@@ -987,8 +982,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           pr.calledUniqueParams.add(callDrop);          
         }
         if (!effects.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.CALL_EFFECT),
-              currentNode, effects, Messages.CALL_EFFECT, label);
+          final ResultDropBuilder callDrop = getMethodCallDrop(currentNode, effects, Messages.CALL_EFFECT, label);
           allCallDrops.add(callDrop);
           pr.calledEffects.add(callDrop);
         }
@@ -1103,32 +1097,31 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		}
 	}
 
-	private <D extends PromiseDrop<? extends IAASTRootNode>> ResultDropBuilder
-	getMethodCallDrop(final String type, final IRNode n, final Set<D> promises, int num, Object... args) {
-		final ResultDropBuilder rd = ResultDropBuilder.create(this, type);
-		rd.setConsistent();
-		rd.setResultMessage(num, args);
-		setResultDependUponDrop(rd, n);
-		for (final D pd : promises) {
-			rd.addTrustedPromise(pd);
-		}
-		return rd;
-	}
+  private <D extends PromiseDrop<? extends IAASTRootNode>> ResultDropBuilder getMethodCallDrop(final IRNode n,
+      final Set<D> promises, int num, Object... args) {
+    final ResultDropBuilder rd = ResultDropBuilder.create(this);
+    rd.setConsistent();
+    rd.setResultMessage(num, args);
+    setResultDependUponDrop(rd, n);
+    for (final D pd : promises) {
+      rd.addTrustedPromise(pd);
+    }
+    return rd;
+  }
 
-	private <PD1 extends PromiseDrop<? extends IAASTRootNode>>
-	void addDependencies(final Set<PD1> promises,
-			final Set<ResultDropBuilder> dependsOnResults) {
-		if (!dependsOnResults.isEmpty()) {
-			for (final PD1 promiseToCheck : promises) {
-				// Add depended on method calls, etc.
-				if (!dependsOnResults.isEmpty()) {
-					for (ResultDropBuilder rd : dependsOnResults) {
-						rd.addCheckedPromise(promiseToCheck);
-					}
-				}
-			}
-		}
-	}
+  private <PD1 extends PromiseDrop<? extends IAASTRootNode>> void addDependencies(final Set<PD1> promises,
+      final Set<ResultDropBuilder> dependsOnResults) {
+    if (!dependsOnResults.isEmpty()) {
+      for (final PD1 promiseToCheck : promises) {
+        // Add depended on method calls, etc.
+        if (!dependsOnResults.isEmpty()) {
+          for (ResultDropBuilder rd : dependsOnResults) {
+            rd.addCheckedPromise(promiseToCheck);
+          }
+        }
+      }
+    }
+  }
 	
 	
 	

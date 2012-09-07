@@ -43,7 +43,7 @@ public class TRoleIncSummaryDrop extends PhantomDrop implements IThreadRoleDrop 
     JBDD resExpr = TRoleBDDPack.one();
     
     Collection<? extends TRoleIncompatibleDrop> incompatibles =
-      Sea.filterDropsOfTypeMutate(TRoleIncompatibleDrop.class, canonModel.getDependents());
+      Sea.filterDropsOfType(TRoleIncompatibleDrop.class, canonModel.getDependents());
     
     for (TRoleIncompatibleDrop inc : incompatibles) {      
       JBDD tExpr = inc.getConflictExpr();

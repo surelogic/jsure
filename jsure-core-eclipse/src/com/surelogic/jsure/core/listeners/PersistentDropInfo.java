@@ -17,7 +17,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
@@ -27,7 +27,7 @@ public class PersistentDropInfo implements SeaObserver {
 	private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
 
 	private long timestamp = Long.MIN_VALUE;
-	private List<IDropInfo> dropInfo = Collections.emptyList();
+	private List<IDrop> dropInfo = Collections.emptyList();
 	private final List<SeaObserver> listeners = new CopyOnWriteArrayList<SeaObserver>();
 	private final File location;
 
@@ -100,7 +100,7 @@ public class PersistentDropInfo implements SeaObserver {
 	}
 
 	public synchronized String findProjectsLabel() {
-		for (IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
+		for (IDrop info : getDropsOfType(ProjectsDrop.class)) {
 			return info.getAttribute(AbstractXMLReader.PROJECTS);
 		}
 		return null;
@@ -110,12 +110,12 @@ public class PersistentDropInfo implements SeaObserver {
 		return dropInfo.isEmpty();
 	}
 
-	public synchronized Collection<? extends IDropInfo> getRawInfo() {
+	public synchronized Collection<? extends IDrop> getRawInfo() {
 		return dropInfo;
 	}
 
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
-		for (IDropInfo i : dropInfo) {
+		for (IDrop i : dropInfo) {
 			if (i.instanceOf(type)) {
 				return true;
 			}
@@ -124,11 +124,11 @@ public class PersistentDropInfo implements SeaObserver {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(
+	public synchronized <T extends IDrop, T2 extends Drop> Set<T> getDropsOfType(
 			Class<T2> dropType) {
 		if (!dropInfo.isEmpty()) {
 			final Set<T> result = new HashSet<T>();
-			for (IDropInfo i : dropInfo) {
+			for (IDrop i : dropInfo) {
 				if (i.instanceOf(dropType)) {
 					result.add((T) i);
 				}

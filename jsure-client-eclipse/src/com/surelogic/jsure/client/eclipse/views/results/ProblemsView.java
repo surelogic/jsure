@@ -30,10 +30,10 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
-public final class ProblemsView extends AbstractScanTableView<IDropInfo>
+public final class ProblemsView extends AbstractScanTableView<IDrop>
 		implements EclipseUIUtility.IContextMenuFiller {
 
 	private final Action f_copy = makeCopyAction(
@@ -52,7 +52,7 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo>
 	};
 
 	public ProblemsView() {
-		super(SWT.NONE, IDropInfo.class, new ProblemsViewContentProvider());
+		super(SWT.NONE, IDrop.class, new ProblemsViewContentProvider());
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo>
 	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
-				final IDropInfo info = (IDropInfo) o;
+				final IDrop info = (IDrop) o;
 				if (!info.getProposals().isEmpty()) {
 					manager.add(f_annotate);
 					manager.add(new Separator());
@@ -128,9 +128,9 @@ public final class ProblemsView extends AbstractScanTableView<IDropInfo>
 	}
 
 	@Override
-	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
-		List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
-		for (IDropInfo info : getSelectedRows()) {
+	protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
+		List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
+		for (IDrop info : getSelectedRows()) {
 			proposals.addAll(info.getProposals());
 		}
 		return proposals;

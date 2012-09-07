@@ -18,8 +18,8 @@ import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -33,7 +33,7 @@ public class JSureScanInfo {
 	 */
 	private static final boolean skipLoading = false;
 
-	private List<IDropInfo> f_dropInfo = null;
+	private List<IDrop> f_dropInfo = null;
 
 	private final JSureScan f_run; // non-null
 
@@ -60,7 +60,7 @@ public class JSureScanInfo {
 		return null;
 	}
 
-	private synchronized List<IDropInfo> loadOrGetDropInfo() {
+	private synchronized List<IDrop> loadOrGetDropInfo() {
 		if (f_dropInfo != null) {
 			return f_dropInfo;
 		}
@@ -99,10 +99,10 @@ public class JSureScanInfo {
 		}
 		final Pattern[] excludePatterns = 
 			ToolProperties.makePackageMatchers(packages.toArray(new String[packages.size()]));
-		final Iterator<IDropInfo> it = f_dropInfo.iterator();
+		final Iterator<IDrop> it = f_dropInfo.iterator();
 	   outer:
 		while (it.hasNext()) {
-			final IDropInfo d = it.next();
+			final IDrop d = it.next();
 			final ISrcRef sr = d.getSrcRef();
 			if (sr == null) {
 				continue outer;
@@ -136,12 +136,12 @@ public class JSureScanInfo {
 		return loadOrGetDropInfo().isEmpty();
 	}
 
-	public synchronized List<IDropInfo> getDropInfo() {
+	public synchronized List<IDrop> getDropInfo() {
 		return loadOrGetDropInfo();
 	}
 
 	public synchronized boolean dropsExist(Class<? extends Drop> type) {
-		for (IDropInfo i : loadOrGetDropInfo()) {
+		for (IDrop i : loadOrGetDropInfo()) {
 			if (i.instanceOf(type)) {
 				return true;
 			}
@@ -150,12 +150,12 @@ public class JSureScanInfo {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(
+	public synchronized <T extends IDrop, T2 extends Drop> Set<T> getDropsOfType(
 			Class<T2> dropType) {
-		List<IDropInfo> info = loadOrGetDropInfo();
+		List<IDrop> info = loadOrGetDropInfo();
 		if (!info.isEmpty()) {
 			final Set<T> result = new HashSet<T>();
-			for (IDropInfo i : info) {
+			for (IDrop i : info) {
 				if (i.instanceOf(dropType)) {
 					result.add((T) i);
 				}
@@ -165,11 +165,11 @@ public class JSureScanInfo {
 		return Collections.emptySet();
 	}
 
-	public synchronized List<IProofDropInfo> getProofDropInfo() {
-		final List<IProofDropInfo> result = new ArrayList<IProofDropInfo>();
-		for (IDropInfo i : loadOrGetDropInfo()) {
-			if (i instanceof IProofDropInfo) {
-				final IProofDropInfo ipd = (IProofDropInfo) i;
+	public synchronized List<IProofDrop> getProofDropInfo() {
+		final List<IProofDrop> result = new ArrayList<IProofDrop>();
+		for (IDrop i : loadOrGetDropInfo()) {
+			if (i instanceof IProofDrop) {
+				final IProofDrop ipd = (IProofDrop) i;
 				result.add(ipd);
 			}
 		}
@@ -177,7 +177,7 @@ public class JSureScanInfo {
 	}
 
 	public synchronized String findProjectsLabel() {
-		for (IDropInfo info : getDropsOfType(ProjectsDrop.class)) {
+		for (IDrop info : getDropsOfType(ProjectsDrop.class)) {
 			return info.getAttribute(AbstractXMLReader.PROJECTS);
 		}
 		return null;

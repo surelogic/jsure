@@ -1,8 +1,9 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 
@@ -40,47 +40,8 @@ public final class Sea {
   }
 
   /**
-   * Gets the set of all valid drops in this sea.
-   * 
-   * @return the set of all valid drops in this sea.
-   */
-  public Set<Drop> getDrops() {
-    return new HashSet<Drop>(f_validDrops);
-  }
-
-  /**
-   * Returns the set of drops within this sea that are of <code>dropType</code>
-   * or any of its subtypes.
-   * <p>
-   * Typical use would be to extract all drops in the sea that are assignment
-   * compatible with a specific type, as shown in the below code snippet.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Sea.getDefault().getDropsOfType(Drop.class) = { d1 , d2, d3 }
-   *    Sea.getDefault().getDropsOfType(MyDrop.class) = { d2, d3 }
-   *    Sea.getDefault().getDropsOfType(MySubDrop.class) = { d3 }
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops desired.
-   * @return the set of drops found.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> Set<T> getDropsOfType(Class<T> dropType) {
-    return filterDropsOfType(dropType, f_validDrops);
-  }
-
-  /**
-   * Returns the set of drops within <code>dropSet</code> that are of
-   * <code>dropType</code> or any of its subtypes.
+   * Returns a new list that contains drops within <code>drops</code> that are
+   * of <code>dropType</code> or any of its subtypes.
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
    * subset are assignment compatible with a specific type, as shown in the
@@ -89,126 +50,47 @@ public final class Sea {
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;Drop&gt; r1 = Sea.filterDropsOfType(Drop.class, r);
-   *    (NOTE) r1 = { d1, d2, d3 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfType(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;MyDrop&gt; r1 = Sea.filterDropsOfType(MyDrop.class, r);
+   *    (NOTE) r1 = { d1, d2 }
+   *    List&lt;MySubDrop&gt; r2 = Sea.filterDropsOfType(MySubDrop.class, r);
+   *    (NOTE) r2 = { d2 }
    * </pre>
    * 
    * @param dropType
    *          the type of drops desired.
-   * @param dropSet
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops found.
+   * @param drops
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfType(Class<T> dropType, Set<Drop> dropSet) {
+  public static <T extends Drop> List<T> filterDropsOfType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (dropSet == null)
-      throw new IllegalArgumentException("dropSet must be non-null");
-    final Set<T> result = new HashSet<T>();
-    for (Drop drop : dropSet) {
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
+
+    final List<T> result = new ArrayList<T>();
+    for (final Drop drop : drops) {
       if (dropType.isInstance(drop)) {
-        result.add((T) drop);
+        @SuppressWarnings("unchecked")
+        final T dropToAdd = (T) drop;
+        result.add(dropToAdd);
       }
     }
     return result;
   }
 
   /**
-   * Mutates <code>mutableDropSet</code> removing all drops from it that are not
-   * of <code>dropType</code> or any of its subtypes. This method returns a
-   * references to the mutated set that is up-cast (the client is warned that
-   * subsequent mutations to <code>mutableDropSet</code> via the reference
-   * passed to this method could invalidate the up-cast).
-   * <p>
-   * Due to the up-cast, this method is less "safe" than
-   * {@link #filterDropsOfType(Class, Set)}, however, it can improve performance
-   * by avoiding creating a copy if the original drop set is no longer needed.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
-   *    (NOTE) r2.equals(r)
-   *    r.add(d1); // bad! set mutation violates up-cast
-   *    for (MySubDrop d : r2) { ... } // throws a ClassCastException
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops desired.
-   * @param mutableDropSet
-   *          the set of drops to mutate.
-   * @return an up-cast reference to <code>mutableDropSet</code>.
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<? extends T> filterDropsOfTypeMutate(Class<T> dropType, Set<Drop> mutableDropSet) {
-    if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (mutableDropSet == null)
-      throw new IllegalArgumentException("mutableDropSet must be non-null");
-    for (Iterator<Drop> i = mutableDropSet.iterator(); i.hasNext();) {
-      Drop drop = i.next();
-      if (!dropType.isInstance(drop)) {
-        i.remove();
-      }
-    }
-    return (Set<T>) mutableDropSet;
-  }
-
-  /**
-   * Returns the set of drops within this sea that are of <code>dropType</code>
-   * (subtypes are <i>not</i> included).
-   * <p>
-   * Typical use would be to extract all drops in the sea that are of a specific
-   * type, as shown in the below code snippet.
-   * 
-   * <pre>
-   *    class MyDrop extends Drop { ... }
-   *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
-   *      
-   *    Sea.getDefault().getDropsOfExactType(Drop.class) = { d1 }
-   *    Sea.getDefault().getDropsOfExactType(MyDrop.class) = { d2 }
-   *    Sea.getDefault().getDropsOfExactType(MySubDrop.class) = { d3 }
-   * </pre>
-   * 
-   * @param dropType
-   *          the type of drops to look for in the sea
-   * @return the set of drops found
-   * 
-   * @throws IllegalArgumentException
-   *           if any of the parameters are null.
-   */
-  public <T extends Drop> Set<T> getDropsOfExactType(Class<T> dropType) {
-    return filterDropsOfExactType(dropType, f_validDrops);
-  }
-
-  /**
-   * Returns the set of drops within <code>dropSet</code> that are of
-   * <code>dropType</code> (subtypes are <i>not</i> included).
+   * Returns a new list that contains drops within <code>drops</code> that are
+   * of <code>dropType</code>&mdash;subtypes are <i>not</i> included.
    * <p>
    * Typical use would be to subset a set of drops such that all drops in the
    * subset are of a specific type, as shown in the below code snippet.
@@ -216,98 +98,131 @@ public final class Sea {
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;Drop&gt; r1 = Sea.filterDropsOfExactType(Drop.class, r);
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;MyDrop&gt; r1 = Sea.filterDropsOfExactType(MyDrop.class, r);
    *    (NOTE) r1 = { d1 }
-   *    Set&lt;MySubDrop&gt; r2 = Sea.filterDropsOfExactType(MySubDrop.class, r);
-   *    (NOTE) r2 = { d3 }
+   *    List&lt;MySubDrop&gt; r2 = Sea.filterDropsOfExactType(MySubDrop.class, r);
+   *    (NOTE) r2 = { d2 }
    * </pre>
    * 
    * @param dropType
    *          the exact type of drops desired.
-   * @param dropSet
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops found
+   * @param drops
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfExactType(Class<T> dropType, Set<Drop> dropSet) {
+  public static <T extends Drop> List<T> filterDropsOfExactType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (dropSet == null)
-      throw new IllegalArgumentException("dropSet must be non-null");
-    final Set<T> result = new HashSet<T>();
-    for (Drop drop : dropSet) {
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (drops == null)
+      throw new IllegalArgumentException(I18N.err(44, "drops"));
+
+    final List<T> result = new ArrayList<T>();
+    for (final Drop drop : drops) {
       if (drop.getClass().equals(dropType)) {
-        T dr = (T) drop;
-        result.add(dr);
+        @SuppressWarnings("unchecked")
+        final T dropToAdd = (T) drop;
+        result.add(dropToAdd);
       }
     }
     return result;
   }
 
   /**
-   * Mutates <code>mutableDropSet</code> removing all drops from it that are not
-   * of <code>dropType</code> (subtypes are <i>not</i> included). This method
-   * returns a references to the mutated set that is up-cast (the client is
-   * warned that subsequent mutations to <code>mutableDropSet</code> via the
-   * reference passed to this method could invalidate the up-cast).
-   * <p>
-   * Due to the up-cast, this method is less "safe" than
-   * {@link #filterDropsOfExactType(Class, Set)}, however, it can improve
-   * performance by avoiding creating a copy if the original drop set is no
-   * longer needed.
+   * Mutates the <code>mutableDrops</code> collection removing all drops from it
+   * that are not of <code>dropType</code> or any of its subtypes. This method
+   * returns a reference to <code>mutableDrops</code>.
    * 
    * <pre>
    *    class MyDrop extends Drop { ... }
    *    class MySubDrop extends MyDrop { ... }
-   *    Drop d1 = new Drop();
-   *    MyDrop d2 = new MyDrop();
-   *    MySubDrop d3 = new MySubDrop();
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
    *      
-   *    Set&lt;Drop&gt; r = Sea.getDefault().getDrops();
-   *    (NOTE) r = { d1, d2, d3 }
-   *    Set&lt;MyDrop&gt; r2 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, r);
-   *    (NOTE) r2 = { d2 }
-   *    (NOTE) r2.equals(r)
-   *    r.add(d1); // bad! set mutation violates up-cast
-   *    for (MyDrop d : r2) { ... } // throws a ClassCastException
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;Drop&gt; r1 = Sea.filterDropsOfTypeMutate(MySubDrop.class, r);
+   *    (NOTE) r1 = { d2 }
+   *    (NOTE) r1.equals(r)
    * </pre>
    * 
    * @param dropType
    *          the type of drops desired.
-   * @param mutableDropSet
-   *          the set of drops to mutate.
-   * @return an up-cast reference to <code>mutableDropSet</code>.
+   * @param mutableDrops
+   *          the collection of drops to mutate.
+   * @return a reference to <tt>mutableDrops</tt>.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends Drop> Set<T> filterDropsOfExactTypeMutate(Class<T> dropType, Set<Drop> mutableDropSet) {
+  public static <T extends Drop, C extends Collection<Drop>> C filterDropsOfTypeMutate(Class<T> dropType, C mutableDrops) {
     if (dropType == null)
-      throw new IllegalArgumentException("type must be non-null");
-    if (mutableDropSet == null)
-      throw new IllegalArgumentException("mutableDropSet must be non-null");
-    for (Iterator<Drop> i = mutableDropSet.iterator(); i.hasNext();) {
-      Drop drop = i.next();
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (mutableDrops == null)
+      throw new IllegalArgumentException(I18N.err(44, "mutableDrops"));
+
+    for (final Iterator<Drop> i = mutableDrops.iterator(); i.hasNext();) {
+      final Drop drop = i.next();
+      if (!dropType.isInstance(drop)) {
+        i.remove();
+      }
+    }
+    return mutableDrops;
+  }
+
+  /**
+   * Mutates the <code>mutableDrops</code> collection removing all drops from it
+   * that are not of <code>dropType</code>&mdash;subtypes are removed. This
+   * method returns a reference to <code>mutableDrops</code>.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    MyDrop d1 = new MyDrop();
+   *    MySubDrop d2 = new MySubDrop();
+   *      
+   *    List&lt;Drop&gt; r = Sea.getDefault().getDrops();
+   *    (NOTE) r = { d1, d2 }
+   *    List&lt;Drop&gt; r1 = Sea.filterDropsOfExactTypeMutate(MyDrop.class, r);
+   *    (NOTE) r1 = { d1 }
+   *    (NOTE) r1.equals(r)
+   * </pre>
+   * 
+   * @param dropType
+   *          the exact type of drops desired.
+   * @param mutableDrops
+   *          the collection of drops to mutate.
+   * @return a reference to <tt>mutableDrops</tt>.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public static <T extends Drop, C extends Collection<Drop>> C filterDropsOfExactTypeMutate(Class<T> dropType, C mutableDrops) {
+    if (dropType == null)
+      throw new IllegalArgumentException(I18N.err(44, "dropType"));
+    if (mutableDrops == null)
+      throw new IllegalArgumentException(I18N.err(44, "mutableDrops"));
+
+    for (final Iterator<Drop> i = mutableDrops.iterator(); i.hasNext();) {
+      final Drop drop = i.next();
       if (!drop.getClass().equals(dropType)) {
         i.remove();
       }
     }
-    return (Set<T>) mutableDropSet;
+    return mutableDrops;
   }
 
   /**
-   * Returns the set of drops within <code>dropSet</code> that match the given
-   * drop predicate.
+   * Returns a new set that contains drops within <code>dropSet</code> that
+   * match the given drop predicate.
    * 
    * @param pred
    *          the drop predicate to apply to the drop set.
@@ -319,7 +234,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> Set<T> filter(DropPredicate pred, Set<T> dropSet) {
+  public static <T extends Drop> Set<T> filter(DropPredicate pred, Collection<T> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -342,7 +257,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> void filterMutate(DropPredicate pred, Set<T> mutableDropSet) {
+  public static <T extends Drop> void filterMutate(DropPredicate pred, Collection<T> mutableDropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (mutableDropSet == null)
@@ -370,7 +285,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static boolean hasMatchingDrops(DropPredicate pred, Set<? extends Drop> dropSet) {
+  public static boolean hasMatchingDrops(DropPredicate pred, Collection<? extends Drop> dropSet) {
     if (pred == null)
       throw new IllegalArgumentException(I18N.err(44, "pred"));
     if (dropSet == null)
@@ -398,8 +313,8 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends IDropInfo> void addMatchingDropsFrom(Set<? extends T> sourceDropSet, DropPredicate pred,
-      Set<T> mutableResultDropSet) {
+  public static <T extends IDrop> void addMatchingDropsFrom(Collection<? extends T> sourceDropSet, DropPredicate pred,
+      Collection<T> mutableResultDropSet) {
     if (sourceDropSet == null)
       throw new IllegalArgumentException(I18N.err(44, "sourceDropSet"));
     if (pred == null)
@@ -426,11 +341,11 @@ public final class Sea {
    *          the promise drop information.
    * @return the annotation name or {@code null}.
    */
-  public static String getAnnotationName(IProofDropInfo promiseDropInfo) {
+  public static String getAnnotationName(IProofDrop promiseDropInfo) {
     final String suffix = "PromiseDrop";
     if (!promiseDropInfo.instanceOf(PromiseDrop.class))
       return null;
-    final String result = promiseDropInfo.getType();
+    final String result = promiseDropInfo.getTypeName();
     if (result == null)
       return null;
     // Special cases
@@ -444,6 +359,96 @@ public final class Sea {
     if (!result.endsWith(suffix))
       return null;
     return result.substring(0, result.length() - suffix.length());
+  }
+
+  /**
+   * Gets a new list of all the valid drops in this sea.
+   * 
+   * @return a list of drops.
+   */
+  public List<Drop> getDrops() {
+    synchronized (f_validDrops) {
+      return new ArrayList<Drop>(f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops within this sea that are of
+   * <code>dropType</code> or any of its subtypes.
+   * <p>
+   * Typical use would be to extract all drops in the sea that are assignment
+   * compatible with a specific type, as shown in the below code snippet.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    Drop d1 = new Drop();
+   *    MyDrop d2 = new MyDrop();
+   *    MySubDrop d3 = new MySubDrop();
+   *      
+   *    Sea.getDefault().getDropsOfType(Drop.class) = { d1, d2, d3 }
+   *    Sea.getDefault().getDropsOfType(MyDrop.class) = { d2, d3 }
+   *    Sea.getDefault().getDropsOfType(MySubDrop.class) = { d3 }
+   * </pre>
+   * 
+   * @param dropType
+   *          the type of drops desired.
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public <T extends Drop> List<T> getDropsOfType(Class<T> dropType) {
+    synchronized (f_validDrops) {
+      return filterDropsOfType(dropType, f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops within this sea that are of
+   * <code>dropType</code>&mdash;subtypes are <i>not</i> included.
+   * <p>
+   * Typical use would be to extract all drops in the sea that are of a specific
+   * type, as shown in the below code snippet.
+   * 
+   * <pre>
+   *    class MyDrop extends Drop { ... }
+   *    class MySubDrop extends MyDrop { ... }
+   *    Drop d1 = new Drop();
+   *    MyDrop d2 = new MyDrop();
+   *    MySubDrop d3 = new MySubDrop();
+   *      
+   *    Sea.getDefault().getDropsOfExactType(Drop.class) = { d1 }
+   *    Sea.getDefault().getDropsOfExactType(MyDrop.class) = { d2 }
+   *    Sea.getDefault().getDropsOfExactType(MySubDrop.class) = { d3 }
+   * </pre>
+   * 
+   * @param dropType
+   *          the type of drops desired.
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public <T extends Drop> List<T> getDropsOfExactType(Class<T> dropType) {
+    synchronized (f_validDrops) {
+      return filterDropsOfExactType(dropType, f_validDrops);
+    }
+  }
+
+  /**
+   * Returns a new list of drops that is matched by <tt>pred</tt>.
+   * 
+   * @param pred
+   * @return a list of matching drops.
+   * 
+   * @throws IllegalArgumentException
+   *           if any of the parameters are null.
+   */
+  public List<Drop> getDropsMatching(DropPredicate pred) {
+    synchronized (f_validDrops) {
+      return null; // TODO
+    }
   }
 
   /**
@@ -542,12 +547,13 @@ public final class Sea {
   public void invalidateAll() {
     // we need to make a copy of the set of drops in the sea as the set will
     // be changing (rapidly) as we invalidate drops within it
-    final Set<Drop> safeCopy = new HashSet<Drop>();
-    safeCopy.addAll(f_validDrops);
+    final Collection<Drop> safeCopy;
+    synchronized (f_validDrops) {
+      safeCopy = new ArrayList<Drop>(f_validDrops);
+    }
     for (Drop drop : safeCopy) {
       drop.invalidate();
     }
-    assert (f_validDrops.isEmpty());
   }
 
   /**
@@ -594,21 +600,19 @@ public final class Sea {
    * @see ProofDrop#proofUsesRedDot()
    */
   public synchronized long updateConsistencyProof() {
-    if (timeStamp != INVALIDATED) {
-      return timeStamp;
+    if (f_timeStamp != INVALIDATED) {
+      return f_timeStamp;
     }
-    if (LOG.isLoggable(Level.FINE))
-      LOG.fine("Updating consistency proof: " + timeStamp);
 
-    if (proofInit != null) {
-      proofInit.init(this);
-    }
+    // TODO BAD TO DO THIS HOLDING LOCK
+    for (SeaConsistencyProofHook hook : f_proofHooks)
+      hook.preConsistencyProof(this);
 
     /*
      * Initialize drop-sea flow analysis "proof" (a drop-sea query)
      */
-    worklist = new LinkedList<ProofDrop>();
-    Set<? extends ProofDrop> s = this.getDropsOfType(ProofDrop.class);
+    final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
+    final List<ProofDrop> s = this.getDropsOfType(ProofDrop.class);
     for (ProofDrop d : s) {
       if (d instanceof PromiseDrop) {
 
@@ -630,7 +634,7 @@ public final class Sea {
         pd.provedConsistent = true; // assume true
         pd.derivedFromSrc = pd.isFromSrc();
 
-        Set<? extends ResultDrop> analysisResults = pd.getCheckedBy();
+        Collection<ResultDrop> analysisResults = pd.getCheckedBy();
         for (ResultDrop result : analysisResults) {
           /*
            * & in local result
@@ -654,6 +658,20 @@ public final class Sea {
         rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
         rd.derivedFromSrc = rd.isFromSrc();
+      } else if (d instanceof ResultFolderDrop) {
+
+          /*
+           * RESULT FOLDER DROP
+           */
+
+    	  ResultFolderDrop rd = (ResultFolderDrop) d;
+
+          // result drops, by definition, can not start off with a red dot
+          rd.proofUsesRedDot = false;
+
+          rd.provedConsistent = true;
+
+          rd.derivedFromSrc = rd.isFromSrc();
       } else {
         LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
       }
@@ -669,141 +687,6 @@ public final class Sea {
       for (ProofDrop d : worklist) {
         boolean oldProofIsConsistent = d.provedConsistent;
         boolean oldProofUsesRedDot = d.proofUsesRedDot;
-
-        if (d instanceof PromiseDrop) {
-
-          /*
-           * PROMISE DROP
-           */
-
-          @SuppressWarnings("unchecked")
-          final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-
-          // examine dependent analysis results and dependent promises
-          Set<? extends ResultDrop> tpd = pd.getCheckedBy();
-
-          Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(tpd.size());
-          for (ProofDrop t : tpd) {
-            proofDrops.add(t);
-          }
-          proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
-          for (ProofDrop result : proofDrops) {
-            // all must be consistent for this drop to be consistent
-            pd.provedConsistent &= result.provedConsistent;
-            // any red dot means this drop depends upon a red dot
-            if (result.proofUsesRedDot)
-              pd.proofUsesRedDot = true;
-          }
-        } else if (d instanceof ResultDrop) {
-
-          /*
-           * RESULT DROP
-           */
-
-          ResultDrop rd = (ResultDrop) d;
-
-          // "and" trust promise drops
-          Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop<? extends IAASTRootNode> promise = j.next();
-            // all must be consistent for this drop to be consistent
-            rd.provedConsistent &= promise.provedConsistent;
-            // any red dot means this drop depends upon a red dot
-            if (promise.proofUsesRedDot)
-              rd.proofUsesRedDot = true;
-          }
-          // "or" trust promise drops
-          if (rd.hasOrLogic()) { // skip this in the common case
-            boolean overall_or_Result = false;
-            boolean overall_or_UsesRedDot = false;
-            Set<String> orLabels = rd.get_or_TrustLabelSet();
-            for (String orKey : orLabels) {
-              boolean choiceResult = true;
-              boolean choiceUsesRedDot = false;
-              Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
-              for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
-                // all must be consistent for this choice to be
-                // consistent
-                choiceResult &= promise.provedConsistent;
-                // any red dot means this choice depends upon a
-                // red dot
-                if (promise.proofUsesRedDot)
-                  choiceUsesRedDot = true;
-              }
-              // should we choose this choice? Recall our lattice
-              // is:
-              // o consistent
-              // o consistent/red dot
-              // o inconsistent/red dot
-              // o inconsistent
-              // so we want to pick the "highest" result
-              if (choiceResult) {
-                if (!choiceUsesRedDot) {
-                  // best possible outcome
-                  overall_or_Result = choiceResult;
-                  overall_or_UsesRedDot = choiceUsesRedDot;
-                } else {
-                  if (!overall_or_Result) {
-                    // take it, since so far we think we are
-                    // inconsistent
-                    overall_or_Result = choiceResult;
-                    overall_or_UsesRedDot = choiceUsesRedDot;
-                  }
-                }
-              } else {
-                if (!choiceUsesRedDot) {
-                  if (!overall_or_Result) {
-                    // take it, since so far we might be
-                    // sure we are wrong
-                    overall_or_Result = choiceResult;
-                    overall_or_UsesRedDot = choiceUsesRedDot;
-                  }
-                }
-                // ignore bottom of lattice, this was our
-                // default (set above)
-              }
-            }
-            // add the choice selected into the overall result for
-            // this drop
-            // all must be consistent for this drop to be consistent
-            rd.provedConsistent &= overall_or_Result;
-            // any red dot means this drop depends upon a red dot
-            if (overall_or_UsesRedDot)
-              rd.proofUsesRedDot = true;
-            // save in the drop
-            rd.or_provedConsistent = overall_or_Result;
-            rd.or_proofUsesRedDot = overall_or_UsesRedDot;
-          }
-        } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
-        }
-
-        // only add to worklist if something changed about the result
-        boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot);
-        if (resultChanged) {
-          addToWorklist(nextWorklist, d);
-        }
-      }
-      worklist.clear();
-      worklist.addAll(nextWorklist);
-    }
-    propagateSourceDerivation();
-
-    timeStamp = System.currentTimeMillis();
-    if (LOG.isLoggable(Level.FINE))
-      LOG.fine("Done updating consistency proof: " + timeStamp);
-    return timeStamp;
-  }
-
-  private void propagateSourceDerivation() {
-    worklist = new LinkedList<ProofDrop>(this.getDropsOfType(ProofDrop.class));
-    /*
-     * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
-     */
-    while (!worklist.isEmpty()) {
-      Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
-      // mutation during iteration
-      for (ProofDrop d : worklist) {
         boolean oldDerivedFromSrc = d.derivedFromSrc;
 
         if (d instanceof PromiseDrop) {
@@ -816,15 +699,33 @@ public final class Sea {
           final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
 
           // examine dependent analysis results and dependent promises
-          Set<? extends ResultDrop> tpd = pd.getCheckedBy();
-
-          Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(tpd.size());
-          for (ProofDrop t : tpd) {
-            proofDrops.add(t);
-          }
+          final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>();
+          proofDrops.addAll(pd.getCheckedBy());
           proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
           for (ProofDrop result : proofDrops) {
+            // all must be consistent for this promise to be consistent
+            pd.provedConsistent &= result.provedConsistent;
+            // any red dot means this promise depends upon a red dot
+            if (result.proofUsesRedDot)
+              pd.proofUsesRedDot = true;
+            // push along if derived from source code
             pd.derivedFromSrc |= result.derivedFromSrc;
+          }
+        } else if (d instanceof ResultFolderDrop) {
+
+          /*
+           * RESULT FOLDER DROP
+           */
+
+          final ResultFolderDrop dfd = (ResultFolderDrop) d;
+          for (AbstractResultDrop result : dfd.getContents()) {
+            // all must be consistent for this folder to be consistent
+            dfd.provedConsistent &= result.provedConsistent;
+            // any red dot means this folder depends upon a red dot
+            if (result.proofUsesRedDot)
+              dfd.proofUsesRedDot = true;
+            // push along if derived from source code
+            dfd.derivedFromSrc |= result.derivedFromSrc;
           }
         } else if (d instanceof ResultDrop) {
 
@@ -832,61 +733,123 @@ public final class Sea {
            * RESULT DROP
            */
 
-          ResultDrop rd = (ResultDrop) d;
+          final ResultDrop rd = (ResultDrop) d;
 
           // "and" trust promise drops
           Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
-          for (Iterator<PromiseDrop<? extends IAASTRootNode>> j = andTrusts.iterator(); j.hasNext();) {
-            PromiseDrop<? extends IAASTRootNode> promise = j.next();
+          for (final PromiseDrop<? extends IAASTRootNode> promise : andTrusts) {
             // all must be consistent for this drop to be consistent
-            rd.derivedFromSrc &= promise.derivedFromSrc;
+            rd.provedConsistent &= promise.provedConsistent;
+            // any red dot means this drop depends upon a red dot
+            if (promise.proofUsesRedDot)
+              rd.proofUsesRedDot = true;
+            // if anything is derived from source we will be as well
+            rd.derivedFromSrc |= promise.derivedFromSrc;
           }
+
           // "or" trust promise drops
           if (rd.hasOrLogic()) { // skip this in the common case
             boolean overall_or_Result = false;
+            boolean overall_or_UsesRedDot = false;
+            boolean overall_or_derivedFromSource = false;
             Set<String> orLabels = rd.get_or_TrustLabelSet();
             for (String orKey : orLabels) {
+              boolean choiceResult = true;
+              boolean choiceUsesRedDot = false;
               Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
               for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
-                overall_or_Result |= promise.derivedFromSrc;
+                // all must be consistent for this choice to be consistent
+                choiceResult &= promise.provedConsistent;
+                // any red dot means this choice depends upon a red dot
+                if (promise.proofUsesRedDot)
+                  choiceUsesRedDot = true;
+                // if anything is derived from source we will be as well
+                overall_or_derivedFromSource |= promise.derivedFromSrc;
+              }
+              // should we choose this choice? Our lattice is:
+              // o consistent
+              // o consistent/red dot
+              // o inconsistent/red dot
+              // o inconsistent
+              // so we want to pick the "highest" result
+              if (choiceResult) {
+                if (!choiceUsesRedDot) {
+                  // best possible outcome
+                  overall_or_Result = choiceResult;
+                  overall_or_UsesRedDot = choiceUsesRedDot;
+                } else {
+                  if (!overall_or_Result) {
+                    // take it, since so far we think we are inconsistent
+                    overall_or_Result = choiceResult;
+                    overall_or_UsesRedDot = choiceUsesRedDot;
+                  }
+                }
+              } else {
+                if (!choiceUsesRedDot) {
+                  if (!overall_or_Result) {
+                    // take it, since so far we might be sure we are wrong
+                    overall_or_Result = choiceResult;
+                    overall_or_UsesRedDot = choiceUsesRedDot;
+                  }
+                }
+                // ignore bottom of lattice, this was our default (set above)
               }
             }
-            // add the choice selected into the overall result for
-            // this drop
-            rd.derivedFromSrc |= overall_or_Result;
+            /*
+             * add the choice selected into the overall result for this drop all
+             * must be consistent for this drop to be consistent
+             */
+            rd.provedConsistent &= overall_or_Result;
+            /*
+             * any red dot means this drop depends upon a red dot
+             */
+            if (overall_or_UsesRedDot)
+              rd.proofUsesRedDot = true;
+            /*
+             * save in the drop
+             */
+            rd.or_provedConsistent = overall_or_Result;
+            rd.or_proofUsesRedDot = overall_or_UsesRedDot;
+            rd.derivedFromSrc |= overall_or_derivedFromSource;
           }
         } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+          final String msg = I18N.err(246);
+          LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
         }
 
-        // only add to worklist if something changed about the result
-        boolean resultChanged = !(oldDerivedFromSrc == d.derivedFromSrc);
+        /*
+         * only add to worklist if something changed about the result
+         */
+        boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot && oldDerivedFromSrc == d.derivedFromSrc);
         if (resultChanged) {
-          addToWorklist(nextWorklist, d);
+          nextWorklist.add(d);
+          if (d instanceof PromiseDrop) {
+            @SuppressWarnings("unchecked")
+            PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
+            // add all result drops trusted by this promise drop
+            nextWorklist.addAll(pd.getTrustedBy());
+            // add all deponent promise drops of this promise drop
+            nextWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
+          } else if (d instanceof ResultDrop) {
+            ResultDrop rd = (ResultDrop) d;
+            // add all promise drops that this result checks
+            nextWorklist.addAll(rd.getChecks());
+          }
         }
       }
       worklist.clear();
       worklist.addAll(nextWorklist);
     }
-  }
 
-  private void addToWorklist(Set<ProofDrop> l, ProofDrop d) {
-    l.add(d);
-    if (d instanceof PromiseDrop) {
-      @SuppressWarnings("unchecked")
-      PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-      // add all result drops trusted by this promise drop
-      l.addAll(pd.getTrustedBy());
-      // add all deponent promise drops of this promise drop
-      l.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
-    } else if (d instanceof ResultDrop) {
-      ResultDrop rd = (ResultDrop) d;
-      // add all promise drops that this result checks
-      l.addAll(rd.getChecks());
-    }
-  }
+    f_timeStamp = System.currentTimeMillis();
+    if (LOG.isLoggable(Level.FINE))
+      LOG.fine("Done updating consistency proof: " + f_timeStamp);
 
-  private List<ProofDrop> worklist;
+    for (SeaConsistencyProofHook hook : f_proofHooks)
+      hook.postConsistencyProof(this);
+
+    return f_timeStamp;
+  }
 
   /**
    * Notification to this sea that something about the knowledge status of a
@@ -900,7 +863,7 @@ public final class Sea {
    *          what happened to the drop.
    */
   void notify(Drop drop, DropEvent event) {
-    timeStamp = INVALIDATED;
+    f_timeStamp = INVALIDATED;
 
     if (event == DropEvent.Created) {
       // add the new drop to this sea's list of valid drops
@@ -922,7 +885,7 @@ public final class Sea {
   }
 
   public long getTimeStamp() {
-    return timeStamp;
+    return f_timeStamp;
   }
 
   /**
@@ -935,22 +898,34 @@ public final class Sea {
   /**
    * A timestamp of when the sea last updated the consistency proof
    */
-  private long timeStamp = INVALIDATED;
+  private long f_timeStamp = INVALIDATED;
 
-  public interface ProofInitializer {
-    void init(Sea sea);
+  /**
+   * Adds code to run before and/or after the consistency proof is run on every
+   * call to {@link Sea#updateConsistencyProof()}.
+   * 
+   * @param hook
+   *          an consistency proof hook instance.
+   */
+  public void addConsistencyProofHook(SeaConsistencyProofHook hook) {
+    f_proofHooks.add(hook);
   }
 
-  private ProofInitializer proofInit;
-
-  public void setProofInitializer(ProofInitializer init) {
-    proofInit = init;
+  /**
+   * Removes code to run before and/or after the consistency proof is run on
+   * every call to {@link Sea#updateConsistencyProof()}.
+   * 
+   * @param hook
+   *          an consistency proof hook instance.
+   */
+  public void removeConsistencyProofHook(SeaConsistencyProofHook hook) {
+    f_proofHooks.remove(hook);
   }
 
   /**
    * The set of valid drops within this sea.
    */
-  private final Set<Drop> f_validDrops = new ConcurrentHashSet<Drop>(5000);
+  private final List<Drop> f_validDrops = new ArrayList<Drop>(5000);
 
   /**
    * A map from drop subtypes to a set of registered observers interested in
@@ -958,5 +933,7 @@ public final class Sea {
    */
   private final Map<Class<?>, Set<DropObserver>> f_dropTypeToObservers = new ConcurrentHashMap<Class<?>, Set<DropObserver>>();
 
-  private final List<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
+  private final CopyOnWriteArrayList<SeaObserver> f_seaObservers = new CopyOnWriteArrayList<SeaObserver>();
+
+  private final CopyOnWriteArrayList<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArrayList<SeaConsistencyProofHook>();
 }

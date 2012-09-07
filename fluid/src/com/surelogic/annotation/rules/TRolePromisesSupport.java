@@ -9,8 +9,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.bind.AbstractPromiseAnnotation;
-import edu.cmu.cs.fluid.promise.IPromiseRule;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
@@ -23,14 +22,14 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRequireDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 
 @Deprecated
-public class TRolePromisesSupport extends AbstractPromiseAnnotation {
+public class TRolePromisesSupport extends AnnotationRules {
   public static TRolePromisesSupport INSTANCE = new TRolePromisesSupport();
   
   private TRolePromisesSupport() {
     // do nothing
   }
   
-  private static SlotInfo<Set<TRoleImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
+  static SlotInfo<Set<TRoleImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
 
   //private static SlotInfo renameDropSI = SimpleSlotFactory.prototype.newAttribute(null);
   
@@ -48,11 +47,11 @@ public class TRolePromisesSupport extends AbstractPromiseAnnotation {
   private static SlotInfo<Set<TRoleRevokeDrop>> revokeDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<Set<TRoleIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
+  static SlotInfo<Set<TRoleIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   private static SlotInfo<Set<RegionTRoleDeclDrop>> regionTRoleDeclDropSetSI = 
     SimpleSlotFactory.prototype.newAttribute(null);
-  private static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
+  static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
 
@@ -80,11 +79,11 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
   public static boolean areTRoleImportsProcessed(IRNode node) {
     return isXorFalse_filtered(tRoleImportsProcessedSI, node);
   }
-  
+
   public static void setTRoleImportsProcessed(IRNode node, boolean processed) {
     setX_mapped(tRoleImportsProcessedSI, node, processed);
   }
-  
+
   public static boolean areTRoleRenamesProcessed(IRNode node) {
     return isXorFalse_filtered(tRoleRenamesProcessedSI, node);
   }
@@ -141,7 +140,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
    * @param node the node whose set should be updated
    * @param si the SlotInfo to get the set from.
    */
-  private static <T extends Drop> void purgeMutableSet(IRNode node, SlotInfo<Set<T>> si) {
+  static <T extends Drop> void purgeMutableSet(IRNode node, SlotInfo<Set<T>> si) {
     Set<T> old = getMutableSet(node, si);
     final int newSize = Math.max(old.size()-1, 0);
     Set<T> newSet = new HashSet<T>(newSize);
@@ -223,14 +222,23 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
     getMutableInheritedRequiresSet(toThisNode).add(trrDrop);
   }
 
-
   @Override
-  protected IPromiseRule[] getRules() {
-    
-    return new IPromiseRule[] {};
+  public void register(PromiseFramework fw) {
+	  // TODO Auto-generated method stub
+
   }
   
   // Support for Module promises that have no AAST.
 
+  private static void setX_mapped(SlotInfo<Boolean> si,
+		  IRNode node, boolean processed) {
+	  // TODO Auto-generated method stub
 
+  }
+
+  private static boolean isXorFalse_filtered(
+		  SlotInfo<Boolean> si, IRNode node) {
+	  // TODO Auto-generated method stub
+	  return false;
+  }
 }

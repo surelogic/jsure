@@ -43,7 +43,7 @@ public class SourceCUDrop extends CUDrop {
    * @requiresLock CacheLock
    */
   private static void initCachedDrops() {
-    Set<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+    List<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
     cachedDrops = new HashMap<ICodeFile, SourceCUDrop>(drops.size());
     for (SourceCUDrop drop : drops) {
       if (drop.isValid() && drop.cu.equals(IRNode.destroyedNode)) {
@@ -96,7 +96,7 @@ public class SourceCUDrop extends CUDrop {
     synchronized (SourceCUDrop.class) {
       cachedDrops = null;
     }
-    final Set<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+    final List<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
     final List<SourceCUDrop> invalidated = new ArrayList<SourceCUDrop>();
     for(SourceCUDrop d : cuds) {
     	boolean invalidate = projects == null;

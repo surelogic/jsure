@@ -212,14 +212,6 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     }
 
     
-    
-    @Override
-    protected String message2string(final int msg) {
-      return Messages.toString(msg);
-    }
-    
-    
-    
     @Override
     protected void processEnumConstantDeclaration(final IRNode decl) {
       numElements += 1;
@@ -303,13 +295,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 
     
     
-    @Override
-    protected String message2string(final int msg) {
-      return Messages.toString(msg);
-    }
-    
-    
-    
+   
     private boolean isPublicStatic(final IRNode decl) {
       return JavaNode.getModifier(decl, JavaNode.STATIC) &&
           JavaNode.getModifier(decl, JavaNode.PUBLIC);

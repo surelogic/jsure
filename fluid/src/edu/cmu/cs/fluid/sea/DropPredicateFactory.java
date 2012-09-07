@@ -31,7 +31,7 @@ public final class DropPredicateFactory {
       result = f_type.get(dropClass);
       if (result == null) {
         result = new DropPredicate() {
-          public boolean match(IDropInfo d) {
+          public boolean match(IDrop d) {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
@@ -66,11 +66,11 @@ public final class DropPredicateFactory {
       result = f_exactType.get(dropClass);
       if (result == null) {
         result = new DropPredicate() {
-          public boolean match(IDropInfo d) {
+          public boolean match(IDrop d) {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
-            return d != null ? d.getType().equals(dropClass.getName()) : false;
+            return d != null ? d.getTypeName().equals(dropClass.getName()) : false;
           }
         };
         f_exactType.put(dropClass, result);

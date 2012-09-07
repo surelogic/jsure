@@ -10,7 +10,7 @@ import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 @Utility
@@ -70,7 +70,7 @@ public final class ModelingProblemFilterUtility {
 		}
 
 		@Override
-		public boolean showResource(IDropInfo d) {
+		public boolean showResource(IDrop d) {
 			ISrcRef ref = d.getSrcRef();
 			if (ref != null) {
 				return showResource(ref.getRelativePath());

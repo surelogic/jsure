@@ -5,16 +5,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ir.IRBooleanType;
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRNodeType;
-import edu.cmu.cs.fluid.ir.IRSequenceType;
-import edu.cmu.cs.fluid.ir.IRType;
+import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.bind.AbstractPromiseAnnotation;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -301,37 +295,37 @@ public class XMLGenerator
 			final TokenInfo info = tokenInfos.next();
 			final IRType type = info.si.getType();
 
-			/** Single keyword promise */
-			if (type instanceof IRBooleanType) {				
-				if (AbstractPromiseAnnotation.isX_filtered(info.si, node)) { 
-					s.append(space +
-							XMLStringWriter.writeXMLEmptyElement(info.token.toString()));
-				}
-				/** Single promise with contents */
-			} else if (type instanceof IRNodeType) {					  
-				IRNode sub = 
-					AbstractPromiseAnnotation.getXorNull_filtered(info.si, node);
-
-				if (sub != null) { 
-					s.append(XMLStringWriter.writeXMLDataElement(info.token.toString(),
-							DebugUnparser.toString(sub),space));
-				}
-			}
-			/** Multiple promises with the same keyword */
-			else if (type instanceof IRSequenceType) {
-				final Iterator<IRNode> e = AbstractPromiseAnnotation.getEnum_filtered(info.si, node);
-
-				while (e.hasNext()) {
-					IRNode elt = e.next();
-					if (elt != null) {
-						s.append(XMLStringWriter.writeXMLDataElement(info.token.toString(),
-								DebugUnparser.toString(elt),space));
-					}
-				}
-			}			
-			else {
-				System.out.println("unknown type " + type);
-			}
+//			/** Single keyword promise */
+//			if (type instanceof IRBooleanType) {				
+//				if (AbstractPromiseAnnotation.isX_filtered(info.si, node)) { 
+//					s.append(space +
+//							XMLStringWriter.writeXMLEmptyElement(info.token.toString()));
+//				}
+//				/** Single promise with contents */
+//			} else if (type instanceof IRNodeType) {					  
+//				IRNode sub = 
+//					AbstractPromiseAnnotation.getXorNull_filtered(info.si, node);
+//
+//				if (sub != null) { 
+//					s.append(XMLStringWriter.writeXMLDataElement(info.token.toString(),
+//							DebugUnparser.toString(sub),space));
+//				}
+//			}
+//			/** Multiple promises with the same keyword */
+//			else if (type instanceof IRSequenceType) {
+//				final Iterator<IRNode> e = AbstractPromiseAnnotation.getEnum_filtered(info.si, node);
+//
+//				while (e.hasNext()) {
+//					IRNode elt = e.next();
+//					if (elt != null) {
+//						s.append(XMLStringWriter.writeXMLDataElement(info.token.toString(),
+//								DebugUnparser.toString(elt),space));
+//					}
+//				}
+//			}			
+//			else {
+//				System.out.println("unknown type " + type);
+//			}
 		}
 
 		return s.toString();

@@ -43,7 +43,7 @@ public class TRoleMessages {
 
 	public static ResultDrop createResultDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
+		ResultDrop rd = new ResultDrop(); // TODO FIX TOP LEVEL
 		rd.setConsistent();
 		// rd.addCheckedPromise(pd);
 		rd.setNodeAndCompilationUnitDependency(loc);
@@ -60,7 +60,7 @@ public class TRoleMessages {
 	}
 
 	public static WarningDrop createWarningDrop(String msg, IRNode loc) {
-		WarningDrop wd = new TRoleWarningDrop(null);
+		WarningDrop wd = new TRoleWarningDrop();
 		// rd.addCheckedPromise(pd);
 		wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(msg);
@@ -76,7 +76,7 @@ public class TRoleMessages {
 	}
 
 	public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-		InfoDrop id = new TRoleInfoDrop(null);
+		InfoDrop id = new TRoleInfoDrop();
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);
@@ -94,7 +94,7 @@ public class TRoleMessages {
 
 	public static ResultDrop createProblemDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
+		ResultDrop rd = new ResultDrop(); // TODO FIX TOP LEVEL
 		rd.setInconsistent();
 		// rd.addCheckedPromise(pd);
 		if (loc != null) {

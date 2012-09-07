@@ -28,7 +28,7 @@ public class JSureResultsXMLReader extends
 
 	@Override
 	protected ResultDrop createResult() {
-		ResultDrop d = new ResultDrop("unknown");
+		ResultDrop d = new ResultDrop();
 		d.setConsistent();
 		return d;
 	}

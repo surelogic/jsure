@@ -49,7 +49,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	}
 	
 	private ResultDropBuilder createFailureDrop(IRNode n) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this, "Equality");
+		ResultDropBuilder rd = ResultDropBuilder.create(this);
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(n);	
 		rd.setInconsistent();

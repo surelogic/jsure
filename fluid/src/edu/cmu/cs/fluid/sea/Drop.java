@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -38,7 +39,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @see Sea
  */
-public abstract class Drop implements IDropInfo {
+public abstract class Drop implements IDrop {
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
   public static final String DEPONENT = "deponent";
   public static final String DEPENDENT = "dependent";
@@ -235,12 +236,30 @@ public abstract class Drop implements IDropInfo {
   }
 
   /**
+   * Returns the internal set that tracks dependent drops of this drop.
+   * <p>
+   * Callers <b>must not</b> mutate this set.
+   */
+  final protected Set<Drop> getDependentsReference() {
+    return dependents;
+  }
+
+  /**
    * Returns all immediate deponent drops of this drop.
    * 
    * @return the set of deponent drops
    */
   final public Set<Drop> getDeponents() {
     return new HashSet<Drop>(deponents);
+  }
+
+  /**
+   * Returns the internal set that tracks deponent drops of this drop.
+   * <p>
+   * Callers <b>must not</b> mutate this set.
+   */
+  final protected Set<Drop> getDeponentsReference() {
+    return deponents;
   }
 
   /**
@@ -529,7 +548,7 @@ public abstract class Drop implements IDropInfo {
    */
   final private Sea mySea;
 
-  public String getEntityName() {
+  public String getXMLElementName() {
     return "drop";
   }
 
@@ -557,6 +576,7 @@ public abstract class Drop implements IDropInfo {
   }
 
   /****************************************************************/
+
   @SuppressWarnings("unchecked")
   public <T> T getAdapter(Class<T> type) {
     if (type.isInstance(this)) {
@@ -565,7 +585,7 @@ public abstract class Drop implements IDropInfo {
     throw new UnsupportedOperationException();
   }
 
-  public String getType() {
+  public String getTypeName() {
     return getClass().getName();
   }
 
@@ -574,10 +594,6 @@ public abstract class Drop implements IDropInfo {
   }
 
   public boolean requestTopLevel() {
-    throw new UnsupportedOperationException();
-  }
-
-  public int count() {
     throw new UnsupportedOperationException();
   }
 
@@ -593,12 +609,12 @@ public abstract class Drop implements IDropInfo {
     return null;
   }
 
-  public Collection<? extends IProposedPromiseDropInfo> getProposals() {
-    throw new UnsupportedOperationException();
+  public Collection<? extends IProposedPromiseDrop> getProposals() {
+    return Collections.emptyList();
   }
 
   public Collection<ISupportingInformation> getSupportingInformation() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   public Long getTreeHash() {

@@ -10,7 +10,7 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public final class FilterVerificationJudgment extends Filter {
@@ -86,10 +86,10 @@ public final class FilterVerificationJudgment extends Filter {
 	}
 
 	@Override
-	protected void refreshCounts(List<IProofDropInfo> incomingResults) {
+	protected void refreshCounts(List<IProofDrop> incomingResults) {
 		f_counts.clear();
 		int runningTotal = 0;
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final String value = getFilterValueOrNull(d);
 			if (value != null) {
 				Integer count = f_counts.get(value);
@@ -105,9 +105,9 @@ public final class FilterVerificationJudgment extends Filter {
 	}
 
 	@Override
-	protected void refreshPorousDrops(List<IProofDropInfo> incomingResults) {
+	protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
 		f_porousDrops.clear();
-		for (IProofDropInfo d : incomingResults) {
+		for (IProofDrop d : incomingResults) {
 			final String value = getFilterValueOrNull(d);
 			if (value != null) {
 				if (f_porousValues.contains(value))
@@ -116,7 +116,7 @@ public final class FilterVerificationJudgment extends Filter {
 		}
 	}
 
-	private String getFilterValueOrNull(IProofDropInfo d) {
+	private String getFilterValueOrNull(IProofDrop d) {
 		if (d.instanceOf(PromiseDrop.class)) {
 			final boolean reddot = d.proofUsesRedDot();
 			final String value;

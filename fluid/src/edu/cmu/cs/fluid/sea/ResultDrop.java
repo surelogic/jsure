@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
@@ -19,11 +20,14 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * <p>
  * Not intended to be subclassed.
  */
-public final class ResultDrop extends ProofDrop implements IResultDrop {
+public final class ResultDrop extends AbstractResultDrop implements IResultDrop {
+
+  /*
+   * XML attribute constants
+   */
   public static final String TIMEOUT = "timeout";
   public static final String VOUCHED = "vouched";
   public static final String CONSISTENT = "consistent";
-  public static final String CHECKED_PROMISE = "checked-promise";
   public static final String TRUSTED_PROMISE = "trusted-promise";
   public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
   public static final String OR_LABEL = "or-label";
@@ -31,68 +35,27 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   public static final String OR_PROVED = "or-proved-consistent";
 
   /**
-   * Holds key that describes which message this result is.
+   * Constructs a new analysis result.
    */
-  private final String type;
-
-  /**
-   * @param t
-   *          Key that describes which message this result drop represents.
-   */
-  public ResultDrop(String t) {
-    if (t == null) {
-      throw new RuntimeException();
-    }
-    type = t;
-  }
-
   public ResultDrop() {
-    this(null);
   }
-
-  /**
-   * The set of promise drops being checked, or established, by this result.
-   */
-  private Set<PromiseDrop<? extends IAASTRootNode>> checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   /**
    * The set of promise drops trusted by this result, its preconditions.
    */
-  private Set<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  private final Set<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   /**
    * Map from "or" logic trust labels (String) to sets of drop promises. One
    * complete set of promises must be proved consistent for this result to be
    * consistent.
    */
-  private Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
+  private final Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
 
   /**
    * Flags if this result indicates consistency with code.
    */
   private boolean consistent = false;
-
-  /**
-   * Adds a promise to the set of promises this result establishes, or
-   * <i>checks</i>.
-   * 
-   * @param promise
-   *          the promise being supported by this result
-   */
-  public void addCheckedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
-    checks.add(promise);
-    promise.addDependent(this);
-  }
-
-  public void addCheckedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
-    // no null check -- fail-fast
-    for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
-      // Iterator promiseIter = promises.iterator();
-      // while (promiseIter.hasNext()) {
-      // PromiseDrop promise = (PromiseDrop) promiseIter.next();
-      addCheckedPromise(promise);
-    }
-  }
 
   /**
    * Adds a promise to the set of promises this result uses as a precondition,
@@ -106,6 +69,13 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     promise.addDependent(this);
   }
 
+  /**
+   * Adds a set of promises to the set of promises this result uses as a
+   * precondition, or <i>trusts</i>.
+   * 
+   * @param promises
+   *          the promises being trusted by this result
+   */
   public void addTrustedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
     // no null check -- fail-fast
     for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
@@ -135,20 +105,13 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   }
 
   /**
-   * @return the set of promise drops established, or checked, by this result.
-   *         All members of the returned set will are of the PromiseDrop type.
-   */
-  public Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
-    return checks;
-  }
-
-  /**
    * Returns the preconditions of this result, including any "or" preconditions.
-   * However, using this call it is impossible to distingish "and" preconditions
-   * from "or"preconditions.
+   * However, using this call it is impossible to distinguish "and"
+   * preconditions from "or"preconditions.
    * 
-   * @return the set of promises trusted by this result, its preconditions. All
-   *         members of the returned set will are of the PromiseDrop type.
+   * @return the non-null (possibly empty) set of promises trusted by this
+   *         result, its preconditions. All members of the returned set will are
+   *         of the PromiseDrop type.
    * 
    * @see #getTrusts()
    * @see #hasOrLogic()
@@ -173,8 +136,8 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * "or" preconditions. Use the "get_or_" methods to obtain those
    * preconditions.
    * 
-   * @return the set of promises trusted by this result, its preconditions. All
-   *         members of the returned set will are of the PromiseDrop type.
+   * @return the non-null (possibly empty) set of promises trusted by this
+   *         result, its preconditions.
    * 
    * @see #hasOrLogic()
    * @see #get_or_TrustLabelSet()
@@ -232,7 +195,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * }
    * </pre>
    * 
-   * @return the set of "or" keys used by this promise
+   * @return the non-null (possibly empty) set of "or" keys used by this promise
    */
   public Set<String> get_or_TrustLabelSet() {
     return or_TrustLabelToTrusts.keySet();
@@ -259,13 +222,15 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
    * 
    * @param key
    *          the key to provide the promise drop set for
-   * @return the promise drop set
+   * @return the non-null (possibly empty) promise drop set
    */
   public Set<PromiseDrop<? extends IAASTRootNode>> get_or_Trusts(String key) {
     return or_TrustLabelToTrusts.get(key);
   }
 
   /**
+   * Gets if this result indicates model/code consistency.
+   * 
    * @return <code>true</code> if the result indicates model/code consistency,
    *         <code>false</code> otherwise.
    */
@@ -377,15 +342,13 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
   }
 
   @Override
-  public String getEntityName() {
-    return "result-drop";
+  public String getXMLElementName() {
+    return AbstractXMLReader.RESULT_DROP;
   }
 
   @Override
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getChecks()) {
-      s.snapshotDrop(c);
-    }
+    super.preprocessRefs(s);
     for (Drop t : getTrusts()) {
       s.snapshotDrop(t);
     }
@@ -407,19 +370,11 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
     s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
-    if (type != null) {
-      s.addAttribute("result-type", type);
-    } else {
-      System.out.println("ResultDrop result-type is null");
-    }
   }
 
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop c : getChecks()) {
-      s.refDrop(db, CHECKED_PROMISE, c);
-    }
     for (Drop t : getTrusts()) {
       s.refDrop(db, TRUSTED_PROMISE, t);
     }

@@ -143,8 +143,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           final RegionEffectsPromiseDrop declaredEffectsDrop =
               MethodEffectsRules.getRegionEffectsDrop(member);
           if (declaredEffectsDrop != null) {
-            final ResultDropBuilder rd = ResultDropBuilder.create(
-                this, Messages.toString(Messages.EMPTY_EFFECTS));
+            final ResultDropBuilder rd = ResultDropBuilder.create(this);
             rd.addCheckedPromise(declaredEffectsDrop);
             setResultDependUponDrop(rd, member);
             rd.setConsistent();
@@ -165,8 +164,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	            MethodEffectsRules.getRegionEffectsDrop(member);
 
 	          if (maskedFx.isEmpty()) {
-	            final ResultDropBuilder rd = ResultDropBuilder.create(
-	                this, Messages.toString(Messages.EMPTY_EFFECTS));
+              final ResultDropBuilder rd = ResultDropBuilder.create(this);
 	            rd.addCheckedPromise(declaredEffectsDrop);
 	            setResultDependUponDrop(rd, member);
 	            rd.setConsistent();
@@ -339,7 +337,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDropBuilder drop = InfoDropBuilder.create(this, "EffectAssurance", InfoDrop.factory);
+	    final InfoDropBuilder drop = InfoDropBuilder.create(this, InfoDrop.factory);
 	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
       setResultDependUponDrop(drop, src);
@@ -469,7 +467,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
 		final ResultDropBuilder rd =
-		  ResultDropBuilder.create(this, Messages.toString(msgTemplate));
+		  ResultDropBuilder.create(this);
 		rd.addCheckedPromise(declEffDrop);
 
 		final IRNode src = eff.getSource();
@@ -493,7 +491,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     public void writeToBorrowedReadOnly(
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
       final ResultDropBuilder rd = ResultDropBuilder.create(
-          EffectsAnalysis.this, Messages.toString(Messages.READONLY_REFERENCE));
+          EffectsAnalysis.this);
       rd.addCheckedPromise(pd);
       setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);

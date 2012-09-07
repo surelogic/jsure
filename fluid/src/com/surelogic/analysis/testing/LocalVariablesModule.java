@@ -50,7 +50,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 		
 		private void reportLocalVariables(final IRNode mdecl) {
 			final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(mdecl);
-			final InfoDrop drop = new InfoDrop(null);
+			final InfoDrop drop = new InfoDrop();
 			setResultDependUponDrop(drop, mdecl);
 			drop.setCategory(Messages.DSC_LOCAL_VARIABLES);
 			drop.setResultMessage(Messages.LOCAL_VARS, 

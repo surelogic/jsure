@@ -1,7 +1,5 @@
 package com.surelogic.analysis.singleton;
 
-import java.util.*;
-
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
 public final class Messages extends AbstractMessages {
@@ -9,14 +7,12 @@ public final class Messages extends AbstractMessages {
   private Messages() {
     super();
   }
-  
-  
-  
+
   // Drop-sea result messages
   public static final int ENUM_ONE_ELEMENT = 650;
   public static final int ENUM_TOO_MANY_ELEMENTS = 651;
   public static final int ENUM_NO_ELEMENTS = 652;
-  
+
   public static final int CLASS_IS_FINAL = 653;
   public static final int CLASS_NOT_FINAL = 654;
   public static final int CONSTRUCTOR_IS_PRIVATE = 655;
@@ -37,16 +33,4 @@ public final class Messages extends AbstractMessages {
   public static final int READ_RESOLVE_BAD = 670;
   public static final int READ_RESOLVE_GOOD = 671;
   public static final int NO_READ_RESOLVE = 672;
-  
-  private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
-
-  /** To support JSure-Sierra integration
-  */
-  public static String toString(int code) {
-	  return code2name.get(code);
-  }
-
-  static {
-    collectCodeNames(Messages.class, code2name);
-  }
 }

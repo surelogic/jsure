@@ -861,11 +861,7 @@ public class LockRules extends AnnotationRules {
           LockRules.getVouchFieldIs(lockFieldNode);
         if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
           final String reason = vouchFieldIs.getReason();
-          final ResultDrop rd = new ResultDrop(
-              com.surelogic.analysis.concurrency.driver.Messages.toString(
-                  reason == VouchFieldIsNode.NO_REASON ?
-                      com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL :
-                      com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL_WITH_REASON));
+          final ResultDrop rd = new ResultDrop();
           rd.setNode(lockFieldNode);
           rd.addCheckedPromise(lockModel);
           rd.setConsistent(true);
@@ -1018,7 +1014,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop();
           wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
@@ -1061,7 +1057,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop();
           wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
@@ -2478,7 +2474,7 @@ public class LockRules extends AnnotationRules {
          */
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz));
+        final PromiseWarningDrop wd = new PromiseWarningDrop();
         wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
         wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
         wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);

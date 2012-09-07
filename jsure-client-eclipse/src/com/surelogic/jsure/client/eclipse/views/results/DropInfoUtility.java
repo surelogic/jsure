@@ -8,18 +8,18 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 
 @Utility
 public final class DropInfoUtility {
-	public static void showDrop(IProofDropInfo d) {
+	public static void showDrop(IProofDrop d) {
 		final ResultsView view = (ResultsView) EclipseUIUtility.showView(
 				ResultsView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
 		view.showDrop(d);
 	}
 
-	public static <T extends IDropInfo> String getResource(T d) {
+	public static <T extends IDrop> String getResource(T d) {
 		ISrcRef ref = d.getSrcRef();
 		if (ref == null) {
 			return "";
@@ -58,7 +58,7 @@ public final class DropInfoUtility {
 		return "";
 	}
 
-	public static <T extends IDropInfo> int getLine(T d) {
+	public static <T extends IDrop> int getLine(T d) {
 		ISrcRef ref = d.getSrcRef();
 		if (ref != null) {
 			return ref.getLineNumber();

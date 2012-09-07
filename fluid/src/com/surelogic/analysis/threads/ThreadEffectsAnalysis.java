@@ -184,7 +184,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		}
 
 		if (noThreadsStarted && createDrops) {
-			ResultDropBuilder r = ResultDropBuilder.create(analysis, Messages.toString(Messages.NO_THREADS_STARTED));
+			ResultDropBuilder r = ResultDropBuilder.create(analysis);
 			r.setConsistent();
 			r.addCheckedPromise(pd);
 			setResultDependUponDrop(r, block, Messages.NO_THREADS_STARTED, JavaNames
@@ -256,7 +256,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							// System.out.println("[ThreadEffects] Thread.start() "
 							// + DebugUnparser.toString(node));
 							if (createDrops) {
-						    ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.PROHIBITED));
+						    ResultDropBuilder rd = ResultDropBuilder.create(analysis);
 							rd.setInconsistent();
 							rd.addCheckedPromise(pd);
 							setResultDependUponDrop(rd, node, Messages.PROHIBITED, DebugUnparser
@@ -303,7 +303,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				// get the promise drop
 				StartsPromiseDrop callp = ThreadEffectsRules
 				.getStartsSpec(declaration);
-				ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.CALLED_METHOD_DOES_PROMISE));
+				ResultDropBuilder rd = ResultDropBuilder.create(analysis);
 				rd.addCheckedPromise(pd);
 				rd.addTrustedPromise(callp);
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
@@ -311,7 +311,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				success = true;
 			} else {
 			  // No annotation: called method could start anything
-				ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.CALLED_METHOD_DOES_NOT_PROMISE));
+				ResultDropBuilder rd = ResultDropBuilder.create(analysis);
 				rd.addCheckedPromise(pd);
 				rd.setInconsistent();
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));

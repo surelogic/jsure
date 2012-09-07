@@ -218,11 +218,10 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		InfoDropBuilder d = InfoDropBuilder.create(this, msg, WarningDrop.factory);
+		final InfoDropBuilder d = InfoDropBuilder.create(this, WarningDrop.factory);
+		d.setMessage(msg);
 		if (context != null) {
 			d.setNodeAndCompilationUnitDependency(context);
-		} else {
-			// TODO what if there's no context?
 		}
 	}
 }

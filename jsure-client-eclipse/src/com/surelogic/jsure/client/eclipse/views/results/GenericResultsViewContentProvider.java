@@ -21,26 +21,16 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.CallInterface;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.ImportName;
-import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.promise.TextFile;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IPromiseDrop;
+import edu.cmu.cs.fluid.sea.IProofDrop;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -54,10 +44,9 @@ import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
-abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>> implements
+abstract class GenericResultsViewContentProvider<T extends IDrop, C extends AbstractContent<T, C>> implements
     IResultsViewContentProvider {
   private static final boolean allowDuplicateNodes = true;
   protected static final Object[] noObjects = ArrayUtil.empty;
@@ -193,7 +182,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the {@link Drop}to add supporting information about
    */
   @SuppressWarnings("unchecked")
-  private void addSupportingInformation(C mutableContentSet, IDropInfo about) {
+  private void addSupportingInformation(C mutableContentSet, IDrop about) {
     Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
     int size = supportingInformation.size();
     if (size == 0) {
@@ -240,14 +229,14 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the {@link Drop}to add proposed promises about
    */
   @SuppressWarnings("unchecked")
-  private void addProposedPromises(C mutableContentSet, IDropInfo about) {
-    Collection<? extends IProposedPromiseDropInfo> proposals = about.getProposals();
+  private void addProposedPromises(C mutableContentSet, IDrop about) {
+    Collection<? extends IProposedPromiseDrop> proposals = about.getProposals();
     int size = proposals.size();
     if (size == 0) {
       // no proposed promises, thus bail out
       return;
     } else if (size == 1) {
-      IProposedPromiseDropInfo pp = proposals.iterator().next();
+      IProposedPromiseDrop pp = proposals.iterator().next();
       final C proposalItem = makeContent("proposed promise: " + pp.getJavaAnnotation(), (T) pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       mutableContentSet.addChild(proposalItem);
@@ -257,7 +246,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     C siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
     siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
-    for (IProposedPromiseDropInfo pp : proposals) {
+    for (IProposedPromiseDrop pp : proposals) {
       final C proposalItem = makeContent(pp.getJavaAnnotation(), (T) pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       siFolder.addChild(proposalItem);
@@ -286,9 +275,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the result to add "and" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_and_TrustedPromises(C mutableContentSet, IProofDropInfo result) {
+  private void add_and_TrustedPromises(C mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
-    Collection<? extends IProofDropInfo> trustedPromiseDrops = result.getTrusts();
+    Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrusts();
     int count = trustedPromiseDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
@@ -299,7 +288,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     boolean elementsProvedConsistent = true; // assume true
 
     // add trusted promises to the folder
-    for (IProofDropInfo trustedDrop : trustedPromiseDrops) {
+    for (IProofDrop trustedDrop : trustedPromiseDrops) {
       // ProofDrop trustedDrop = (ProofDrop) j.next();
       preconditionFolder.addChild(encloseDrop((T) trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
@@ -322,7 +311,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    *          the result to add "or" precondition logic about
    */
   @SuppressWarnings("unchecked")
-  private void add_or_TrustedPromises(C mutableContentSet, IProofDropInfo result) {
+  private void add_or_TrustedPromises(C mutableContentSet, IResultDrop result) {
     if (!result.hasOrLogic()) {
       // no "or" logic on this result, thus bail out
       return;
@@ -349,10 +338,10 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       // set proof bits properly
       boolean choiceConsistent = true;
       boolean choiceUsesRedDot = false;
-      Collection<? extends IProofDropInfo> choiceSet = result.get_or_Trusts(key);
+      Collection<? extends IProofDrop> choiceSet = result.get_or_Trusts(key);
 
       // fill in the folder with choices
-      for (IProofDropInfo trustedDrop : choiceSet) {
+      for (IProofDrop trustedDrop : choiceSet) {
         // ProofDrop trustedDrop = (ProofDrop) j.next();
         choiceFolder.addChild(encloseDrop((T) trustedDrop));
         choiceConsistent &= trustedDrop.provedConsistent();
@@ -399,7 +388,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
          * PROMISE DROP
          */
 
-        IProofDropInfo promiseDrop = (IProofDropInfo) drop;
+        IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -417,7 +406,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         addSupportingInformation(result, promiseDrop);
         addProposedPromises(result, promiseDrop);
 
-        final Set<IDropInfo> matching = new HashSet<IDropInfo>();
+        final Set<IDrop> matching = new HashSet<IDrop>();
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(InfoDrop.class)));
         addDrops(result, (Collection<? extends T>) matching);
@@ -428,7 +417,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         /*
          * RESULT DROP
          */
-        IProofDropInfo resultDrop = (IProofDropInfo) drop;
+        IResultDrop resultDrop = (IResultDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -530,7 +519,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         categorizedChildren.add(item);
       } else {
         toBeCategorized.add(item);
-        final IDropInfo info = item.getDropInfo();
+        final IDrop info = item.getDropInfo();
         if (info != null && info.instanceOf(PromiseDrop.class) && !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
             && !(info.instanceOf(PleaseFolderize.class))) {
           /*
@@ -579,13 +568,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       categoryFolder.freezeCount();
 
       // image (try to show proof status if it makes sense)
-      Set<IProofDropInfo> proofDrops = new HashSet<IProofDropInfo>();
-      Set<IDropInfo> warningDrops = new HashSet<IDropInfo>();
-      Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
+      Set<IProofDrop> proofDrops = new HashSet<IProofDrop>();
+      Set<IDrop> warningDrops = new HashSet<IDrop>();
+      Set<IDrop> infoDrops = new HashSet<IDrop>();
 
       for (C item : categoryFolder.children()) {
         if (item.getDropInfo().instanceOf(ProofDrop.class)) {
-          proofDrops.add((IProofDropInfo) item.getDropInfo());
+          proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
           infoDrops.add(item.getDropInfo());
           if (item.getDropInfo().instanceOf(WarningDrop.class)) {
@@ -605,7 +594,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
         boolean choiceConsistent = true;
         boolean choiceUsesRedDot = false;
         // boolean localConsistent = true;
-        for (IProofDropInfo proofDrop : proofDrops) {
+        for (IProofDrop proofDrop : proofDrops) {
           choiceConsistent &= proofDrop.provedConsistent();
           /*
            * if (proofDrop.isInstance(ResultDrop.class)) { localConsistent &=
@@ -684,7 +673,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
          * If the drop the C "item" references has a package and a type we'll
          * generate folders for it.
          */
-        final IDropInfo drop = item.getDropInfo();
+        final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
         if (drop != null
             && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class))) {
@@ -775,8 +764,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     boolean consistent = true;
     boolean hasRedDot = false;
     for (C node : c.children()) {
-      if (node.getDropInfo() instanceof IProofDropInfo) {
-        IProofDropInfo d = (IProofDropInfo) node.getDropInfo();
+      if (node.getDropInfo() instanceof IProofDrop) {
+        IProofDrop d = (IProofDrop) node.getDropInfo();
         hasAResult = true;
         consistent = consistent && d.provedConsistent();
         hasRedDot = hasRedDot || d.proofUsesRedDot();
@@ -840,7 +829,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
     if (node.getDropInfo() != null && node.getDropInfo().instanceOf(PleaseCount.class)) {
-      node.setCount(node.getDropInfo().count());
+      String value = node.getDropInfo().getAttribute(PleaseCount.COUNT);
+      int count = 0;
+      if (value != null) {
+        count = Integer.valueOf(value);
+      }
+      node.setCount(count);
+      return;
     }
 
     onPath.add(node);
@@ -940,9 +935,11 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 
   // Map<C,Integer> counts = new HashMap<C, Integer>();
 
-  static private class ContentJavaContext<T extends IDropInfo, C extends AbstractContent<T, C>> {
+  static private class ContentJavaContext<T extends IDrop, C extends AbstractContent<T, C>> {
+
     /**
-     * Flags if the entire Java context is well-defined
+     * {@code true} if the entire Java context is well-defined, {@code false}
+     * otherwise.
      */
     public boolean complete = false;
 
@@ -960,73 +957,14 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
      *          the viewer content item to obtain the Java context for
      */
     public ContentJavaContext(final C content) {
-      final IDropInfo info = content.getDropInfo();
-      final IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
-      if (ird == null) {
-        final ISrcRef ref = info.getSrcRef();
-        if (ref != null) {
-          packageName = ref.getPackage();
-          int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
-          typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator + 1);
-          complete = true;
-        }
-        return;
+      final IDrop info = content.getDropInfo();
+      final ISrcRef ref = info.getSrcRef();
+      if (ref != null) {
+        packageName = ref.getPackage();
+        int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
+        typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator + 1);
+        complete = true;
       }
-      // Get reference IRNode
-      final IRNode node = ird.getNode();
-      if (node == null) {
-        return;
-      }
-      /*
-       * if (!node.equals(content.referencedLocation)) { LOG.warning("Node from
-       * ref drop != node in content: "+content.referencedLocation); }
-       */
-      final Operator op = JavaNames.getOperator(node);
-      final boolean isCU = CompilationUnit.prototype.includes(op);
-      final boolean isPkg = PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op);
-
-      // determine package
-      IRNode cu = null;
-      if (isCU) {
-        cu = node;
-      } else {
-        cu = VisitUtil.getEnclosingCompilationUnit(node);
-      }
-      if (cu != null) {
-        String proposedPackageName = VisitUtil.getPackageName(cu);
-        if (proposedPackageName != null) {
-          packageName = proposedPackageName;
-        }
-
-        // determine enclosing type
-        IRNode type = null;
-        if (isCU) {
-          type = VisitUtil.getPrimaryType(node);
-        } else if (!isPkg) {
-          type = VisitUtil.getClosestType(node);
-          while (type != null && JJNode.tree.getOperator(type) instanceof CallInterface) {
-            type = VisitUtil.getEnclosingType(type);
-          }
-        }
-        if (type != null) {
-          typeName = JavaNames.getRelativeTypeName(type);
-          final Operator top = JavaNames.getOperator(type);
-          typeIsAnInterface = InterfaceDeclaration.prototype.includes(top);
-        } else if (isPkg) {
-          typeName = "package";
-          typeIsAnInterface = false;
-        } else {
-          LOG.severe("No enclosing type for: " + DebugUnparser.toString(node));
-        }
-      } else if (TextFile.prototype.includes(op)) {
-        typeName = TextFile.getId(node);
-        packageName = null;
-      } else if (node.identity() == IRNode.destroyedNode) {
-        System.out.println("Ignoring destroyed node: " + content.getDropInfo().getMessage());
-      } else {
-        LOG.warning("Unable to get Java context for " + DebugUnparser.toString(node));
-      }
-      complete = !typeName.equals(JavaNames.getTypeName(null));
     }
   }
 
@@ -1057,22 +995,22 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
    * Matches non-@Promise PromiseDrops
    */
   private static DropPredicate predicate = new DropPredicate() {
-    public boolean match(IDropInfo d) {
+    public boolean match(IDrop d) {
       return promisePred.match(d) && !scopedPromisePred.match(d);
     }
   };
 
   protected abstract boolean dropsExist(Class<? extends Drop> type);
 
-  protected abstract <R extends IDropInfo> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
+  protected abstract <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
 
   @SuppressWarnings("unchecked")
   protected IResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<C> root = new HashSet<C>();
 
-    final Collection<IProofDropInfo> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDropInfo.class);
-    for (IProofDropInfo pd : promiseDrops) {
+    final Collection<IProofDrop> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDrop.class);
+    for (IProofDrop pd : promiseDrops) {
       if (pd.isFromSrc() || pd.derivedFromSrc()) {
         // System.out.println("Considering: "+pd.getMessage());
         if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
@@ -1083,13 +1021,13 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       }
     }
 
-    final Collection<IDropInfo> infoDrops = getDropsOfType(InfoDrop.class, IDropInfo.class);
+    final Collection<IDrop> infoDrops = getDropsOfType(InfoDrop.class, IDrop.class);
     if (!infoDrops.isEmpty()) {
       final String msg = "Suggestions and warnings";
       C infoFolder = makeContent(msg);
       infoFolder.setCount(infoDrops.size());
 
-      for (IDropInfo id : infoDrops) {
+      for (IDrop id : infoDrops) {
         infoFolder.addChild(encloseDrop((T) id));
       }
       infoFolder.setBaseImageName(CommonImages.IMG_INFO);
@@ -1097,8 +1035,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
       root.add(infoFolder);
     }
 
-    final Collection<IProofDropInfo> resultDrops = getDropsOfType(ResultDrop.class, IProofDropInfo.class);
-    for (IProofDropInfo id : resultDrops) {
+    final Collection<IResultDrop> resultDrops = getDropsOfType(ResultDrop.class, IResultDrop.class);
+    for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
       if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
@@ -1121,7 +1059,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
     return this;
   }
 
-  protected static <T extends IDropInfo> boolean shouldBeTopLevel(T d) {
+  protected static <T extends IDrop> boolean shouldBeTopLevel(T d) {
     // System.out.println("???: "+d.getMessage());
     return d != null && d.instanceOf(MaybeTopLevel.class) && d.requestTopLevel();
   }
