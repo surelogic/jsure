@@ -45,7 +45,7 @@ public abstract class TypeDeclAnnotationTester {
     return tested;
   }
   
-  public final Iterable<PromiseDrop<? extends IAASTRootNode>> getPromises() {
+  public final Set<PromiseDrop<? extends IAASTRootNode>> getPromises() {
     return promises;
   }
   

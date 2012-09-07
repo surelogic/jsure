@@ -1,16 +1,18 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.equality;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.concurrency.util.ValueObjectAnnotationTester;
 import com.surelogic.analysis.layers.Messages;
-import com.surelogic.annotation.rules.EqualityRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.drops.promises.ValueObjectPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
 public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {
@@ -61,55 +63,60 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			b = binder;
 		}
 
-		@Override
+//		@Override
 		public IBinder getBinder() {
 			return b;
 		}
 
-		@Override
+//		@Override
 		public void clearCaches() {
 			// Nothing to do yet
 		}
 		
 		@Override
 		public Void visitEqualityExpression(IRNode node) {
-			final IRNode e1 = EqualityExpression.getOp1(node);
+			final IRNode e1 = BinopExpression.getOp1(node);
 			checkIfValueObject(e1);
 			
-			final IRNode e2 = EqualityExpression.getOp2(node);
+			final IRNode e2 = BinopExpression.getOp2(node);
 			checkIfValueObject(e2);
 			return null;
 		}
 		
 		void checkIfValueObject(IRNode e) {
 			IJavaType t = b.getJavaType(e);
-			ValueObjectPromiseDrop p = checkIfValueObject(e, t);
-			if (p != null) {
+//			ValueObjectPromiseDrop p = checkIfValueObject(e, t);
+			final ValueObjectAnnotationTester tester = 
+			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE);
+			
+			if (tester.testType(t)) {
 				ResultDropBuilder d = createFailureDrop(e);
-				d.addCheckedPromise(p);
+				for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
+				  d.addCheckedPromise(p);
+				}
 				d.setMessage(DebugUnparser.toString(e)+" should not be compared using == or !=");			
 			}
 		}
 		
-		/**
-		 * @return the promise drop if found
-		 */
-		ValueObjectPromiseDrop checkIfValueObject(final IRNode e, IJavaType t) {
-			if (!(t instanceof IJavaReferenceType)) {
-				return null;
-			}
-			if (t instanceof IJavaDeclaredType) {
-				IJavaDeclaredType dt = (IJavaDeclaredType) t;
-				return EqualityRules.getValueObjectDrop(dt.getDeclaration());								
-			}
-			ValueObjectPromiseDrop rv = null;
-			for(IJavaType st : t.getSupertypes(b.getTypeEnvironment())) {
-				rv = checkIfValueObject(e, st);
-				if (rv != null) {
-					return rv;
-				}
-			}
-			return rv;
-		}
+//		/**
+//		 * @return the promise drop if found
+//		 */
+//		ValueObjectPromiseDrop checkIfValueObject(final IRNode e, IJavaType t) {
+//			if (!(t instanceof IJavaReferenceType)) {
+//				return null;
+//			}
+//			if (t instanceof IJavaDeclaredType) {
+//				IJavaDeclaredType dt = (IJavaDeclaredType) t;
+//				return EqualityRules.getValueObjectDrop(dt.getDeclaration());								
+//			}
+//			ValueObjectPromiseDrop rv = null;
+//			for(IJavaType st : t.getSupertypes(b.getTypeEnvironment())) {
+//				rv = checkIfValueObject(e, st);
+//				if (rv != null) {
+//					return rv;
+//				}
+//			}
+//			return rv;
+//		}
 	}
 }

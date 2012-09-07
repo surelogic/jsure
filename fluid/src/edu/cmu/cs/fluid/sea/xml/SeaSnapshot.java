@@ -303,7 +303,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
         final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
   
-        if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
           fromPI.addCheckedPromise(toPI);
         } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
           fromPI.addTrustedPromise(toPI);
@@ -313,7 +313,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         }
       } else if (fromE instanceof IRFreeResultFolderDrop) {
           final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
-          if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
               final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;    	              
               fromPI.addCheckedPromise(toPI);
           } else if (ResultFolderDrop.RESULT.equals(refType)) {

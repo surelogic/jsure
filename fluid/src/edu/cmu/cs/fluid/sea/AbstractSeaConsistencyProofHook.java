@@ -7,12 +7,12 @@ package edu.cmu.cs.fluid.sea;
  */
 public abstract class AbstractSeaConsistencyProofHook implements SeaConsistencyProofHook {
 
-  @Override
+//  @Override
   public void preConsistencyProof(Sea sea) {
     // by default do nothing
   }
 
-  @Override
+//  @Override
   public void postConsistencyProof(Sea sea) {
     // by default do nothing
   }

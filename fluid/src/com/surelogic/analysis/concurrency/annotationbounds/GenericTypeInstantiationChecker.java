@@ -3,6 +3,7 @@ package com.surelogic.analysis.concurrency.annotationbounds;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +17,10 @@ import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.util.ContainableAnnotationTester;
 import com.surelogic.analysis.concurrency.util.ITypeFormalEnv;
 import com.surelogic.analysis.concurrency.util.ImmutableAnnotationTester;
+import com.surelogic.analysis.concurrency.util.ReferenceObjectAnnotationTester;
 import com.surelogic.analysis.concurrency.util.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.concurrency.util.TypeDeclAnnotationTester;
+import com.surelogic.analysis.concurrency.util.ValueObjectAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -50,30 +53,92 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
   private enum AnnotationBounds {
     CONTAINABLE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode ast) {
+        return ast.getContainable();
+      }
+      
+      @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
         return new ContainableAnnotationTester(binder, formalEnv);
       }
+      
+      @Override
+      public String toString() { return "Containable"; }
     },
     
     IMMUTABLE {
+      @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode ast) {
+        return ast.getImmutable();
+      }
+      
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
         return new ImmutableAnnotationTester(binder, formalEnv);
       }
+      
+      @Override
+      public String toString() { return "Immutable"; }
+    },
+    
+    REFERENCE {
+      @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode ast) {
+        return ast.getReference();
+      }
+      
+      @Override
+      public TypeDeclAnnotationTester getTester(
+          final IBinder binder, final ITypeFormalEnv formalEnv) {
+        return new ReferenceObjectAnnotationTester(binder, formalEnv);
+      }
+      
+      @Override
+      public String toString() { return "ReferenceObject"; }
     },
     
     THREADSAFE {
+      @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode ast) {
+        return ast.getThreadSafe();
+      }
+      
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
         return new ThreadSafeAnnotationTester(binder, formalEnv);
       }
+      
+      @Override
+      public String toString() { return "ThreadSafe"; }
+    },
+    
+    VALUE {
+      @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode ast) {
+        return ast.getValue();
+      }
+      
+      @Override
+      public TypeDeclAnnotationTester getTester(
+          final IBinder binder, final ITypeFormalEnv formalEnv) {
+        return new ValueObjectAnnotationTester(binder, formalEnv);
+      }
+      
+      @Override
+      public String toString() { return "ValueObject"; }
     };
+    
+    public abstract NamedTypeNode[] getNamedTypes(
+        AnnotationBoundsNode ast);
     
     public abstract TypeDeclAnnotationTester getTester(
         IBinder binder, ITypeFormalEnv formalEnv);
+    
+    @Override
+    public abstract String toString();
   }
 
   
@@ -140,7 +205,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       return null;
     }
       
-    /* If we get here we 'type' is a class or interface declaration with
+    /* If we get here, 'type' is a class or interface declaration with
      * at least 1 type formal.
      */
       
@@ -158,12 +223,9 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
     
     final AnnotationBoundsNode ast = boundsDrop.getAAST();
     boolean added = false;
-    added |= addToBounds(
-        bounds, formalIDs, ast.getContainable(), AnnotationBounds.CONTAINABLE);
-    added |= addToBounds(
-        bounds, formalIDs, ast.getImmutable(), AnnotationBounds.IMMUTABLE);
-    added |= addToBounds(
-        bounds, formalIDs, ast.getThreadSafe(), AnnotationBounds.THREADSAFE);
+    for (final AnnotationBounds e : AnnotationBounds.values()) {
+      added |= addToBounds(bounds, formalIDs, e.getNamedTypes(ast), e);
+    }
       
     if (added) {
       cachedBounds.put(baseTypeDecl, bounds);
@@ -193,67 +255,25 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
   }
 
 
+  private static String boundsSetToString(final Set<AnnotationBounds> set) {
+    final StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (final AnnotationBounds bound : set) {
+      if (!first) {
+        sb.append(" || ");
+      } else {
+        first = false;
+      }
+      sb.append(bound.toString());
+    }
+    return sb.toString();
+  }
+  
 
   private void checkActualsAgainstBounds(
       final AnnotationBoundsPromiseDrop boundsDrop,
       final IRNode parameterizedType,
-      final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {
-//    /* We create the result before we know whether it is assured or not, so
-//     * we have to set the result TYPE later too.  We use a dummy type 
-//     * initially.
-//     */
-//    final ResultDropBuilder result = ResultDropBuilder.create(analysis, "dummy");
-//    analysis.setResultDependUponDrop(result, parameterizedType);
-//    result.addCheckedPromise(boundsDrop);
-//    
-//    boolean checks = true;
-//    // Should be true: if not, why not?
-//    final IJavaDeclaredType jTypeOfParameterizedType =
-//        (IJavaDeclaredType) binder.getJavaType(parameterizedType);
-//    final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
-//    final IRNode typeActuals = ParameterizedType.getArgs(parameterizedType);
-//    for (int i = 0; i < boundsList.size(); i++) {
-//      final IRNode formalDecl = boundsList.get(i).first();
-//      final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
-//      final Set<AnnotationBounds> bounds = boundsList.get(i).second();
-//
-//      final IJavaType jTypeOfActual = actualList.get(i);
-//      final IRNode syntaxNodeOfActual = TypeActuals.getType(typeActuals, i);
-//
-//      for (final AnnotationBounds bound : bounds) {
-//        final AnnotationBoundVirtualDrop vDrop =
-//            new AnnotationBoundVirtualDrop(formalDecl, bound.name(), nameOfTypeFormal);
-//        result.addTrustedPromise(vDrop);
-//        
-//        final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
-//        final ResultDropBuilder subResult;
-//        if (tester.testType(jTypeOfActual)) {
-//          subResult = ResultDropBuilder.create(
-//              analysis, Messages.toString(Messages.BOUND_SATISFIED));
-//          subResult.setResultMessage(Messages.BOUND_SATISFIED, jTypeOfActual.toSourceText());
-//          subResult.setConsistent();
-//        } else {
-//          checks = false;
-//          subResult = ResultDropBuilder.create(
-//              analysis, Messages.toString(Messages.BOUND_NOT_SATISFIED));
-//          subResult.setResultMessage(Messages.BOUND_NOT_SATISFIED, jTypeOfActual.toSourceText());
-//          subResult.setInconsistent();
-//        }
-//        
-//        analysis.setResultDependUponDrop(subResult, syntaxNodeOfActual);
-//        subResult.addCheckedPromise(vDrop);
-//        for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-//          subResult.addTrustedPromise(p);
-//        }
-//      }
-//    }
-//    
-//    final int msg = checks ? Messages.ANNOTATION_BOUNDS_SATISFIED
-//        : Messages.ANNOTATION_BOUNDS_NOT_SATISFIED;
-//    result.setType(Messages.toString(msg));
-//    result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText());
-//    result.setConsistent(checks);
-    
+      final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {    
     // Should be true: if not, why not?
     final IJavaDeclaredType jTypeOfParameterizedType =
         (IJavaDeclaredType) binder.getJavaType(parameterizedType);
@@ -262,32 +282,28 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
       final Set<AnnotationBounds> bounds = boundsList.get(i).second();
-
+      final String boundsString = boundsSetToString(bounds);
       final IJavaType jTypeOfActual = actualList.get(i);
-
+      
+      final Set<PromiseDrop<? extends IAASTRootNode>> promises = 
+          new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+      boolean checks = false;
       for (final AnnotationBounds bound : bounds) {
         final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
-        final ResultDropBuilder result;
-        if (tester.testType(jTypeOfActual)) {
-          result = ResultDropBuilder.create(analysis);
-          analysis.setResultDependUponDrop(result, parameterizedType);
-          result.addCheckedPromise(boundsDrop);
-          result.setResultMessage(Messages.ANNOTATION_BOUND_SATISFIED,
-              jTypeOfParameterizedType.toSourceText(),
-              bound.name(), nameOfTypeFormal, jTypeOfActual.toSourceText());
-          result.setConsistent();
-        } else {
-          result = ResultDropBuilder.create(analysis);
-          analysis.setResultDependUponDrop(result, parameterizedType);
-          result.addCheckedPromise(boundsDrop);
-          result.setResultMessage(Messages.ANNOTATION_BOUND_NOT_SATISFIED,
-              jTypeOfParameterizedType.toSourceText(),
-              bound.name(), nameOfTypeFormal, jTypeOfActual.toSourceText());
-          result.setInconsistent();
-        }
-        for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-          result.addTrustedPromise(p);
-        }
+        checks |= tester.testType(jTypeOfActual);
+        promises.addAll(tester.getPromises());
+      }      
+
+      final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
+          : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
+      final ResultDropBuilder result = ResultDropBuilder.create(analysis);
+      analysis.setResultDependUponDrop(result, parameterizedType);
+      result.addCheckedPromise(boundsDrop);
+      result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText(),
+            boundsString, nameOfTypeFormal, jTypeOfActual.toSourceText());
+      result.setConsistent(checks);
+      for (final PromiseDrop<? extends IAASTRootNode> p : promises) {
+        result.addTrustedPromise(p);
       }
     }
   }
