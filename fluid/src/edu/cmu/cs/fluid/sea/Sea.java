@@ -221,15 +221,15 @@ public final class Sea {
   }
 
   /**
-   * Returns a new set that contains drops within <code>dropSet</code> that
-   * match the given drop predicate.
+   * Returns a new list of drops within <code>drops</code> that match the given
+   * drop predicate.
    * 
    * @param pred
-   *          the drop predicate to apply to the drop set.
+   *          a drop predicate.
    * @param drops
-   *          the set of drops to subset. This set is not modified.
-   * @return the set of drops in <code>dropSet</code> that matched the drop
-   *         predicate.
+   *          the collection of drops to subset. This collection is not
+   *          modified.
+   * @return a list of matching drops.
    * 
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
@@ -634,13 +634,15 @@ public final class Sea {
         pd.provedConsistent = true; // assume true
         pd.derivedFromSrc = pd.isFromSrc();
 
-        Collection<ResultDrop> analysisResults = pd.getCheckedBy();
-        for (ResultDrop result : analysisResults) {
+        Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
+        for (AnalysisResultDrop result : analysisResults) {
           /*
            * & in local result
            */
-          pd.provedConsistent = pd.provedConsistent && (result.isConsistent() || result.isVouched());
-
+          if (result instanceof ResultDrop) {
+        	  ResultDrop r = (ResultDrop) result;
+        	  pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
+          }
           pd.derivedFromSrc = pd.derivedFromSrc || result.isFromSrc();
         }
       } else if (d instanceof ResultDrop) {
