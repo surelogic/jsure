@@ -8,11 +8,8 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 
 /**
- * Class to hold supporting information about a drop.
- * 
- * @see ProofDrop#addSupportingInformation(String,IRNode)
- * @see PromiseDrop
- * @see ResultDrop
+ * Class to hold an {@link AnalysisResultMessage} as supporting information
+ * about a drop.
  */
 public final class SupportingInformationViaAnalysisResultMessage implements ISupportingInformation {
   /**
@@ -26,16 +23,16 @@ public final class SupportingInformationViaAnalysisResultMessage implements ISup
   final AnalysisResultMessage message;
 
   public SupportingInformationViaAnalysisResultMessage(IRNode link, int number, Object[] args) {
-	  location = link;
-	  
-	  final ISrcRef ref = JavaNode.getSrcRef(link);
-	  JavaSourceReference srcRef = IRReferenceDrop.createSourceRef(link, ref); 
-	  message = AnalysisResultMessage.getInstance(srcRef, number, args);
+    location = link;
+
+    final ISrcRef ref = JavaNode.getSrcRef(link);
+    JavaSourceReference srcRef = IRReferenceDrop.createSourceRef(link, ref);
+    message = AnalysisResultMessage.getInstance(srcRef, number, args);
   }
 
-/**
-   * @return the fAST location this supporting information references, can
-   *   be <code>null</code>
+  /**
+   * @return the fAST location this supporting information references, can be
+   *         <code>null</code>
    */
   public final IRNode getLocation() {
     return location;
@@ -49,19 +46,18 @@ public final class SupportingInformationViaAnalysisResultMessage implements ISup
   }
 
   /**
-   * @return the source reference of the fAST node this information
-   *   references, can be <code>null</code>
+   * @return the source reference of the fAST node this information references,
+   *         can be <code>null</code>
    */
   public ISrcRef getSrcRef() {
     return (location != null ? JavaNode.getSrcRef(location) : null);
   }
-  
+
   public boolean sameAs(IRNode link, int num, Object[] args) {
-	  return message.sameAs(num, args) &&
-			  this.location != null && (this.location == link || this.location.equals(link));
+    return message.sameAs(num, args) && this.location != null && (this.location == link || this.location.equals(link));
   }
 
   public boolean sameAs(IRNode link, String message) {
-	  return false;
+    return false;
   }
 }

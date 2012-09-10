@@ -216,7 +216,7 @@ public final class PackageDrop extends CUDrop {
 
   public static void invalidateAll() {
     synchronized (Sea.getDefault().getSeaLock()) {
-      Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(PackageDrop.class));
+      Sea.getDefault().invalidateMatching(DropPredicateFactory.matchExactType(PackageDrop.class));
       NAME_TO_INSTANCE.clear();
     }
   }

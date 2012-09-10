@@ -6,7 +6,6 @@ import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 public class ProjectsDrop extends Drop {
 	static private ProjectsDrop active = null;
