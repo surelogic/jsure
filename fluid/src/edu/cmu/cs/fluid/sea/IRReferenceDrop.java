@@ -246,7 +246,7 @@ public abstract class IRReferenceDrop extends Drop {
             return;
           }
         }
-        ISupportingInformation info = new SupportingInformation2(link, num, args);
+        ISupportingInformation info = new SupportingInformationViaAnalysisResultMessage(link, num, args);
         f_supportingInformation.add(info);
       }
     }
@@ -273,7 +273,7 @@ public abstract class IRReferenceDrop extends Drop {
             return;
           }
         }
-        SupportingInformation info = new SupportingInformation();
+        SupportingInformationViaString info = new SupportingInformationViaString();
         info.location = link;
         info.message = message;
         f_supportingInformation.add(info);
