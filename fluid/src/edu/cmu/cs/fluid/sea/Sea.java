@@ -603,8 +603,7 @@ public final class Sea {
             final ResultDrop rd = (ResultDrop) d;
 
             // "and" trust promise drops
-            Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
-            for (final PromiseDrop<? extends IAASTRootNode> promise : andTrusts) {
+            for (final PromiseDrop<? extends IAASTRootNode> promise : rd.getTrusts()) {
               // all must be consistent for this drop to be consistent
               rd.setProvedConsistent(rd.provedConsistent() & promise.provedConsistent());
               // any red dot means this drop depends upon a red dot
@@ -702,7 +701,7 @@ public final class Sea {
             } else if (d instanceof AnalysisResultDrop) {
               final AnalysisResultDrop rd = (AnalysisResultDrop) d;
               // add all promise drops that this result checks
-              nextWorklist.addAll(rd.getChecks());
+              nextWorklist.addAll(rd.getChecksReference());
             }
           }
         }

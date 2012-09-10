@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
@@ -32,16 +33,26 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   /**
    * The set of promise drops being checked, or established, by this result.
    */
-  private final Set<PromiseDrop<? extends IAASTRootNode>> checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  @UniqueInRegion("DropState")
+  private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   /**
-   * Gets the set of promise drops established, or checked, by this result.
+   * Gets the set of promise drops established, or checked, by this result. The
+   * returned set is a copy.
    * 
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  public final Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
-    return checks;
+  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
+    synchronized (f_seaLock) {
+      return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
+    }
+  }
+
+  final Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecksReference() {
+    synchronized (f_seaLock) {
+      return f_checks;
+    }
   }
 
   /**
@@ -52,8 +63,10 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    *          the promise being supported by this result
    */
   public final void addCheckedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
-    checks.add(promise);
-    promise.addDependent(this);
+    synchronized (f_seaLock) {
+      f_checks.add(promise);
+      promise.addDependent(this);
+    }
   }
 
   /**
@@ -64,16 +77,20 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    *          the promises being supported by this result
    */
   public final void addCheckedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
-    // no null check -- fail-fast
-    for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
-      addCheckedPromise(promise);
+    if (promises == null)
+      return;
+
+    synchronized (f_seaLock) {
+      for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
+        addCheckedPromise(promise);
+      }
     }
   }
 
   @Override
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getChecks()) {
+    for (Drop c : getChecksReference()) {
       s.snapshotDrop(c);
     }
   }
@@ -82,7 +99,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop c : getChecks()) {
+    for (Drop c : getChecksReference()) {
       s.refDrop(db, CHECKED_PROMISE, c);
     }
   }

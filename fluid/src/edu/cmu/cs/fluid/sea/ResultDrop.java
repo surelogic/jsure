@@ -6,7 +6,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.InRegion;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -44,22 +47,33 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   /**
    * The set of promise drops trusted by this result, its preconditions.
    */
-  private final Set<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  @UniqueInRegion("DropState")
+  private final HashSet<PromiseDrop<? extends IAASTRootNode>> trusts = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   /**
    * Map from "or" logic trust labels (String) to sets of drop promises. One
    * complete set of promises must be proved consistent for this result to be
    * consistent.
    */
+  @UniqueInRegion("DropState")
   private final Map<String, Set<PromiseDrop<? extends IAASTRootNode>>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop<? extends IAASTRootNode>>>();
 
   /**
    * Flags if this result indicates consistency with code.
    */
+  @InRegion("DropState")
   private boolean consistent = false;
 
-  public boolean hasEnclosingFolder() {
-    return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
+  /**
+   * Returns if this result is within a {@link ResultFolderDrop} instance.
+   * 
+   * @return {@code true} if this result is within a {@link ResultFolderDrop}
+   *         instance, {@code false} otherwise.
+   */
+  public boolean isInResultFolder() {
+    synchronized (f_seaLock) {
+      return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
+    }
   }
 
   /**
@@ -70,8 +84,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *          the promise being trusted by this result
    */
   public void addTrustedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
-    trusts.add(promise);
-    promise.addDependent(this);
+    synchronized (f_seaLock) {
+      trusts.add(promise);
+      promise.addDependent(this);
+    }
   }
 
   /**
@@ -82,12 +98,16 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *          the promises being trusted by this result
    */
   public void addTrustedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
-    // no null check -- fail-fast
-    for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
-      // Iterator promiseIter = promises.iterator();
-      // while (promiseIter.hasNext()) {
-      // PromiseDrop promise = (PromiseDrop) promiseIter.next();
-      addTrustedPromise(promise);
+    if (promises == null)
+      return;
+
+    synchronized (f_seaLock) {
+      for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
+        // Iterator promiseIter = promises.iterator();
+        // while (promiseIter.hasNext()) {
+        // PromiseDrop promise = (PromiseDrop) promiseIter.next();
+        addTrustedPromise(promise);
+      }
     }
   }
 
@@ -97,49 +117,57 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * 
    * @param promise
    *          the promise being trusted by this result
+   * @throws IllegalArgumentException
+   *           if either parameter is null.
    */
   public void addTrustedPromise_or(String orKey, PromiseDrop<? extends IAASTRootNode> promise) {
-    String key = orKey.intern();
-    Set<PromiseDrop<? extends IAASTRootNode>> s = or_TrustLabelToTrusts.get(key);
-    if (s == null) {
-      s = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-      or_TrustLabelToTrusts.put(key, s);
+    if (orKey == null)
+      throw new IllegalArgumentException(I18N.err(44, "orKey"));
+    if (promise == null)
+      throw new IllegalArgumentException(I18N.err(44, "promise"));
+
+    synchronized (f_seaLock) {
+      Set<PromiseDrop<? extends IAASTRootNode>> s = or_TrustLabelToTrusts.get(orKey);
+      if (s == null) {
+        s = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+        or_TrustLabelToTrusts.put(orKey, s);
+      }
+      s.add(promise);
+      promise.addDependent(this);
     }
-    s.add(promise);
-    promise.addDependent(this);
   }
 
   /**
    * Returns the preconditions of this result, including any "or" preconditions.
    * However, using this call it is impossible to distinguish "and"
-   * preconditions from "or"preconditions.
+   * preconditions from "or"preconditions. The returned set is a copy.
    * 
-   * @return the non-null (possibly empty) set of promises trusted by this
-   *         result, its preconditions. All members of the returned set will are
-   *         of the PromiseDrop type.
+   * @return a new non-null (possibly empty) set of promises trusted by this
+   *         result, its preconditions.
    * 
    * @see #getTrusts()
    * @see #hasOrLogic()
    * @see #get_or_TrustLabelSet()
    * @see #get_or_Trusts(String)
    */
-  public Set<? extends PromiseDrop<? extends IAASTRootNode>> getTrustsComplete() {
-    final Set<PromiseDrop<? extends IAASTRootNode>> result = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-    result.addAll(trusts);
-    if (hasOrLogic()) {
-      Set<String> orLabels = get_or_TrustLabelSet();
-      for (String orKey : orLabels) {
-        // String orKey = (String) i.next();
-        result.addAll(get_or_Trusts(orKey));
+  public HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getTrustsComplete() {
+    synchronized (f_seaLock) {
+      final HashSet<PromiseDrop<? extends IAASTRootNode>> result = new HashSet<PromiseDrop<? extends IAASTRootNode>>(trusts);
+      if (hasOrLogic()) {
+        Set<String> orLabels = get_or_TrustLabelSet();
+        for (String orKey : orLabels) {
+          // String orKey = (String) i.next();
+          result.addAll(get_or_Trusts(orKey));
+        }
       }
+      return result;
     }
-    return result;
   }
 
   /**
    * Returns the preconditions of this result, this set does not include any
    * "or" preconditions. Use the "get_or_" methods to obtain those
-   * preconditions.
+   * preconditions. Do <b>not</b> modify the returned set in any way.
    * 
    * @return the non-null (possibly empty) set of promises trusted by this
    *         result, its preconditions.
@@ -148,8 +176,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * @see #get_or_TrustLabelSet()
    * @see #get_or_Trusts(String)
    */
-  public Set<PromiseDrop<? extends IAASTRootNode>> getTrusts() {
-    return trusts;
+  public HashSet<PromiseDrop<? extends IAASTRootNode>> getTrusts() {
+    synchronized (f_seaLock) {
+      return trusts;
+    }
   }
 
   /**
@@ -177,11 +207,14 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *         <code>false</code> otherwise.
    */
   public boolean hasOrLogic() {
-    return !or_TrustLabelToTrusts.keySet().isEmpty();
+    synchronized (f_seaLock) {
+      return !or_TrustLabelToTrusts.keySet().isEmpty();
+    }
   }
 
   /**
-   * Returns the set of "or" keys used for this promise.
+   * Returns the set of "or" keys used for this promise. Do <b>not</b> modify
+   * the returned set in any way.
    * <p>
    * Typical use of this method is:
    * 
@@ -203,11 +236,14 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * @return the non-null (possibly empty) set of "or" keys used by this promise
    */
   public Set<String> get_or_TrustLabelSet() {
-    return or_TrustLabelToTrusts.keySet();
+    synchronized (f_seaLock) {
+      return or_TrustLabelToTrusts.keySet();
+    }
   }
 
   /**
-   * Returns the set of promise drops for a specific "or" key.
+   * Returns the set of promise drops for a specific "or" key. Do <b>not</b>
+   * modify the returned set in any way.
    * <p>
    * Typical use of this method is:
    * 
@@ -230,7 +266,9 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * @return the non-null (possibly empty) promise drop set
    */
   public Set<PromiseDrop<? extends IAASTRootNode>> get_or_Trusts(String key) {
-    return or_TrustLabelToTrusts.get(key);
+    synchronized (f_seaLock) {
+      return or_TrustLabelToTrusts.get(key);
+    }
   }
 
   /**
@@ -240,21 +278,27 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *         <code>false</code> otherwise.
    */
   public boolean isConsistent() {
-    return consistent;
+    synchronized (f_seaLock) {
+      return consistent;
+    }
   }
 
   /**
    * Sets this result to indicate model/code consistency.
    */
   public void setConsistent() {
-    consistent = true;
+    synchronized (f_seaLock) {
+      consistent = true;
+    }
   }
 
   /**
    * Sets this result to indicate model/code inconsistency.
    */
   public void setInconsistent() {
-    consistent = false;
+    synchronized (f_seaLock) {
+      consistent = false;
+    }
   }
 
   /**
@@ -264,13 +308,16 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *          the consistency setting.
    */
   public void setConsistent(final boolean value) {
-    consistent = value;
+    synchronized (f_seaLock) {
+      consistent = value;
+    }
   }
 
   /**
    * Flags if this result drop was "vouched" for by a programmer even though it
    * is inconsistent.
    */
+  @InRegion("DropState")
   private boolean vouched = false;
 
   /**
@@ -282,7 +329,9 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *         otherwise.
    */
   public boolean isVouched() {
-    return vouched;
+    synchronized (f_seaLock) {
+      return vouched;
+    }
   }
 
   /**
@@ -290,12 +339,15 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * inconsistent.
    */
   public void setVouched() {
-    vouched = true;
+    synchronized (f_seaLock) {
+      vouched = true;
+    }
   }
 
   /**
    * Flags if this result drop is inconsistent because the analysis timed out.
    */
+  @InRegion("DropState")
   private boolean timeout = false;
 
   /**
@@ -303,8 +355,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * its verifying analysis timed out.
    */
   public void setTimeout() {
-    setInconsistent();
-    timeout = true;
+    synchronized (f_seaLock) {
+      setInconsistent();
+      timeout = true;
+    }
   }
 
   /**
@@ -314,12 +368,15 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *         analysis timed out, <code>false</code> otherwise.
    */
   public boolean isTimeout() {
-    return timeout;
+    synchronized (f_seaLock) {
+      return timeout;
+    }
   }
 
   /**
    * Flags of the proof of "or" trusted promises uses a red dot.
    */
+  @InRegion("DropState")
   private boolean or_proofUsesRedDot = false;
 
   /**
@@ -329,16 +386,21 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    *         otherwise.
    */
   public boolean get_or_proofUsesRedDot() {
-    return or_proofUsesRedDot;
+    synchronized (f_seaLock) {
+      return or_proofUsesRedDot;
+    }
   }
 
   void set_or_proofUsesRedDot(boolean value) {
-    or_proofUsesRedDot = value;
+    synchronized (f_seaLock) {
+      or_proofUsesRedDot = value;
+    }
   }
 
   /**
    * Flags if the proof of "or" trusted promises is consistent.
    */
+  @InRegion("DropState")
   private boolean or_provedConsistent = false;
 
   /**
@@ -347,11 +409,15 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * @return<code>true</code> if consistent, <code>false</code> otherwise.
    */
   public boolean get_or_provedConsistent() {
-    return or_provedConsistent;
+    synchronized (f_seaLock) {
+      return or_provedConsistent;
+    }
   }
 
   void set_or_provedConsistent(boolean value) {
-    or_provedConsistent = value;
+    synchronized (f_seaLock) {
+      or_provedConsistent = value;
+    }
   }
 
   @Override
@@ -382,7 +448,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
-    s.addAttribute(ENCLOSED_IN_FOLDER, hasEnclosingFolder());
+    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
     s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
   }
 

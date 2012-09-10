@@ -70,7 +70,7 @@ public class Report {
     return droptypeToCount;
   }
 
-  public static Set<Drop> getDropsAssociatedWithModel(ModelDrop model) {
+  public static Set<Drop> getDropsAssociatedWithModel(ModelDrop<?> model) {
     /*
      * if (model.hasDeponents()) { // Not an independent model (probably a
      * RegionModel) return Collections.EMPTY_SET; }
@@ -136,10 +136,10 @@ public class Report {
     return drops;
   }
 
-  public static Map generateAssociatedDropCounts(ModelDrop model) {
+  public static Map<String, Integer> generateAssociatedDropCounts(ModelDrop<?> model) {
     Set<Drop> drops = getDropsAssociatedWithModel(model);
     if (drops.isEmpty()) {
-      return Collections.EMPTY_MAP;
+      return Collections.emptyMap();
     }
     return generateDropCounts(drops);
   }
@@ -216,7 +216,7 @@ public class Report {
       // CHECKS //
 
       boolean first = true;
-      for (PromiseDrop promise : result.getChecks()) {
+      for (PromiseDrop<?> promise : result.getChecks()) {
         if (first) {
           first = false;
           out.println("     Promises this result CHECKS (partially establishes):");
@@ -233,7 +233,7 @@ public class Report {
       // TRUSTS (preconditions) //
 
       first = true;
-      for (PromiseDrop promise : result.getTrusts()) {
+      for (PromiseDrop<?> promise : result.getTrusts()) {
         if (first) {
           first = false;
           out.println("     Promises this result TRUSTS (requires as preconditions):");

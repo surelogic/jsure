@@ -548,7 +548,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
             }
         	else if (info.instanceOf(ResultDrop.class)) {
         		IResultDrop r = (IResultDrop) info;
-        		dontCategorize = r.hasEnclosingFolder();
+        		dontCategorize = r.isInResultFolder();
         	}
         }
         if (dontCategorize) {
@@ -1069,7 +1069,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.hasEnclosingFolder()) || shouldBeTopLevel(id))) {
+      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || shouldBeTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }

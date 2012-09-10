@@ -228,7 +228,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
     }
     for (AnalysisResultDrop rd : ss) {
-      if (rd.getChecks().contains(this)) {
+      if (rd.getChecksReference().contains(this)) {
         result.add(rd);
       }
     }

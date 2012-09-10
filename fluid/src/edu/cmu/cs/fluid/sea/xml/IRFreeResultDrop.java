@@ -42,7 +42,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
     orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
   }
 
-  public boolean hasEnclosingFolder() {
+  public boolean isInResultFolder() {
 	return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
   }
   

@@ -39,8 +39,9 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   public void add(AnalysisResultDrop result) {
     if (result == null)
       return;
-
-    this.addDependent(result);
+    synchronized (f_seaLock) {
+      this.addDependent(result);
+    }
   }
 
   /**
@@ -50,7 +51,10 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
    * @return a non-null (possibly empty) set of analysis results.
    */
   public List<ResultDrop> getAnalysisResults() {
-    final List<ResultDrop> result = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    final List<ResultDrop> result;
+    synchronized (f_seaLock) {
+      result = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    }
     return result;
   }
 
@@ -60,7 +64,10 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
    * @return a non-null (possibly empty) set of analysis result folders.
    */
   public List<ResultFolderDrop> getSubFolders() {
-    final List<ResultFolderDrop> result = Sea.filterDropsOfType(ResultFolderDrop.class, getDependentsReference());
+    final List<ResultFolderDrop> result;
+    synchronized (f_seaLock) {
+      result = Sea.filterDropsOfType(ResultFolderDrop.class, getDependentsReference());
+    }
     return result;
   }
 
@@ -71,7 +78,10 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
    *         sub-folders.
    */
   public List<AnalysisResultDrop> getContents() {
-    final List<AnalysisResultDrop> result = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+    final List<AnalysisResultDrop> result;
+    synchronized (f_seaLock) {
+      result = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+    }
     return result;
   }
 

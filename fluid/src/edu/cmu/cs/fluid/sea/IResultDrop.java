@@ -37,7 +37,7 @@ public interface IResultDrop extends IAnalysisResultDrop {
   /**
    * @return true if enclosed in a folder
    */
-  boolean hasEnclosingFolder();
+  boolean isInResultFolder();
 
   /**
    * Returns the preconditions of this result, this set does not include any
