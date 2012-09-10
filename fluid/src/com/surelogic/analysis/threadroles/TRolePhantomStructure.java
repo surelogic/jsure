@@ -5,7 +5,7 @@ import com.surelogic.RequiresLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 
@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
  * invalided also gets invalidated.
  * @author dfsuther
  */
-public class TRolePhantomStructure extends PhantomDrop implements IThreadRoleDrop {
+public class TRolePhantomStructure extends IRReferenceDrop implements IThreadRoleDrop {
 
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()

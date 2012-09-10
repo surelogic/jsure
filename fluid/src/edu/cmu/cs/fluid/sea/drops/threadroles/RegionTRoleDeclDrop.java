@@ -10,7 +10,7 @@ import com.surelogic.analysis.threadroles.TRExpr;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.BindUtil;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.sea.drops.promises.ColorRegionModel
  */
-public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop {
+public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleDrop {
 
   private final TRExpr userConstraint;
 

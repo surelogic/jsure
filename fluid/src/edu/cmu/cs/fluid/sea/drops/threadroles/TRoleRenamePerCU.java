@@ -6,23 +6,30 @@
  */
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.RequiresLock;
-import com.surelogic.analysis.threadroles.*;
-import com.surelogic.common.logging.SLLogger;
-
 import SableJBDD.bdd.JBDD;
+
+import com.surelogic.RequiresLock;
+import com.surelogic.analysis.threadroles.TRoleBDDPack;
+import com.surelogic.analysis.threadroles.TRolesFirstPass;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 
-public class TRoleRenamePerCU extends PhantomDrop implements IThreadRoleDrop {
+public class TRoleRenamePerCU extends IRReferenceDrop implements IThreadRoleDrop {
 
  public static int lastLoopCheck = 0;
   

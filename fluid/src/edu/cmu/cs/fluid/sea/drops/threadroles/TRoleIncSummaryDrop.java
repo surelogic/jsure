@@ -7,18 +7,19 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import SableJBDD.bdd.JBDD;
+
 import com.surelogic.analysis.threadroles.TRoleBDDPack;
 import com.surelogic.common.logging.SLLogger;
 
-import SableJBDD.bdd.JBDD;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 
 /**
  * @author dfsuther
  *
  */
-public class TRoleIncSummaryDrop extends PhantomDrop implements IThreadRoleDrop {
+public class TRoleIncSummaryDrop extends IRReferenceDrop implements IThreadRoleDrop {
   private final JBDD conflictExpr;
   private final TRoleNameModel summaryFor;
   
