@@ -6,11 +6,18 @@
  */
 package edu.cmu.cs.fluid.sea.drops.effects;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.RequiresLock;
-import com.surelogic.analysis.effects.*;
+import com.surelogic.analysis.effects.ConflictChecker;
+import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
@@ -25,10 +32,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 
 
-public class WholeModuleFXDrop extends PhantomDrop {
+public class WholeModuleFXDrop extends IRReferenceDrop {
 
   private static final Logger LOG = SLLogger
       .getLogger("FLUID.analysis.effects");

@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
@@ -115,7 +116,7 @@ public abstract class IRReferenceDrop extends Drop {
     if (node != null) {
       ISrcRef ref = JavaNode.getSrcRef(node);
       if (ref == null) {
-        IRNode parent = JavaPromise.getParentOrPromisedFor(node);
+        final IRNode parent = JavaPromise.getParentOrPromisedFor(node);
         return JavaNode.getSrcRef(parent);
       }
       return ref;
@@ -226,13 +227,20 @@ public abstract class IRReferenceDrop extends Drop {
   private List<ISupportingInformation> f_supportingInformation = null;
 
   /**
-   * Reports an item of supporting information about this drop. This can be used
-   * to add any curio about the drop.
+   * 
+   * Reports a string of supporting information about this drop constructed from
+   * a lookup using {@link I18N#res(int, Object...)} from
+   * <tt>SureLogicResults.properties</tt> in the
+   * <tt>com.surelogic.common.i18n</tt> package. This can be used to add any
+   * curio about the drop.
    * 
    * @param link
    *          an fAST node, can be <code>null</code>, to reference
    * @param num
-   *          The message number for the user interface
+   *          the message number for the call to
+   *          {@link I18N#res(int, Object...)}
+   * @param args
+   *          arguments for the call to {@link I18N#res(int, Object...)}
    */
   public final void addSupportingInformation(IRNode link, int num, Object... args) {
     if (num >= 0) {
@@ -246,22 +254,22 @@ public abstract class IRReferenceDrop extends Drop {
             return;
           }
         }
-        ISupportingInformation info = new SupportingInformationViaAnalysisResultMessage(link, num, args);
+        final ISupportingInformation info = new SupportingInformationViaAnalysisResultMessage(link, num, args);
         f_supportingInformation.add(info);
       }
     }
   }
 
   /**
-   * Reports an item of supporting information about this drop. This can be used
-   * to add any curio about the drop.
+   * Reports a string of supporting information about this drop. This can be
+   * used to add any curio about the drop.
    * 
-   * @param message
-   *          a text message for the user interface
    * @param link
    *          an fAST node, can be <code>null</code>, to reference
+   * @param message
+   *          a text message for the user interface
    */
-  public final void addSupportingInformation(String message, IRNode link) {
+  public final void addSupportingInformation(IRNode link, String message) {
     if (message != null) {
       synchronized (f_seaLock) {
         if (f_supportingInformation == null) {

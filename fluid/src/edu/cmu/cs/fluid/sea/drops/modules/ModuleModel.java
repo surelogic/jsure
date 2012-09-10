@@ -357,7 +357,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
                                                      DS_BAD_EXPORT, 
                                                      ed.toString(), 
                                                      ModuleAnalysisAndVisitor.javaName(where));
-           rd.addSupportingInformation(DS_BAD_EXPORT_INFO, null);
+           rd.addSupportingInformation(null, DS_BAD_EXPORT_INFO);
          }
       }
     }

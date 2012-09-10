@@ -29,7 +29,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @lock ColorNameModelLock is class protects globalNameToDrop
  */
-public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
+public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
 
   Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 

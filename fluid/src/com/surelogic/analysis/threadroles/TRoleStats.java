@@ -9,6 +9,7 @@ package com.surelogic.analysis.threadroles;
 import java.util.Collection;
 import java.util.Iterator;
 
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropEvent;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -171,7 +172,8 @@ public class TRoleStats {
       TRoleNameModel aName = nmIter.next();
 
       numNameModel += 1;
-      if (aName.isFromSrc()) {
+      ISrcRef sr = aName.getSrcRef();
+      if (sr != null) {
         numNameModelFromSrc += 1;
       }
     }

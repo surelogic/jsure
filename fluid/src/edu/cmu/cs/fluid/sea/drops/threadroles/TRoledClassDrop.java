@@ -4,7 +4,8 @@
  */
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.surelogic.RequiresLock;
@@ -15,7 +16,7 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  *
  */
-public class TRoledClassDrop extends PhantomDrop implements IThreadRoleDrop {
+public class TRoledClassDrop extends IRReferenceDrop implements IThreadRoleDrop {
   Object file;
   
   @SuppressWarnings("unused")

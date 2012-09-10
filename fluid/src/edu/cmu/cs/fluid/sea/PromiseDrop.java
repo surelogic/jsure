@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +16,7 @@ import com.surelogic.persistence.JavaIdentifier;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
+import edu.cmu.cs.fluid.java.WrappedSrcRef;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -26,7 +25,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Within the Fluid system, promises represent models of design intent or
  * cutpoints for the analyses.
  */
-public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements IPromiseDrop, ISrcRef, IHasPromisedFor {
+public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements IPromiseDrop, IHasPromisedFor {
 
   public static final String VIRTUAL = "virtual";
 
@@ -426,7 +425,24 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (ref != null) {
       if (f_aast != null) {
         // System.out.println("Getting ref for "+this.getMessage());
-        return this;
+        return new WrappedSrcRef(ref) {
+          public String getJavaId() {
+            final IRNode decl = getNode();
+            return decl == null ? null : JavaIdentifier.encodeDecl(decl);
+          }
+
+          public int getLineNumber() {
+            return f_lineNumber;
+          }
+
+          public int getOffset() {
+            return f_aast.getOffset();
+          }
+
+          public Long getHash() {
+            return f_hash;
+          }
+        };
       } else {
         return ref;
       }
@@ -455,83 +471,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
     f_source = drop;
     drop.addDependent(this);
-  }
-
-  /***************************************************************************
-   * Stuff to implement ISrcRef
-   **************************************************************************/
-
-  public String getJavaId() {
-    final IRNode decl = getNode();
-    return decl == null ? null : JavaIdentifier.encodeDecl(decl);
-  }
-
-  public ISrcRef createSrcRef(int offset) {
-    throw new UnsupportedOperationException();
-  }
-
-  public void clearJavadoc() {
-    throw new UnsupportedOperationException();
-  }
-
-  public String getComment() {
-    throw new UnsupportedOperationException();
-  }
-
-  public Object getEnclosingFile() {
-    if (super.getSrcRef() == null) {
-      return null;
-    }
-    return super.getSrcRef().getEnclosingFile();
-  }
-
-  public URI getEnclosingURI() {
-    if (super.getSrcRef() == null) {
-      return null;
-    }
-    return super.getSrcRef().getEnclosingURI();
-  }
-
-  public String getRelativePath() {
-    if (super.getSrcRef() == null) {
-      return null;
-    }
-    return super.getSrcRef().getRelativePath();
-  }
-
-  public IJavadocElement getJavadoc() {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getLength() {
-    return 0;
-  }
-
-  public int getLineNumber() {
-    return f_lineNumber;
-  }
-
-  public int getOffset() {
-    return f_aast.getOffset();
-  }
-
-  public Long getHash() {
-    return f_hash;
-  }
-
-  public String getCUName() {
-    ISrcRef ref = super.getSrcRef();
-    return ref == null ? null : ref.getCUName();
-  }
-
-  public String getPackage() {
-    ISrcRef ref = super.getSrcRef();
-    return ref == null ? null : ref.getPackage();
-  }
-
-  public String getProject() {
-    ISrcRef ref = super.getSrcRef();
-    return ref == null ? null : ref.getProject();
   }
 
   /**
