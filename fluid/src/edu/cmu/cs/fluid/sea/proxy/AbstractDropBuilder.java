@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -99,10 +100,10 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
     } else {
       d.setResultMessage(messageNum, args);
     }
-    // TODO should the next 4 lines be commented out??? EDWIN
+    // Allows debug output of specific drop names.
     if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
       final IRNode decl = VisitUtil.getClosestType(node);
-      // System.out.println("\tMaking: "+d.getMessage()+"  from  "+JavaNames.getRelativeTypeName(decl));
+      System.out.println("\tMaking: " + d.getMessage() + "  from  " + JavaNames.getRelativeTypeName(decl));
     }
     d.setCategory(category);
     for (Drop deponent : dependUponDrops) {
