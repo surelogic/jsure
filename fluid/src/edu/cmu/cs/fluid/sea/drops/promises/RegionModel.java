@@ -154,7 +154,6 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		}				
 	}
 
-	@Override
   public String getProject() {
 		return project;
 	}
