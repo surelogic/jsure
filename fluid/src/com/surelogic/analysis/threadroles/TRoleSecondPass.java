@@ -516,7 +516,7 @@ public class TRoleSecondPass implements IBinderClient {
   private void addSupportingInformation(final IRReferenceDrop drop, final IRNode link, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    drop.addSupportingInformation(msg, link);
+    drop.addSupportingInformation(link, msg);
   }
 
   private static void computeCanonicalBddImages() {
@@ -770,8 +770,8 @@ public class TRoleSecondPass implements IBinderClient {
            * null);
            */
         } else {
-          id.addSupportingInformation("Union of calling contexts is " //$NON-NLS-1$
-              + TRoleBDDPack.userStr(ctxSumm.getFullExpr()), null);
+          id.addSupportingInformation(null, "Union of calling contexts is " //$NON-NLS-1$
+              + TRoleBDDPack.userStr(ctxSumm.getFullExpr()));
         }
 
         // reqConsistent = false;
@@ -817,16 +817,16 @@ public class TRoleSecondPass implements IBinderClient {
             } else {
               msg.append("Suspicious, because we've seen all possible callers."); //$NON-NLS-1$
             }
-            reqSumm.addSupportingInformation(msg.toString(), null);
+            reqSumm.addSupportingInformation(null, msg.toString());
           }
         }
       } else {
         if (ctxSumm.isEmpty()) {
-          reqSumm.addSupportingInformation("Union of calling contexts is EMPTY!", //$NON-NLS-1$
-              null);
+          reqSumm.addSupportingInformation(null, "Union of calling contexts is EMPTY!" //$NON-NLS-1$
+              );
         } else {
-          reqSumm.addSupportingInformation("Union of calling contexts is " //$NON-NLS-1$
-              + TRoleBDDPack.userStr(ctxSumm.getFullExpr()), null);
+          reqSumm.addSupportingInformation(null, "Union of calling contexts is " //$NON-NLS-1$
+              + TRoleBDDPack.userStr(ctxSumm.getFullExpr()));
         }
       }
       // ctxResDrop.setConsistent(ctxConsistent);
@@ -864,7 +864,7 @@ public class TRoleSecondPass implements IBinderClient {
           sb.setLength(0);
           sb.append("Union of calling contexts is "); //$NON-NLS-1$
           sb.append(TRoleBDDPack.userStr(ctxSumm.getFullExpr()));
-          id.addSupportingInformation(sb.toString(), null);
+          id.addSupportingInformation(null, sb.toString());
           resultDependUpon.addDependent(id);
         }
       }
@@ -967,7 +967,7 @@ public class TRoleSecondPass implements IBinderClient {
       // }
       TRoleIncSummaryDrop incSumm = aTRNM.getIncompatibleSummary();
       if (!incSumm.getConflictExpr().isOne()) {
-        aTRNM.addSupportingInformation(incSumm.getMessage(), null);
+        aTRNM.addSupportingInformation(null, incSumm.getMessage());
       }
     }
 
@@ -1192,9 +1192,9 @@ public class TRoleSecondPass implements IBinderClient {
             + rmod.regionName);
         msg.append('.');
         ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", locInIR);
-        prd.addSupportingInformation("Local thread role context is " + //$NON-NLS-1$
+        prd.addSupportingInformation(null, "Local thread role context is " + //$NON-NLS-1$
             TRoleRenamePerCU.jbddMessageName(localCtx) + "; constraint is " + //$NON-NLS-1$
-            TRoleRenamePerCU.jbddMessageName(constraint) + '.', null);
+            TRoleRenamePerCU.jbddMessageName(constraint) + '.');
         prd.addCheckedPromises(userDeponents);
 
         prd.addTrustedPromise(regTroleMod);
@@ -1204,9 +1204,9 @@ public class TRoleSecondPass implements IBinderClient {
         msg.append("Thread role context OK for reference to " + rmod.regionName); //$NON-NLS-1$
         msg.append('.');
         ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", locInIR);
-        rd.addSupportingInformation("Local thread role context is " + //$NON-NLS-1$
+        rd.addSupportingInformation(null, "Local thread role context is " + //$NON-NLS-1$
             TRoleRenamePerCU.jbddMessageName(localCtx) + "; constraint is " + //$NON-NLS-1$
-            TRoleRenamePerCU.jbddMessageName(constraint) + '.', null);
+            TRoleRenamePerCU.jbddMessageName(constraint) + '.');
         rd.addCheckedPromises(userDeponents);
         rd.addTrustedPromise(regTroleMod);
         rd.setConsistent();
@@ -1283,7 +1283,7 @@ public class TRoleSecondPass implements IBinderClient {
           } else {
             msg.append(tCtx);
           }
-          rd.addSupportingInformation(msg.toString(), null);
+          rd.addSupportingInformation(null, msg.toString());
         }
       }
 
@@ -1344,7 +1344,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg.append("Context before grant was "); //$NON-NLS-1$
               msg.append(tCtxSave);
               msg.append("; context effect of grant is " + tcFullExpr); //$NON-NLS-1$
-              prd.addSupportingInformation(msg.toString(), null);
+              prd.addSupportingInformation(null, msg.toString());
 
               // The context is empty now, whether it was before or not!
               ctxIsEmpty = true;
@@ -1369,7 +1369,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg = new StringBuilder();
               msg.append("Context before grant was empty"); //$NON-NLS-1$
               msg.append("; context effect of grant would be " + tcFullExpr); //$NON-NLS-1$
-              prd.addSupportingInformation(msg.toString(), null);
+              prd.addSupportingInformation(null, msg.toString());
 
             } else {
 
@@ -1382,7 +1382,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg.append("Context before grant was "); //$NON-NLS-1$
               msg.append(tCtxSave);
               msg.append("; context after grant is " + tCtx); //$NON-NLS-1$
-              rd.addSupportingInformation(msg.toString(), null);
+              rd.addSupportingInformation(null, msg.toString());
 
               // a grant just succeeded, so we MUST have a non-empty context!
               ctxIsEmpty = false;
@@ -1549,8 +1549,8 @@ public class TRoleSecondPass implements IBinderClient {
           if (ctxStr.equals(reqStr)) {
             LOG.severe("matching exprs: " + ctxStr);
           }
-          prd.addSupportingInformation("Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx, true) //$NON-NLS-1$
-              + "; constraint is " + reqStr + '.', null); //$NON-NLS-1$
+          prd.addSupportingInformation(null, "Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx, true) //$NON-NLS-1$
+              + "; constraint is " + reqStr + '.'); //$NON-NLS-1$
           prd.addCheckedPromises(userDeponents);
           final TRoleReqSummaryDrop mReqSumm = TRoleReqSummaryDrop.getSummaryFor(mDecl);
           prd.addTrustedPromise(mReqSumm);
@@ -1560,8 +1560,8 @@ public class TRoleSecondPass implements IBinderClient {
           msg.append("Thread role context OK for call to " + mName); //$NON-NLS-1$
           msg.append('.');
           ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", root);
-          rd.addSupportingInformation("Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx) //$NON-NLS-1$
-              + "; constraint is " + reqSumm.getReqString() + '.', null); //$NON-NLS-1$
+          rd.addSupportingInformation(null, "Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx) //$NON-NLS-1$
+              + "; constraint is " + reqSumm.getReqString() + '.'); //$NON-NLS-1$
           rd.addCheckedPromises(userDeponents);
           rd.addTrustedPromise(TRoleReqSummaryDrop.getSummaryFor(mDecl));
           rd.setConsistent();

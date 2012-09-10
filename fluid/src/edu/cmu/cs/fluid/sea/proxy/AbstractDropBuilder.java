@@ -110,7 +110,7 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
       deponent.addDependent(d);
     }
     for (Pair<String, IRNode> p : supportingInfos) {
-      d.addSupportingInformation(p.first(), p.second());
+      d.addSupportingInformation(p.second(), p.first());
     }
     for (Triple<IRNode, Integer, Object[]> p : supportingInfos2) {
       d.addSupportingInformation(p.first(), p.second(), p.third());

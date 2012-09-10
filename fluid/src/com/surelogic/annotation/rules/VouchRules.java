@@ -80,7 +80,7 @@ public class VouchRules extends AnnotationRules {
           if (vouch != null) {
             rd.setVouched();
             rd.addTrustedPromise(vouch);
-            vouch.addSupportingInformation("(analysis result vouched for) " + rd.getMessage(), rd.getNode());
+            vouch.addSupportingInformation(rd.getNode(), "(analysis result vouched for) " + rd.getMessage());
           }
         }
       }
