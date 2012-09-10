@@ -540,7 +540,7 @@ public final class Sea {
 
           rd.setDerivedFromSrc(rd.isFromSrc());
         } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
+          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a known subtype");
         }
         worklist.add(d);
       }
@@ -693,13 +693,14 @@ public final class Sea {
             nextWorklist.add(d);
             if (d instanceof PromiseDrop) {
               @SuppressWarnings("unchecked")
-              PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
+              final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
+
               // add all result drops trusted by this promise drop
               nextWorklist.addAll(pd.getTrustedBy());
               // add all deponent promise drops of this promise drop
               nextWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
-            } else if (d instanceof ResultDrop) {
-              ResultDrop rd = (ResultDrop) d;
+            } else if (d instanceof AnalysisResultDrop) {
+              final AnalysisResultDrop rd = (AnalysisResultDrop) d;
               // add all promise drops that this result checks
               nextWorklist.addAll(rd.getChecks());
             }
