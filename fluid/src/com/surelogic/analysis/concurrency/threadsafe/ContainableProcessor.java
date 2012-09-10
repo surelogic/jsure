@@ -164,7 +164,9 @@ public final class ContainableProcessor extends
 //          // Always suggest @Vouch("Containable")
 //          result.addProposal(new ProposedPromiseBuilder("Vouch",
 //              "Containable", varDecl, varDecl, Origin.MODEL));
-
+          
+          folder.addProposal(new ProposedPromiseBuilder("Vouch", "Containable",
+              varDecl, varDecl, Origin.MODEL));
 
           final ResultDrop cResult = new ResultDrop();
           analysis.setResultDependUponDrop(
