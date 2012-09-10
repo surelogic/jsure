@@ -444,7 +444,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       } else if (drop.instanceOf(ResultFolderDrop.class)) {
     	
           /*
-           * RESULT DROP
+           * RESULT FOLDER DROP
            */
           IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
@@ -454,7 +454,9 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
           flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
           result.setImageFlags(flags);
           result.setBaseImageName(CommonImages.IMG_FOLDER);
+  
           addDrops(result, (Collection<? extends T>) resultDrop.getContents());
+          addProposedPromises(result, resultDrop);
           
       } else if (drop.instanceOf(InfoDrop.class)) {
 
