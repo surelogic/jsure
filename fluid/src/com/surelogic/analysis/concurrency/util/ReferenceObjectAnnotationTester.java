@@ -12,8 +12,8 @@ import edu.cmu.cs.fluid.sea.drops.promises.RefObjectPromiseDrop;
 
 public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTester {
   public ReferenceObjectAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv formalEnv) {
-    super(binder, formalEnv);
+      final IBinder binder, final ITypeFormalEnv formalEnv, final boolean ex) {
+    super(binder, formalEnv, ex);
   }
   
   @Override
@@ -24,7 +24,7 @@ public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTes
   @Override
   protected PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isReferenceObject(formal);
+    return formalEnv.isReferenceObject(formal, exclusive);
   }
   
   @Override

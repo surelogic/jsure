@@ -138,11 +138,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         final boolean isDeclaredContainable;
         final ContainableAnnotationTester cTester =
             new ContainableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
+                binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
 
         if (!isPrimitive && !isArray) { // type formal or declared type
           final ThreadSafeAnnotationTester tsTester =
-              new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
+              new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
           final boolean isTS = tsTester.testType(type);
           testedType = true;
           /*
@@ -224,7 +224,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
           isContained = false;
         }
 
-        final String typeString = type.toString();
+        final String typeString = type.toSourceText();
         if (isPrimitive || isThreadSafe || isContained) {
           final ResultDropBuilder result;
           if (isFinal) {

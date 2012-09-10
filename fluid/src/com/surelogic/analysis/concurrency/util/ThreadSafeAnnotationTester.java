@@ -13,8 +13,8 @@ import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 
 public final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester {
   public ThreadSafeAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv formalEnv) {
-    super(binder, formalEnv);
+      final IBinder binder, final ITypeFormalEnv formalEnv, final boolean ex) {
+    super(binder, formalEnv, ex);
   }
   
   @Override
@@ -26,7 +26,7 @@ public final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester {
   @Override
   protected PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isThreadSafe(formal);
+    return formalEnv.isThreadSafe(formal, exclusive);
   }
   
   @Override

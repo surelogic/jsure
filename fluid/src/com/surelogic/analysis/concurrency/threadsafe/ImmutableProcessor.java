@@ -99,7 +99,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         // REFERENCE-TYPED
         final ImmutableAnnotationTester tester = 
             new ImmutableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE); 
+                binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true); 
         final boolean isImmutable = tester.testType(type);
         
         if (isImmutable) {

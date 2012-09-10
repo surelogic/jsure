@@ -12,8 +12,8 @@ import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 
 public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   public ImmutableAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv formalEnv) {
-    super(binder, formalEnv);
+      final IBinder binder, final ITypeFormalEnv formalEnv, final boolean ex) {
+    super(binder, formalEnv, ex);
   }
   
   @Override
@@ -24,7 +24,7 @@ public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   @Override
   protected PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isImmutable(formal);
+    return formalEnv.isImmutable(formal, exclusive);
   }
   
   @Override

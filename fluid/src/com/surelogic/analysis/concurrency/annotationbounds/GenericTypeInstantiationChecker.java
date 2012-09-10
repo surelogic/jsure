@@ -61,7 +61,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ContainableAnnotationTester(binder, formalEnv);
+        return new ContainableAnnotationTester(binder, formalEnv, false);
       }
       
       @Override
@@ -77,7 +77,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ImmutableAnnotationTester(binder, formalEnv);
+        return new ImmutableAnnotationTester(binder, formalEnv, false);
       }
       
       @Override
@@ -93,7 +93,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ReferenceObjectAnnotationTester(binder, formalEnv);
+        return new ReferenceObjectAnnotationTester(binder, formalEnv, false);
       }
       
       @Override
@@ -109,7 +109,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ThreadSafeAnnotationTester(binder, formalEnv);
+        return new ThreadSafeAnnotationTester(binder, formalEnv, false);
       }
       
       @Override
@@ -125,7 +125,7 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ValueObjectAnnotationTester(binder, formalEnv);
+        return new ValueObjectAnnotationTester(binder, formalEnv, false);
       }
       
       @Override
@@ -307,9 +307,8 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
       final ResultDrop result = new ResultDrop();
       analysis.setResultDependUponDrop(result, parameterizedType);
-      result.addCheckedPromise(boundsDrop);
-      result.setResultMessage(msg, jTypeOfParameterizedType.toSourceText(),
-            boundsString, nameOfTypeFormal, jTypeOfActual.toSourceText());
+      result.setResultMessage(msg, jTypeOfActual.toSourceText(),
+            boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
       for (final PromiseDrop<? extends IAASTRootNode> p : promises) {
         result.addTrustedPromise(p);

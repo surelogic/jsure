@@ -24,6 +24,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 public abstract class TypeDeclAnnotationTester {
   protected final ITypeFormalEnv formalEnv;
   private final ITypeEnvironment typeEnv;
+  protected final boolean exclusive;
+  
   private final IJavaDeclaredType javaLangObject;
   private final Set<IRNode> tested = new HashSet<IRNode>();
   private final Set<PromiseDrop<? extends IAASTRootNode>> promises = 
@@ -32,11 +34,13 @@ public abstract class TypeDeclAnnotationTester {
   
   
   
-  protected TypeDeclAnnotationTester(final IBinder binder, final ITypeFormalEnv fe) {
+  protected TypeDeclAnnotationTester(
+      final IBinder binder, final ITypeFormalEnv fe, final boolean ex) {
     formalEnv = fe;
     final ITypeEnvironment te = binder.getTypeEnvironment();
     typeEnv = te;
     javaLangObject = te.getObjectType();
+    exclusive = ex;
   }
   
   
@@ -81,7 +85,8 @@ public abstract class TypeDeclAnnotationTester {
        * class portion of the intersection is not-X, then really the whole
        * intersection should be false, but it's not possible to have a
        * implementation that is X where the class is not-X and an interface is
-       * X, so it doesn't matter if we let this case through here.
+       * X (the sanity checking fails in this case), so it doesn't matter if we
+       * let this case through here.
        */
       return first || second;
     } else if (type instanceof IJavaTypeFormal) {

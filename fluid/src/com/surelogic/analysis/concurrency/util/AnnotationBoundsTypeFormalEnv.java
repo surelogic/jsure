@@ -1,5 +1,8 @@
 package com.surelogic.analysis.concurrency.util;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
@@ -19,74 +22,139 @@ import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
 public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
   INSTANCE;
   
-  
-  
   private enum Bounds {
     CONTAINABLE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode abNode) {
+        return abNode.getContainable();
+      }
+      
+      @Override
       public boolean testBounds(
           final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstAnnotationBounds(
+        return testFormalAgainstNamedTypes(
             formalName, abNode.getContainable());
       }
     },
     
     IMMUTABLE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode abNode) {
+        return abNode.getImmutable();
+      }
+      
+      @Override
       public boolean testBounds(
           final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstAnnotationBounds(
+        return testFormalAgainstNamedTypes(
             formalName, abNode.getImmutable());
       }
     },
     
     REFERENCE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode abNode) {
+        return abNode.getReference();
+      }
+      
+      @Override
       public boolean testBounds(
           final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstAnnotationBounds(
+        return testFormalAgainstNamedTypes(
             formalName, abNode.getReference());
       }
     },
     
     THREADSAFE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode abNode) {
+        return abNode.getThreadSafe();
+      }
+      
+      @Override
       public boolean testBounds(
           final AnnotationBoundsNode abNode, final String formalName) {
         return
-            testFormalAgainstAnnotationBounds(
+            testFormalAgainstNamedTypes(
                 formalName, abNode.getImmutable()) ||
-            testFormalAgainstAnnotationBounds(
+            testFormalAgainstNamedTypes(
                 formalName, abNode.getThreadSafe());
       }
     },
       
     VALUE {
       @Override
+      public NamedTypeNode[] getNamedTypes(final AnnotationBoundsNode abNode) {
+        return abNode.getValue();
+      }
+      
+      @Override
       public boolean testBounds(
           final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstAnnotationBounds(
+        return testFormalAgainstNamedTypes(
             formalName, abNode.getValue());
       }
     };
     
-    private static boolean testFormalAgainstAnnotationBounds(
-        final String formalName, final NamedTypeNode[] annotationBounds) {
-      for (final NamedTypeNode namedType : annotationBounds) {
-        if (namedType.getType().equals(formalName)) {
-          return true;
-        }
-      }
-      return false;
-    }
+    public abstract NamedTypeNode[] getNamedTypes(AnnotationBoundsNode abNode);
     
     public abstract boolean testBounds(AnnotationBoundsNode abNode, String formalName);
   }
 
   
   
+
+  
+  
+  private static final EnumSet<Bounds> emptySet = EnumSet.noneOf(Bounds.class);
+  private static final EnumSet<Bounds> containableSet = EnumSet.of(Bounds.CONTAINABLE);
+  private static final EnumSet<Bounds> immutableSet = EnumSet.of(Bounds.IMMUTABLE);
+  private static final EnumSet<Bounds> referenceSet = EnumSet.of(Bounds.REFERENCE);
+  private static final EnumSet<Bounds> threadSafeSet = EnumSet.of(Bounds.IMMUTABLE, Bounds.THREADSAFE);
+  private static final EnumSet<Bounds> valueSet = EnumSet.of(Bounds.VALUE);
+  
+  private static final EnumSet<Bounds> notContainableSet = EnumSet.complementOf(containableSet);
+  private static final EnumSet<Bounds> notImmutableSet = EnumSet.complementOf(immutableSet);
+  private static final EnumSet<Bounds> notReferenceSet = EnumSet.complementOf(referenceSet);
+  private static final EnumSet<Bounds> notThreadSafeSet = EnumSet.complementOf(threadSafeSet);
+  private static final EnumSet<Bounds> notValueSet = EnumSet.complementOf(valueSet);
+  
+  
+
+  private static boolean testFormalAgainstNamedTypes(
+      final String formalName, final NamedTypeNode[] annotationBounds) {
+    for (final NamedTypeNode namedType : annotationBounds) {
+      if (namedType.getType().equals(formalName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  
+  /**
+   * Formal must be annotated by one of the bounds in oneOf, and must not 
+   * be annotated by any of the bounds in noneOf.  So if oneOf = { X, Y }
+   * and noneOf = { W, Z }, we want ((X or Y) and not (W or Z)).
+   */
+  private static boolean testFormalAgainstAnnotationBounds(
+      final AnnotationBoundsNode abNode, final String formalName,
+      final Set<Bounds> oneOf, final Set<Bounds> noneOf) {
+    boolean oneOfFlag = !oneOf.isEmpty();  // trivially satisfied if there are no positive requirements
+    boolean noneOfFlag = false;
+    for (final Bounds b : Bounds.values()) {
+      if (oneOf.contains(b)) {
+        oneOfFlag |= testFormalAgainstNamedTypes(formalName, b.getNamedTypes(abNode));
+      }
+      if (noneOf.contains(b)) {
+        noneOfFlag |= testFormalAgainstNamedTypes(formalName, b.getNamedTypes(abNode));
+      }
+    }
+    return oneOfFlag && !noneOfFlag;
+  }
+
   private PromiseDrop<? extends IAASTRootNode> isX(
-      final Bounds bounds, final IJavaTypeFormal formal) {
+      final IJavaTypeFormal formal, final boolean exclusive, Set<Bounds> oneOf, Set<Bounds> noneOf) {
     final IRNode decl = formal.getDeclaration();
     final String name = TypeFormal.getId(decl);
     final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
@@ -94,30 +162,35 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     if (abDrop == null) {
       return null;
     } else {
-      return bounds.testBounds(abDrop.getAAST(), name) ? abDrop : null;
+      return testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? abDrop : null;
     }
   }
 
   
   
   
-  public PromiseDrop<? extends IAASTRootNode> isContainable(final IJavaTypeFormal formal) {
-    return isX(Bounds.CONTAINABLE, formal);
+  public PromiseDrop<? extends IAASTRootNode> isContainable(
+      final IJavaTypeFormal formal, final boolean exclusive) {
+    return isX(formal, exclusive, containableSet, notContainableSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isImmutable(final IJavaTypeFormal formal) {
-    return isX(Bounds.IMMUTABLE, formal);
+  public PromiseDrop<? extends IAASTRootNode> isImmutable(
+      final IJavaTypeFormal formal, final boolean exclusive) {
+    return isX(formal, exclusive, immutableSet, notImmutableSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isReferenceObject(final IJavaTypeFormal formal) {
-    return isX(Bounds.REFERENCE, formal);
+  public PromiseDrop<? extends IAASTRootNode> isReferenceObject(
+      final IJavaTypeFormal formal, final boolean exclusive) {
+    return isX(formal, exclusive, referenceSet, notReferenceSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isThreadSafe(final IJavaTypeFormal formal) {
-    return isX(Bounds.THREADSAFE, formal);
+  public PromiseDrop<? extends IAASTRootNode> isThreadSafe(
+      final IJavaTypeFormal formal, final boolean exclusive) {
+    return isX(formal, exclusive, threadSafeSet, notThreadSafeSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isValueObject(final IJavaTypeFormal formal) {
-    return isX(Bounds.VALUE, formal);
+  public PromiseDrop<? extends IAASTRootNode> isValueObject(
+      final IJavaTypeFormal formal, final boolean exclusive) {
+    return isX(formal, exclusive, valueSet, notValueSet);
   }
 }

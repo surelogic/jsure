@@ -1,6 +1,5 @@
 package com.surelogic.analysis.concurrency.threadsafe;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
@@ -17,9 +16,11 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
@@ -28,6 +29,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.ResultFolderDropBuilder;
 
 public final class ContainableProcessor extends
 		TypeImplementationProcessor<ContainablePromiseDrop> {
@@ -126,58 +128,77 @@ public final class ContainableProcessor extends
 				final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
 				final ContainableAnnotationTester tester =
 					new ContainableAnnotationTester(
-						binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
-	  final boolean isContainable = tester.testType(type);
-				  
-				if (isContainable && uniqueDrop != null) {
-					final ResultDropBuilder result = createResult(varDecl,
-							true, Messages.FIELD_CONTAINED_OBJECT, id);
-					result.addSupportingInformation(varDecl,
-							Messages.DECLARED_TYPE_IS_CONTAINABLE,
-							type.toString());
-					for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-						result.addTrustedPromise(p);
-					}
-					result.addSupportingInformation(varDecl, Messages.FIELD_IS_UNIQUE);
-					result.addTrustedPromise(uniqueDrop.getDrop());
+						binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+				final boolean isContainable = tester.testType(type);
+				
+				/* Use a result folder: We have two things that need to be true:
+				 * (1) The type of the field is @Containable
+				 * (2) The field is @Unique
+				 */				
+		    final ResultFolderDropBuilder folder = ResultFolderDropBuilder.create(analysis);
+		    analysis.setResultDependUponDrop(folder, varDecl);
+		    folder.addCheckedPromise(promiseDrop);
+
+		    if (isContainable && uniqueDrop != null) { // GOOD!
+		      folder.setResultMessage(Messages.FIELD_CONTAINED_OBJECT, id);
+		      final ResultDrop cResult = new ResultDrop();
+		      analysis.setResultDependUponDrop(
+		          cResult, FieldDeclaration.getType(fieldDecl));
+		      cResult.setResultMessage(
+		          Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toSourceText());
+		      cResult.setConsistent();
+		      cResult.addTrustedPromises(tester.getPromises());
+		      folder.add(cResult);
+
+          final ResultDrop uResult = new ResultDrop();
+          analysis.setResultDependUponDrop(uResult, fieldDecl);
+          uResult.setResultMessage(Messages.FIELD_IS_UNIQUE);
+          uResult.setConsistent();
+          uResult.addTrustedPromise(uniqueDrop.getDrop());
+          folder.add(uResult);
 				} else {
-					final ResultDropBuilder result =
-						createResult(varDecl, false, Messages.FIELD_BAD, id);
+          folder.setResultMessage(Messages.FIELD_BAD, id);
 
-					// Always suggest @Vouch("Containable")
-					result.addProposal(new ProposedPromiseBuilder("Vouch",
-							"Containable", varDecl, varDecl, Origin.MODEL));
+  
+          // TODO: Need to add this to the REsultFolder, but that is not possible yet
+//          // Always suggest @Vouch("Containable")
+//          result.addProposal(new ProposedPromiseBuilder("Vouch",
+//              "Containable", varDecl, varDecl, Origin.MODEL));
 
-					if (isContainable) {
-						result.addSupportingInformation(varDecl,
-								Messages.DECLARED_TYPE_IS_CONTAINABLE,
-								type.toString());
-			for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-			  result.addTrustedPromise(p);
-			}
-					} else {
-						// no @Containable annotation --> Default
-						// "annotation" of not containable
-						result.addSupportingInformation(varDecl,
-								Messages.DECLARED_TYPE_NOT_CONTAINABLE,
-								type.toString());
-						for (final IRNode t : tester.getTested()) {
-							result.addProposal(new ProposedPromiseBuilder(
-									"Containable", null, t, varDecl, Origin.MODEL));
-						}
-					}
 
-					if (uniqueDrop != null) {
-						result.addSupportingInformation(varDecl,
-								Messages.FIELD_IS_UNIQUE);
-						result.addTrustedPromise(uniqueDrop.getDrop());
-					} else {
-						result.addSupportingInformation(varDecl,
-								Messages.FIELD_NOT_UNIQUE);
-						result.addProposal(new ProposedPromiseBuilder(
-								"Unique", null, varDecl, varDecl,
-								Origin.MODEL));
-					}
+          final ResultDrop cResult = new ResultDrop();
+          analysis.setResultDependUponDrop(
+              cResult, FieldDeclaration.getType(fieldDecl));
+          if (isContainable) {
+            cResult.setResultMessage(
+                Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toSourceText());
+            cResult.setConsistent();
+            cResult.addTrustedPromises(tester.getPromises());
+          } else {
+            cResult.setResultMessage(
+                Messages.DECLARED_TYPE_NOT_CONTAINABLE, type.toSourceText());
+            cResult.setInconsistent();
+            for (final IRNode t : tester.getTested()) {
+              cResult.addProposal(new ProposedPromiseDrop(
+                  "Containable", null, t, varDecl, Origin.MODEL));
+            }
+          }
+          folder.add(cResult);
+
+          final ResultDrop uResult = new ResultDrop();
+          analysis.setResultDependUponDrop(uResult, fieldDecl);
+          if (uniqueDrop != null) {
+            uResult.setResultMessage(Messages.FIELD_IS_UNIQUE);
+            uResult.setConsistent();
+            uResult.addTrustedPromises(tester.getPromises());
+          } else {
+            uResult.setResultMessage(Messages.FIELD_NOT_UNIQUE);
+            uResult.setInconsistent();
+            uResult.addProposal(new ProposedPromiseDrop(
+                "Unique", null, varDecl, varDecl,
+                Origin.MODEL));
+          }
+          folder.add(uResult);
 				}
 			}
 		}

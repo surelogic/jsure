@@ -87,7 +87,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			IJavaType t = b.getJavaType(e);
 //			ValueObjectPromiseDrop p = checkIfValueObject(e, t);
 			final ValueObjectAnnotationTester tester = 
-			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE);
+			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE, false);
 			
 			if (tester.testType(t)) {
 				ResultDropBuilder d = createFailureDrop(e);
