@@ -15,8 +15,6 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleInfoDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleWarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 /**
@@ -60,7 +58,7 @@ public class TRoleMessages {
 	}
 
 	public static WarningDrop createWarningDrop(String msg, IRNode loc) {
-		WarningDrop wd = new TRoleWarningDrop();
+		WarningDrop wd = new WarningDrop();
 		// rd.addCheckedPromise(pd);
 		wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(msg);
@@ -76,7 +74,7 @@ public class TRoleMessages {
 	}
 
 	public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-		InfoDrop id = new TRoleInfoDrop();
+		InfoDrop id = new InfoDrop();
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);
