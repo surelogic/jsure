@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.Sea;
 /**
  * @lock CacheLock is class protects cachedDrops
  */
-public class SourceCUDrop extends CUDrop {
+public final class SourceCUDrop extends CUDrop {
   private static Map<ICodeFile, SourceCUDrop> cachedDrops = null;
 
   public SourceCUDrop(CodeInfo info, ProjectsDrop p) {
@@ -42,7 +42,7 @@ public class SourceCUDrop extends CUDrop {
     List<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
     cachedDrops = new HashMap<ICodeFile, SourceCUDrop>(drops.size());
     for (SourceCUDrop drop : drops) {
-      if (drop.isValid() && drop.cu.equals(IRNode.destroyedNode)) {
+      if (drop.isValid() && drop.f_cu.equals(IRNode.destroyedNode)) {
         drop.invalidate();
         continue;
       }

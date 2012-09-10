@@ -373,7 +373,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         	//System.out.println("unknown package: "+pkg);     
         	// Could be a type for a "static" demand name?
         } else {
-        	p = pd.node;
+        	p = pd.getPackageDeclarationNode();
         }
         bind(node, p);
       }

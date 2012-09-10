@@ -26,109 +26,100 @@ import edu.cmu.cs.fluid.sea.Drop;
  */
 public abstract class CUDrop extends Drop {
 
-  private static SlotInfo<CUDrop> si = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
+  private static final SlotInfo<CUDrop> SI_CUDROP = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
 
-  protected final CodeInfo info;
+  protected final CodeInfo f_codeInfo;
 
-  public final String javaOSFileName;
+  public final String f_javaOSFileName;
 
-  public final IRNode cu;
+  public final IRNode f_cu;
 
-  public final Object hostEnvResource;
-  /**
-   * FIX should be mutable if this drop persists across versions
-   */
-  public final ICompilationUnitNode cun;
+  public final Object f_hostEnvResource;
 
-  public final int lines;
+  public final ICompilationUnitNode f_compilationUnitNode;
 
-  private final Set<String> elidedFields;
+  public final int f_linesOfCode;
 
-  /**
-   * <code>ModuleNum</code> holds the <code>int</code> encoding of the Module
-   * that this CU is part of. The value is just a cookie to indicate the actual
-   * module. This is a hack to get Dean's module experiments on the air.
-   */
-  public int ModuleNum = -1;
+  private final Set<String> f_elidedFields;
 
-  @SuppressWarnings("unchecked")
   protected CUDrop(CodeInfo info) {
     // System.out.println("Creating CU for "+info.getFileName());
 
     // TODO will this suck up space for the source?
-    this.info = info;
-    cu = info.getNode();
+    this.f_codeInfo = info;
+    f_cu = info.getNode();
     if (info.getCompUnit() != null) {
-      cun = info.getCompUnit();
+      f_compilationUnitNode = info.getCompUnit();
     } else {
       if (IDE.debugTypedASTs) {
         LOG.warning("No ICompilationUnitNode for " + info.getFileName());
       }
-      cun = null;
+      f_compilationUnitNode = null;
     }
-    javaOSFileName = info.getFileName();
+    f_javaOSFileName = info.getFileName();
 
-    hostEnvResource = info.getHostEnvResource();
+    f_hostEnvResource = info.getHostEnvResource();
 
     Integer loc = (Integer) info.getProperty(CodeInfo.LOC);
-    lines = (loc != null) ? loc.intValue() : 0;
+    f_linesOfCode = (loc != null) ? loc.intValue() : 0;
 
-    Set<String> ef = (Set<String>) info.getProperty(CodeInfo.ELIDED);
+    @SuppressWarnings("unchecked")
+    final Set<String> ef = (Set<String>) info.getProperty(CodeInfo.ELIDED);
     if (ef == null) {
-      elidedFields = Collections.emptySet();
+      f_elidedFields = Collections.emptySet();
     } else {
-      elidedFields = ef;
+      f_elidedFields = ef;
     }
-    String pkgName = VisitUtil.getPackageName(cu);
+    final String pkgName = VisitUtil.getPackageName(f_cu);
     final PackageDrop pd = PackageDrop.createPackage(null, pkgName, null, null);
     pd.addDependent(this);
     finishInit();
   }
 
-  public CodeInfo makeCodeInfo() {
-    if (info == null) {
-      if (this instanceof PackageDrop) {
-        return null;
-      }
-      throw new UnsupportedOperationException("No CodeInfo for " + DebugUnparser.toString(cu));
-    }
-    info.clearProperty(CodeInfo.DONE);
-    return info;
-  }
-
-  public String getRelativePath() {
-    return info == null ? null : info.getFile().getRelativePath();
-  }
-
-  private void finishInit() {
-    if (cu != null) {
-      cu.setSlotValue(si, this);
-    } else {
-      LOG.severe("No node while building CUDrop for " + javaOSFileName);
-    }
-    setMessage(this.getClass().getSimpleName() + " " + javaOSFileName);
-  }
-
   /**
-   * Only to be called by PackageDrop()
+   * Only to be called by {@link PackageDrop}.
    */
   CUDrop(String pkgName, IRNode root) {
-    info = null;
-    cu = root;
-    cun = null;
-    lines = 1;
-    javaOSFileName = pkgName;
-    hostEnvResource = null;
-    elidedFields = Collections.emptySet();
+    f_codeInfo = null;
+    f_cu = root;
+    f_compilationUnitNode = null;
+    f_linesOfCode = 1;
+    f_javaOSFileName = pkgName;
+    f_hostEnvResource = null;
+    f_elidedFields = Collections.emptySet();
 
     finishInit();
   }
 
-  public ITypeEnvironment getTypeEnv() {
-    if (info == null) {
+  public final CodeInfo makeCodeInfo() {
+    if (f_codeInfo == null) {
+      if (this instanceof PackageDrop) {
+        return null;
+      }
+      throw new UnsupportedOperationException("No CodeInfo for " + DebugUnparser.toString(f_cu));
+    }
+    f_codeInfo.clearProperty(CodeInfo.DONE);
+    return f_codeInfo;
+  }
+
+  public final String getRelativePath() {
+    return f_codeInfo == null ? null : f_codeInfo.getFile().getRelativePath();
+  }
+
+  private void finishInit() {
+    if (f_cu != null) {
+      f_cu.setSlotValue(SI_CUDROP, this);
+    } else {
+      LOG.severe("No node while building CUDrop for " + f_javaOSFileName);
+    }
+    setMessage(this.getClass().getSimpleName() + " " + f_javaOSFileName);
+  }
+
+  public final ITypeEnvironment getTypeEnv() {
+    if (f_codeInfo == null) {
       return null;
     }
-    return info.getTypeEnv();
+    return f_codeInfo.getTypeEnv();
   }
 
   /**
@@ -142,31 +133,26 @@ public abstract class CUDrop extends Drop {
    * @see edu.cmu.cs.fluid.java.operator.CompilationUnit
    */
   static public CUDrop queryCU(IRNode cu) {
-    /*
-     * Set drops = Sea.getDefault().getDropsOfType(CUDrop.class); for (Iterator
-     * i = drops.iterator(); i.hasNext();) { CUDrop drop = (CUDrop) i.next(); if
-     * (drop.cu.equals(cu)) return drop; } return null;
-     */
     if (cu == null) {
       return null;
     }
-    return cu.getSlotValue(si);
+    return cu.getSlotValue(SI_CUDROP);
   }
 
   public boolean wasElided(String f) {
-    return elidedFields.contains(f);
+    return f_elidedFields.contains(f);
   }
 
   @Override
   public String toString() {
-    return "CUDrop: " + javaOSFileName;
+    return "CUDrop: " + f_javaOSFileName;
   }
 
   /**
    * @return Returns the hostEnvResource.
    */
   public Object getHostEnvResource() {
-    return hostEnvResource;
+    return f_hostEnvResource;
   }
 
   public abstract boolean isAsSource();
@@ -179,14 +165,13 @@ public abstract class CUDrop extends Drop {
   @Override
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
-    s.addAttribute("filename", javaOSFileName);
+    s.addAttribute("filename", f_javaOSFileName);
   }
 
   @Override
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
-    final ISrcRef ref = JavaNode.getSrcRef(cu);
+    final ISrcRef ref = JavaNode.getSrcRef(f_cu);
     return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
-
   }
 }

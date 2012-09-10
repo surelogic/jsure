@@ -359,7 +359,7 @@ public class ModuleRules extends AnnotationRules {
   }
 
   /**
-   * @param cu
+   * @param f_cu
    * @return
    */
   public static boolean treatedAsSource(ICodeFile cf) {

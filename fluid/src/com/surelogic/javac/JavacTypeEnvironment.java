@@ -331,12 +331,12 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				// System.out.println("Adding package: "+name);
 				PackageDrop pd = PackageDrop.createPackage(proj, name, null,
 						null);
-				packages.put(name, pd.node);
+				packages.put(name, pd.getPackageDeclarationNode());
 				// Something's here
 			} else if (root != null) {
 				PackageDrop pd = PackageDrop.createPackage(proj, name, root,
 						null);
-				packages.put(name, pd.node);
+				packages.put(name, pd.getPackageDeclarationNode());
 			} else {
 				return false;
 			}

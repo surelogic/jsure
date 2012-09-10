@@ -50,6 +50,11 @@ import edu.cmu.cs.fluid.tree.Operator;
 @RegionLock("SeaLock is f_seaLock protects DropState")
 public abstract class Drop implements IDrop {
 
+  /**
+   * Checks if message from drop starts with a string and outputs debug
+   * information on it. If this is set to {@code null} debug information on all
+   * drops is output.
+   */
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
   public static final String DEPONENT = "deponent";
   public static final String DEPENDENT = "dependent";
