@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
@@ -18,7 +19,8 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * Records if this element is able to be proved consistent with regards to the
    * whole-program.
    */
-  boolean provedConsistent = false;
+  @InRegion("DropState")
+  private boolean provedConsistent = false;
 
   /**
    * Returns if this element is able to be proved consistent (model/code
@@ -28,13 +30,22 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    *         inconsistent.
    */
   public boolean provedConsistent() {
-    return provedConsistent;
+    synchronized (f_seaLock) {
+      return provedConsistent;
+    }
+  }
+
+  void setProvedConsistent(boolean value) {
+    synchronized (f_seaLock) {
+      provedConsistent = value;
+    }
   }
 
   /**
    * Records whether this result depends on something from source code.
    */
-  boolean derivedFromSrc = false;
+  @InRegion("DropState")
+  private boolean derivedFromSrc = false;
 
   /**
    * Checks is this result depends upon something from source code.
@@ -43,7 +54,15 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    *         {@code false} otherwise.
    */
   public boolean derivedFromSrc() {
-    return derivedFromSrc;
+    synchronized (f_seaLock) {
+      return derivedFromSrc;
+    }
+  }
+
+  void setDerivedFromSrc(boolean value) {
+    synchronized (f_seaLock) {
+      derivedFromSrc = value;
+    }
   }
 
   /**
@@ -51,7 +70,8 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * vouching for or assuming something which may not be true, with regards to
    * the whole-program.
    */
-  boolean proofUsesRedDot = true;
+  @InRegion("DropState")
+  private boolean proofUsesRedDot = true;
 
   /**
    * Returns if the proof of this element depends upon a "red dot," or a user
@@ -61,11 +81,18 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * @return<code>true</code> if red dot, <code>false</code> if no red dot.
    */
   public boolean proofUsesRedDot() {
-    return proofUsesRedDot;
+    synchronized (f_seaLock) {
+      return proofUsesRedDot;
+    }
+  }
+
+  void setProofUsesRedDot(boolean value) {
+    synchronized (f_seaLock) {
+      proofUsesRedDot = value;
+    }
   }
 
   public boolean isFromSrc() {
-    // throw new UnsupportedOperationException("Not a PromiseDrop");
     IRNode n = getNode();
     if (n != null) {
       return !TypeUtil.isBinary(n);

@@ -41,7 +41,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   public static final String CHECKED_BY_RESULTS = "checked-by-result";
 
   public PromiseDrop(A a) {
-    derivedFromSrc = true;
+    setDerivedFromSrc(true);
 
     if (a != null) {
       setAAST(a);
@@ -322,7 +322,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    */
   public final void setFromSrc(boolean fromSrc) {
     this.f_fromSrc = fromSrc;
-    this.derivedFromSrc = fromSrc;
+    setDerivedFromSrc(fromSrc);
   }
 
   protected final void setMsg(String message, Object... args) {
