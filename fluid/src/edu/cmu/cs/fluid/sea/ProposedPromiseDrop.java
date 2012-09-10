@@ -36,6 +36,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * placing them into a set.
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop implements IReportedByAnalysisDrop, IProposedPromiseDrop {
+
   public static final String ANNOTATION_TYPE = "annotation-type";
   public static final String CONTENTS = "contents";
   public static final String REPLACED_ANNO = "replaced-annotation";
@@ -83,22 +84,28 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
    *          contents placed into this string should not be escaped. Any
    *          embedded quotations or backward slashes will be escaped before
    *          output.
+   * @param attrs
+   *          TODO
+   * @param replacedAnnotation
+   *          the Java annotation being replaced.
+   * @param replacedContents
+   *          the contents of the Java annotation being replaced. For example,
+   *          if the annotation <code>@Starts("nothing")</code> was being
+   *          replaced the value of this string would be {@code "nothing"}.
+   * @param replacedAttrs
+   *          TODO
    * @param at
    *          the proposed location for the promise, a declaration.
    * @param from
    *          a node within the compilation unit where the analysis deems that
    *          this proposed promise is needed. This is used to remove this
    *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
    */
-  public ProposedPromiseDrop(final String annotation, final String contents, final String replacedContents, final IRNode at,
-      final IRNode from, Origin origin) {
-    this(annotation, contents, Collections.<String, String> emptyMap(), replacedContents != null ? annotation : null,
-        replacedContents, Collections.<String, String> emptyMap(), at, from, origin);
-  }
-
   public ProposedPromiseDrop(final String annotation, final String contents, final Map<String, String> attrs,
-      final String replacedAnno, final String replacedContents, final Map<String, String> replacedAttrs, final IRNode at,
-      final IRNode from, final Origin src) {
+      final String replacedAnnotation, final String replacedContents, final Map<String, String> replacedAttrs, final IRNode at,
+      final IRNode from, final Origin origin) {
     if (at == null) {
       throw new IllegalArgumentException(I18N.err(44, "at"));
     }
@@ -108,14 +115,17 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     if (annotation == null) {
       throw new IllegalArgumentException(I18N.err(44, "annotation"));
     }
+
+    // TODO can the rest be null?
+
     f_requestedFrom = from;
     f_annotation = annotation;
     f_contents = contents;
-    f_attrs = attrs;
-    f_replacedAnno = replacedAnno;
+    f_attrs = attrs != null ? attrs : Collections.<String, String> emptyMap();
+    f_replacedAnnotation = replacedAnnotation;
     f_replacedContents = replacedContents;
-    f_replacedAttrs = replacedAttrs;
-    f_origin = src;
+    f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
+    f_origin = origin;
     setNodeAndCompilationUnitDependency(at);
     dependUponCompilationUnitOf(from);
 
@@ -128,29 +138,110 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     setMessage(msg);
   }
 
+  /**
+   * Constructs a new proposed promise. Intended to be called from analysis
+   * code.
+   * 
+   * @param annotation
+   *          the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "Starts"}.
+   * @param contents
+   *          the contents of the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
+   *          contents, the value of this string would be {@code null}. The
+   *          contents placed into this string should not be escaped. Any
+   *          embedded quotations or backward slashes will be escaped before
+   *          output.
+   * @param replacedContents
+   *          the contents of the Java annotation being replaced.
+   * @param at
+   *          the proposed location for the promise, a declaration.
+   * @param from
+   *          a node within the compilation unit where the analysis deems that
+   *          this proposed promise is needed. This is used to remove this
+   *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
+   */
+  public ProposedPromiseDrop(final String annotation, final String contents, final String replacedContents, final IRNode at,
+      final IRNode from, Origin origin) {
+    this(annotation, contents, Collections.<String, String> emptyMap(), replacedContents != null ? annotation : null,
+        replacedContents, Collections.<String, String> emptyMap(), at, from, origin);
+  }
+
+  /**
+   * Constructs a new proposed promise. Intended to be called from analysis
+   * code.
+   * 
+   * @param annotation
+   *          the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "Starts"}.
+   * @param contents
+   *          the contents of the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
+   *          contents, the value of this string would be {@code null}. The
+   *          contents placed into this string should not be escaped. Any
+   *          embedded quotations or backward slashes will be escaped before
+   *          output.
+   * @param at
+   *          the proposed location for the promise, a declaration.
+   * @param from
+   *          a node within the compilation unit where the analysis deems that
+   *          this proposed promise is needed. This is used to remove this
+   *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
+   */
   public ProposedPromiseDrop(final String annotation, final String contents, final IRNode at, final IRNode from, Origin origin) {
     this(annotation, contents, null, at, from, origin);
   }
 
-  private final Map<String, String> f_attrs, f_replacedAttrs;
+  // TODO?
 
+  private final Map<String, String> f_attrs;
+
+  private final Map<String, String> f_replacedAttrs;
+
+  /**
+   * @return a non-null (possibly empty) map.
+   */
   public Map<String, String> getAnnoAttributes() {
     return f_attrs;
   }
 
+  /**
+   * @return a non-null (possibly empty) map.
+   */
   public Map<String, String> getReplacedAttributes() {
     return f_replacedAttrs;
   }
 
   /**
-   * An indication of how this proposal was generated
+   * An indication of how this proposal was generated.
    */
   private final Origin f_origin;
 
+  /**
+   * Gets an indication of how this proposal was generated.
+   * 
+   * @return an indication of how this proposal was generated.
+   */
   public Origin getOrigin() {
     return f_origin;
   }
 
+  /**
+   * Is this proposed promise inferred from an existing user annotation or
+   * model.
+   * 
+   * @return {@code true} if this proposed promise inferred from an existing
+   *         user annotation or model, {@code false} if this proposal was
+   *         inferred from code with no model/annotation basis for it whatsoever
+   */
   public boolean isAbductivelyInferred() {
     /*
      * This could change but we take problem and model for now.
@@ -164,8 +255,6 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
    */
   private final String f_annotation;
 
-  private final String f_replacedAnno;
-
   /**
    * Gets the Java annotation being proposed. For
    * <code>@Starts("nothing")</code> the value of this string would be
@@ -177,8 +266,18 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     return f_annotation;
   }
 
+  /**
+   * The Java annotation being replaced.
+   */
+  private final String f_replacedAnnotation;
+
+  /**
+   * Gets the Java annotation being replaced.
+   * 
+   * @return the Java annotation being replaced, may be null.
+   */
   public String getReplacedAnnotation() {
-    return f_replacedAnno;
+    return f_replacedAnnotation;
   }
 
   private final IRNode f_requestedFrom;
@@ -230,12 +329,6 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
    */
   private final String f_contents;
 
-  private final String f_replacedContents;
-
-  public String getReplacedContents() {
-    return f_replacedContents;
-  }
-
   /**
    * Checks if the proposed Java annotation has contents.
    * 
@@ -280,6 +373,23 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
 
   public String getJavaAnnotation() {
     return "@" + getJavaAnnotationNoAtSign();
+  }
+
+  /**
+   * The contents of the Java annotation being replaced&mdash;may be null.
+   */
+  private final String f_replacedContents;
+
+  /**
+   * Gets the contents of the Java annotation being replaced. For example, if
+   * the annotation <code>@Starts("nothing")</code> was being replaced the value
+   * of this string would be {@code "nothing"}.
+   * 
+   * @return the contents of the Java annotation being replaced&mdash;may be
+   *         null.
+   */
+  public String getReplacedContents() {
+    return f_replacedContents;
   }
 
   @Override
@@ -363,6 +473,10 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     }
     return result;
   }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
 
   @Override
   public void snapshotAttrs(XMLCreator.Builder s) {
