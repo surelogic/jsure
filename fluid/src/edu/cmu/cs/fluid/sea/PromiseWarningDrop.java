@@ -35,7 +35,7 @@ public final class PromiseWarningDrop extends IRReferenceDrop {
        * Wrap the source reference so that it returns the more precise offset
        * that this drop knows about (from the parser).
        */
-      return new WrappedSrcRef(getSrcRef()) {
+      return new WrappedSrcRef(ref) {
         @Override
         public int getOffset() {
           return f_offset;

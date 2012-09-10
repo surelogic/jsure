@@ -34,7 +34,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   public static final String OR_USES_RED_DOT = "or-uses-red-dot";
   public static final String OR_PROVED = "or-proved-consistent";
   public static final String ENCLOSED_IN_FOLDER = "enclosed-in-folder";
-  
+
   /**
    * Constructs a new analysis result.
    */
@@ -59,9 +59,9 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   private boolean consistent = false;
 
   public boolean hasEnclosingFolder() {
-	  return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
+    return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
   }
-  
+
   /**
    * Adds a promise to the set of promises this result uses as a precondition,
    * or <i>trusts</i>.
@@ -320,7 +320,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   /**
    * Flags of the proof of "or" trusted promises uses a red dot.
    */
-  boolean or_proofUsesRedDot = false;
+  private boolean or_proofUsesRedDot = false;
 
   /**
    * Returns if the proof of "or" trusted promises uses a red dot.
@@ -332,10 +332,14 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     return or_proofUsesRedDot;
   }
 
+  void set_or_proofUsesRedDot(boolean value) {
+    or_proofUsesRedDot = value;
+  }
+
   /**
    * Flags if the proof of "or" trusted promises is consistent.
    */
-  boolean or_provedConsistent = false;
+  private boolean or_provedConsistent = false;
 
   /**
    * Returns if the proof of "or" trusted promises is consistent.
@@ -344,6 +348,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   public boolean get_or_provedConsistent() {
     return or_provedConsistent;
+  }
+
+  void set_or_provedConsistent(boolean value) {
+    or_provedConsistent = value;
   }
 
   @Override

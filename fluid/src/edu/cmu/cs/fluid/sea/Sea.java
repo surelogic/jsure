@@ -490,14 +490,14 @@ public final class Sea {
 
           // for a promise drop we flag a red dot if it is not checked by
           // analysis
-          pd.proofUsesRedDot = !pd.isCheckedByAnalysis();
+          pd.setProofUsesRedDot(!pd.isCheckedByAnalysis());
           if (pd.isAssumed())
-            pd.proofUsesRedDot = true;
+            pd.setProofUsesRedDot(true);
 
           // if no immediate result drops are an "X" then we are
           // consistent
-          pd.provedConsistent = true; // assume true
-          pd.derivedFromSrc = pd.isFromSrc();
+          pd.setProvedConsistent(true); // assume true
+          pd.setDerivedFromSrc(pd.isFromSrc());
 
           Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
           for (AnalysisResultDrop result : analysisResults) {
@@ -506,9 +506,9 @@ public final class Sea {
              */
             if (result instanceof ResultDrop) {
               ResultDrop r = (ResultDrop) result;
-              pd.provedConsistent = pd.provedConsistent && (r.isConsistent() || r.isVouched());
+              pd.setProvedConsistent(pd.provedConsistent() && (r.isConsistent() || r.isVouched()));
             }
-            pd.derivedFromSrc = pd.derivedFromSrc || result.isFromSrc();
+            pd.setDerivedFromSrc(pd.derivedFromSrc() || result.isFromSrc());
           }
         } else if (d instanceof ResultDrop) {
 
@@ -519,12 +519,12 @@ public final class Sea {
           ResultDrop rd = (ResultDrop) d;
 
           // result drops, by definition, can not start off with a red dot
-          rd.proofUsesRedDot = false;
+          rd.setProofUsesRedDot(false);
 
           // record local result
-          rd.provedConsistent = rd.isConsistent() || rd.isVouched();
+          rd.setProvedConsistent(rd.isConsistent() || rd.isVouched());
 
-          rd.derivedFromSrc = rd.isFromSrc();
+          rd.setDerivedFromSrc(rd.isFromSrc());
         } else if (d instanceof ResultFolderDrop) {
 
           /*
@@ -534,11 +534,11 @@ public final class Sea {
           ResultFolderDrop rd = (ResultFolderDrop) d;
 
           // result drops, by definition, can not start off with a red dot
-          rd.proofUsesRedDot = false;
+          rd.setProofUsesRedDot(false);
 
-          rd.provedConsistent = true;
+          rd.setProvedConsistent(true);
 
-          rd.derivedFromSrc = rd.isFromSrc();
+          rd.setDerivedFromSrc(rd.isFromSrc());
         } else {
           LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
         }
@@ -552,9 +552,9 @@ public final class Sea {
         Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
         // mutation during iteration
         for (ProofDrop d : worklist) {
-          boolean oldProofIsConsistent = d.provedConsistent;
-          boolean oldProofUsesRedDot = d.proofUsesRedDot;
-          boolean oldDerivedFromSrc = d.derivedFromSrc;
+          boolean oldProofIsConsistent = d.provedConsistent();
+          boolean oldProofUsesRedDot = d.proofUsesRedDot();
+          boolean oldDerivedFromSrc = d.derivedFromSrc();
 
           if (d instanceof PromiseDrop) {
 
@@ -571,12 +571,12 @@ public final class Sea {
             proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
             for (ProofDrop result : proofDrops) {
               // all must be consistent for this promise to be consistent
-              pd.provedConsistent &= result.provedConsistent;
+              pd.setProvedConsistent(pd.provedConsistent() & result.provedConsistent());
               // any red dot means this promise depends upon a red dot
-              if (result.proofUsesRedDot)
-                pd.proofUsesRedDot = true;
+              if (result.proofUsesRedDot())
+                pd.setProofUsesRedDot(true);
               // push along if derived from source code
-              pd.derivedFromSrc |= result.derivedFromSrc;
+              pd.setDerivedFromSrc(pd.derivedFromSrc() | result.derivedFromSrc());
             }
           } else if (d instanceof ResultFolderDrop) {
 
@@ -587,12 +587,12 @@ public final class Sea {
             final ResultFolderDrop dfd = (ResultFolderDrop) d;
             for (AnalysisResultDrop result : dfd.getContents()) {
               // all must be consistent for this folder to be consistent
-              dfd.provedConsistent &= result.provedConsistent;
+              dfd.setProvedConsistent(dfd.provedConsistent() & result.provedConsistent());
               // any red dot means this folder depends upon a red dot
-              if (result.proofUsesRedDot)
-                dfd.proofUsesRedDot = true;
+              if (result.proofUsesRedDot())
+                dfd.setProofUsesRedDot(true);
               // push along if derived from source code
-              dfd.derivedFromSrc |= result.derivedFromSrc;
+              dfd.setDerivedFromSrc(dfd.derivedFromSrc() | result.derivedFromSrc());
             }
           } else if (d instanceof ResultDrop) {
 
@@ -606,12 +606,12 @@ public final class Sea {
             Set<PromiseDrop<? extends IAASTRootNode>> andTrusts = rd.getTrusts();
             for (final PromiseDrop<? extends IAASTRootNode> promise : andTrusts) {
               // all must be consistent for this drop to be consistent
-              rd.provedConsistent &= promise.provedConsistent;
+              rd.setProvedConsistent(rd.provedConsistent() & promise.provedConsistent());
               // any red dot means this drop depends upon a red dot
-              if (promise.proofUsesRedDot)
-                rd.proofUsesRedDot = true;
+              if (promise.proofUsesRedDot())
+                rd.setProofUsesRedDot(true);
               // if anything is derived from source we will be as well
-              rd.derivedFromSrc |= promise.derivedFromSrc;
+              rd.setDerivedFromSrc(rd.derivedFromSrc() | promise.derivedFromSrc());
             }
 
             // "or" trust promise drops
@@ -626,12 +626,12 @@ public final class Sea {
                 Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
                 for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
                   // all must be consistent for this choice to be consistent
-                  choiceResult &= promise.provedConsistent;
+                  choiceResult &= promise.provedConsistent();
                   // any red dot means this choice depends upon a red dot
-                  if (promise.proofUsesRedDot)
+                  if (promise.proofUsesRedDot())
                     choiceUsesRedDot = true;
                   // if anything is derived from source we will be as well
-                  overall_or_derivedFromSource |= promise.derivedFromSrc;
+                  overall_or_derivedFromSource |= promise.derivedFromSrc();
                 }
                 // should we choose this choice? Our lattice is:
                 // o consistent
@@ -666,18 +666,18 @@ public final class Sea {
                * add the choice selected into the overall result for this drop
                * all must be consistent for this drop to be consistent
                */
-              rd.provedConsistent &= overall_or_Result;
+              rd.setProvedConsistent(rd.provedConsistent() & overall_or_Result);
               /*
                * any red dot means this drop depends upon a red dot
                */
               if (overall_or_UsesRedDot)
-                rd.proofUsesRedDot = true;
+                rd.setProofUsesRedDot(true);
               /*
                * save in the drop
                */
-              rd.or_provedConsistent = overall_or_Result;
-              rd.or_proofUsesRedDot = overall_or_UsesRedDot;
-              rd.derivedFromSrc |= overall_or_derivedFromSource;
+              rd.set_or_provedConsistent(overall_or_Result);
+              rd.set_or_proofUsesRedDot(overall_or_UsesRedDot);
+              rd.setDerivedFromSrc(rd.derivedFromSrc() | overall_or_derivedFromSource);
             }
           } else {
             final String msg = I18N.err(246);
@@ -687,7 +687,8 @@ public final class Sea {
           /*
            * only add to worklist if something changed about the result
            */
-          boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent && oldProofUsesRedDot == d.proofUsesRedDot && oldDerivedFromSrc == d.derivedFromSrc);
+          boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot() && oldDerivedFromSrc == d
+              .derivedFromSrc());
           if (resultChanged) {
             nextWorklist.add(d);
             if (d instanceof PromiseDrop) {
