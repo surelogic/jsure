@@ -480,20 +480,20 @@ public class Util {
 				l.addAll(cuds.asList()); // Needs to include everything that changed
 				if (AbstractWholeIRAnalysis.debugDependencies) {
 					for(SourceCUDrop cud : allCuds) {
-						System.out.println("Analyzing: "+cud.f_javaOSFileName);
+						System.out.println("Analyzing: "+cud.getJavaOSFileName());
 					}
 				}
 				for(CUDrop cud : deps.findDepsForNewlyAnnotatedDecls(cus.asList())) {
 					if (cud instanceof SourceCUDrop) {
 						if (!l.contains(cud)) {
-							System.out.println("Reanalyzing "+cud.f_javaOSFileName);
+							System.out.println("Reanalyzing "+cud.getJavaOSFileName());
 							l.add((SourceCUDrop) cud);
 							clearOldResults(cud);
 						} else {
-							System.out.println("Already analyzing "+cud.f_javaOSFileName);
+							System.out.println("Already analyzing "+cud.getJavaOSFileName());
 						}
 					} else {
-						System.out.println("Not reanalyzing "+cud.f_javaOSFileName);
+						System.out.println("Not reanalyzing "+cud.getJavaOSFileName());
 					}
 				}
 			} else {
@@ -690,7 +690,7 @@ public class Util {
     			String path = FileUtility.normalizePath(cud.getRelativePath());
     			sources.put(path, (SourceCUDrop) cud);
     		}
-    		for(IRNode type : VisitUtil.getTypeDecls(cud.f_cu)) {
+    		for(IRNode type : VisitUtil.getTypeDecls(cud.getCompilationUnitIRNode())) {
     			String loc = JavaIdentifier.encodeDecl(cud.getTypeEnv().getProject(), type);
     			types.put(loc, type);
     		}
@@ -770,7 +770,7 @@ public class Util {
 			SourceCUDrop cud = SourceCUDrop.queryCU(new FileResource(project, f));
 			if (cud != null) {
 				cud.invalidate();
-				AdapterUtil.destroyOldCU(cud.f_cu);			
+				AdapterUtil.destroyOldCU(cud.getCompilationUnitIRNode());			
 			} 
 		}
 	}
@@ -832,7 +832,7 @@ public class Util {
 				final PromiseFramework frame = PromiseFramework.getInstance();
 				Procedure<SourceCUDrop> proc = new Procedure<SourceCUDrop>() {
 					public void op(SourceCUDrop cud) {		
-						if (!cud.adaptedAsSource) {
+						if (!cud.isAsSource()) {
 							//LOG.warning("No analysis on "+cud.javaOSFileName);
 							return;
 						}
@@ -842,10 +842,10 @@ public class Util {
 						if (project.getTypeEnv() == cud.getTypeEnv()) { // Same project!
 							//System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
 							try {
-								frame.pushTypeContext(cud.f_cu);
+								frame.pushTypeContext(cud.getCompilationUnitIRNode());
 								a.doAnalysisOnAFile(env, cud);
 							} catch(RuntimeException e) {
-								System.err.println("Error while processing "+cud.f_javaOSFileName);
+								System.err.println("Error while processing "+cud.getJavaOSFileName());
 								throw e;
 							} finally {
 					            frame.popTypeContext();
@@ -890,7 +890,7 @@ public class Util {
 		try {
 			final PrintWriter pw = new PrintWriter(log);
 			for(SourceCUDrop cud : allCus.asList()) {
-				final String primaryType = JavaNames.genPrimaryTypeName(cud.f_cu);
+				final String primaryType = JavaNames.genPrimaryTypeName(cud.getCompilationUnitIRNode());
 				pw.println(primaryType);			
 			}
 			pw.close();
@@ -908,7 +908,7 @@ public class Util {
 		try {
 			final Set<String> cus = RegressionUtility.readLinesAsSet(expected);		
 			for(SourceCUDrop cud : allCus.asList()) {
-				final String primaryType = JavaNames.genPrimaryTypeName(cud.f_cu);
+				final String primaryType = JavaNames.genPrimaryTypeName(cud.getCompilationUnitIRNode());
 				if (!cus.remove(primaryType)) {
 					throw new IllegalStateException("Building extra file: "+primaryType);
 				}
@@ -1212,7 +1212,7 @@ public class Util {
 				// (If the package is reprocessed, there shouldn't be any promises on it here)				
 				final PackageDrop pkg = PackageDrop.findPackage(info.getFile().getPackage());
 				if (pkg != null) {
-					final IRNode decl = CompilationUnit.getPkg(pkg.f_cu);
+					final IRNode decl = CompilationUnit.getPkg(pkg.getCompilationUnitIRNode());
 					for(PromisePromiseDrop sp : ScopedPromiseRules.getScopedPromises(decl)) {
 						for(IRNode type : VisitUtil.getTypeDecls(cu)) {
 							ScopedPromiseRules.applyPromiseOnType(type, sp);
@@ -1321,7 +1321,7 @@ public class Util {
 				*/		
 				CodeInfo info = pkg.makeCodeInfo();
 				if (info != null) {
-					System.err.println("Reprocessing "+pkg.f_javaOSFileName);			 
+					System.err.println("Reprocessing "+pkg.getJavaOSFileName());			 
 					cus.asList().add(pkg.makeCodeInfo());
 				}
 			}			
@@ -1392,9 +1392,9 @@ public class Util {
 				}
 								
 				if (outOfDate != null) {					
-					if (outOfDate.f_cu.identity() != IRNode.destroyedNode && outOfDate.f_cu.equals(info.getNode())) {
+					if (outOfDate.getCompilationUnitIRNode().identity() != IRNode.destroyedNode && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
 						// Same IRNode, so keep this drop
-						System.out.println("Keeping the old drop for "+outOfDate.f_javaOSFileName);
+						System.out.println("Keeping the old drop for "+outOfDate.getJavaOSFileName());
 						if (outOfDate instanceof SourceCUDrop) {
 							((SourceCUDrop) outOfDate).setProject(projects);
 						}
@@ -1402,14 +1402,14 @@ public class Util {
 					}
 					if (AbstractWholeIRAnalysis.debugDependencies) {
 						System.out.println("Invalidating "+outOfDate+": "+
-								Projects.getProject(outOfDate.f_cu)+" -> "+
+								Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
 								Projects.getProject(info.getNode()));
 						if (!(outOfDate instanceof PackageDrop)) {
 							System.out.println("Found "+outOfDate);
 						}
 					}
 					//System.out.println("Destroying "+outOfDate.javaOSFileName);
-					AdapterUtil.destroyOldCU(outOfDate.f_cu);
+					AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
 					outOfDate.invalidate();
 				} else {
 					//System.out.println("Couldn't find: "+info.getFile());					

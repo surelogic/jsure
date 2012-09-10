@@ -4,10 +4,9 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import com.surelogic.InRegion;
@@ -35,35 +34,31 @@ import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Drop representing a package, suitable for promise and result drops to depend
  * upon. Created and invalidated by the eAST to fAST converter.
  */
 public final class PackageDrop extends CUDrop {
-  /**
-   * From String (package name) to Package Also from handle identifier to
-   * Package
-   */
-  private static final Map<String, PackageDrop> NAME_TO_INSTANCE = new HashMap<String, PackageDrop>();
 
-  private final IRNode f_node; // PackageDeclaration
+  /**
+   * From String (package name) to Package&mdash;also from handle identifier to
+   * Package.
+   */
+  private static final ConcurrentHashMap<String, PackageDrop> NAME_TO_INSTANCE = new ConcurrentHashMap<String, PackageDrop>();
+
+  private final IRNode f_packageDeclarationNode; // PackageDeclaration
 
   public IRNode getPackageDeclarationNode() {
-    return f_node;
+    return f_packageDeclarationNode;
   }
-
-  private final boolean f_isFromSrc;
 
   @InRegion("DropState")
   private boolean hasPromises = false;
 
   private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n, boolean fromSrc) {
-    super(pkgName, root);
-    f_node = n;
-    f_isFromSrc = fromSrc;
+    super(pkgName, root, fromSrc);
+    f_packageDeclarationNode = n;
 
     // System.out.println("Creating pkg: "+pkgName);
 
@@ -104,10 +99,10 @@ public final class PackageDrop extends CUDrop {
     public final boolean isFromSrc;
 
     private Info(PackageDrop d) {
-      pkgName = d.f_javaOSFileName;
-      root = d.f_cu;
-      node = d.f_node;
-      isFromSrc = d.f_isFromSrc;
+      pkgName = d.getJavaOSFileName();
+      root = d.getCompilationUnitIRNode();
+      node = d.f_packageDeclarationNode;
+      isFromSrc = d.isAsSource();
     }
   }
 
@@ -119,7 +114,7 @@ public final class PackageDrop extends CUDrop {
     List<IRNode> types = new ArrayList<IRNode>();
     for (Drop d : getDependents()) {
       if (d instanceof CUDrop && !(d instanceof PackageDrop)) {
-        for (IRNode t : VisitUtil.getTypeDecls(((CUDrop) d).f_cu)) {
+        for (IRNode t : VisitUtil.getTypeDecls(((CUDrop) d).getCompilationUnitIRNode())) {
           types.add(t);
         }
       }
@@ -143,11 +138,6 @@ public final class PackageDrop extends CUDrop {
 
   public boolean hasPromises() {
     return hasPromises;
-  }
-
-  @Override
-  public boolean isAsSource() {
-    return f_isFromSrc;
   }
 
   /****************************************************
@@ -220,20 +210,14 @@ public final class PackageDrop extends CUDrop {
     return NAME_TO_INSTANCE.get(name);
   }
 
-  /**
-   * @return Iterator of PackageDrops
-   */
-  public static Iteratable<PackageDrop> allPackages() {
-    return new FilterIterator<Entry<String, PackageDrop>, PackageDrop>(NAME_TO_INSTANCE.entrySet().iterator()) {
-      @Override
-      protected PackageDrop select(Entry<String, PackageDrop> e) {
-        return e.getValue();
-      }
-    };
+  public static Collection<PackageDrop> getKnownPackageDrops() {
+    return new ArrayList<PackageDrop>(NAME_TO_INSTANCE.values());
   }
 
   public static void invalidateAll() {
-    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(PackageDrop.class));
-    NAME_TO_INSTANCE.clear();
+    synchronized (Sea.getDefault().getSeaLock()) {
+      Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(PackageDrop.class));
+      NAME_TO_INSTANCE.clear();
+    }
   }
 }

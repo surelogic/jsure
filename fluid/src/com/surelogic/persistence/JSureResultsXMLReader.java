@@ -22,7 +22,7 @@ public class JSureResultsXMLReader extends
 		super(p);
 		for (SourceCUDrop d : Sea.getDefault().getDropsOfExactType(
 				SourceCUDrop.class)) {
-			cuds.put(d.f_javaOSFileName, d);
+			cuds.put(d.getJavaOSFileName(), d);
 		}
 	}
 
@@ -93,7 +93,7 @@ public class JSureResultsXMLReader extends
 		if (d == null) {
 			return null; // Unknown CU
 		}
-		for (IRNode n : JJNode.tree.topDown(d.f_cu)) {
+		for (IRNode n : JJNode.tree.topDown(d.getCompilationUnitIRNode())) {
 			ISrcRef ref = JavaNode.getSrcRef(n);
 			if (ref != null && ref.getOffset() == offset) {
 				final long nHash = SeaSummary.computeHash(n);
