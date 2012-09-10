@@ -1,112 +1,51 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.net.URI;
-
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
+import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
 /**
- * Drop to represent promise scrubber warnings.
+ * Drop to represent promise scrubber warnings reported by the analysis
+ * infrastructure. These warnings indicated a syntactical or semantic problem
+ * with a user-expressed model of design intent.
  */
-public final class PromiseWarningDrop extends IRReferenceDrop 
-implements ISrcRef
-{
-  private int offset = -1;
-  
-  public PromiseWarningDrop(String ignored) {
-	this();
+public final class PromiseWarningDrop extends IRReferenceDrop {
+
+  private final int f_offset;
+
+  public PromiseWarningDrop(int off) {
+    f_offset = off;
   }
-  
+
   public PromiseWarningDrop() {
     this(-1);
   }
-  
-  public PromiseWarningDrop(int off) {
-    offset = off;
-  }
-  
+
   @Override
   public ISrcRef getSrcRef() {
     final ISrcRef ref = super.getSrcRef();
-    if (ref != null) {
-      if (offset >= 0) {
-        //System.out.println("Getting ref for "+this.getMessage());
-        return this;
-      } else {
-        return ref;
-      }
+
+    /*
+     * If the overall source reference is null we can't wrap it.
+     */
+    if (ref == null)
+      return null;
+
+    if (f_offset >= 0) {
+      /*
+       * Wrap the source reference so that it returns the more precise offset
+       * that this drop knows about (from the parser).
+       */
+      return new WrappedSrcRef(getSrcRef()) {
+        @Override
+        public int getOffset() {
+          return f_offset;
+        }
+      };
+    } else {
+      /*
+       * The offset we have is nonsense, return the existing source reference.
+       */
+      return ref;
     }
-    return null;
-  }
-  
-  public void setOffset(int off) {
-    if (off < 0) {
-      throw new IllegalArgumentException("negative offset");
-    }
-    offset = off;
-  }
-  
-  /*******************
-   * Stuff to implement ISrcRef
-   *******************/
-  
-  public void clearJavadoc() {
-    throw new UnsupportedOperationException();
-  }
-
-  public String getComment() {
-    throw new UnsupportedOperationException();
-  }
-
-  public Object getEnclosingFile() {
-    return super.getSrcRef().getEnclosingFile();
-  }
-  
-  public URI getEnclosingURI() {
-	  return super.getSrcRef().getEnclosingURI();
-  }
-
-  public String getRelativePath() {
-	  return super.getSrcRef().getRelativePath();
-  }
-  
-  public IJavadocElement getJavadoc() {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getLength() {
-    return 0;
-  }
-
-  public int getLineNumber() {
-	  return super.getSrcRef().getLineNumber();
-  }
-
-  public int getOffset() {
-    return offset;
-  }
-  
-  public Long getHash() {
-	  return super.getSrcRef().getHash();
-  }
-
-  public String getCUName() {
-	  return super.getSrcRef().getCUName();
-  }
-
-  public String getPackage() {
-	  return super.getSrcRef().getPackage();
-  }
-  
-  public String getProject() {
-	  return super.getSrcRef().getProject();
-  }
-  
-  public ISrcRef createSrcRef(int offset) {
-	throw new UnsupportedOperationException();
-  }
-  
-  public String getJavaId() {
-	  return null;
   }
 }
