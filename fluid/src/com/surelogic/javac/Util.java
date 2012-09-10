@@ -1,56 +1,118 @@
 package com.surelogic.javac;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipOutputStream;
 
-import jsr166y.forkjoin.*;
-import jsr166y.forkjoin.Ops.*;
+import jsr166y.forkjoin.ForkJoinExecutor;
+import jsr166y.forkjoin.ForkJoinPool;
+import jsr166y.forkjoin.IParallelArray;
+import jsr166y.forkjoin.NonParallelArray;
+import jsr166y.forkjoin.Ops.Procedure;
+import jsr166y.forkjoin.ParallelArray;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.GroupedAnalysis;
+import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.IIRAnalysis;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.threads.ThreadEffectsAnalysis;
-import com.surelogic.annotation.parse.*;
-import com.surelogic.annotation.rules.*;
+import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.parse.ParseUtil;
+import com.surelogic.annotation.parse.SLAnnotationsLexer;
+import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
+import com.surelogic.annotation.parse.ScopedPromisesLexer;
+import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.annotation.rules.RegionRules;
+import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jobs.*;
+import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.javac.persistence.*;
-import com.surelogic.common.jsure.xml.*;
-import com.surelogic.persistence.*;
-import com.surelogic.xml.*;
+import com.surelogic.javac.persistence.JSureDataDirScanner;
+import com.surelogic.javac.persistence.JSureSubtypeInfo;
+import com.surelogic.persistence.JSureResultsXMLReader;
+import com.surelogic.persistence.JSureResultsXMLRefScanner;
+import com.surelogic.persistence.JavaIdentifier;
+import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.ir.AbstractIRNode;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.MarkedIRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.ICodeFile;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
+import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.JavaCanonicalizer;
+import edu.cmu.cs.fluid.java.bind.JavaRewrite;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.bind.UnversionedJavaBinder;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.BlockStatement;
+import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.Declaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.IllegalCode;
+import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
+import edu.cmu.cs.fluid.java.operator.Statement;
+import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IReportedByAnalysisDrop;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.dependencies.Dependencies;
-import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
+import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
+import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class Util {		
@@ -418,20 +480,20 @@ public class Util {
 				l.addAll(cuds.asList()); // Needs to include everything that changed
 				if (AbstractWholeIRAnalysis.debugDependencies) {
 					for(SourceCUDrop cud : allCuds) {
-						System.out.println("Analyzing: "+cud.javaOSFileName);
+						System.out.println("Analyzing: "+cud.f_javaOSFileName);
 					}
 				}
 				for(CUDrop cud : deps.findDepsForNewlyAnnotatedDecls(cus.asList())) {
 					if (cud instanceof SourceCUDrop) {
 						if (!l.contains(cud)) {
-							System.out.println("Reanalyzing "+cud.javaOSFileName);
+							System.out.println("Reanalyzing "+cud.f_javaOSFileName);
 							l.add((SourceCUDrop) cud);
 							clearOldResults(cud);
 						} else {
-							System.out.println("Already analyzing "+cud.javaOSFileName);
+							System.out.println("Already analyzing "+cud.f_javaOSFileName);
 						}
 					} else {
-						System.out.println("Not reanalyzing "+cud.javaOSFileName);
+						System.out.println("Not reanalyzing "+cud.f_javaOSFileName);
 					}
 				}
 			} else {
@@ -628,7 +690,7 @@ public class Util {
     			String path = FileUtility.normalizePath(cud.getRelativePath());
     			sources.put(path, (SourceCUDrop) cud);
     		}
-    		for(IRNode type : VisitUtil.getTypeDecls(cud.cu)) {
+    		for(IRNode type : VisitUtil.getTypeDecls(cud.f_cu)) {
     			String loc = JavaIdentifier.encodeDecl(cud.getTypeEnv().getProject(), type);
     			types.put(loc, type);
     		}
@@ -708,7 +770,7 @@ public class Util {
 			SourceCUDrop cud = SourceCUDrop.queryCU(new FileResource(project, f));
 			if (cud != null) {
 				cud.invalidate();
-				AdapterUtil.destroyOldCU(cud.cu);			
+				AdapterUtil.destroyOldCU(cud.f_cu);			
 			} 
 		}
 	}
@@ -725,23 +787,6 @@ public class Util {
 		}		
 	}
 	
-	@Deprecated
-	private static void writeOutput(Projects projects) throws Exception {
-		final String label = projects.getShortLabel().replace(", ", "-");
-		final File dir      = null; //FileUtility.getSierraDataDirectory();
-		final File location = new File(dir, label + SeaSnapshot.SUFFIX);
-		if (false) {
-			new SeaSnapshot(location).snapshot(label, Sea.getDefault());
-			new JSureXMLReader(new TestListener()).read(location);
-		} else {
-			if (false && location.exists()) {
-				SeaSummary.diff(Sea.getDefault(), location);
-			} else {
-				SeaSummary.summarize(label, Sea.getDefault(), location);
-			}
-		}
-	}
-
 	private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, 
 			                         List<IIRAnalysis> analyses, IParallelArray<SourceCUDrop> cus,
 			                         IParallelArray<SourceCUDrop> allCus, boolean singleThreaded) {
@@ -797,10 +842,10 @@ public class Util {
 						if (project.getTypeEnv() == cud.getTypeEnv()) { // Same project!
 							//System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
 							try {
-								frame.pushTypeContext(cud.cu);
+								frame.pushTypeContext(cud.f_cu);
 								a.doAnalysisOnAFile(env, cud);
 							} catch(RuntimeException e) {
-								System.err.println("Error while processing "+cud.javaOSFileName);
+								System.err.println("Error while processing "+cud.f_javaOSFileName);
 								throw e;
 							} finally {
 					            frame.popTypeContext();
@@ -845,7 +890,7 @@ public class Util {
 		try {
 			final PrintWriter pw = new PrintWriter(log);
 			for(SourceCUDrop cud : allCus.asList()) {
-				final String primaryType = JavaNames.genPrimaryTypeName(cud.cu);
+				final String primaryType = JavaNames.genPrimaryTypeName(cud.f_cu);
 				pw.println(primaryType);			
 			}
 			pw.close();
@@ -863,7 +908,7 @@ public class Util {
 		try {
 			final Set<String> cus = RegressionUtility.readLinesAsSet(expected);		
 			for(SourceCUDrop cud : allCus.asList()) {
-				final String primaryType = JavaNames.genPrimaryTypeName(cud.cu);
+				final String primaryType = JavaNames.genPrimaryTypeName(cud.f_cu);
 				if (!cus.remove(primaryType)) {
 					throw new IllegalStateException("Building extra file: "+primaryType);
 				}
@@ -1167,7 +1212,7 @@ public class Util {
 				// (If the package is reprocessed, there shouldn't be any promises on it here)				
 				final PackageDrop pkg = PackageDrop.findPackage(info.getFile().getPackage());
 				if (pkg != null) {
-					final IRNode decl = CompilationUnit.getPkg(pkg.cu);
+					final IRNode decl = CompilationUnit.getPkg(pkg.f_cu);
 					for(PromisePromiseDrop sp : ScopedPromiseRules.getScopedPromises(decl)) {
 						for(IRNode type : VisitUtil.getTypeDecls(cu)) {
 							ScopedPromiseRules.applyPromiseOnType(type, sp);
@@ -1276,7 +1321,7 @@ public class Util {
 				*/		
 				CodeInfo info = pkg.makeCodeInfo();
 				if (info != null) {
-					System.err.println("Reprocessing "+pkg.javaOSFileName);			 
+					System.err.println("Reprocessing "+pkg.f_javaOSFileName);			 
 					cus.asList().add(pkg.makeCodeInfo());
 				}
 			}			
@@ -1347,9 +1392,9 @@ public class Util {
 				}
 								
 				if (outOfDate != null) {					
-					if (outOfDate.cu.identity() != IRNode.destroyedNode && outOfDate.cu.equals(info.getNode())) {
+					if (outOfDate.f_cu.identity() != IRNode.destroyedNode && outOfDate.f_cu.equals(info.getNode())) {
 						// Same IRNode, so keep this drop
-						System.out.println("Keeping the old drop for "+outOfDate.javaOSFileName);
+						System.out.println("Keeping the old drop for "+outOfDate.f_javaOSFileName);
 						if (outOfDate instanceof SourceCUDrop) {
 							((SourceCUDrop) outOfDate).setProject(projects);
 						}
@@ -1357,14 +1402,14 @@ public class Util {
 					}
 					if (AbstractWholeIRAnalysis.debugDependencies) {
 						System.out.println("Invalidating "+outOfDate+": "+
-								Projects.getProject(outOfDate.cu)+" -> "+
+								Projects.getProject(outOfDate.f_cu)+" -> "+
 								Projects.getProject(info.getNode()));
 						if (!(outOfDate instanceof PackageDrop)) {
 							System.out.println("Found "+outOfDate);
 						}
 					}
 					//System.out.println("Destroying "+outOfDate.javaOSFileName);
-					AdapterUtil.destroyOldCU(outOfDate.cu);
+					AdapterUtil.destroyOldCU(outOfDate.f_cu);
 					outOfDate.invalidate();
 				} else {
 					//System.out.println("Couldn't find: "+info.getFile());					

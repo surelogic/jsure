@@ -362,7 +362,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		
 		LayersInfo init() {
 			for(final PackageDrop p : PackageDrop.allPackages()) {
-				final IRNode pkg = CompilationUnit.getPkg(p.cu);
+				final IRNode pkg = CompilationUnit.getPkg(p.f_cu);
 				if (UnnamedPackageDeclaration.prototype.includes(pkg)) {
 					continue;
 				}

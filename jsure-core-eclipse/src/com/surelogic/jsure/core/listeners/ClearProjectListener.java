@@ -216,8 +216,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 	    		System.out.println("Removing projects: "+sb);
 	    	}	    	
 	    	for(SourceCUDrop cud : SourceCUDrop.invalidateAll(removedJps)) {
-	    		System.out.println("Destroyed: "+cud.javaOSFileName);
-				AdapterUtil.destroyOldCU(cud.cu);
+	    		System.out.println("Destroyed: "+cud.f_javaOSFileName);
+				AdapterUtil.destroyOldCU(cud.f_cu);
 			}
 	    	
 	    	for(JavacProject jp : oldP) {
@@ -234,11 +234,11 @@ public class ClearProjectListener implements IResourceChangeListener {
 		} else {
 			// Nuke everything
 			for(SourceCUDrop cud : SourceCUDrop.invalidateAll(null)) {
-				AdapterUtil.destroyOldCU(cud.cu);
+				AdapterUtil.destroyOldCU(cud.f_cu);
 			}
 			if (clearAll) {
 				for(BinaryCUDrop d : BinaryCUDrop.invalidateAll()) {
-					AdapterUtil.destroyOldCU(d.cu);
+					AdapterUtil.destroyOldCU(d.f_cu);
 				}
 				PackageDrop.invalidateAll();
 				IDE.getInstance().clearAll();

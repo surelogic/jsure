@@ -2111,7 +2111,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode pkg;
       if (pkgName.length() == 0) {
         PackageDrop drop = PackageDrop.findPackage("");
-        pkg = drop == null ? null : drop.cu;
+        pkg = drop == null ? null : drop.f_cu;
       } else  {
         pkg = getClassTable().getOuterClass(pkgName, node);
       }

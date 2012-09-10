@@ -1535,7 +1535,7 @@ public class TRoleSecondPass implements IBinderClient {
           String ctxStr = TRoleRenamePerCU.jbddMessageName(currCtx, true);
 
           final CUDrop cud = TRolesFirstPass.getCUDropOf(mDecl);
-          final IRNode theCUsRoot = cud.cu;
+          final IRNode theCUsRoot = cud.f_cu;
           // final TRoleRenamePerCU theCUsCRpCU =
           // TRoleRenamePerCU.getTRoleRenamePerCU(theCUsRoot);
           final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
@@ -1643,7 +1643,7 @@ public class TRoleSecondPass implements IBinderClient {
       if (!node.getNode().equals(startedHere))
         return;
       final CUDrop cud = TRolesFirstPass.getCUDropOf(node.getNode());
-      final IRNode theCUsRoot = cud.cu;
+      final IRNode theCUsRoot = cud.f_cu;
       // final TRoleRenamePerCU theCUsCRpCU =
       // TRoleRenamePerCU.getColorRenamePerCU(theCUsRoot);
       final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
@@ -41,18 +42,28 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * Drop representing a package, suitable for promise and result drops to depend
  * upon. Created and invalidated by the eAST to fAST converter.
  */
-public class PackageDrop extends CUDrop {
-  // from String (package name) to Package
-  // Also from handle identifier to Package
-  private static final Map<String, PackageDrop> packageMap = new HashMap<String, PackageDrop>();
-  public final IRNode node; // PackageDeclaration
+public final class PackageDrop extends CUDrop {
+  /**
+   * From String (package name) to Package Also from handle identifier to
+   * Package
+   */
+  private static final Map<String, PackageDrop> NAME_TO_INSTANCE = new HashMap<String, PackageDrop>();
+
+  private final IRNode f_node; // PackageDeclaration
+
+  public IRNode getPackageDeclarationNode() {
+    return f_node;
+  }
+
+  private final boolean f_isFromSrc;
+
+  @InRegion("DropState")
   private boolean hasPromises = false;
-  private final boolean isFromSrc;
 
   private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n, boolean fromSrc) {
     super(pkgName, root);
-    node = n;
-    isFromSrc = fromSrc;
+    f_node = n;
+    f_isFromSrc = fromSrc;
 
     // System.out.println("Creating pkg: "+pkgName);
 
@@ -93,10 +104,10 @@ public class PackageDrop extends CUDrop {
     public final boolean isFromSrc;
 
     private Info(PackageDrop d) {
-      pkgName = d.javaOSFileName;
-      root = d.cu;
-      node = d.node;
-      isFromSrc = d.isFromSrc;
+      pkgName = d.f_javaOSFileName;
+      root = d.f_cu;
+      node = d.f_node;
+      isFromSrc = d.f_isFromSrc;
     }
   }
 
@@ -108,7 +119,7 @@ public class PackageDrop extends CUDrop {
     List<IRNode> types = new ArrayList<IRNode>();
     for (Drop d : getDependents()) {
       if (d instanceof CUDrop && !(d instanceof PackageDrop)) {
-        for (IRNode t : VisitUtil.getTypeDecls(((CUDrop) d).cu)) {
+        for (IRNode t : VisitUtil.getTypeDecls(((CUDrop) d).f_cu)) {
           types.add(t);
         }
       }
@@ -136,7 +147,7 @@ public class PackageDrop extends CUDrop {
 
   @Override
   public boolean isAsSource() {
-    return isFromSrc;
+    return f_isFromSrc;
   }
 
   /****************************************************
@@ -191,12 +202,12 @@ public class PackageDrop extends CUDrop {
     }
 
     PackageDrop pkg = new PackageDrop(proj.getTypeEnv(), name, root, n);
-    packageMap.put(name, pkg);
+    NAME_TO_INSTANCE.put(name, pkg);
     if (DEFAULT_NAME.equals(name)) {
-      packageMap.put("", pkg);
+      NAME_TO_INSTANCE.put("", pkg);
     }
     if (id != null) {
-      packageMap.put(id, pkg);
+      NAME_TO_INSTANCE.put(id, pkg);
     }
     return pkg;
   }
@@ -206,14 +217,14 @@ public class PackageDrop extends CUDrop {
   }
 
   public static PackageDrop findPackage(String name) {
-    return packageMap.get(name);
+    return NAME_TO_INSTANCE.get(name);
   }
 
   /**
    * @return Iterator of PackageDrops
    */
   public static Iteratable<PackageDrop> allPackages() {
-    return new FilterIterator<Entry<String, PackageDrop>, PackageDrop>(packageMap.entrySet().iterator()) {
+    return new FilterIterator<Entry<String, PackageDrop>, PackageDrop>(NAME_TO_INSTANCE.entrySet().iterator()) {
       @Override
       protected PackageDrop select(Entry<String, PackageDrop> e) {
         return e.getValue();
@@ -223,6 +234,6 @@ public class PackageDrop extends CUDrop {
 
   public static void invalidateAll() {
     Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(PackageDrop.class));
-    packageMap.clear();
+    NAME_TO_INSTANCE.clear();
   }
 }
