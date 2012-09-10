@@ -87,6 +87,10 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
   @Override
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {

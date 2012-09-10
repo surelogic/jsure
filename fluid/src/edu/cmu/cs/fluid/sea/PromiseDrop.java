@@ -3,11 +3,13 @@ package edu.cmu.cs.fluid.sea;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.logging.Level;
 
 import com.surelogic.InRegion;
 import com.surelogic.RequiresLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -56,16 +58,15 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   public final IRNode getPromisedFor() {
     return getNode();
-    // return getAST().getPromisedFor();
   }
 
   /**
    * Used to persist references to promiseDrops
    */
-  public String getPromiseName() {
+  public final String getPromiseName() {
     final String name = getClass().getSimpleName();
     if (!name.endsWith("PromiseDrop")) {
-      throw new UnsupportedOperationException("No impl for getPromiseName() for " + name);
+      throw new UnsupportedOperationException("No implementation for getPromiseName() for " + name);
     }
     return name.substring(0, name.length() - 11);
   }
@@ -109,21 +110,26 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @see #referenceScopedPromise(PromiseDrop)
    */
   public final void referencePromiseAnnotation(IRNode promise, String message) {
-    PromiseAnnotation pa = new PromiseAnnotation();
-    pa.text = message;
-    pa.location = promise;
-    f_promiseAnnotationSet.add(pa);
+    synchronized (f_seaLock) {
+      PromiseAnnotation pa = new PromiseAnnotation();
+      pa.text = message;
+      pa.location = promise;
+      f_promiseAnnotationSet.add(pa);
+    }
   }
 
   /**
    * Gets the (possibly empty) set of promise annotations referenced by this
    * promise drop. All elements of this set are of type
-   * {@link PromiseAnnotation}.
+   * {@link PromiseAnnotation}. Do <b>not</b> modify the returned set.
    * 
-   * @return a set containing PromiseAnnotations (non null)
+   * @return a non-null (possibly empty) set containing
+   *         {@link PromiseAnnotation} instances.
    */
-  public Set<PromiseAnnotation> getReferencedPromiseAnnotations() {
-    return f_promiseAnnotationSet;
+  public final HashSet<PromiseAnnotation> getReferencedPromiseAnnotations() {
+    synchronized (f_seaLock) {
+      return f_promiseAnnotationSet;
+    }
   }
 
   /**
@@ -159,13 +165,15 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *         analysis, <code>false</code> otherwise.
    */
   public boolean isCheckedByAnalysis() {
-    if (!f_fromSrc) {
-      // from XML, we trust this drop as part of the JLS
-      return true;
-    } else if (!isIntendedToBeCheckedByAnalysis()) {
-      return true;
-    } else {
-      return isCheckedByAnalysis(new HashSet<PromiseDrop<?>>());
+    synchronized (f_seaLock) {
+      if (!f_fromSrc) {
+        // from XML, we trust this drop as part of the JLS
+        return true;
+      } else if (!isIntendedToBeCheckedByAnalysis()) {
+        return true;
+      } else {
+        return isCheckedByAnalysis(new HashSet<PromiseDrop<?>>());
+      }
     }
   }
 
@@ -223,13 +231,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    final List<AnalysisResultDrop> ss;
     synchronized (f_seaLock) {
-      ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
-    }
-    for (AnalysisResultDrop rd : ss) {
-      if (rd.getChecksReference().contains(this)) {
-        result.add(rd);
+      final List<AnalysisResultDrop> ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+      for (AnalysisResultDrop rd : ss) {
+        if (rd.getChecksReference().contains(this)) {
+          result.add(rd);
+        }
       }
     }
     return result;
@@ -248,13 +255,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
-    final List<ResultDrop> s;
     synchronized (f_seaLock) {
-      s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
-    }
-    for (ResultDrop rd : s) {
-      if (rd.getTrustsComplete().contains(this)) {
-        result.add(rd);
+      final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+      for (ResultDrop rd : s) {
+        if (rd.getTrustsComplete().contains(this)) {
+          result.add(rd);
+        }
       }
     }
     return result;
@@ -267,18 +273,22 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *         otherwise.
    */
   public final boolean isAssumed() {
-    return f_assumed;
+    synchronized (f_seaLock) {
+      return f_assumed;
+    }
   }
 
   /**
    * Sets if this promise is assumed.
    * 
-   * @param isAssumed
+   * @param value
    *          <code>true</code> if the promise is assumed, <code>false</code>
    *          otherwise.
    */
-  public final void setAssumed(boolean isAssumed) {
-    f_assumed = isAssumed;
+  public final void setAssumed(boolean value) {
+    synchronized (f_seaLock) {
+      f_assumed = value;
+    }
   }
 
   /**
@@ -288,16 +298,22 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *         otherwise.
    */
   public final boolean isVirtual() {
-    return f_virtual;
+    synchronized (f_seaLock) {
+      return f_virtual;
+    }
   }
 
   /**
-   * @param isVirtual
+   * Sets if this promise is virtual.
+   * 
+   * @param value
    *          <code>true</code> if the promise is virtual, <code>false</code>
    *          otherwise.
    */
-  public final void setVirtual(boolean isVirtual) {
-    f_virtual = isVirtual;
+  public final void setVirtual(boolean value) {
+    synchronized (f_seaLock) {
+      f_virtual = value;
+    }
   }
 
   /**
@@ -309,7 +325,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    */
   @Override
   public final boolean isFromSrc() {
-    return f_fromSrc;
+    synchronized (f_seaLock) {
+      return f_fromSrc;
+    }
   }
 
   /**
@@ -321,16 +339,14 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *          source code, <code>false</code> otherwise
    */
   public final void setFromSrc(boolean fromSrc) {
-    this.f_fromSrc = fromSrc;
-    setDerivedFromSrc(fromSrc);
+    synchronized (f_seaLock) {
+      this.f_fromSrc = fromSrc;
+      setDerivedFromSrc(fromSrc);
+    }
   }
 
   protected final void setMsg(String message, Object... args) {
     super.setMessage(message, args);
-  }
-
-  @Override
-  protected void computeBasedOnAST() {
   }
 
   /**
@@ -339,8 +355,10 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @return the annotation AST for this promise, or {@code null} if none.
    */
-  public A getAAST() {
-    return f_aast;
+  public final A getAAST() {
+    synchronized (f_seaLock) {
+      return f_aast;
+    }
   }
 
   /**
@@ -351,24 +369,26 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *          the non-null annotation AST for this promise.
    */
   public void setAAST(A a) {
-    if (checkASTs(a, f_aast)) {
-      return;
-    }
-    f_aast = a;
-    // computeBasedOnAST() called below
-    setNode(a.getPromisedFor());
-
-    final ISrcRef orig = super.getSrcRef();
-    if (orig != null) {
-      ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
-      if (ref == null) {
-        ref = orig;
+    synchronized (f_seaLock) {
+      if (checkASTs(a, f_aast)) {
+        return;
       }
-      f_lineNumber = ref.getLineNumber();
-      f_hash = ref.getHash();
-    } else {
-      f_lineNumber = -1;
-      f_hash = -1L;
+      f_aast = a;
+      // computeBasedOnAST() called below
+      setNode(a.getPromisedFor());
+
+      final ISrcRef orig = super.getSrcRef();
+      if (orig != null) {
+        ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
+        if (ref == null) {
+          ref = orig;
+        }
+        f_lineNumber = ref.getLineNumber();
+        f_hash = ref.getHash();
+      } else {
+        f_lineNumber = -1;
+        f_hash = -1L;
+      }
     }
   }
 
@@ -376,8 +396,10 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Clears the reference to this drop's annotation AST. Subsequent calls to
    * {@link #getAAST()} will return {@code null}.
    */
-  public void clearAAST() {
-    f_aast = null;
+  public final void clearAAST() {
+    synchronized (f_seaLock) {
+      f_aast = null;
+    }
     // FIX need to do anything else?
   }
 
@@ -400,7 +422,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *          The new value
    * @return true if already set
    */
-  protected boolean checkASTs(A a, A ast) {
+  protected final boolean checkASTs(A a, A ast) {
     if (a == null) {
       throw new NullPointerException("null ast");
     }
@@ -420,31 +442,33 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
-  public ISrcRef getSrcRef() {
-    final ISrcRef ref = super.getSrcRef();
-    if (ref != null) {
-      if (f_aast != null) {
-        // System.out.println("Getting ref for "+this.getMessage());
-        return new WrappedSrcRef(ref) {
-          public String getJavaId() {
-            final IRNode decl = getNode();
-            return decl == null ? null : JavaIdentifier.encodeDecl(decl);
-          }
+  public final ISrcRef getSrcRef() {
+    synchronized (f_seaLock) {
+      final ISrcRef ref = super.getSrcRef();
+      if (ref != null) {
+        if (f_aast != null) {
+          // System.out.println("Getting ref for "+this.getMessage());
+          return new WrappedSrcRef(ref) {
+            public String getJavaId() {
+              final IRNode decl = getNode();
+              return decl == null ? null : JavaIdentifier.encodeDecl(decl);
+            }
 
-          public int getLineNumber() {
-            return f_lineNumber;
-          }
+            public int getLineNumber() {
+              return f_lineNumber;
+            }
 
-          public int getOffset() {
-            return f_aast.getOffset();
-          }
+            public int getOffset() {
+              return f_aast.getOffset();
+            }
 
-          public Long getHash() {
-            return f_hash;
-          }
-        };
-      } else {
-        return ref;
+            public Long getHash() {
+              return f_hash;
+            }
+          };
+        } else {
+          return ref;
+        }
       }
     }
     return null;
@@ -455,28 +479,34 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    *         the source
    */
   public PromiseDrop<? extends IAASTRootNode> getSourceDrop() {
-    return f_source;
+    synchronized (f_seaLock) {
+      return f_source;
+    }
   }
 
   public void setSourceDrop(PromiseDrop<? extends IAASTRootNode> drop) {
-    if (drop == null) {
-      throw new IllegalArgumentException("source drop is null");
-    }
-    if (f_source != null && f_source.isValid()) {
-      if (f_source == drop) {
-        LOG.warning("Re-setting source drop: " + drop);
-        return;
+    if (drop == null)
+      throw new IllegalArgumentException(I18N.err(44, "drop"));
+
+    synchronized (f_seaLock) {
+      if (f_source != null && f_source.isValid()) {
+        if (f_source == drop) {
+          LOG.log(Level.WARNING, "Re-setting source drop to its current value: " + drop, new Exception("trace"));
+          return;
+        }
+        throw new IllegalArgumentException("This PromiseDrop already has a source drop: set-to=" + f_source + " changing-to="
+            + drop);
       }
-      throw new IllegalArgumentException("already have a valid source drop");
+      f_source = drop;
+      drop.addDependent(this);
     }
-    f_source = drop;
-    drop.addDependent(this);
   }
 
   /**
    * Set of promise annotations composing this promise drop.
    */
-  private final Set<PromiseAnnotation> f_promiseAnnotationSet = new HashSet<PromiseAnnotation>();
+  @UniqueInRegion("DropState")
+  private final HashSet<PromiseAnnotation> f_promiseAnnotationSet = new HashSet<PromiseAnnotation>();
 
   /**
    * {@code true} if this promise drop represents an assumed promise,
@@ -502,10 +532,28 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   /**
    * Annotation AST for this drop
    */
+  @InRegion("DropState")
   private A f_aast;
+  @InRegion("DropState")
   private Long f_hash;
+  @InRegion("DropState")
   private int f_lineNumber;
+  @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
+
+  @Override
+  @RequiresLock("SeaLock")
+  protected JavaSourceReference createSourceRef() {
+    IRNode n = getNode();
+    if (n == null) {
+      n = getAAST().getPromisedFor();
+    }
+    return createSourceRef(n, getSrcRef());
+  }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
 
   @Override
   public String getXMLElementName() {
@@ -530,15 +578,5 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
         s.refDrop(db, CHECKED_BY_RESULTS, c);
       }
     }
-  }
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    IRNode n = getNode();
-    if (n == null) {
-      n = getAAST().getPromisedFor();
-    }
-    return createSourceRef(n, getSrcRef());
   }
 }

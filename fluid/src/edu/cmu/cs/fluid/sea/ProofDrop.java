@@ -93,12 +93,16 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   public boolean isFromSrc() {
-    IRNode n = getNode();
+    final IRNode n = getNode();
     if (n != null) {
       return !TypeUtil.isBinary(n);
     }
     return false;
   }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
 
   @Override
   public String getXMLElementName() {

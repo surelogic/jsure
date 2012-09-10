@@ -85,6 +85,10 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     return result;
   }
 
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
   @Override
   public String getXMLElementName() {
     return AbstractXMLReader.RESULT_FOLDER_DROP;
