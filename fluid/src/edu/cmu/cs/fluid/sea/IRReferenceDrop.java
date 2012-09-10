@@ -116,7 +116,7 @@ public abstract class IRReferenceDrop extends Drop {
     if (node != null) {
       ISrcRef ref = JavaNode.getSrcRef(node);
       if (ref == null) {
-        IRNode parent = JavaPromise.getParentOrPromisedFor(node);
+        final IRNode parent = JavaPromise.getParentOrPromisedFor(node);
         return JavaNode.getSrcRef(parent);
       }
       return ref;

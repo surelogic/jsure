@@ -1,11 +1,9 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea;
 
 /**
- * Something created by analysis
- * 
- * @author Edwin
+ * A drop created by a verifying analysis. Used as a marker interface on the
+ * declaration of that drop.
  */
 public interface IReportedByAnalysisDrop {
-	// Just a marker
+  // a marker interface
 }
