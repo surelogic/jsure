@@ -54,17 +54,17 @@ public class Report {
         continue;
       }
       // only count promises within the source code
-      if (drop instanceof PromiseDrop && !((PromiseDrop) drop).isFromSrc()) {
+      if (drop instanceof PromiseDrop && !((PromiseDrop<?>) drop).isFromSrc()) {
         continue;
       }
       String key = computeKey(drop);
       updateCountMap(droptypeToCount, key, 1);
 
       if (drop instanceof BinaryCUDrop) {
-        updateCountMap(droptypeToCount, "bLOC", ((BinaryCUDrop) drop).f_linesOfCode);
+        updateCountMap(droptypeToCount, "bLOC", ((BinaryCUDrop) drop).getLinesOfCode());
       }
       if (drop instanceof SourceCUDrop) {
-        updateCountMap(droptypeToCount, "sLOC", ((SourceCUDrop) drop).f_linesOfCode);
+        updateCountMap(droptypeToCount, "sLOC", ((SourceCUDrop) drop).getLinesOfCode());
       }
     }
     return droptypeToCount;

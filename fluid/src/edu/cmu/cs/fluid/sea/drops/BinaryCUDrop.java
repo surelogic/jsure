@@ -1,9 +1,11 @@
 package edu.cmu.cs.fluid.sea.drops;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -13,7 +15,7 @@ public final class BinaryCUDrop extends CUDrop {
   private static final ConcurrentHashMap<String, BinaryCUDrop> ID_TO_INSTANCE = new ConcurrentHashMap<String, BinaryCUDrop>();
 
   public BinaryCUDrop(CodeInfo info) {
-    super(info);
+    super(info, false);
 
     final String id = computeId(info.getFile(), this);
     ID_TO_INSTANCE.put(id, this);
@@ -21,7 +23,7 @@ public final class BinaryCUDrop extends CUDrop {
 
   private static String computeId(ICodeFile file, BinaryCUDrop drop) {
     final String proj = file == null ? null : file.getProjectName();
-    return computeId(proj, drop.f_javaOSFileName);
+    return computeId(proj, drop.getJavaOSFileName());
   }
 
   private static String computeId(String project, String javaName) {
@@ -45,17 +47,16 @@ public final class BinaryCUDrop extends CUDrop {
     return null;
   }
 
-  @Override
-  public boolean isAsSource() {
-    return false;
-  }
-
-  public static Collection<BinaryCUDrop> invalidateAll() {
-    // Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
-    final List<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
-    for (BinaryCUDrop d : drops) {
-      d.invalidate();
+  public static Collection<IRNode> invalidateAll() {
+    final ArrayList<IRNode> result = new ArrayList<IRNode>();
+    synchronized (Sea.getDefault().getSeaLock()) {
+      final List<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
+      for (BinaryCUDrop d : drops) {
+        result.add(d.getCompilationUnitIRNode());
+        d.invalidate();
+      }
+      ID_TO_INSTANCE.clear();
     }
-    return drops;
+    return result;
   }
 }

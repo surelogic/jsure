@@ -111,7 +111,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			queueWork(new CompUnitPair(cud.f_cu, compUnit));
+			queueWork(new CompUnitPair(cud.getCompilationUnitIRNode(), compUnit));
 		} else {
 			checkEffectsForFile(compUnit);
 		}

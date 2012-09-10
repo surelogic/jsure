@@ -15,7 +15,7 @@ public class JSureResultsXMLCreator extends AbstractSeaXmlCreator {
 	public void reportResults(CUDrop cud, List<IAnalysisResult> results) {
 		try {
 			b.start(PersistenceConstants.COMP_UNIT);
-			b.addAttribute("path", cud.f_javaOSFileName);
+			b.addAttribute("path", cud.getJavaOSFileName());
 			for(IAnalysisResult r : results) {
 				r.outputToXML(this, b);
 			}

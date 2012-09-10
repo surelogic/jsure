@@ -360,25 +360,25 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			return layers.entrySet();
 		}
 		
-		LayersInfo init() {
-			for(final PackageDrop p : PackageDrop.allPackages()) {
-				final IRNode pkg = CompilationUnit.getPkg(p.f_cu);
-				if (UnnamedPackageDeclaration.prototype.includes(pkg)) {
-					continue;
-				}
-				final String pkgName = NamedPackageDeclaration.getId(pkg);
-				for(TypeSetPromiseDrop typeset : LayerRules.getTypeSets(pkg)) {
-					typesets.put(pkgName+'.'+typeset.getId(), typeset);
-				}
-				for(LayerPromiseDrop layer : LayerRules.getLayers(pkg)) {
-					layers.put(pkgName+'.'+layer.getId(), layer);
-				}
-			}
-			for(AllowsReferencesFromPromiseDrop a : Sea.getDefault().getDropsOfExactType(AllowsReferencesFromPromiseDrop.class)) {
-				final IRNode type = a.getNode();
-				allowRefs.put(type, a);
-			}
-			return this;
-		}
+    LayersInfo init() {
+      for (final PackageDrop p : PackageDrop.getKnownPackageDrops()) {
+        final IRNode pkg = CompilationUnit.getPkg(p.getCompilationUnitIRNode());
+        if (UnnamedPackageDeclaration.prototype.includes(pkg)) {
+          continue;
+        }
+        final String pkgName = NamedPackageDeclaration.getId(pkg);
+        for (TypeSetPromiseDrop typeset : LayerRules.getTypeSets(pkg)) {
+          typesets.put(pkgName + '.' + typeset.getId(), typeset);
+        }
+        for (LayerPromiseDrop layer : LayerRules.getLayers(pkg)) {
+          layers.put(pkgName + '.' + layer.getId(), layer);
+        }
+      }
+      for (AllowsReferencesFromPromiseDrop a : Sea.getDefault().getDropsOfExactType(AllowsReferencesFromPromiseDrop.class)) {
+        final IRNode type = a.getNode();
+        allowRefs.put(type, a);
+      }
+      return this;
+    }
 	}
 }
