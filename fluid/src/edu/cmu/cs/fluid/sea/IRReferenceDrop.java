@@ -1,11 +1,15 @@
 package edu.cmu.cs.fluid.sea;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.surelogic.InRegion;
+import com.surelogic.RequiresLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
@@ -18,11 +22,12 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-//import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.xml.*;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
+
+//import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 
 /**
  * The abstract base class for all drops within the sea which reference fAST
@@ -31,17 +36,20 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
  * @see Sea
  */
 public abstract class IRReferenceDrop extends Drop {
+
   public static final String PROPOSED_PROMISE = "proposed-promise";
 
   /**
    * The fAST node that this drop is attached to.
    */
-  private IRNode attachedToNode;
+  @InRegion("DropState")
+  private IRNode f_attachedToNode;
 
   /**
-   * The slot info of {@link #attachedToNode} this drop is on.
+   * The slot info of {@link #f_attachedToNode} this drop is on.
    */
-  private SlotInfo<? extends Drop> attachedToSI;
+  @InRegion("DropState")
+  private SlotInfo<? extends Drop> f_attachedToSI;
 
   /**
    * Allows this drop to understand where it is referenced within the IR so it
@@ -56,8 +64,10 @@ public abstract class IRReferenceDrop extends Drop {
    * @see #deponentInvalidAction(Drop)
    */
   public final void setAttachedTo(IRNode node, SlotInfo<? extends Drop> slot) {
-    attachedToNode = node;
-    attachedToSI = slot;
+    synchronized (f_seaLock) {
+      f_attachedToNode = node;
+      f_attachedToSI = slot;
+    }
   }
 
   /**
@@ -66,34 +76,29 @@ public abstract class IRReferenceDrop extends Drop {
    * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction(Drop)
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     super.deponentInvalidAction(invalidDeponent);
     // FIX this does the wrong thing if it's a sequence
     // Also doesn't reclaim storage
-    if (attachedToNode != null && attachedToSI != null) {
-      attachedToNode.setSlotValue(attachedToSI, null);
-      attachedToNode = null;
-      attachedToSI = null;
+    if (f_attachedToNode != null && f_attachedToSI != null) {
+      f_attachedToNode.setSlotValue(f_attachedToSI, null);
+      f_attachedToNode = null;
+      f_attachedToSI = null;
     }
   }
-
-  /*
-   * &
-   * 
-   * @Override protected void invalidate_internal() { if (getNode() != null) {
-   * if (!AbstractJavaBinder.isBinary(getNode())) {
-   * System.err.println("Invalidating "+getMessage()); } } else {
-   * System.err.println("Invalidating "+getMessage()); } }
-   */
 
   /**
    * The fAST node that this PromiseDrop is associated with.
    */
-  private IRNode node;
+  @InRegion("DropState")
+  private IRNode f_node;
+
   /**
    * Used for dependency checking
    */
-  private IRNode lastNonNullNode;
+  @InRegion("DropState")
+  private IRNode f_lastNonNullNode;
 
   /**
    * Gets the source reference of this drop.
@@ -103,6 +108,10 @@ public abstract class IRReferenceDrop extends Drop {
    */
   @Override
   public ISrcRef getSrcRef() {
+    final IRNode node;
+    synchronized (f_seaLock) {
+      node = f_node;
+    }
     if (node != null) {
       ISrcRef ref = JavaNode.getSrcRef(node);
       if (ref == null) {
@@ -120,7 +129,9 @@ public abstract class IRReferenceDrop extends Drop {
    * @return a fAST node
    */
   public final IRNode getNode() {
-    return node;
+    synchronized (f_seaLock) {
+      return f_node;
+    }
   }
 
   /**
@@ -137,25 +148,32 @@ public abstract class IRReferenceDrop extends Drop {
     if (node == null) {
       throw new IllegalArgumentException("Use clearNode()");
     }
-    this.lastNonNullNode = node;
-    this.node = node;
-    if (node != null) {
-      computeBasedOnAST();
+    synchronized (f_seaLock) {
+      f_lastNonNullNode = node;
+      f_node = node;
+      if (node != null) {
+        computeBasedOnAST();
+      }
     }
   }
 
-  public/* final */void clearNode() {
+  public void clearNode() {
     // lastNonNullNode is not cleared
-    node = null;
+    synchronized (f_seaLock) {
+      f_node = null;
+    }
   }
 
   /**
    * Used for dependency checking
    */
   public final IRNode getLastNonnullNode() {
-    return lastNonNullNode;
+    synchronized (f_seaLock) {
+      return f_lastNonNullNode;
+    }
   }
 
+  @RequiresLock("SeaLock")
   protected void computeBasedOnAST() {
     // behavior extended by subclasses
   }
@@ -172,8 +190,10 @@ public abstract class IRReferenceDrop extends Drop {
    * @see #setNode(IRNode)
    */
   public final void setNodeAndCompilationUnitDependency(IRNode node) {
-    setNode(node);
-    dependUponCompilationUnitOf(node);
+    synchronized (f_seaLock) {
+      setNode(node);
+      dependUponCompilationUnitOf(node);
+    }
   }
 
   /**
@@ -185,21 +205,25 @@ public abstract class IRReferenceDrop extends Drop {
    *         CUDrop may be invalid.
    */
   public final CUDrop getCUDeponent() {
-    final Collection<? extends CUDrop> cus = Sea.filterDropsOfType(CUDrop.class, getDeponents());
-    final int numCUdeponents = cus.size();
-    if (numCUdeponents == 0) {
+    final ArrayList<CUDrop> cus;
+    synchronized (f_seaLock) {
+      cus = Sea.filterDropsOfType(CUDrop.class, getDeponentsReference());
+    }
+    if (cus.size() < 1) {
       return null;
-    } else if (numCUdeponents > 1) {
+    } else if (cus.size() > 1) {
       LOG.severe("Drop " + this + "has more than one CU deponent");
     }
-    return cus.iterator().next();
+    return cus.get(0);
   }
 
   /**
    * A set of supporting information about this drop, all elements are of type
    * {@link edu.cmu.cs.fluid.sea.ISupportingInformation}
    */
-  private List<ISupportingInformation> supportingInformation = null;
+  @InRegion("DropState")
+  @UniqueInRegion("DropState")
+  private List<ISupportingInformation> f_supportingInformation = null;
 
   /**
    * Reports an item of supporting information about this drop. This can be used
@@ -210,19 +234,21 @@ public abstract class IRReferenceDrop extends Drop {
    * @param num
    *          The message number for the user interface
    */
-  public void addSupportingInformation(IRNode link, int num, Object... args) {
+  public final void addSupportingInformation(IRNode link, int num, Object... args) {
     if (num >= 0) {
-      if (supportingInformation == null) {
-        supportingInformation = new ArrayList<ISupportingInformation>(1);
-      }
-      for (ISupportingInformation si : supportingInformation) {
-        if (si.sameAs(link, num, args)) {
-          LOG.fine("Duplicate supporting information");
-          return;
+      synchronized (f_seaLock) {
+        if (f_supportingInformation == null) {
+          f_supportingInformation = new ArrayList<ISupportingInformation>(1);
         }
+        for (ISupportingInformation si : f_supportingInformation) {
+          if (si.sameAs(link, num, args)) {
+            LOG.fine("Duplicate supporting information");
+            return;
+          }
+        }
+        ISupportingInformation info = new SupportingInformation2(link, num, args);
+        f_supportingInformation.add(info);
       }
-      ISupportingInformation info = new SupportingInformation2(link, num, args);
-      supportingInformation.add(info);
     }
   }
 
@@ -235,40 +261,48 @@ public abstract class IRReferenceDrop extends Drop {
    * @param link
    *          an fAST node, can be <code>null</code>, to reference
    */
-  public void addSupportingInformation(String message, IRNode link) {
+  public final void addSupportingInformation(String message, IRNode link) {
     if (message != null) {
-      if (supportingInformation == null) {
-        supportingInformation = new ArrayList<ISupportingInformation>(1);
-      }
-      for (ISupportingInformation si : supportingInformation) {
-        if (si.sameAs(link, message)) {
-          LOG.fine("Duplicate supporting information");
-          return;
+      synchronized (f_seaLock) {
+        if (f_supportingInformation == null) {
+          f_supportingInformation = new ArrayList<ISupportingInformation>(1);
         }
+        for (ISupportingInformation si : f_supportingInformation) {
+          if (si.sameAs(link, message)) {
+            LOG.fine("Duplicate supporting information");
+            return;
+          }
+        }
+        SupportingInformation info = new SupportingInformation();
+        info.location = link;
+        info.message = message;
+        f_supportingInformation.add(info);
       }
-      SupportingInformation info = new SupportingInformation();
-      info.location = link;
-      info.message = message;
-      supportingInformation.add(info);
     }
   }
 
   /**
-   * Gets the supporting information about this drop.
+   * Gets the supporting information about this drop. The returned list may not
+   * be modified.
    * 
-   * @return the set of supporting information about this drop.
+   * @return the list of supporting information about this drop. The returned
+   *         list may not be modified.
    */
-  public List<ISupportingInformation> getSupportingInformation() {
-    if (supportingInformation == null) {
-      return Collections.emptyList();
+  public final List<ISupportingInformation> getSupportingInformation() {
+    synchronized (f_seaLock) {
+      if (f_supportingInformation == null)
+        return Collections.emptyList();
+      else
+        return Collections.unmodifiableList(f_supportingInformation);
     }
-    return supportingInformation;
   }
 
   /**
    * Holds the set of promises proposed by this drop.
    */
-  private List<ProposedPromiseDrop> proposals = null;
+  @InRegion("DropState")
+  @UniqueInRegion("DropState")
+  private List<ProposedPromiseDrop> f_proposals = null;
 
   /**
    * Adds a proposed promise to this drop. Typically this is done to
@@ -277,26 +311,31 @@ public abstract class IRReferenceDrop extends Drop {
    * @param proposal
    *          the proposed promise.
    */
-  public void addProposal(ProposedPromiseDrop proposal) {
+  public final void addProposal(ProposedPromiseDrop proposal) {
     if (proposal != null) {
-      if (proposals == null) {
-        proposals = new ArrayList<ProposedPromiseDrop>(1);
+      synchronized (f_seaLock) {
+        if (f_proposals == null) {
+          f_proposals = new ArrayList<ProposedPromiseDrop>(1);
+        }
+        f_proposals.add(proposal);
       }
-      proposals.add(proposal);
     }
   }
 
   /**
-   * Gets the set of proposed promises for this drop.
+   * Gets the set of proposed promises for this drop. The returned list may not
+   * be modified.
    * 
    * @return the, possibly empty but non-null, set of proposed promises for this
-   *         drop.
+   *         drop. The returned list may not be modified.
    */
-  public List<ProposedPromiseDrop> getProposals() {
-    if (proposals == null) {
-      return Collections.emptyList();
+  public final List<ProposedPromiseDrop> getProposals() {
+    synchronized (f_seaLock) {
+      if (f_proposals == null)
+        return Collections.emptyList();
+      else
+        return Collections.unmodifiableList(f_proposals);
     }
-    return proposals;
   }
 
   /**
@@ -304,7 +343,8 @@ public abstract class IRReferenceDrop extends Drop {
    * 
    * @see Category
    */
-  private Category category = null;
+  @InRegion("DropState")
+  private Category f_category = null;
 
   /**
    * Gets the user interface reporting category for this drop.
@@ -312,7 +352,9 @@ public abstract class IRReferenceDrop extends Drop {
    * @return a category, or {@code null} if none is set.
    */
   public final Category getCategory() {
-    return category;
+    synchronized (f_seaLock) {
+      return f_category;
+    }
   }
 
   /**
@@ -323,8 +365,43 @@ public abstract class IRReferenceDrop extends Drop {
    */
   @Override
   public final void setCategory(Category category) {
-    this.category = category;
+    synchronized (f_seaLock) {
+      f_category = category;
+    }
   }
+
+  @Override
+  @RequiresLock("SeaLock")
+  protected JavaSourceReference createSourceRef() {
+    return createSourceRef(getNode(), getSrcRef());
+  }
+
+  public static JavaSourceReference createSourceRef(IRNode n, ISrcRef ref) {
+    if (ref == null) {
+      if (n == null) {
+        return null;
+      }
+      IRNode cu = VisitUtil.getEnclosingCUorHere(n);
+      String pkg = VisitUtil.getPackageName(cu);
+      IRNode type = VisitUtil.getPrimaryType(cu);
+      return new JavaSourceReference(pkg, JavaNames.getTypeName(type));
+    }
+    return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
+  }
+
+  @Override
+  public final Long getTreeHash() {
+    return SeaSummary.computeHash(getNode(), false);
+  }
+
+  @Override
+  public final Long getContextHash() {
+    return SeaSummary.computeContext(getNode(), false);
+  }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
 
   @Override
   public String getXMLElementName() {
@@ -354,33 +431,5 @@ public abstract class IRReferenceDrop extends Drop {
     for (ProposedPromiseDrop pd : getProposals()) {
       s.refDrop(db, PROPOSED_PROMISE, pd);
     }
-  }
-
-  @Override
-  protected JavaSourceReference createSourceRef() {
-    return createSourceRef(getNode(), getSrcRef());
-  }
-
-  public static JavaSourceReference createSourceRef(IRNode n, ISrcRef ref) {
-    if (ref == null) {
-      if (n == null) {
-        return null;
-      }
-      IRNode cu = VisitUtil.getEnclosingCUorHere(n);
-      String pkg = VisitUtil.getPackageName(cu);
-      IRNode type = VisitUtil.getPrimaryType(cu);
-      return new JavaSourceReference(pkg, JavaNames.getTypeName(type));
-    }
-    return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
-  }
-
-  @Override
-  public final Long getTreeHash() {
-    return SeaSummary.computeHash(getNode(), false);
-  }
-
-  @Override
-  public final Long getContextHash() {
-    return SeaSummary.computeContext(getNode(), false);
   }
 }

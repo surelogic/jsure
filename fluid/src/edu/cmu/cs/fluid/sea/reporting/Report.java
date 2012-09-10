@@ -61,10 +61,10 @@ public class Report {
       updateCountMap(droptypeToCount, key, 1);
 
       if (drop instanceof BinaryCUDrop) {
-        updateCountMap(droptypeToCount, "bLOC", ((BinaryCUDrop) drop).lines);
+        updateCountMap(droptypeToCount, "bLOC", ((BinaryCUDrop) drop).f_linesOfCode);
       }
       if (drop instanceof SourceCUDrop) {
-        updateCountMap(droptypeToCount, "sLOC", ((SourceCUDrop) drop).lines);
+        updateCountMap(droptypeToCount, "sLOC", ((SourceCUDrop) drop).f_linesOfCode);
       }
     }
     return droptypeToCount;

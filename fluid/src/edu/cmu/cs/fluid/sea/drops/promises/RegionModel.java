@@ -182,17 +182,6 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		}
 	}
 
-	@Override
-	protected void invalidate_internal() {
-		/*
-		 * if ("[]".equals(regionName)) {
-		 * System.out.println("Invalidating region "+regionName); }
-		 */
-		// new Throwable().printStackTrace();
-		// System.out.println("\tin project "+project);
-		super.invalidate_internal();
-	}
-
 	/**
 	 * Removes regions that are not defined by any promise definitions.
 	 */

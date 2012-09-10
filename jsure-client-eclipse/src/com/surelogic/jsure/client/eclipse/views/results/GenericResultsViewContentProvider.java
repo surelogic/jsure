@@ -31,12 +31,14 @@ import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.IResultDrop;
+import edu.cmu.cs.fluid.sea.IResultFolderDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
@@ -437,7 +439,23 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         addProposedPromises(result, resultDrop);
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromises(result, resultDrop);
+        // TODO add checked promises?
+        
+      } else if (drop.instanceOf(ResultFolderDrop.class)) {
+    	
+          /*
+           * RESULT DROP
+           */
+          IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
+          // image
+          int flags = 0; // assume no adornments
+          flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+          flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
+          result.setImageFlags(flags);
+          result.setBaseImageName(CommonImages.IMG_FOLDER);
+          addDrops(result, (Collection<? extends T>) resultDrop.getContents());
+          
       } else if (drop.instanceOf(InfoDrop.class)) {
 
         /*
@@ -520,9 +538,19 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       } else {
         toBeCategorized.add(item);
         final IDrop info = item.getDropInfo();
-        if (info != null && info.instanceOf(PromiseDrop.class) && !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
-            && !(info.instanceOf(PleaseFolderize.class))) {
-          /*
+        boolean dontCategorize = false;
+        if (info != null) { 
+        	if (info.instanceOf(PromiseDrop.class)) {
+        		dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
+        		                 && !(info.instanceOf(PleaseFolderize.class));
+            }
+        	else if (info.instanceOf(ResultDrop.class)) {
+        		IResultDrop r = (IResultDrop) info;
+        		dontCategorize = r.hasEnclosingFolder();
+        	}
+        }
+        if (dontCategorize) {
+        	/*
            * Only categorize promise drops at the root level
            */
           categorizedChildren.add(item);
@@ -1039,7 +1067,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
+      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.hasEnclosingFolder()) || shouldBeTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }

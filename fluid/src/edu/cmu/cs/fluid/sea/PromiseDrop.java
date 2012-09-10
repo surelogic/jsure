@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.surelogic.InRegion;
+import com.surelogic.RequiresLock;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
@@ -178,7 +180,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @see #isCheckedByAnalysis()
    */
-  private boolean isCheckedByAnalysis(Set<PromiseDrop<?>> examinedPromiseDrops) {
+  @RequiresLock("SeaLock")
+  private boolean isCheckedByAnalysis(Collection<PromiseDrop<?>> examinedPromiseDrops) {
     if (examinedPromiseDrops.contains(this)) {
       /*
        * graph loop guard (and wasn't checked the first time)
@@ -215,13 +218,16 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
-  public final Collection<AnalysisResultDrop> getCheckedBy() {
-    final Set<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
+  public final HashSet<AnalysisResultDrop> getCheckedBy() {
+    final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*
      * check if any dependent result drop checks this drop ("trusts" doesn't
      * count)
      */
-    List<AnalysisResultDrop> ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+    final List<AnalysisResultDrop> ss;
+    synchronized (f_seaLock) {
+      ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+    }
     for (AnalysisResultDrop rd : ss) {
       if (rd.getChecks().contains(this)) {
         result.add(rd);
@@ -237,13 +243,16 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return a set, all members of the type {@link ResultDrop}, which trust this
    *         promise drop
    */
-  public final Collection<ResultDrop> getTrustedBy() {
-    final Set<ResultDrop> result = new HashSet<ResultDrop>();
+  public final HashSet<ResultDrop> getTrustedBy() {
+    final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
-    final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    final List<ResultDrop> s;
+    synchronized (f_seaLock) {
+      s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+    }
     for (ResultDrop rd : s) {
       if (rd.getTrustsComplete().contains(this)) {
         result.add(rd);
@@ -374,6 +383,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
+  @RequiresLock("SeaLock")
   protected void invalidate_internal() {
     super.invalidate_internal();
 
@@ -533,19 +543,21 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * {@code true} if this promise drop represents an assumed promise,
    * {@code false} otherwise.
    */
+  @InRegion("DropState")
   private boolean f_assumed = false;
 
   /**
    * {@code true} if this promise drop represents a virtual promise,
    * {@code false} otherwise.
    */
-
+  @InRegion("DropState")
   private boolean f_virtual = false;
 
   /**
    * {@code true} if this promise is from source code or {@code false} if this
    * promise is from another location, such as XML.
    */
+  @InRegion("DropState")
   private boolean f_fromSrc = true;
 
   /**
@@ -582,6 +594,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
+  @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
     IRNode n = getNode();
     if (n == null) {

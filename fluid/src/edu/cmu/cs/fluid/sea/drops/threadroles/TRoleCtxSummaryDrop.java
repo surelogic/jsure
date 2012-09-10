@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.annotation.rules.ThreadRoleRules;
@@ -302,6 +303,7 @@ public class TRoleCtxSummaryDrop extends IRReferenceDrop implements PleaseFolder
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     // TRolesFirstPass.trackCUchanges(this);
     // NO! ColorCtxSummaryDrops belong to colorSecondPass, and should not

@@ -169,10 +169,10 @@ private static int cuCount = 0;
       return;
     }
     
-    if (cud.cu == jlsCU) {
+    if (cud.f_cu == jlsCU) {
       LOG.severe("trying to invalidate something in Java.Lang.String!");
     }
-    getInstance().compUnitsToVisit.add(cud.cu);
+    getInstance().compUnitsToVisit.add(cud.f_cu);
   }
   
   class TRoleImportWalkerNew extends TRoleStructVisitor {
@@ -195,7 +195,7 @@ private static int cuCount = 0;
       if (!((cud instanceof BinaryCUDrop) || (cud instanceof PackageDrop))) return;
       
  
-      final IRNode theCUsRoot = cud.cu;
+      final IRNode theCUsRoot = cud.f_cu;
       // next line has side effect of creating the TRoleRenamePerCU if it didn't already exist.
       final TRoleRenamePerCU theCUsTRRpCU = TRoleRenamePerCU.getTRoleRenamePerCU(theCUsRoot);
       final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
@@ -572,7 +572,7 @@ private static int cuCount = 0;
       if (!(cud instanceof BinaryCUDrop)) return;
 
 //      final ColorStaticClass hisClass = ColorStaticClass.getStaticClass(encClass);
-      final IRNode hisCU = cud.cu;
+      final IRNode hisCU = cud.f_cu;
 
       final Object saveCookie = TRoleRenamePerCU.startACU(hisCU);
       try {

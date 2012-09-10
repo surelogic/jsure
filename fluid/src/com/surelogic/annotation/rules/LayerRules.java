@@ -311,7 +311,7 @@ public class LayerRules extends AnnotationRules {
 							LOG.severe("Couldn't find "+pkg+" for "+a);
 							return null;
 						}
-						LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
+						LayerPromiseDrop l = LayerRules.findLayer(pd.getPackageDeclarationNode(), name);
 						if (l == null) {
 							return null;
 						}

@@ -9,6 +9,7 @@ package edu.cmu.cs.fluid.sea.drops.effects;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.NoEvidence;
@@ -167,6 +168,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     modFxMap.remove(getNode());
     super.deponentInvalidAction(invalidDeponent);

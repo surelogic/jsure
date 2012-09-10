@@ -140,7 +140,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		*/
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
-				result = doAnalysisOnAFile(env, cud, cud.cu);
+				result = doAnalysisOnAFile(env, cud, cud.f_cu);
 			}
 		});
 		return rv == Boolean.TRUE;

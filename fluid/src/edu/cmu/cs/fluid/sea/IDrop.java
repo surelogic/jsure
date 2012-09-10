@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
-import java.util.Set;
 
 import com.surelogic.common.xml.XMLCreator;
 
@@ -91,7 +90,7 @@ public interface IDrop {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  Set<? extends IDrop> getMatchingDeponents(DropPredicate p);
+  Collection<? extends IDrop> getMatchingDeponents(DropPredicate p);
 
   /**
    * Queries if any of this drop's dependent drops matches the given drop
@@ -112,7 +111,7 @@ public interface IDrop {
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
-  Set<? extends IDrop> getMatchingDependents(DropPredicate p);
+  Collection<? extends IDrop> getMatchingDependents(DropPredicate p);
 
   /**
    * Indicates if this drop wants to be displayed at the top level in the user
