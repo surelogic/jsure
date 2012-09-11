@@ -114,15 +114,6 @@ public interface IDrop {
   Collection<? extends IDrop> getMatchingDependents(DropPredicate p);
 
   /**
-   * Indicates if this drop wants to be displayed at the top level in the user
-   * interface.
-   * 
-   * @return {@code true} if this drop wants to be displayed at the top level,
-   *         {@code false} otherwise.
-   */
-  boolean requestTopLevel();
-
-  /**
    * Gets the source reference of this drop.
    * 
    * @return the source reference of the fAST node this information references,

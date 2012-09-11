@@ -668,10 +668,6 @@ public abstract class Drop implements IDrop {
     return type.isInstance(this);
   }
 
-  public boolean requestTopLevel() {
-    throw new UnsupportedOperationException();
-  }
-
   public Category getCategory() {
     throw new UnsupportedOperationException();
   }

@@ -46,29 +46,26 @@ import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ResultFolderDrop;
-import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.UiPlaceInASubFolder;
+import edu.cmu.cs.fluid.sea.UiShowAtTopLevel;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 final class ResultsViewContentProvider implements ITreeContentProvider {
   private static final boolean allowDuplicateNodes = true;
-  protected static final Object[] noObjects = ArrayUtil.empty;
+  private static final Object[] noObjects = ArrayUtil.empty;
 
-  protected static Object[] m_root = noObjects;
-  protected static Object[] m_lastRoot = null;
-  protected static long timeStamp = Sea.INVALIDATED;
+  private static Object[] m_root = noObjects;
 
-  protected static final Logger LOG = SLLogger.getLogger("ResultsViewContentProvider");
+  private static final Logger LOG = SLLogger.getLogger("ResultsViewContentProvider");
 
   private boolean m_showInferences = true;
 
   /**
    * @return Returns the showInferences.
    */
-  public final boolean isShowInferences() {
+  boolean isShowInferences() {
     return m_showInferences;
   }
 
@@ -76,7 +73,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    * @param showInferences
    *          The showInferences to set.
    */
-  public final void setShowInferences(boolean showInferences) {
+  void setShowInferences(boolean showInferences) {
     this.m_showInferences = showInferences;
   }
 
@@ -86,8 +83,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   public void inputChanged(Viewer v, Object oldInput, Object newInput) {
     /*
      * This kills the contents
-     * 
-     * if (newInput == null) { m_root = noObjects; m_lastRoot = null; }
      */
   }
 
@@ -101,7 +96,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  protected Object[] getElementsInternal() {
+  private Object[] getElementsInternal() {
     return (isShowInferences() ? m_root : ResultsViewContent.filterNonInfo(m_root));
   }
 
@@ -114,7 +109,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return getChildrenInternal(parent);
   }
 
-  protected Object[] getChildrenInternal(Object parent) {
+  private Object[] getChildrenInternal(Object parent) {
     if (parent instanceof ResultsViewContent) {
       ResultsViewContent item = (ResultsViewContent) parent;
       return (isShowInferences() ? item.getChildren() : item.getNonInfoChildren());
@@ -122,7 +117,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return noObjects;
   }
 
-  public final boolean hasChildren(Object parent) {
+  public boolean hasChildren(Object parent) {
     Object[] children = getChildren(parent);
     return (children == null ? false : children.length > 0);
   }
@@ -133,15 +128,15 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private final Map<IDrop, ResultsViewContent> m_contentCache = new HashMap<IDrop, ResultsViewContent>();
 
-  protected final ResultsViewContent putInContentCache(IDrop key, ResultsViewContent value) {
+  private ResultsViewContent putInContentCache(IDrop key, ResultsViewContent value) {
     return m_contentCache.put(key, value);
   }
 
-  protected final ResultsViewContent getFromContentCache(IDrop key) {
+  private ResultsViewContent getFromContentCache(IDrop key) {
     return m_contentCache.get(key);
   }
 
-  protected final boolean existsInCache(IDrop key) {
+  private boolean existsInCache(IDrop key) {
     return m_contentCache.containsKey(key);
   }
 
@@ -155,30 +150,29 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    * @param dropsToAdd
    *          the set of drops to enclose and add to the content set
    */
-  protected void addDrops(ResultsViewContent mutableContentSet, Collection<? extends IDrop> dropsToAdd) {
+  private void addDrops(ResultsViewContent mutableContentSet, Collection<? extends IDrop> dropsToAdd) {
     for (IDrop drop : dropsToAdd) {
       mutableContentSet.addChild(encloseDrop(drop));
     }
   }
 
-  protected ResultsViewContent makeContent(String msg) {
+  private ResultsViewContent makeContent(String msg) {
     return new ResultsViewContent(msg, Collections.<ResultsViewContent> emptyList(), null);
   }
 
-  protected ResultsViewContent makeContent(String msg, Collection<ResultsViewContent> contentRoot) {
+  private ResultsViewContent makeContent(String msg, Collection<ResultsViewContent> contentRoot) {
     return new ResultsViewContent(msg, contentRoot, null);
   }
 
-  protected ResultsViewContent makeContent(String msg, IDrop drop) {
+  private ResultsViewContent makeContent(String msg, IDrop drop) {
     return new ResultsViewContent(msg, Collections.<ResultsViewContent> emptyList(), drop);
   }
 
-  protected ResultsViewContent makeContent(String msg, ISrcRef ref) {
+  private ResultsViewContent makeContent(String msg, ISrcRef ref) {
     return new ResultsViewContent(msg, ref);
   }
 
-  public ResultsViewContentProvider buildModelOfDropSea(final TreeViewer treeViewer, File f_viewStatePersistenceFile,
-      PageBook f_viewerbook) {
+  ResultsViewContentProvider buildModelOfDropSea(final TreeViewer treeViewer, File f_viewStatePersistenceFile, PageBook f_viewerbook) {
     final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
     try {
       state.saveToFile(f_viewStatePersistenceFile);
@@ -386,7 +380,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    *          the drop to enclose
    * @return the content item the viewer can use
    */
-  protected final ResultsViewContent encloseDrop(IDrop drop) {
+  private ResultsViewContent encloseDrop(IDrop drop) {
     if (drop == null) {
       LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
       throw new IllegalArgumentException("ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
@@ -561,7 +555,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         boolean dontCategorize = false;
         if (info != null) {
           if (info.instanceOf(PromiseDrop.class)) {
-            dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class));
+            dontCategorize = !atRoot && !(info.instanceOf(UiPlaceInASubFolder.class));
           } else if (info.instanceOf(ResultDrop.class)) {
             IResultDrop r = (IResultDrop) info;
             dontCategorize = r.isInResultFolder();
@@ -964,21 +958,13 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   /**
    * Matches non-@Promise PromiseDrops
    */
-  private static final DropPredicate predicate = new DropPredicate() {
+  private static DropPredicate predicate = new DropPredicate() {
     public boolean match(IDrop d) {
       return promisePred.match(d) && !scopedPromisePred.match(d);
     }
   };
 
-  protected boolean dropsExist(Class<? extends Drop> type) {
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scan != null) {
-      return scan.dropsExist(type);
-    }
-    return false;
-  }
-
-  protected <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
+  private <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       return scan.getDropsOfType(type);
@@ -986,7 +972,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return Collections.emptyList();
   }
 
-  protected ResultsViewContentProvider buildModelOfDropSea_internal() {
+  ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
 
@@ -994,7 +980,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     for (IProofDrop pd : promiseDrops) {
       if (pd.isFromSrc() || pd.derivedFromSrc()) {
         // System.out.println("Considering: "+pd.getMessage());
-        if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
+        if (!pd.hasMatchingDeponents(predicate) || showAtTopLevel(pd)) {
           root.add(encloseDrop(pd));
         } else {
           // System.out.println("Rejected: "+pd.getMessage());
@@ -1020,8 +1006,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid()
-          && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || shouldBeTopLevel(id))) {
+      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }
@@ -1033,7 +1018,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     root = packageTypeFolderize(root);
     propagateWarningDecorators(root);
     breakBackEdges(root);
-    m_lastRoot = m_root;
     m_root = root.toArray();
     // reset our cache, for next time
     m_contentCache.clear();
@@ -1041,14 +1025,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return this;
   }
 
-  protected static boolean shouldBeTopLevel(IDrop d) {
-    // System.out.println("???: "+d.getMessage());
-    return d != null && d.instanceOf(MaybeTopLevel.class) && d.requestTopLevel();
-  }
-
-  public Object[] getLastElements() {
-    synchronized (ResultsViewContentProvider.class) {
-      return (isShowInferences() ? m_lastRoot : ResultsViewContent.filterNonInfo(m_lastRoot));
-    }
+  private static boolean showAtTopLevel(IDrop d) {
+    return d != null && d.instanceOf(UiShowAtTopLevel.class);
   }
 }

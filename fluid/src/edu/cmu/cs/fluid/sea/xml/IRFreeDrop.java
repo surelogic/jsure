@@ -41,7 +41,6 @@ import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
-import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 
 public class IRFreeDrop extends Entity implements IDrop {
   static {
@@ -99,30 +98,6 @@ public class IRFreeDrop extends Entity implements IDrop {
       deponents = Collections.emptyList();
       proposals = Collections.emptyList();
     }
-    /*
-     * final String name = e.getName(); final boolean warning; final String
-     * aType;
-     * 
-     * if (isResultDrop || PROMISE_DROP.equals(name)) { final String consistent
-     * = e.getAttribute(PROVED_ATTR); warning = !"true".equals(consistent);
-     * 
-     * if (isResultDrop) { aType = e.getAttribute(RESULT_ATTR); } else { final
-     * String type = e.getAttribute(TYPE_ATTR); aType =
-     * "MethodControlFlow".equals(type) ? "UniquenessAssurance" : type; } } else
-     * if (IR_DROP.equals(name)) { final String type =
-     * e.getAttribute(TYPE_ATTR); warning = "WarningDrop".equals(type);
-     * 
-     * final String result = e.getAttribute(RESULT_ATTR); aType = result != null
-     * ? result : "JSure"; } else { return false; } if
-     * (aType.startsWith("Color")) { return false; } if
-     * (createSourceLocation(builder.primarySourceLocation(), e.getSource())) {
-     * final String msg = e.getAttribute(MESSAGE_ATTR); builder.message(msg); if
-     * (warning) { builder.severity(Severity.ERROR).priority(Priority.HIGH); }
-     * else { builder.severity(Severity.INFO).priority(Priority.LOW); }
-     * builder.findingType("JSure", "1.1", aType); builder.scanNumber(id);
-     * builder.assurance(assuranceType); // e.getAttribute(CATEGORY_ATTR));
-     * builder.build(); return true; }
-     */
     category = Category.getInstance(getAttribute(CATEGORY_ATTR));
   }
 
@@ -265,10 +240,6 @@ public class IRFreeDrop extends Entity implements IDrop {
     };
   }
 
-  public boolean requestTopLevel() {
-    return "true".equals(getAttribute(MaybeTopLevel.REQUEST_TOP_LEVEL));
-  }
-
   public boolean isValid() {
     return true;
   }
@@ -308,7 +279,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     return false;
   }
 
-//  @Override
+  // @Override
   public Set<? extends IDrop> getMatchingDeponents(DropPredicate p) {
     final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
     for (IRFreeDrop i : deponents) {
@@ -319,7 +290,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     return result;
   }
 
-//  @Override
+  // @Override
   public boolean hasMatchingDependents(DropPredicate p) {
     for (IRFreeDrop i : dependents) {
       if (p.match(i)) {
@@ -329,7 +300,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     return false;
   }
 
-//  @Override
+  // @Override
   public Set<? extends IDrop> getMatchingDependents(DropPredicate p) {
     final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
     for (IRFreeDrop i : dependents) {
@@ -348,7 +319,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     return supportingInfos;
   }
 
-//  @Override
+  // @Override
   public String getXMLElementName() {
     return getEntityName();
   }
