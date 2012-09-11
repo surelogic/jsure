@@ -8,6 +8,7 @@ import com.surelogic.promise.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -55,7 +56,6 @@ public class StructureRules extends AnnotationRules {
 				  	if (isInFinalContext(a.getPromisedFor())) {
 			    		return null; // illegal
 			    	}
-					// TODO scrub
 					final MustInvokeOnOverridePromiseDrop d = new MustInvokeOnOverridePromiseDrop(a);
 					return storeDropIfNotNull(a, d);
 				}
@@ -65,20 +65,22 @@ public class StructureRules extends AnnotationRules {
 			    	if (isInFinalContext(unannodMethod)) {
 			    		return true; // ok
 			    	}
-			    	// check if parent(s) has @MustInvokeOnOverride
-			    	for(IBinding overridden : getContext().getBinder(unannodMethod).findOverriddenParentMethods(unannodMethod)) {
-			    		if (getMustInvokeDrop(overridden.getNode()) != null) {
-			    			getContext().reportError(unannodMethod, "Should be marked with @"+MUST_INVOKE_ON_OVERRIDE+
-			    					" like the method it overrides: "+JavaNames.getFullName(overridden.getNode()));
-			    			return false;
-			    		}			    		
-			    	}
+			    	IBinding overridden = findParentWithMustInvokeOnOverride(getContext().getBinder(unannodMethod), 
+			    															 unannodMethod);
+			    	if (overridden != null) {
+			    		getContext().reportError(unannodMethod, "Should be marked with @"+MUST_INVOKE_ON_OVERRIDE+
+			    				" like the method it overrides: "+JavaNames.getFullName(overridden.getNode()));
+			    		return false;
+			    	}			    					    	
 			    	return true; // ok
 			    }
 			};
 		}
 	}
 	
+	/**
+	 * @return true if the method or enclosing type is final
+	 */
 	static boolean isInFinalContext(IRNode method) {
     	final boolean isFinal = JavaNode.getModifier(method, JavaNode.FINAL);
     	if (isFinal) {
@@ -90,5 +92,18 @@ public class StructureRules extends AnnotationRules {
     		return true; 
     	}
     	return false;
+	}
+	
+	/**
+	 * 
+	 * @return nonnull if parent(s) has @MustInvokeOnOverride
+	 */
+	public static IBinding findParentWithMustInvokeOnOverride(IBinder b, IRNode method) {
+		for(IBinding overridden : b.findOverriddenParentMethods(method)) {
+    		if (getMustInvokeDrop(overridden.getNode()) != null) {
+    			return overridden;
+    		}    		
+		}	
+		return null;
 	}
 }
