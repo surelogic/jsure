@@ -57,8 +57,6 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
   protected static Object[] m_lastRoot = null;
   protected static long timeStamp = Sea.INVALIDATED;
 
-  private final Sea sea;
-
   protected static final Logger LOG = SLLogger.getLogger("ResultsViewContentProvider");
 
   private boolean m_showInferences = true;
@@ -78,8 +76,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     this.m_showInferences = showInferences;
   }
 
-  GenericResultsViewContentProvider(Sea sea) {
-    this.sea = sea;
+  GenericResultsViewContentProvider() {
   }
 
   public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -986,24 +983,25 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     }
   }
 
-  public IResultsViewContentProvider buildModelOfDropSea() {
-    synchronized (GenericResultsViewContentProvider.class) {
-      long viewTime = timeStamp;
-      long seaTime = sea.getTimeStamp();
-      if (seaTime == Sea.INVALIDATED) {
-        seaTime = sea.updateConsistencyProof();
-      }
-
-      SLLogger.getLogger().fine("Comparing view (" + viewTime + ") to sea (" + seaTime + ")");
-      if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
-        return this;
-      }
-      SLLogger.getLogger().fine("Building model of Drop-Sea");
-      IResultsViewContentProvider rv = buildModelOfDropSea_internal();
-      timeStamp = sea.getTimeStamp();
-      return rv;
-    }
-  }
+  // public IResultsViewContentProvider buildModelOfDropSea() {
+  // synchronized (GenericResultsViewContentProvider.class) {
+  // long viewTime = timeStamp;
+  // long seaTime = sea.getTimeStamp();
+  // if (seaTime == Sea.INVALIDATED) {
+  // seaTime = sea.updateConsistencyProof();
+  // }
+  //
+  // SLLogger.getLogger().fine("Comparing view (" + viewTime + ") to sea (" +
+  // seaTime + ")");
+  // if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
+  // return this;
+  // }
+  // SLLogger.getLogger().fine("Building model of Drop-Sea");
+  // IResultsViewContentProvider rv = buildModelOfDropSea_internal();
+  // timeStamp = sea.getTimeStamp();
+  // return rv;
+  // }
+  // }
 
   private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
 
