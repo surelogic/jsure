@@ -42,7 +42,6 @@ import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
-import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 
 public class IRFreeDrop extends Entity implements IDrop {
   static {
@@ -264,14 +263,6 @@ public class IRFreeDrop extends Entity implements IDrop {
         return ref.getAttribute(PROJECT_ATTR);
       }
     };
-  }
-
-  public int count() {
-    String value = getAttribute(PleaseCount.COUNT);
-    if (value == null) {
-      return 0;
-    }
-    return Integer.valueOf(value);
   }
 
   public boolean requestTopLevel() {
