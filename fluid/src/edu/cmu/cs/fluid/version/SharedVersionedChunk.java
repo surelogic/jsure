@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.version;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
@@ -14,6 +15,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.util.FileLocator;
 import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 
 /**
@@ -29,12 +31,12 @@ public class SharedVersionedChunk extends VersionedChunk {
    */
   private static final Logger LOG = SLLogger.getLogger("IR.version");
 
-  private static Hashtable2<SharedVersionedRegion, Bundle, SharedVersionedChunk> sharedVersionedChunks = new Hashtable2<SharedVersionedRegion, Bundle, SharedVersionedChunk>();
+  private static HashMap<Pair<SharedVersionedRegion, Bundle>, SharedVersionedChunk> sharedVersionedChunks = new HashMap<Pair<SharedVersionedRegion,Bundle>, SharedVersionedChunk>();
   
   /** Create a new VIC from existing structures in memory. */
   protected SharedVersionedChunk(SharedVersionedRegion svr, Bundle b) {
     super(svr, b);
-    sharedVersionedChunks.put(svr,b,this);
+    sharedVersionedChunks.put(Pair.getInstance(svr,b),this);
   }
 
   /**
@@ -43,7 +45,7 @@ public class SharedVersionedChunk extends VersionedChunk {
    */
   public static SharedVersionedChunk get(VersionedRegion vr, Version v, Bundle b) {
     SharedVersionedRegion svr = SharedVersionedRegion.get(vr, v);
-    SharedVersionedChunk ch = sharedVersionedChunks.get(svr, b);
+    SharedVersionedChunk ch = sharedVersionedChunks.get(Pair.getInstance(svr, b));
     if (ch == null) {
       ch = new SharedVersionedChunk(svr, b);
     }

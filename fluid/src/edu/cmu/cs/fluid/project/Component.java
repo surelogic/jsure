@@ -1,23 +1,33 @@
 package edu.cmu.cs.fluid.project;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRPersistent;
-import edu.cmu.cs.fluid.ir.IRState;
-
-import edu.cmu.cs.fluid.version.*;
-import edu.cmu.cs.fluid.version.VersionedSlot.IORunnable;
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.UniqueID;
-import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.FluidRuntimeException;
-
-import java.io.*;
-import java.util.logging.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.FluidRuntimeException;
+import edu.cmu.cs.fluid.ir.IRInput;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IROutput;
+import edu.cmu.cs.fluid.ir.IRPersistent;
+import edu.cmu.cs.fluid.ir.IRPersistentKind;
+import edu.cmu.cs.fluid.ir.IRState;
+import edu.cmu.cs.fluid.util.FileLocator;
+import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.util.UniqueID;
+import edu.cmu.cs.fluid.version.Era;
+import edu.cmu.cs.fluid.version.SharedVersionedRegion;
+import edu.cmu.cs.fluid.version.Version;
+import edu.cmu.cs.fluid.version.VersionedRegion;
+import edu.cmu.cs.fluid.version.VersionedSlot;
+import edu.cmu.cs.fluid.version.VersionedSlot.IORunnable;
+import edu.cmu.cs.fluid.version.VersionedState;
 
 /**
  * @author Tien
@@ -303,7 +313,7 @@ public abstract class Component extends IRPersistent implements VersionedState
     private final Era era;
     private final Component comp;
 
-    private static Hashtable2<Component, Era, Delta> deltas = new Hashtable2<Component, Era, Delta>();
+    private static HashMap<Pair<Component, Era>, Delta> deltas = new HashMap<Pair<Component,Era>, Component.Delta>();
     
     /** new one */
     Delta(Component c, Era e) {
@@ -326,11 +336,11 @@ public abstract class Component extends IRPersistent implements VersionedState
     public Component getComponent() { return comp;}
     
     public synchronized static Delta find(Component c, Era e) {
-      return deltas.get(c,e);
+      return deltas.get(Pair.getInstance(c,e));
     }
     
     private synchronized static void add(Delta d) {
-      deltas.put(d.getComponent(),d.getEra(),d);
+      deltas.put(Pair.getInstance(d.getComponent(),d.getEra()),d);
       LOG.fine("Adding " + d);
     }
 
@@ -413,7 +423,7 @@ public abstract class Component extends IRPersistent implements VersionedState
     private final Version version;
     private final Component comp;
 
-    private static Hashtable2<Component, Version, Snapshot> snapshots = new Hashtable2<Component, Version, Snapshot>();
+    private static HashMap<Pair<Component, Version>, Snapshot> snapshots = new HashMap<Pair<Component,Version>, Component.Snapshot>();
 
     /** new one */
     Snapshot(Component c, Version v) {
@@ -436,11 +446,11 @@ public abstract class Component extends IRPersistent implements VersionedState
     public Component getComponent() { return comp;}
     
     public static Snapshot find(Component c, Version v) {
-      return snapshots.get(c,v);
+      return snapshots.get(Pair.getInstance(c,v));
     }
     
     private static void add(Snapshot s) {
-      snapshots.put(s.getComponent(),s.getVersion(),s);
+      snapshots.put(Pair.getInstance(s.getComponent(),s.getVersion()),s);
     }
 
     /** Find or create a snapshot */

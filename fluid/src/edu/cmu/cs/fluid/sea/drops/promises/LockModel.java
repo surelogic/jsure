@@ -27,8 +27,9 @@ import edu.cmu.cs.fluid.util.Pair;
  * @lock LockModelLock is class protects nameToDrop
  */
 public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> implements ILockBinding {
+
   /**
-   * Map from lock names to drop instances (String -> RegionDrop).
+   * Map from (lock name, project name) to drop instances.
    * <p>
    * Accesses must be protected by a lock on this class.
    */
@@ -43,12 +44,12 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    * @param lockName
    *          The qualified name of the lock
    */
-  public static LockModel getInstance(final String lockName, final String project) {
+  public static LockModel getInstance(final String lockName, final String projectName) {
     if (lockName == null)
       throw new IllegalArgumentException(I18N.err(44, "lockName"));
-    if (project == null)
-      throw new IllegalArgumentException(I18N.err(44, "project"));
-    final Pair<String, String> key = new Pair<String, String>(lockName, project);
+    if (projectName == null)
+      throw new IllegalArgumentException(I18N.err(44, "projectName"));
+    final Pair<String, String> key = new Pair<String, String>(lockName, projectName);
     synchronized (LockModel.class) {
       purgeUnusedLocks(); // cleanup the locks
 

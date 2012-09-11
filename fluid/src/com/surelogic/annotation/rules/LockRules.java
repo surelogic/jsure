@@ -899,7 +899,7 @@ public class LockRules extends AnnotationRules {
       final IRegionBinding regionBinding = region.resolveBinding();
       
       // Check that the region isn't already associated with a lock
-      final String regionName = regionBinding.getModel().regionName;
+      final String regionName = regionBinding.getModel().getRegionName();
       if (!protectedRegions.addIfNotAlreadyProtected(
           context.getBinder(promisedForType.getDeclaration()).getTypeEnvironment(), regionName, promisedForType)) {
         context.reportError(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);

@@ -213,7 +213,7 @@ public class RegionRules extends AnnotationRules {
           // The parent region must be accessible
           if (!parentModel.isAccessibleFromType(context.getBinder(promisedFor).getTypeEnvironment(), promisedFor)) {
             context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
-                parentModel.regionName, JavaNames.getQualifiedTypeName(promisedFor));
+                parentModel.getRegionName(), JavaNames.getQualifiedTypeName(promisedFor));
             annotationIsGood = false;
           }
           
@@ -347,7 +347,7 @@ public class RegionRules extends AnnotationRules {
           // Parent region must not create a cycle
           if (RegionModel.getInstance(promisedFor).ancestorOf(parentModel)) {
             context.reportError(a, "Cycle detected: Field \"{0}\" is already an ancestor of region \"{1}\"",
-                VariableDeclarator.getId(promisedFor), parentModel.regionName);
+                VariableDeclarator.getId(promisedFor), parentModel.getRegionName());
             annotationIsGood = false;
           }
           
@@ -356,7 +356,7 @@ public class RegionRules extends AnnotationRules {
           if (!parentModel.isAccessibleFromType(
               context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
             context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
-                parentModel.regionName, JavaNames.getQualifiedTypeName(enclosingType));
+                parentModel.getRegionName(), JavaNames.getQualifiedTypeName(enclosingType));
             annotationIsGood = false;
           }
 
@@ -821,7 +821,7 @@ public class RegionRules extends AnnotationRules {
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
-              fromRegion.regionName,
+              fromRegion.getRegionName(),
               JavaNames.getQualifiedTypeName(enclosingType));
           isGood = false;
         }
@@ -854,7 +854,7 @@ public class RegionRules extends AnnotationRules {
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
-              toRegion.regionName,
+              toRegion.getRegionName(),
               JavaNames.getQualifiedTypeName(enclosingType));
           isGood = false;
         }
@@ -982,7 +982,7 @@ public class RegionRules extends AnnotationRules {
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
-              fromRegion.regionName,
+              fromRegion.getRegionName(),
               JavaNames.getQualifiedTypeName(enclosingType));
           good = false;
         }
@@ -1010,7 +1010,7 @@ public class RegionRules extends AnnotationRules {
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
           context.reportError(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
-              toRegion.regionName,
+              toRegion.getRegionName(),
               JavaNames.getQualifiedTypeName(enclosingType));
           good = false;
         }

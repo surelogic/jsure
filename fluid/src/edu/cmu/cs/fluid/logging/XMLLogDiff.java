@@ -63,13 +63,14 @@ public class XMLLogDiff {
     return events;
   }
   
-  private static EventState makeStateInTable(Hashtable2<String,String,EventState> table, LoggingEvent e) {
+  private static EventState makeStateInTable(Map<Pair<String,String>,EventState> table, LoggingEvent e) {
     final String info = e.getLocationInformation().getFullInfo();
     final String msg  = e.getRenderedMessage();
-    EventState state  = table.get(info, msg);
+    final Pair<String,String> key = Pair.getInstance(info, msg);
+    EventState state  = table.get(key);
     if (state == null) {
       state = new EventState(e);
-      if (table.put(info, msg, state) != null) {
+      if (table.put(key, state) != null) {
         // We shouldn't get this 
         System.err.println("Got duplicate log event: "+e.getRenderedMessage());
       }
@@ -82,8 +83,8 @@ public class XMLLogDiff {
    * 
    * @return a table keyed on the location and message
    */
-  private static Hashtable2<String,String,EventState> convertToTable(List<LoggingEvent> log) {
-    final Hashtable2<String,String,EventState> table = new Hashtable2<String,String,EventState>();
+  private static HashMap<Pair<String,String>,EventState> convertToTable(List<LoggingEvent> log) {
+    final HashMap<Pair<String,String>,EventState> table = new HashMap<Pair<String,String>, EventState>();
     for (LoggingEvent e : log) {
       final EventState state = makeStateInTable(table, e);
       state.incr();
@@ -91,7 +92,7 @@ public class XMLLogDiff {
     return table;
   }
   
-  private static Hashtable2<String,String,EventState> getTableFromLog(String name) 
+  private static HashMap<Pair<String,String>,EventState> getTableFromLog(String name) 
   throws MalformedURLException {  
     List<LoggingEvent> log = getEventsFromLog(name);
     return convertToTable(log);
@@ -113,8 +114,8 @@ public class XMLLogDiff {
    */
   public static int diff(ITestOutput out, String oracleName, String logName, String logDiffsName) 
   throws IOException {
-    Hashtable2<String,String,EventState> log = getTableFromLog(logName);
-    List<LoggingEvent> oracle                = getEventsFromLog(oracleName);
+    Map<Pair<String,String>,EventState> log = getTableFromLog(logName);
+    List<LoggingEvent> oracle               = getEventsFromLog(oracleName);
     
     System.out.println("Removing expected events");
     try {
@@ -143,7 +144,7 @@ public class XMLLogDiff {
       t.printStackTrace();
     }
     // Anything left over in 'log' should be new ...
-    for(final EventState e : log.elements()) {
+    for(final EventState e : log.values()) {
       ITest o = new ITest() {
         public String getClassName() {
           return e.event.getLocationInformation().className;
@@ -174,7 +175,7 @@ public class XMLLogDiff {
         out.reportFailure(o, e.event.getRenderedMessage());
       }
     }
-    return createXMLLog(logDiffsName, log.elements());
+    return createXMLLog(logDiffsName, log.values());
   }
 
   private static int createXMLLog(String name, Iterable<EventState> log) throws FileNotFoundException {

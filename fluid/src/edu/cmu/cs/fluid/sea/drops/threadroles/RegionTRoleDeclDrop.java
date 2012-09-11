@@ -67,7 +67,7 @@ public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, 
   
   res.masterRegion.addDependent(res);
   
-  res.setMessage("ThreadRoleConstraint " +constraint+ " for region " +res.masterRegion.regionName);
+  res.setMessage("ThreadRoleConstraint " +constraint+ " for region " +res.masterRegion.getRegionName());
   
   return res;
 }

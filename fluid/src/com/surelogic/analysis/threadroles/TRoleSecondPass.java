@@ -924,7 +924,7 @@ public class TRoleSecondPass implements IBinderClient {
           final String bad_CCR = "ThreadRole Constrained Region \"{0}\" has inconsistent accesses."; //$NON-NLS-1$
           final String contextFormat = "Context ({0}) does not imply requirements ({1})."; //$NON-NLS-1$
           rd = makeResultDrop(null, regTRoleMod, false, threadRoleConstrainedResultsDependOn, bad_CCR,
-              regTRoleMod.getMasterRegion().regionName);
+              regTRoleMod.getMasterRegion().getRegionName());
 
           String contextStr = TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext());
 
@@ -1189,7 +1189,7 @@ public class TRoleSecondPass implements IBinderClient {
         StringBuilder msg = new StringBuilder();
 
         msg.append("Thread role model not consistent with code at reference to " //$NON-NLS-1$
-            + rmod.regionName);
+            + rmod.getRegionName());
         msg.append('.');
         ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", locInIR);
         prd.addSupportingInformation(null, "Local thread role context is " + //$NON-NLS-1$
@@ -1201,7 +1201,7 @@ public class TRoleSecondPass implements IBinderClient {
       } else if (!reqIsEmpty) {
         // report an OK reference
         StringBuilder msg = new StringBuilder();
-        msg.append("Thread role context OK for reference to " + rmod.regionName); //$NON-NLS-1$
+        msg.append("Thread role context OK for reference to " + rmod.getRegionName()); //$NON-NLS-1$
         msg.append('.');
         ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", locInIR);
         rd.addSupportingInformation(null, "Local thread role context is " + //$NON-NLS-1$

@@ -1295,7 +1295,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 								if (lockRecord instanceof RegionLockRecord) {
 									// Propose the aggregate annotation
-									final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
+									final String simpleRegionName = ((RegionLockRecord) lockRecord).region.getName();
 									if ("Instance".equals(simpleRegionName)) {
 										info.addProposal(new ProposedPromiseBuilder(
 												"Unique", null, fieldDecl,
@@ -1332,7 +1332,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * Propose that the field be @Unique and aggregated.
 						 */
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						final String simpleRegionName = innerLock.region.simpleName;
+						final String simpleRegionName = innerLock.region.getName();
 						if ("Instance".equals(simpleRegionName)) {
 							info.addProposal(new ProposedPromiseBuilder(
 									"Unique", null, fieldDecl, fieldRef,

@@ -67,7 +67,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * Summarize the Sea (omits links)
@@ -483,7 +483,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
         separate();
       }
       List<Category> l = new ArrayList<Category>();
-      for (Category c : categories.elements()) {
+      for (Category c : categories.values()) {
         if (c.isEmpty()) {
           continue;
         }
@@ -518,7 +518,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
         separate();
       }
 
-      for (Category c : categories.elements()) {
+      for (Category c : categories.values()) {
         // System.out.println("Category: "+c.name+" in "+c.file);
         c.match(System.out);
       }
@@ -528,7 +528,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       if (categories.isEmpty()) {
         return true;
       }
-      for (Category c : categories.elements()) {
+      for (Category c : categories.values()) {
         if (!c.isEmpty()) {
           return false;
         }
@@ -540,7 +540,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       OutputStream os = new FileOutputStream(file);
       Writer w = new OutputStreamWriter(os, "UTF-8");
       PrintWriter pw = new PrintWriter(w);
-      for (Category c : categories.elements()) {
+      for (Category c : categories.values()) {
         c.write(pw);
       }
       pw.flush();
@@ -548,7 +548,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     }
   }
 
-  static class Categories extends Hashtable2<String, String, Category> {
+  static class Categories extends HashMap<Pair<String, String>, Category> {
     Category getOrCreate(Entity e) {
       final String type = e.getAttribute(TYPE_ATTR);
       String path = e.getAttribute(PATH_ATTR);
@@ -558,10 +558,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       if (f != null) {
         f = FileUtility.normalizePath(f);
       }
-      Category c = this.get(f, type);
+      final Pair<String, String> key = Pair.getInstance(f, type);
+      Category c = this.get(key);
       if (c == null) {
         c = new Category(f, type);
-        this.put(f, type, c);
+        this.put(key, c);
       }
       return c;
     }

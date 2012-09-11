@@ -5,29 +5,48 @@
  */
 package edu.uwm.cs.fluid.java.analysis;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.*;
+import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.Thunk;
 
-import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.control.BlankInputPort;
+import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.control.ControlEdge;
+import edu.cmu.cs.fluid.control.ControlEdgeIterator;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassBodyDeclInterface;
+import edu.cmu.cs.fluid.java.operator.FlowUnit;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodBody;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.*;
-import edu.cmu.cs.fluid.util.Hashtable2;
-import edu.uwm.cs.fluid.util.Lattice;
+import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
+import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.version.Version;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
-import edu.cmu.cs.fluid.version.Version;
+import edu.uwm.cs.fluid.util.Lattice;
 
 /**
  * A general purpose framework for analysis of a single method. It
@@ -60,7 +79,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 
     this.useMapCache = useMapCache;
     if (useMapCache) {
-    	mapCache = new Hashtable2<IRNode, Version, A>();
+    	mapCache = new HashMap<Pair<IRNode,Version>, A>();
     	cache = null;
     } else {
     	mapCache = null;    
@@ -251,7 +270,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 	 */
   private IntraproceduralAnalysisCache<T, L, A> cache; 
 
-  private final Hashtable2<IRNode, Version, A> mapCache;
+  private final HashMap<Pair<IRNode, Version>, A> mapCache;
   
   private final boolean useMapCache;
 	  
@@ -280,11 +299,12 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     if (useMapCache) {
     	final A fa;
     	synchronized (mapCache) {
-    		A temp = mapCache.get(flowUnit, v);
+    	  final Pair<IRNode, Version> key = Pair.getInstance(flowUnit, v);
+    		A temp = mapCache.get(key);
     		if (temp == null) {
     			// Start with uncomputed analysis
     			temp = createAnalysis(flowUnit);
-    			mapCache.put(flowUnit, v, temp);
+    			mapCache.put(key, temp);
     		}
     		fa = temp;
 		}    
