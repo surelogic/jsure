@@ -283,8 +283,6 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   /*
    * Experimental actions
    */
-  private Action f_actionExportZIPForStandAloneResultsViewer;
-  private Action f_actionExportXMLForSierra;
   private Action f_actionShowUnderlyingDropType;
 
   /**
@@ -386,11 +384,6 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     manager.add(new Separator());
     manager.add(f_showQuickRef);
     manager.add(f_actionShowInferences);
-    if (XUtil.useExperimental()) {
-      manager.add(new Separator());
-      manager.add(f_actionExportZIPForStandAloneResultsViewer);
-      manager.add(f_actionExportXMLForSierra);
-    }
 
     final IActionBars bars = getViewSite().getActionBars();
     bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
