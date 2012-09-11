@@ -2,7 +2,6 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.ImmutableRefNode;
 
-import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;

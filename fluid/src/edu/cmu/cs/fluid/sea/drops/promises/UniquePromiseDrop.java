@@ -23,9 +23,8 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
  */
 public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> implements UiShowAtTopLevel, RegionAggregationDrop,
     IUniquePromise {
-  // This page intentionally left blank
 
-  private boolean isUniqueReturn;
+  private final boolean isUniqueReturn;
 
   public UniquePromiseDrop(UniqueNode n) {
     super(n);
@@ -47,14 +46,6 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
    */
   public boolean isUniqueReturn() {
     return isUniqueReturn;
-  }
-
-  /**
-   * @param isUniqueReturn
-   *          The isUniqueReturn to set.
-   */
-  public void setUniqueReturn(boolean isUniqueReturn) {
-    this.isUniqueReturn = isUniqueReturn;
   }
 
   @Override
