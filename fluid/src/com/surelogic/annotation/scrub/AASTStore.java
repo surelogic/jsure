@@ -8,7 +8,6 @@ import com.surelogic.annotation.test.TestResult;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -188,11 +187,7 @@ public final class AASTStore {
 public static synchronized <A extends IAASTRootNode>
   void validate(PromiseDrop<A> pd) {  
     if (pd.getAAST() == null) {
-      if (pd instanceof MethodEffectsPromiseDrop) {
-        // continue         
-      } else {
-        throw new IllegalArgumentException("No AST for "+pd);
-      }
+    	throw new IllegalArgumentException("No AST for "+pd);      
     }
     else if (pd.getAAST().getStatus() != AASTStatus.VALID) {
       throw new IllegalArgumentException("AAST is not valid");
