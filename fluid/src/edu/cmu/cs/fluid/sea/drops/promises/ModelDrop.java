@@ -53,6 +53,8 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
   }
 
   protected static boolean modelDefinedInCode(DropPredicate definingDropPred, ModelDrop<?> drop) {
+    if (definingDropPred == null || drop == null)
+      System.out.println("LockModel.modelDefinedInCode(" + definingDropPred + ", " + drop + ")");
     return drop.isValid() && (drop.getNode() != null || drop.hasMatchingDependents(definingDropPred));
   }
 }

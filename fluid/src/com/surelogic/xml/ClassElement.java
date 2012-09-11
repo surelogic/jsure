@@ -1,6 +1,7 @@
 package com.surelogic.xml;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
@@ -17,7 +18,7 @@ import edu.cmu.cs.fluid.util.*;
 public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,NestedClassElement> classes = new HashMap<String,NestedClassElement>(0);
 	private final Map<String,FieldElement> fields = new HashMap<String,FieldElement>(0);
-	private final Hashtable2<String,String,MethodElement> methods = new Hashtable2<String, String, MethodElement>();
+	private final HashMap<Pair<String,String>,MethodElement> methods = new HashMap<Pair<String,String>, MethodElement>();
 	private final Map<String,ConstructorElement> constructors = new HashMap<String, ConstructorElement>(0);
 	private ClassInitElement clinit;
 	
@@ -53,7 +54,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		m.setParent(this);
 		if (m instanceof MethodElement) {
 			MethodElement method = (MethodElement) m;
-			return methods.put(m.getName(), method.getParams(), method);
+			return methods.put(Pair.getInstance(m.getName(), method.getParams()), method);
 		}
 		else if (m instanceof ConstructorElement) {
 			ConstructorElement method = (ConstructorElement) m;
@@ -86,7 +87,7 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 	
 	public MethodElement findMethod(String name, String params) {
-		return methods.get(name, params);
+		return methods.get(Pair.getInstance(name, params));
 	}
 	
 	public ConstructorElement findConstructor(String params) {
@@ -94,7 +95,7 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 	
 	public void removeMethod(MethodElement m) {
-		methods.remove(m.getName(), m.getParams());
+		methods.remove(Pair.getInstance(m.getName(), m.getParams()));
 	}
 	
 	public void removeConstructor(ConstructorElement c) {
@@ -122,10 +123,7 @@ public class ClassElement extends AnnotatedJavaElement {
 	}
 	
 	public Collection<MethodElement> getMethods() {
-		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.size());
-		for(Pair<String,String> key : methods.keys()) {
-			elements.add(methods.get(key.first(), key.second()));
-		}
+		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.values());
 		Collections.sort(elements, new Comparator<MethodElement>() {
 			public int compare(MethodElement o1, MethodElement o2) {				
 				int rv = o1.getName().compareTo(o2.getName());
@@ -184,7 +182,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				return true;
 			}
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			if (m.isDirty()) {
 				return true;
 			}
@@ -215,7 +213,7 @@ public class ClassElement extends AnnotatedJavaElement {
 				return true;
 			}
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			if (m.isModified()) {
 				return true;
 			}
@@ -239,7 +237,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(ConstructorElement c : constructors.values()) {
 			c.markAsClean();
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			m.markAsClean();
 		}
 		for(NestedClassElement n : classes.values()) {
@@ -275,16 +273,16 @@ public class ClassElement extends AnnotatedJavaElement {
 					modified = true;
 				}
 			}
-			for(Pair<String,String> keys : changed.methods.keys()) {
-				MethodElement m2 = changed.methods.get(keys.first(), keys.second());
-				MethodElement m0 = methods.get(keys.first(), keys.second());
-				if (m0 != null) {
-					modified |= m0.merge(m2, type);
-				} else {
-					addMember(m2.cloneMe(this));
-					modified = true;
-				}
-			}
+      for (Entry<Pair<String,String>,MethodElement> entry : changed.methods.entrySet()) {
+        MethodElement m2 = entry.getValue();
+        MethodElement m0 = methods.get(entry.getKey());
+        if (m0 != null) {
+          modified |= m0.merge(m2, type);
+        } else {
+          addMember(m2.cloneMe(this));
+          modified = true;
+        }
+      }
 			for(NestedClassElement n2 : changed.classes.values()) {
 				NestedClassElement n0 = classes.get(n2.getName());
 				if (n0 != null) {
@@ -312,7 +310,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(ConstructorElement c : constructors.values()) {
 			clone.addMember(c.cloneMe(clone));
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			clone.addMember(m.cloneMe(clone));
 		}
 		for(NestedClassElement n : classes.values()) {
@@ -347,7 +345,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(ConstructorElement c : constructors.values()) {
 			clone.addMember(c.copyIfDirty());
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			clone.addMember(m.copyIfDirty());
 		}
 		for(NestedClassElement n : classes.values()) {
@@ -377,7 +375,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(ConstructorElement c : constructors.values()) {
 			added += c.applyPromises(v, TreeAccessor.findConstructor(c.getParams(), t, v.getTypeEnv()));
 		}
-		for(MethodElement m : methods.elements()) {
+		for(MethodElement m : methods.values()) {
 			added += m.applyPromises(v, TreeAccessor.findMethod(t, m.getName(), m.getParams(), v.getTypeEnv()));
 		}
 		for(NestedClassElement n : classes.values()) {

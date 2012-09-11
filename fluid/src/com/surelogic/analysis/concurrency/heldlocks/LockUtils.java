@@ -30,6 +30,7 @@ import com.surelogic.common.logging.SLLogger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -65,6 +66,7 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 
 /**
@@ -229,8 +231,8 @@ public final class LockUtils {
   /**
    * Cache used to speed up isMethodFrom()
    */
-  private final Hashtable2<IJavaType, IJavaType, Boolean> subTypeCache = 
-	  new Hashtable2<IJavaType, IJavaType, Boolean>();
+  private final HashMap<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
+	  new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
   
   
   
@@ -465,12 +467,13 @@ public final class LockUtils {
 	  if (s == null || t == null) {
 		  return false;
 	  }
-	  Boolean result = subTypeCache.get(s, t);
+	  final Pair<IJavaType, IJavaType> key = Pair.getInstance(s, t);
+	  Boolean result = subTypeCache.get(key);
 	  if (result != null) {
 		  return result.booleanValue();
 	  }
 	  boolean rv = binder.getTypeEnvironment().isRawSubType(s, t);
-	  subTypeCache.put(s, t, rv);
+	  subTypeCache.put(key, rv);
 	  return rv;
   }
   

@@ -1,18 +1,21 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.util.Hashtable2;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**
@@ -29,30 +32,34 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    * <p>
    * Accesses must be protected by a lock on this class.
    */
-  private static final Hashtable2<String, String, LockModel> NAME_TO_DROP = new Hashtable2<String, String, LockModel>();
+  private static final HashMap<Pair<String, String>, LockModel> LOCKNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, LockModel>();
 
   /*
-   * This name-based lookup is very shaky. There should be a better way of
-   * doing this.
+   * This name-based lookup is very shaky. There should be a better way of doing
+   * this.
    */
 
   /**
    * @param lockName
    *          The qualified name of the lock
    */
-  public static LockModel getInstance(String lockName, String project) {
+  public static LockModel getInstance(final String lockName, final String project) {
+    if (lockName == null)
+      throw new IllegalArgumentException(I18N.err(44, "lockName"));
+    if (project == null)
+      throw new IllegalArgumentException(I18N.err(44, "project"));
+    final Pair<String, String> key = new Pair<String, String>(lockName, project);
     synchronized (LockModel.class) {
       purgeUnusedLocks(); // cleanup the locks
 
-      String key = lockName;
-      LockModel result = NAME_TO_DROP.get(key, project);
+      LockModel result = LOCKNAME_PROJECT_TO_DROP.get(key);
       if (result == null) {
-        key = CommonStrings.intern(lockName);
-        result = new LockModel(key);
+        // key = CommonStrings.intern(lockName);
+        result = new LockModel(lockName);
 
-        NAME_TO_DROP.put(key, project, result);
+        LOCKNAME_PROJECT_TO_DROP.put(key, result);
 
-        if ("java.lang.Object.MUTEX".equals(key)) {
+        if ("java.lang.Object.MUTEX".equals(lockName)) {
           result.setFromSrc(true); // Make it show up in the view
           final String msg = "java.lang.Object.MUTEX is consistent with the code in java.lang.Object";
           ResultDrop rd = new ResultDrop();
@@ -60,7 +67,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
           rd.setConsistent();
           rd.setMessage(msg);
         }
-        // System.out.println("Creating lock "+key);
+        System.out.println("Creating lock " + lockName);
       }
       return result;
     }
@@ -108,21 +115,19 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    * Removes locks that are no longer defined by any promise definitions.
    */
   public static void purgeUnusedLocks() {
-    final Hashtable2<String, String, LockModel> newMap = new Hashtable2<String, String, LockModel>();
     synchronized (LockModel.class) {
-      for (Pair<String, String> key : NAME_TO_DROP.keys()) {
-        LockModel drop = NAME_TO_DROP.get(key.first(), key.second());
+      for (Iterator<Entry<Pair<String, String>, LockModel>> iterator = LOCKNAME_PROJECT_TO_DROP.entrySet().iterator(); iterator
+          .hasNext();) {
+        Entry<Pair<String, String>, LockModel> entry = iterator.next();
+
+        final LockModel drop = entry.getValue();
 
         boolean lockDefinedInCode = modelDefinedInCode(definingDropPred, drop);
-
-        if (lockDefinedInCode) {
-          newMap.put(key.first(), key.second(), drop);
-        } else {
-          // System.out.println("Purging lock "+key);
+        if (!lockDefinedInCode) {
           drop.invalidate();
+          iterator.remove();
         }
-        NAME_TO_DROP.clear();
-        NAME_TO_DROP.putAll(newMap);
+
       }
     }
   }

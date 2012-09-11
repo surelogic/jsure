@@ -68,8 +68,8 @@ public class JavacClassParser {
 	// Pair1 = new project
 	// Map to String if a jar
 	// Map to File   if source
-	private final Hashtable2<String,String,Pair<String,Object>> classToFile = 
-		new Hashtable2<String,String,Pair<String,Object>>();
+	private final HashMap<Pair<String,String>,Pair<String,Object>> classToFile = 
+		new HashMap<Pair<String,String>, Pair<String,Object>>();
 
 	private final Map<File,File> mappedSources = new HashMap<File, File>();
 	
@@ -109,35 +109,38 @@ public class JavacClassParser {
 	 * searching the classpath
 	 */
 	public void map(String destProj, String jarName, String srcProj, String name) {
-		if (!classToFile.containsKeys(destProj, name)) {
+	  final Pair<String,String> key = Pair.getInstance(destProj, name);
+		if (!classToFile.containsKey(key)) {
 /*
 			if (!jarName.contains("jdk")) {
 				System.out.println("Mapping "+name+" to "+jarName);
 			}
 */
-			classToFile.put(destProj, name,  new Pair<String,Object>(srcProj, jarName));		
+			classToFile.put(key, new Pair<String,Object>(srcProj, jarName));		
 		}
 	}
 	
 	public void mapFile(String destProj, String qname, String srcProj, JavaSourceFile file) {
-		if (!classToFile.containsKeys(destProj, qname)) {
+	  final Pair<String,String> key = Pair.getInstance(destProj, qname);
+		if (!classToFile.containsKey(key)) {
 /*
 			if (!file.toString().contains("jdk")) {
 				System.out.println("Mapping "+qname+" to "+file);
 			}
 */
-			classToFile.put(destProj, qname, new Pair<String,Object>(srcProj, file));
+			classToFile.put(key, new Pair<String,Object>(srcProj, file));
 		}
 	}
 
 	public void mapClass(String destProj, String qname, String srcProj, File f) {
-		if (!classToFile.containsKeys(destProj, qname)) {
+	  final Pair<String,String> key = Pair.getInstance(destProj, qname);
+		if (!classToFile.containsKey(key)) {
 /*
 			if (!f.toString().contains("jdk")) {
 				System.out.println("Mapping "+qname+" to "+f);
 			}
 */
-			classToFile.put(destProj, qname, new Pair<String,Object>(srcProj, f));
+			classToFile.put(key, new Pair<String,Object>(srcProj, f));
 		}
 	}
 	
@@ -372,7 +375,7 @@ public class JavacClassParser {
         Util.startSubTask(parser.tEnv.getProgressMonitor(), "Handling references for "+parser.jp.getName()); 
         final References refs = parser.refs;
 		if (loadAllLibraries) {
-			for(Pair<String,String> keys : classToFile.keys()) {
+			for(Pair<String,String> keys : classToFile.keySet()) {
 				// Only look at ones from this project
 				if (parser.jp.getName().equals(keys.first())) {
 					//System.out.println("Force-loading: "+keys.second());
@@ -452,7 +455,7 @@ public class JavacClassParser {
 		String lastJar       = null;		
 		for(String ref : refs) {
 			//System.out.println("Got ref to "+ref+" from "+jp.getName());		    			
-			Pair<String,Object> p = classToFile.get(jp.getName(), ref);
+			Pair<String,Object> p = classToFile.get(Pair.getInstance(jp.getName(), ref));
 			if (p == null) {
 				SLLogger.getLogger().warning("Unable to find ref "+ref+" in "+jp.getName());
 				continue;
@@ -778,7 +781,7 @@ public class JavacClassParser {
 		if (jp.getTypeEnv().findPackage(qname, null) != null) {
 			return null;
 		}
-		if (classToFile.containsKeys(jp.getName(), qname)) {
+		if (classToFile.containsKey(Pair.getInstance(jp.getName(), qname))) {
 			return qname;
 		/*
 		} else if (qname.startsWith("org.eclipse") || 

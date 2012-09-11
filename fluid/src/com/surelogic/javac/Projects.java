@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 public class Projects extends JavaProjects implements IIRProjects,
 		Iterable<JavacProject> {
@@ -62,7 +62,7 @@ public class Projects extends JavaProjects implements IIRProjects,
 	private final List<JavacProject> ordering = new ArrayList<JavacProject>();
 	// To project names
 	private final Map<File, String> fileMap = new HashMap<File, String>();
-	private final Hashtable2<String, File, CodeInfo> loadedClasses = new Hashtable2<String, File, CodeInfo>();
+	private final HashMap<Pair<String, File>, CodeInfo> loadedClasses = new HashMap<Pair<String,File>, CodeInfo>();
 	private final Date date;
 	private final File location;
 	private File f_scanDir;
@@ -429,9 +429,10 @@ public class Projects extends JavaProjects implements IIRProjects,
 	}
 
 	public CodeInfo getLoadedClasses(String ref, File src) {
-		CodeInfo info = loadedClasses.get(ref, src);
+	  final Pair<String,File> key =  Pair.getInstance(ref, src);
+		CodeInfo info = loadedClasses.get(key);
 		if (info != null && info.getNode().identity() == IRNode.destroyedNode) {
-			loadedClasses.remove(ref, src);
+			loadedClasses.remove(key);
 			return null;
 		}
 		return info;
