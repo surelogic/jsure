@@ -42,7 +42,6 @@ import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
-import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
@@ -440,24 +439,24 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromises(result, resultDrop);
         // TODO add checked promises?
-        
-      } else if (drop.instanceOf(ResultFolderDrop.class)) {
-    	
-          /*
-           * RESULT FOLDER DROP
-           */
-          IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
-          // image
-          int flags = 0; // assume no adornments
-          flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-          flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-          result.setImageFlags(flags);
-          result.setBaseImageName(CommonImages.IMG_FOLDER);
-  
-          addDrops(result, (Collection<? extends T>) resultDrop.getContents());
-          addProposedPromises(result, resultDrop);
-          
+      } else if (drop.instanceOf(ResultFolderDrop.class)) {
+
+        /*
+         * RESULT FOLDER DROP
+         */
+        IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
+
+        // image
+        int flags = 0; // assume no adornments
+        flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+        flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
+        result.setImageFlags(flags);
+        result.setBaseImageName(CommonImages.IMG_FOLDER);
+
+        addDrops(result, (Collection<? extends T>) resultDrop.getContents());
+        addProposedPromises(result, resultDrop);
+
       } else if (drop.instanceOf(InfoDrop.class)) {
 
         /*
@@ -541,18 +540,17 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         toBeCategorized.add(item);
         final IDrop info = item.getDropInfo();
         boolean dontCategorize = false;
-        if (info != null) { 
-        	if (info.instanceOf(PromiseDrop.class)) {
-        		dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
-        		                 && !(info.instanceOf(PleaseFolderize.class));
-            }
-        	else if (info.instanceOf(ResultDrop.class)) {
-        		IResultDrop r = (IResultDrop) info;
-        		dontCategorize = r.isInResultFolder();
-        	}
+        if (info != null) {
+          if (info.instanceOf(PromiseDrop.class)) {
+            dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
+                && !(info.instanceOf(PleaseFolderize.class));
+          } else if (info.instanceOf(ResultDrop.class)) {
+            IResultDrop r = (IResultDrop) info;
+            dontCategorize = r.isInResultFolder();
+          }
         }
         if (dontCategorize) {
-        	/*
+          /*
            * Only categorize promise drops at the root level
            */
           categorizedChildren.add(item);
@@ -858,16 +856,6 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     node.f_isInfoDecorated = node.f_isInfo;
     node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
-    if (node.getDropInfo() != null && node.getDropInfo().instanceOf(PleaseCount.class)) {
-      String value = node.getDropInfo().getAttribute(PleaseCount.COUNT);
-      int count = 0;
-      if (value != null) {
-        count = Integer.valueOf(value);
-      }
-      node.setCount(count);
-      return;
-    }
-
     onPath.add(node);
     /*
      * Add warning decorators the content items we have encountered for the
@@ -1069,7 +1057,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || shouldBeTopLevel(id))) {
+      if (id.isValid()
+          && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || shouldBeTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }
