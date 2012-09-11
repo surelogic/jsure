@@ -4,7 +4,7 @@
     <class name="ConcurrentMap">
         <ThreadSafe/>
 
-        <AnnotationBounds threadSafe="K,V"/>
+        <AnnotationBounds threadSafe="K,V" referenceObject="K,V"/>
 
         <method name="putIfAbsent" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>

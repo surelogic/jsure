@@ -3,7 +3,7 @@
 <package name="java.util.concurrent" release="6">
     <class name="CopyOnWriteArrayList">
         <ThreadSafe/>
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

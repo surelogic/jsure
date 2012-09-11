@@ -4,7 +4,7 @@
     <class name="ConcurrentHashMap">
         <ThreadSafe/>
 
-        <AnnotationBounds threadSafe="K,V"/>
+        <AnnotationBounds threadSafe="K,V" referenceObject="K,V"/>
 
         <constructor>
             <RegionEffects>none</RegionEffects>

@@ -3,7 +3,7 @@
 <package name="java.util.concurrent" release="2">
     <class name="ConcurrentSkipListMap">
         <ThreadSafe/>
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

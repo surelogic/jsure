@@ -4,7 +4,7 @@
     <class name="ConcurrentNavigableMap">
         <ThreadSafe/>
 
-        <AnnotationBounds threadSafe="K,V"/>
+        <AnnotationBounds threadSafe="K,V" referenceObject="K,V"/>
 
         <method name="descendingKeySet">
             <Borrowed>this</Borrowed>

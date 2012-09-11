@@ -4,7 +4,7 @@
     <class name="ArrayBlockingQueue">
         <ThreadSafe/>
         
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         
         <constructor params="int">
             <RegionEffects>none</RegionEffects>

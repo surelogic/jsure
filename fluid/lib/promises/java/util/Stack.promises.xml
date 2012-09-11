@@ -4,7 +4,7 @@
     <class name="Stack">
         <ThreadSafe/>
         
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         
         <constructor>
             <RegionEffects>none</RegionEffects>

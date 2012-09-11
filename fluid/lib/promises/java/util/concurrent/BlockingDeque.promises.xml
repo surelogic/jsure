@@ -4,7 +4,7 @@
     <class name="BlockingDeque">
         <ThreadSafe/>
         
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         
         <method name="add" params="java.lang.Object">
             <Borrowed>this</Borrowed>

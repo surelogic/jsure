@@ -3,7 +3,7 @@
 <package name="java.util.concurrent" release="2">
     <class name="TransferQueue">
         <ThreadSafe/>
-        <AnnotationBounds threadSafe="E"/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         <method name="getWaitingConsumerCount">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
