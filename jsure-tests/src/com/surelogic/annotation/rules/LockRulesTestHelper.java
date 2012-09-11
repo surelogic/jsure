@@ -38,12 +38,6 @@ public class LockRulesTestHelper extends LockRules {
 			super();
 		}
 	}
-	public static class IsLock_ParseRuleHelper extends IsLock_ParseRule{
-		
-		public IsLock_ParseRuleHelper(){
-			super();
-		}
-	}
 	public static class ThreadSafe_ParseRuleHelper extends ThreadSafe_ParseRule{
 		
 		public ThreadSafe_ParseRuleHelper(){

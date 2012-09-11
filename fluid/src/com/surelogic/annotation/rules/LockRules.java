@@ -68,7 +68,6 @@ public class LockRules extends AnnotationRules {
 	private static final InitRegionSet initRegionSet = new InitRegionSet(protectedRegions);
   private static final Lock_ParseRule lockRule = new Lock_ParseRule(protectedRegions);
 	private static final PolicyLock_ParseRule policyRule = new PolicyLock_ParseRule();
-	private static final IsLock_ParseRule isLockRule = new IsLock_ParseRule();
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
@@ -165,12 +164,6 @@ public class LockRules extends AnnotationRules {
     return rv;
 	}
 
-	public static IsLockPromiseDrop getIsLock(IRNode vdecl) {
-		return getDrop(isLockRule.getStorage(), vdecl);
-	}
-	
-	
-	
 	public static AnnotationBoundsPromiseDrop getAnnotationBounds(final IRNode tDecl) {
 	  return getBooleanDrop(annoBoundsRule.getStorage(), tDecl);
 	}
@@ -336,7 +329,6 @@ public class LockRules extends AnnotationRules {
     registerScrubber(fw, initRegionSet);
 		registerParseRuleStorage(fw, policyRule);
 		registerParseRuleStorage(fw, lockRule);
-		registerParseRuleStorage(fw, isLockRule);
 		registerParseRuleStorage(fw, requiresLockRule);
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
@@ -1438,66 +1430,6 @@ public class LockRules extends AnnotationRules {
 			final PolicyLockDeclarationNode policyLockDecl) {
 	  // XXX: This is sleazy, passing a null reference to the ProtectedRegions parameter 
     return scrubAbstractLock(context, null, policyLockDecl, POLICY_LOCK_DECLARATION_CONTINUATION);
-	}
-
-	/**
-	 * Parse rule for the IsLock annotation
-	 */
-	public static class IsLock_ParseRule extends
-			DefaultSLAnnotationParseRule<IsLockNode, IsLockPromiseDrop> {
-
-		protected IsLock_ParseRule() {
-			super(IS_LOCK, functionDeclOps, IsLockNode.class);
-		}
-
-		@Override
-		protected Object parse(IAnnotationParsingContext context,
-				SLAnnotationsParser parser) throws RecognitionException {
-			return parser.isLock().getTree();
-		}
-
-		@Override
-		protected IPromiseDropStorage<IsLockPromiseDrop> makeStorage() {
-			return SinglePromiseDropStorage
-					.create(name(), IsLockPromiseDrop.class);
-		}
-
-		@Override
-		protected IAnnotationScrubber makeScrubber() {
-			return new AbstractAASTScrubber<IsLockNode, IsLockPromiseDrop>(this,
-					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
-				@Override
-        protected PromiseDrop<IsLockNode> makePromiseDrop(IsLockNode a) {
-					return storeDropIfNotNull(a, scrubIsLock(getContext(), a));
-				}
-
-			};
-		}
-
-	}
-
-	/**
-	 * @IsLock annotation
-	 * @param context
-	 * @param a
-	 * @return
-	 */
-	private static IsLockPromiseDrop scrubIsLock(
-			IAnnotationScrubberContext context, IsLockNode node) {
-		final LockNameNode lockName = node.getLock();
-		IsLockPromiseDrop promiseDrop = null;
-
-		if (lockName != null) {
-		  final IRNode promisedFor = node.getPromisedFor();
-			LockModel lockDecl = isLockNameOkay(
-			    JavaNode.getModifier(promisedFor, JavaNode.STATIC),
-			    lockName, context, TypeUtil.isBinary(promisedFor));
-			if (lockDecl != null) {
-				promiseDrop = new IsLockPromiseDrop(node);
-				lockDecl.addDependent(promiseDrop);
-			}
-		}
-		return promiseDrop;
 	}
 
 	/**

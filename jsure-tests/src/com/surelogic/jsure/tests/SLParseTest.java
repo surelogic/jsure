@@ -1860,8 +1860,6 @@ public class SLParseTest extends TestCase {
 
 		PolicyLock_ParseRuleHelper policyLockRulesHelper = new PolicyLock_ParseRuleHelper();
 
-		IsLock_ParseRuleHelper isLockRulesHelper = new IsLock_ParseRuleHelper();
-
 		ThreadSafe_ParseRuleHelper threadSafeRulesHelper = new ThreadSafe_ParseRuleHelper();
 
 		TestContext context = new TestContext(null, ClassDeclaration.prototype);
@@ -1918,13 +1916,6 @@ public class SLParseTest extends TestCase {
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == 0);
 
-		/* ****************** Test @IsLock ******************************* */
-		context.setOp(MethodDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() == null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == 0);
-
 		/*
 		 * ****************** Test @ThreadSafe
 		 * *******************************
@@ -1958,8 +1949,6 @@ public class SLParseTest extends TestCase {
 		ReturnsLock_ParseRuleHelper returnsLockRulesHelper = new ReturnsLock_ParseRuleHelper();
 
 		PolicyLock_ParseRuleHelper policyLockRulesHelper = new PolicyLock_ParseRuleHelper();
-
-		IsLock_ParseRuleHelper isLockRulesHelper = new IsLock_ParseRuleHelper();
 
 		ThreadSafe_ParseRuleHelper threadSafeRulesHelper = new ThreadSafe_ParseRuleHelper();
 
@@ -2062,37 +2051,6 @@ public class SLParseTest extends TestCase {
 
 		context.setOp(ConstructorDeclaration.prototype);
 		policyLockRulesHelper.parse(context, "L1 is this");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		/* ****************** Test @IsLock ******************************* */
-		context.setOp(ClassDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(FieldDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(InterfaceDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(PackageDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(ParameterDeclaration.prototype);
-		isLockRulesHelper.parse(context, "L1");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
