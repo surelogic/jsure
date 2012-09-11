@@ -12,7 +12,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Hashtable2;
 import edu.cmu.cs.fluid.util.Pair;
 
 /** Changes to a chunk during a particular era. */
