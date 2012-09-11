@@ -3,7 +3,6 @@ package com.surelogic.jsure.client.eclipse.views.results;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,16 +53,13 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.xml.IRFreeDrop;
 
 public final class ResultsView extends AbstractJSureResultsView implements JSureDataDirHub.CurrentScanChangeListener {
 
@@ -121,9 +117,9 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     job.schedule();
   }
 
-  private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
+  private final ResultsViewContentProvider f_contentProvider = new ResultsViewContentProvider();
 
-  private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
+  private final ResultsViewLabelProvider f_labelProvider = new ResultsViewLabelProvider();
 
   private final Action f_actionShowInferences = new Action() {
     @Override
@@ -180,9 +176,8 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
         treeViewer.collapseAll();
       } else {
         final Object obj = ((IStructuredSelection) selection).getFirstElement();
-        if (obj instanceof AbstractContent) {
-          @SuppressWarnings("rawtypes")
-          final AbstractContent c = (AbstractContent) obj;
+        if (obj instanceof ResultsViewContent) {
+          final ResultsViewContent c = (ResultsViewContent) obj;
           if (c.cloneOf != null) {
 
             treeViewer.reveal(c.cloneOf);
@@ -220,9 +215,8 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
       }
       final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
       for (final Object element : selection.toList()) {
-        if (element instanceof AbstractContent) {
-          @SuppressWarnings({ "unchecked", "rawtypes" })
-          final AbstractContent<IDrop, ?> c = (AbstractContent) element;
+        if (element instanceof ResultsViewContent) {
+          final ResultsViewContent c = (ResultsViewContent) element;
           /*
            * Deal with the case where a single proposed promise drop is
            * selected.
@@ -238,8 +232,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
              * proposed promise drops we want add them all.
              */
             if (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
-              for (@SuppressWarnings("rawtypes")
-              AbstractContent content : c.getChildrenAsCollection()) {
+              for (ResultsViewContent content : c.getChildrenAsCollection()) {
                 if (content.getDropInfo().instanceOf(ProposedPromiseDrop.class)) {
                   final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
                   if (pp != null) {
@@ -301,12 +294,10 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     @Override
     public int compare(final Viewer viewer, final Object e1, final Object e2) {
       int result = 0; // = super.compare(viewer, e1, e2);
-      final boolean bothContent = e1 instanceof AbstractContent && e2 instanceof AbstractContent;
+      final boolean bothContent = e1 instanceof ResultsViewContent && e2 instanceof ResultsViewContent;
       if (bothContent) {
-        @SuppressWarnings("rawtypes")
-        final AbstractContent c1 = (AbstractContent) e1;
-        @SuppressWarnings("rawtypes")
-        final AbstractContent c2 = (AbstractContent) e2;
+        final ResultsViewContent c1 = (ResultsViewContent) e1;
+        final ResultsViewContent c2 = (ResultsViewContent) e2;
         final boolean c1IsNonProof = c1.f_isInfo || c1.f_isPromiseWarning;
         final boolean c2IsNonProof = c2.f_isInfo || c2.f_isPromiseWarning;
         // Separating proof drops from info/warning drops
@@ -357,95 +348,12 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
         }
       } else {
         SLLogger.getLogger().warning(
-            "e1 and e2 are not AbstractContent objects: e1 = \"" + e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
+            "e1 and e2 are not ResultsViewContent objects: e1 = \"" + e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
         return -1;
       }
 
       return result;
     }
-  }
-
-  static class Content extends AbstractContent<IRFreeDrop, Content> {
-    Content(String msg, Collection<Content> content, IRFreeDrop drop) {
-      super(msg, content, drop);
-    }
-
-    Content(String msg, ISrcRef ref) {
-      super(msg, ref);
-    }
-  }
-
-  private GenericResultsViewContentProvider<IRFreeDrop, Content> f_provider;
-
-  private IResultsViewContentProvider makeContentProvider() {
-    // return new ResultsViewContentProvider();
-    return new GenericResultsViewContentProvider<IRFreeDrop, Content>() {
-      {
-        f_provider = this;
-      }
-
-      @Override
-      public IResultsViewContentProvider buildModelOfDropSea() {
-        final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
-        try {
-          state.saveToFile(f_viewStatePersistenceFile);
-        } catch (IOException e) {
-          SLLogger.getLogger().log(Level.WARNING,
-              "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
-        }
-        try {
-          return super.buildModelOfDropSea_internal();
-        } finally {
-          f_viewerbook.getDisplay().asyncExec(new Runnable() {
-            public void run() {
-              state.restoreViewState(treeViewer);
-            }
-          });
-        }
-      }
-
-      @Override
-      protected boolean dropsExist(Class<? extends Drop> type) {
-        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-        if (scan != null) {
-          return scan.dropsExist(type);
-        }
-        return false;
-      }
-
-      @Override
-      protected <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
-        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-        if (scan != null) {
-          return scan.getDropsOfType(type);
-        }
-        return Collections.emptyList();
-      }
-
-      @Override
-      protected Content makeContent(String msg) {
-        return new Content(msg, Collections.<Content> emptyList(), null);
-      }
-
-      @Override
-      protected Content makeContent(String msg, Collection<Content> contentRoot) {
-        return new Content(msg, contentRoot, null);
-      }
-
-      @Override
-      protected Content makeContent(String msg, IRFreeDrop drop) {
-        return new Content(msg, Collections.<Content> emptyList(), drop);
-      }
-
-      @Override
-      protected Content makeContent(String msg, ISrcRef ref) {
-        return new Content(msg, ref);
-      }
-    };
-  }
-
-  private IResultsViewLabelProvider makeLabelProvider() {
-    return new ResultsViewLabelProvider();
   }
 
   @Override
@@ -492,9 +400,8 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   protected void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
     if (!s.isEmpty()) {
       final Object first = s.getFirstElement();
-      if (first instanceof AbstractContent) {
-        @SuppressWarnings("rawtypes")
-        final AbstractContent c = (AbstractContent) first;
+      if (first instanceof ResultsViewContent) {
+        final ResultsViewContent c = (ResultsViewContent) first;
         final IDrop dropInfo = c.getDropInfo();
         if (dropInfo != null) {
           if (dropInfo.instanceOf(ProposedPromiseDrop.class)) {
@@ -514,8 +421,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     manager.add(f_actionExpand);
     manager.add(f_actionCollapse);
     if (!s.isEmpty()) {
-      @SuppressWarnings("rawtypes")
-      final AbstractContent c = (AbstractContent) s.getFirstElement();
+      final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
       if (c.cloneOf != null) {
         manager.add(f_actionLinkToOriginal);
       }
@@ -526,8 +432,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
       manager.add(new Separator());
       manager.add(f_actionShowUnderlyingDropType);
       if (!s.isEmpty()) {
-        @SuppressWarnings("rawtypes")
-        final AbstractContent c = (AbstractContent) s.getFirstElement();
+        final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
         final IDrop d = c.getDropInfo();
         if (d != null) {
           f_actionShowUnderlyingDropType.setText("Type: " + d.getTypeName());
@@ -593,11 +498,10 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   @Override
   protected void handleDoubleClick(final IStructuredSelection selection) {
     final Object obj = selection.getFirstElement();
-    if (obj instanceof AbstractContent) {
+    if (obj instanceof ResultsViewContent) {
       // try to open an editor at the point this item references
       // in the code
-      @SuppressWarnings("rawtypes")
-      final AbstractContent c = (AbstractContent) obj;
+      final ResultsViewContent c = (ResultsViewContent) obj;
       if (c.cloneOf != null) {
         f_actionLinkToOriginal.run();
         return;
@@ -624,9 +528,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
       ConsistencyListener.prototype.analysisCompleted();
 
       final long start = System.currentTimeMillis();
-      synchronized (Sea.getDefault()) {
-        f_contentProvider.buildModelOfDropSea();
-      }
+      f_contentProvider.buildModelOfDropSea(treeViewer, f_viewStatePersistenceFile, f_viewerbook);
       final long buildEnd = System.currentTimeMillis();
       System.err.println("Time to build model  = " + (buildEnd - start) + " ms");
 
@@ -654,7 +556,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
 
   private Object findContent(IDrop d) {
     for (Object o : f_contentProvider.getElements(null)) {
-      Object rv = findContent((AbstractContent<?, ?>) o, d);
+      Object rv = findContent((ResultsViewContent) o, d);
       if (rv != null) {
         return rv;
       }
@@ -662,7 +564,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     return null;
   }
 
-  private Object findContent(AbstractContent<?, ?> c, IDrop d) {
+  private Object findContent(ResultsViewContent c, IDrop d) {
     if (c == null) {
       return null;
     }
@@ -670,7 +572,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
       return c;
     }
     for (Object o : f_contentProvider.getChildren(c)) {
-      Object rv = findContent((AbstractContent<?, ?>) o, d);
+      Object rv = findContent((ResultsViewContent) o, d);
       if (rv != null) {
         return rv;
       }
@@ -683,7 +585,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scanInfo != null) {
       final long start = System.currentTimeMillis();
-      f_provider.buildModelOfDropSea_internal();
+      f_contentProvider.buildModelOfDropSea_internal();
       final int modelProblemCount = getModelProblemCount(scanInfo);
       setModelProblemIndicatorState(modelProblemCount);
       final long end = System.currentTimeMillis();

@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,12 +15,18 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.TreeViewerUIState;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Category;
@@ -47,8 +54,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
-abstract class GenericResultsViewContentProvider<T extends IDrop, C extends AbstractContent<T, C>> implements
-    IResultsViewContentProvider {
+class ResultsViewContentProvider implements ITreeContentProvider {
   private static final boolean allowDuplicateNodes = true;
   protected static final Object[] noObjects = ArrayUtil.empty;
 
@@ -76,7 +82,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     this.m_showInferences = showInferences;
   }
 
-  GenericResultsViewContentProvider() {
+  ResultsViewContentProvider() {
   }
 
   public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -92,18 +98,17 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
   }
 
   public final Object[] getElements(Object parent) {
-    synchronized (GenericResultsViewContentProvider.class) {
+    synchronized (ResultsViewContentProvider.class) {
       return getElementsInternal();
     }
   }
 
   protected Object[] getElementsInternal() {
-    return (isShowInferences() ? m_root : AbstractContent.<T, C> filterNonInfo(m_root));
+    return (isShowInferences() ? m_root : ResultsViewContent.filterNonInfo(m_root));
   }
 
-  @SuppressWarnings("unchecked")
   public Object getParent(Object child) {
-    C c = (C) child;
+    ResultsViewContent c = (ResultsViewContent) child;
     return c.getParent();
   }
 
@@ -111,10 +116,9 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     return getChildrenInternal(parent);
   }
 
-  @SuppressWarnings("unchecked")
   protected Object[] getChildrenInternal(Object parent) {
-    if (parent instanceof AbstractContent<?, ?>) {
-      C item = (C) parent;
+    if (parent instanceof ResultsViewContent) {
+      ResultsViewContent item = (ResultsViewContent) parent;
       return (isShowInferences() ? item.getChildren() : item.getNonInfoChildren());
     }
     return noObjects;
@@ -130,20 +134,18 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
   /**
    * Map used to ensure building a model for the viewer doesn't go into infinite
    * recursion.
-   * 
-   * @see #encloseDrop(Drop)
    */
-  private Map<T, C> m_contentCache = new HashMap<T, C>();
+  private final Map<IDrop, ResultsViewContent> m_contentCache = new HashMap<IDrop, ResultsViewContent>();
 
-  protected final C putInContentCache(T key, C value) {
+  protected final ResultsViewContent putInContentCache(IDrop key, ResultsViewContent value) {
     return m_contentCache.put(key, value);
   }
 
-  protected final C getFromContentCache(T key) {
+  protected final ResultsViewContent getFromContentCache(IDrop key) {
     return m_contentCache.get(key);
   }
 
-  protected final boolean existsInCache(T key) {
+  protected final boolean existsInCache(IDrop key) {
     return m_contentCache.containsKey(key);
   }
 
@@ -156,19 +158,47 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param dropsToAdd
    *          the set of drops to enclose and add to the content set
    */
-  protected void addDrops(C mutableContentSet, Collection<? extends T> dropsToAdd) {
-    for (T drop : dropsToAdd) {
+  protected void addDrops(ResultsViewContent mutableContentSet, Collection<? extends IDrop> dropsToAdd) {
+    for (IDrop drop : dropsToAdd) {
       mutableContentSet.addChild(encloseDrop(drop));
     }
   }
 
-  protected abstract C makeContent(String msg);
+  protected ResultsViewContent makeContent(String msg) {
+    return new ResultsViewContent(msg, Collections.<ResultsViewContent> emptyList(), null);
+  }
 
-  protected abstract C makeContent(String msg, Collection<C> contentRoot);
+  protected ResultsViewContent makeContent(String msg, Collection<ResultsViewContent> contentRoot) {
+    return new ResultsViewContent(msg, contentRoot, null);
+  }
 
-  protected abstract C makeContent(String msg, T drop);
+  protected ResultsViewContent makeContent(String msg, IDrop drop) {
+    return new ResultsViewContent(msg, Collections.<ResultsViewContent> emptyList(), drop);
+  }
 
-  protected abstract C makeContent(String msg, ISrcRef ref);
+  protected ResultsViewContent makeContent(String msg, ISrcRef ref) {
+    return new ResultsViewContent(msg, ref);
+  }
+
+  public ResultsViewContentProvider buildModelOfDropSea(final TreeViewer treeViewer, File f_viewStatePersistenceFile,
+      PageBook f_viewerbook) {
+    final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
+    try {
+      state.saveToFile(f_viewStatePersistenceFile);
+    } catch (IOException e) {
+      SLLogger.getLogger().log(Level.WARNING,
+          "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+    }
+    try {
+      return buildModelOfDropSea_internal();
+    } finally {
+      f_viewerbook.getDisplay().asyncExec(new Runnable() {
+        public void run() {
+          state.restoreViewState(treeViewer);
+        }
+      });
+    }
+  }
 
   /**
    * Adds referenced supporting information about a drop to the mutable set of
@@ -179,8 +209,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param about
    *          the {@link Drop}to add supporting information about
    */
-  @SuppressWarnings("unchecked")
-  private void addSupportingInformation(C mutableContentSet, IDrop about) {
+  private void addSupportingInformation(ResultsViewContent mutableContentSet, IDrop about) {
     Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
     int size = supportingInformation.size();
     if (size == 0) {
@@ -188,18 +217,18 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       return;
     } else if (size == 1) {
       ISupportingInformation si = supportingInformation.iterator().next();
-      C informationItem = makeContent("supporting information: " + si.getMessage(), si.getSrcRef());
+      ResultsViewContent informationItem = makeContent("supporting information: " + si.getMessage(), si.getSrcRef());
       informationItem.setBaseImageName(CommonImages.IMG_INFO);
       mutableContentSet.addChild(informationItem);
       return;
     }
     // More than one thing
-    C siFolder = makeContent("supporting information:");
+    ResultsViewContent siFolder = makeContent("supporting information:");
     siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
     for (Iterator<ISupportingInformation> i = supportingInformation.iterator(); i.hasNext();) {
       ISupportingInformation si = i.next();
-      C informationItem = makeContent(si.getMessage(), si.getSrcRef());
+      ResultsViewContent informationItem = makeContent(si.getMessage(), si.getSrcRef());
       informationItem.setBaseImageName(CommonImages.IMG_INFO);
       siFolder.addChild(informationItem);
     }
@@ -208,7 +237,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     case 0:
       return; // Don't add anything
     case 1:
-      mutableContentSet.addChild((C) siFolder.getChildren()[0]);
+      mutableContentSet.addChild((ResultsViewContent) siFolder.getChildren()[0]);
       mutableContentSet.addChild(siFolder);
       break;
     default:
@@ -226,8 +255,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param about
    *          the {@link Drop}to add proposed promises about
    */
-  @SuppressWarnings("unchecked")
-  private void addProposedPromises(C mutableContentSet, IDrop about) {
+  private void addProposedPromises(ResultsViewContent mutableContentSet, IDrop about) {
     Collection<? extends IProposedPromiseDrop> proposals = about.getProposals();
     int size = proposals.size();
     if (size == 0) {
@@ -235,17 +263,17 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       return;
     } else if (size == 1) {
       IProposedPromiseDrop pp = proposals.iterator().next();
-      final C proposalItem = makeContent("proposed promise: " + pp.getJavaAnnotation(), (T) pp);
+      final ResultsViewContent proposalItem = makeContent("proposed promise: " + pp.getJavaAnnotation(), (IDrop) pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       mutableContentSet.addChild(proposalItem);
       return;
     }
     // More than one thing
-    C siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
+    ResultsViewContent siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
     siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
     for (IProposedPromiseDrop pp : proposals) {
-      final C proposalItem = makeContent(pp.getJavaAnnotation(), (T) pp);
+      final ResultsViewContent proposalItem = makeContent(pp.getJavaAnnotation(), pp);
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       siFolder.addChild(proposalItem);
     }
@@ -254,7 +282,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     case 0:
       return; // Don't add anything
     case 1:
-      mutableContentSet.addChild((C) siFolder.getChildren()[0]);
+      mutableContentSet.addChild((ResultsViewContent) siFolder.getChildren()[0]);
       mutableContentSet.addChild(siFolder);
       break;
     default:
@@ -272,15 +300,15 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param result
    *          the result to add "and" precondition logic about
    */
-  @SuppressWarnings("unchecked")
-  private void add_and_TrustedPromises(C mutableContentSet, IResultDrop result) {
+  private void add_and_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
     Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrusts();
     int count = trustedPromiseDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
       return;
-    C preconditionFolder = makeContent(count + (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
+    ResultsViewContent preconditionFolder = makeContent(count
+        + (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
     int flags = 0; // assume no adornments
     flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
     boolean elementsProvedConsistent = true; // assume true
@@ -288,7 +316,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     // add trusted promises to the folder
     for (IProofDrop trustedDrop : trustedPromiseDrops) {
       // ProofDrop trustedDrop = (ProofDrop) j.next();
-      preconditionFolder.addChild(encloseDrop((T) trustedDrop));
+      preconditionFolder.addChild(encloseDrop(trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
     }
 
@@ -308,8 +336,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param result
    *          the result to add "or" precondition logic about
    */
-  @SuppressWarnings("unchecked")
-  private void add_or_TrustedPromises(C mutableContentSet, IResultDrop result) {
+  private void add_or_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
     if (!result.hasOrLogic()) {
       // no "or" logic on this result, thus bail out
       return;
@@ -318,7 +345,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     // Create a folder to contain the choices
     final Collection<String> or_TrustLabels = result.get_or_TrustLabelSet();
     final int or_TrustLabelsSize = or_TrustLabels.size();
-    C orContentFolder = makeContent(or_TrustLabelsSize
+    ResultsViewContent orContentFolder = makeContent(or_TrustLabelsSize
         + (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:" : " possible prerequisite assertion choice:"));
     int flags = 0; // assume no adornments
     flags |= (result.get_or_proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
@@ -330,7 +357,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     // create a folder for each choice
     for (String key : or_TrustLabels) {
       // String key = (String) i.next();
-      C choiceFolder = makeContent(key + ":");
+      ResultsViewContent choiceFolder = makeContent(key + ":");
       orContentFolder.addChild(choiceFolder);
 
       // set proof bits properly
@@ -341,7 +368,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       // fill in the folder with choices
       for (IProofDrop trustedDrop : choiceSet) {
         // ProofDrop trustedDrop = (ProofDrop) j.next();
-        choiceFolder.addChild(encloseDrop((T) trustedDrop));
+        choiceFolder.addChild(encloseDrop(trustedDrop));
         choiceConsistent &= trustedDrop.provedConsistent();
         if (trustedDrop.proofUsesRedDot())
           choiceUsesRedDot = true;
@@ -362,13 +389,12 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          the drop to enclose
    * @return the content item the viewer can use
    */
-  @SuppressWarnings("unchecked")
-  protected final C encloseDrop(T drop) {
+  protected final ResultsViewContent encloseDrop(IDrop drop) {
     if (drop == null) {
       LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
       throw new IllegalArgumentException("ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
     }
-    C result = getFromContentCache(drop);
+    ResultsViewContent result = getFromContentCache(drop);
     if (result != null) {
       // in cache
       return result;
@@ -407,8 +433,8 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         final Set<IDrop> matching = new HashSet<IDrop>();
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(InfoDrop.class)));
-        addDrops(result, (Collection<? extends T>) matching);
-        addDrops(result, (Collection<? extends T>) promiseDrop.getCheckedBy());
+        addDrops(result, matching);
+        addDrops(result, promiseDrop.getCheckedBy());
 
       } else if (drop.instanceOf(ResultDrop.class)) {
 
@@ -451,7 +477,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         result.setImageFlags(flags);
         result.setBaseImageName(CommonImages.IMG_FOLDER);
 
-        addDrops(result, (Collection<? extends T>) resultDrop.getContents());
+        addDrops(result, resultDrop.getContents());
         addProposedPromises(result, resultDrop);
 
       } else if (drop.instanceOf(InfoDrop.class)) {
@@ -497,11 +523,11 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    *          root of a graph of C nodes
    * @return the new set of C nodes (that should replace contentRoot)
    */
-  private Collection<C> categorize(Collection<C> contentRoot) {
+  private Collection<ResultsViewContent> categorize(Collection<ResultsViewContent> contentRoot) {
     // fake out the recursive function by pretending the root is a C
     // node
-    C root = makeContent("", contentRoot);
-    categorizeRecursive(root, true, new HashSet<C>(), new HashSet<C>());
+    ResultsViewContent root = makeContent("", contentRoot);
+    categorizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
     return root.children();
   }
 
@@ -521,11 +547,12 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * 
    * @see #categorize(Set)
    */
-  private void categorizeRecursive(C node, boolean atRoot, Set<C> existingCategoryFolderSet, Set<C> contentsOnPathToRoot) {
-    Set<C> categorizedChildren = new HashSet<C>();
-    Set<C> toBeCategorized = new HashSet<C>();
-    Map<Category, C> categoryToFolder = new HashMap<Category, C>();
-    for (C item : node.children()) {
+  private void categorizeRecursive(ResultsViewContent node, boolean atRoot, Set<ResultsViewContent> existingCategoryFolderSet,
+      Set<ResultsViewContent> contentsOnPathToRoot) {
+    Set<ResultsViewContent> categorizedChildren = new HashSet<ResultsViewContent>();
+    Set<ResultsViewContent> toBeCategorized = new HashSet<ResultsViewContent>();
+    Map<Category, ResultsViewContent> categoryToFolder = new HashMap<Category, ResultsViewContent>();
+    for (ResultsViewContent item : node.children()) {
       if (existingCategoryFolderSet.contains(item)) {
         /*
          * This is a previously created folder (went around the loop) so just
@@ -563,7 +590,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
              * Get the correct category folder (created it if needed) and add
              * this C item to it
              */
-            C categoryFolder = categoryToFolder.get(itemCategory);
+            ResultsViewContent categoryFolder = categoryToFolder.get(itemCategory);
             if (categoryFolder == null) {
               // create the category folder, save it in the map
               categoryFolder = makeContent(itemCategory.getMessage());
@@ -579,9 +606,9 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     /*
      * Finish up the category folders add add them to the result
      */
-    for (Map.Entry<Category, C> entry : categoryToFolder.entrySet()) {
+    for (Map.Entry<Category, ResultsViewContent> entry : categoryToFolder.entrySet()) {
       // Category category = entry.getKey();
-      C categoryFolder = entry.getValue();
+      ResultsViewContent categoryFolder = entry.getValue();
       // for (Iterator<Category> j = categoryToFolder.keySet().iterator();
       // j.hasNext();) {
       // Category category = j.next();
@@ -597,7 +624,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       Set<IDrop> warningDrops = new HashSet<IDrop>();
       Set<IDrop> infoDrops = new HashSet<IDrop>();
 
-      for (C item : categoryFolder.children()) {
+      for (ResultsViewContent item : categoryFolder.children()) {
         if (item.getDropInfo().instanceOf(ProofDrop.class)) {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
@@ -645,14 +672,15 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     /*
      * Categorize the content items we encountered for the first time
      */
-    for (Iterator<C> k = toBeCategorized.iterator(); k.hasNext();) {
-      C item = k.next();
+    for (Iterator<ResultsViewContent> k = toBeCategorized.iterator(); k.hasNext();) {
+      ResultsViewContent item = k.next();
       /*
        * Guard against infinite recursion (drop-sea is a graph)
        */
       if (!contentsOnPathToRoot.contains(item)) {
         /*
-         * Set<C> newCsOnPathToRoot = new HashSet<C>(contentsOnPathToRoot);
+         * Set<ResultsViewContent> newCsOnPathToRoot = new
+         * HashSet<ResultsViewContent>(contentsOnPathToRoot);
          * newCsOnPathToRoot.add(item); categorizeRecursive(item, false,
          * existingCategoryFolderSet, newCsOnPathToRoot);
          */
@@ -670,20 +698,21 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param contentRoot
    *          root of a graph of C nodes
    */
-  private Collection<C> packageTypeFolderize(Collection<C> contentRoot) {
+  private Collection<ResultsViewContent> packageTypeFolderize(Collection<ResultsViewContent> contentRoot) {
     // fake out the recursive function by pretending the root is a C
     // node
-    C root = makeContent("", contentRoot);
-    packageTypeFolderizeRecursive(root, true, new HashSet<C>(), new HashSet<C>());
+    ResultsViewContent root = makeContent("", contentRoot);
+    packageTypeFolderizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
     return root.children();
   }
 
-  private void packageTypeFolderizeRecursive(C node, boolean atRoot, Set<C> existingFolderSet, Set<C> contentsOnPathToRoot) {
-    Set<C> newChildren = new HashSet<C>();
-    Set<C> toBeFolderized = new HashSet<C>();
-    Map<String, Map<String, C>> packageToClassToFolder = new HashMap<String, Map<String, C>>();
+  private void packageTypeFolderizeRecursive(ResultsViewContent node, boolean atRoot, Set<ResultsViewContent> existingFolderSet,
+      Set<ResultsViewContent> contentsOnPathToRoot) {
+    Set<ResultsViewContent> newChildren = new HashSet<ResultsViewContent>();
+    Set<ResultsViewContent> toBeFolderized = new HashSet<ResultsViewContent>();
+    Map<String, Map<String, ResultsViewContent>> packageToClassToFolder = new HashMap<String, Map<String, ResultsViewContent>>();
 
-    for (C item : node.children()) {
+    for (ResultsViewContent item : node.children()) {
       if (existingFolderSet.contains(item)) {
         /*
          * This is a previously created folder (went around the loop) so just
@@ -704,17 +733,17 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
             && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class))) {
           boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
           if (resultHasACategory || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class)) {
-            ContentJavaContext<T, C> context = new ContentJavaContext<T, C>(item);
+            ContentJavaContext context = new ContentJavaContext(item);
             if (context.complete) {
               hasJavaContext = true;
               String packageKey = context.packageName;
               String typeKey = context.typeName;
-              Map<String, C> typeToFolder = packageToClassToFolder.get(packageKey);
+              Map<String, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
               if (typeToFolder == null) {
-                typeToFolder = new HashMap<String, C>();
+                typeToFolder = new HashMap<String, ResultsViewContent>();
                 packageToClassToFolder.put(packageKey, typeToFolder);
               }
-              C folder = typeToFolder.get(typeKey);
+              ResultsViewContent folder = typeToFolder.get(typeKey);
               if (folder == null) {
                 // create the class/type folder, save it in the
                 // map
@@ -741,12 +770,12 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
      */
     for (Iterator<String> i = packageToClassToFolder.keySet().iterator(); i.hasNext();) {
       String packageKey = i.next();
-      Map<?, C> typeToFolder = packageToClassToFolder.get(packageKey);
+      Map<?, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
 
-      C packageFolder = makeContent(packageKey, typeToFolder.values());
+      ResultsViewContent packageFolder = makeContent(packageKey, typeToFolder.values());
       existingFolderSet.add(packageFolder);
 
-      for (C typeFolder : packageFolder.children()) {
+      for (ResultsViewContent typeFolder : packageFolder.children()) {
         setConsistencyDecoratorForATypeFolder(typeFolder);
       }
       packageFolder.freezeChildrenCount();
@@ -765,14 +794,15 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     /*
      * Categorize the content items we encountered for the first time
      */
-    for (Iterator<C> k = toBeFolderized.iterator(); k.hasNext();) {
-      C item = k.next();
+    for (Iterator<ResultsViewContent> k = toBeFolderized.iterator(); k.hasNext();) {
+      ResultsViewContent item = k.next();
       /*
        * Guard against infinite recursion (drop-sea is a graph)
        */
       if (!contentsOnPathToRoot.contains(item)) {
         /*
-         * Set<C> newCsOnPathToRoot = new HashSet<C>(contentsOnPathToRoot);
+         * Set<ResultsViewContent> newCsOnPathToRoot = new
+         * HashSet<ResultsViewContent>(contentsOnPathToRoot);
          * newCsOnPathToRoot.add(item); packageTypeFolderizeRecursive(item,
          * false, existingFolderSet, newCsOnPathToRoot);
          */
@@ -784,11 +814,11 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     }
   }
 
-  private void setConsistencyDecoratorForATypeFolder(C c) {
+  private void setConsistencyDecoratorForATypeFolder(ResultsViewContent c) {
     boolean hasAResult = false;
     boolean consistent = true;
     boolean hasRedDot = false;
-    for (C node : c.children()) {
+    for (ResultsViewContent node : c.children()) {
       if (node.getDropInfo() instanceof IProofDrop) {
         IProofDrop d = (IProofDrop) node.getDropInfo();
         hasAResult = true;
@@ -806,11 +836,11 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     }
   }
 
-  private void setConsistencyDecoratorForAPackageFolder(C c) {
+  private void setConsistencyDecoratorForAPackageFolder(ResultsViewContent c) {
     boolean hasAResult = false;
     boolean consistent = true;
     boolean hasRedDot = false;
-    for (C node : c.children()) {
+    for (ResultsViewContent node : c.children()) {
       int flags = node.getImageFlags();
       boolean nConsistent = (flags & CoE_Constants.CONSISTENT) != 0;
       boolean nInconsistent = (flags & CoE_Constants.INCONSISTENT) != 0;
@@ -831,11 +861,11 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     }
   }
 
-  private void propagateWarningDecorators(Collection<C> contentRoot) {
+  private void propagateWarningDecorators(Collection<ResultsViewContent> contentRoot) {
     // fake out the recursive function by pretending the root is a C
     // node
-    C root = makeContent("", contentRoot);
-    nodeNeedsWarningDecorator(root, new HashSet<C>());
+    ResultsViewContent root = makeContent("", contentRoot);
+    nodeNeedsWarningDecorator(root, new HashSet<ResultsViewContent>());
   }
 
   /*
@@ -849,7 +879,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * Changed to use C node itself to store status, instead of passing
    * InfoWarning Changed to track all nodes already visited
    */
-  private void nodeNeedsWarningDecorator(C node, Set<C> onPath) {
+  private void nodeNeedsWarningDecorator(ResultsViewContent node, Set<ResultsViewContent> onPath) {
     node.f_isInfoDecorated = node.f_isInfo;
     node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
@@ -858,7 +888,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
      * Add warning decorators the content items we have encountered for the
      * first time
      */
-    for (C item : node.children()) {
+    for (ResultsViewContent item : node.children()) {
       /*
        * Guard against infinite recursion (drop-sea is a graph)
        */
@@ -875,21 +905,23 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
   }
 
   /*
-   * private int count(Collection<C> cc, Set<C> counted) { int i=0; for(C c :
-   * cc) { if (counted.contains(c)) { continue; } counted.add(c); i++; i +=
+   * private int count(Collection<ResultsViewContent> cc,
+   * Set<ResultsViewContent> counted) { int i=0; for(C c : cc) { if
+   * (counted.contains(c)) { continue; } counted.add(c); i++; i +=
    * count(c.children(), counted); } return i; }
    */
 
   /**
    * Converts back edges into leaf nodes
    */
-  private void breakBackEdges(Collection<C> contentRoot) {
-    // System.out.println("C count: "+count(contentRoot, new HashSet<C>()));
+  private void breakBackEdges(Collection<ResultsViewContent> contentRoot) {
+    // System.out.println("C count: "+count(contentRoot, new
+    // HashSet<ResultsViewContent>()));
 
     // fake out the recursive function by pretending the root is a C
     // node
-    C root = makeContent("", contentRoot);
-    breakBackEdges(root, new HashSet<C>());
+    ResultsViewContent root = makeContent("", contentRoot);
+    breakBackEdges(root, new HashSet<ResultsViewContent>());
   }
 
   /**
@@ -900,32 +932,32 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
    * @param leaves
    *          Leaves previously created
    */
-  private void breakBackEdges(C node, Set<C> onPath) {
+  private void breakBackEdges(ResultsViewContent node, Set<ResultsViewContent> onPath) {
     /*
      * Integer count = counts.get(node); if (count == null) { counts.put(node,
      * 1); } else { System.out.println(count+": "+node.getMessage());
      * counts.put(node, count++); }
      */
     if (node.children().isEmpty()) {
-      node.resetChildren(Collections.<C> emptyList());
+      node.resetChildren(Collections.<ResultsViewContent> emptyList());
       return;
     }
     onPath.add(node);
 
     // Only used to get consistent results when breaking back edges
     // NOT for the results view (see CNameSorter)
-    final List<C> children = new ArrayList<C>(node.children());
+    final List<ResultsViewContent> children = new ArrayList<ResultsViewContent>(node.children());
     final int size = children.size();
     if (size > 1) {
-      Collections.sort(children, new Comparator<C>() {
-        public int compare(C o1, C o2) {
+      Collections.sort(children, new Comparator<ResultsViewContent>() {
+        public int compare(ResultsViewContent o1, ResultsViewContent o2) {
           return o1.getMessage().compareTo(o2.getMessage());
         }
       });
     }
 
     for (int i = 0; i < size; i++) {
-      C item = children.get(i);
+      ResultsViewContent item = children.get(i);
 
       /*
        * Guard against infinite recursion (drop-sea is a graph)
@@ -936,7 +968,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       } else {
         // Need to replace with a leaf
         // System.out.println("Breaking backedge for: "+item.getMessage());
-        C leaf = item.cloneAsLeaf();
+        ResultsViewContent leaf = item.cloneAsLeaf();
         // System.out.println("Cloned: "+leaf.getMessage());
         children.set(i, leaf);
       }
@@ -950,7 +982,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
 
   // Map<C,Integer> counts = new HashMap<C, Integer>();
 
-  static private class ContentJavaContext<T extends IDrop, C extends AbstractContent<T, C>> {
+  static private class ContentJavaContext {
 
     /**
      * {@code true} if the entire Java context is well-defined, {@code false}
@@ -971,7 +1003,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
      * @param content
      *          the viewer content item to obtain the Java context for
      */
-    public ContentJavaContext(final C content) {
+    public ContentJavaContext(final ResultsViewContent content) {
       final IDrop info = content.getDropInfo();
       final ISrcRef ref = info.getSrcRef();
       if (ref != null) {
@@ -982,26 +1014,6 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
       }
     }
   }
-
-  // public IResultsViewContentProvider buildModelOfDropSea() {
-  // synchronized (GenericResultsViewContentProvider.class) {
-  // long viewTime = timeStamp;
-  // long seaTime = sea.getTimeStamp();
-  // if (seaTime == Sea.INVALIDATED) {
-  // seaTime = sea.updateConsistencyProof();
-  // }
-  //
-  // SLLogger.getLogger().fine("Comparing view (" + viewTime + ") to sea (" +
-  // seaTime + ")");
-  // if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
-  // return this;
-  // }
-  // SLLogger.getLogger().fine("Building model of Drop-Sea");
-  // IResultsViewContentProvider rv = buildModelOfDropSea_internal();
-  // timeStamp = sea.getTimeStamp();
-  // return rv;
-  // }
-  // }
 
   private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
 
@@ -1016,21 +1028,32 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     }
   };
 
-  protected abstract boolean dropsExist(Class<? extends Drop> type);
+  protected boolean dropsExist(Class<? extends Drop> type) {
+    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+    if (scan != null) {
+      return scan.dropsExist(type);
+    }
+    return false;
+  }
 
-  protected abstract <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
+  protected <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
+    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+    if (scan != null) {
+      return scan.getDropsOfType(type);
+    }
+    return Collections.emptyList();
+  }
 
-  @SuppressWarnings("unchecked")
-  protected IResultsViewContentProvider buildModelOfDropSea_internal() {
+  protected ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
-    Collection<C> root = new HashSet<C>();
+    Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
 
     final Collection<IProofDrop> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDrop.class);
     for (IProofDrop pd : promiseDrops) {
       if (pd.isFromSrc() || pd.derivedFromSrc()) {
         // System.out.println("Considering: "+pd.getMessage());
         if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
-          root.add(encloseDrop((T) pd));
+          root.add(encloseDrop(pd));
         } else {
           // System.out.println("Rejected: "+pd.getMessage());
         }
@@ -1040,11 +1063,11 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     final Collection<IDrop> infoDrops = getDropsOfType(InfoDrop.class, IDrop.class);
     if (!infoDrops.isEmpty()) {
       final String msg = "Suggestions and warnings";
-      C infoFolder = makeContent(msg);
+      ResultsViewContent infoFolder = makeContent(msg);
       infoFolder.setCount(infoDrops.size());
 
       for (IDrop id : infoDrops) {
-        infoFolder.addChild(encloseDrop((T) id));
+        infoFolder.addChild(encloseDrop(id));
       }
       infoFolder.setBaseImageName(CommonImages.IMG_INFO);
       infoFolder.f_isInfo = true;
@@ -1060,7 +1083,7 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }
-        root.add(encloseDrop((T) id));
+        root.add(encloseDrop(id));
       }
     }
 
@@ -1071,19 +1094,19 @@ abstract class GenericResultsViewContentProvider<T extends IDrop, C extends Abst
     m_lastRoot = m_root;
     m_root = root.toArray();
     // reset our cache, for next time
-    m_contentCache = new HashMap<T, C>();
+    m_contentCache.clear();
 
     return this;
   }
 
-  protected static <T extends IDrop> boolean shouldBeTopLevel(T d) {
+  protected static boolean shouldBeTopLevel(IDrop d) {
     // System.out.println("???: "+d.getMessage());
     return d != null && d.instanceOf(MaybeTopLevel.class) && d.requestTopLevel();
   }
 
   public Object[] getLastElements() {
-    synchronized (GenericResultsViewContentProvider.class) {
-      return (isShowInferences() ? m_lastRoot : AbstractContent.<T, C> filterNonInfo(m_lastRoot));
+    synchronized (ResultsViewContentProvider.class) {
+      return (isShowInferences() ? m_lastRoot : ResultsViewContent.filterNonInfo(m_lastRoot));
     }
   }
 }
