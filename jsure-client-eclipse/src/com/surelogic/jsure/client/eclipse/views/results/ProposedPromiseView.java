@@ -42,7 +42,7 @@ public class ProposedPromiseView extends
 		AbstractScanStructuredView<IProposedPromiseDrop> implements
 		EclipseUIUtility.IContextMenuFiller {
 
-	private final ProposedPromiseContentProvider f_content;
+	private final ProposedPromiseViewContentProvider f_content;
 
 	private final Action f_toggleView;
 
@@ -136,7 +136,7 @@ public class ProposedPromiseView extends
 		 * Set the view to tree or table
 		 */
 		f_toggleView.setChecked(persistedAsTree);
-		f_content = new ProposedPromiseContentProvider(persistedAsTree);
+		f_content = new ProposedPromiseViewContentProvider(persistedAsTree);
 
 		/*
 		 * Setup toggle to filter list of promises

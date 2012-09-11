@@ -54,11 +54,10 @@ import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
-class ResultsViewContentProvider implements ITreeContentProvider {
+final class ResultsViewContentProvider implements ITreeContentProvider {
   private static final boolean allowDuplicateNodes = true;
   protected static final Object[] noObjects = ArrayUtil.empty;
 
-  // TODO These are not completely protected, since the arrays get returned
   protected static Object[] m_root = noObjects;
   protected static Object[] m_lastRoot = null;
   protected static long timeStamp = Sea.INVALIDATED;
@@ -129,8 +128,6 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     return (children == null ? false : children.length > 0);
   }
 
-  // //////////////////////////////////////////////////////////////////////////
-
   /**
    * Map used to ensure building a model for the viewer doesn't go into infinite
    * recursion.
@@ -150,11 +147,12 @@ class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Encloses in {@link C}items and adds each drop in <code>dropsToAdd</code> to
-   * the mutable set of viewer content items passed into this method.
+   * Encloses in {@link ResultsViewContent} items and adds each drop in
+   * <code>dropsToAdd</code> to the mutable set of viewer content items passed
+   * into this method.
    * 
    * @param mutableContentSet
-   *          A parent {@link C} object to add children to
+   *          A parent {@link ResultsViewContent} object to add children to
    * @param dropsToAdd
    *          the set of drops to enclose and add to the content set
    */
@@ -205,9 +203,9 @@ class ResultsViewContentProvider implements ITreeContentProvider {
    * viewer content items passed into this method.
    * 
    * @param mutableContentSet
-   *          set of all {@link Content} items
+   *          set of all {@link ResultsViewContent} items
    * @param about
-   *          the {@link Drop}to add supporting information about
+   *          the {@link IDrop}to add supporting information about
    */
   private void addSupportingInformation(ResultsViewContent mutableContentSet, IDrop about) {
     Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
@@ -251,9 +249,9 @@ class ResultsViewContentProvider implements ITreeContentProvider {
    * content items passed into this method.
    * 
    * @param mutableContentSet
-   *          set of all {@link Content} items
+   *          set of all {@link ResultsViewContent} items
    * @param about
-   *          the {@link Drop}to add proposed promises about
+   *          the {@link IDrop}to add proposed promises about
    */
   private void addProposedPromises(ResultsViewContent mutableContentSet, IDrop about) {
     Collection<? extends IProposedPromiseDrop> proposals = about.getProposals();
@@ -296,7 +294,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
    * of viewer content items passed into this method.
    * 
    * @param mutableContentSet
-   *          A parent {@link Content} object to add children to
+   *          A parent {@link ResultsViewContent} object to add children to
    * @param result
    *          the result to add "and" precondition logic about
    */
@@ -332,7 +330,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
    * viewer content items passed into this method.
    * 
    * @param mutableContentSet
-   *          A parent {@link Content} object to add children to
+   *          A parent {@link ResultsViewContent} object to add children to
    * @param result
    *          the result to add "or" precondition logic about
    */
@@ -381,9 +379,9 @@ class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Create a {@link Content}item for a drop-sea drop. This is only done once,
-   * hence, the same Content item is returned if the same drop is passed to this
-   * method.
+   * Create a {@link ResultsViewContent} item for a drop-sea drop. This is only
+   * done once, hence, the same Content item is returned if the same drop is
+   * passed to this method.
    * 
    * @param drop
    *          the drop to enclose
@@ -401,8 +399,8 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     } else if (existsInCache(drop)) {
       return null;
     } else {
-      // create & add to cache -- MUST BE IMMEDIATE TO AVOID INFINITE
-      // RECURSION
+      // create & add to cache
+      // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
       result = makeContent(drop.getMessage(), drop);
       putInContentCache(drop, result); // to avoid infinite recursion
 
@@ -516,48 +514,47 @@ class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Adds categories to the graph of C nodes rooted contentRoot and returns the
-   * new set of root nodes.
+   * Adds categories to the graph of {@link ResultsViewContent} nodes rooted
+   * contentRoot and returns the new set of root nodes.
    * 
    * @param contentRoot
-   *          root of a graph of C nodes
-   * @return the new set of C nodes (that should replace contentRoot)
+   *          root of a graph of {@link ResultsViewContent} nodes
+   * @return the new set of {@link ResultsViewContent} nodes (that should
+   *         replace contentRoot)
    */
   private Collection<ResultsViewContent> categorize(Collection<ResultsViewContent> contentRoot) {
-    // fake out the recursive function by pretending the root is a C
-    // node
+    // fake out the recursive function by pretending the root is a node
     ResultsViewContent root = makeContent("", contentRoot);
     categorizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
-    return root.children();
+    return root.getChildrenAsCollection();
   }
 
   /**
    * Recursive method to categorize a graph of content nodes.
    * 
    * @param node
-   *          the C node to categorize
+   *          the {@link ResultsViewContent} node to categorize
    * @param atRoot
-   *          <code>true</code> if at the C root, <code>false</code> otherwise
-   *          (used to control categorization of promise drops)
+   *          <code>true</code> if at the {@link ResultsViewContent} root,
+   *          <code>false</code> otherwise (used to control categorization of
+   *          promise drops)
    * @param existingCategoryFolderSet
    *          a running set tracking what folders we have created used to ensure
    *          we don't categorize things we have already done
    * @param level
    *          hack to avoid an infinite loop
-   * 
-   * @see #categorize(Set)
    */
   private void categorizeRecursive(ResultsViewContent node, boolean atRoot, Set<ResultsViewContent> existingCategoryFolderSet,
       Set<ResultsViewContent> contentsOnPathToRoot) {
     Set<ResultsViewContent> categorizedChildren = new HashSet<ResultsViewContent>();
     Set<ResultsViewContent> toBeCategorized = new HashSet<ResultsViewContent>();
     Map<Category, ResultsViewContent> categoryToFolder = new HashMap<Category, ResultsViewContent>();
-    for (ResultsViewContent item : node.children()) {
+    for (ResultsViewContent item : node.getChildrenAsCollection()) {
       if (existingCategoryFolderSet.contains(item)) {
         /*
          * This is a previously created folder (went around the loop) so just
-         * add it to the resulting C set. Do not add it to the worklist to be
-         * categorized or an infinite loop will result.
+         * add it to the resulting content set. Do not add it to the worklist to
+         * be categorized or an infinite loop will result.
          */
         categorizedChildren.add(item);
       } else {
@@ -588,7 +585,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
           } else {
             /*
              * Get the correct category folder (created it if needed) and add
-             * this C item to it
+             * this content item to it
              */
             ResultsViewContent categoryFolder = categoryToFolder.get(itemCategory);
             if (categoryFolder == null) {
@@ -607,16 +604,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
      * Finish up the category folders add add them to the result
      */
     for (Map.Entry<Category, ResultsViewContent> entry : categoryToFolder.entrySet()) {
-      // Category category = entry.getKey();
       ResultsViewContent categoryFolder = entry.getValue();
-      // for (Iterator<Category> j = categoryToFolder.keySet().iterator();
-      // j.hasNext();) {
-      // Category category = j.next();
-      // C categoryFolder = categoryToFolder.get(category);
-
-      // message
-      // category.setCount(categoryFolder.numChildren());
-      // categoryFolder.message = category.getFormattedMessage();
       categoryFolder.freezeCount();
 
       // image (try to show proof status if it makes sense)
@@ -624,7 +612,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
       Set<IDrop> warningDrops = new HashSet<IDrop>();
       Set<IDrop> infoDrops = new HashSet<IDrop>();
 
-      for (ResultsViewContent item : categoryFolder.children()) {
+      for (ResultsViewContent item : categoryFolder.getChildrenAsCollection()) {
         if (item.getDropInfo().instanceOf(ProofDrop.class)) {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
@@ -648,10 +636,6 @@ class ResultsViewContentProvider implements ITreeContentProvider {
         // boolean localConsistent = true;
         for (IProofDrop proofDrop : proofDrops) {
           choiceConsistent &= proofDrop.provedConsistent();
-          /*
-           * if (proofDrop.isInstance(ResultDrop.class)) { localConsistent &=
-           * proofDrop.isConsistent(); }
-           */
           if (proofDrop.proofUsesRedDot())
             choiceUsesRedDot = true;
         }
@@ -678,12 +662,6 @@ class ResultsViewContentProvider implements ITreeContentProvider {
        * Guard against infinite recursion (drop-sea is a graph)
        */
       if (!contentsOnPathToRoot.contains(item)) {
-        /*
-         * Set<ResultsViewContent> newCsOnPathToRoot = new
-         * HashSet<ResultsViewContent>(contentsOnPathToRoot);
-         * newCsOnPathToRoot.add(item); categorizeRecursive(item, false,
-         * existingCategoryFolderSet, newCsOnPathToRoot);
-         */
         // Changed to add/remove the item from the set
         contentsOnPathToRoot.add(item);
         categorizeRecursive(item, false, existingCategoryFolderSet, contentsOnPathToRoot);
@@ -693,17 +671,16 @@ class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * reates folders for the package and type a result is within.
+   * Creates folders for the package and type a result is within.
    * 
    * @param contentRoot
-   *          root of a graph of C nodes
+   *          root of a graph of {@link ResultsViewContent} nodes
    */
   private Collection<ResultsViewContent> packageTypeFolderize(Collection<ResultsViewContent> contentRoot) {
-    // fake out the recursive function by pretending the root is a C
-    // node
+    // fake out the recursive function by pretending the root is node
     ResultsViewContent root = makeContent("", contentRoot);
     packageTypeFolderizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
-    return root.children();
+    return root.getChildrenAsCollection();
   }
 
   private void packageTypeFolderizeRecursive(ResultsViewContent node, boolean atRoot, Set<ResultsViewContent> existingFolderSet,
@@ -712,20 +689,20 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     Set<ResultsViewContent> toBeFolderized = new HashSet<ResultsViewContent>();
     Map<String, Map<String, ResultsViewContent>> packageToClassToFolder = new HashMap<String, Map<String, ResultsViewContent>>();
 
-    for (ResultsViewContent item : node.children()) {
+    for (ResultsViewContent item : node.getChildrenAsCollection()) {
       if (existingFolderSet.contains(item)) {
         /*
          * This is a previously created folder (went around the loop) so just
-         * add it to the resulting C set. Do not add it to the worklist to be
-         * categorized or an infinite loop will result.
+         * add it to the resulting content set. Do not add it to the worklist to
+         * be categorized or an infinite loop will result.
          */
         newChildren.add(item);
       } else {
         toBeFolderized.add(item);
 
         /*
-         * If the drop the C "item" references has a package and a type we'll
-         * generate folders for it.
+         * If the drop the content "item" references has a package and a type
+         * we'll generate folders for it.
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
@@ -745,8 +722,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
               }
               ResultsViewContent folder = typeToFolder.get(typeKey);
               if (folder == null) {
-                // create the class/type folder, save it in the
-                // map
+                // create the class/type folder, save it in the map
                 folder = makeContent(typeKey);
                 folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE : CommonImages.IMG_CLASS);
                 typeToFolder.put(typeKey, folder);
@@ -775,7 +751,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
       ResultsViewContent packageFolder = makeContent(packageKey, typeToFolder.values());
       existingFolderSet.add(packageFolder);
 
-      for (ResultsViewContent typeFolder : packageFolder.children()) {
+      for (ResultsViewContent typeFolder : packageFolder.getChildrenAsCollection()) {
         setConsistencyDecoratorForATypeFolder(typeFolder);
       }
       packageFolder.freezeChildrenCount();
@@ -800,12 +776,6 @@ class ResultsViewContentProvider implements ITreeContentProvider {
        * Guard against infinite recursion (drop-sea is a graph)
        */
       if (!contentsOnPathToRoot.contains(item)) {
-        /*
-         * Set<ResultsViewContent> newCsOnPathToRoot = new
-         * HashSet<ResultsViewContent>(contentsOnPathToRoot);
-         * newCsOnPathToRoot.add(item); packageTypeFolderizeRecursive(item,
-         * false, existingFolderSet, newCsOnPathToRoot);
-         */
         // Changed to add and then remove the item from the set
         contentsOnPathToRoot.add(item);
         packageTypeFolderizeRecursive(item, false, existingFolderSet, contentsOnPathToRoot);
@@ -818,7 +788,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     boolean hasAResult = false;
     boolean consistent = true;
     boolean hasRedDot = false;
-    for (ResultsViewContent node : c.children()) {
+    for (ResultsViewContent node : c.getChildrenAsCollection()) {
       if (node.getDropInfo() instanceof IProofDrop) {
         IProofDrop d = (IProofDrop) node.getDropInfo();
         hasAResult = true;
@@ -840,7 +810,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     boolean hasAResult = false;
     boolean consistent = true;
     boolean hasRedDot = false;
-    for (ResultsViewContent node : c.children()) {
+    for (ResultsViewContent node : c.getChildrenAsCollection()) {
       int flags = node.getImageFlags();
       boolean nConsistent = (flags & CoE_Constants.CONSISTENT) != 0;
       boolean nInconsistent = (flags & CoE_Constants.INCONSISTENT) != 0;
@@ -862,22 +832,16 @@ class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   private void propagateWarningDecorators(Collection<ResultsViewContent> contentRoot) {
-    // fake out the recursive function by pretending the root is a C
-    // node
+    // fake out the recursive function by pretending the root is a node
     ResultsViewContent root = makeContent("", contentRoot);
     nodeNeedsWarningDecorator(root, new HashSet<ResultsViewContent>());
   }
 
-  /*
-   * static class InfoWarning { boolean isInfo = false; boolean isInfoWarning =
-   * false; }
-   */
-
   /**
    * Only called by nodeNeedsWarningDecorator and itself
    * 
-   * Changed to use C node itself to store status, instead of passing
-   * InfoWarning Changed to track all nodes already visited
+   * Changed to use {@link ResultsViewContent} node itself to store status,
+   * instead of passing InfoWarning Changed to track all nodes already visited
    */
   private void nodeNeedsWarningDecorator(ResultsViewContent node, Set<ResultsViewContent> onPath) {
     node.f_isInfoDecorated = node.f_isInfo;
@@ -888,7 +852,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
      * Add warning decorators the content items we have encountered for the
      * first time
      */
-    for (ResultsViewContent item : node.children()) {
+    for (ResultsViewContent item : node.getChildrenAsCollection()) {
       /*
        * Guard against infinite recursion (drop-sea is a graph)
        */
@@ -904,22 +868,11 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     onPath.remove(node);
   }
 
-  /*
-   * private int count(Collection<ResultsViewContent> cc,
-   * Set<ResultsViewContent> counted) { int i=0; for(C c : cc) { if
-   * (counted.contains(c)) { continue; } counted.add(c); i++; i +=
-   * count(c.children(), counted); } return i; }
-   */
-
   /**
    * Converts back edges into leaf nodes
    */
   private void breakBackEdges(Collection<ResultsViewContent> contentRoot) {
-    // System.out.println("C count: "+count(contentRoot, new
-    // HashSet<ResultsViewContent>()));
-
-    // fake out the recursive function by pretending the root is a C
-    // node
+    // fake out the recursive function by pretending the root is a node
     ResultsViewContent root = makeContent("", contentRoot);
     breakBackEdges(root, new HashSet<ResultsViewContent>());
   }
@@ -933,12 +886,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
    *          Leaves previously created
    */
   private void breakBackEdges(ResultsViewContent node, Set<ResultsViewContent> onPath) {
-    /*
-     * Integer count = counts.get(node); if (count == null) { counts.put(node,
-     * 1); } else { System.out.println(count+": "+node.getMessage());
-     * counts.put(node, count++); }
-     */
-    if (node.children().isEmpty()) {
+    if (node.getChildrenAsCollection().isEmpty()) {
       node.resetChildren(Collections.<ResultsViewContent> emptyList());
       return;
     }
@@ -946,7 +894,7 @@ class ResultsViewContentProvider implements ITreeContentProvider {
 
     // Only used to get consistent results when breaking back edges
     // NOT for the results view (see CNameSorter)
-    final List<ResultsViewContent> children = new ArrayList<ResultsViewContent>(node.children());
+    final List<ResultsViewContent> children = new ArrayList<ResultsViewContent>(node.getChildrenAsCollection());
     final int size = children.size();
     if (size > 1) {
       Collections.sort(children, new Comparator<ResultsViewContent>() {
@@ -979,8 +927,6 @@ class ResultsViewContentProvider implements ITreeContentProvider {
       onPath.remove(node);
     }
   }
-
-  // Map<C,Integer> counts = new HashMap<C, Integer>();
 
   static private class ContentJavaContext {
 
@@ -1015,14 +961,14 @@ class ResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
+  private static final DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
 
-  private static DropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
+  private static final DropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
 
   /**
    * Matches non-@Promise PromiseDrops
    */
-  private static DropPredicate predicate = new DropPredicate() {
+  private static final DropPredicate predicate = new DropPredicate() {
     public boolean match(IDrop d) {
       return promisePred.match(d) && !scopedPromisePred.match(d);
     }

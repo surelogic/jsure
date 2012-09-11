@@ -25,7 +25,7 @@ import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
-public final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewContent> {
+final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewContent> {
   /**
    * Status for diffing
    */
@@ -313,10 +313,6 @@ public final class ResultsViewContent implements Cloneable, IDiffNode<ResultsVie
 
   public int numChildren() {
     return f_children.size();
-  }
-
-  public Collection<ResultsViewContent> children() {
-    return f_children;
   }
 
   public static Collection<ResultsViewContent> diffChildren(Collection<ResultsViewContent> last, Collection<ResultsViewContent> now) {
