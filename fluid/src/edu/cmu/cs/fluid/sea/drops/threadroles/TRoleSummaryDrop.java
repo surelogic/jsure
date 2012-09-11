@@ -10,15 +10,14 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
+import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
 
 /**
  * @author dfsuther
  */
 public class TRoleSummaryDrop extends PromiseDrop 
-implements PleaseFolderize, PleaseCount, IThreadRoleDrop {
+implements PleaseFolderize, IThreadRoleDrop {
    int numIssues;
    
    public TRoleSummaryDrop(String msg) {
@@ -37,6 +36,6 @@ implements PleaseFolderize, PleaseCount, IThreadRoleDrop {
    @Override
    public void snapshotAttrs(XMLCreator.Builder s) {
  	  super.snapshotAttrs(s);
- 	  s.addAttribute(COUNT, (long) count());
+ 	  s.addAttribute("num-count", (long) count());
    } 	  
 }
