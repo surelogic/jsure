@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -39,10 +40,18 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     this(a, pd, td, VisitUtil.getClassBody(td));
   }
 
-  protected final ResultDropBuilder createResult(final IRNode node, final boolean isConsistent, final int msg, final Object... args) {
+  protected final ResultDropBuilder createResultBuilder(final IRNode node, final boolean isConsistent, final int msg, final Object... args) {
     final ResultDropBuilder result = ResultDropBuilder.create(analysis);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
+    result.setConsistent(isConsistent);
+    result.setResultMessage(msg, args);
+    return result;
+  }
+
+  protected final ResultDrop createResult(final IRNode node, final boolean isConsistent, final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop();
+    analysis.setResultDependUponDrop(result, node);
     result.setConsistent(isConsistent);
     result.setResultMessage(msg, args);
     return result;

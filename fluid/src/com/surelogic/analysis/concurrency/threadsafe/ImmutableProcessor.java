@@ -41,7 +41,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
     final ImmutablePromiseDrop pDrop =
         LockRules.getImmutableImplementation(tdecl);
     if (pDrop != null) {
-      final ResultDropBuilder result = createResult(tdecl, true,
+      final ResultDropBuilder result = createResultBuilder(tdecl, true,
           Messages.IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrustedPromise(pDrop);
@@ -52,7 +52,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
     if (!hasFields) {
-      createResult(typeBody, true, Messages.TRIVIALLY_IMMUTABLE);
+      createResultBuilder(typeBody, true, Messages.TRIVIALLY_IMMUTABLE);
     }
   }
 
@@ -73,9 +73,9 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
     if (vouchDrop != null && vouchDrop.isImmutable()) {
       // VOUCHED
       final String reason = vouchDrop.getReason();
-      final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResult(
+      final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResultBuilder(
           varDecl, true, Messages.IMMUTABLE_VOUCHED, id)
-          : createResult(varDecl, true,
+          : createResultBuilder(varDecl, true,
               Messages.IMMUTABLE_VOUCHED_WITH_REASON, id,
               reason);
       result.addTrustedPromise(vouchDrop);
@@ -88,10 +88,10 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       if (type instanceof IJavaPrimitiveType) {
         // PRIMITIVELY TYPED
         if (isFinal) {
-          result = createResult(varDecl, true,
+          result = createResultBuilder(varDecl, true,
               Messages.IMMUTABLE_FINAL_PRIMITIVE, id);
         } else {
-          result = createResult(varDecl, false,
+          result = createResultBuilder(varDecl, false,
               Messages.IMMUTABLE_NOT_FINAL, id);
           // Cannot use vouch on primitive types
         }
@@ -105,13 +105,13 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         if (isImmutable) {
           // IMMUTABLE REFERENCE TYPE
           if (isFinal) {
-            result = createResult(varDecl, true,
+            result = createResultBuilder(varDecl, true,
                 Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
             for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
               result.addTrustedPromise(p);
             }
           } else {
-            result = createResult(varDecl, false,
+            result = createResultBuilder(varDecl, false,
                 Messages.IMMUTABLE_NOT_FINAL, id);
             for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
               result.addTrustedPromise(p);
@@ -136,7 +136,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
                 if (implTypeIDrop != null) {
                   // we have an instance of an immutable implementation
                   stillBad = false;
-                  result = createResult(varDecl, true,
+                  result = createResultBuilder(varDecl, true,
                       Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
                   result.addTrustedPromise(implTypeIDrop);
                   result.addSupportingInformation(
@@ -150,10 +150,10 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
             // MUTABLE REFERENCE TYPE
             proposeVouch = true;
             if (isFinal) {
-              result = createResult(varDecl, false,
+              result = createResultBuilder(varDecl, false,
                   Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
             } else {
-              result = createResult(varDecl, false,
+              result = createResultBuilder(varDecl, false,
                   Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE,
                   id);
             }
