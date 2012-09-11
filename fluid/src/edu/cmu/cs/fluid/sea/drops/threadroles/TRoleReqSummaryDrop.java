@@ -6,16 +6,22 @@
  */
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import SableJBDD.bdd.JBDD;
+
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.threadroles.*;
-import com.surelogic.annotation.rules.*;
+import com.surelogic.analysis.threadroles.TRExpr;
+import com.surelogic.analysis.threadroles.TRoleBDDPack;
+import com.surelogic.analysis.threadroles.TRoleInherit;
+import com.surelogic.analysis.threadroles.TRoleMessages;
+import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
 
-import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -24,7 +30,6 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -32,7 +37,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @-lock ColorReqSummaryLock is class protects nodeToDrop
  */
-public class TRoleReqSummaryDrop extends PromiseDrop implements PleaseFolderize, IThreadRoleDrop {
+public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop {
 
   private static final Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 

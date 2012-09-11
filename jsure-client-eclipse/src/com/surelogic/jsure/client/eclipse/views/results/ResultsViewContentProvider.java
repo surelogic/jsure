@@ -49,7 +49,6 @@ import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.util.ArrayUtil;
@@ -459,7 +458,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, resultDrop);
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromises(result, resultDrop);
-        // TODO add checked promises?
 
       } else if (drop.instanceOf(ResultFolderDrop.class)) {
 
@@ -563,8 +561,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         boolean dontCategorize = false;
         if (info != null) {
           if (info.instanceOf(PromiseDrop.class)) {
-            dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class))
-                && !(info.instanceOf(PleaseFolderize.class));
+            dontCategorize = !atRoot && !(info.instanceOf(RequiresLockPromiseDrop.class));
           } else if (info.instanceOf(ResultDrop.class)) {
             IResultDrop r = (IResultDrop) info;
             dontCategorize = r.isInResultFolder();
@@ -706,10 +703,9 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
-        if (drop != null
-            && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class))) {
+        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class))) {
           boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
-          if (resultHasACategory || drop.instanceOf(InfoDrop.class) || drop.instanceOf(PleaseFolderize.class)) {
+          if (resultHasACategory || drop.instanceOf(InfoDrop.class)) {
             ContentJavaContext context = new ContentJavaContext(item);
             if (context.complete) {
               hasJavaContext = true;

@@ -24,16 +24,15 @@ import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
-public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolderize {
+public abstract class VisibilityDrop extends PromiseDrop {
   
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
   

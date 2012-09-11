@@ -10,14 +10,13 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
 
 /**
  * @author dfsuther
  */
 public class TRoleSummaryDrop extends PromiseDrop 
-implements PleaseFolderize, IThreadRoleDrop {
+implements IThreadRoleDrop {
    int numIssues;
    
    public TRoleSummaryDrop(String msg) {

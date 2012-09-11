@@ -23,14 +23,13 @@ import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
 
 /**
  * @author dfsuther
  */
 public class TRoleRequireDrop extends PromiseDrop<ThreadRoleNode> 
-implements PleaseFolderize, IThreadRoleDrop {
+implements IThreadRoleDrop {
   private static final String kind = "ThreadRoleConstraint";
   
   public TRoleRequireDrop(ThreadRoleNode a) {

@@ -10,9 +10,7 @@ import java.util.Collection;
 
 import com.surelogic.aast.promise.ThreadRoleGrantNode;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
 
 /**
@@ -21,7 +19,7 @@ import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleGrantDrop extends TRoleNameListDrop<ThreadRoleGrantNode> implements PleaseFolderize {
+public class TRoleGrantDrop extends TRoleNameListDrop<ThreadRoleGrantNode>  {
   private static final String myKind = "TRoleGrant";
 
 //  public ColorGrantDrop(Collection declColors) {
