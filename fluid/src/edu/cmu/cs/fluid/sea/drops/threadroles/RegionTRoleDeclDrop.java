@@ -52,13 +52,13 @@ public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, 
   RegionTRoleDeclDrop res = new RegionTRoleDeclDrop(regionName, constraint, where);
   res.setNodeAndCompilationUnitDependency(where);
   
-  RegionTRoleModel tRTRDDrop = (RegionTRoleModel) res.masterRegion.getColorInfo();
+  RegionTRoleModel tRTRDDrop = null; // (RegionTRoleModel) res.masterRegion.getColorInfo();
   if (tRTRDDrop == null) {
     
     final IRNode vdecl = BindUtil.findRegionInType(where, regionName);
     
     tRTRDDrop = RegionTRoleModel.getRegionTRoleModel(res.masterRegion, vdecl);
-    res.masterRegion.setColorInfo(tRTRDDrop);
+    //res.masterRegion.setColorInfo(tRTRDDrop);
   } 
   res.regionTRoleModelInfo = tRTRDDrop;
   

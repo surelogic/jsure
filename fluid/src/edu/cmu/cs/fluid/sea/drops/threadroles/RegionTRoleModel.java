@@ -50,10 +50,10 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
    *         region.
    */
   public static RegionTRoleModel getRegionTRoleModel(RegionModel forRegion, IRNode rdsIR) {
-    RegionTRoleModel rtrm = (RegionTRoleModel) forRegion.getColorInfo();
+    RegionTRoleModel rtrm = null; //(RegionTRoleModel) forRegion.getColorInfo();
     if (rtrm == null) {
       rtrm = new RegionTRoleModel(forRegion, rdsIR);
-      forRegion.setColorInfo(rtrm);
+      //forRegion.setColorInfo(rtrm);
       forRegion.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
       allRegTRoleMods.add(rtrm);
     }
@@ -71,7 +71,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
   protected void deponentInvalidAction(Drop invalidDeponent) {
     allRegTRoleMods.remove(this);
     if (masterRegion.isValid()) {
-      masterRegion.setColorInfo(null);
+     // masterRegion.setColorInfo(null);
     }
     // These drops are created and managed by colorSECONDpass, so don't report
     // invalidating them to colorFIRSTpass!

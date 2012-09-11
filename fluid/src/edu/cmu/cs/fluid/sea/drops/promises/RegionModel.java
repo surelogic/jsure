@@ -61,8 +61,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   private static final HashMap<Pair<String, String>, RegionModel> REGIONNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, RegionModel>();
 
-  private Object colorInfo;
-
   @Override
   public void clearNode() {
     SLLogger.getLogger().log(Level.WARNING, "Clearing node for " + f_project + '/' + this.f_regionName,
@@ -129,6 +127,11 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   private final String f_regionName;
 
+  /**
+   * Gets the global region name this drop represents the declaration for.
+   * 
+   * @return the global region name this drop represents the declaration for.
+   */
   public String getRegionName() {
     return f_regionName;
   }
@@ -138,12 +141,22 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   private final String f_simpleName;
 
+  /**
+   * Gets the simple (unqualified) name of the represented region.
+   * 
+   * @return the simple (unqualified) name of the represented region.
+   */
   public String getName() {
     return f_simpleName;
   }
 
   private final String f_project;
 
+  /**
+   * Gets the name of the enclosing project.
+   * 
+   * @return the name of the enclosing project.
+   */
   public String getProject() {
     return f_project;
   }
@@ -209,8 +222,8 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
         if (!regionDefinedInCode) {
           keepAnyways = drop.isValid()
               && activeProjects.contains(key.second())
-              && (drop.colorInfo != null || drop.getAAST() != null || key.first().equals(INSTANCE)
-                  || key.first().endsWith(RegionRules.STATIC_SUFFIX) || key.first().equals(ALL));
+              && (drop.getAAST() != null || key.first().equals(INSTANCE) || key.first().endsWith(RegionRules.STATIC_SUFFIX) || key
+                  .first().equals(ALL));
         }
 
         // System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
@@ -243,21 +256,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
-  }
-
-  /**
-   * @return Returns the colorInfo.
-   */
-  public Object getColorInfo() {
-    return colorInfo;
-  }
-
-  /**
-   * @param colorInfo
-   *          The colorInfo to set.
-   */
-  public void setColorInfo(Object colorInfo) {
-    this.colorInfo = colorInfo;
   }
 
   @Override

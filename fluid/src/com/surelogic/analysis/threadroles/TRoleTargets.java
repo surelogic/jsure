@@ -107,7 +107,7 @@ public class TRoleTargets {
     if (rm == null) {
       LOG.severe("null RegionModel for target " + tgt);
     } else {
-      rTRoleMod = (RegionTRoleModel) rm.getColorInfo();
+      rTRoleMod = null; //(RegionTRoleModel) rm.getColorInfo();
       if (rTRoleMod == null) {
         LOG.info("null RegTRoleModel for target " + tgt);
       }
@@ -482,7 +482,7 @@ public class TRoleTargets {
 
   public static boolean isTRoleConstrained(IRegion reg) {
     RegionModel regMod = reg.getModel();
-    return (regMod.getColorInfo() != null);
+    return false; // (regMod.getColorInfo() != null);
   }
   
   /** Given a set of targets and a place in the code, compare the targets to the

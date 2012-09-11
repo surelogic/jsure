@@ -374,9 +374,9 @@ private static int cuCount = 0;
 
           final RegionModel rModel = fieldAsRegion.getModel();
 
-          if (rModel.getColorInfo() != null) {
-            doLibraryRefImportWalk(fieldRef);
-          }
+//          if (rModel.getColorInfo() != null) {
+//            doLibraryRefImportWalk(fieldRef);
+//          }
         }
       }
     }
@@ -555,10 +555,10 @@ private static int cuCount = 0;
 
           final RegionModel rModel = fieldAsRegion.getModel();
 
-          if (rModel.getColorInfo() != null) {
-            doLibraryRefRename(fieldRef);
+//          if (rModel.getColorInfo() != null) {
+//            doLibraryRefRename(fieldRef);
 //            doLibraryRefImportWalk(fieldRef);
-          }
+//          }
         }
       }
     }
