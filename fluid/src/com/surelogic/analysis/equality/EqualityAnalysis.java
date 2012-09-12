@@ -14,7 +14,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
 public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {
 	public EqualityAnalysis() {

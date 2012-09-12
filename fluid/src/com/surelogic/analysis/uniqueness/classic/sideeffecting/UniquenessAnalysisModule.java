@@ -24,10 +24,10 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
@@ -80,7 +80,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      * each control flow drop, and that would be dumb.
      */
     for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
-      final ResultDropBuilder middleDrop = ResultDropBuilder.create(this);
+      final ResultDrop middleDrop = new ResultDrop();
       middleDrop.addCheckedPromise(entry.getKey());
       middleDrop.setConsistent();
       middleDrop.setNode(entry.getKey().getNode());
@@ -190,7 +190,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDropBuilder timeOutResult = ResultDropBuilder.create(this);
+      final ResultDrop timeOutResult = new ResultDrop();
       setResultDependUponDrop(timeOutResult, mr.mdecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);

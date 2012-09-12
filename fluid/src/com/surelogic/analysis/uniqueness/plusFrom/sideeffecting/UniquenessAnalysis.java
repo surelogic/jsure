@@ -96,10 +96,10 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
@@ -337,7 +337,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long duration = endTime - startTime;
         gaveUp = true;
         
-        final ResultDropBuilder timeOutResult = ResultDropBuilder.create(analysis);
+        final ResultDrop timeOutResult = new ResultDrop();
         analysis.setResultDependUponDrop(timeOutResult, flowUnit);
         timeOutResult.setTimeout();
         timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);

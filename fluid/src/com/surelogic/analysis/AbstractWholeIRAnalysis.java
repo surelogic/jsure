@@ -1,7 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractWholeIRAnalysis.java,v 1.5 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
@@ -11,7 +10,6 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends AbstractIRAnalysis<T,Q> {
@@ -57,24 +55,24 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends
 		return resultDependUpon;
 	}
 	
+//	public final void setResultDependUponDrop(IRReferenceDrop drop, IRNode node) {
+//		drop.setNodeAndCompilationUnitDependency(node);
+//		setResultDependUponDrop(drop);		
+//	}
+//	
+//	private final void setResultDependUponDrop(IRReferenceDrop drop) {
+//		if (useDependencies) {
+//			return;
+//		}
+//		if (resultDependUpon != null && resultDependUpon.isValid()) {
+//			resultDependUpon.addDependent(drop);
+//		} else {
+//			LOG.log(Level.SEVERE,
+//					"setResultDependUponDrop found invalid or null resultDependUpon drop");
+//		}
+//	}
+	
 	public final void setResultDependUponDrop(IRReferenceDrop drop, IRNode node) {
-		drop.setNodeAndCompilationUnitDependency(node);
-		setResultDependUponDrop(drop);		
-	}
-	
-	private final void setResultDependUponDrop(IRReferenceDrop drop) {
-		if (useDependencies) {
-			return;
-		}
-		if (resultDependUpon != null && resultDependUpon.isValid()) {
-			resultDependUpon.addDependent(drop);
-		} else {
-			LOG.log(Level.SEVERE,
-					"setResultDependUponDrop found invalid or null resultDependUpon drop");
-		}
-	}
-	
-	public final void setResultDependUponDrop(AbstractDropBuilder drop, IRNode node) {
 		if (useDependencies) {
 			drop.setNodeAndCompilationUnitDependency(node);
 		} else {
@@ -83,9 +81,9 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends
 		}		
 	}
 	
-	private final void setResultDependUponDrop(AbstractDropBuilder p) {
+	private final void setResultDependUponDrop(IRReferenceDrop p) {
 		if (!useDependencies) {
-			p.addDependUponDrop(resultDependUpon);
+			resultDependUpon.addDependent(p);
 		} else {
 			System.out.println("No depend upon drop");
 		}

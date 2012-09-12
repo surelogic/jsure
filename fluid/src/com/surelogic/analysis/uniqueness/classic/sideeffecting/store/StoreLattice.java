@@ -44,12 +44,12 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -260,7 +260,7 @@ extends TripleLattice<Element<Integer>,
    * All the result drops we are going to have created.  Saved up here in case
    * we need to cancel them if the analysis times out.
    */
-  private final Set<ResultDropBuilder> drops = new HashSet<ResultDropBuilder>();
+  private final Set<ResultDrop> drops = new HashSet<ResultDrop>();
   
   
   
@@ -732,7 +732,7 @@ extends TripleLattice<Element<Integer>,
             new InfoAdder() {
               public void addSupportingInformation(
                   final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
-                  final IBinder binder, final ResultDropBuilder resultDrop) {
+                  final IBinder binder, final ResultDrop resultDrop) {
                 final IRNode rhs;
                 if (VariableDeclarator.prototype.includes(srcOp)) {
                   rhs = VariableDeclarator.getInit(srcOp);
@@ -970,7 +970,7 @@ extends TripleLattice<Element<Integer>,
               new InfoAdder() {
                 public void addSupportingInformation(
                     final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
-                    final IBinder binder, final ResultDropBuilder resultDrop) {
+                    final IBinder binder, final ResultDrop resultDrop) {
                   if (msg == MessageChooser.ACTUAL) {
                     for (final IRNode n : bcaQuery.getResultFor(srcOp)) {
                       addUniquePromiseFrom(n, binder, resultDrop);
@@ -993,7 +993,7 @@ extends TripleLattice<Element<Integer>,
                 }
 
                 private void addUniquePromiseFrom(final IRNode n,
-                    final IBinder binder, final ResultDropBuilder resultDrop) {
+                    final IBinder binder, final ResultDrop resultDrop) {
                   PromiseDrop<? extends IAASTRootNode> uDrop = null;
                   final Operator op = JJNode.tree.getOperator(n);
                   if (ReceiverDeclaration.prototype.includes(op)) {
@@ -1524,7 +1524,7 @@ extends TripleLattice<Element<Integer>,
       final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop) {
     if (actualBorrowedDrop != null) {
       borrowedHasResults.add(actualBorrowedDrop);
-      final ResultDropBuilder result = 
+      final ResultDrop result = 
         createResultDrop(analysis, abruptDrops, actualBorrowedDrop, srcOp, true,
             Messages.BORROWED_PASSED_TO_BORROWED,
             actualParameterName,
@@ -1562,7 +1562,7 @@ extends TripleLattice<Element<Integer>,
           new InfoAdder() {
             public void addSupportingInformation(
                 final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
-                final IBinder binder, final ResultDropBuilder resultDrop) {
+                final IBinder binder, final ResultDrop resultDrop) {
               resultDrop.addTrustedPromise(uDrop);
             }
           });
@@ -1577,7 +1577,7 @@ extends TripleLattice<Element<Integer>,
           new InfoAdder() {
             public void addSupportingInformation(
                 final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
-                final IBinder binder, final ResultDropBuilder resultDrop) {
+                final IBinder binder, final ResultDrop resultDrop) {
               final Set<IRNode> undefinedAt = stackUndefinedAt.get(topOfStack);
               if (undefinedAt != null) {
                 for (final IRNode where : undefinedAt) {
@@ -1635,12 +1635,12 @@ extends TripleLattice<Element<Integer>,
   // ------------------------------------------------------------------
   
   public void cancelResults() {
-    for (final ResultDropBuilder drop : drops) {
+    for (final ResultDrop drop : drops) {
       drop.invalidate();
     }
   }
   
-  private ResultDropBuilder createResultDrop(
+  private ResultDrop createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops, final boolean addToControlFlow,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
@@ -1651,7 +1651,7 @@ extends TripleLattice<Element<Integer>,
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
-    final ResultDropBuilder result = ResultDropBuilder.create(analysis);
+    final ResultDrop result = new ResultDrop();
     drops.add(result);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
@@ -1668,7 +1668,7 @@ extends TripleLattice<Element<Integer>,
     return result;
   }
 
-  private ResultDropBuilder createResultDrop(
+  private ResultDrop createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
@@ -1688,7 +1688,7 @@ extends TripleLattice<Element<Integer>,
       final PromiseDrop<? extends IAASTRootNode> uniquePromise = UniquenessUtils.getUnique(load.getKey()).getDrop();
       
       for (final IRNode readAt : load.getValue()) {
-        final ResultDropBuilder r = createResultDrop(
+        final ResultDrop r = createResultDrop(
             analysis, isAbrupt, uniquePromise, readAt, false, msg);
         if (compromises != null) {
           for (final IRNode compromisedAt : compromises) {
@@ -1722,7 +1722,7 @@ extends TripleLattice<Element<Integer>,
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
-          final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+          final ResultDrop r = createResultDrop(analysis, read.isAbrupt,
               UniquenessUtils.getUnique(e.getKey()).getDrop(), read.srcOp,              
               false, Messages.READ_OF_BURIED);
           for (final IRNode buriedAt : e.getValue()) {
@@ -1735,7 +1735,7 @@ extends TripleLattice<Element<Integer>,
       // Could be undefined because we were assigned an undefined value
       final Set<IRNode> z = badSets.get(read.var);
       if (z != null) {
-        final ResultDropBuilder r = createResultDrop(analysis, read.isAbrupt,
+        final ResultDrop r = createResultDrop(analysis, read.isAbrupt,
             controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
         for (final IRNode setOp : z) {
           r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
@@ -1871,10 +1871,10 @@ extends TripleLattice<Element<Integer>,
       return hashCode;
     }
     
-    public final ResultDropBuilder createDrop(
+    public final ResultDrop createDrop(
         final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
         final IBinder binder) {
-      final ResultDropBuilder result = createResultDrop(
+      final ResultDrop result = createResultDrop(
           analysis, isAbrupt, promiseDrop, srcOp, isGood(), msg);
       if (adder != null) {
         adder.addSupportingInformation(analysis, binder, result);
@@ -1915,7 +1915,7 @@ extends TripleLattice<Element<Integer>,
   private static interface InfoAdder {
     public void addSupportingInformation(
         AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
-        IBinder binder, ResultDropBuilder resultDrop);
+        IBinder binder, ResultDrop resultDrop);
   }
   
   public static enum MessageChooser {
