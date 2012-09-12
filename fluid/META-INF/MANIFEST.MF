@@ -128,7 +128,6 @@ Export-Package:
  edu.cmu.cs.fluid.sea.drops.modules,
  edu.cmu.cs.fluid.sea.drops.promises,
  edu.cmu.cs.fluid.sea.drops.threadroles,
- edu.cmu.cs.fluid.sea.proxy,
  edu.cmu.cs.fluid.sea.reporting,
  edu.cmu.cs.fluid.sea.xml,
  edu.cmu.cs.fluid.template,
