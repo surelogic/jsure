@@ -194,8 +194,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
                                          new RegionNameNode(-1, PromiseConstants.REGION_INSTANCE_NAME));
         region.setPromisedFor(type);
 
-        RegionModel model = RegionModel.getInstance(name, project); 
-        model.setAAST(region);        
+        RegionModel model = RegionModel.create(region, name); 
         PromiseFramework.getInstance().findSeqStorage("Region").add(type, model);        
     }
   }

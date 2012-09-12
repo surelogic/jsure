@@ -19,7 +19,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
-import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
@@ -46,9 +45,30 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     setDerivedFromSrc(true);
 
     if (a != null) {
-      setAAST(a);
+    	if (a.getPromisedFor().identity() == IRNode.destroyedNode) {
+    		throw new IllegalStateException("Destroyed node for: "+a);
+    	}
+        f_aast = a;
+        // computeBasedOnAST() called below
+        setNode(a.getPromisedFor());
+
+        final ISrcRef orig = super.getSrcRef();
+        if (orig != null) {
+          ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
+          if (ref == null) {
+            ref = orig;
+          }
+          f_lineNumber = ref.getLineNumber();
+          f_hash = ref.getHash();
+        } else {
+          f_lineNumber = -1;
+          f_hash = -1L;
+        }
     } else {
-      setMessage(this.getClass().getName());
+    	setMessage(this.getClass().getName());
+    	f_aast = null;
+    	f_lineNumber = -1;
+        f_hash = -1L;
     }
   }
 
@@ -357,47 +377,16 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
-  /**
-   * Sets the annotation AST for this promise. The value is a subtype of
-   * {@link IAASTRootNode}.
-   * 
-   * @param a
-   *          the non-null annotation AST for this promise.
-   */
-  public void setAAST(A a) {
-    synchronized (f_seaLock) {
-      if (checkASTs(a, f_aast)) {
-        return;
-      }
-      f_aast = a;
-      // computeBasedOnAST() called below
-      setNode(a.getPromisedFor());
-
-      final ISrcRef orig = super.getSrcRef();
-      if (orig != null) {
-        ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
-        if (ref == null) {
-          ref = orig;
-        }
-        f_lineNumber = ref.getLineNumber();
-        f_hash = ref.getHash();
-      } else {
-        f_lineNumber = -1;
-        f_hash = -1L;
-      }
-    }
-  }
-
-  /**
-   * Clears the reference to this drop's annotation AST. Subsequent calls to
-   * {@link #getAAST()} will return {@code null}.
-   */
-  public final void clearAAST() {
-    synchronized (f_seaLock) {
-      f_aast = null;
-    }
-    // FIX need to do anything else?
-  }
+//  /**
+//   * Clears the reference to this drop's annotation AST. Subsequent calls to
+//   * {@link #getAAST()} will return {@code null}.
+//   */
+//  private void clearAAST() {
+//    synchronized (f_seaLock) {
+//      f_aast = null;
+//    }
+//    // FIX need to do anything else?
+//  }
 
   @Override
   @RequiresLock("SeaLock")
@@ -407,34 +396,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (getAAST() != null) {
       getAAST().clearPromisedFor();
     }
-    clearAAST();
+    //clearAAST();
     clearNode();
-  }
-
-  /**
-   * @param ast
-   *          The current value
-   * @param a
-   *          The new value
-   * @return true if already set
-   */
-  protected final boolean checkASTs(A a, A ast) {
-    if (a == null) {
-      throw new NullPointerException("null ast");
-    }
-    if (a.equals(ast)) {
-      return true; // already set
-    }
-    if (ast != null) {
-      if (ast.getPromisedFor().identity() == IRNode.destroyedNode) {
-        return false;
-      }
-      if (this instanceof ModelDrop) {
-        return false;
-      }
-      LOG.warning("ast already set for " + this + " : " + getMessage());
-    }
-    return false;
   }
 
   @Override
@@ -529,11 +492,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Annotation AST for this drop
    */
   @InRegion("DropState")
-  private A f_aast;
+  private final A f_aast;
   @InRegion("DropState")
-  private Long f_hash;
+  private final Long f_hash;
   @InRegion("DropState")
-  private int f_lineNumber;
+  private final int f_lineNumber;
   @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
 

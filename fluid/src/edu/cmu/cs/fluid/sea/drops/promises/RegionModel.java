@@ -1,10 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.aast.bind.IRegionBinding;
@@ -36,9 +32,6 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.DropPredicate;
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -74,22 +67,18 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     if (projectName == null)
       throw new IllegalArgumentException(I18N.err(44, "projectName"));
     final Pair<String, String> key = new Pair<String, String>(regionName, projectName);
+    return getInstance(key);
+  }
+   
+  private static RegionModel getInstance(Pair<String,String> key) {
     synchronized (RegionModel.class) {
-      purgeUnusedRegions();
       RegionModel result = REGIONNAME_PROJECT_TO_DROP.get(key);
-      if (result == null) {
-        result = new RegionModel(regionName, projectName);
-
-        REGIONNAME_PROJECT_TO_DROP.put(key, result);
-      }
       return result;
     }
   }
 
   public static RegionModel getInstance(String region, IRNode context) {
-    IIRProject p = JavaProjects.getEnclosingProject(context);
-    final String project = p == null ? "" : p.getName();
-    return getInstance(region, project);
+    return getInstance(getPair(region, context));
   }
 
   public static IRegion getInstance(IRNode field) {
@@ -101,9 +90,16 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   public static RegionModel getInstance(FieldRegion region) {
     final String qname = region.toString();
-    final IIRProject p = JavaProjects.getEnclosingProject(region.getNode());
-    final String project = p == null ? "" : p.getName();
-    RegionModel model = getInstance(qname, project);
+    final Pair<String,String> key = getPair(qname, region.getNode());
+    RegionModel model;
+    synchronized (RegionModel.class) {
+    	model = getInstance(key);
+    	if (model == null) {
+    		// Create these on demand to avoid making one for every field
+    		model = new RegionModel(null, region.getNode(), qname);
+    		REGIONNAME_PROJECT_TO_DROP.put(key, model);
+    	}
+    }
     IRNode n = model.getNode();
     if (n != null && n.identity() != IRNode.destroyedNode && !n.equals(region.getNode())) {
       throw new IllegalArgumentException("RegionModel doesn't match field decl: " + n);
@@ -167,87 +163,46 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * @param name
    *          the region name
    */
-  private RegionModel(String name, String proj) {
-	super(null);
+  private RegionModel(NewRegionDeclarationNode decl, IRNode context, String name) {
+	super(decl);
     f_regionName = name;
     f_simpleName = JavaNames.genSimpleName(name);
-    f_project = proj;
-    this.setMessage("region " + name);
+    f_project = getPair(name, context).second();
+    if (decl == null) {
+    	this.setMessage("region " + name);
+    } else {
+    	// Hack to get around the fact that it actually needs the region name
+    	computeBasedOnAST();
+    }
     this.setCategory(JavaGlobals.REGION_CAT);
 
     if ("java.lang.Object.Instance".equals(name)) {
-      System.out.println("Creating RegionModel " + name + " for " + proj);
+      System.out.println("Creating RegionModel " + name + " for " + f_project);
     }
   }
 
+  public static RegionModel create(NewRegionDeclarationNode decl, String name) {
+	  RegionModel result = new RegionModel(decl, decl.getPromisedFor(), name);
+	  synchronized (RegionModel.class) {
+		  REGIONNAME_PROJECT_TO_DROP.put(getPair(name, decl.getPromisedFor()), result);
+	  }
+	  return result;
+  }
+  
   @Override
   protected boolean okAsNode(IRNode n) {
     Operator op = JJNode.tree.getOperator(n);
     return VariableDeclarator.prototype.includes(op) || NewRegionDeclaration.prototype.includes(n);
   }
 
-  private static final DropPredicate definingDropPred = new DropPredicate() {
-    public boolean match(IDrop d) {
-      return d.instanceOf(InRegionPromiseDrop.class) || d.instanceOf(ExplicitUniqueInRegionPromiseDrop.class);
-    }
-  };
-
   public static void invalidate(String lockName, IRNode context) {
     final IIRProject p = JavaProjects.getEnclosingProject(context);
     final String project = p == null ? "" : p.getName();
-    RegionModel drop = REGIONNAME_PROJECT_TO_DROP.get(Pair.getInstance(lockName, project));
+    RegionModel drop = REGIONNAME_PROJECT_TO_DROP.remove(Pair.getInstance(lockName, project));
     if (drop != null) {
-      drop.clearAAST();
+    	//drop.clearAAST();
+    	drop.invalidate();
     }
-  }
-
-  /**
-   * Removes regions that are not defined by any promise definitions.
-   */
-  public static synchronized void purgeUnusedRegions() {
-    synchronized (RegionModel.class) {
-      final Set<String> activeProjects = computeActiveProjects();
-
-      for (Iterator<Entry<Pair<String, String>, RegionModel>> iterator = REGIONNAME_PROJECT_TO_DROP.entrySet().iterator(); iterator
-          .hasNext();) {
-        Entry<Pair<String, String>, RegionModel> entry = iterator.next();
-        final Pair<String, String> key = entry.getKey();
-        final RegionModel drop = entry.getValue();
-
-        if (drop.getNode() == null) {
-          SLLogger.getLogger().severe("Null node for " + drop.f_project + '/' + drop.f_regionName);
-        }
-
-        boolean regionDefinedInCode = modelDefinedInCode(definingDropPred, drop) && activeProjects.contains(drop.f_project);
-        boolean keepAnyways = false;
-        if (!regionDefinedInCode) {
-          keepAnyways = drop.isValid()
-              && activeProjects.contains(key.second())
-              && (drop.getAAST() != null || key.first().equals(INSTANCE) || key.first().endsWith(RegionRules.STATIC_SUFFIX) || key
-                  .first().equals(ALL));
-        }
-
-        // System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
-        if (!(regionDefinedInCode || keepAnyways)) {
-          // System.out.println("Purging "+drop.regionName);
-          drop.invalidate();
-          iterator.remove();
-        }
-      }
-    }
-  }
-
-  private static HashSet<String> computeActiveProjects() {
-    final ProjectsDrop pd = ProjectsDrop.getDrop();
-    if (pd == null) {
-      return null; // Assume we're in flux
-    }
-    HashSet<String> active = new HashSet<String>();
-    for (String p : pd.getIIRProjects().getProjectNames()) {
-      // System.out.println("\tComparing vs. "+p);
-      active.add(p);
-    }
-    return active;
   }
 
   /**

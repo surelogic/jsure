@@ -194,7 +194,7 @@ public class ClearProjectListener implements IResourceChangeListener {
         region.invalidate();
       }
     }
-    RegionModel.purgeUnusedRegions();
+    //RegionModel.purgeUnusedRegions();
 
     if (pd != null) {
       final List<IIRProject> removedJps = new ArrayList<IIRProject>();

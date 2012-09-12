@@ -1,21 +1,14 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.*;
 
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.sea.DropPredicate;
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**
@@ -33,27 +26,19 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    * <p>
    * Accesses must be protected by a lock on this class.
    */
-  private static final HashMap<Pair<String, String>, LockModel> LOCKNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, LockModel>();
+  private static final Map<Pair<String, String>, LockModel> LOCKNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, LockModel>();
 
   /*
    * This name-based lookup is very shaky. There should be a better way of doing
    * this.
    */
-
-  /**
-   * @param lockName
-   *          The qualified name of the lock
-   */
-  public static LockModel getInstance(final String lockName, final String projectName) {
-    if (lockName == null)
-      throw new IllegalArgumentException(I18N.err(44, "lockName"));
-    if (projectName == null)
-      throw new IllegalArgumentException(I18N.err(44, "projectName"));
-    final Pair<String, String> key = new Pair<String, String>(lockName, projectName);
+  
+  private static LockModel getInstance(Pair<String,String> key) {
     synchronized (LockModel.class) {
-      purgeUnusedLocks(); // cleanup the locks
+      //purgeUnusedLocks(); // cleanup the locks
 
       LockModel result = LOCKNAME_PROJECT_TO_DROP.get(key);
+      /*
       if (result == null) {
         // key = CommonStrings.intern(lockName);
         result = new LockModel(lockName);
@@ -70,14 +55,13 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
         }
         System.out.println("Creating lock " + lockName);
       }
+      */
       return result;
     }
   }
 
   public static LockModel getInstance(String lockName, IRNode context) {
-    IIRProject p = JavaProjects.getEnclosingProject(context);
-    final String project = p == null ? "" : p.getName();
-    return getInstance(lockName, project);
+    return getInstance(getPair(lockName, context));
   }
 
   /**
@@ -86,18 +70,29 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
   private final String f_lockName;
 
   /**
-   * private constructor invoked by {@link #getInstance(String)}.
-   * 
    * @param lockName
    *          the lock name
    */
-  private LockModel(String lockName) {
-	super(null);
+  private LockModel(AbstractLockDeclarationNode decl, String lockName) {
+	super(decl);
     f_lockName = lockName;
     this.setMessage("lock " + lockName);
     this.setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
+  public static LockModel create(AbstractLockDeclarationNode decl, String lockName) {
+	  if (decl == null)
+	      throw new IllegalArgumentException(I18N.err(44, "decl"));
+	  if (lockName == null)
+	      throw new IllegalArgumentException(I18N.err(44, "lockName"));
+	  
+	  LockModel result = new LockModel(decl, lockName);
+	  synchronized (LockModel.class) {
+		  LOCKNAME_PROJECT_TO_DROP.put(getPair(lockName, decl.getPromisedFor()), result);
+	  }
+	  return result;
+  }
+  
   public String getQualifiedName() {
     return f_lockName;
   }
@@ -105,33 +100,6 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
   public String getSimpleName() {
     AbstractLockDeclarationNode ld = getAAST();
     return ld.getId();
-  }
-
-  private static final DropPredicate definingDropPred = new DropPredicate() {
-    public boolean match(IDrop d) {
-      return d.instanceOf(RequiresLockPromiseDrop.class) || d.instanceOf(ReturnsLockPromiseDrop.class);
-    }
-  };
-
-  /**
-   * Removes locks that are no longer defined by any promise definitions.
-   */
-  public static void purgeUnusedLocks() {
-    synchronized (LockModel.class) {
-      for (Iterator<Entry<Pair<String, String>, LockModel>> iterator = LOCKNAME_PROJECT_TO_DROP.entrySet().iterator(); iterator
-          .hasNext();) {
-        Entry<Pair<String, String>, LockModel> entry = iterator.next();
-
-        final LockModel drop = entry.getValue();
-
-        boolean lockDefinedInCode = modelDefinedInCode(definingDropPred, drop);
-        if (!lockDefinedInCode) {
-          drop.invalidate();
-          iterator.remove();
-        }
-
-      }
-    }
   }
 
   public LockModel getModel() {

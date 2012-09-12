@@ -498,22 +498,22 @@ public abstract class AnnotationRules {
 	 * 
 	 * @return The drop that the AST was added to
 	 */
-	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> P ensureDropForAST(
-			IPromiseDropStorage<P> stor, IDropFactory<P, ? super A> factory, A a) {
-		final PromiseFramework frame = PromiseFramework.getInstance();
-		final IRNode n = a.getPromisedFor();
-		final IRNode mapped = frame.mapToProxyNode(n);
-		final SlotInfo<P> si = stor.getSlotInfo();
-
-		P pd = getMappedValue(si, n, mapped, frame);
-		if (pd == null) {
-			pd = factory.createDrop(n, a);
-			return pd == null ? null : stor.add(mapped, pd);
-		} else {
-			pd.setAAST(a);
-		}
-		return pd;
-	}
+//	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> P ensureDropForAST(
+//			IPromiseDropStorage<P> stor, IDropFactory<P, ? super A> factory, A a) {
+//		final PromiseFramework frame = PromiseFramework.getInstance();
+//		final IRNode n = a.getPromisedFor();
+//		final IRNode mapped = frame.mapToProxyNode(n);
+//		final SlotInfo<P> si = stor.getSlotInfo();
+//
+//		P pd = getMappedValue(si, n, mapped, frame);
+//		if (pd == null) {
+//			pd = factory.createDrop(n, a);
+//			return pd == null ? null : stor.add(mapped, pd);
+//		} else {
+//			pd.setAAST(a);			
+//		}
+//		return pd;
+//	}
 
 	/**
 	 * Remove from associated IRNode

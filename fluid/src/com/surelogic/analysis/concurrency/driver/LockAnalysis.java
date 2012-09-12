@@ -139,7 +139,6 @@ public class LockAnalysis
 
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
-		LockModel.purgeUnusedLocks();
 
 		/*
 		 * This seems stupid to me. I feel like I should be able to get the

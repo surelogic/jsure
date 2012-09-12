@@ -10,7 +10,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
@@ -32,17 +31,6 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return true;
-  }
-
-  /**
-   * Need to clean up region models.
-   * 
-   * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction(Drop)
-   */
-  @Override
-  protected void deponentInvalidAction(Drop invalidDeponent) {
-    super.deponentInvalidAction(invalidDeponent);
-    RegionModel.purgeUnusedRegions();
   }
   
   @Override

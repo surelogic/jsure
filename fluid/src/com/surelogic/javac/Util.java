@@ -110,9 +110,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class Util {		
@@ -1459,8 +1457,6 @@ public class Util {
 	private static void scrubPromises(List<CodeInfo> cus, SLProgressMonitor monitor) {
 		startSubTask(monitor, "Scrubbing promises");
 		AnnotationRules.scrub();    
-	    RegionModel.purgeUnusedRegions();
-	    LockModel.purgeUnusedLocks();
 		ParseUtil.clear();
 		endSubTask(monitor);
 	}

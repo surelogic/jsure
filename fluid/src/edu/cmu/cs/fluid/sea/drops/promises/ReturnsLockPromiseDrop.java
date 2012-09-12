@@ -7,7 +7,6 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
@@ -25,17 +24,6 @@ public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
 	public ReturnsLockPromiseDrop(ReturnsLockNode node) {
 		super(node);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-	}
-
-	/**
-	 * Need to clean up lock models.
-	 * 
-	 * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction(Drop)
-	 */
-	@Override
-  protected void deponentInvalidAction(Drop invalidDeponent) {
-		super.deponentInvalidAction(invalidDeponent);
-		LockModel.purgeUnusedLocks();
 	}
   
   @Override

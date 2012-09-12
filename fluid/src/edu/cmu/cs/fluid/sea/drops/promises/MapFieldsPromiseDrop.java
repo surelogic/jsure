@@ -4,7 +4,6 @@ import com.surelogic.aast.promise.*;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
@@ -27,17 +26,6 @@ implements IDerivedDropCreator<InRegionPromiseDrop>
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
-  }
-
-  /**
-   * Need to clean up region models.
-   * 
-   * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction(Drop)
-   */
-  @Override
-  protected void deponentInvalidAction(Drop invalidDeponent) {
-    super.deponentInvalidAction(invalidDeponent);
-    RegionModel.purgeUnusedRegions();
   }
 
   @Override

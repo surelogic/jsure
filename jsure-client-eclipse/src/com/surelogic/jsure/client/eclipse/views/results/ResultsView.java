@@ -58,8 +58,6 @@ import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public final class ResultsView extends AbstractJSureResultsView implements JSureDataDirHub.CurrentScanChangeListener {
 
@@ -514,8 +512,6 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   protected void updateView() {
     try {
       AbstractJavaBinder.printStats();
-      RegionModel.purgeUnusedRegions();
-      LockModel.purgeUnusedLocks();
 
       // update the whole-program proof
       ConsistencyListener.prototype.analysisCompleted();

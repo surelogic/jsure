@@ -452,7 +452,7 @@ extends AbstractHierarchyScrubber<A> {
 			if (d != null) {
 				a.markAsValid();
 				d.setFromSrc(a.getSrcType().isFromSource());
-				d.setAAST(a);
+				//d.setAAST(a);
 				d.dependUponCompilationUnitOf(a.getPromisedFor());
 				TestResult.addDrop(expected, d);
 				AASTStore.validate(d);
