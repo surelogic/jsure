@@ -20,6 +20,7 @@ implements IThreadRoleDrop {
    int numIssues;
    
    public TRoleSummaryDrop(String msg) {
+	 super(null);
      setMessage(msg);
      setCategory(TRoleMessages.assuranceCategory);
    }

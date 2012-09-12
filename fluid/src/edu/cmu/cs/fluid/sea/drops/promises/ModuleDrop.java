@@ -74,6 +74,7 @@ public class ModuleDrop extends PromiseDrop {
   private IRNode modPromiseIR = null;
   
   ModuleDrop(final String name) {
+	super(null);
     declaredModules = new HashSet<ModuleModel>(2);
     claimsToWrap = new HashSet<String>(0);
     modName = name.intern();

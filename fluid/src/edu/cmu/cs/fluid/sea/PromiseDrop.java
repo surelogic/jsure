@@ -52,10 +52,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
-  public PromiseDrop() {
-    this(null);
-  }
-
   public final IRNode getPromisedFor() {
     return getNode();
   }

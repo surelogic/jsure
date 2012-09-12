@@ -120,6 +120,7 @@ public final class ModuleModel extends ModelDrop {
   public int ModuleNum = -1;
 
   private ModuleModel(String name) {
+	super(null);
     this.name = name;
     module = Module.createNode(name);
     enclosedModuleNames = null;
@@ -132,6 +133,7 @@ public final class ModuleModel extends ModelDrop {
   }
   
   private ModuleModel(String name, IRNode thePromise) {
+	super(null);
     this.name = name;
     final IRNode modsIR = thePromise;
     module = thePromise;
@@ -164,7 +166,8 @@ public final class ModuleModel extends ModelDrop {
    * never be used anywhere else!
    */
   private ModuleModel() {
-    name = "The World";
+    super(null);
+	name = "The World";
     module = null;
     enclosedModuleNames = null;
     enclosedModuleIR = null;

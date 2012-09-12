@@ -168,6 +168,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    *          the region name
    */
   private RegionModel(String name, String proj) {
+	super(null);
     f_regionName = name;
     f_simpleName = JavaNames.genSimpleName(name);
     f_project = proj;

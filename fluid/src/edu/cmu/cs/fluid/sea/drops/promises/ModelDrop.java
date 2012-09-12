@@ -20,10 +20,6 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
     super(d);
   }
 
-  public ModelDrop() {
-    super();
-  }
-
   protected boolean okAsNode(IRNode n) {
     return true; // TODO PromiseDeclaration.prototype.includes(n);
   }

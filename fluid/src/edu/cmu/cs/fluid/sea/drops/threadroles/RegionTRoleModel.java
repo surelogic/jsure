@@ -33,6 +33,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
   private static final Set<RegionTRoleModel> allRegTRoleMods = new HashSet<RegionTRoleModel>();
 
   private RegionTRoleModel(RegionModel forRegion, IRNode rdsIR) {
+	super(null);
     masterRegion = forRegion;
     protoIR = rdsIR;
     setMessage("regionTRoles " + forRegion.getMessage());

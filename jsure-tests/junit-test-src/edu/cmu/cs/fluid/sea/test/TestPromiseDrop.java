@@ -17,6 +17,9 @@ public class TestPromiseDrop extends TestCase {
 
   static class TestLockPromiseDrop extends PromiseDrop<IAASTRootNode> {
 	  // Nothing to add
+	  TestLockPromiseDrop() {
+		  super(null);
+	  }
   }
 
   @SuppressWarnings("unused")

@@ -246,6 +246,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
    *          The node to build the summary for.
    */
   private TRoleReqSummaryDrop(IRNode node) {
+	super(null);
     simpleExpr = TRoleBDDPack.one();
     fullExpr = TRoleBDDPack.one();
     // localSimpleExpr = ColorBDDPack.one();

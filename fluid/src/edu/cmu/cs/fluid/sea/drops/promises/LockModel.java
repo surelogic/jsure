@@ -92,6 +92,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    *          the lock name
    */
   private LockModel(String lockName) {
+	super(null);
     f_lockName = lockName;
     this.setMessage("lock " + lockName);
     this.setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
