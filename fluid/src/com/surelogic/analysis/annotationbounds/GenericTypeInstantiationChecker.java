@@ -35,8 +35,8 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultFolderDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
@@ -297,7 +297,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
     
 
-    final ResultFolderDropBuilder folder = ResultFolderDropBuilder.create(analysis);
+    final ResultFolderDrop folder = new ResultFolderDrop();
     analysis.setResultDependUponDrop(folder, parameterizedType);
     folder.setResultMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
