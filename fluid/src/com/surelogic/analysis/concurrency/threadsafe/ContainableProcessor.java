@@ -22,14 +22,12 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultFolderDropBuilder;
 
 public final class ContainableProcessor extends
 		TypeImplementationProcessor<ContainablePromiseDrop> {
@@ -45,10 +43,10 @@ public final class ContainableProcessor extends
 	  final ContainablePromiseDrop pDrop =
 		  LockRules.getContainableImplementation(tdecl);
 	  if (pDrop != null) {
-		final ResultDropBuilder result = createResultBuilder(tdecl, true,
-			Messages.CONTAINABLE_SUPERTYPE,
-			JavaNames.getQualifiedTypeName(tdecl));
-		result.addTrustedPromise(pDrop);
+  		final ResultDrop result = createResult(
+  		    tdecl, true, Messages.CONTAINABLE_SUPERTYPE,
+  		    JavaNames.getQualifiedTypeName(tdecl));
+  		result.addTrustedPromise(pDrop);
 	  }
 	}
 	
@@ -64,18 +62,18 @@ public final class ContainableProcessor extends
 		// Prefer unique return over borrowed receiver
 		final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
 		if (upd != null) {
-			final ResultDropBuilder result = createResultBuilder(cdecl, true,
-					Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
+			final ResultDrop result = createResult(
+			    cdecl, true, Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
 			result.addTrustedPromise(upd);
 		} else if (bpd != null) {
-			final ResultDropBuilder result = createResultBuilder(cdecl, true,
-					Messages.CONSTRUCTOR_BORROWED_RECEVIER, id);
+			final ResultDrop result = createResult(
+			    cdecl, true, Messages.CONSTRUCTOR_BORROWED_RECEVIER, id);
 			result.addTrustedPromise(bpd);
 		} else {
-			final ResultDropBuilder result = createResultBuilder(cdecl, false,
-					Messages.CONSTRUCTOR_BAD, id);
-			result.addProposal(new ProposedPromiseBuilder("Unique",
-					"return", cdecl, cdecl, Origin.MODEL));
+			final ResultDrop result = createResult(
+			    cdecl, false, Messages.CONSTRUCTOR_BAD, id);
+			result.addProposal(new ProposedPromiseDrop(
+			    "Unique", "return", cdecl, cdecl, Origin.MODEL));
 		}
 	}
 
@@ -90,13 +88,13 @@ public final class ContainableProcessor extends
 			final BorrowedPromiseDrop bpd = UniquenessRules
 					.getBorrowed(rcvrDecl);
 			if (bpd == null) {
-				final ResultDropBuilder result = createResultBuilder(mdecl, false,
-						Messages.METHOD_BAD, id);
-				result.addProposal(new ProposedPromiseBuilder("Borrowed",
-						"this", mdecl, mdecl, Origin.MODEL));
+				final ResultDrop result = createResult(
+				    mdecl, false, Messages.METHOD_BAD, id);
+				result.addProposal(new ProposedPromiseDrop(
+				    "Borrowed",	"this", mdecl, mdecl, Origin.MODEL));
 			} else {
-				final ResultDropBuilder result = createResultBuilder(mdecl, true,
-						Messages.METHOD_BORROWED_RECEIVER, id);
+				final ResultDrop result = createResult(
+				    mdecl, true, Messages.METHOD_BORROWED_RECEIVER, id);
 				result.addTrustedPromise(bpd);
 			}
 		}
@@ -109,20 +107,18 @@ public final class ContainableProcessor extends
 		final IJavaType type = binder.getJavaType(varDecl);
 		
 		if (type instanceof IJavaPrimitiveType) {
-			createResultBuilder(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE,
-					id);
+			createResult(
+			    varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
 		} else {
 			final VouchFieldIsPromiseDrop vouchDrop = LockRules
 					.getVouchFieldIs(varDecl);
 			if (vouchDrop != null && vouchDrop.isContainable()) {
 				final String reason = vouchDrop.getReason();
-				final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResultBuilder(
-						varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id)
-						: createResultBuilder(
-								varDecl,
-								true,
-								Messages.FIELD_CONTAINED_VOUCHED_WITH_REASON,
-								id, reason);
+        final ResultDrop result =
+            (reason == VouchFieldIsNode.NO_REASON) ?
+            createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id) :
+            createResult(varDecl, true,
+                Messages.FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
 				result.addTrustedPromise(vouchDrop);
 			} else {
 				final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
@@ -135,34 +131,31 @@ public final class ContainableProcessor extends
 				 * (1) The type of the field is @Containable
 				 * (2) The field is @Unique
 				 */				
-		    final ResultFolderDropBuilder folder = ResultFolderDropBuilder.create(analysis);
-		    analysis.setResultDependUponDrop(folder, varDecl);
-		    folder.addCheckedPromise(promiseDrop);
-
+		    final ResultFolderDrop folder = createResultFolder(varDecl); 
 		    if (isContainable && uniqueDrop != null) { // GOOD!
 		      folder.setResultMessage(Messages.FIELD_CONTAINED_OBJECT, id);
-          final ResultDrop cResult = createResult(
-              FieldDeclaration.getType(fieldDecl), true,
+          final ResultDrop cResult = createResultInFolder(
+              folder, FieldDeclaration.getType(fieldDecl), true,
               Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toSourceText());
 		      cResult.addTrustedPromises(tester.getPromises());
-		      folder.add(cResult);
 
-          final ResultDrop uResult = createResult(
-              fieldDecl, true, Messages.FIELD_IS_UNIQUE);
+          final ResultDrop uResult = createResultInFolder(
+              folder, fieldDecl, true, Messages.FIELD_IS_UNIQUE);
           uResult.addTrustedPromise(uniqueDrop.getDrop());
-          folder.add(uResult);
 				} else {
           folder.setResultMessage(Messages.FIELD_BAD, id);
-          folder.addProposal(new ProposedPromiseBuilder("Vouch", "Containable",
-              varDecl, varDecl, Origin.MODEL));
+          folder.addProposal(new ProposedPromiseDrop(
+              "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
 
           final ResultDrop cResult;
           if (isContainable) {
-            cResult = createResult(FieldDeclaration.getType(fieldDecl), true,
+            cResult = createResultInFolder(
+                folder, FieldDeclaration.getType(fieldDecl), true,
                 Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toSourceText());
             cResult.addTrustedPromises(tester.getPromises());
           } else {
-            cResult = createResult(FieldDeclaration.getType(fieldDecl), false,
+            cResult = createResultInFolder(
+                folder, FieldDeclaration.getType(fieldDecl), false,
                 Messages.DECLARED_TYPE_NOT_CONTAINABLE, type.toSourceText());
             for (final IRNode t : tester.getTested()) {
               cResult.addProposal(new ProposedPromiseDrop(
@@ -173,13 +166,14 @@ public final class ContainableProcessor extends
 
           final ResultDrop uResult;
           if (uniqueDrop != null) {
-            uResult = createResult(fieldDecl, true, Messages.FIELD_IS_UNIQUE);
+            uResult = createResultInFolder(
+                folder, fieldDecl, true, Messages.FIELD_IS_UNIQUE);
             uResult.addTrustedPromise(uniqueDrop.getDrop());
           } else {
-            uResult = createResult(fieldDecl, false, Messages.FIELD_NOT_UNIQUE);
+            uResult = createResultInFolder(
+                folder, fieldDecl, false, Messages.FIELD_NOT_UNIQUE);
             uResult.addProposal(new ProposedPromiseDrop(
-                "Unique", null, varDecl, varDecl,
-                Origin.MODEL));
+                "Unique", null, varDecl, varDecl, Origin.MODEL));
           }
           folder.add(uResult);
 				}

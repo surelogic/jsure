@@ -31,14 +31,14 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.SingletonIterator;
 
@@ -70,7 +70,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
     final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
         LockRules.getThreadSafeImplPromise(tdecl);
     if (pDrop != null) {
-      final ResultDropBuilder result = createResultBuilder(tdecl, true,
+      final ResultDrop result = createResult(tdecl, true,
           Messages.THREAD_SAFE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrustedPromise(pDrop);
@@ -80,7 +80,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
   @Override
   protected void postProcess() {
     if (!hasFields) {
-      createResultBuilder(typeBody, true, Messages.TRIVIALLY_THREADSAFE);
+      createResult(typeBody, true, Messages.TRIVIALLY_THREADSAFE);
     }
   }
 
@@ -107,10 +107,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         LockRules.getVouchFieldIs(varDecl);
     if (vouchDrop != null && (vouchDrop.isThreadSafe() || vouchDrop.isImmutable())) {
       final String reason = vouchDrop.getReason();
-      final ResultDropBuilder result = 
-          reason == VouchFieldIsNode.NO_REASON ? createResultBuilder(
+      final ResultDrop result = 
+          reason == VouchFieldIsNode.NO_REASON ? createResult(
               varDecl, true, Messages.VOUCHED_THREADSAFE, id)
-              : createResultBuilder(varDecl, true,
+              : createResult(varDecl, true,
                   Messages.VOUCHED_THREADSAFE_WITH_REASON, id, reason);
       result.addTrustedPromise(vouchDrop);
     } else {
@@ -226,15 +226,15 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
 
         final String typeString = type.toSourceText();
         if (isPrimitive || isThreadSafe || isContained) {
-          final ResultDropBuilder result;
+          final ResultDrop result;
           if (isFinal) {
-            result = createResultBuilder(
+            result = createResult(
                 varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
           } else if (isVolatile) {
-            result = createResultBuilder(
+            result = createResult(
                 varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
           } else { // lock protected
-            result = createResultBuilder(
+            result = createResult(
                 varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id,
                 fieldLock.name);
             result.addTrustedPromise(fieldLock.lockDecl);
@@ -265,7 +265,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
             }
           }
         } else {
-          final ResultDropBuilder result = createResultBuilder(
+          final ResultDrop result = createResult(
               varDecl, false, Messages.UNSAFE_REFERENCE, id);
           // type could be a non-declared, non-primitive type,
           // that is, an array
@@ -274,11 +274,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
                 Messages.DECLARED_TYPE_IS_NOT_THREAD_SAFE,
                 typeString);
             for (final IRNode n : notThreadSafe) {
-              result.addProposal(new ProposedPromiseBuilder(
+              result.addProposal(new ProposedPromiseDrop(
                   "ThreadSafe", null, n, varDecl, Origin.MODEL));
             }
             for (final IRNode n : cTester.getFailed()) {
-              result.addProposal(new ProposedPromiseBuilder(
+              result.addProposal(new ProposedPromiseDrop(
                   "Containable", null, n, varDecl, Origin.MODEL));
             }
           }
@@ -298,13 +298,13 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
           }
 
           if (uDrop == null) {
-            result.addProposal(new ProposedPromiseBuilder(
+            result.addProposal(new ProposedPromiseDrop(
                 "Unique", null, varDecl, varDecl,
                 Origin.MODEL));
           }
         }
       } else {
-        createResultBuilder(varDecl, false, Messages.UNSAFE_FIELD, id);
+        createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
       }
     }
   }
