@@ -99,7 +99,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
@@ -325,13 +324,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long endTime = System.nanoTime();
         final long duration = endTime - startTime;
         if (duration > tooLongDuration) {
-          final InfoDropBuilder info =
-            InfoDropBuilder.create(analysis, WarningDrop.factory);
+          final WarningDrop info = new WarningDrop();
           analysis.setResultDependUponDrop(info, flowUnit);
           info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
               methodName, duration / NANO_SECONDS_PER_SECOND);
           info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-          info.addDependUponDrop(controlFlowDrop);
+          controlFlowDrop.addDependent(info);
         }
       } catch (final FlowAnalysis.AnalysisGaveUp e) {
         // Analysis of the flow unit gave up

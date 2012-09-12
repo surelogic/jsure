@@ -27,7 +27,6 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -172,13 +171,12 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        final InfoDropBuilder info =
-          InfoDropBuilder.create(this, WarningDrop.factory);
+        final WarningDrop info = new WarningDrop();
         this.setResultDependUponDrop(info, mr.mdecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-        info.addDependUponDrop(sl.getCFDrop());
+        sl.getCFDrop().addDependent(info);
       }
 	  } catch (final FlowAnalysis.AnalysisGaveUp e) { // Analysis self-aborted
       final long endTime = System.nanoTime();

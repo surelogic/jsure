@@ -65,7 +65,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutableRefPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -225,13 +224,13 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         System.out.println("______________________ too long ______________: " + methodName);
-        final InfoDropBuilder info = InfoDropBuilder.create(this, WarningDrop.factory);
+        final WarningDrop info = new WarningDrop();
         this.setResultDependUponDrop(info, node.methodDecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
         for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecks()) {
-          info.addDependUponDrop(pd);
+          pd.addDependent(info);
         }
       }
     } catch (final FlowAnalysis.AnalysisGaveUp e) {

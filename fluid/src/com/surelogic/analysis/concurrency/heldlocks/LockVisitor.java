@@ -103,10 +103,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
@@ -191,8 +187,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private final Effects effects;
 
 	private final ThisExpressionBinder thisExprBinder;
-
-	private final IIRAnalysis analysisRoot;
 
 	/**
 	 * The binder to use.
@@ -742,7 +736,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
 			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
-		analysisRoot = a;
 		binder = b;
 		effects = new Effects(b);
 		bindingContextAnalysis = bca;
