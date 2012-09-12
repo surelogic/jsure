@@ -14,10 +14,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.promises.MustInvokeOnOverridePromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
@@ -84,7 +84,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 				if (preFilterMatches(n)) {
 					IBinding parent = StructureRules.findParentWithMustInvokeOnOverride(getAnalysis().getBinder(), n);					
 					if (parent != null) {
-						ResultDropBuilder rd = ResultDropBuilder.create(this);
+						ResultDrop rd = new ResultDrop();
 						rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 						rd.setNodeAndCompilationUnitDependency(n);	
 						
