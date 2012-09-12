@@ -16,7 +16,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.Pair;
@@ -82,17 +81,17 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				}
 				// TODO fix to get this from the method
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
-				final ResultDropBuilder rd = checkBinding(allows, b, type, n);
+				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
-					ResultDropBuilder success = createSuccessDrop(type, allows);
+					ResultDrop success = createSuccessDrop(type, allows);
 					success.setResultMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
 				}
-				final ResultDropBuilder rd2 = checkBinding(mayReferTo, b, bindT, n);
+				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
 					problemWithMayReferTo = true;
 				}
 
-				ResultDropBuilder rd3 = null;
+				ResultDrop rd3 = null;
 				if (inLayer != null) {
 					for(final LayerPromiseDrop layer : getAnalysis().findLayers(inLayer)) {
 						// Check if in the same layer
@@ -109,11 +108,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			}
 		}
 		if (!problemWithInLayer) {
-			ResultDropBuilder rd = createSuccessDrop(type, inLayer);	
+			ResultDrop rd = createSuccessDrop(type, inLayer);	
 			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 		if (!problemWithMayReferTo) {
-			ResultDropBuilder rd = createSuccessDrop(type, mayReferTo);
+			ResultDrop rd = createSuccessDrop(type, mayReferTo);
 			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 	}
@@ -134,8 +133,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return inSameLayer;
 	}
 	
-	private ResultDropBuilder createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this);
+	private ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
+		ResultDrop rd = new ResultDrop();
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);			
 		rd.addCheckedPromise(checked);
@@ -143,15 +142,15 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return rd;
 	}
 	
-	private ResultDropBuilder createFailureDrop(IRNode type) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this);
+	private ResultDrop createFailureDrop(IRNode type) {
+		ResultDrop rd = new ResultDrop();
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);	
 		rd.setInconsistent();
 		return rd;
 	}
 	
-	private ResultDropBuilder checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
+	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
 				/*
@@ -164,7 +163,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				d.check(type);
 				*/
 				// Create error
-				ResultDropBuilder rd = createFailureDrop(context);			
+				ResultDrop rd = createFailureDrop(context);			
 				rd.setResultMessage(d.getResultMessageKind(), 
 						            unparseArgs(d.getArgs(b.getNode(), type, context)));
 				/*
@@ -216,7 +215,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				reported.add(p);
 				
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
-				ResultDropBuilder rd = createFailureDrop(layer.getNode());
+				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
 				rd.setResultMessage(Messages.CYCLE, backedge); 
 				

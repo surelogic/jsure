@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
@@ -48,8 +49,8 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		return super.analyzeEnd(env, p);
 	}
 	
-	private ResultDropBuilder createFailureDrop(IRNode n) {
-		ResultDropBuilder rd = ResultDropBuilder.create(this);
+	private ResultDrop createFailureDrop(IRNode n) {
+		ResultDrop rd = new ResultDrop();
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(n);	
 		rd.setInconsistent();
@@ -89,7 +90,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE, false);
 			
 			if (tester.testType(t)) {
-				ResultDropBuilder d = createFailureDrop(e);
+				ResultDrop d = createFailureDrop(e);
 				for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
 				  d.addCheckedPromise(p);
 				}

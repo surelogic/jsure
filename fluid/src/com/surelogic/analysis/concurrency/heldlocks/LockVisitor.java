@@ -92,18 +92,17 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
@@ -188,8 +187,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private final Effects effects;
 
 	private final ThisExpressionBinder thisExprBinder;
-
-	private final IIRAnalysis analysisRoot;
 
 	/**
 	 * The binder to use.
@@ -739,7 +736,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
 			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
-		analysisRoot = a;
 		binder = b;
 		effects = new Effects(b);
 		bindingContextAnalysis = bca;
@@ -842,45 +838,45 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Drop management methods
 	// ----------------------------------------------------------------------
 
-	private void setLockResultDep(final AbstractDropBuilder drop,
+	private void setLockResultDep(final IRReferenceDrop drop,
 			final IRNode node) {
 		drop.setNodeAndCompilationUnitDependency(node);
 		if (AbstractWholeIRAnalysis.useDependencies) {
 			return;
 		}
 		if (resultDependUpon != null && resultDependUpon.isValid()) {
-			drop.addDependUponDrop(resultDependUpon);
+			resultDependUpon.addDependent(drop);
 		} else {
 			LOG.log(Level.SEVERE,
 					"setLockResultDep found invalid or null resultDependUpon drop");
 		}
 	}
 
-	private InfoDropBuilder makeInfoDrop(final Category category,
+	private InfoDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot, InfoDrop.factory);
+		final InfoDrop info = new InfoDrop();
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
 	}
 
-	private InfoDropBuilder makeWarningDrop(final Category category,
+	private WarningDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot, WarningDrop.factory);
+		final WarningDrop info = new WarningDrop();
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
 	}
 
-	private ResultDropBuilder makeResultDrop(final IRNode context,
+	private ResultDrop makeResultDrop(final IRNode context,
 			final PromiseDrop<? extends IAASTRootNode> p,
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot);
+		final ResultDrop result = new ResultDrop();
 		setLockResultDep(result, context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);
@@ -892,7 +888,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return result;
 	}
 
-	private void addSupportingInformation(final AbstractDropBuilder drop,
+	private void addSupportingInformation(final IRReferenceDrop drop,
 			final IRNode link, final int msgTemplate, final Object... msgArgs) {
 		drop.addSupportingInformation(link, msgTemplate, msgArgs);
 	}
@@ -910,7 +906,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 */
 	private void addTrustedLockDrop(final LockStack intrinsicLocks,
 			final Set<HeldLock> jucLocks, final NeededLock needed,
-			final ResultDropBuilder result) {
+			final ResultDrop result) {
 		final String lockKey = CommonStrings.intern(needed.getName());
 		for (final StackLock lock : intrinsicLocks) {
 			if (lock.key == lockKey) {
@@ -942,7 +938,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 	}
 
-	private void addLockAcquisitionInformation(final AbstractDropBuilder drop,
+	private void addLockAcquisitionInformation(final IRReferenceDrop drop,
 			final LockStack intrinsicLocks, final Set<HeldLock> jucLocks) {
 		for (final StackLock has : intrinsicLocks) {
 			addSupportingInformation(drop, has.lock.getSource(),
@@ -1192,7 +1188,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 			@Override
 			protected void addAdditionalEvidence(
-					final ResultDropBuilder resultDrop) {
+					final ResultDrop resultDrop) {
 				// No additional evidence to add
 			}
 		};
@@ -1278,7 +1274,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * regions. Really this needs to be an OR. The end user
 						 * should only be allowed to choose one of these.
 						 */
-						final InfoDropBuilder info = makeWarningDrop(
+						final InfoDrop info = makeWarningDrop(
 								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
@@ -1291,17 +1287,17 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						for (final AbstractLockRecord lockRecord : records) {
 							if (!lockRecord.lockDecl.equals(lockUtils
 									.getMutex())) {
-								info.addDependUponDrop(lockRecord.lockDecl);
+								lockRecord.lockDecl.addDependent(info);
 
 								if (lockRecord instanceof RegionLockRecord) {
 									// Propose the aggregate annotation
 									final String simpleRegionName = ((RegionLockRecord) lockRecord).region.getName();
 									if ("Instance".equals(simpleRegionName)) {
-										info.addProposal(new ProposedPromiseBuilder(
+										info.addProposal(new ProposedPromiseDrop(
 												"Unique", null, fieldDecl,
 												fieldRef, Origin.MODEL));
 									} else {
-										info.addProposal(new ProposedPromiseBuilder(
+										info.addProposal(new ProposedPromiseDrop(
 												"UniqueInRegion",
 												simpleRegionName, fieldDecl,
 												fieldRef, Origin.MODEL));
@@ -1322,11 +1318,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * For the lock required for e'.f', attach a warning
 						 * that it is not protecting the field f.
 						 */
-						final InfoDropBuilder info = makeWarningDrop(
+						final InfoDrop info = makeWarningDrop(
 								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
-						info.addDependUponDrop(innerLock.lockDecl);
+						innerLock.lockDecl.addDependent(info);
 
 						/*
 						 * Propose that the field be @Unique and aggregated.
@@ -1334,11 +1330,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						final IRNode fieldDecl = binder.getBinding(objExpr);
 						final String simpleRegionName = innerLock.region.getName();
 						if ("Instance".equals(simpleRegionName)) {
-							info.addProposal(new ProposedPromiseBuilder(
+							info.addProposal(new ProposedPromiseDrop(
 									"Unique", null, fieldDecl, fieldRef,
 									Origin.MODEL));
 						} else {
-							info.addProposal(new ProposedPromiseBuilder(
+							info.addProposal(new ProposedPromiseDrop(
 									"UniqueInRegion", simpleRegionName,
 									fieldDecl, fieldRef, Origin.MODEL));
 						}
@@ -1429,7 +1425,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (isFinalOrVolatile(actualRcvr)) {
 						if (mayBeAccessedByManyThreads(actualRcvr)) {
 							// final/volatile field in a lock protected class
-							final InfoDropBuilder info = makeWarningDrop(
+							final InfoDrop info = makeWarningDrop(
 									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
@@ -1443,7 +1439,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							for (final AbstractLockRecord lockRecord : records) {
 								if (!lockRecord.lockDecl.equals(lockUtils
 										.getMutex())) {
-									info.addDependUponDrop(lockRecord.lockDecl);
+									lockRecord.lockDecl.addDependent(info);
 								}
 							}
 						}
@@ -1452,12 +1448,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								.getLockForFieldRef(actualRcvr);
 						if (neededLock != null) {
 							// Lock protected field
-							final InfoDropBuilder info = makeWarningDrop(
+							final InfoDrop info = makeWarningDrop(
 									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
 									DebugUnparser.toString(actualRcvr));
-							info.addDependUponDrop(neededLock.lockDecl);
+							neededLock.lockDecl.addDependent(info);
 						}
 					}
 				}
@@ -1501,14 +1497,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private enum LockHeldResult {
 		NOT_HELD {
 			@Override
-			public ResultDropBuilder getResult(final LockVisitor lv,
+			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
 					final Category badCategory, final Category goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
-				final ResultDropBuilder result = lv.makeResultDrop(useSite,
+				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, false, badMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(badCategory);
@@ -1518,14 +1514,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		HELD {
 			@Override
-			public ResultDropBuilder getResult(final LockVisitor lv,
+			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
 					final Category badCategory, final Category goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
-				final ResultDropBuilder result = lv.makeResultDrop(useSite,
+				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, goodMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
@@ -1535,14 +1531,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		CLASS_INIT {
 			@Override
-			public ResultDropBuilder getResult(final LockVisitor lv,
+			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
 					final Category badCategory, final Category goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
-				final ResultDropBuilder result = lv.makeResultDrop(useSite,
+				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, classInitMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
@@ -1552,14 +1548,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		THREAD_CONFINED {
 			@Override
-			public ResultDropBuilder getResult(final LockVisitor lv,
+			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
 					final Category badCategory, final Category goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
 					final NeededLock altLock) {
-				final ResultDropBuilder result = lv.makeResultDrop(useSite,
+				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, threadConfinedMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
 				result.setCategory(goodCategory);
@@ -1567,7 +1563,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			}
 		};
 
-		public abstract ResultDropBuilder getResult(LockVisitor lv,
+		public abstract ResultDrop getResult(LockVisitor lv,
 				PromiseDrop<? extends IAASTRootNode> promise,
 				Category badCategory, Category goodCategory, int badMsg,
 				int goodMsg, int classInitMsg, int threadConfinedMsg,
@@ -1666,7 +1662,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				 * Test for the needed lock. First try the lock, and if that
 				 * doesn't work, try the alternative, if it exists.
 				 */
-				ResultDropBuilder resultDrop = null;
+				ResultDrop resultDrop = null;
 				final PromiseDrop<? extends IAASTRootNode> promise = getPromiseDrop(neededLock);
 				LockHeldResult lhr = isLockSatisfied(neededLock, heldJUCLocks);
 				boolean isBad = false;
@@ -1711,7 +1707,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (ctxtSingleThreadedData != null
 							&& !ctxtSingleThreadedData.isSingleThreaded
 							&& ctxtInsideConstructor != null) {
-						resultDrop.addProposal(new ProposedPromiseBuilder(
+						resultDrop.addProposal(new ProposedPromiseDrop(
 								"Unique", "return", ctxtInsideConstructor,
 								useSite, Origin.MODEL));
 					}
@@ -1728,7 +1724,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						if (neededLockName != null
 								&& !"MUTEX".equals(neededLockName)) {
-							resultDrop.addProposal(new ProposedPromiseBuilder(
+							resultDrop.addProposal(new ProposedPromiseDrop(
 									"RequiresLock", neededLockName,
 									ctxtInsideMethod, useSite, Origin.MODEL));
 						}
@@ -1761,7 +1757,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				NeededLock neededLock);
 
 		protected abstract void addAdditionalEvidence(
-				ResultDropBuilder resultDrop);
+				ResultDrop resultDrop);
 	}
 
 	/**
@@ -1791,7 +1787,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 			@Override
 			protected void addAdditionalEvidence(
-					final ResultDropBuilder resultDrop) {
+					final ResultDrop resultDrop) {
 				// No additional evidence to add
 			}
 		};
@@ -1812,7 +1808,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		// Locks that cannot be resolved lead to assurance failures
 		for (final LockSpecificationNode lockSpec : locks.badLocks) {
-			final ResultDropBuilder result = makeResultDrop(call, rlDrop,
+			final ResultDrop result = makeResultDrop(call, rlDrop,
 					false, Messages.LockAnalysis_ds_PreconditionNotResolvable,
 					lockSpec.toString(), DebugUnparser.toString(call));
 			result.setCategory(Messages.DSC_PRECONDITIONS_NOT_ASSURED);
@@ -1844,7 +1840,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 			@Override
 			protected void addAdditionalEvidence(
-					final ResultDropBuilder resultDrop) {
+					final ResultDrop resultDrop) {
 				// TODO: Add rationale based on method effects and region
 				// mapping
 			}
@@ -2354,33 +2350,32 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final Set<IRNode> unlocks = ctxtMustReleaseQuery
 							.getResultFor(expr); // mustRelease.getUnlocksFor(expr);
 					if (unlocks == null) { // POISONED!
-						final InfoDropBuilder match = makeWarningDrop(
+						final InfoDrop match = makeWarningDrop(
 								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedLockCall,
 								lockMethod.name);
 						for (final HeldLock lock : lockSet) {
-							match.addDependUponDrop(lock.getLockPromise());
+							lock.getLockPromise().addDependent(match);
 						}
 					} else {
 						if (unlocks.isEmpty()) {
-							final InfoDropBuilder match = makeWarningDrop(
+							final InfoDrop match = makeWarningDrop(
 									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingUnlocks,
 									lockMethod.name);
 							for (final HeldLock lock : lockSet) {
-								match.addDependUponDrop(lock.getLockPromise());
+								lock.getLockPromise().addDependent(match);
 							}
 						} else {
 							for (final IRNode n : unlocks) {
-								final InfoDropBuilder match = makeInfoDrop(
+								final InfoDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS,
 										expr,
 										Messages.LockAnalysis_ds_MatchingUnlock,
 										lockMethod.name, JavaNode.getSrcRef(n)
 												.getLineNumber());
 								for (final HeldLock lock : lockSet) {
-									match.addDependUponDrop(lock
-											.getLockPromise());
+									lock.getLockPromise().addDependent(match);
 								}
 							}
 						}
@@ -2395,30 +2390,29 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final Set<IRNode> locks = ctxtLocksForQuery
 							.getResultFor(expr); // mustHold.getLocksFor(expr);
 					if (locks == null) { // POISONED!
-						final InfoDropBuilder match = makeWarningDrop(
+						final InfoDrop match = makeWarningDrop(
 								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedUnlockCall);
 						for (final HeldLock lock : lockSet) {
-							match.addDependUponDrop(lock.getLockPromise());
+							lock.getLockPromise().addDependent(match);
 						}
 					} else {
 						if (locks.isEmpty()) {
-							final InfoDropBuilder match = makeWarningDrop(
+							final InfoDrop match = makeWarningDrop(
 									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingLocks);
 							for (final HeldLock lock : lockSet) {
-								match.addDependUponDrop(lock.getLockPromise());
+								lock.getLockPromise().addDependent(match);
 							}
 						} else {
 							for (final IRNode n : locks) {
-								final InfoDropBuilder match = makeInfoDrop(
+								final InfoDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS, expr,
 										Messages.LockAnalysis_ds_MatchingLock,
 										MethodCall.getMethod(n), JavaNode
 												.getSrcRef(n).getLineNumber());
 								for (final HeldLock lock : lockSet) {
-									match.addDependUponDrop(lock
-											.getLockPromise());
+									lock.getLockPromise().addDependent(match);
 								}
 							}
 						}
@@ -2556,12 +2550,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 */
 			if (syncLockIsIdentifiable && !syncLockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
-				final InfoDropBuilder info = makeWarningDrop(
+				final InfoDrop info = makeWarningDrop(
 						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);
 				for (final StackLock stackLock : syncFrame) {
-					info.addDependUponDrop(stackLock.lock.getLockPromise());
+					stackLock.lock.getLockPromise().addDependent(info);
 				}
 			}
 
@@ -2669,7 +2663,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 			if (correct) {
 				if (ctxtReturnsLockDrop != null) {
-					final ResultDropBuilder result = makeResultDrop(rstmt,
+					final ResultDrop result = makeResultDrop(rstmt,
 							ctxtReturnsLockDrop, true,
 							Messages.LockAnalysis_ds_ReturnAssured,
 							ctxtReturnedLock);
@@ -2680,7 +2674,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				}
 			} else {
 				if (ctxtReturnsLockDrop != null) {
-					final ResultDropBuilder result = makeResultDrop(rstmt,
+					final ResultDrop result = makeResultDrop(rstmt,
 							ctxtReturnsLockDrop, false,
 							Messages.LockAnalysis_ds_ReturnNotAssured,
 							ctxtReturnedLock);
@@ -2749,12 +2743,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						// redundant
 						if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock,
 								thisExprBinder, binder)) {
-							final InfoDropBuilder info = makeWarningDrop(
+							final InfoDrop info = makeWarningDrop(
 									Messages.DSC_REDUNDANT_SYNCHRONIZED,
 									syncBlock,
 									Messages.LockAnalysis_ds_RedundantSynchronized,
 									guard.lock);
-							info.addDependUponDrop(guard.lock.getLockPromise());
+							guard.lock.getLockPromise().addDependent(info);
 						}
 					}
 					if (justMUTEX && !lockIsPolicyLock) {
@@ -2800,7 +2794,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									for (final AbstractLockRecord lockRecord : sysLockModel
 											.getRegionAndPolicyLocksForLockImpl(
 													typeOfLockExpr, varDecl)) {
-										final InfoDropBuilder warning = makeWarningDrop(
+										final InfoDrop warning = makeWarningDrop(
 												Messages.DSC_MIXED_PARADIGM,
 												lockExpr,
 												Messages.LockAnalysis_ds_DeclaredJUCLockField,
@@ -2809,7 +2803,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 												VariableDeclarator
 														.getId(lockRecord.lockImpl),
 												lockRecord.name);
-										warning.addDependUponDrop(lockRecord.lockDecl);
+										lockRecord.lockDecl.addDependent(warning);
 									}
 								}
 							}
@@ -2830,12 +2824,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							heldLockFactory, enclosingMethod, syncBlock,
 							heldLocks);
 
-					final InfoDropBuilder warning = makeWarningDrop(
+					final InfoDrop warning = makeWarningDrop(
 							Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
 							Messages.LockAnalysis_ds_NonfinalExpression,
 							DebugUnparser.toString(lockExpr));
 					for (final HeldLock l : heldLocks) {
-						warning.addDependUponDrop(l.getLockPromise());
+						l.getLockPromise().addDependent(warning);
 					}
 					lockIsIdentifiable = false;
 				}
@@ -2847,12 +2841,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// check to see if the synchronization was used for anything
 			if (lockIsIdentifiable && !lockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
-				final InfoDropBuilder info = makeWarningDrop(
+				final InfoDrop info = makeWarningDrop(
 						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, syncBlock,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);
 				for (final StackLock stackLock : syncFrame) {
-					info.addDependUponDrop(stackLock.lock.getLockPromise());
+					stackLock.lock.getLockPromise().addDependent(info);
 				}
 			}
 		} finally {

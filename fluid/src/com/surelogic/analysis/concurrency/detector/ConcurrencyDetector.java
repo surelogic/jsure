@@ -14,11 +14,10 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
-		InfoDropBuilder id = InfoDropBuilder.create(this, InfoDrop.factory);
+		InfoDrop id = new InfoDrop();
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setResultMessage(number, arg);
 		id.setCategory(c);

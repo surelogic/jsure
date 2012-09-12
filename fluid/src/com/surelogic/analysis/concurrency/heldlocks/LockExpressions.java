@@ -27,11 +27,11 @@ import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
 /**
  * A record of the lock expressions used in a method/constructor.  Specifically,
@@ -121,7 +121,7 @@ final class LockExpressions {
       this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
     }
     
-    public void addSingleThreadedEvidence(final ResultDropBuilder result) {
+    public void addSingleThreadedEvidence(final ResultDrop result) {
       if (isUniqueReturn) {
         result.addTrustedPromise_or(Messages.UNIQUE_RETURN, uDrop);
       }
