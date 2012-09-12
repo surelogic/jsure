@@ -12,10 +12,10 @@ import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ContainableAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ContainableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 

@@ -26,77 +26,77 @@ public abstract class WrappedSrcRef implements ISrcRef {
     f_wrapped = wrapped;
   }
 
-  @Override
+//  @Override
   public Object getEnclosingFile() {
     return f_wrapped.getEnclosingFile();
   }
 
-  @Override
+//  @Override
   public URI getEnclosingURI() {
     return f_wrapped.getEnclosingURI();
   }
 
-  @Override
+//  @Override
   public String getRelativePath() {
     return f_wrapped.getRelativePath();
   }
 
-  @Override
+//  @Override
   public String getComment() {
     return f_wrapped.getComment();
   }
 
-  @Override
+//  @Override
   public int getLength() {
     return f_wrapped.getLength();
   }
 
-  @Override
+//  @Override
   public int getLineNumber() {
     return f_wrapped.getLineNumber();
   }
 
-  @Override
+//  @Override
   public int getOffset() {
     return f_wrapped.getOffset();
   }
 
-  @Override
+//  @Override
   public IJavadocElement getJavadoc() {
     return f_wrapped.getJavadoc();
   }
 
-  @Override
+//  @Override
   public void clearJavadoc() {
     f_wrapped.clearJavadoc();
   }
 
-  @Override
+//  @Override
   public Long getHash() {
     return f_wrapped.getHash();
   }
 
-  @Override
+//  @Override
   public String getPackage() {
     return f_wrapped.getPackage();
   }
 
-  @Override
+//  @Override
   public String getProject() {
     return f_wrapped.getProject();
   }
 
-  @Override
+//  @Override
   public String getCUName() {
     return f_wrapped.getCUName();
   }
 
-  @Override
+//  @Override
   public ISrcRef createSrcRef(int offset) {
     return f_wrapped.createSrcRef(offset);
   }
 
-  @Override
+//  @Override
   public String getJavaId() {
     return f_wrapped.getJavaId();
   }

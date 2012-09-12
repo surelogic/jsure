@@ -14,14 +14,12 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.annotationbounds.GenericTypeInstantiationChecker;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks.LockVisitor;
 import com.surelogic.analysis.concurrency.threadsafe.ContainableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ImmutableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ThreadSafeProcessor;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.annotation.rules.LockRules;
 
@@ -70,8 +68,6 @@ public class LockAnalysis
 
 	private final AtomicReference<GlobalLockModel> lockModelHandle =
 	    new AtomicReference<GlobalLockModel>(null);
-	
-	private GenericTypeInstantiationChecker genericVisitor = null;
 	
 	
 	
@@ -137,18 +133,9 @@ public class LockAnalysis
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK);
 	}
 
-	
-	@Override
-	public void finish(final IIRAnalysisEnvironment env) {
-	  super.finish(env);
-	  genericVisitor = null;
-	}
 	@Override
 	public void startAnalyzeBegin(final IIRProject p, final IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
-
-    genericVisitor = new GenericTypeInstantiationChecker(this, binder,
-        AnnotationBoundsTypeFormalEnv.INSTANCE);
 
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
@@ -251,8 +238,6 @@ public class LockAnalysis
 			}
 		}
 		
-		genericVisitor.doAccept(compUnit);
-
 		return true;
 	}
 

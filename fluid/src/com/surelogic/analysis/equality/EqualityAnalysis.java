@@ -3,9 +3,9 @@ package com.surelogic.analysis.equality;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ValueObjectAnnotationTester;
 import com.surelogic.analysis.layers.Messages;
+import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ValueObjectAnnotationTester;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -85,7 +85,6 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		
 		void checkIfValueObject(IRNode e) {
 			IJavaType t = b.getJavaType(e);
-//			ValueObjectPromiseDrop p = checkIfValueObject(e, t);
 			final ValueObjectAnnotationTester tester = 
 			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE, false);
 			
@@ -97,26 +96,5 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 				d.setMessage(DebugUnparser.toString(e)+" should not be compared using == or !=");			
 			}
 		}
-		
-//		/**
-//		 * @return the promise drop if found
-//		 */
-//		ValueObjectPromiseDrop checkIfValueObject(final IRNode e, IJavaType t) {
-//			if (!(t instanceof IJavaReferenceType)) {
-//				return null;
-//			}
-//			if (t instanceof IJavaDeclaredType) {
-//				IJavaDeclaredType dt = (IJavaDeclaredType) t;
-//				return EqualityRules.getValueObjectDrop(dt.getDeclaration());								
-//			}
-//			ValueObjectPromiseDrop rv = null;
-//			for(IJavaType st : t.getSupertypes(b.getTypeEnvironment())) {
-//				rv = checkIfValueObject(e, st);
-//				if (rv != null) {
-//					return rv;
-//				}
-//			}
-//			return rv;
-//		}
 	}
 }

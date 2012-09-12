@@ -6,8 +6,8 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.concurrency.driver.Messages;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ImmutableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ImmutableAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;

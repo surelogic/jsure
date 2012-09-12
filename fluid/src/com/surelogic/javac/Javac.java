@@ -10,6 +10,7 @@ import com.surelogic.analysis.GroupedAnalysis;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.concurrency.detector.ConcurrencyDetector;
 import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.EffectsAnalysis;
@@ -55,6 +56,9 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 		init(LockAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy");
+		
+		init(ParameterizedTypeAnalysis.class,
+        "com.surelogic.jsure.client.eclipse.ParameterizedType", true, "Annotation Bounds");
 		
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");

@@ -1,12 +1,12 @@
-package com.surelogic.analysis.concurrency.annotationbounds;
+package com.surelogic.analysis.annotationbounds;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
@@ -14,13 +14,13 @@ import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.concurrency.driver.Messages;
-import com.surelogic.analysis.concurrency.util.ContainableAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ITypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ImmutableAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ReferenceObjectAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ThreadSafeAnnotationTester;
-import com.surelogic.analysis.concurrency.util.TypeDeclAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ValueObjectAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ContainableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ITypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ImmutableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ReferenceObjectAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ThreadSafeAnnotationTester;
+import com.surelogic.analysis.typeAnnos.TypeDeclAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ValueObjectAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -40,14 +40,14 @@ import edu.cmu.cs.fluid.sea.proxy.ResultFolderDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
-public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
+final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implements IBinderClient {
+  private static final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
+      new ConcurrentHashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
+
   private final AbstractWholeIRAnalysis<? extends IBinderClient, ?> analysis;
 
   private final IBinder binder;
   private final ITypeFormalEnv formalEnv;
-
-  private final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
-      new HashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
 
   
   
@@ -154,6 +154,22 @@ public final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor {
   }
 
   
+  
+  public static void clearCache() {
+    cachedBounds.clear();
+  }
+  
+  
+  
+  public IBinder getBinder() {
+    return binder;
+  }
+
+  public void clearCaches() {
+    // Nothing to do yet
+  }
+  
+
   
   @Override
   public Void visitParameterizedType(final IRNode pType) {

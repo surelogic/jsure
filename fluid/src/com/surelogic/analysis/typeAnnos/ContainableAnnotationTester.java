@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.util;
+package com.surelogic.analysis.typeAnnos;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.LockRules;

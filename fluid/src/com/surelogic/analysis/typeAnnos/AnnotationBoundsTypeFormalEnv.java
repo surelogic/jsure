@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.util;
+package com.surelogic.analysis.typeAnnos;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -140,7 +140,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
   private static boolean testFormalAgainstAnnotationBounds(
       final AnnotationBoundsNode abNode, final String formalName,
       final Set<Bounds> oneOf, final Set<Bounds> noneOf) {
-    boolean oneOfFlag = !oneOf.isEmpty();  // trivially satisfied if there are no positive requirements
+    boolean oneOfFlag = oneOf.isEmpty();  // trivially satisfied if there are no positive requirements
     boolean noneOfFlag = false;
     for (final Bounds b : Bounds.values()) {
       if (oneOf.contains(b)) {
