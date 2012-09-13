@@ -171,12 +171,9 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     f_regionName = name;
     f_simpleName = JavaNames.genSimpleName(name);
     f_project = getPair(name, decl.getPromisedFor()).second();
-    if (decl == null) {
-      this.setMessage("region " + name);
-    } else {
-      final NewRegionDeclarationNode ast = getAAST();
-      setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_regionName);
-    }
+
+    final NewRegionDeclarationNode ast = getAAST();
+    setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_regionName);    
     this.setCategory(JavaGlobals.REGION_CAT);
 
     if ("java.lang.Object.Instance".equals(name)) {
@@ -236,7 +233,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    *         region, i.e., @Region
    */
   public boolean isAbstract() {
-    return (this.getAAST() != null);
+	  return getAAST().isAbstract();
   }
 
   public boolean isFinal() {
@@ -479,10 +476,5 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
       }
     }
     return false;
-  }
-  
-  @Override
-  public NewRegionDeclarationNode getAAST() {
-	  return super.getAAST();
   }
 }
