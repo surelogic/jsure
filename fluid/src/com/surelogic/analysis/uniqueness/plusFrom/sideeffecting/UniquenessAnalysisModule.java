@@ -483,7 +483,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop, methodDecl);
           for (final PromiseDrop<? extends IAASTRootNode> ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -503,7 +502,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -522,7 +520,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     if (drop == null || !drop.isValid()) {
       drop = new ResultDrop(block);
       drop.setConsistent();
-      setResultDependUponDrop(drop, block);
 
       final String label, unparse;
       final Operator op = JJNode.tree.getOperator(block);
@@ -918,7 +915,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
            */
           final ResultDrop callDrop = new ResultDrop(currentNode);
           callDrop.setConsistent();
-          setResultDependUponDrop(callDrop, currentNode);
           // This result checks the uniqueness promises of the parameters
           for (final UniquePromiseDrop uniqueParam : uniqueParams) {
             callDrop.addCheckedPromise(uniqueParam);
@@ -1052,7 +1048,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     final ResultDrop rd = new ResultDrop(n);
     rd.setConsistent();
     rd.setResultMessage(num, args);
-    setResultDependUponDrop(rd, n);
     for (final D pd : promises) {
       rd.addTrustedPromise(pd);
     }

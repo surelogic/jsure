@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jsr166y.forkjoin.Ops.Procedure;
@@ -28,7 +30,6 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -80,16 +81,14 @@ public class LockAnalysis
 					if (byCompUnit) {
 						// System.out.println("Parallel Lock: "+JavaNames.genPrimaryTypeName(n));
 						TopLevelAnalysisVisitor.processCompilationUnit(
-								new ClassProcessor(getAnalysis(),
-										getResultDependUponDrop()),
+								new ClassProcessor(getAnalysis()),
 								// actually n.typeDecl is a CompilationUnit
 								// here!
 								n.typeDecl());
 					} else {
 						// System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 						actuallyAnalyzeClassBody(getAnalysis(),
-								getResultDependUponDrop(), n.typeDecl(),
-								n.classBody());
+								n.typeDecl(),	n.classBody());
 					}
 				}
 			});
@@ -97,9 +96,9 @@ public class LockAnalysis
 	}
 	
 	private final void actuallyAnalyzeClassBody(
-	    final LockVisitor lv, final Drop rd, 
+	    final LockVisitor lv, 
 	    final IRNode typeDecl, final IRNode typeBody) {
-	  lv.analyzeClass(typeBody, rd);
+	  lv.analyzeClass(typeBody);
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafeImplementation(typeDecl);
@@ -222,8 +221,7 @@ public class LockAnalysis
 			return true;
 		}
 		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis(),
-				getResultDependUponDrop());
+		final ClassProcessor cp = new ClassProcessor(getAnalysis());
 		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
@@ -260,12 +258,10 @@ public class LockAnalysis
 	private final class ClassProcessor extends
 			TopLevelAnalysisVisitor.SimpleClassProcessor {
 		private final LockVisitor lockVisitor;
-		private final Drop resultsDependUpon;
 		private final List<TypeBodyPair> types = new ArrayList<TypeBodyPair>();
 
-		public ClassProcessor(final LockVisitor lv, final Drop rd) {
+		public ClassProcessor(final LockVisitor lv) {
 			lockVisitor = lv;
-			resultsDependUpon = rd;
 		}
 
 		public Collection<TypeBodyPair> getTypeBodies() {
@@ -278,8 +274,7 @@ public class LockAnalysis
 			if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
 				types.add(new TypeBodyPair(typeDecl, classBody));
 			} else {
-				actuallyAnalyzeClassBody(lockVisitor, resultsDependUpon,
-						typeDecl, classBody);
+				actuallyAnalyzeClassBody(lockVisitor, typeDecl, classBody);
 			}
 		}
 	}

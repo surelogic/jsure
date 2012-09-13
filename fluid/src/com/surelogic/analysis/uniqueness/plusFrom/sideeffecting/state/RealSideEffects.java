@@ -416,7 +416,6 @@ public final class RealSideEffects implements ISideEffects {
     
     final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     if (promiseDrop != controlFlowDrop) {
       if (addToControlFlow) {

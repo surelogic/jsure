@@ -16,6 +16,7 @@ import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   private static String[] packages = { "edu.cmu.cs.fluid.sea.drops.promises.", "edu.cmu.cs.fluid.sea.",
       "edu.cmu.cs.fluid.sea.drops.", "edu.cmu.cs.fluid.sea.drops.threadroles.", "edu.cmu.cs.fluid.sea.drops.modules.",
       "edu.cmu.cs.fluid.sea.drops.callgraph.", "edu.cmu.cs.fluid.sea.drops.layers.", };
+  
+  /**
+   * A list of types that use to be in drop-sea and are in persisted scans, but
+   * no longer are used. This just helps to avoid lots of warnings.
+   */
+  private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
 
   @SuppressWarnings("unchecked")
   static Class<?> findType(String type) {
@@ -111,7 +118,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         }
       }
       if (thisType == null) {
-        SLLogger.getLogger().warning("Unknown class type: " + type);
+        /*
+         * Check if we know this type is no longer in the system.
+         */
+        if (!Arrays.asList(obsoleteTypes).contains(type))
+          SLLogger.getLogger().warning("Unknown class type: " + type);
       } else {
         ensureClassMapping((Class<? extends Drop>) thisType);
       }

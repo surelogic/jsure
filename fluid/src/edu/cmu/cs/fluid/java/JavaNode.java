@@ -385,13 +385,15 @@ public class JavaNode extends JJNode {
     return null;
   }
   
+
+  
   /**
    * Fluid IR slot to hold Fluid Java source code reference information
    * 
    * @see fluid.ir.SlotInfo
    */
   private static final SlotInfo<ISrcRef> f_srcRefSlotInfo = 
-    getVersionedSlotInfo(ISrcRef.srcRefName, ISrcRef.srcRefType);  
+    getVersionedSlotInfo(ISrcRef.SRC_REF_SLOT_NAME, ISrcRef.SRC_REF_SLOT_TYPE);  
   
   /**
    * Returns the SlotInfo to access the source code reference information

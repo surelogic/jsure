@@ -76,8 +76,6 @@ public class TRoleSecondPass implements IBinderClient {
 
   private static final Logger LOG1 = SLLogger.getLogger("analysis.callgraph.stats"); //$NON-NLS-1$
 
-  private Drop resultDependUpon = null;
-
   public static class WorkList {
 
     private List<IRNode> theWorkList = new ArrayList<IRNode>();
@@ -154,8 +152,7 @@ public class TRoleSecondPass implements IBinderClient {
     return res;
   }
 
-  public void cspEnd(final Drop resultDependUpon, IBinder binder) {
-    this.resultDependUpon = resultDependUpon;
+  public void cspEnd(IBinder binder) {
     TRSPStruct iWalk = TRSPStruct.getInstance();
     iWalk.binder = binder;
     TRoleSecondPass.binder = binder;
@@ -609,14 +606,6 @@ public class TRoleSecondPass implements IBinderClient {
 
     TRoleSummaryDrop methodConstraintResultsDependOn = new TRoleSummaryDrop("ThreadRoleConstraint methods"); //$NON-NLS-1$
     int methodConstraintCount = 0;
-    resultDependUpon.addDependent(methodConstraintResultsDependOn);
-
-    resultDependUpon.addDependent(noInfoInferDependOn);
-    resultDependUpon.addDependent(transparentDependOn);
-    resultDependUpon.addDependent(inheritDependOn);
-
-    resultDependUpon.addDependent(tRoleReportDataDependOn);
-    resultDependUpon.addDependent(threadRoleConstrainedResultsDependOn);
 
     boolean log1HeaderPrinted = false;
     int numMethodsWithBodies = 0;
@@ -763,7 +752,6 @@ public class TRoleSecondPass implements IBinderClient {
               + expandedMName;
           id = TRoleMessages.createWarningDrop(msg, aCGD.getNode());
         }
-        resultDependUpon.addDependent(id);
         if (ctxSumm.isEmpty()) {
           /*
            * id.addSupportingInformation("Union of calling contexts is EMPTY!",
@@ -865,7 +853,6 @@ public class TRoleSecondPass implements IBinderClient {
           sb.append("Union of calling contexts is "); //$NON-NLS-1$
           sb.append(TRoleBDDPack.userStr(ctxSumm.getFullExpr()));
           id.addSupportingInformation(null, sb.toString());
-          resultDependUpon.addDependent(id);
         }
       }
 
@@ -996,7 +983,6 @@ public class TRoleSecondPass implements IBinderClient {
       return;
     }
     TRoleSummaryDrop dependOn = new TRoleSummaryDrop(name);
-    resultDependUpon.addDependent(dependOn);
 
     int count = 0;
     final Sea sea = Sea.getDefault();

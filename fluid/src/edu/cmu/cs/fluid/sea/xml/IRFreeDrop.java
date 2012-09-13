@@ -267,7 +267,10 @@ public class IRFreeDrop extends Entity implements IDrop {
   public boolean instanceOf(Class<?> type) {
     final String thisTypeName = getAttribute(SeaSnapshot.useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
     final Class<?> thisType = SeaSnapshot.findType(thisTypeName);
-    return type.isAssignableFrom(thisType);
+    if (thisType != null)
+      return type.isAssignableFrom(thisType);
+    else
+      return false;
   }
 
   public boolean hasMatchingDeponents(DropPredicate p) {

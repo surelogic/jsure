@@ -44,8 +44,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   private static final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
       new ConcurrentHashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
 
-  private final AbstractWholeIRAnalysis<? extends IBinderClient, ?> analysis;
-
   private final IBinder binder;
   private final ITypeFormalEnv formalEnv;
 
@@ -148,7 +146,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   public GenericTypeInstantiationChecker(
       final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
       final IBinder b, final ITypeFormalEnv fe) {
-    analysis = a;
     binder = b;
     formalEnv = fe;
   }
@@ -298,7 +295,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     
 
     final ResultFolderDrop folder = new ResultFolderDrop(parameterizedType);
-    analysis.setResultDependUponDrop(folder, parameterizedType);
     folder.setResultMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
     folder.addCheckedPromise(boundsDrop);
@@ -322,7 +318,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
       final ResultDrop result = new ResultDrop(parameterizedType);
-      analysis.setResultDependUponDrop(result, parameterizedType);
       result.setResultMessage(msg, jTypeOfActual.toSourceText(),
             boundsString, nameOfTypeFormal);
       result.setConsistent(checks);

@@ -144,7 +144,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           if (declaredEffectsDrop != null) {
             final ResultDrop rd = new ResultDrop(member);
             rd.addCheckedPromise(declaredEffectsDrop);
-            setResultDependUponDrop(rd, member);
             rd.setConsistent();
             rd.setResultMessage(Messages.EMPTY_EFFECTS);
           }
@@ -165,7 +164,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	          if (maskedFx.isEmpty()) {
               final ResultDrop rd = new ResultDrop(member);
 	            rd.addCheckedPromise(declaredEffectsDrop);
-	            setResultDependUponDrop(rd, member);
 	            rd.setConsistent();
 	            rd.setResultMessage(Messages.EMPTY_EFFECTS);
 	          } else {
@@ -338,7 +336,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
 	    final InfoDrop drop = new InfoDrop(src);
 	    drop.setCategory(null);
-      setResultDependUponDrop(drop, src);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
@@ -471,7 +468,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
 		
 		// Finish the drop
-		setResultDependUponDrop(rd, src);
 		rd.setConsistent(isConsistent);
 		rd.setResultMessage(msgTemplate, msgArgs);
 		
@@ -489,7 +485,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
       final ResultDrop rd = new ResultDrop(expr);
       rd.addCheckedPromise(pd);
-      setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);
       rd.setResultMessage(Messages.READONLY_REFERENCE);
       (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());
