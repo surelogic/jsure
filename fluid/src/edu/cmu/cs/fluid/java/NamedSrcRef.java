@@ -3,11 +3,11 @@ package edu.cmu.cs.fluid.java;
 import com.surelogic.common.HashGenerator;
 
 public class NamedSrcRef extends AbstractSrcRef {
-  private final Object file;
+  private final String file;
   private final String pkg, cunit;
   private final String project;
 
-  public NamedSrcRef(String proj, Object f, String p, String cu) {
+  public NamedSrcRef(String proj, String f, String p, String cu) {
     project = proj;
     file = f;
     pkg = CommonStrings.intern(p);
@@ -15,7 +15,7 @@ public class NamedSrcRef extends AbstractSrcRef {
   }
 
   @Override
-  public Object getEnclosingFile() {
+  public String getEnclosingFile() {
     return file;
   }
 

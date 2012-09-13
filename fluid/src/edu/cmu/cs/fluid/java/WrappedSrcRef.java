@@ -28,7 +28,7 @@ public abstract class WrappedSrcRef implements ISrcRef {
     f_wrapped = wrapped;
   }
 
-  public Object getEnclosingFile() {
+  public String getEnclosingFile() {
     return f_wrapped.getEnclosingFile();
   }
 

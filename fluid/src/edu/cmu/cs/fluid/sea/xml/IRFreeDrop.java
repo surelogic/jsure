@@ -174,7 +174,7 @@ public class IRFreeDrop extends Entity implements IDrop {
       }
 
       @Override
-      public Object getEnclosingFile() {
+      public String getEnclosingFile() {
         return ref.getAttribute(FILE_ATTR);
       }
 

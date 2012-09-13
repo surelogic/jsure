@@ -21,7 +21,7 @@ public class ClassRef extends AbstractRef {
     return clazz.getCUName();
   }
 
-  public Object getEnclosingFile() {
+  public String getEnclosingFile() {
     return clazz.getRelativePath();
   }
 

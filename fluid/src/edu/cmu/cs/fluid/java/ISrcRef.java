@@ -32,7 +32,7 @@ import edu.cmu.cs.fluid.java.comment.IJavadocElement;
  * @see edu.cmu.cs.fluid.eclipse.adapter.JavaSourceFileAdapter
  */
 public interface ISrcRef {
-  
+
   /**
    * Fluid IR node that defines the type used by the {@link SlotInfo} for
    * {@link ISrcRef} below.
@@ -44,7 +44,7 @@ public interface ISrcRef {
    */
   public static final String SRC_REF_SLOT_NAME = "JavaNode.SrcRef";
 
-  Object getEnclosingFile();
+  String getEnclosingFile();
 
   /**
    * 
@@ -108,6 +108,9 @@ public interface ISrcRef {
 
   Long getHash();
 
+  /**
+   * @return The package that the source is within.
+   */
   String getPackage();
 
   /**

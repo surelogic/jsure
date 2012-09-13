@@ -9,7 +9,7 @@ public abstract class AbstractSrcRef implements ISrcRef {
     return null;
   }
 
-  public Object getEnclosingFile() {
+  public String getEnclosingFile() {
     return null;
   }
 
