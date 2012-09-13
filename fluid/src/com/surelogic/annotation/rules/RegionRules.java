@@ -267,7 +267,7 @@ public class RegionRules extends AnnotationRules {
       }
       return model;
     } else {
-      RegionModel.invalidate(qualifiedName, a.getPromisedFor());
+      //RegionModel.invalidate(qualifiedName, a.getPromisedFor());
       return null;
     }
   }
