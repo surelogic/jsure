@@ -183,7 +183,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
   public static void setReqSummDrop(IRNode node, TRoleReqSummaryDrop summ) {
     if (!tRoleDropsEnabled) return;
     node.setSlotValue(reqSummDropSI, summ);
-    summ.setAttachedTo(node, reqSummDropSI);
+   // summ.setAttachedTo(node, reqSummDropSI);
   }
   
   public static TRoleReqSummaryDrop getInheritedReqSummDrop(IRNode node) {
@@ -193,7 +193,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
   public static void setInheritedReqSummDrop(IRNode node, TRoleReqSummaryDrop summ) {
     if (!tRoleDropsEnabled) return;
     node.setSlotValue(reqInheritSummDropSI, summ);
-    summ.setAttachedTo(node, reqInheritSummDropSI);
+   // summ.setAttachedTo(node, reqInheritSummDropSI);
   }
 
   public static TRoleCtxSummaryDrop getCtxSummDrop(IRNode node) {
@@ -203,7 +203,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
   public static void setCtxSummDrop(IRNode node, TRoleCtxSummaryDrop summ) {
     if (!tRoleDropsEnabled) return;
     node.setSlotValue(ctxSummDropSI, summ);
-    summ.setAttachedTo(node, ctxSummDropSI);
+    //summ.setAttachedTo(node, ctxSummDropSI);
   }
   
   public static TRoleCtxSummaryDrop getInheritedCtxSummDrop(IRNode node) {
@@ -213,7 +213,7 @@ private static SlotInfo<Boolean> tRoleImportsProcessedSI =
   public static void setInheritedCtxSummDrop(IRNode node, TRoleCtxSummaryDrop summ) {
     if (!tRoleDropsEnabled) return;
     node.setSlotValue(ctxInheritSummDropSI, summ);
-    summ.setAttachedTo(node, ctxInheritSummDropSI);
+  //  summ.setAttachedTo(node, ctxInheritSummDropSI);
   }
   
   

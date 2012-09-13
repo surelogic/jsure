@@ -3,6 +3,8 @@ package com.surelogic.analysis;
 
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
+import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.LabelList;

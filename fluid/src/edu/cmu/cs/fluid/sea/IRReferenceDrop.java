@@ -17,7 +17,6 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -39,55 +38,6 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 public abstract class IRReferenceDrop extends Drop {
 
   public static final String PROPOSED_PROMISE = "proposed-promise";
-
-  /**
-   * The fAST node that this drop is attached to.
-   */
-  @InRegion("DropState")
-  private IRNode f_attachedToNode;
-
-  /**
-   * The slot info of {@link #f_attachedToNode} this drop is on.
-   */
-  @InRegion("DropState")
-  private SlotInfo<? extends Drop> f_attachedToSI;
-
-  /**
-   * Allows this drop to understand where it is referenced within the IR so it
-   * can remove the reference when it is invalidated. This is mostly used by
-   * {@link PromiseDrop} subtypes.
-   * 
-   * @param node
-   *          the node containing <code>slot</code>
-   * @param slot
-   *          the slot info this drop is attached to
-   * 
-   * @see #deponentInvalidAction(Drop)
-   */
-  public final void setAttachedTo(IRNode node, SlotInfo<? extends Drop> slot) {
-    synchronized (f_seaLock) {
-      f_attachedToNode = node;
-      f_attachedToSI = slot;
-    }
-  }
-
-  /**
-   * We override to remove the reference (if any) within the IR to this drop.
-   * 
-   * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction(Drop)
-   */
-  @Override
-  @RequiresLock("SeaLock")
-  protected void deponentInvalidAction(Drop invalidDeponent) {
-    super.deponentInvalidAction(invalidDeponent);
-    // FIX this does the wrong thing if it's a sequence
-    // Also doesn't reclaim storage
-    if (f_attachedToNode != null && f_attachedToSI != null) {
-      f_attachedToNode.setSlotValue(f_attachedToSI, null);
-      f_attachedToNode = null;
-      f_attachedToSI = null;
-    }
-  }
 
   /**
    * The fAST node that this PromiseDrop is associated with.

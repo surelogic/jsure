@@ -534,7 +534,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		if (!tRoleDropsEnabled)
 			return;
 		node.setSlotValue(simpleCGDropSI, cgDrop);
-		cgDrop.setAttachedTo(node, simpleCGDropSI);
+		//cgDrop.setAttachedTo(node, simpleCGDropSI);
 	}
 	
 	public static TRoleRequireDrop getReqDrop(IRNode node) {
@@ -562,7 +562,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		if (!tRoleDropsEnabled)
 			return;
 		node.setSlotValue(reqSummDropSI, summ);
-		summ.setAttachedTo(node, reqSummDropSI);
+		//summ.setAttachedTo(node, reqSummDropSI);
 	}
 
 	public static TRoleReqSummaryDrop getInheritedReqSummDrop(IRNode node) {
@@ -574,7 +574,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		if (!tRoleDropsEnabled)
 			return;
 		node.setSlotValue(reqInheritSummDropSI, summ);
-		summ.setAttachedTo(node, reqInheritSummDropSI);
+		//summ.setAttachedTo(node, reqInheritSummDropSI);
 	}
 
 	public static TRoleCtxSummaryDrop getCtxSummDrop(IRNode node) {
@@ -585,7 +585,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		if (!tRoleDropsEnabled)
 			return;
 		node.setSlotValue(ctxSummDropSI, summ);
-		summ.setAttachedTo(node, ctxSummDropSI);
+		//summ.setAttachedTo(node, ctxSummDropSI);
 	}
 
 	public static Collection<? extends TRoleImportDrop> getTRoleImports(
