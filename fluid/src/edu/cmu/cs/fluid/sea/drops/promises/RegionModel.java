@@ -98,7 +98,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
       if (model == null) {
         // Create these on demand to avoid making one for every field
     	NewRegionDeclarationNode dummy = new NewRegionDeclarationNode(-1, 
-    			JavaNode.getModifiers(field), JavaNode.getInfoOrNull(field), null);
+    			VariableDeclarator.getMods(field), JavaNode.getInfoOrNull(field), null);
     	dummy.setPromisedFor(region.getNode());
         model = new RegionModel(dummy, qname);
         REGIONNAME_PROJECT_TO_DROP.put(key, model);
@@ -479,5 +479,10 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
       }
     }
     return false;
+  }
+  
+  @Override
+  public NewRegionDeclarationNode getAAST() {
+	  return super.getAAST();
   }
 }
