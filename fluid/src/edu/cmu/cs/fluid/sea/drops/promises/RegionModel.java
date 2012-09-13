@@ -238,20 +238,12 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
 
   public boolean isFinal() {
     final NewRegionDeclarationNode ast = getAAST();
-    if (ast != null) {
-      return false;
-    } else {
-      return JavaNode.getModifier(VariableDeclarator.getMods(getNode()), JavaNode.FINAL);
-    }
+    return JavaNode.getModifier(ast.getModifiers(), JavaNode.FINAL);    
   }
 
   public boolean isVolatile() {
     final NewRegionDeclarationNode ast = getAAST();
-    if (ast != null) {
-      return false;
-    } else {
-      return JavaNode.getModifier(VariableDeclarator.getMods(getNode()), JavaNode.VOLATILE);
-    }
+    return JavaNode.getModifier(ast.getModifiers(), JavaNode.VOLATILE);    
   }
 
   public boolean isStatic() {
@@ -306,7 +298,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     final RegionSpecificationNode rsn;
     final IRegionBinding binding;
 
-    if (nrdn != null) {
+    if (nrdn.isAbstract()) {
       rsn = nrdn.getRegionParent();
       if (rsn != null) {
         binding = rsn.resolveBinding();
