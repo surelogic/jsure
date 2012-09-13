@@ -11,7 +11,6 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.EmptyIterator;
@@ -20,9 +19,6 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	//private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
-	
-	// TODO use ThreadLocal trick to collect all the builders
-	private final List<IDropBuilder> builders = new Vector<IDropBuilder>();
 	
 	protected AbstractIRAnalysis(boolean inParallel, Class<Q> type) {		
 		super(inParallel, type);
@@ -48,22 +44,11 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		return getClass().getSimpleName();
 	}
 	
-	public final void handleBuilder(IDropBuilder b) {
-		builders.add(b);
-	}
-	
 	/**
 	 * This doesn't affect other analyses, and so it can be called in analyzeEnd()
 	 */
 	protected final void finishBuild() {
 		flushWorkQueue();
-		
-		int num = 0;
-		for(IDropBuilder b : builders) {
-			num += b.build();
-		}
-		System.out.println("\tBuilding "+num+" results for "+this.getClass().getSimpleName());
-		builders.clear();
 	}
 		
 	public void init(IIRAnalysisEnvironment env) {
@@ -81,7 +66,6 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		//final IIRProject old        = project;
 		//project = p;		
 		this.binder = binder;
-		builders.clear();
 		
 		startAnalyzeBegin(p, binder);
 		if (flushAnalysis()) {

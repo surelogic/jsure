@@ -361,10 +361,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
-  protected final void setMsg(String message, Object... args) {
-    super.setMessage(message, args);
-  }
-
   /**
    * Gets the annotation AST for this promise. The value is a subtype of
    * {@link IAASTRootNode}.
