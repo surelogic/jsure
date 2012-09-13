@@ -309,7 +309,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final String methodName =
           JavaNames.genQualifiedMethodConstructorName(flowUnit);
       final UniquenessControlFlowDrop controlFlowDrop =
-          new UniquenessControlFlowDrop(flowUnit);
+          UniquenessControlFlowDrop.create(flowUnit);
       
       final long tooLongDuration = IDE.getInstance().getIntPreference(
           IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;

@@ -277,7 +277,7 @@ extends TripleLattice<Element<Integer>,
     this.locals = locals;
     this.binder = binder;
     this.analysis = analysis;
-    this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
+    this.controlFlowDrop = UniquenessControlFlowDrop.create(flowUnit);
   }
   
   public int getNumLocals() {
