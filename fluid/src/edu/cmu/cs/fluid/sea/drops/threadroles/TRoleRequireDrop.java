@@ -100,7 +100,7 @@ implements IThreadRoleDrop {
       setFromSrc(true);
     }
     this.setCategory(TRoleMessages.assuranceCategory);
-    setNodeAndCompilationUnitDependency(locInIR);
+   // setNodeAndCompilationUnitDependency(locInIR);
     // build the dependency on the TCNDeclDrop placeholders for all the names in
     // this expression.
     final Set<String> referencedNames = new HashSet<String>(2);
@@ -114,7 +114,7 @@ implements IThreadRoleDrop {
     setMessage(kind + ' ' + rawExpr);
     setFromSrc(false);
     this.setCategory(TRoleMessages.assuranceCategory);
-    setNodeAndCompilationUnitDependency(locInIR);
+ //   setNodeAndCompilationUnitDependency(locInIR);
 
     final Set<String> referencedNames = new HashSet<String>(2);
     rawExpr.referencedColorNames(referencedNames);

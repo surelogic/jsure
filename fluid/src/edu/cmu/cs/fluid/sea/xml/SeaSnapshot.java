@@ -291,7 +291,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       if (Drop.DEPONENT.equals(refType)) {
         fromE.addDeponent(toE);
         toE.addDependent(fromE);
-      } else if (IRReferenceDrop.PROPOSED_PROMISE.equals(refType)) {
+      } else if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
         fromE.addProposal((IRFreeProposedPromiseDrop) toE);
       } else if (fromE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;

@@ -26,6 +26,7 @@ public class TRoleIncSummaryDrop extends IRReferenceDrop implements IThreadRoleD
   private static final Logger LOG = SLLogger.getLogger("ColorDropBuilding");
   
   public TRoleIncSummaryDrop(TRoleNameModel model) {
+    super(model.getNode()); // will (maybe) blow up!
     TRoleNameModel canonModel = model.getCanonicalNameModel();
     
     JBDD resExpr = computeIncSummaryExpr(canonModel);

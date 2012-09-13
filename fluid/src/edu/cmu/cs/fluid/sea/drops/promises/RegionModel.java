@@ -1,7 +1,8 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.logging.Level;
 
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.InRegionNode;
@@ -55,13 +56,10 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   private static final HashMap<Pair<String, String>, RegionModel> REGIONNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, RegionModel>();
 
   /*
-  @Override
-  public void clearNode() {
-    SLLogger.getLogger().log(Level.WARNING, "Clearing node for " + f_project + '/' + this.f_regionName,
-        new Throwable("For stack trace"));
-    super.clearNode();
-  }
-  */
+   * @Override public void clearNode() { SLLogger.getLogger().log(Level.WARNING,
+   * "Clearing node for " + f_project + '/' + this.f_regionName, new
+   * Throwable("For stack trace")); super.clearNode(); }
+   */
 
   public static RegionModel getInstance(final String regionName, final String projectName) {
     if (regionName == null)
@@ -71,8 +69,8 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     final Pair<String, String> key = new Pair<String, String>(regionName, projectName);
     return getInstance(key);
   }
-   
-  private static RegionModel getInstance(Pair<String,String> key) {
+
+  private static RegionModel getInstance(Pair<String, String> key) {
     synchronized (RegionModel.class) {
       RegionModel result = REGIONNAME_PROJECT_TO_DROP.get(key);
       return result;
@@ -92,15 +90,15 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   public static RegionModel getInstance(FieldRegion region) {
     final String qname = region.toString();
-    final Pair<String,String> key = getPair(qname, region.getNode());
+    final Pair<String, String> key = getPair(qname, region.getNode());
     RegionModel model;
     synchronized (RegionModel.class) {
-    	model = getInstance(key);
-    	if (model == null) {
-    		// Create these on demand to avoid making one for every field
-    		model = new RegionModel(null, region.getNode(), qname);
-    		REGIONNAME_PROJECT_TO_DROP.put(key, model);
-    	}
+      model = getInstance(key);
+      if (model == null) {
+        // Create these on demand to avoid making one for every field
+        model = new RegionModel(null, region.getNode(), qname);
+        REGIONNAME_PROJECT_TO_DROP.put(key, model);
+      }
     }
     IRNode n = model.getNode();
     if (n != null && n.identity() != IRNode.destroyedNode && !n.equals(region.getNode())) {
@@ -110,7 +108,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
      * else if (n == null && "test.Test.counter".equals(qname)) {
      * System.out.println("Creating region model for test.Test.counter"); }
      */
-    model.setNodeAndCompilationUnitDependency(region.getNode());
     setResultMessage(model, region.isStatic(), region.getVisibility(), qname);
     return model;
   }
@@ -166,15 +163,15 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    *          the region name
    */
   private RegionModel(NewRegionDeclarationNode decl, IRNode context, String name) {
-	super(decl);
+    super(decl);
     f_regionName = name;
     f_simpleName = JavaNames.genSimpleName(name);
     f_project = getPair(name, context).second();
     if (decl == null) {
-    	this.setMessage("region " + name);
+      this.setMessage("region " + name);
     } else {
-    	// Hack to get around the fact that it actually needs the region name
-    	computeBasedOnAST();
+      final NewRegionDeclarationNode ast = getAAST();
+      setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_regionName);
     }
     this.setCategory(JavaGlobals.REGION_CAT);
 
@@ -184,13 +181,13 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   }
 
   public static RegionModel create(NewRegionDeclarationNode decl, String name) {
-	  RegionModel result = new RegionModel(decl, decl.getPromisedFor(), name);
-	  synchronized (RegionModel.class) {
-		  REGIONNAME_PROJECT_TO_DROP.put(getPair(name, decl.getPromisedFor()), result);
-	  }
-	  return result;
+    RegionModel result = new RegionModel(decl, decl.getPromisedFor(), name);
+    synchronized (RegionModel.class) {
+      REGIONNAME_PROJECT_TO_DROP.put(getPair(name, decl.getPromisedFor()), result);
+    }
+    return result;
   }
-  
+
   @Override
   protected boolean okAsNode(IRNode n) {
     Operator op = JJNode.tree.getOperator(n);
@@ -200,10 +197,12 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   public static void invalidate(String lockName, IRNode context) {
     final IIRProject p = JavaProjects.getEnclosingProject(context);
     final String project = p == null ? "" : p.getName();
-    RegionModel drop = REGIONNAME_PROJECT_TO_DROP.remove(Pair.getInstance(lockName, project));
+    final RegionModel drop;
+    synchronized (RegionModel.class) {
+      drop = REGIONNAME_PROJECT_TO_DROP.remove(Pair.getInstance(lockName, project));
+    }
     if (drop != null) {
-    	//drop.clearAAST();
-    	drop.invalidate();
+      drop.invalidate();
     }
   }
 
@@ -214,20 +213,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
-  }
-
-  @Override
-  protected void computeBasedOnAST() {
-    /*
-     * IRNode decl = getNode(); if (!(JJNode.tree.getOperator(decl) instanceof
-     * VariableDeclarator)) {
-     * System.out.println("Got non-VarDecl for "+regionName); }
-     */
-    final NewRegionDeclarationNode ast = getAAST();
-    if (ast == null) {
-      return;
-    }
-    setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_regionName);
   }
 
   public RegionModel getModel() {
@@ -466,7 +451,12 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   }
 
   public static void printModels() {
-    for (RegionModel m : REGIONNAME_PROJECT_TO_DROP.values()) {
+    final Collection<RegionModel> values;
+    synchronized (RegionModel.class) {
+      values = new ArrayList<RegionModel>(REGIONNAME_PROJECT_TO_DROP.values());
+    }
+
+    for (RegionModel m : values) {
       final IRNode n = m.getNode();
       if (n == null || VariableDeclarator.prototype.includes(n)) {
         continue;

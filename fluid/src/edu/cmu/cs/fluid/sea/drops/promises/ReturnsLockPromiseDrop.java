@@ -17,22 +17,15 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  */
 public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
 
-	/**
-	 * Constructor to create a drop with an associated ReturnsLockNode
-	 * @param node
-	 */
-	public ReturnsLockPromiseDrop(ReturnsLockNode node) {
-		super(node);
+  /**
+   * Constructor to create a drop with an associated ReturnsLockNode
+   * 
+   * @param node
+   */
+  public ReturnsLockPromiseDrop(ReturnsLockNode node) {
+    super(node);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-	}
-  
-  @Override
-  protected void computeBasedOnAST() {
-    if (getAAST() != null) {
-      IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAAST().getPromisedFor());
-      setResultMessage(Messages.LockAnnotation_returnsLockDrop,
-          getAAST().getLock(),
-          JavaNames.genMethodConstructorName(mdecl));
-    }
+    IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAAST().getPromisedFor());
+    setResultMessage(Messages.LockAnnotation_returnsLockDrop, getAAST().getLock(), JavaNames.genMethodConstructorName(mdecl));
   }
 }

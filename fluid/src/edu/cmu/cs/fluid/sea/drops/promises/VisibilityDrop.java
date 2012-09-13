@@ -72,9 +72,9 @@ public abstract class VisibilityDrop extends PromiseDrop {
     "{0}";
 
   protected VisibilityDrop(IRNode locInIR, IRNode modIR) {
-	super(null);
+	  super(null); // WILL BLOW UP;
     refdModule = modIR;
-    setNodeAndCompilationUnitDependency(locInIR);
+    //setNodeAndCompilationUnitDependency(locInIR);
     setCategory(JavaGlobals.MODULE_CAT);
   }
 

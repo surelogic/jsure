@@ -28,7 +28,7 @@ public class JSureResultsXMLReader extends
 
 	@Override
 	protected ResultDrop createResult() {
-		ResultDrop d = new ResultDrop();
+		ResultDrop d = new ResultDrop(null); // THIS WILL BLOW UP!
 		d.setConsistent();
 		return d;
 	}
@@ -36,9 +36,9 @@ public class JSureResultsXMLReader extends
 	@Override
 	protected void handleSourceRef(ResultDrop d, Entity srcRef) {
 		IRNode n = findIRNode(srcRef);
-		if (n != null) {
-			d.setNodeAndCompilationUnitDependency(n);
-		}
+//		if (n != null) {
+//			d.setNodeAndCompilationUnitDependency(n);
+//		}
 	}
 
 	@Override

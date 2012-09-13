@@ -8,13 +8,10 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class RefObjectPromiseDrop extends BooleanPromiseDrop<RefObjectNode> {
-	public RefObjectPromiseDrop(RefObjectNode a) {
-		super(a);
-	    setCategory(Messages.DSC_LAYERS_ISSUES);
-	}
 
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage(EqualityRules.REF_OBJECT+" on "+JavaNames.getFullName(getNode()));
-	}
+  public RefObjectPromiseDrop(RefObjectNode a) {
+    super(a);
+    setCategory(Messages.DSC_LAYERS_ISSUES);
+    setMessage(EqualityRules.REF_OBJECT + " on " + JavaNames.getFullName(getNode()));
+  }
 }

@@ -232,7 +232,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       
       // Prefer the class to be final
       if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
-        final WarningDrop db = new WarningDrop();
+        final WarningDrop db = new WarningDrop(typeDecl);
         analysis.setResultDependUponDrop(db, typeDecl);
         db.setResultMessage(Messages.CONSIDER_FINAL);
       }

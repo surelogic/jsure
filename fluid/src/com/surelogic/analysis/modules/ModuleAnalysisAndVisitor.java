@@ -762,7 +762,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   private static void setResultDep(final IRReferenceDrop drop, final IRNode node) {
 //    drop.setNode(node);
-    drop.setNodeAndCompilationUnitDependency(node);
+    //drop.setNodeAndCompilationUnitDependency(node);
     if (resultDependUpon != null && resultDependUpon.isValid()) {
       resultDependUpon.addDependent(drop);
     } else {
@@ -774,7 +774,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final WarningDrop info = new WarningDrop();
+    final WarningDrop info = new WarningDrop(context);
     setResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
@@ -785,7 +785,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final IRNode context, final PromiseDrop<?> p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final ResultDrop result = new ResultDrop();
+    final ResultDrop result = new ResultDrop(context);
     setResultDep(result, context);
     result.setMessage(msg);
     result.addCheckedPromise(p);

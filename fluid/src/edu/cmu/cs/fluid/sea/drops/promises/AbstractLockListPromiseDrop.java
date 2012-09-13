@@ -7,8 +7,10 @@ import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode> extends PromiseDrop<N> {
+
   AbstractLockListPromiseDrop(N node) {
     super(node);
+    setResultMessage(Messages.LockAnnotation_requiresLockDrop, getAAST().toString(), JavaNames.genMethodConstructorName(getNode()));
   }
 
   /**
@@ -17,13 +19,5 @@ public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode
   @Override
   public boolean isCheckedByAnalysis() {
     return true;
-  }
-
-  @Override
-  protected void computeBasedOnAST() {
-    if (getAAST() != null) {
-      setResultMessage(Messages.LockAnnotation_requiresLockDrop, getAAST().toString(),
-          JavaNames.genMethodConstructorName(getNode()));
-    }
   }
 }

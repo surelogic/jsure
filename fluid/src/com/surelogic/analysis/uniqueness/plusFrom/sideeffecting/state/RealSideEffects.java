@@ -414,7 +414,7 @@ public final class RealSideEffects implements ISideEffects {
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
-    final ResultDrop result = new ResultDrop();
+    final ResultDrop result = new ResultDrop(node);
     drops.add(result);
     analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);

@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.NotContainableNode;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -14,14 +14,11 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotContainableNode> {
+
   public NotContainablePromiseDrop(NotContainableNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
-    String name = JavaNames.getTypeName(getNode());
+    final String name = JavaNames.getTypeName(getNode());
     setResultMessage(Messages.LockAnnotation_notContainableDrop, name);
   }
 }

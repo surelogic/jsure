@@ -623,8 +623,6 @@ public class Util {
 	}
 	
 	private static void makePromiseWarningDrop(String project, int num, Object... args) {
-		PromiseWarningDrop d = new PromiseWarningDrop();
-		d.setResultMessage(num, args);			
 		
 		// TODO note this is a memory leak if run as embedded
 		IRNode n = new MarkedIRNode("For src ref");
@@ -641,7 +639,8 @@ public class Util {
 				return -1;
 			}
 		});
-		d.setNode(n);
+		PromiseWarningDrop d = new PromiseWarningDrop(n);
+		d.setResultMessage(num, args);			
 		//LOG.warning(d.getMessage());
 	}
 

@@ -143,6 +143,7 @@ public class TRoleCtxSummaryDrop extends IRReferenceDrop implements IThreadRoleD
    *          The node to build the summary for.
    */
   private TRoleCtxSummaryDrop(IRNode node) {
+    super(null); // will blow up!
     simpleExpr = TRoleBDDPack.zero();
     fullExpr = TRoleBDDPack.zero();
     // localSimpleExpr = ColorBDDPack.zero();
@@ -154,7 +155,7 @@ public class TRoleCtxSummaryDrop extends IRReferenceDrop implements IThreadRoleD
       System.out.println("Got null methodName");
     }
 
-    setNodeAndCompilationUnitDependency(node);
+    //setNodeAndCompilationUnitDependency(node);
 
     assert (ThreadRoleRules.getCtxSummDrop(node) == null);
     ThreadRoleRules.setCtxSummDrop(node, this);

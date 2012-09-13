@@ -142,7 +142,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           final RegionEffectsPromiseDrop declaredEffectsDrop =
               MethodEffectsRules.getRegionEffectsDrop(member);
           if (declaredEffectsDrop != null) {
-            final ResultDrop rd = new ResultDrop();
+            final ResultDrop rd = new ResultDrop(member);
             rd.addCheckedPromise(declaredEffectsDrop);
             setResultDependUponDrop(rd, member);
             rd.setConsistent();
@@ -163,7 +163,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	            MethodEffectsRules.getRegionEffectsDrop(member);
 
 	          if (maskedFx.isEmpty()) {
-              final ResultDrop rd = new ResultDrop();
+              final ResultDrop rd = new ResultDrop(member);
 	            rd.addCheckedPromise(declaredEffectsDrop);
 	            setResultDependUponDrop(rd, member);
 	            rd.setConsistent();
@@ -335,9 +335,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDrop drop = new InfoDrop();
-	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
+	    final InfoDrop drop = new InfoDrop(src);
+	    drop.setCategory(null);
       setResultDependUponDrop(drop, src);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
@@ -464,10 +464,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDrop rd = new ResultDrop();
+	  final IRNode src = eff.getSource();
+		final ResultDrop rd = new ResultDrop(src);
 		rd.addCheckedPromise(declEffDrop);
 
-		final IRNode src = eff.getSource();
 		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
 		
 		// Finish the drop
@@ -487,7 +487,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  
     public void writeToBorrowedReadOnly(
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
-      final ResultDrop rd = new ResultDrop();
+      final ResultDrop rd = new ResultDrop(expr);
       rd.addCheckedPromise(pd);
       setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);

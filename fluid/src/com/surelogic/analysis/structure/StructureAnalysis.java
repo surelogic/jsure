@@ -84,9 +84,8 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 				if (preFilterMatches(n)) {
 					IBinding parent = StructureRules.findParentWithMustInvokeOnOverride(getAnalysis().getBinder(), n);					
 					if (parent != null) {
-						ResultDrop rd = new ResultDrop();
+						ResultDrop rd = new ResultDrop(n);
 						rd.setCategory(Messages.DSC_LAYERS_ISSUES);
-						rd.setNodeAndCompilationUnitDependency(n);	
 						
 						// Check if it really invokes the parent
 						final boolean found = getAnalysis().doAccept(cu);

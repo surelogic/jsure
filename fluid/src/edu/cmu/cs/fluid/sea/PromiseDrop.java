@@ -41,34 +41,40 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   public static final boolean useCheckedByResults = true;
   public static final String CHECKED_BY_RESULTS = "checked-by-result";
 
+  /**
+   * Constructs a promise drop with the root of the associated annotation
+   * AST&mdash;an {@link IAASTRootNode}. The passed node must be non-null.
+   * 
+   * @param a
+   *          a non-null annotation AST node.
+   * 
+   * @throws IllegalArgumentException
+   *           if <tt>a</tt> is null;
+   * @throws IllegalStateException
+   *           if the {@link IRNode} associated with <tt>a</tt> is a
+   *           {@link IRNode#destroyedNode}.
+   */
   public PromiseDrop(A a) {
+    super(a.getPromisedFor());
+
     setDerivedFromSrc(true);
 
-    if (a != null) {
-    	if (a.getPromisedFor().identity() == IRNode.destroyedNode) {
-    		throw new IllegalStateException("Destroyed node for: "+a);
-    	}
-        f_aast = a;
-        // computeBasedOnAST() called below
-        setNode(a.getPromisedFor());
+    if (a.getPromisedFor().identity() == IRNode.destroyedNode) {
+      throw new IllegalStateException("Destroyed node for: " + a);
+    }
+    f_aast = a;
 
-        final ISrcRef orig = super.getSrcRef();
-        if (orig != null) {
-          ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
-          if (ref == null) {
-            ref = orig;
-          }
-          f_lineNumber = ref.getLineNumber();
-          f_hash = ref.getHash();
-        } else {
-          f_lineNumber = -1;
-          f_hash = -1L;
-        }
+    final ISrcRef orig = super.getSrcRef();
+    if (orig != null) {
+      ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
+      if (ref == null) {
+        ref = orig;
+      }
+      f_lineNumber = ref.getLineNumber();
+      f_hash = ref.getHash();
     } else {
-    	setMessage(this.getClass().getName());
-    	f_aast = null;
-    	f_lineNumber = -1;
-        f_hash = -1L;
+      f_lineNumber = -1;
+      f_hash = -1L;
     }
   }
 
@@ -373,17 +379,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
-//  /**
-//   * Clears the reference to this drop's annotation AST. Subsequent calls to
-//   * {@link #getAAST()} will return {@code null}.
-//   */
-//  private void clearAAST() {
-//    synchronized (f_seaLock) {
-//      f_aast = null;
-//    }
-//    // FIX need to do anything else?
-//  }
-
   @Override
   @RequiresLock("SeaLock")
   protected void invalidate_internal() {
@@ -392,8 +387,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (getAAST() != null) {
       getAAST().clearPromisedFor();
     }
-    //clearAAST();
-    clearNode();
   }
 
   @Override
@@ -503,7 +496,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (n == null) {
       n = getAAST().getPromisedFor();
     }
-    return createSourceRef(n, getSrcRef());
+    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(n, getSrcRef());
   }
 
   /*

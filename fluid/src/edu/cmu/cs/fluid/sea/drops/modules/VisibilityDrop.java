@@ -76,7 +76,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
     } else if (a instanceof ExportNode) {
       refdModule = ((ExportNode) a).getToModuleName();
     }
-    setNodeAndCompilationUnitDependency(a.getPromisedFor());
+   // setNodeAndCompilationUnitDependency(a.getPromisedFor());
     setCategory(JavaGlobals.MODULE_CAT);
   }
 

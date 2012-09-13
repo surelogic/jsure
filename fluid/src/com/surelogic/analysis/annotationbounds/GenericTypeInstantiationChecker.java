@@ -297,7 +297,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
     
 
-    final ResultFolderDrop folder = new ResultFolderDrop();
+    final ResultFolderDrop folder = new ResultFolderDrop(parameterizedType);
     analysis.setResultDependUponDrop(folder, parameterizedType);
     folder.setResultMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
@@ -321,7 +321,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
       final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
-      final ResultDrop result = new ResultDrop();
+      final ResultDrop result = new ResultDrop(parameterizedType);
       analysis.setResultDependUponDrop(result, parameterizedType);
       result.setResultMessage(msg, jTypeOfActual.toSourceText(),
             boundsString, nameOfTypeFormal);

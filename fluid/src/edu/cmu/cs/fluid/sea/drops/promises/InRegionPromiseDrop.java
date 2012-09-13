@@ -12,10 +12,14 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  */
 public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
+
   public InRegionPromiseDrop(InRegionNode n) {
     super(n);
+    String name = JavaNames.getFieldDecl(getNode());
+    String regionName = getAAST().getSpec().unparse(false);
+    setResultMessage(Messages.RegionAnnotation_inRegionDrop, regionName, name); //$NON-NLS-1$
   }
-  
+
   /**
    * Region definitions are not checked by analysis (other than the promise
    * scrubber).
@@ -23,17 +27,5 @@ public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
-    if (getAAST() != null) {
-      String name       = JavaNames.getFieldDecl(getNode());
-      String regionName = getAAST().getSpec().unparse(false);
-      setResultMessage(Messages.RegionAnnotation_inRegionDrop, regionName, name); //$NON-NLS-1$
-//    
-//      IRegionBinding b = getAST().getSpec().resolveBinding();
-//      b.getModel().addDependent(this);
-    }
   }
 }

@@ -480,9 +480,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		    if (uniqueFields.isEmpty()) {
 		      aggregatedUniqueFields = null;
 		    } else {
-          final ResultDrop middleDrop = new ResultDrop();
+          final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop, methodDecl);
           for (final PromiseDrop<? extends IAASTRootNode> ud : uniqueFields) {
@@ -501,9 +500,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (myUniqueParams.isEmpty()) {
           aggregatedUniqueParams = null;
         } else {
-          final ResultDrop middleDrop = new ResultDrop();
+          final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : myUniqueParams) {
@@ -522,7 +520,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	ResultDrop getMethodControlFlowDrop(final IRNode block) {
     ResultDrop drop = cachedControlFlow.get(block);
     if (drop == null || !drop.isValid()) {
-      drop = new ResultDrop();
+      drop = new ResultDrop(block);
       drop.setConsistent();
       setResultDependUponDrop(drop, block);
 
@@ -918,7 +916,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           /* Here we hold off setting the message and category until the 
            * call is actually assured in checkMethodCall()
            */
-          final ResultDrop callDrop = new ResultDrop();
+          final ResultDrop callDrop = new ResultDrop(currentNode);
           callDrop.setConsistent();
           setResultDependUponDrop(callDrop, currentNode);
           // This result checks the uniqueness promises of the parameters
@@ -1051,7 +1049,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
   private <D extends PromiseDrop<? extends IAASTRootNode>> ResultDrop getMethodCallDrop(final IRNode n,
       final Set<D> promises, int num, Object... args) {
-    final ResultDrop rd = new ResultDrop();
+    final ResultDrop rd = new ResultDrop(n);
     rd.setConsistent();
     rd.setResultMessage(num, args);
     setResultDependUponDrop(rd, n);

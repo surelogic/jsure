@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * Drops for reporting inferred or information to the user, "i" results.
  * <p>
@@ -8,13 +10,7 @@ package edu.cmu.cs.fluid.sea;
  */
 public class InfoDrop extends IRReferenceDrop implements IReportedByAnalysisDrop {
 
-  public interface Factory {
-    InfoDrop create();
+  public InfoDrop(IRNode node) {
+    super(node);
   }
-
-  public static final Factory factory = new Factory() {
-    public InfoDrop create() {
-      return new InfoDrop();
-    }
-  };
 }

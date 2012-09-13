@@ -38,7 +38,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 
 	private void setResultDependUponDrop(ResultDrop drop, IRNode node,
 			int resultNum, String arg) {
-		drop.setNodeAndCompilationUnitDependency(node);
+		//drop.setNodeAndCompilationUnitDependency(node);
 		drop.setResultMessage(resultNum, arg);
 		if (AbstractWholeIRAnalysis.useDependencies) {
 			return;
@@ -182,7 +182,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		}
 
 		if (noThreadsStarted && createDrops) {
-			ResultDrop r = new ResultDrop();
+			ResultDrop r = new ResultDrop(block);
 			r.setConsistent();
 			r.addCheckedPromise(pd);
 			setResultDependUponDrop(r, block, Messages.NO_THREADS_STARTED, JavaNames
@@ -254,7 +254,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							// System.out.println("[ThreadEffects] Thread.start() "
 							// + DebugUnparser.toString(node));
 							if (createDrops) {
-							  ResultDrop rd = new ResultDrop();
+							  ResultDrop rd = new ResultDrop(node);
 							rd.setInconsistent();
 							rd.addCheckedPromise(pd);
 							setResultDependUponDrop(rd, node, Messages.PROHIBITED, DebugUnparser
@@ -301,7 +301,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				// get the promise drop
 				StartsPromiseDrop callp = ThreadEffectsRules
 				.getStartsSpec(declaration);
-				ResultDrop rd = new ResultDrop();
+				ResultDrop rd = new ResultDrop(node);
 				rd.addCheckedPromise(pd);
 				rd.addTrustedPromise(callp);
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
@@ -309,7 +309,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				success = true;
 			} else {
 			  // No annotation: called method could start anything
-				ResultDrop rd = new ResultDrop();
+				ResultDrop rd = new ResultDrop(node);
 				rd.addCheckedPromise(pd);
 				rd.setInconsistent();
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));

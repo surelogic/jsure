@@ -139,7 +139,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
       }
 
       res = new TRoleReqSummaryDrop(node);
-      res.setNodeAndCompilationUnitDependency(node);
+      //res.setNodeAndCompilationUnitDependency(node);
       ThreadRoleRules.setReqSummDrop(node, res);
 
       final TRoleRequireDrop proto = ThreadRoleRules.getReqDrop(node);
@@ -251,7 +251,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     fullExpr = TRoleBDDPack.one();
     // localSimpleExpr = ColorBDDPack.one();
     // localFullExpr = ColorBDDPack.one();
-    setNodeAndCompilationUnitDependency(node);
+  //  setNodeAndCompilationUnitDependency(node);
     // resDrop = null;
     methodName = JJNode.getInfo(node);
 

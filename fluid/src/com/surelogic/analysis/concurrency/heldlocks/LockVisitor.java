@@ -840,7 +840,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	private void setLockResultDep(final IRReferenceDrop drop,
 			final IRNode node) {
-		drop.setNodeAndCompilationUnitDependency(node);
+		//drop.setNodeAndCompilationUnitDependency(node);
 		if (AbstractWholeIRAnalysis.useDependencies) {
 			return;
 		}
@@ -855,7 +855,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDrop info = new InfoDrop();
+		final InfoDrop info = new InfoDrop(context);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -865,7 +865,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private WarningDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final WarningDrop info = new WarningDrop();
+		final WarningDrop info = new WarningDrop(context);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -876,7 +876,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final PromiseDrop<? extends IAASTRootNode> p,
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDrop result = new ResultDrop();
+		final ResultDrop result = new ResultDrop(context);
 		setLockResultDep(result, context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);

@@ -5,6 +5,7 @@ import java.util.List;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
@@ -26,7 +27,8 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   /**
    * Constructs a new analysis result folder.
    */
-  public ResultFolderDrop() {
+  public ResultFolderDrop(IRNode node) {
+    super(node);
   }
 
   /**

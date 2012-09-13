@@ -26,7 +26,7 @@ public final class SupportingInformationViaAnalysisResultMessage implements ISup
     location = link;
 
     final ISrcRef ref = JavaNode.getSrcRef(link);
-    JavaSourceReference srcRef = IRReferenceDrop.createSourceRef(link, ref);
+    JavaSourceReference srcRef = DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(link, ref);
     message = AnalysisResultMessage.getInstance(srcRef, number, args);
   }
 

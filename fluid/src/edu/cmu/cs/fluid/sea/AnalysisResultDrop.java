@@ -9,6 +9,7 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
@@ -29,6 +30,10 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * XML attribute constants
    */
   public static final String CHECKED_PROMISE = "checked-promise";
+
+  protected AnalysisResultDrop(IRNode node) {
+    super(node);
+  }
 
   /**
    * The set of promise drops being checked, or established, by this result.
