@@ -149,16 +149,20 @@ public final class Messages extends AbstractMessages {
   
   
   // For Immutable assurance
-  public static final int IMMUTABLE_FINAL_PRIMITIVE = 480;
-  public static final int IMMUTABLE_NOT_FINAL = 481;
-  public static final int IMMUTABLE_FINAL_IMMUTABLE = 482;
-  public static final int IMMUTABLE_FINAL_NOT_IMMUTABLE = 483;
-  public static final int IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE = 484;
-  public static final int IMMUTABLE_VOUCHED = 485;
-  public static final int TRIVIALLY_IMMUTABLE = 486;
-  public static final int IMMUTABLE_VOUCHED_WITH_REASON = 487;
+  public static final int IMMUTABLE_VOUCHED = 480;
+  public static final int IMMUTABLE_VOUCHED_WITH_REASON = 481;
+  public static final int FOLDER_IS_IMMUTABLE = 482;
+  public static final int FOLDER_IS_NOT_IMMUTABLE = 483;
+  public static final int IMMUTABLE_FINAL = 484;
+  public static final int IMMUTABLE_NOT_FINAL = 485;
+  public static final int IMMUTABLE_PRIMITIVE = 486;
+  public static final int FIELD_TYPE_IMMUTABLE = 487;
   public static final int IMMUTABLE_IMPL = 488;
-  public static final int IMMUTABLE_SUPERTYPE = 489;
+  public static final int FIELD_TYPE_NOT_IMMUTABLE = 489;
+  public static final int TRIVIALLY_IMMUTABLE = 490;
+  public static final int IMMUTABLE_SUPERTYPE = 491;
+  
+  
   
   public static final int ANNOTATION_BOUNDS_FOLDER = 495;
   public static final int ANNOTATION_BOUND_SATISFIED = 496;

@@ -81,10 +81,10 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
        * EnumConstantClassDeclarations. We want the enumeration that contains
        * the declaration to be the supertype.
        */
-      processSuperType(JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
+      processSuperType(typeDecl, JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
     } else {
       for (final IRNode name : VisitUtil.getSupertypeNames(typeDecl)) {
-        processSuperType(analysis.getBinder().getBinding(name));
+        processSuperType(name, analysis.getBinder().getBinding(name));
       }
     }
 
@@ -115,7 +115,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     // Do nothing by default
   }
 
-  protected void processSuperType(final IRNode decl) {
+  protected void processSuperType(final IRNode name, final IRNode decl) {
     // Do nothing by default
   }
 

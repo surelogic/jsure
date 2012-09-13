@@ -66,11 +66,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
   }
 
   @Override
-  protected void processSuperType(final IRNode tdecl) {
+  protected void processSuperType(final IRNode name, final IRNode tdecl) {
     final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
         LockRules.getThreadSafeImplPromise(tdecl);
     if (pDrop != null) {
-      final ResultDrop result = createResult(tdecl, true,
+      final ResultDrop result = createResult(name, true,
           Messages.THREAD_SAFE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrustedPromise(pDrop);
