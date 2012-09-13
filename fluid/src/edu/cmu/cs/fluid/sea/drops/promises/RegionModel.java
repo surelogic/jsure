@@ -90,13 +90,17 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   public static RegionModel getInstance(FieldRegion region) {
     final String qname = region.toString();
-    final Pair<String, String> key = getPair(qname, region.getNode());
+    final IRNode field = region.getNode();
+    final Pair<String, String> key = getPair(qname, field);
     RegionModel model;
     synchronized (RegionModel.class) {
       model = getInstance(key);
       if (model == null) {
         // Create these on demand to avoid making one for every field
-        model = new RegionModel(null, region.getNode(), qname);
+    	NewRegionDeclarationNode dummy = new NewRegionDeclarationNode(-1, 
+    			JavaNode.getModifiers(field), JavaNode.getInfoOrNull(field), null);
+    	dummy.setPromisedFor(region.getNode());
+        model = new RegionModel(dummy, qname);
         REGIONNAME_PROJECT_TO_DROP.put(key, model);
       }
     }
@@ -162,11 +166,11 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * @param name
    *          the region name
    */
-  private RegionModel(NewRegionDeclarationNode decl, IRNode context, String name) {
+  private RegionModel(NewRegionDeclarationNode decl, String name) {
     super(decl);
     f_regionName = name;
     f_simpleName = JavaNames.genSimpleName(name);
-    f_project = getPair(name, context).second();
+    f_project = getPair(name, decl.getPromisedFor()).second();
     if (decl == null) {
       this.setMessage("region " + name);
     } else {
@@ -181,7 +185,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
   }
 
   public static RegionModel create(NewRegionDeclarationNode decl, String name) {
-    RegionModel result = new RegionModel(decl, decl.getPromisedFor(), name);
+    RegionModel result = new RegionModel(decl, name);
     synchronized (RegionModel.class) {
       REGIONNAME_PROJECT_TO_DROP.put(getPair(name, decl.getPromisedFor()), result);
     }
