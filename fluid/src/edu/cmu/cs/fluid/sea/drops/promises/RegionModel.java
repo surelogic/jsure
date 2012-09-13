@@ -54,12 +54,14 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    */
   private static final HashMap<Pair<String, String>, RegionModel> REGIONNAME_PROJECT_TO_DROP = new HashMap<Pair<String, String>, RegionModel>();
 
+  /*
   @Override
   public void clearNode() {
     SLLogger.getLogger().log(Level.WARNING, "Clearing node for " + f_project + '/' + this.f_regionName,
         new Throwable("For stack trace"));
     super.clearNode();
   }
+  */
 
   public static RegionModel getInstance(final String regionName, final String projectName) {
     if (regionName == null)
