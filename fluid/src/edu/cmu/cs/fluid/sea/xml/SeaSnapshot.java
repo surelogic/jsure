@@ -309,18 +309,30 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;        
           if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
               fromPI.addCheckedByResult(toPI);
+          } else {
+              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
           }
       } else if (fromE instanceof IRFreeResultDrop) {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
-        final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
-  
-        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-          fromPI.addCheckedPromise(toPI);
-        } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
-          fromPI.addTrustedPromise(toPI);
-        } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-          final String label = to.getAttribute(ResultDrop.OR_LABEL);
-          fromPI.addOrTrustedPromise(label, toPI);
+        if (toE instanceof IRFreeResultFolderDrop) {
+        	if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
+                fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
+            } else {
+                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+            }
+        } else {
+        	final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+
+        	if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+        		fromPI.addCheckedPromise(toPI);
+        	} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
+        		fromPI.addTrustedPromise(toPI);
+        	} else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
+        		final String label = to.getAttribute(ResultDrop.OR_LABEL);
+        		fromPI.addOrTrustedPromise(label, toPI);
+            } else {
+                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+            }
         }
       } else if (fromE instanceof IRFreeResultFolderDrop) {
           final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
@@ -333,7 +345,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     	  } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
               final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;    	      	  
     		  fromPI.addSubFolder(toPI);
-    	  }
+          } else {
+              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+          }
       } else {
         throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }
