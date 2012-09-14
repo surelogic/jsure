@@ -309,7 +309,7 @@ public class Util {
     Javac.initialize();
 
     boolean success = process(projects, analyze) != null;
-    if (analyze && projects.getResultsFile() != null && projects.getResultsFile().exists() && !Util.useResultsXML) {
+    if (analyze && projects.getResultsFile() != null && projects.getResultsFile().exists() && Util.useResultsXML) {
       PromiseMatcher.load(projects.getResultsFile().getParentFile());
     }
     if (false) {
