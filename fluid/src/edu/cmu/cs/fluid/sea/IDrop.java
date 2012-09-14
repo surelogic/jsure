@@ -14,23 +14,6 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 public interface IDrop {
 
   /**
-   * Gets the requested XML attribute or {@code null}. Only used for persisting
-   * drops.
-   * 
-   * @param key
-   *          the attribute key.
-   * @return the requested XML attribute or {@code null}
-   */
-  String getAttribute(String key);
-
-  /**
-   * Gets the XML element name for this drop.
-   * 
-   * @return the XML element name for this drop.
-   */
-  String getXMLElementName();
-
-  /**
    * Gets the IR drop-sea type name, descended from {@link Drop}, even if this
    * is the IR-free drop-sea used for saving and restoring.
    * 
@@ -129,14 +112,6 @@ public interface IDrop {
   Category getCategory();
 
   /**
-   * Sets the user interface reporting category for this drop.
-   * 
-   * @param category
-   *          a category to set, or {@code null} to clear the category.
-   */
-  void setCategory(Category c);
-
-  /**
    * Gets the supporting information about this drop.
    * 
    * @return the set (possibly empty) of supporting information about this drop.
@@ -150,18 +125,6 @@ public interface IDrop {
    *         drop.
    */
   Collection<? extends IProposedPromiseDrop> getProposals();
-
-  /**
-   * Places the needed attributes for persistence of this drop on the passed XML
-   * output builder.
-   * <p>
-   * This is used to persist the IR drop-sea so that it can be loaded into the
-   * IR-free drop-sea.
-   * 
-   * @param s
-   *          an XML builder.
-   */
-  void snapshotAttrs(XMLCreator.Builder s);
 
   /**
    * Computes a hash of the subtree from the fAST node that this drop is related
@@ -178,4 +141,33 @@ public interface IDrop {
    * @return a hash.
    */
   Long getContextHash();
+
+  /**
+   * Gets the XML element name for this drop.
+   * 
+   * @return the XML element name for this drop.
+   */
+  String getXMLElementName();
+
+  /**
+   * Gets the requested XML attribute or {@code null}. Only used for persisting
+   * drops.
+   * 
+   * @param key
+   *          the attribute key.
+   * @return the requested XML attribute or {@code null}
+   */
+  String getAttribute(String key);
+
+  /**
+   * Places the needed attributes for persistence of this drop on the passed XML
+   * output builder.
+   * <p>
+   * This is used to persist the IR drop-sea so that it can be loaded into the
+   * IR-free drop-sea.
+   * 
+   * @param s
+   *          an XML builder.
+   */
+  void snapshotAttrs(XMLCreator.Builder s);
 }

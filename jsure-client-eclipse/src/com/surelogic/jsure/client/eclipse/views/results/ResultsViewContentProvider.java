@@ -1015,9 +1015,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       // to a promise drop or a result drop
       if (id.isValid()
           && ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
-        if (id.getCategory() == null) {
-          id.setCategory(Messages.DSC_UNPARENTED_DROP);
-        }
         root.add(encloseDrop(id));
       }
     }

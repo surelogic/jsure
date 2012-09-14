@@ -118,8 +118,6 @@ public abstract class Drop implements IDrop {
     }
     synchronized (f_seaLock) {
       JavaSourceReference srcRef = createSourceRef();
-      if (srcRef == null)
-        srcRef = new JavaSourceReference();
       this.f_resultMessage = AnalysisResultMessage.getInstance(srcRef, number, args);
       this.f_message = f_resultMessage.getResultString();
     }
@@ -127,7 +125,7 @@ public abstract class Drop implements IDrop {
 
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
-    return new JavaSourceReference();
+    return JavaSourceReference.UNKNOWN;
   }
 
   /**
