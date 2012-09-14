@@ -294,7 +294,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   private void add_and_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
     Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrustedPromises();
-    int count = trustedPromiseDrops.size();
+    Collection<? extends IResultFolderDrop> trustedFolderDrops = result.getTrustedFolders();
+    int count = trustedPromiseDrops.size() + trustedFolderDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
       return;
@@ -304,9 +305,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
     boolean elementsProvedConsistent = true; // assume true
 
+    // add trusted folders to the folder
+    for (IResultFolderDrop trustedFolder : trustedFolderDrops) {
+      preconditionFolder.addChild(encloseDrop(trustedFolder));
+      elementsProvedConsistent &= trustedFolder.provedConsistent();
+    }
+
     // add trusted promises to the folder
     for (IProofDrop trustedDrop : trustedPromiseDrops) {
-      // ProofDrop trustedDrop = (ProofDrop) j.next();
       preconditionFolder.addChild(encloseDrop(trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
     }
@@ -1006,7 +1012,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
+      if (id.isValid()
+          && ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }
