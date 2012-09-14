@@ -488,7 +488,7 @@ public final class Sea {
       }
 
       /*
-       * Do "proof" until we reach a FIXED-POINT (i.e., the worklist is empty)
+       * ITERATE until we reach a FIXED-POINT (i.e., the worklist is empty)
        */
 
       while (!worklist.isEmpty()) {
@@ -506,7 +506,6 @@ public final class Sea {
               .derivedFromSrc());
 
           if (changed) {
-            nextWorklist.add(d);
             // add "higher" drops to the worklist
             d.proofAddToWorklistOnChange(nextWorklist);
           }

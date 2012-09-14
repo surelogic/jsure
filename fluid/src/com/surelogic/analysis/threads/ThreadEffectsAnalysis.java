@@ -31,7 +31,6 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
@@ -160,29 +159,6 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       r.setConsistent();
       r.addCheckedPromise(pd);
       r.setResultMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
-
-      // TEST CODE REMOVE LATER
-
-      ResultFolderDrop folder = new ResultFolderDrop(block);
-      folder.setMessage("A test folder");
-
-      ResultDrop d1 = new ResultDrop(block);
-      d1.setResultMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
-      d1.setConsistent();
-      ResultDrop d2 = new ResultDrop(block);
-      d2.setResultMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
-      d2.setConsistent();
-      ResultDrop d3 = new ResultDrop(block);
-      d3.setResultMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
-      d3.setInconsistent();
-
-      r.addTrustedResultFolder(folder);
-      d1.addTrustedPromise(pd);
-
-      folder.add(d1);
-      folder.add(d2);
-      folder.add(d3);
-
     }
     return results;
   }
