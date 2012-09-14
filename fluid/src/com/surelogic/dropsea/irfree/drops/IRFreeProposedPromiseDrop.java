@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.PROPERTIES;
@@ -42,7 +42,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   private ISrcRef assumptionRef;
   private Map<String, String> annoAttrs, replacedAttrs;
 
-  IRFreeProposedPromiseDrop(String name, Attributes a) {
+  public IRFreeProposedPromiseDrop(String name, Attributes a) {
     super(name, a);
   }
 

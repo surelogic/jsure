@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,20 +11,19 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-
 public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   /**
    * Only for PromiseDrops
    */
   final List<IAnalysisResultDrop> checkedByResults;
 
-  void addCheckedByResult(IAnalysisResultDrop info) {
+  public void addCheckedByResult(IAnalysisResultDrop info) {
     if (PromiseDrop.useCheckedByResults) {
       checkedByResults.add(info);
     }
   }
 
-  IRFreePromiseDrop(String name, Attributes a) {
+  public IRFreePromiseDrop(String name, Attributes a) {
     super(name, a);
     checkedByResults = new ArrayList<IAnalysisResultDrop>(0);
 

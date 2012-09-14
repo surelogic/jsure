@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
@@ -37,6 +37,7 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.DropPredicate;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
@@ -75,19 +76,19 @@ public class IRFreeDrop extends Entity implements IDrop {
     return Long.parseLong(getAttribute(CONTEXT_ATTR));
   }
 
-  void addProposal(IRFreeProposedPromiseDrop info) {
+  public void addProposal(IRFreeProposedPromiseDrop info) {
     proposals.add(info);
   }
 
-  void addDeponent(IRFreeDrop info) {
+  public void addDeponent(IRFreeDrop info) {
     deponents.add(info);
   }
 
-  void addDependent(IRFreeDrop info) {
+  public void addDependent(IRFreeDrop info) {
     dependents.add(info);
   }
 
-  IRFreeDrop(String name, Attributes a) {
+  public IRFreeDrop(String name, Attributes a) {
     super(name, a);
     if (name.endsWith("drop")) {
       dependents = new ArrayList<IRFreeDrop>(1);
@@ -101,7 +102,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     category = Category.getInstance(getAttribute(CATEGORY_ATTR));
   }
 
-  void finishInit() {
+  public void finishInit() {
     if (getSource() != null) {
       ref = makeSrcRef(getSource());
     } else {

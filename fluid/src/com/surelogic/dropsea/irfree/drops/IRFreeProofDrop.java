@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
@@ -9,10 +9,9 @@ import org.xml.sax.Attributes;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   IRFreeProofDrop(String name, Attributes a) {
-		super(name, a);
+    super(name, a);
   }
 
   public final boolean proofUsesRedDot() {
@@ -26,7 +25,7 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   public final boolean derivedFromSrc() {
     return "true".equals(getAttribute(DERIVED_FROM_SRC_ATTR));
   }
-  
+
   public final boolean isFromSrc() {
     return "true".equals(getAttribute(PromiseDrop.FROM_SRC));
   }

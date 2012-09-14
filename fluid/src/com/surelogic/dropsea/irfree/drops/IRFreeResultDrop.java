@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +18,6 @@ import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
-
 public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDrop {
   /**
    * Only for ResultDrops
@@ -28,23 +27,23 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
   final List<IRFreeResultFolderDrop> trustedFolders;
   final MultiMap<String, IRFreePromiseDrop> orTrustedPromises;
 
-  void addCheckedPromise(IRFreePromiseDrop info) {
+  public void addCheckedPromise(IRFreePromiseDrop info) {
     checkedPromises.add(info);
   }
 
-  void addTrustedPromise(IRFreePromiseDrop info) {
+  public void addTrustedPromise(IRFreePromiseDrop info) {
     trustedPromises.add(info);
   }
 
-  void addOrTrustedPromise(String label, IRFreePromiseDrop info) {
+  public void addOrTrustedPromise(String label, IRFreePromiseDrop info) {
     orTrustedPromises.put(label, info);
   }
 
-  void addTrustedFolder(IRFreeResultFolderDrop info) {
-	  trustedFolders.add(info);
+  public void addTrustedFolder(IRFreeResultFolderDrop info) {
+    trustedFolders.add(info);
   }
-  
-  IRFreeResultDrop(String name, Attributes a) {
+
+  public IRFreeResultDrop(String name, Attributes a) {
     super(name, a);
 
     checkedPromises = new ArrayList<IRFreePromiseDrop>(0);
