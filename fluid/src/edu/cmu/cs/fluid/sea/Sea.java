@@ -603,7 +603,7 @@ public final class Sea {
             final ResultDrop rd = (ResultDrop) d;
 
             // "and" trust promise drops
-            for (final PromiseDrop<? extends IAASTRootNode> promise : rd.getTrusts()) {
+            for (final PromiseDrop<? extends IAASTRootNode> promise : rd.getTrustedPromises()) {
               // all must be consistent for this drop to be consistent
               rd.setProvedConsistent(rd.provedConsistent() & promise.provedConsistent());
               // any red dot means this drop depends upon a red dot
@@ -618,11 +618,11 @@ public final class Sea {
               boolean overall_or_Result = false;
               boolean overall_or_UsesRedDot = false;
               boolean overall_or_derivedFromSource = false;
-              Set<String> orLabels = rd.get_or_TrustLabelSet();
+              Set<String> orLabels = rd.getTrustedPromises_orKeys();
               for (String orKey : orLabels) {
                 boolean choiceResult = true;
                 boolean choiceUsesRedDot = false;
-                Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.get_or_Trusts(orKey);
+                Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.getTrustedPromises_or(orKey);
                 for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
                   // all must be consistent for this choice to be consistent
                   choiceResult &= promise.provedConsistent();

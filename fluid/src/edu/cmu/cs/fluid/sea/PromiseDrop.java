@@ -280,7 +280,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     synchronized (f_seaLock) {
       final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
       for (ResultDrop rd : s) {
-        if (rd.getTrustsComplete().contains(this)) {
+        if (rd.getAllTrusted().contains(this)) {
           result.add(rd);
         }
       }

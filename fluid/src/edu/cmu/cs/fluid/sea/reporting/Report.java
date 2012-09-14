@@ -233,7 +233,7 @@ public class Report {
       // TRUSTS (preconditions) //
 
       first = true;
-      for (PromiseDrop<?> promise : result.getTrusts()) {
+      for (PromiseDrop<?> promise : result.getTrustedPromises()) {
         if (first) {
           first = false;
           out.println("     Promises this result TRUSTS (requires as preconditions):");
