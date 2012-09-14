@@ -8,8 +8,8 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
-import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class FilterAnalysisResult extends Filter {
 

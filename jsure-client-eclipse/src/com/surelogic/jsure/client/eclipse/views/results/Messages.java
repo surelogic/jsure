@@ -1,6 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import edu.cmu.cs.fluid.sea.Category;
+import com.surelogic.dropsea.ir.Category;
 
 final class Messages {
   private Messages() {

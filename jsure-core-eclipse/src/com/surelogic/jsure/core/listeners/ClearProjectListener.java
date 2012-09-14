@@ -11,6 +11,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JavacProject;

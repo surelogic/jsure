@@ -1,8 +1,10 @@
 package edu.cmu.cs.fluid.sea.test;
 
 import java.util.*;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.Sea;
+
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.Sea;
+
 import junit.framework.TestCase;
 
 /**

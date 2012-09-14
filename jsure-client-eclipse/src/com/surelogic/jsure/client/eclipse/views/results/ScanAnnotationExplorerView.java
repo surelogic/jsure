@@ -30,6 +30,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -38,7 +39,6 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ScanAnnotationExplorerView extends
 		AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> implements

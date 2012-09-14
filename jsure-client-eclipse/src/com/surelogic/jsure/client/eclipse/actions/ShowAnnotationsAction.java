@@ -12,6 +12,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.jsure.core.scans.*;
@@ -19,7 +20,6 @@ import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
 	private final ASTParser parser;

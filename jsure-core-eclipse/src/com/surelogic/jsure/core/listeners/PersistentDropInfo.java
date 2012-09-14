@@ -12,12 +12,12 @@ import java.util.Set;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 

@@ -4,10 +4,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.DropPredicateFactory;
+import com.surelogic.dropsea.ir.Sea;
+
 import junit.framework.TestCase;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.Sea;
 
 public class TestSea extends TestCase {
 

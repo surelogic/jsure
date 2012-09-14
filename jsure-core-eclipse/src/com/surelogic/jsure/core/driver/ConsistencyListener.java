@@ -1,10 +1,10 @@
 package com.surelogic.jsure.core.driver;
 
 import com.surelogic.annotation.test.TestResult;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
 
-import edu.cmu.cs.fluid.sea.Sea;
 
 public class ConsistencyListener implements IAnalysisListener {
 	public static final ConsistencyListener prototype = new ConsistencyListener();

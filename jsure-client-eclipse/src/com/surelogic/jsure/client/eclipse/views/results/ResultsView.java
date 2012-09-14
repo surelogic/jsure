@@ -44,6 +44,9 @@ import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
@@ -55,9 +58,6 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public final class ResultsView extends AbstractJSureResultsView implements JSureDataDirHub.CurrentScanChangeListener {
 

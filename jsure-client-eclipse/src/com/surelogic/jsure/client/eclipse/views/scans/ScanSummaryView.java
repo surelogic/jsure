@@ -1,12 +1,12 @@
 package com.surelogic.jsure.client.eclipse.views.scans;
 
-import static edu.cmu.cs.fluid.sea.SeaStats.ASSUMES;
-import static edu.cmu.cs.fluid.sea.SeaStats.CONSISTENT;
-import static edu.cmu.cs.fluid.sea.SeaStats.INCONSISTENT;
-import static edu.cmu.cs.fluid.sea.SeaStats.INFO;
-import static edu.cmu.cs.fluid.sea.SeaStats.PROMISES;
-import static edu.cmu.cs.fluid.sea.SeaStats.VOUCHES;
-import static edu.cmu.cs.fluid.sea.SeaStats.WARNING;
+import static com.surelogic.dropsea.ir.SeaStats.ASSUMES;
+import static com.surelogic.dropsea.ir.SeaStats.CONSISTENT;
+import static com.surelogic.dropsea.ir.SeaStats.INCONSISTENT;
+import static com.surelogic.dropsea.ir.SeaStats.INFO;
+import static com.surelogic.dropsea.ir.SeaStats.PROMISES;
+import static com.surelogic.dropsea.ir.SeaStats.VOUCHES;
+import static com.surelogic.dropsea.ir.SeaStats.WARNING;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +64,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.common.ui.views.ITableContentProvider;
+import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -71,7 +72,6 @@ import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
-import edu.cmu.cs.fluid.sea.SeaStats;
 
 /**
  * A simple view to show what scans are available to be selected as the
