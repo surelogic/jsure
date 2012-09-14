@@ -360,6 +360,9 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
     }
     if (results == null) {
       return Collections.emptyList();
+    } else {
+      // TODO throw away results for now
+      results = Collections.emptyList();
     }
     return results;
   }

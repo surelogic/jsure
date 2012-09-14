@@ -29,6 +29,9 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		List<IAnalysisResult> results = getAnalysis().analyzeCompilationUnit(cu);	
+		if (results.isEmpty()) {
+			return true;
+		}
 		try {
 			try {
 				OutputStream out = env.makeResultStream(cud);
