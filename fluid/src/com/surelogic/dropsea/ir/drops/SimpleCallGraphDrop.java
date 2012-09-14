@@ -207,7 +207,7 @@ public class SimpleCallGraphDrop extends IRReferenceDrop implements IThreadRoleD
     Collection<SimpleCallGraphDrop> deleteUs = new ArrayList<SimpleCallGraphDrop>();
     for (Iterator<SimpleCallGraphDrop> cgIter = allCGDrops.iterator(); cgIter.hasNext();) {
       SimpleCallGraphDrop aCGD = cgIter.next();
-      final IRNode node = aCGD.getNode();
+      //final IRNode node = aCGD.getNode();
       if (aCGD.isValid()) {
         //TODO: uncomment next block to get stats back!
 //        final ModuleModel myModule = ModuleModel.getModuleDrop(node);
