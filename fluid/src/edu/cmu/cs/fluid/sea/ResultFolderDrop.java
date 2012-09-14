@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.List;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
@@ -90,6 +91,28 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   /*
    * XML Methods are invoked single-threaded
    */
+
+  @Override
+  @RequiresLock("SeaLock")
+  void proofInitialize() {
+    super.proofInitialize();
+
+    setProvedConsistent(true);
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  void proofTransfer() {
+    for (AnalysisResultDrop result : getContents()) {
+      // all must be consistent for this folder to be consistent
+      setProvedConsistent(provedConsistent() & result.provedConsistent());
+      // any red dot means this folder depends upon a red dot
+      if (result.proofUsesRedDot())
+        setProofUsesRedDot(true);
+      // push along if derived from source code
+      setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
+    }
+  }
 
   @Override
   public String getXMLElementName() {

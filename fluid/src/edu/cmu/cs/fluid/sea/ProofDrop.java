@@ -8,6 +8,7 @@ import java.util.Set;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.RequiresLock;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 
@@ -140,18 +141,38 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   /**
+   * Called by {@link Sea#updateConsistencyProof()} to allow this proof drop to
+   * initialize its state for running the the reverse flow analysis used by that
+   * method to calculate promise consistency.
+   */
+  @RequiresLock("SeaLock")
+  abstract void proofInitialize();
+
+  /**
+   * Called by {@link Sea#updateConsistencyProof()} on iteration to a
+   * fixed-point to allow this proof drop to examine all proof drops with a
+   * directed edge (in the drop-sea graph&mdash;see Halloran's thesis) to this
+   * proof drop.
+   */
+  @RequiresLock("SeaLock")
+  abstract void proofTransfer();
+
+  /**
    * Called by {@link Sea#updateConsistencyProof()} when this proof drop's
-   * consistency state has changed during the reverse flow analysis used by that
-   * method.
+   * consistency state has been changed by a call to {@link #proofTransfer()} on
+   * iteration to a fixed-point to allow a conservative set of proof drops that
+   * need to be examined on the next iteration to be added to the alorithm's
+   * worklist.
    * <p>
    * Each proof drop that has changed should add all proof drops with a directed
    * edge (in the drop-sea graph&mdash;see Halloran's thesis) from the proof
    * drop that changed to them on the worklist.
    * 
    * @param mutableWorklist
-   *          the worklist to add proof drops to.
+   *          the worklist to add to.
    */
-  abstract void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist);
+  @RequiresLock("SeaLock")
+  abstract void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist);
 
   /*
    * XML Methods are invoked single-threaded

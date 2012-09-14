@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -93,7 +94,18 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   @Override
-  final void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist) {
+  @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
+  void proofInitialize() {
+    // analysis result drops, by definition, can not start off with a red dot
+    setProofUsesRedDot(false);
+
+    setDerivedFromSrc(isFromSrc());
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
     // add all result drops trusted by this result
     mutableWorklist.addAll(getTrustedBy());
     // add all promise drops that this result checks

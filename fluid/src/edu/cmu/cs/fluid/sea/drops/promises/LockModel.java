@@ -9,6 +9,7 @@ import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**
@@ -32,30 +33,10 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    * This name-based lookup is very shaky. There should be a better way of doing
    * this.
    */
-  
-  private static LockModel getInstance(Pair<String,String> key) {
+
+  private static LockModel getInstance(Pair<String, String> key) {
     synchronized (LockModel.class) {
-      //purgeUnusedLocks(); // cleanup the locks
-
       LockModel result = LOCKNAME_PROJECT_TO_DROP.get(key);
-      /*
-      if (result == null) {
-        // key = CommonStrings.intern(lockName);
-        result = new LockModel(lockName);
-
-        LOCKNAME_PROJECT_TO_DROP.put(key, result);
-
-        if ("java.lang.Object.MUTEX".equals(lockName)) {
-          result.setFromSrc(true); // Make it show up in the view
-          final String msg = "java.lang.Object.MUTEX is consistent with the code in java.lang.Object";
-          ResultDrop rd = new ResultDrop();
-          rd.addCheckedPromise(result);
-          rd.setConsistent();
-          rd.setMessage(msg);
-        }
-        System.out.println("Creating lock " + lockName);
-      }
-      */
       return result;
     }
   }
@@ -74,25 +55,33 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
    *          the lock name
    */
   private LockModel(AbstractLockDeclarationNode decl, String lockName) {
-	super(decl);
+    super(decl);
     f_lockName = lockName;
     this.setMessage("lock " + lockName);
     this.setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
   public static LockModel create(AbstractLockDeclarationNode decl, String lockName) {
-	  if (decl == null)
-	      throw new IllegalArgumentException(I18N.err(44, "decl"));
-	  if (lockName == null)
-	      throw new IllegalArgumentException(I18N.err(44, "lockName"));
-	  
-	  LockModel result = new LockModel(decl, lockName);
-	  synchronized (LockModel.class) {
-		  LOCKNAME_PROJECT_TO_DROP.put(getPair(lockName, decl.getPromisedFor()), result);
-	  }
-	  return result;
+    if (decl == null)
+      throw new IllegalArgumentException(I18N.err(44, "decl"));
+    if (lockName == null)
+      throw new IllegalArgumentException(I18N.err(44, "lockName"));
+
+    LockModel result = new LockModel(decl, lockName);
+    synchronized (LockModel.class) {
+      LOCKNAME_PROJECT_TO_DROP.put(getPair(lockName, decl.getPromisedFor()), result);
+    }
+
+    if ("java.lang.Object.MUTEX".equals(lockName)) {
+      final String msg = "java.lang.Object.MUTEX is consistent with the code in java.lang.Object";
+      ResultDrop rd = new ResultDrop(decl.getPromisedFor());
+      rd.addCheckedPromise(result);
+      rd.setConsistent();
+      rd.setMessage(msg);
+    }
+    return result;
   }
-  
+
   public String getQualifiedName() {
     return f_lockName;
   }

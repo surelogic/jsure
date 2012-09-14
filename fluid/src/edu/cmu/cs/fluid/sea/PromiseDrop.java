@@ -478,7 +478,51 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
-  final void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist) {
+  @RequiresLock("SeaLock")
+  final void proofInitialize() {
+    // for a promise drop we flag a red dot if it is not checked by analysis
+    setProofUsesRedDot(!isCheckedByAnalysis());
+    if (isAssumed())
+      setProofUsesRedDot(true);
+
+    // if no immediate result drops are an "X" then we are consistent
+    setProvedConsistent(true); // assume true
+    setDerivedFromSrc(isFromSrc());
+
+    Collection<AnalysisResultDrop> analysisResults = getCheckedBy();
+    for (AnalysisResultDrop result : analysisResults) {
+      /*
+       * & in local result (only real results not folders)
+       */
+      if (result instanceof ResultDrop) {
+        ResultDrop r = (ResultDrop) result;
+        setProvedConsistent(provedConsistent() && (r.isConsistent() || r.isVouched()));
+      }
+      setDerivedFromSrc(derivedFromSrc() || result.isFromSrc());
+    }
+
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  final void proofTransfer() {
+    // examine dependent analysis results and dependent promises
+    final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(getCheckedBy());
+    proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDependents()));
+    for (ProofDrop result : proofDrops) {
+      // all must be consistent for this promise to be consistent
+      setProvedConsistent(provedConsistent() & result.provedConsistent());
+      // any red dot means this promise depends upon a red dot
+      if (result.proofUsesRedDot())
+        setProofUsesRedDot(true);
+      // push along if derived from source code
+      setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
+    }
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
     // add all result drops trusted by this promise
     mutableWorklist.addAll(getTrustedBy());
     // add all deponent promise drops of this promise

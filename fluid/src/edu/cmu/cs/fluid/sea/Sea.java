@@ -15,7 +15,6 @@ import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.ReturnsLock;
 import com.surelogic.UniqueInRegion;
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 
@@ -449,8 +448,8 @@ public final class Sea {
    * information. Normally this method should be invoked after all analysis has
    * been run and all results are reported into drop-sea.
    * <p>
-   * This analysis is patterned after a flow analysis. It uses the following
-   * lattice:
+   * This analysis is patterned after a reverse flow analysis. It uses the
+   * following lattice:
    * 
    * <pre>
    *        consistent
@@ -459,6 +458,10 @@ public final class Sea {
    *       inconsistent
    * </pre>
    * 
+   * The methods {@link ProofDrop#proofInitialize()},
+   * {@link ProofDrop#proofTransfer()}, and
+   * {@link ProofDrop#proofAddToWorklistOnChange(Collection)} are invoked by
+   * this algorithm.
    * 
    * @return a timestamp for when it's done
    * @see ProofDrop#provedConsistent()
@@ -478,74 +481,9 @@ public final class Sea {
        */
 
       final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
-      final List<ProofDrop> s = this.getDropsOfType(ProofDrop.class);
+      final List<ProofDrop> s = getDropsOfType(ProofDrop.class);
       for (ProofDrop d : s) {
-        if (d instanceof PromiseDrop) {
-
-          /*
-           * PROMISE DROP
-           */
-
-          @SuppressWarnings("unchecked")
-          final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-
-          // for a promise drop we flag a red dot if it is not checked by
-          // analysis
-          pd.setProofUsesRedDot(!pd.isCheckedByAnalysis());
-          if (pd.isAssumed())
-            pd.setProofUsesRedDot(true);
-
-          // if no immediate result drops are an "X" then we are
-          // consistent
-          pd.setProvedConsistent(true); // assume true
-          pd.setDerivedFromSrc(pd.isFromSrc());
-
-          Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
-          for (AnalysisResultDrop result : analysisResults) {
-            /*
-             * & in local result (only real results not folders)
-             */
-            if (result instanceof ResultDrop) {
-              ResultDrop r = (ResultDrop) result;
-              pd.setProvedConsistent(pd.provedConsistent() && (r.isConsistent() || r.isVouched()));
-            }
-            pd.setDerivedFromSrc(pd.derivedFromSrc() || result.isFromSrc());
-          }
-        } else if (d instanceof ResultDrop) {
-
-          /*
-           * RESULT DROP
-           */
-
-          ResultDrop rd = (ResultDrop) d;
-
-          // result drops, by definition, can not start off with a red dot
-          rd.setProofUsesRedDot(false);
-
-          // record local result
-          rd.setProvedConsistent(rd.isConsistent() || rd.isVouched());
-
-          rd.setDerivedFromSrc(rd.isFromSrc());
-
-        } else if (d instanceof ResultFolderDrop) {
-
-          /*
-           * RESULT FOLDER DROP
-           */
-
-          ResultFolderDrop rd = (ResultFolderDrop) d;
-
-          // result drops, by definition, can not start off with a red dot
-          rd.setProofUsesRedDot(false);
-
-          rd.setProvedConsistent(true);
-
-          rd.setDerivedFromSrc(rd.isFromSrc());
-
-        } else {
-          final String msg = I18N.err(246, d.getClass().getName());
-          LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
-        }
+        d.proofInitialize();
         worklist.add(d);
       }
 
@@ -554,162 +492,23 @@ public final class Sea {
        */
 
       while (!worklist.isEmpty()) {
-        Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
-        // mutation during iteration
+        final Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>();
         for (ProofDrop d : worklist) {
+          // save old state
           boolean oldProofIsConsistent = d.provedConsistent();
           boolean oldProofUsesRedDot = d.proofUsesRedDot();
           boolean oldDerivedFromSrc = d.derivedFromSrc();
 
-          if (d instanceof PromiseDrop) {
+          // transfer from "lower" drops
+          d.proofTransfer();
 
-            /*
-             * PROMISE DROP
-             */
-
-            @SuppressWarnings("unchecked")
-            final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-
-            // examine dependent analysis results and dependent promises
-            final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>();
-            proofDrops.addAll(pd.getCheckedBy());
-            proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDependents()));
-            for (ProofDrop result : proofDrops) {
-              // all must be consistent for this promise to be consistent
-              pd.setProvedConsistent(pd.provedConsistent() & result.provedConsistent());
-              // any red dot means this promise depends upon a red dot
-              if (result.proofUsesRedDot())
-                pd.setProofUsesRedDot(true);
-              // push along if derived from source code
-              pd.setDerivedFromSrc(pd.derivedFromSrc() | result.derivedFromSrc());
-            }
-          } else if (d instanceof ResultFolderDrop) {
-
-            /*
-             * RESULT FOLDER DROP
-             */
-
-            final ResultFolderDrop rfd = (ResultFolderDrop) d;
-            for (AnalysisResultDrop result : rfd.getContents()) {
-              // all must be consistent for this folder to be consistent
-              rfd.setProvedConsistent(rfd.provedConsistent() & result.provedConsistent());
-              // any red dot means this folder depends upon a red dot
-              if (result.proofUsesRedDot())
-                rfd.setProofUsesRedDot(true);
-              // push along if derived from source code
-              rfd.setDerivedFromSrc(rfd.derivedFromSrc() | result.derivedFromSrc());
-            }
-          } else if (d instanceof ResultDrop) {
-
-            /*
-             * RESULT DROP
-             */
-
-            final ResultDrop rd = (ResultDrop) d;
-
-            // "and" trust promise drops
-            for (final PromiseDrop<? extends IAASTRootNode> promise : rd.getTrustedPromises()) {
-              // all must be consistent for this drop to be consistent
-              rd.setProvedConsistent(rd.provedConsistent() & promise.provedConsistent());
-              // any red dot means this drop depends upon a red dot
-              if (promise.proofUsesRedDot())
-                rd.setProofUsesRedDot(true);
-              // if anything is derived from source we will be as well
-              rd.setDerivedFromSrc(rd.derivedFromSrc() | promise.derivedFromSrc());
-            }
-
-            // "and" trust folder drops
-            for (final ResultFolderDrop folder : rd.getTrustedFolders()) {
-              // all must be consistent for this drop to be consistent
-              rd.setProvedConsistent(rd.provedConsistent() & folder.provedConsistent());
-              // any red dot means this drop depends upon a red dot
-              if (folder.proofUsesRedDot())
-                rd.setProofUsesRedDot(true);
-              // if anything is derived from source we will be as well
-              rd.setDerivedFromSrc(rd.derivedFromSrc() | folder.derivedFromSrc());
-            }
-
-            // "or" trust promise drops
-            if (rd.hasOrLogic()) { // skip this in the common case
-              boolean overall_or_Result = false;
-              boolean overall_or_UsesRedDot = false;
-              boolean overall_or_derivedFromSource = false;
-              Set<String> orLabels = rd.getTrustedPromises_orKeys();
-              for (String orKey : orLabels) {
-                boolean choiceResult = true;
-                boolean choiceUsesRedDot = false;
-                Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = rd.getTrustedPromises_or(orKey);
-                for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
-                  // all must be consistent for this choice to be consistent
-                  choiceResult &= promise.provedConsistent();
-                  // any red dot means this choice depends upon a red dot
-                  if (promise.proofUsesRedDot())
-                    choiceUsesRedDot = true;
-                  // if anything is derived from source we will be as well
-                  overall_or_derivedFromSource |= promise.derivedFromSrc();
-                }
-                // should we choose this choice? Our lattice is:
-                // o consistent
-                // o consistent/red dot
-                // o inconsistent/red dot
-                // o inconsistent
-                // so we want to pick the "highest" result
-                if (choiceResult) {
-                  if (!choiceUsesRedDot) {
-                    // best possible outcome
-                    overall_or_Result = choiceResult;
-                    overall_or_UsesRedDot = choiceUsesRedDot;
-                  } else {
-                    if (!overall_or_Result) {
-                      // take it, since so far we think we are inconsistent
-                      overall_or_Result = choiceResult;
-                      overall_or_UsesRedDot = choiceUsesRedDot;
-                    }
-                  }
-                } else {
-                  if (!choiceUsesRedDot) {
-                    if (!overall_or_Result) {
-                      // take it, since so far we might be sure we are wrong
-                      overall_or_Result = choiceResult;
-                      overall_or_UsesRedDot = choiceUsesRedDot;
-                    }
-                  }
-                  // ignore bottom of lattice, this was our default (set above)
-                }
-              }
-              /*
-               * add the choice selected into the overall result for this drop
-               * all must be consistent for this drop to be consistent
-               */
-              rd.setProvedConsistent(rd.provedConsistent() & overall_or_Result);
-              /*
-               * any red dot means this drop depends upon a red dot
-               */
-              if (overall_or_UsesRedDot)
-                rd.setProofUsesRedDot(true);
-              /*
-               * save in the drop
-               */
-              rd.set_or_provedConsistent(overall_or_Result);
-              rd.set_or_proofUsesRedDot(overall_or_UsesRedDot);
-              rd.setDerivedFromSrc(rd.derivedFromSrc() | overall_or_derivedFromSource);
-            }
-          } else {
-            final String msg = I18N.err(246, d.getClass().getName());
-            LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
-          }
-
-          /*
-           * Only add to worklist if something changed about the result.
-           * 
-           * We need to add nodes to the worklist that have a directed edge from
-           * the node being processed to them.
-           */
-          boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot() && oldDerivedFromSrc == d
+          boolean changed = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot() && oldDerivedFromSrc == d
               .derivedFromSrc());
-          if (resultChanged) {
+
+          if (changed) {
             nextWorklist.add(d);
-            d.addToConsistancyProofWorklistWhenChanged(nextWorklist);
+            // add "higher" drops to the worklist
+            d.proofAddToWorklistOnChange(nextWorklist);
           }
         }
         worklist.clear();

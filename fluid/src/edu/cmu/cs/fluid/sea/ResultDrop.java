@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.surelogic.InRegion;
 import com.surelogic.NonNull;
+import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
@@ -351,6 +352,106 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   void set_or_provedConsistent(boolean value) {
     synchronized (f_seaLock) {
       or_provedConsistent = value;
+    }
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  void proofInitialize() {
+    super.proofInitialize();
+
+    setProvedConsistent(isConsistent() || isVouched());
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  void proofTransfer() {
+    // "and" trust promise drops
+    for (final PromiseDrop<? extends IAASTRootNode> promise : getTrustedPromises()) {
+      // all must be consistent for this drop to be consistent
+      setProvedConsistent(provedConsistent() & promise.provedConsistent());
+      // any red dot means this drop depends upon a red dot
+      if (promise.proofUsesRedDot())
+        setProofUsesRedDot(true);
+      // if anything is derived from source we will be as well
+      setDerivedFromSrc(derivedFromSrc() | promise.derivedFromSrc());
+    }
+
+    // "and" trust folder drops
+    for (final ResultFolderDrop folder : getTrustedFolders()) {
+      // all must be consistent for this drop to be consistent
+      setProvedConsistent(provedConsistent() & folder.provedConsistent());
+      // any red dot means this drop depends upon a red dot
+      if (folder.proofUsesRedDot())
+        setProofUsesRedDot(true);
+      // if anything is derived from source we will be as well
+      setDerivedFromSrc(derivedFromSrc() | folder.derivedFromSrc());
+    }
+
+    // "or" trust promise drops
+    if (hasOrLogic()) { // skip this in the common case
+      boolean overall_or_Result = false;
+      boolean overall_or_UsesRedDot = false;
+      boolean overall_or_derivedFromSource = false;
+      Set<String> orLabels = getTrustedPromises_orKeys();
+      for (String orKey : orLabels) {
+        boolean choiceResult = true;
+        boolean choiceUsesRedDot = false;
+        Set<? extends PromiseDrop<? extends IAASTRootNode>> promiseSet = getTrustedPromises_or(orKey);
+        for (PromiseDrop<? extends IAASTRootNode> promise : promiseSet) {
+          // all must be consistent for this choice to be consistent
+          choiceResult &= promise.provedConsistent();
+          // any red dot means this choice depends upon a red dot
+          if (promise.proofUsesRedDot())
+            choiceUsesRedDot = true;
+          // if anything is derived from source we will be as well
+          overall_or_derivedFromSource |= promise.derivedFromSrc();
+        }
+        // should we choose this choice? Our lattice is:
+        // o consistent
+        // o consistent/red dot
+        // o inconsistent/red dot
+        // o inconsistent
+        // so we want to pick the "highest" result
+        if (choiceResult) {
+          if (!choiceUsesRedDot) {
+            // best possible outcome
+            overall_or_Result = choiceResult;
+            overall_or_UsesRedDot = choiceUsesRedDot;
+          } else {
+            if (!overall_or_Result) {
+              // take it, since so far we think we are inconsistent
+              overall_or_Result = choiceResult;
+              overall_or_UsesRedDot = choiceUsesRedDot;
+            }
+          }
+        } else {
+          if (!choiceUsesRedDot) {
+            if (!overall_or_Result) {
+              // take it, since so far we might be sure we are wrong
+              overall_or_Result = choiceResult;
+              overall_or_UsesRedDot = choiceUsesRedDot;
+            }
+          }
+          // ignore bottom of lattice, this was our default (set above)
+        }
+      }
+      /*
+       * add the choice selected into the overall result for this drop all must
+       * be consistent for this drop to be consistent
+       */
+      setProvedConsistent(provedConsistent() & overall_or_Result);
+      /*
+       * any red dot means this drop depends upon a red dot
+       */
+      if (overall_or_UsesRedDot)
+        setProofUsesRedDot(true);
+      /*
+       * save in the drop
+       */
+      set_or_provedConsistent(overall_or_Result);
+      set_or_proofUsesRedDot(overall_or_UsesRedDot);
+      setDerivedFromSrc(derivedFromSrc() | overall_or_derivedFromSource);
     }
   }
 
