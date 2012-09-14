@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.xml;
+package com.surelogic.dropsea.irfree;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;

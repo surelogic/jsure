@@ -5,10 +5,10 @@ package com.surelogic.jsure.core.scripting;
 
 import java.io.*;
 
+import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 /**
  * @author ethan

@@ -8,10 +8,10 @@ import com.surelogic.Utility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 @Utility
 public final class ModelingProblemFilterUtility {

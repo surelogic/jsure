@@ -19,12 +19,12 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 public class ExportToSnapshot implements IViewActionDelegate {
   //private IViewPart currentView = null;

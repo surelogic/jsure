@@ -10,9 +10,9 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IAnalysisResultDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
  * A partial implementation of an analysis result that consolidates code shared

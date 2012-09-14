@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.xml;
+package com.surelogic.dropsea.irfree;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;

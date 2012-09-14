@@ -7,6 +7,8 @@ import java.io.*;
 
 import org.eclipse.core.resources.*;
 
+import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 

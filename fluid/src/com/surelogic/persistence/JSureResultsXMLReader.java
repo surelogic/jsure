@@ -10,13 +10,13 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 public class JSureResultsXMLReader extends
 		AbstractJSureResultsXMLReader<ResultDrop> {

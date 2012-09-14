@@ -16,13 +16,13 @@ import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
  * Abstract base class for tracking all promises in the "sea" of knowledge.

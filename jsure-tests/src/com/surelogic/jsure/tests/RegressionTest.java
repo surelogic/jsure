@@ -35,6 +35,8 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.Eclipse;
@@ -56,8 +58,6 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 public class RegressionTest extends TestCase implements IAnalysisListener {
 

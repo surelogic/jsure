@@ -17,6 +17,8 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
@@ -24,8 +26,6 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 /**
  * The abstract base class for all drops within the sea which reference fAST

@@ -4,9 +4,9 @@ import java.io.*;
 import java.util.*;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.dropsea.irfree.AbstractSeaXmlCreator;
 import com.surelogic.javac.*;
 
-import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 public class JSureProjectsXMLCreator extends AbstractSeaXmlCreator implements PersistenceConstants {
 	public JSureProjectsXMLCreator(OutputStream out) throws IOException {

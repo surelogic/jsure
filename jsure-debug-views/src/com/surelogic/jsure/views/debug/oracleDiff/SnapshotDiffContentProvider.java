@@ -15,13 +15,13 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.irfree.SeaSummary;
+import com.surelogic.dropsea.irfree.SeaSummary.*;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {

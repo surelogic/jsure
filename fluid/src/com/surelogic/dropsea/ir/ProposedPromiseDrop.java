@@ -18,6 +18,7 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IReportedByAnalysisDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -26,7 +27,6 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
  * Represents a proposed promise in the sea. A proposed promise indicates a
