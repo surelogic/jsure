@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.drops.modules;
+package com.surelogic.dropsea.ir.drops.promises.modules;
 
 import java.util.*;
 import java.util.logging.Logger;

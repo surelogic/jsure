@@ -24,6 +24,10 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.modules.ExportDrop;
+import com.surelogic.dropsea.ir.drops.promises.modules.ModulePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.modules.NoVisPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.modules.VisDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -33,10 +37,6 @@ import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.drops.modules.ExportDrop;
-import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.modules.NoVisPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.modules.VisDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleRules extends AnnotationRules {

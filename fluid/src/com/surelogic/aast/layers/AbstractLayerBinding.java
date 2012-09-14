@@ -4,9 +4,9 @@ package com.surelogic.aast.layers;
 import java.util.*;
 
 import com.surelogic.aast.bind.ILayerBinding;
+import com.surelogic.dropsea.ir.drops.promises.layers.IReferenceCheckDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.layers.IReferenceCheckDrop;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractLayerBinding implements ILayerBinding, Iterable<IRNode> {

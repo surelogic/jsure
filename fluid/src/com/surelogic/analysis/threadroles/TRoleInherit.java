@@ -14,13 +14,13 @@ import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.SimpleCallGraphDrop;
+import com.surelogic.dropsea.ir.drops.promises.modules.ModuleModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.modules.ModuleModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleReqSummaryDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 

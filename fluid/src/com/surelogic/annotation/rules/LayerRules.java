@@ -14,6 +14,11 @@ import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.AllowsReferencesFromPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.InLayerPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.LayerPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.MayReferToPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.TypeSetPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

@@ -6,9 +6,9 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.ILayerBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
+import com.surelogic.dropsea.ir.drops.promises.layers.LayerPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.layers.LayerPromiseDrop;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /**

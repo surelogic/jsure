@@ -10,6 +10,12 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.AbstractReferenceCheckDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.AllowsReferencesFromPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.InLayerPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.LayerPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.MayReferToPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.layers.TypeSetPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
