@@ -1,15 +1,18 @@
 package com.surelogic.persistence;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.xml.*;
-import com.surelogic.common.jsure.xml.*;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.ir.PromiseDrop;
-
-import edu.cmu.cs.fluid.sea.*;
 
 /**
  * Designed to find references to other CUs among the source refs in the XML

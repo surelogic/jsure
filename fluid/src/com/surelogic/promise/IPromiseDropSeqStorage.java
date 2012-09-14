@@ -5,8 +5,7 @@ import java.util.List;
 
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 
 public interface IPromiseDropSeqStorage<D extends PromiseDrop> 
 extends IPromiseDropStorage<D> 

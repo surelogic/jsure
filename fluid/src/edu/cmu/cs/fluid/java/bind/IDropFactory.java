@@ -8,7 +8,6 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.sea.*;
 
 
 /**

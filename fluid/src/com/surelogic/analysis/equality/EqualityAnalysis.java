@@ -2,7 +2,11 @@
 package com.surelogic.analysis.equality;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.typeAnnos.ValueObjectAnnotationTester;
@@ -12,9 +16,10 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.BinopExpression;
+import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 
 public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {
 	public EqualityAnalysis() {

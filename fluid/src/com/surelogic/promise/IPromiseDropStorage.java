@@ -1,12 +1,12 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/promise/IPromiseDropStorage.java,v 1.9 2007/07/13 18:02:57 chance Exp $*/
 package com.surelogic.promise;
 
-import java.util.*;
+import java.util.List;
 
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 
 /**
  * An interface for defining the storage/mapping from an IRNode

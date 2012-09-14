@@ -50,7 +50,6 @@ import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.*;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
   public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;

@@ -1,12 +1,11 @@
 package com.surelogic.dropsea.ir.drops.promises;
 
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.ImmutableNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.drops.*;
 
 /**
  * Promise drop for "NotThreadSafe" promises.

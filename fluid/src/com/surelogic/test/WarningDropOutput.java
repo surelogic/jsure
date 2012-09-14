@@ -6,8 +6,6 @@ import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseWarningDrop;
 
-import edu.cmu.cs.fluid.sea.*;
-
 public class WarningDropOutput extends AbstractTestOutput {
   private final Category category;
   

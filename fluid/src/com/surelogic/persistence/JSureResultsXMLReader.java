@@ -1,23 +1,23 @@
 package com.surelogic.persistence;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.surelogic.analysis.*;
-import com.surelogic.common.xml.*;
-import com.surelogic.common.jsure.xml.*;
+import com.surelogic.analysis.IIRProjects;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.*;
 
 public class JSureResultsXMLReader extends
 		AbstractJSureResultsXMLReader<ResultDrop> {

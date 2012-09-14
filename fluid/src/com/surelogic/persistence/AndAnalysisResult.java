@@ -6,7 +6,6 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.*;
 
 // TODO what result should this use? or store both?
 // TODO where should this go?

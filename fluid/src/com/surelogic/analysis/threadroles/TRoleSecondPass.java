@@ -10,7 +10,12 @@ import static com.surelogic.annotation.rules.ThreadRoleRules.getMutableRequiresT
 import static com.surelogic.annotation.rules.ThreadRoleRules.isTRoleRelevant;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,7 +63,6 @@ import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

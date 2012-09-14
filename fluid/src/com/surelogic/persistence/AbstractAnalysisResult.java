@@ -2,14 +2,13 @@
 package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.xml.*;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.sea.*;
 
 public abstract class AbstractAnalysisResult implements IAnalysisResult, PersistenceConstants {
 	private final PromiseRef about;

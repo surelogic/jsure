@@ -8,12 +8,12 @@ import java.util.zip.ZipFile;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.analysis.*;
-import com.surelogic.common.xml.*;
-import com.surelogic.common.jsure.xml.*;
+import com.surelogic.analysis.IIRProjects;
+import com.surelogic.common.jsure.xml.JSureXMLReader;
+import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.IXMLResultListener;
+import com.surelogic.common.xml.NestedXMLReader;
 import com.surelogic.dropsea.ir.PromiseDrop;
-
-import edu.cmu.cs.fluid.sea.*;
 
 public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader
 		implements IXMLResultListener, PersistenceConstants {

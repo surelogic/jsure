@@ -4,10 +4,20 @@
  */
 package com.surelogic.dropsea.ir.drops.promises.threadroles;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.threadroles.*;
+import SableJBDD.bdd.JBDD;
+import SableJBDD.bdd.JBddVariable;
+
+import com.surelogic.analysis.threadroles.TRoleBDDPack;
+import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.Drop;
@@ -16,13 +26,9 @@ import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
 
-import SableJBDD.bdd.JBDD;
-import SableJBDD.bdd.JBddVariable;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.*;
 
 /**
  * @author dfsuther

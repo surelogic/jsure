@@ -3,8 +3,7 @@ package com.surelogic.promise;
 
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 
 public interface IBooleanPromiseDropStorage<D extends PromiseDrop> 
 extends IPromiseDropStorage<D> 

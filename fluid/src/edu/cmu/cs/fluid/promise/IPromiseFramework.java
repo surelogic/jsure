@@ -1,10 +1,8 @@
 package edu.cmu.cs.fluid.promise;
 
-import com.surelogic.annotation.*;
+import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.promise.*;
-
-import edu.cmu.cs.fluid.sea.*;
+import com.surelogic.promise.IPromiseDropStorage;
 
 /**
  * @author chance

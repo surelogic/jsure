@@ -1,6 +1,10 @@
 package com.surelogic.jsure.core.listeners;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
@@ -31,8 +35,6 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.*;
 
 public class ClearProjectListener implements IResourceChangeListener {
   public static final boolean clearAfterChange = true;

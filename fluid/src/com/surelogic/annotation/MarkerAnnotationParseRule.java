@@ -2,12 +2,12 @@ package com.surelogic.annotation;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.*;
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

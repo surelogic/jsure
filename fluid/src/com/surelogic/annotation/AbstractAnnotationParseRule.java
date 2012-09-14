@@ -10,8 +10,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
-import edu.cmu.cs.fluid.promise.*;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.promise.AbstractNamedPromiseRule;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

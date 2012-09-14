@@ -6,7 +6,11 @@ import java.util.Collection;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.rules.StructureRules;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -15,10 +19,11 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.promises.MustInvokeOnOverridePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
