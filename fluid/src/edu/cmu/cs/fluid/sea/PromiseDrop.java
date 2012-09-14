@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.sea;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.InRegion;
@@ -265,28 +266,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return result;
   }
 
-  /**
-   * Returns a copy of set of result drops which directly trust (as an "and" or
-   * an "or" precondition) this promise drop.
-   * 
-   * @return a set, all members of the type {@link ResultDrop}, which trust this
-   *         promise drop
-   */
-  public final HashSet<ResultDrop> getTrustedBy() {
-    final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
+  @Override
+  @NonNull
+  public final Set<ResultDrop> getTrustedBy() {
     /*
-     * check if any dependent result drop trusts this drop ("checks" doesn't
-     * count)
+     * Only overridden to ensure that no subtype changes this call's behavior.
      */
-    synchronized (f_seaLock) {
-      final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
-      for (ResultDrop rd : s) {
-        if (rd.getAllTrusted().contains(this)) {
-          result.add(rd);
-        }
-      }
-    }
-    return result;
+    return super.getTrustedBy();
   }
 
   /**
@@ -489,6 +475,14 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       n = getAAST().getPromisedFor();
     }
     return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(n, getSrcRef());
+  }
+
+  @Override
+  final void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist) {
+    // add all result drops trusted by this promise
+    mutableWorklist.addAll(getTrustedBy());
+    // add all deponent promise drops of this promise
+    mutableWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDeponentsReference()));
   }
 
   /*

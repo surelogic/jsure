@@ -1,7 +1,13 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 
@@ -103,6 +109,49 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     }
     return false;
   }
+
+  /**
+   * Returns a copy of set of result drops which directly trust (as an "and" or
+   * an "or" precondition) this proof drop.
+   * <p>
+   * This method can only return elements for {@link PromiseDrop} and
+   * {@link ResultFolderDrop} instances. It will always return an empty
+   * collection if called on a {@link ResultDrop}.
+   * 
+   * @return a set, all members of the type {@link ResultDrop}, which trust this
+   *         promise drop
+   */
+  @NonNull
+  public Set<ResultDrop> getTrustedBy() {
+    final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
+    /*
+     * check if any dependent result drop trusts this drop ("checks" doesn't
+     * count)
+     */
+    synchronized (f_seaLock) {
+      final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+      for (ResultDrop rd : s) {
+        if (rd.getAllTrusted().contains(this)) {
+          result.add(rd);
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Called by {@link Sea#updateConsistencyProof()} when this proof drop's
+   * consistency state has changed during the reverse flow analysis used by that
+   * method.
+   * <p>
+   * Each proof drop that has changed should add all proof drops with a directed
+   * edge (in the drop-sea graph&mdash;see Halloran's thesis) from the proof
+   * drop that changed to them on the worklist.
+   * 
+   * @param mutableWorklist
+   *          the worklist to add proof drops to.
+   */
+  abstract void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist);
 
   /*
    * XML Methods are invoked single-threaded

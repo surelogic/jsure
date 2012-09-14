@@ -589,15 +589,15 @@ public final class Sea {
              * RESULT FOLDER DROP
              */
 
-            final ResultFolderDrop dfd = (ResultFolderDrop) d;
-            for (AnalysisResultDrop result : dfd.getContents()) {
+            final ResultFolderDrop rfd = (ResultFolderDrop) d;
+            for (AnalysisResultDrop result : rfd.getContents()) {
               // all must be consistent for this folder to be consistent
-              dfd.setProvedConsistent(dfd.provedConsistent() & result.provedConsistent());
+              rfd.setProvedConsistent(rfd.provedConsistent() & result.provedConsistent());
               // any red dot means this folder depends upon a red dot
               if (result.proofUsesRedDot())
-                dfd.setProofUsesRedDot(true);
+                rfd.setProofUsesRedDot(true);
               // push along if derived from source code
-              dfd.setDerivedFromSrc(dfd.derivedFromSrc() | result.derivedFromSrc());
+              rfd.setDerivedFromSrc(rfd.derivedFromSrc() | result.derivedFromSrc());
             }
           } else if (d instanceof ResultDrop) {
 
@@ -700,27 +700,16 @@ public final class Sea {
           }
 
           /*
-           * only add to worklist if something changed about the result
+           * Only add to worklist if something changed about the result.
+           * 
+           * We need to add nodes to the worklist that have a directed edge from
+           * the node being processed to them.
            */
           boolean resultChanged = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot() && oldDerivedFromSrc == d
               .derivedFromSrc());
           if (resultChanged) {
             nextWorklist.add(d);
-            if (d instanceof PromiseDrop) {
-              @SuppressWarnings("unchecked")
-              final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-              // add all result drops trusted by this promise drop
-              nextWorklist.addAll(pd.getTrustedBy());
-              // add all deponent promise drops of this promise drop
-              nextWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, pd.getDeponents()));
-            } else if (d instanceof AnalysisResultDrop) {
-              final AnalysisResultDrop rd = (AnalysisResultDrop) d;
-              // add all promise drops that this result checks
-              nextWorklist.addAll(rd.getChecksReference());
-            } else {
-              final String msg = I18N.err(246, d.getClass().getName());
-              LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
-            }
+            d.addToConsistancyProofWorklistWhenChanged(nextWorklist);
           }
         }
         worklist.clear();

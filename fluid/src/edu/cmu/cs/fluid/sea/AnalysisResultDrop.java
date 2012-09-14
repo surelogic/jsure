@@ -92,6 +92,16 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  @Override
+  final void addToConsistancyProofWorklistWhenChanged(Collection<ProofDrop> mutableWorklist) {
+    // add all result drops trusted by this result
+    mutableWorklist.addAll(getTrustedBy());
+    // add all promise drops that this result checks
+    mutableWorklist.addAll(getChecksReference());
+    // add all result folder drops that this result is within
+    mutableWorklist.addAll(Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()));
+  }
+
   /*
    * XML Methods are invoked single-threaded
    */

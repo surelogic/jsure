@@ -204,6 +204,15 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     }
   }
 
+  @Override
+  @NonNull
+  public final Set<ResultDrop> getTrustedBy() {
+    /*
+     * Result drops cannot be trusted by a proof drop.
+     */
+    return Collections.emptySet();
+  }
+
   public boolean hasOrLogic() {
     synchronized (f_seaLock) {
       return !or_TrustLabelToTrusts.isEmpty();
