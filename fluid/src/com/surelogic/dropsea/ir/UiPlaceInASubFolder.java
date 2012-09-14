@@ -1,6 +1,6 @@
-package com.surelogic.dropsea;
+package com.surelogic.dropsea.ir;
 
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 
 /**
  * This marker interface can be implemented by a {@link PromiseDrop} subtype,

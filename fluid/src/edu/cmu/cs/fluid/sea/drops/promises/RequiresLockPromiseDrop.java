@@ -1,7 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.RequiresLockNode;
-import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
