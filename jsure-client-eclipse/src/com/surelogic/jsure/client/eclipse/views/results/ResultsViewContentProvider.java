@@ -283,15 +283,16 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Adds "and" precondition logic information about a drop to the mutable set
-   * of viewer content items passed into this method.
+   * Adds "and" precondition logic information about promise drops and result
+   * folder drops to the mutable set of viewer content items passed into this
+   * method.
    * 
    * @param mutableContentSet
    *          A parent {@link ResultsViewContent} object to add children to
    * @param result
    *          the result to add "and" precondition logic about
    */
-  private void add_and_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
+  private void add_and_TrustedPromisesAndFolders(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
     Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrustedPromises();
     Collection<? extends IResultFolderDrop> trustedFolderDrops = result.getTrustedFolders();
@@ -457,7 +458,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addSupportingInformation(result, resultDrop);
         addProposedPromises(result, resultDrop);
         add_or_TrustedPromises(result, resultDrop);
-        add_and_TrustedPromises(result, resultDrop);
+        add_and_TrustedPromisesAndFolders(result, resultDrop);
 
       } else if (drop.instanceOf(ResultFolderDrop.class)) {
 
