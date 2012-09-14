@@ -244,10 +244,6 @@ public class IRFreeDrop extends Entity implements IDrop {
     return true;
   }
 
-  public void setCategory(Category c) {
-    category = c;
-  }
-
   public Category getCategory() {
     return category;
   }

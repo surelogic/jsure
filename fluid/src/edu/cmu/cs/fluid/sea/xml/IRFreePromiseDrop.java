@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.xml.sax.Attributes;
 
+import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.IAnalysisResultDrop;
 import edu.cmu.cs.fluid.sea.IPromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -25,6 +26,17 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
   IRFreePromiseDrop(String name, Attributes a) {
     super(name, a);
     checkedByResults = new ArrayList<IAnalysisResultDrop>(0);
+
+    /*
+     * The viewer expects promises to be in a category so we use an
+     * "unparented drops" category for any promise that didn't load one from the
+     * XML snapshot.
+     * 
+     * We don't want to do this for results so this check is here. If you set a
+     * category for results the viewer gets unhappy.
+     */
+    if (category == null)
+      category = Category.getInstance(149);
   }
 
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
