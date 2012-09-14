@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -21,7 +22,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.version.*;
 
 

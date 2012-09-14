@@ -4,10 +4,11 @@ package com.surelogic.analysis.concurrency.heldlocks;
 
 import java.text.MessageFormat;
 
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
+
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 /**
  * This class contains all the information that is available in a 

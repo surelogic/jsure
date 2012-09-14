@@ -3,9 +3,9 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 
 abstract class AbstractNeededLock extends AbstractILock implements NeededLock {

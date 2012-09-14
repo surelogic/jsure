@@ -4,6 +4,8 @@ package com.surelogic.analysis.regions;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.rules.RegionRules;
+import com.surelogic.dropsea.ir.drops.promises.InRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

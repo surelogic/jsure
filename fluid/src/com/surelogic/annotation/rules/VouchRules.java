@@ -13,6 +13,7 @@ import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.promises.VouchPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -23,7 +24,6 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.VouchPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class VouchRules extends AnnotationRules {

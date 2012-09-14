@@ -13,6 +13,7 @@ import com.surelogic.dropsea.ir.PromiseWarningDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.dropsea.ir.drops.promises.ModelDrop;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.promise.PromiseDropStorage;
 
@@ -29,7 +30,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

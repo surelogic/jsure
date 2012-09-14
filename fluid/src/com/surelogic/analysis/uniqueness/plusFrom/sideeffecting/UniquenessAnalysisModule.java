@@ -32,7 +32,12 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ImmutablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ImmutableRefPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -60,11 +65,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ImmutableRefPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 

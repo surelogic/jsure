@@ -4,10 +4,10 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 class AASTHeldInstanceLock extends HeldInstanceLock {
   private final ExpressionNode objAAST;

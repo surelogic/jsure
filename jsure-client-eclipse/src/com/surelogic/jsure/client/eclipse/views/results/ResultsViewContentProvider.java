@@ -45,11 +45,11 @@ import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.WarningDrop;
+import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 final class ResultsViewContentProvider implements ITreeContentProvider {

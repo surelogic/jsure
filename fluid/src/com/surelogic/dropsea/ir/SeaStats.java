@@ -6,6 +6,8 @@ import java.util.zip.*;
 
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.ir.drops.promises.AssumePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.VouchPromiseDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.drops.promises.*;

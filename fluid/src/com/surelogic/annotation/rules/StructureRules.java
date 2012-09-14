@@ -4,6 +4,7 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.MustInvokeOnOverridePromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

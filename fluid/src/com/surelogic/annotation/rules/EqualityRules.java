@@ -13,6 +13,8 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.promises.RefObjectPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ValueObjectPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -31,8 +33,6 @@ import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.RefObjectPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ValueObjectPromiseDrop;
 
 public class EqualityRules extends AnnotationRules {
 	public static final String VALUE_OBJECT = "ValueObject";

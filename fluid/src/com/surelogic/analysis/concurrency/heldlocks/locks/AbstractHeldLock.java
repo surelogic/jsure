@@ -11,6 +11,7 @@ import com.surelogic.aast.promise.QualifiedReceiverDeclarationNode;
 import com.surelogic.aast.promise.ReceiverDeclarationNode;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -36,7 +37,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.ParseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
 abstract class AbstractHeldLock extends AbstractILock implements HeldLock {

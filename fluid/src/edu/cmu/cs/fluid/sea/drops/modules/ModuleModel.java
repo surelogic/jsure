@@ -10,12 +10,12 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.promises.ModelDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.API;
-import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.QuickProperties;
 

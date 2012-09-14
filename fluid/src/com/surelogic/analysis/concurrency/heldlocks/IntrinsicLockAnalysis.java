@@ -3,6 +3,7 @@ package com.surelogic.analysis.concurrency.heldlocks;
 import java.util.Set;
 
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
+import com.surelogic.dropsea.ir.drops.promises.ReturnsLockPromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -18,7 +19,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;

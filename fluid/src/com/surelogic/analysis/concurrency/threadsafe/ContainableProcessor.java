@@ -14,6 +14,11 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ContainablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
+import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -23,11 +28,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 
 public final class ContainableProcessor extends
 		TypeImplementationProcessor<ContainablePromiseDrop> {

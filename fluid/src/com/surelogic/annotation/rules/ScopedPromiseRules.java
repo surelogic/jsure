@@ -14,6 +14,9 @@ import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.dropsea.ir.drops.promises.AssumePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ScopedPromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.*;
 

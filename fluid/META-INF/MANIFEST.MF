@@ -126,7 +126,6 @@ Export-Package:
  edu.cmu.cs.fluid.render.util,
  edu.cmu.cs.fluid.sea.drops.layers,
  edu.cmu.cs.fluid.sea.drops.modules,
- edu.cmu.cs.fluid.sea.drops.promises,
  edu.cmu.cs.fluid.sea.drops.threadroles,
  edu.cmu.cs.fluid.template,
  edu.cmu.cs.fluid.tree,

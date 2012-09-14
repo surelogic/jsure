@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
@@ -28,7 +29,6 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.version.VersionedSlotFactory;
 

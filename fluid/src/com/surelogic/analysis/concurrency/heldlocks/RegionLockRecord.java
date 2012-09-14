@@ -6,6 +6,8 @@ import java.text.MessageFormat;
 
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;

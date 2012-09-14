@@ -20,6 +20,7 @@ import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -35,7 +36,6 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class MethodEffectsRules extends AnnotationRules {
 	public static final String EFFECTS = "Effects";

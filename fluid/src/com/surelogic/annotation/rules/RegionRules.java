@@ -16,6 +16,13 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ExplicitBorrowedInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ExplicitUniqueInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.InRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.MapFieldsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.promises.SimpleBorrowedInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.SimpleUniqueInRegionPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

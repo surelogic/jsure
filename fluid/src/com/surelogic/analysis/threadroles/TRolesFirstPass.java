@@ -37,6 +37,7 @@ import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.SimpleCallGraphDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -58,7 +59,6 @@ import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;

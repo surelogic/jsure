@@ -1,11 +1,11 @@
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser; 
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 final class NeededInstanceLock extends AbstractNeededLock {
   /**

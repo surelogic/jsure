@@ -2,8 +2,8 @@
 package com.surelogic.aast.bind;
 
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public interface IRegionBinding {
   /**

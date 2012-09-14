@@ -24,6 +24,8 @@ import com.surelogic.analysis.regions.*;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.WholeModuleFXDrop;
+import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -32,8 +34,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.ModuleModel;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;

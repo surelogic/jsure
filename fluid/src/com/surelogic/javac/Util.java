@@ -66,6 +66,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
+import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;
@@ -109,7 +110,6 @@ import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class Util {

@@ -26,7 +26,14 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.promises.RequiresLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
 
 import java.util.ArrayList;
 import java.util.Collection;

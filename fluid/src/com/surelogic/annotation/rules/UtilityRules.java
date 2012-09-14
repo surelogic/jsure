@@ -8,6 +8,8 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.SingletonPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.UtilityPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

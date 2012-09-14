@@ -3,6 +3,7 @@ package com.surelogic.annotation.bind;
 import java.util.logging.Level;
 
 import com.surelogic.annotation.rules.*;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

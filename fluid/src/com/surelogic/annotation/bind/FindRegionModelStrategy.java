@@ -4,12 +4,12 @@ import java.util.logging.Level;
 
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.*;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
  */

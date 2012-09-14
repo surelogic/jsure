@@ -9,6 +9,7 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

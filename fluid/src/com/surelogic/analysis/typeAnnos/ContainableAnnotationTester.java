@@ -3,6 +3,7 @@ package com.surelogic.analysis.typeAnnos;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -10,7 +11,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
-import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 
 public final class ContainableAnnotationTester extends TypeDeclAnnotationTester {
   public ContainableAnnotationTester(

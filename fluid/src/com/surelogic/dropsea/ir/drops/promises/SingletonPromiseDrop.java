@@ -1,0 +1,17 @@
+package com.surelogic.dropsea.ir.drops.promises;
+
+import com.surelogic.aast.promise.SingletonNode;
+
+import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.Messages;
+
+public class SingletonPromiseDrop extends BooleanPromiseDrop<SingletonNode> {
+
+  public SingletonPromiseDrop(SingletonNode a) {
+    super(a);
+    setCategory(JavaGlobals.SINGLETON_CAT);
+    final String name = JavaNames.getTypeName(getNode());
+    setMessage(Messages.SingletonDrop, name);
+  }
+}

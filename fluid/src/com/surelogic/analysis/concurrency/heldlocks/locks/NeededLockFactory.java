@@ -4,9 +4,9 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks.locks.ILock.Type;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public final class NeededLockFactory {
   private final ThisExpressionBinder thisBinder;

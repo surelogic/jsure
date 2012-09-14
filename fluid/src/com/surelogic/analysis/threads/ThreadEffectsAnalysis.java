@@ -13,6 +13,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
 import com.surelogic.persistence.AndAnalysisResult;
 import com.surelogic.persistence.IAnalysisResult;
 import com.surelogic.persistence.PromiseRef;
@@ -33,7 +34,6 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ThreadEffectsAnalysis implements IBinderClient {

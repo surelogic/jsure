@@ -10,6 +10,7 @@ import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

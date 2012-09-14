@@ -9,6 +9,9 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.NullablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RawPromiseDrop;
 
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;

@@ -21,7 +21,11 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.promises.ModifiedBooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.promises.ThreadSafePromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -34,10 +38,6 @@ import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 
 public final class ThreadSafeProcessor extends TypeImplementationProcessor<ThreadSafePromiseDrop> {
   private final Set<RegionLockRecord> lockDeclarations;

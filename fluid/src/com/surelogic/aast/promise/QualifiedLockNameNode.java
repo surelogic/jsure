@@ -15,9 +15,9 @@ import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.java.TypeExpressionNode;
 import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public final class QualifiedLockNameNode extends LockNameNode { 
   // Fields

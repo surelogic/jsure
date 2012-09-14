@@ -17,6 +17,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JavacProject;
@@ -32,7 +33,6 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
   public static final boolean clearAfterChange = true;

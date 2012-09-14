@@ -12,6 +12,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.*;
 import com.surelogic.annotation.rules.LayerRules;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

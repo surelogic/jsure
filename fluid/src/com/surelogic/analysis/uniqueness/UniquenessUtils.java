@@ -13,17 +13,17 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ExplicitUniqueInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
+import com.surelogic.dropsea.ir.drops.promises.RegionAggregationDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.promises.SimpleUniqueInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionAggregationDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.drops.promises.SimpleUniqueInRegionPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 
 /**
  * Contains methods for helping process aggregated regions.  These methods

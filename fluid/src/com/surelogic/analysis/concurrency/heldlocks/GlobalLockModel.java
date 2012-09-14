@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
@@ -18,7 +19,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 /**
  * TODO: Write javadoc!

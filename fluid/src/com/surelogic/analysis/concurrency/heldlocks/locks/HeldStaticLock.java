@@ -2,10 +2,10 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 /**
  * Representation of a lock that is represented by a static field.  Such locks

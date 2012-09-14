@@ -26,6 +26,10 @@ import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ImmutableRefPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;

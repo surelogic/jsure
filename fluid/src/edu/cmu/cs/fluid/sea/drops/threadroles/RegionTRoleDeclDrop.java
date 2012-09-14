@@ -8,17 +8,17 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRExpr;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.BindUtil;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
  * Phantom drop for "region" promise declarations. The RegionModel is used as
  * the actual promise drop. This drop is used to maintain compilation unit
  * dependencies.
  * 
- * @see edu.cmu.cs.fluid.sea.drops.promises.RegionModel
+ * @see com.surelogic.dropsea.ir.drops.promises.RegionModel
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.sea.drops.promises.ColorRegionModel
  */
