@@ -474,8 +474,9 @@ public final class Sea {
         hook.preConsistencyProof(this);
 
       /*
-       * Initialize drop-sea flow analysis "proof" (a drop-sea query)
+       * INITIALIZE drop-sea flow analysis "proof" (a drop-sea query)
        */
+
       final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
       final List<ProofDrop> s = this.getDropsOfType(ProofDrop.class);
       for (ProofDrop d : s) {
@@ -502,7 +503,7 @@ public final class Sea {
           Collection<AnalysisResultDrop> analysisResults = pd.getCheckedBy();
           for (AnalysisResultDrop result : analysisResults) {
             /*
-             * & in local result
+             * & in local result (only real results not folders)
              */
             if (result instanceof ResultDrop) {
               ResultDrop r = (ResultDrop) result;
@@ -525,6 +526,7 @@ public final class Sea {
           rd.setProvedConsistent(rd.isConsistent() || rd.isVouched());
 
           rd.setDerivedFromSrc(rd.isFromSrc());
+
         } else if (d instanceof ResultFolderDrop) {
 
           /*
@@ -539,15 +541,18 @@ public final class Sea {
           rd.setProvedConsistent(true);
 
           rd.setDerivedFromSrc(rd.isFromSrc());
+
         } else {
-          LOG.log(Level.SEVERE, "[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a known subtype");
+          final String msg = I18N.err(246, d.getClass().getName());
+          LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
         }
         worklist.add(d);
       }
 
       /*
-       * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
+       * Do "proof" until we reach a FIXED-POINT (i.e., the worklist is empty)
        */
+
       while (!worklist.isEmpty()) {
         Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
         // mutation during iteration
@@ -611,6 +616,17 @@ public final class Sea {
                 rd.setProofUsesRedDot(true);
               // if anything is derived from source we will be as well
               rd.setDerivedFromSrc(rd.derivedFromSrc() | promise.derivedFromSrc());
+            }
+
+            // "and" trust folder drops
+            for (final ResultFolderDrop folder : rd.getTrustedFolders()) {
+              // all must be consistent for this drop to be consistent
+              rd.setProvedConsistent(rd.provedConsistent() & folder.provedConsistent());
+              // any red dot means this drop depends upon a red dot
+              if (folder.proofUsesRedDot())
+                rd.setProofUsesRedDot(true);
+              // if anything is derived from source we will be as well
+              rd.setDerivedFromSrc(rd.derivedFromSrc() | folder.derivedFromSrc());
             }
 
             // "or" trust promise drops
@@ -679,7 +695,7 @@ public final class Sea {
               rd.setDerivedFromSrc(rd.derivedFromSrc() | overall_or_derivedFromSource);
             }
           } else {
-            final String msg = I18N.err(246);
+            final String msg = I18N.err(246, d.getClass().getName());
             LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
           }
 
@@ -693,7 +709,6 @@ public final class Sea {
             if (d instanceof PromiseDrop) {
               @SuppressWarnings("unchecked")
               final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
-
               // add all result drops trusted by this promise drop
               nextWorklist.addAll(pd.getTrustedBy());
               // add all deponent promise drops of this promise drop
@@ -702,6 +717,9 @@ public final class Sea {
               final AnalysisResultDrop rd = (AnalysisResultDrop) d;
               // add all promise drops that this result checks
               nextWorklist.addAll(rd.getChecksReference());
+            } else {
+              final String msg = I18N.err(246, d.getClass().getName());
+              LOG.log(Level.SEVERE, msg, new IllegalStateException(msg));
             }
           }
         }
