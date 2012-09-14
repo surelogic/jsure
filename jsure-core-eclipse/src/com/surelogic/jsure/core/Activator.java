@@ -49,7 +49,7 @@ public class Activator extends Plugin {
 			doubleChecker.start(context);
 		}
 
-		if (true) {
+		if (false) {
 			cleanupJSureData();
 		}
 
