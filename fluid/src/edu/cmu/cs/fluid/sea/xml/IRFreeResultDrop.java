@@ -11,11 +11,11 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.xml.sax.Attributes;
 
 import com.surelogic.NonNull;
+import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 
-import edu.cmu.cs.fluid.sea.IPromiseDrop;
-import edu.cmu.cs.fluid.sea.IProofDrop;
-import edu.cmu.cs.fluid.sea.IResultDrop;
-import edu.cmu.cs.fluid.sea.IResultFolderDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 

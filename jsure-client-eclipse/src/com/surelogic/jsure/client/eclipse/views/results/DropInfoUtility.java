@@ -6,10 +6,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import com.surelogic.Utility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProofDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProofDrop;
 
 @Utility
 public final class DropInfoUtility {

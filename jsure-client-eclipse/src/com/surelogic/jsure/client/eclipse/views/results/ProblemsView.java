@@ -27,11 +27,11 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public final class ProblemsView extends AbstractScanTableView<IDrop>
 		implements EclipseUIUtility.IContextMenuFiller {

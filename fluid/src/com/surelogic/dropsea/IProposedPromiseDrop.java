@@ -1,10 +1,11 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea;
 
 import java.util.Map;
 
 import com.surelogic.common.refactor.IJavaDeclaration;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 /**

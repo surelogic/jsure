@@ -26,6 +26,9 @@ import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
@@ -33,9 +36,6 @@ import com.surelogic.jsure.client.eclipse.views.results.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IPromiseDrop;
-import edu.cmu.cs.fluid.sea.IProofDrop;
-import edu.cmu.cs.fluid.sea.IResultDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 

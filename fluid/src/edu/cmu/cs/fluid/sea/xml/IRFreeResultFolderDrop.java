@@ -7,10 +7,11 @@ import java.util.List;
 
 import org.xml.sax.Attributes;
 
-import edu.cmu.cs.fluid.sea.IAnalysisResultDrop;
-import edu.cmu.cs.fluid.sea.IPromiseDrop;
-import edu.cmu.cs.fluid.sea.IResultDrop;
-import edu.cmu.cs.fluid.sea.IResultFolderDrop;
+import com.surelogic.dropsea.IAnalysisResultDrop;
+import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
+
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeProofDrop implements IResultFolderDrop {

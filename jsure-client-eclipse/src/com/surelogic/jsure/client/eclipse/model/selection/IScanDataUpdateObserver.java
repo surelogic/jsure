@@ -1,6 +1,6 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
-import edu.cmu.cs.fluid.sea.IProofDrop;
+import com.surelogic.dropsea.IProofDrop;
 
 public interface IScanDataUpdateObserver {
 

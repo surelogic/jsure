@@ -4,6 +4,9 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IResultDrop;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 

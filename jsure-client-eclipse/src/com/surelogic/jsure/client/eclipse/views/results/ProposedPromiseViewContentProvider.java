@@ -25,6 +25,7 @@ import com.surelogic.common.refactor.Method;
 import com.surelogic.common.refactor.MethodParameter;
 import com.surelogic.common.refactor.TypeContext;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -32,7 +33,6 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 final class ProposedPromiseViewContentProvider extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements

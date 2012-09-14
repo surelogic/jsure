@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IDrop;
 
 import SableJBDD.bdd.JBDD;
 import SableJBDD.bdd.JBddVariable;

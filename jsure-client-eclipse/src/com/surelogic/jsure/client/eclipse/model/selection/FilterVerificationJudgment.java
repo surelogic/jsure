@@ -8,9 +8,9 @@ import org.eclipse.swt.graphics.Point;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
-import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public final class FilterVerificationJudgment extends Filter {

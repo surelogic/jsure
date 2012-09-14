@@ -16,6 +16,7 @@ import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.ISupportingInformation;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
@@ -104,7 +105,7 @@ public abstract class IRReferenceDrop extends Drop {
 
   /**
    * A set of supporting information about this drop, all elements are of type
-   * {@link edu.cmu.cs.fluid.sea.ISupportingInformation}
+   * {@link com.surelogic.dropsea.ISupportingInformation}
    */
   @InRegion("DropState")
   @UniqueInRegion("DropState")

@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea;
 
 import java.util.Collection;
 

@@ -31,12 +31,12 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public class ProposedPromiseView extends
 		AbstractScanStructuredView<IProposedPromiseDrop> implements

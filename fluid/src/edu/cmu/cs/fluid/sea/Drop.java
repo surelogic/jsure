@@ -21,6 +21,9 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.ISupportingInformation;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;

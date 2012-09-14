@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.tool.ToolProperties;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 

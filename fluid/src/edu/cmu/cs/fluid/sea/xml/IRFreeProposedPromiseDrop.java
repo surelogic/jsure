@@ -13,9 +13,9 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 

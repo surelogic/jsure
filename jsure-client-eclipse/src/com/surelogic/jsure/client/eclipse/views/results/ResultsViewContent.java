@@ -16,12 +16,12 @@ import org.eclipse.core.resources.IResource;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 

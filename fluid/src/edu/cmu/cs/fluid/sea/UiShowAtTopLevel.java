@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.dropsea.IPromiseDrop;
+
 /**
  * This marker interface can be implemented by a {@link PromiseDrop} subtype,
  * <i>p</i>, to request that the UI show <i>p</i> results at the top level (in

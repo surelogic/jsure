@@ -18,11 +18,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
-import edu.cmu.cs.fluid.sea.IDrop;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 /**
  * Uses a StructuredViewer

@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.dropsea.IDrop;
+
 /**
  * Defines a predicate used to filter a set of drops.
  */

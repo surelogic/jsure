@@ -13,7 +13,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.swt.graphics.Image;
 
-import edu.cmu.cs.fluid.sea.IProofDrop;
+import com.surelogic.dropsea.IProofDrop;
+
 
 /**
  * Abstract base class for all JSure results filters. Intended to be subclassed.

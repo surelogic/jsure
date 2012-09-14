@@ -30,6 +30,9 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.IAnalysisResultDrop;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ISupportingInformation;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;

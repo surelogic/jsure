@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.dropsea.IReportedByAnalysisDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /**

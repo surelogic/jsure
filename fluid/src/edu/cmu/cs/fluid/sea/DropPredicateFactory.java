@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.surelogic.Utility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.IDrop;
 
 @Utility
 public final class DropPredicateFactory {

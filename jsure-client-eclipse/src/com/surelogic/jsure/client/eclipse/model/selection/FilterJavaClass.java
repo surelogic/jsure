@@ -6,9 +6,9 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IProofDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProofDrop;
 
 public final class FilterJavaClass extends Filter {
 

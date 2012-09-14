@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -19,7 +20,6 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;

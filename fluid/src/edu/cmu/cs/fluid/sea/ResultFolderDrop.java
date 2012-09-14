@@ -5,6 +5,7 @@ import java.util.List;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;

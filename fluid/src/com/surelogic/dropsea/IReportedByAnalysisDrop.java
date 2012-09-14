@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea;
 
 /**
  * A drop created by a verifying analysis. Used as a marker interface on the

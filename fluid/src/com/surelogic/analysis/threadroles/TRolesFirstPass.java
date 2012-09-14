@@ -28,6 +28,7 @@ import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -50,7 +51,6 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;

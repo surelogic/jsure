@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.dropsea.ISupportingInformation;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;

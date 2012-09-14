@@ -51,6 +51,7 @@ Export-Package:
  com.surelogic.ast.fluid,
  com.surelogic.ast.java.operator,
  com.surelogic.ast.java.promise,
+ com.surelogic.dropsea,
  com.surelogic.javac,
  com.surelogic.javac.jobs,
  com.surelogic.javac.persistence,

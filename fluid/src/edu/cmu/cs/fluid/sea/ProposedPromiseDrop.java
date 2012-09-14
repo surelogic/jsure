@@ -16,6 +16,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IReportedByAnalysisDrop;
 import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;

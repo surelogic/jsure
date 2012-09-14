@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;

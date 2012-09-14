@@ -15,11 +15,11 @@ import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 /**

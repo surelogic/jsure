@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.dropsea.ISupportingInformation;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;

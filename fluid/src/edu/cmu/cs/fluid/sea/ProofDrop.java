@@ -11,6 +11,7 @@ import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.IProofDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.TypeUtil;

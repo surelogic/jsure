@@ -9,6 +9,7 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IAnalysisResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;

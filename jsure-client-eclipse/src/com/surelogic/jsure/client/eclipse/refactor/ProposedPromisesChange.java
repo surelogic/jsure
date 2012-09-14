@@ -25,11 +25,11 @@ import com.surelogic.common.refactor.AnnotationDescription.CU;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public class ProposedPromisesChange {
 	private final List<? extends IProposedPromiseDrop> drops;

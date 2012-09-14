@@ -13,10 +13,10 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler;
 import com.surelogic.jsure.core.JSureUtility;
 
-import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public abstract class ProposedPromisesRefactoringAction extends Action {
