@@ -40,6 +40,10 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
     orTrustedPromises.put(label, info);
   }
 
+  void addTrustedFolder(IRFreeResultFolderDrop info) {
+	  trustedFolders.add(info);
+  }
+  
   IRFreeResultDrop(String name, Attributes a) {
     super(name, a);
 
