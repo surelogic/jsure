@@ -5,10 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.surelogic.dropsea.ir.Sea;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
-import edu.cmu.cs.fluid.sea.Sea;
 
 public final class BinaryCUDrop extends CUDrop {
 

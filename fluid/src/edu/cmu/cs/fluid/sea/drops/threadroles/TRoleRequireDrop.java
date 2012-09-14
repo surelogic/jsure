@@ -17,12 +17,12 @@ import com.surelogic.analysis.threadroles.TRExpr;
 import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 
 /**

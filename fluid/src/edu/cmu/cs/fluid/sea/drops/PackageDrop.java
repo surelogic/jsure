@@ -14,6 +14,9 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.DropPredicateFactory;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -31,9 +34,6 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.Sea;
 
 /**
  * Drop representing a package, suitable for promise and result drops to depend

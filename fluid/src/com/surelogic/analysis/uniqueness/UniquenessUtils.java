@@ -12,12 +12,12 @@ import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionAggregationDrop;

@@ -10,10 +10,10 @@ import java.util.*;
 
 import com.surelogic.aast.promise.ThreadRoleIncompatibleNode;
 import com.surelogic.analysis.threadroles.*;
+import com.surelogic.dropsea.ir.Drop;
 
 import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.Drop;
 
 
 /**

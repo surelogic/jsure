@@ -35,12 +35,12 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.DropPredicate;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.DropPredicate;
 
 public class IRFreeDrop extends Entity implements IDrop {
   static {

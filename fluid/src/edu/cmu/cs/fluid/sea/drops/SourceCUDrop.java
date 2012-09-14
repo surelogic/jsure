@@ -8,12 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.surelogic.InRegion;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.sea.Sea;
 
 /**
  * @lock CacheLock is class protects cachedDrops

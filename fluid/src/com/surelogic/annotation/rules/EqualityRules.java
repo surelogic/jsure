@@ -11,6 +11,8 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -29,8 +31,6 @@ import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RefObjectPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ValueObjectPromiseDrop;
 

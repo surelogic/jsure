@@ -3,6 +3,8 @@ package com.surelogic.analysis.concurrency.detector;
 import java.util.Iterator;
 
 import com.surelogic.analysis.*;
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.InfoDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -11,8 +13,6 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {

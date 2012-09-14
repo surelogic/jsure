@@ -1,6 +1,6 @@
 package com.surelogic.analysis.effects;
 
-import edu.cmu.cs.fluid.sea.Category;
+import com.surelogic.dropsea.ir.Category;
 
 public final class Messages {
   private Messages() {

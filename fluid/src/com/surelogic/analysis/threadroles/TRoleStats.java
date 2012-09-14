@@ -9,10 +9,11 @@ package com.surelogic.analysis.threadroles;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.DropEvent;
+import com.surelogic.dropsea.ir.Sea;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropEvent;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;

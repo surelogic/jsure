@@ -9,6 +9,10 @@ import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -19,10 +23,6 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractSeaConsistencyProofHook;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 

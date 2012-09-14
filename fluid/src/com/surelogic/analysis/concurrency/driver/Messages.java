@@ -1,8 +1,8 @@
 package com.surelogic.analysis.concurrency.driver;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.ir.Category;
 
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
 public final class Messages extends AbstractMessages {

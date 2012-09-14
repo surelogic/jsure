@@ -6,10 +6,10 @@ import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**

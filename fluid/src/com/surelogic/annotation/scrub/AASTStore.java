@@ -4,10 +4,10 @@ package com.surelogic.annotation.scrub;
 import com.surelogic.*;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.test.TestResult;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 import java.util.*;
 import java.util.concurrent.*;

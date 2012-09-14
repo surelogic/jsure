@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea.ir;
 
 /**
  * An interface to inject code before and/or after the consistency proof is run

@@ -1,6 +1,6 @@
 package com.surelogic.analysis.threadroles;
 
-import edu.cmu.cs.fluid.sea.Category;
+import com.surelogic.dropsea.ir.Category;
 
 /**
  * This class is probably following some old way of doing things.  I'm not

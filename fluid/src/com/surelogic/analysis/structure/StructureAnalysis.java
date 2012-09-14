@@ -9,13 +9,13 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.rules.StructureRules;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.promises.MustInvokeOnOverridePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;

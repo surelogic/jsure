@@ -6,6 +6,11 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.promise.PromiseDropStorage;
 

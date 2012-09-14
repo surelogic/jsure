@@ -13,6 +13,7 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
+import com.surelogic.dropsea.ir.WarningDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -31,7 +32,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
-import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop;
 import edu.cmu.cs.fluid.util.Iteratable;

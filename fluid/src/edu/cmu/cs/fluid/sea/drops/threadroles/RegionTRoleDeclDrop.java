@@ -7,10 +7,10 @@
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRExpr;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.BindUtil;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**

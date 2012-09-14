@@ -2,6 +2,7 @@ package com.surelogic.analysis.testing;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
+import com.surelogic.dropsea.ir.InfoDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -9,7 +10,6 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {

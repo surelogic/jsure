@@ -7,13 +7,13 @@ import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawTypeLattice.Element;
+import com.surelogic.dropsea.ir.InfoDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis, Unused>{

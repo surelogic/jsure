@@ -8,6 +8,10 @@ import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.typeAnnos.ImmutableAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -19,10 +23,6 @@ import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultFolderDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 

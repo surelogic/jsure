@@ -8,9 +8,9 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.parse.SLParse;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

@@ -4,12 +4,13 @@ package com.surelogic.analysis;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.surelogic.dropsea.ir.WarningDrop;
+
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;

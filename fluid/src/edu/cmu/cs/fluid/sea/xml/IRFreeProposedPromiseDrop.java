@@ -14,10 +14,10 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop, IJavaDeclInfoClient,
     Comparable<IRFreeProposedPromiseDrop> {

@@ -15,13 +15,13 @@ import java.util.logging.Logger;
 import com.surelogic.aast.promise.ThreadRoleImportNode;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 /**

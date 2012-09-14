@@ -7,12 +7,12 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AnnotationBoundsPromiseDrop;
 
 /**

@@ -2,9 +2,9 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements IDerivedDropCreator<LockModel> {
 

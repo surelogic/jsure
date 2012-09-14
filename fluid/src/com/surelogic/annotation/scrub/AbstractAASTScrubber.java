@@ -14,13 +14,13 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop;
 
 /**

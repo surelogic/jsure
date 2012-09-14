@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import com.surelogic.analysis.*;
 import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
@@ -15,7 +16,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.tree.Operator;

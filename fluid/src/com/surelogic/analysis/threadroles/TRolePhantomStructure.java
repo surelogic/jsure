@@ -2,10 +2,10 @@
 package com.surelogic.analysis.threadroles;
 
 import com.surelogic.RequiresLock;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 

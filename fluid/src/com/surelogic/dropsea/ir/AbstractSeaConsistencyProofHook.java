@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea.ir;
 
 /**
  * An implementation of a {@link SeaConsistencyProofHook} that provides empty

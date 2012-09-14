@@ -1,9 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/promise/SinglePromiseDropStorage.java,v 1.6 2007/07/13 18:02:57 chance Exp $*/
 package com.surelogic.promise;
 
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public final class SinglePromiseDropStorage<D extends PromiseDrop<?>> 

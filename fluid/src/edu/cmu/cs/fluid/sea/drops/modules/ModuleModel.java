@@ -7,14 +7,14 @@ import com.surelogic.aast.promise.ModuleWrapperNode;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.API;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.QuickProperties;

@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea.ir;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,8 +9,8 @@ import com.surelogic.common.i18n.I18N;
 
 /**
  * Defines a category which may be attached to
- * {@link edu.cmu.cs.fluid.sea.InfoDrop} and
- * {@link edu.cmu.cs.fluid.sea.ResultDrop}.  Categories are intended to
+ * {@link com.surelogic.dropsea.ir.InfoDrop} and
+ * {@link com.surelogic.dropsea.ir.ResultDrop}.  Categories are intended to
  * help the user interface report results.
  * <p>
  * A noteworthy limitation of categories is that the user interface must set the

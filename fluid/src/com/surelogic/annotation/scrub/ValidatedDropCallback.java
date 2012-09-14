@@ -2,7 +2,7 @@
 package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.IAASTRootNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 public interface ValidatedDropCallback<P extends PromiseDrop<? extends IAASTRootNode>> {
   void validated(P pd);

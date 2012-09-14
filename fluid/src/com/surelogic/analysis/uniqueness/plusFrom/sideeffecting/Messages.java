@@ -1,8 +1,8 @@
 package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.dropsea.ir.Category;
 
-import edu.cmu.cs.fluid.sea.Category;
 
 public final class Messages {
   private Messages() {

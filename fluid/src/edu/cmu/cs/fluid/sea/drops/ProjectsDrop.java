@@ -4,9 +4,9 @@ import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.Sea;
 
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.Sea;
 
 public class ProjectsDrop extends Drop {
   static private ProjectsDrop active = null;

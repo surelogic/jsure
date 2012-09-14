@@ -1,6 +1,9 @@
 package com.surelogic.analysis;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -15,9 +18,6 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.ResultFolderDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extends IAASTRootNode>> {

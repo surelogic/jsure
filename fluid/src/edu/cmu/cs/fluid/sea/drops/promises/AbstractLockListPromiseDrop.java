@@ -1,10 +1,10 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.AbstractLockListNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode> extends PromiseDrop<N> {
 
@@ -14,7 +14,7 @@ public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode
   }
 
   /**
-   * @see edu.cmu.cs.fluid.sea.PromiseDrop#isCheckedByAnalysis()
+   * @see com.surelogic.dropsea.ir.PromiseDrop#isCheckedByAnalysis()
    */
   @Override
   public boolean isCheckedByAnalysis() {

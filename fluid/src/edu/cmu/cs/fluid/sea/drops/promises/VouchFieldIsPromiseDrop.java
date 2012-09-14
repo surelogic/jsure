@@ -2,11 +2,11 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.concurrency.heldlocks.FieldKind;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode> {
 

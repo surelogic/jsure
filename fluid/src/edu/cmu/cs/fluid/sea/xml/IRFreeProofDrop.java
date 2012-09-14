@@ -7,8 +7,8 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR
 import org.xml.sax.Attributes;
 
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   IRFreeProofDrop(String name, Attributes a) {

@@ -11,8 +11,8 @@ import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
-import edu.cmu.cs.fluid.sea.ResultDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeProofDrop implements IResultFolderDrop {
   /**

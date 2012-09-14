@@ -33,6 +33,14 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.ir.AnalysisResultDrop;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;

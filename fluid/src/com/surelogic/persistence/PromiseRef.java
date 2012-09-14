@@ -4,9 +4,9 @@ package com.surelogic.persistence;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class PromiseRef {
 	private final String location;

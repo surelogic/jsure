@@ -15,10 +15,10 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.*;
 import com.surelogic.annotation.parse.BadTokenException;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
 
 import edu.cmu.cs.fluid.parse.ParseException;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

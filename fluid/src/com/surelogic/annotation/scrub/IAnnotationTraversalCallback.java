@@ -1,7 +1,8 @@
 package com.surelogic.annotation.scrub;
 
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * Handle to pass information back to the scrubber traversal

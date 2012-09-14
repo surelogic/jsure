@@ -6,9 +6,9 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTriple;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 

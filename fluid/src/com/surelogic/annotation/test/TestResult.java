@@ -3,12 +3,12 @@ package com.surelogic.annotation.test;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.test.ITest;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IDerivedDropCreator;
 
 public class TestResult implements ITest {

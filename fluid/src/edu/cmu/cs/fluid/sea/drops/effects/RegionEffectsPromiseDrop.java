@@ -4,11 +4,11 @@ import java.util.List;
 
 import com.surelogic.aast.promise.EffectsSpecificationNode;
 import com.surelogic.aast.promise.RegionEffectsNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
 

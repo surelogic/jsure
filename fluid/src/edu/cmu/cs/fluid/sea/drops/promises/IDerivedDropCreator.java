@@ -3,8 +3,8 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public interface IDerivedDropCreator<P extends PromiseDrop<? extends IAASTRootNode>>
 extends ValidatedDropCallback<P> {

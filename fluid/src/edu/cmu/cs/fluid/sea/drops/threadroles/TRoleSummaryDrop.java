@@ -8,8 +8,8 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 
 /**

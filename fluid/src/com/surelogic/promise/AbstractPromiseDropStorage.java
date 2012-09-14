@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractPromiseDropStorage<D extends PromiseDrop> 
 implements IPromiseDropStorage<D> {

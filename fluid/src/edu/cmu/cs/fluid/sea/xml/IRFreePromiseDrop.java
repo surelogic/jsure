@@ -8,9 +8,9 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   /**

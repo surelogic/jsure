@@ -54,6 +54,11 @@ import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -61,11 +66,6 @@ import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.Pair;
 

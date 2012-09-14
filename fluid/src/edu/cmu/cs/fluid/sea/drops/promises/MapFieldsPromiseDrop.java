@@ -1,10 +1,10 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * Promise drop for "InRegion" promise annotations defining a region.

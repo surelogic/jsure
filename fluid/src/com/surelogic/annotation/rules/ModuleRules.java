@@ -23,6 +23,7 @@ import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -32,7 +33,6 @@ import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ExportDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.NoVisPromiseDrop;

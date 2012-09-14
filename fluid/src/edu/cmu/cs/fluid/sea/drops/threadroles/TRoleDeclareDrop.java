@@ -12,10 +12,10 @@ import java.util.logging.Logger;
 
 import com.surelogic.aast.promise.ThreadRoleDeclarationNode;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.sea.Drop;
 
 /**
  * @author dfsuther

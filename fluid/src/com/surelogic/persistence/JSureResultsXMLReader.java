@@ -5,12 +5,16 @@ import java.util.*;
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.*;
 import com.surelogic.common.jsure.xml.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 

@@ -1,8 +1,8 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.ScopedPromiseNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * Abstract promise drop class for scoped promises.
@@ -21,7 +21,7 @@ public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> i
    * Scoped promises are not checked by analysis, but we don't want the user
    * interface to show them as trusted, so we lie to it.
    * 
-   * @see edu.cmu.cs.fluid.sea.PromiseDrop#isCheckedByAnalysis()
+   * @see com.surelogic.dropsea.ir.PromiseDrop#isCheckedByAnalysis()
    */
   @Override
   public boolean isCheckedByAnalysis() {

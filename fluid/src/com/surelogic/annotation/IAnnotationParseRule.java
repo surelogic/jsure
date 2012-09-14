@@ -2,11 +2,11 @@ package com.surelogic.annotation;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.promise.IPromiseRule;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

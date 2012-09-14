@@ -11,13 +11,13 @@ import java.util.Iterator;
 
 import com.surelogic.RequiresLock;
 import com.surelogic.annotation.rules.ThreadRoleRules;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 

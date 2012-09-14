@@ -10,6 +10,8 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
+import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacTypeEnvironment;
@@ -19,8 +21,6 @@ import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.SeaStats;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 public class RemoteJSureRun extends AbstractRemoteSLJob {

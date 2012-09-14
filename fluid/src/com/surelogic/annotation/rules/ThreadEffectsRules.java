@@ -7,13 +7,15 @@ import com.surelogic.aast.promise.StartsSpecificationNode;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class ThreadEffectsRules extends AnnotationRules {

@@ -12,13 +12,13 @@ import java.util.logging.Logger;
 import com.surelogic.aast.promise.ThreadRoleRenameNode;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * @author dfsuther

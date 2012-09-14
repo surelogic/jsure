@@ -12,8 +12,8 @@ package com.surelogic.annotation;
 
 import com.surelogic.aast.*;
 import com.surelogic.annotation.parse.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

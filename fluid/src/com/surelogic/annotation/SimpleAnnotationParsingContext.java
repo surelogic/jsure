@@ -12,6 +12,7 @@ import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.PromiseWarningDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -19,7 +20,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationParsingContext {

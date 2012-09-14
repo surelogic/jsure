@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -19,7 +20,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaUnionType;
 import edu.cmu.cs.fluid.java.bind.IJavaVoidType;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class TypeDeclAnnotationTester {
   protected final ITypeFormalEnv formalEnv;

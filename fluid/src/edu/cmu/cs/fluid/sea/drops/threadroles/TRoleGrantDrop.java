@@ -9,8 +9,8 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 import java.util.Collection;
 
 import com.surelogic.aast.promise.ThreadRoleGrantNode;
+import com.surelogic.dropsea.ir.Drop;
 
-import edu.cmu.cs.fluid.sea.Drop;
 
 
 /**

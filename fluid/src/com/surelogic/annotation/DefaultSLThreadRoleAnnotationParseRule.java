@@ -7,8 +7,8 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.parse.SLThreadRoleParse;
 import com.surelogic.annotation.rules.ThreadRoleRules;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class DefaultSLThreadRoleAnnotationParseRule<A extends IAASTRootNode, P extends PromiseDrop<? super A>>

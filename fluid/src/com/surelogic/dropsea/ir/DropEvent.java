@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea.ir;
 
 /**
  * Describes events that occur during a drop's lifetime.

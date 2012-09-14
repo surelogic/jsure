@@ -2,10 +2,10 @@
 package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.*;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 /**
  * Context object for 

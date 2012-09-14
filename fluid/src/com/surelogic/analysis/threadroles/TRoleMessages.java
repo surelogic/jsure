@@ -8,13 +8,14 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Iterator;
 
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.WarningDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.InfoDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 /**
@@ -112,7 +113,7 @@ public class TRoleMessages {
 
 	public static void invalidateDrops() {
 		{
-			Iterator<WarningDrop> it = edu.cmu.cs.fluid.sea.Sea.getDefault()
+			Iterator<WarningDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
 					.getDropsOfExactType(WarningDrop.class).iterator();
 
 			while (it.hasNext()) {
@@ -123,7 +124,7 @@ public class TRoleMessages {
 			}
 		}
 		{
-			Iterator<ResultDrop> it = edu.cmu.cs.fluid.sea.Sea.getDefault()
+			Iterator<ResultDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
 					.getDropsOfExactType(ResultDrop.class).iterator();
 
 			while (it.hasNext()) {

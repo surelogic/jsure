@@ -15,6 +15,7 @@ import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -27,7 +28,6 @@ import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;

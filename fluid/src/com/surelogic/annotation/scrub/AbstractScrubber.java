@@ -3,9 +3,9 @@ package com.surelogic.annotation.scrub;
 import java.util.Comparator;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractScrubber implements IAnnotationScrubber {
 	private IAnnotationScrubberContext context;

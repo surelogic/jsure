@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea;
+package com.surelogic.dropsea.ir;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

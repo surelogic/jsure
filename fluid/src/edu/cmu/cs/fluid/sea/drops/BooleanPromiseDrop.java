@@ -2,8 +2,8 @@
 package edu.cmu.cs.fluid.sea.drops;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class BooleanPromiseDrop<A extends IAASTRootNode> extends PromiseDrop<A> {
   public BooleanPromiseDrop(A a) {

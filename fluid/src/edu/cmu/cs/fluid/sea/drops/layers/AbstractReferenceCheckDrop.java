@@ -3,9 +3,9 @@ package edu.cmu.cs.fluid.sea.drops.layers;
 
 import com.surelogic.aast.layers.AbstractLayerMatchRootNode;
 import com.surelogic.analysis.layers.Messages;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractReferenceCheckDrop<A extends AbstractLayerMatchRootNode> extends PromiseDrop<A> 
 implements IReferenceCheckDrop {

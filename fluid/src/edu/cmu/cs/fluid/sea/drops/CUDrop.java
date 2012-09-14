@@ -6,6 +6,7 @@ import java.util.Set;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
@@ -17,7 +18,6 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.Drop;
 
 /**
  * Drop representing a compilation unit, suitable for promise and result drops

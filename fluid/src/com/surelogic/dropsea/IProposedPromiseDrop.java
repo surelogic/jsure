@@ -3,10 +3,9 @@ package com.surelogic.dropsea;
 import java.util.Map;
 
 import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 
 /**
  * The interface for the base class for all proposed promise drops within the

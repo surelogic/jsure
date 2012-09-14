@@ -12,6 +12,7 @@ import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.*;
 
@@ -30,7 +31,6 @@ import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;

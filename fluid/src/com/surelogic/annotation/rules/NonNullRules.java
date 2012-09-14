@@ -8,6 +8,7 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -15,7 +16,6 @@ import com.surelogic.promise.IPromiseDropStorage;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class NonNullRules extends AnnotationRules {	

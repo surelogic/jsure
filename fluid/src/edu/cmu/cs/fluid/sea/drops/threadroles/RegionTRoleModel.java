@@ -10,13 +10,13 @@ import java.util.*;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.threadroles.TRoleMessages;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 

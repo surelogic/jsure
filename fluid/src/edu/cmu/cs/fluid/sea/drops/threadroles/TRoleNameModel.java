@@ -10,6 +10,11 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.DropPredicate;
+import com.surelogic.dropsea.ir.DropPredicateFactory;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.Sea;
 
 import SableJBDD.bdd.JBDD;
 import SableJBDD.bdd.JBddVariable;

@@ -4,9 +4,9 @@ package com.surelogic.persistence;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class SimpleAnalysisResult extends AbstractAnalysisResult {
 	private final int messageCode;

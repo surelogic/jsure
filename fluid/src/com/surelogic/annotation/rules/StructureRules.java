@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -12,7 +13,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class StructureRules extends AnnotationRules {

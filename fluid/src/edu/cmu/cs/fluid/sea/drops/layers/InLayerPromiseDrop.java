@@ -3,8 +3,8 @@ package edu.cmu.cs.fluid.sea.drops.layers;
 
 import com.surelogic.aast.layers.*;
 import com.surelogic.analysis.layers.Messages;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {

@@ -11,9 +11,9 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.analysis.threadroles.TRoleBDDPack;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.Sea;
 
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.Sea;
 
 /**
  * @author dfsuther

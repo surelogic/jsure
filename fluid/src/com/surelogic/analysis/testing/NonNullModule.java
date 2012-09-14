@@ -6,6 +6,7 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
+import com.surelogic.dropsea.ir.InfoDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -15,7 +16,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.Query;

@@ -5,9 +5,9 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks.locks.ILock.Type;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public final class HeldLockFactory {

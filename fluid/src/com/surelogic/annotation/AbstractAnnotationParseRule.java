@@ -7,6 +7,7 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.promise.*;

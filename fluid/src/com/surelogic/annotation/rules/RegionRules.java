@@ -15,6 +15,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -29,7 +30,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 

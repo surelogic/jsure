@@ -1,9 +1,9 @@
 package com.surelogic.analysis.typeAnnos;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public interface ITypeFormalEnv {
   /**

@@ -6,10 +6,10 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * Works like AbstractAASTScrubber, but on PromiseDrops.

@@ -4,6 +4,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.bca.BindingContextAnalysis.Query;
+import com.surelogic.dropsea.ir.InfoDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -11,7 +12,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 

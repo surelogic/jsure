@@ -6,13 +6,13 @@ import com.surelogic.analysis.*;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.typeAnnos.ValueObjectAnnotationTester;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
 
 public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {

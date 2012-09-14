@@ -3,11 +3,11 @@ package com.surelogic.dropsea;
 import java.util.Collection;
 
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.Category;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.DropPredicate;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicate;
 
 /**
  * The interface for the base class for all drops within the sea, intended to

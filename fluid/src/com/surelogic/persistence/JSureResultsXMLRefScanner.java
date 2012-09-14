@@ -7,6 +7,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.*;
 import com.surelogic.common.jsure.xml.*;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.sea.*;
 

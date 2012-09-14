@@ -5,12 +5,12 @@ package edu.cmu.cs.fluid.java;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.control.ControlFlowGraph;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 

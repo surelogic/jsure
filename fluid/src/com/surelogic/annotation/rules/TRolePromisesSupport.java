@@ -8,9 +8,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.surelogic.dropsea.ir.Drop;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
