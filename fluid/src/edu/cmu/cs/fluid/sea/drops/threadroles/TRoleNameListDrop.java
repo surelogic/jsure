@@ -65,7 +65,7 @@ implements IThreadRoleDrop {
       sb.append(name);
       first = false;
     }
-    setResultMessage(12,sb.toString());
+    setMessage(12,sb.toString());
     XML e = XML.getDefault();
     if (e == null || e.processingXML()) {
       setFromSrc(false);

@@ -120,7 +120,7 @@ public class ModuleDrop extends PromiseDrop {
     }
     
     res.image = "@module " +name+ " contains " +sb.toString();
-    res.setResultMessage(12, res.image);
+    res.setMessage(12, res.image);
 
     //asdfasdf
 //    res.declaredModules.add(ModuleModel.confirmDrop(name, promise));
@@ -138,7 +138,7 @@ public class ModuleDrop extends PromiseDrop {
 //    res.declaredModules.addAll(ModuleModel.queryModulesDefinedBy(name));
     
     res.image = "@module " +name;
-    res.setResultMessage(12, res.image +"(Incomplete)");
+    res.setMessage(12, res.image +"(Incomplete)");
     
     synchronized (ModuleDrop.class) {
       irToSimpleModule.put(where, res);
@@ -279,7 +279,7 @@ public class ModuleDrop extends PromiseDrop {
       simples.addAll(ModuleModel.queryModulesDefinedBy(md.modName));
       md.addDeponents(simples);
       simples.clear();
-      md.setResultMessage(12, md.image);
+      md.setMessage(12, md.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
       rd.setCategory(JavaGlobals.MODULE_CAT);
@@ -300,11 +300,11 @@ public class ModuleDrop extends PromiseDrop {
     Collection<ModuleModel> wraps = new LinkedList<ModuleModel>();
     for (ModuleDrop md : safeWrappingModules) {
       ModuleModel mm = ModuleModel.confirmDrop(md.modName, md.modPromiseIR);
-      mm.setResultMessage(12, md.getMessage());
+      mm.setMessage(12, md.getMessage());
       wraps.addAll(ModuleModel.queryModulesDefinedBy(md.modName));
       md.addDeponents(wraps); // do we really want to do this?? asdfasdf
       wraps.clear();
-      md.setResultMessage(12, md.image);
+      md.setMessage(12, md.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
       rd.setCategory(JavaGlobals.MODULE_CAT);

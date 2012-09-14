@@ -25,15 +25,15 @@ public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<Immut
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
-        setResultMessage(Messages.LockAnnotation_immutableDrop, name);
+        setMessage(Messages.LockAnnotation_immutableDrop, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_immutable_implOnly, name);
+        setMessage(Messages.LockAnnotation_immutable_implOnly, name);
       }
     } else {
       if (isImplementationOnly) {
-        setResultMessage(Messages.LockAnnotation_immutable_implOnly_noVerify, name);
+        setMessage(Messages.LockAnnotation_immutable_implOnly_noVerify, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_immutable_noVerify, name);
+        setMessage(Messages.LockAnnotation_immutable_noVerify, name);
       }
     }
   }

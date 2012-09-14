@@ -11,7 +11,7 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements 
   public GuardedByPromiseDrop(GuardedByNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-    setResultMessage(12, getAAST().toString());
+    setMessage(12, getAAST().toString());
   }
 
   public void validated(final LockModel lm) {

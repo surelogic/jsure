@@ -125,7 +125,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
     f_origin = origin;
 
-    setResultMessage(10, annotation, contents == null ? "" : contents);
+    setMessage(10, annotation, contents == null ? "" : contents);
   }
 
   /**

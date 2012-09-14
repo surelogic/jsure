@@ -27,7 +27,7 @@ public final class UniquenessControlFlowDrop extends PromiseDrop<UniqueNode> {
 	  
 	  UniquenessControlFlowDrop result = new UniquenessControlFlowDrop(dummy);
 	  result.setCategory(JavaGlobals.UNIQUENESS_CAT);
-	  result.setResultMessage(Messages.ControlFlow, JavaNames.genMethodConstructorName(mdecl));
+	  result.setMessage(Messages.ControlFlow, JavaNames.genMethodConstructorName(mdecl));
 	  result.setVirtual(true);
 	  return result;
   }

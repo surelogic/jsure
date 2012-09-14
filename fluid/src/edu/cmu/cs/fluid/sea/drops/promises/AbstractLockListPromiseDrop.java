@@ -10,7 +10,7 @@ public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode
 
   AbstractLockListPromiseDrop(N node) {
     super(node);
-    setResultMessage(Messages.LockAnnotation_requiresLockDrop, getAAST().toString(), JavaNames.genMethodConstructorName(getNode()));
+    setMessage(Messages.LockAnnotation_requiresLockDrop, getAAST().toString(), JavaNames.genMethodConstructorName(getNode()));
   }
 
   /**

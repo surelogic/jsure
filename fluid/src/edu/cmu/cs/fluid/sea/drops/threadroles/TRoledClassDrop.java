@@ -49,7 +49,7 @@ public class TRoledClassDrop extends IRReferenceDrop implements IThreadRoleDrop 
     TRoledClassDrop res = allTRCDs.get(cu);
     if (res == null) {
       res = new TRoledClassDrop(cu);
-      res.setResultMessage(12,"another TRoledClassDrop...");
+      res.setMessage(12,"another TRoledClassDrop...");
     }
     return res;
   }

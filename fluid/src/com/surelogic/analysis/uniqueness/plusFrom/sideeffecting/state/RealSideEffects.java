@@ -426,7 +426,7 @@ public final class RealSideEffects implements ISideEffects {
       hasControlFlowResults = true;
     }
     result.setConsistent(isConsistent);
-    result.setResultMessage(msg, newArgs);
+    result.setMessage(msg, newArgs);
     return result;
   }
 

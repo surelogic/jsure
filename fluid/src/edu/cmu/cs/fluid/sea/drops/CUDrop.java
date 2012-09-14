@@ -145,7 +145,7 @@ public abstract class CUDrop extends Drop {
     } else {
       LOG.severe("No node while building CUDrop for " + f_javaOSFileName);
     }
-    setResultMessage(11, getClass().getSimpleName(), f_javaOSFileName);
+    setMessage(11, getClass().getSimpleName(), f_javaOSFileName);
   }
 
   public final ITypeEnvironment getTypeEnv() {

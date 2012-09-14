@@ -98,9 +98,9 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
         drop.setCategory(Messages.DSC_NON_NULL);
         final String varName = VariableUseExpression.getId(use);
         if (nonNull.contains(varDecl)) {
-          drop.setResultMessage(Messages.NOT_NULL, varName);
+          drop.setMessage(Messages.NOT_NULL, varName);
         } else {
-          drop.setResultMessage(Messages.MAYBE_NULL, varName);
+          drop.setMessage(Messages.MAYBE_NULL, varName);
         }
       }
       

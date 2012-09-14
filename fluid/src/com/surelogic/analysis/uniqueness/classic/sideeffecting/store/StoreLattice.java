@@ -1663,7 +1663,7 @@ extends TripleLattice<Element<Integer>,
       hasControlFlowResults = true;
     }
     result.setConsistent(isConsistent);
-    result.setResultMessage(msg, newArgs);
+    result.setMessage(msg, newArgs);
     return result;
   }
 

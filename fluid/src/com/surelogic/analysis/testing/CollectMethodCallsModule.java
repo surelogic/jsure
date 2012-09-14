@@ -93,7 +93,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
         drop.setCategory(Messages.DSC_COLLECT_METHOD_CALLS);
         final ISrcRef srcRef = JavaNode.getSrcRef(call);
         final int srcLine = srcRef == null ? -1 : srcRef.getLineNumber();
-        drop.setResultMessage(Messages.CALLS, DebugUnparser.toString(call), srcLine);
+        drop.setMessage(Messages.CALLS, DebugUnparser.toString(call), srcLine);
       }
     }
   }

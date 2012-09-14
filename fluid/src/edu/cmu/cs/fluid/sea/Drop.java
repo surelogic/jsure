@@ -134,7 +134,7 @@ public abstract class Drop implements IDrop {
    * @see AnalysisResultMessage
    * @see I18N
    */
-  public final void setResultMessage(int number, Object... args) {
+  public final void setMessage(int number, Object... args) {
     if (number < 1) {
       LOG.warning("Ignoring negative result number: " + number);
       return;

@@ -25,15 +25,15 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
-        setResultMessage(Messages.LockAnnotation_containableDrop, name);
+        setMessage(Messages.LockAnnotation_containableDrop, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_containable_implOnly, name);
+        setMessage(Messages.LockAnnotation_containable_implOnly, name);
       }
     } else {
       if (isImplementationOnly) {
-        setResultMessage(Messages.LockAnnotation_containable_implOnly_noVerify, name);
+        setMessage(Messages.LockAnnotation_containable_implOnly_noVerify, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_containable_noVerify, name);
+        setMessage(Messages.LockAnnotation_containable_noVerify, name);
       }
     }
   }

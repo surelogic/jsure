@@ -24,7 +24,7 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
     super(a);
     setCategory(JavaGlobals.UNIQUENESS_CAT);
     final IRNode node = getNode();
-    setResultMessage(Messages.UniquenessAnnotation_borrowedDrop, getAAST().allowReturn() ? JavaNames.getFieldDecl(node)
+    setMessage(Messages.UniquenessAnnotation_borrowedDrop, getAAST().allowReturn() ? JavaNames.getFieldDecl(node)
         + ", allowReturn=true" : JavaNames.getFieldDecl(node), JavaNames.getFullName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
   }
 

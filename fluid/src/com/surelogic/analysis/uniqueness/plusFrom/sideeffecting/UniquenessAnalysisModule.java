@@ -254,7 +254,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 				for (ResultDrop callDrop : callDrops) {
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
+					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
 					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
@@ -263,7 +263,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					callDrop.setInconsistent();
           callDrop.addSupportingInformation(node, getErrorMessage(insideDecl, node));
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
+					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
 					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
@@ -482,7 +482,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		    } else {
           final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           for (final PromiseDrop<? extends IAASTRootNode> ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -501,7 +501,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         } else {
           final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -541,7 +541,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     	  label = "field initializer";
     	  unparse = DebugUnparser.toString(block);
       }
-      drop.setResultMessage(Messages.METHOD_CONTROL_FLOW, label, unparse);
+      drop.setMessage(Messages.METHOD_CONTROL_FLOW, label, unparse);
       cachedControlFlow.put(block, drop);
       controlFlowDrops.add(drop);
     }
@@ -1047,7 +1047,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final Set<D> promises, int num, Object... args) {
     final ResultDrop rd = new ResultDrop(n);
     rd.setConsistent();
-    rd.setResultMessage(num, args);
+    rd.setMessage(num, args);
     for (final D pd : promises) {
       rd.addTrustedPromise(pd);
     }

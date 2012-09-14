@@ -295,7 +295,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     
 
     final ResultFolderDrop folder = new ResultFolderDrop(parameterizedType);
-    folder.setResultMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
+    folder.setMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
     folder.addCheckedPromise(boundsDrop);
     
@@ -318,7 +318,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
           : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
       final ResultDrop result = new ResultDrop(parameterizedType);
-      result.setResultMessage(msg, jTypeOfActual.toSourceText(),
+      result.setMessage(msg, jTypeOfActual.toSourceText(),
             boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
       for (final PromiseDrop<? extends IAASTRootNode> p : promises) {

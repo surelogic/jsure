@@ -36,7 +36,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
 	super(null);
     masterRegion = forRegion;
     protoIR = rdsIR;
-    setResultMessage(12,"regionTRoles " + forRegion.getMessage());
+    setMessage(12,"regionTRoles " + forRegion.getMessage());
     userDeponents = new HashSet<PromiseDrop<? extends IAASTRootNode>>(1);
     setCategory(TRoleMessages.assuranceCategory);
   }

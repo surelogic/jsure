@@ -72,7 +72,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
       final boolean isConsistent, final int msg, final Object... args) {
     final ResultDrop result = new ResultDrop(node);
     result.setConsistent(isConsistent);
-    result.setResultMessage(msg, args);
+    result.setMessage(msg, args);
     return result;
   }
 

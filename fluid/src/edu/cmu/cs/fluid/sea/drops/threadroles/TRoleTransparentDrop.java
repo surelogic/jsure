@@ -11,6 +11,6 @@ implements IThreadRoleDrop {
   public TRoleTransparentDrop(ThreadRoleTransparentNode n) {
     super(n);
     setCategory(TRoleMessages.assuranceCategory);
-    setResultMessage(12,"@ThreadRoleTransparent");
+    setMessage(12,"@ThreadRoleTransparent");
   }
 }

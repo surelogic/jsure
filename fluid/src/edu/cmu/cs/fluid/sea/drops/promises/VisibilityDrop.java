@@ -81,7 +81,7 @@ public abstract class VisibilityDrop extends PromiseDrop {
   protected static <T extends VisibilityDrop> T buildVisDrop(T res,
       IRNode locInIR, IRNode modIR) {
     // VisibilityDrop res = new VisibilityDrop(locInIR, modIR);
-    res.setResultMessage(12, res.toString());
+    res.setMessage(12, res.toString());
     synchronized (VisibilityDrop.class) {
       allVisDrops.add(res);
 //      newVisDrops.add(res);

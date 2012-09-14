@@ -27,7 +27,7 @@ public final class ExplicitBorrowedInRegionPromiseDrop extends PromiseDrop<Expli
     setCategory(JavaGlobals.REGION_CAT);
     final String name = JavaNames.getFieldDecl(getNode());
     final String mappings = getAAST().getMapping().unparse(false);
-    setResultMessage(Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name);
+    setMessage(Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name);
   }
 
   @Override

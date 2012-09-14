@@ -18,7 +18,7 @@ public final class StartsPromiseDrop extends PromiseDrop<StartsSpecificationNode
   public StartsPromiseDrop(StartsSpecificationNode a) {
     super(a);
     this.setCategory(JavaGlobals.THREAD_EFFECTS_CAT);
-    setResultMessage(Messages.StartsAnnotation_startNothingDrop, JavaNames.genMethodConstructorName(getNode()));
+    setMessage(Messages.StartsAnnotation_startNothingDrop, JavaNames.genMethodConstructorName(getNode()));
   }
 
   public boolean startsNothing() {

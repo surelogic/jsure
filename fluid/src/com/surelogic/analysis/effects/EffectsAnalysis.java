@@ -145,7 +145,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
             final ResultDrop rd = new ResultDrop(member);
             rd.addCheckedPromise(declaredEffectsDrop);
             rd.setConsistent();
-            rd.setResultMessage(Messages.EMPTY_EFFECTS);
+            rd.setMessage(Messages.EMPTY_EFFECTS);
           }
 			  } else {
 	        // NULL if there are no declared effects
@@ -165,7 +165,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
               final ResultDrop rd = new ResultDrop(member);
 	            rd.addCheckedPromise(declaredEffectsDrop);
 	            rd.setConsistent();
-	            rd.setResultMessage(Messages.EMPTY_EFFECTS);
+	            rd.setMessage(Messages.EMPTY_EFFECTS);
 	          } else {
 	            if (isConstructor) {
 	              checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
@@ -337,7 +337,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    final InfoDrop drop = new InfoDrop(src);
 	    drop.setCategory(null);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
-      drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
+      drop.setMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
 	  }
 	}
@@ -469,7 +469,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		
 		// Finish the drop
 		rd.setConsistent(isConsistent);
-		rd.setResultMessage(msgTemplate, msgArgs);
+		rd.setMessage(msgTemplate, msgArgs);
 		
 		return rd;
 	}
@@ -486,7 +486,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final ResultDrop rd = new ResultDrop(expr);
       rd.addCheckedPromise(pd);
       rd.setConsistent(false);
-      rd.setResultMessage(Messages.READONLY_REFERENCE);
+      rd.setMessage(Messages.READONLY_REFERENCE);
       (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());
     }	  
 	}

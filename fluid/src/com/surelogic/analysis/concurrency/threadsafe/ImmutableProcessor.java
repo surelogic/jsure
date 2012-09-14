@@ -177,9 +177,9 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       }
 
       if (isGood) {
-        folder.setResultMessage(Messages.FOLDER_IS_IMMUTABLE, id);
+        folder.setMessage(Messages.FOLDER_IS_IMMUTABLE, id);
       } else {
-        folder.setResultMessage(Messages.FOLDER_IS_NOT_IMMUTABLE, id);
+        folder.setMessage(Messages.FOLDER_IS_NOT_IMMUTABLE, id);
       }
     }
   }

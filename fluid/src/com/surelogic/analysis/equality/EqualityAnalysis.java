@@ -92,7 +92,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 				for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
 				  d.addCheckedPromise(p);
 				}
-				d.setResultMessage(758, DebugUnparser.toString(e));
+				d.setMessage(758, DebugUnparser.toString(e));
 			}
 		}
 	}

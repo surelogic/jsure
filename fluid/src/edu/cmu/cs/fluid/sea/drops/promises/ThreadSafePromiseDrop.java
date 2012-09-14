@@ -24,15 +24,15 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
-        setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
+        setMessage(Messages.LockAnnotation_threadSafeDrop, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_threadSafe_implOnly, name);
+        setMessage(Messages.LockAnnotation_threadSafe_implOnly, name);
       }
     } else {
       if (isImplementationOnly) {
-        setResultMessage(Messages.LockAnnotation_threadSafe_implOnly_noVerify, name);
+        setMessage(Messages.LockAnnotation_threadSafe_implOnly_noVerify, name);
       } else {
-        setResultMessage(Messages.LockAnnotation_threadSafe_noVerify, name);
+        setMessage(Messages.LockAnnotation_threadSafe_noVerify, name);
       }
     }
   }

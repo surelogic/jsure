@@ -52,7 +52,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 			final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(mdecl);
 			final InfoDrop drop = new InfoDrop(mdecl);
 			drop.setCategory(Messages.DSC_LOCAL_VARIABLES);
-			drop.setResultMessage(Messages.LOCAL_VARS, 
+			drop.setMessage(Messages.LOCAL_VARS, 
 			    JavaNames.genQualifiedMethodConstructorName(mdecl), 
 					listToString(lvd.getLocal()), listToString(lvd.getExternal()));
 		}

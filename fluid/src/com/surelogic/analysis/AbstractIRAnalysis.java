@@ -203,6 +203,6 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	
 	protected void reportProblem(String msg, IRNode context) {
 		final WarningDrop d = new WarningDrop(context);
-		d.setResultMessage(12, msg);
+		d.setMessage(12, msg);
 	}
 }

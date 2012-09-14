@@ -83,7 +83,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final ResultDrop middleDrop = new ResultDrop(entry.getKey().getNode());
       middleDrop.addCheckedPromise(entry.getKey());
       middleDrop.setConsistent();
-      middleDrop.setResultMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
+      middleDrop.setMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
       for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
         middleDrop.addTrustedPromise(cfDrop);
       }
@@ -170,7 +170,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         final WarningDrop info = new WarningDrop(mr.mdecl);
-        info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
+        info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
         sl.getCFDrop().addDependent(info);
@@ -190,7 +190,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final ResultDrop timeOutResult = new ResultDrop(mr.mdecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
-      timeOutResult.setResultMessage(Messages.TIMEOUT,
+      timeOutResult.setMessage(Messages.TIMEOUT,
           e.timeOut / NANO_SECONDS_PER_SECOND,
           methodName, duration / NANO_SECONDS_PER_SECOND);
       

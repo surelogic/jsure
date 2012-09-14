@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
 		InfoDrop id = new InfoDrop(loc);
-		id.setResultMessage(number, arg);
+		id.setMessage(number, arg);
 		id.setCategory(c);
 	}
 

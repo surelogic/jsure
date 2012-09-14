@@ -10,6 +10,6 @@ public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {
 		super(a);
 		setCategory(Messages.DSC_LAYERS_ISSUES);
-		setResultMessage(12, getAAST().toString());
+		setMessage(12, getAAST().toString());
 	}
 }

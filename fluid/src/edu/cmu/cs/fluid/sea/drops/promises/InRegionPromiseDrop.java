@@ -17,7 +17,7 @@ public final class InRegionPromiseDrop extends PromiseDrop<InRegionNode> {
     super(n);
     String name = JavaNames.getFieldDecl(getNode());
     String regionName = getAAST().getSpec().unparse(false);
-    setResultMessage(Messages.RegionAnnotation_inRegionDrop, regionName, name); //$NON-NLS-1$
+    setMessage(Messages.RegionAnnotation_inRegionDrop, regionName, name); //$NON-NLS-1$
   }
 
   /**

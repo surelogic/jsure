@@ -32,7 +32,7 @@ public final class AnnotationBoundsPromiseDrop extends BooleanPromiseDrop<Annota
       }
     }
 
-    setResultMessage(Messages.AnnotationBounds, sb.toString(), JavaNames.getTypeName(getNode()));
+    setMessage(Messages.AnnotationBounds, sb.toString(), JavaNames.getTypeName(getNode()));
   }
 
   private String getNameList(final String attribute, final NamedTypeNode[] list) {

@@ -250,10 +250,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
               }
 
               if (protectedRegions) {
-                subFolder.setResultMessage(Messages.FOLDER_AGGREGATION_IS_PROTECTED);
+                subFolder.setMessage(Messages.FOLDER_AGGREGATION_IS_PROTECTED);
               } else {
                 passesPart2 = false;
-                subFolder.setResultMessage(Messages.FOLDER_AGGREGATION_IS_NOT_PROTECTED);
+                subFolder.setMessage(Messages.FOLDER_AGGREGATION_IS_NOT_PROTECTED);
               }
             } else {
               // Need to do this because it may be been made temporarily true above
@@ -270,9 +270,9 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
       }
       
       if (passesPart1 && passesPart2) {
-        folder.setResultMessage(Messages.FOLDER_IS_THREADSAFE, id);
+        folder.setMessage(Messages.FOLDER_IS_THREADSAFE, id);
       } else {
-        folder.setResultMessage(Messages.FOLDER_IS_NOT_THREADSAFE, id);
+        folder.setMessage(Messages.FOLDER_IS_NOT_THREADSAFE, id);
         if (!isPrimitive) {
           // Propose that the field be vouched threadsafe
           folder.addProposal(new ProposedPromiseDrop(

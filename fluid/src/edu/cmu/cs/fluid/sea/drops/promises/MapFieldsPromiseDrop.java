@@ -27,7 +27,7 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
       fieldNames.append(reg);
     }
     String regionName = getAAST().getTo().toString();
-    setResultMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames, regionName);
+    setMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames, regionName);
   }
 
   /**

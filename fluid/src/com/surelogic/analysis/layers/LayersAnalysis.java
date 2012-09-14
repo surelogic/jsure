@@ -84,7 +84,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
 					ResultDrop success = createSuccessDrop(type, allows);
-					success.setResultMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
+					success.setMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
 				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
@@ -109,11 +109,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		}
 		if (!problemWithInLayer) {
 			ResultDrop rd = createSuccessDrop(type, inLayer);	
-			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
+			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 		if (!problemWithMayReferTo) {
 			ResultDrop rd = createSuccessDrop(type, mayReferTo);
-			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
+			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 	}
 
@@ -162,7 +162,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				*/
 				// Create error
 				ResultDrop rd = createFailureDrop(context);			
-				rd.setResultMessage(d.getResultMessageKind(), 
+				rd.setMessage(d.getResultMessageKind(), 
 						            unparseArgs(d.getArgs(b.getNode(), type, context)));
 				/*
 				if (rd.getMessage().contains("Null")) {
@@ -215,7 +215,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
-				rd.setResultMessage(Messages.CYCLE, backedge); 
+				rd.setMessage(Messages.CYCLE, backedge); 
 				
 				final Map<String,TypeSetPromiseDrop> involved = new HashMap<String, TypeSetPromiseDrop>();
 				for(IRNode type : layers.get(backedge)) {

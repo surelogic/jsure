@@ -584,7 +584,7 @@ public class Util {
       }
     });
     PromiseWarningDrop d = new PromiseWarningDrop(n);
-    d.setResultMessage(num, args);
+    d.setMessage(num, args);
     // LOG.warning(d.getMessage());
   }
 

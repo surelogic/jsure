@@ -45,7 +45,7 @@ public class TRoleMessages {
 		rd.setConsistent();
 		// rd.addCheckedPromise(pd);
 		//rd.setNodeAndCompilationUnitDependency(loc);
-		rd.setResultMessage(12, msg);
+		rd.setMessage(12, msg);
 		rd.setCategory(assuranceCategory);
 
 		if (loc != null) {
@@ -61,7 +61,7 @@ public class TRoleMessages {
 		WarningDrop wd = new WarningDrop(loc);
 		// rd.addCheckedPromise(pd);
 	//	wd.setNodeAndCompilationUnitDependency(loc);
-		wd.setResultMessage(12, msg);
+		wd.setMessage(12, msg);
 		wd.setCategory(warningCategory);
 
 		if (loc != null) {
@@ -77,7 +77,7 @@ public class TRoleMessages {
 		InfoDrop id = new InfoDrop(loc);
 		// rd.addCheckedPromise(pd);
 		//id.setNodeAndCompilationUnitDependency(loc);
-		id.setResultMessage(12, msg);
+		id.setMessage(12, msg);
 		id.setCategory(infoCategory);
 
 		if (loc != null) {
@@ -104,7 +104,7 @@ public class TRoleMessages {
 				}
 			}
 		}
-		rd.setResultMessage(12, msg);
+		rd.setMessage(12, msg);
 		rd.setCategory(problemCategory);
 
 		return rd;

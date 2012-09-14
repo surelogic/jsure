@@ -14,7 +14,7 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
     super(n);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = JavaNames.getFieldDecl(getNode());
-    setResultMessage(Messages.LockAnnotation_vouchFieldIsDrop, getAAST().getKind(), name);
+    setMessage(Messages.LockAnnotation_vouchFieldIsDrop, getAAST().getKind(), name);
   }
 
   public boolean isFinal() {

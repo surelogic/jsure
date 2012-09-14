@@ -118,7 +118,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
 
   private static void setResultMessage(RegionModel model, final boolean isStatic, final Visibility viz, final String name) {
     final String stat = isStatic ? " static" : "";
-    model.setResultMessage(Messages.RegionAnnotation_regionDrop, viz.getSourceText(), stat, name);
+    model.setMessage(Messages.RegionAnnotation_regionDrop, viz.getSourceText(), stat, name);
   }
 
   /**

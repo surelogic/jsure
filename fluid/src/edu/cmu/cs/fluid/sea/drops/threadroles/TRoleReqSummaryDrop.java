@@ -161,14 +161,14 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
         // the nodeToDrop mapping for us.
 
         if (res.reqsAreRelevant) {
-          res.setResultMessage(12,emptyRelevantMsg + mthName);
+          res.setMessage(12,emptyRelevantMsg + mthName);
           res.setVirtual(true);
           res.setWhichStat(Status.INFERRED);
           if (LOG.isLoggable(Level.FINER)) {
             LOG.finer(msg + ": empty.");
           }
         } else {
-          res.setResultMessage(12,emptyNotRelevantMsg + mthName);
+          res.setMessage(12,emptyNotRelevantMsg + mthName);
           res.setWhichStat(Status.USER);
           if (LOG.isLoggable(Level.FINER)) {
             LOG.finer(msg + ": transparent");
@@ -207,7 +207,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
         // res.localSimpleExpr = res.simpleExpr.copy();
         // String msg1;
 
-        res.setResultMessage(12,"@colorConstraint " + res.fullExpr + " for " + mthName);
+        res.setMessage(12,"@colorConstraint " + res.fullExpr + " for " + mthName);
 
       }
       if (LOG.isLoggable(Level.FINER)) {
@@ -258,9 +258,9 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     if (!ThreadRoleRules.isTRoleRelevant(node)) {
       reqsAreRelevant = false;
       cutPoint = true;
-      setResultMessage(12,"transparent for " + methodName);
+      setMessage(12,"transparent for " + methodName);
     } else {
-      setResultMessage(12,"(partial) colorConstraint for " + methodName);
+      setMessage(12,"(partial) colorConstraint for " + methodName);
     }
 
     assert (ThreadRoleRules.getReqSummDrop(node) == null);
@@ -336,7 +336,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     addAllToUserDeponents(parent.getUserDeponents());
 
     parent.addDependent(this);
-    setResultMessage(12,"@ThreadRole " + fullExpr + " for " + methodName);
+    setMessage(12,"@ThreadRole " + fullExpr + " for " + methodName);
   }
 
   private JBDD namesToConflictExpr(Collection<String> names, final IRNode where) {

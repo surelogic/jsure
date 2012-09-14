@@ -133,7 +133,7 @@ public final class ContainableProcessor extends
 				 */				
 		    final ResultFolderDrop folder = createResultFolder(varDecl); 
 		    if (isContainable && uniqueDrop != null) { // GOOD!
-		      folder.setResultMessage(Messages.FIELD_CONTAINED_OBJECT, id);
+		      folder.setMessage(Messages.FIELD_CONTAINED_OBJECT, id);
           final ResultDrop cResult = createResultInFolder(
               folder, FieldDeclaration.getType(fieldDecl), true,
               Messages.DECLARED_TYPE_IS_CONTAINABLE, type.toSourceText());
@@ -143,7 +143,7 @@ public final class ContainableProcessor extends
               folder, fieldDecl, true, Messages.FIELD_IS_UNIQUE);
           uResult.addTrustedPromise(uniqueDrop.getDrop());
 				} else {
-          folder.setResultMessage(Messages.FIELD_BAD, id);
+          folder.setMessage(Messages.FIELD_BAD, id);
           folder.addProposal(new ProposedPromiseDrop(
               "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
 

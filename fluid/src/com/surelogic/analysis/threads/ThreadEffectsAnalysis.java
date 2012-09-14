@@ -158,7 +158,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop r = new ResultDrop(block);
       r.setConsistent();
       r.addCheckedPromise(pd);
-      r.setResultMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
+      r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
     }
     return results;
   }
@@ -220,7 +220,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
               ResultDrop rd = new ResultDrop(node);
               rd.setInconsistent();
               rd.addCheckedPromise(pd);
-              rd.setResultMessage(Messages.PROHIBITED, DebugUnparser.toString(node));
+              rd.setMessage(Messages.PROHIBITED, DebugUnparser.toString(node));
               return new Result(new SimpleAnalysisResult(pd, node, Messages.PROHIBITED, DebugUnparser.toString(node)), false);
             }
           }
@@ -262,7 +262,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop rd = new ResultDrop(node);
       rd.addCheckedPromise(pd);
       rd.addTrustedPromise(callp);
-      rd.setResultMessage(Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
+      rd.setMessage(Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
       rd.setConsistent();
       success = true;
     } else {
@@ -270,7 +270,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop rd = new ResultDrop(node);
       rd.addCheckedPromise(pd);
       rd.setInconsistent();
-      rd.setResultMessage(Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
+      rd.setMessage(Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
       rd.addProposal(new ProposedPromiseDrop("Starts", "nothing", declaration, node, Origin.MODEL));
       success = false;
     }

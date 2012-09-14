@@ -73,7 +73,7 @@ public class JSureResultsXMLReader extends
 			//d.setMessage(d.isConsistent() ? "Consistent" : "Inconsistent");
 		} else {
 			int number = Integer.parseInt(e.getAttribute(MESSAGE_CODE));
-			d.setResultMessage(number, (Object[]) e.getAttribute(MESSAGE_ARGS)
+			d.setMessage(number, (Object[]) e.getAttribute(MESSAGE_ARGS)
 					.split(", "));
 		}
 	}

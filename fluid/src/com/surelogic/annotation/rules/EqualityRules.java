@@ -174,7 +174,7 @@ public class EqualityRules extends AnnotationRules {
 
 	static void makeResultDrop(IRNode decl, PromiseDrop<?> p, boolean consistent, int num, Object... args) {
 		final ResultDrop r = new ResultDrop(decl);
-		r.setResultMessage(num, args);
+		r.setMessage(num, args);
 		r.addCheckedPromise(p);
 		if (consistent) {
 			r.setConsistent();

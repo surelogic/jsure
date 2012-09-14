@@ -832,7 +832,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDrop info = new InfoDrop(context);
-		info.setResultMessage(msgTemplate, msgArgs);
+		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
 	}
@@ -841,7 +841,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final WarningDrop info = new WarningDrop(context);
-		info.setResultMessage(msgTemplate, msgArgs);
+		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
 	}
@@ -851,7 +851,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
 		final ResultDrop result = new ResultDrop(context);
-		result.setResultMessage(msgTemplate, msgArgs);
+		result.setMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);
 		if (isConsistent) {
 			result.setConsistent();

@@ -33,7 +33,7 @@ public class TRoleIncSummaryDrop extends IRReferenceDrop implements IThreadRoleD
     conflictExpr = resExpr;
     summaryFor = model;
     model.addDependent(this);
-    setResultMessage(12,"Incompatibility expression for thread role " + canonModel.getTRoleName() + ": " + conflictExpr);
+    setMessage(12,"Incompatibility expression for thread role " + canonModel.getTRoleName() + ": " + conflictExpr);
   }
   
   
