@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.tree.TestEdgeDigraph;
  * @author boyland
  */
 public class TestVersionedStructures implements IReporter {
+  @Override
   public void reportError(String msg) {
     System.out.println("!!! "+msg);
   }

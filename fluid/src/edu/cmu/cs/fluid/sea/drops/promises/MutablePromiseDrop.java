@@ -14,14 +14,11 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
+
   public MutablePromiseDrop(MutableNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
-    String name = JavaNames.getTypeName(getNode());
+    final String name = JavaNames.getTypeName(getNode());
     setResultMessage(Messages.LockAnnotation_mutableDrop, name);
   }
 }

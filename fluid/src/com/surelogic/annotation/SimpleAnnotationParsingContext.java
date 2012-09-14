@@ -199,10 +199,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   }
   
   public static void reportError(IRNode node, int offset, String txt) {	    
-	  PromiseWarningDrop d = new PromiseWarningDrop(offset);
+	  PromiseWarningDrop d = new PromiseWarningDrop(node, offset);
 	  d.setMessage(txt);
 	  d.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
-	  d.setNodeAndCompilationUnitDependency(node);
   }
   
   public void reportError(int offset, String msg) {

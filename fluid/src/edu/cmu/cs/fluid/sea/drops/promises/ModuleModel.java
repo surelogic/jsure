@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
-import edu.cmu.cs.fluid.java.bind.ModulePromises;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
@@ -121,6 +120,7 @@ public final class ModuleModel extends ModelDrop {
   public int ModuleNum = -1;
 
   private ModuleModel(String name) {
+	super(null);
     this.name = name;
     module = Module.createNode(name);
     enclosedModuleNames = null;
@@ -133,6 +133,7 @@ public final class ModuleModel extends ModelDrop {
   }
   
   private ModuleModel(String name, IRNode thePromise) {
+	super(null);
     this.name = name;
     final IRNode modsIR = thePromise;
     module = thePromise;
@@ -165,7 +166,8 @@ public final class ModuleModel extends ModelDrop {
    * never be used anywhere else!
    */
   private ModuleModel() {
-    name = "The World";
+    super(null);
+	name = "The World";
     module = null;
     enclosedModuleNames = null;
     enclosedModuleIR = null;
@@ -359,7 +361,7 @@ public final class ModuleModel extends ModelDrop {
                                                      DS_BAD_EXPORT, 
                                                      ed.toString(), 
                                                      ModuleAnalysisAndVisitor.javaName(where));
-           rd.addSupportingInformation(DS_BAD_EXPORT_INFO, null);
+           rd.addSupportingInformation(null, DS_BAD_EXPORT_INFO);
          }
       }
     }
@@ -412,7 +414,7 @@ public final class ModuleModel extends ModelDrop {
   }
 
   public static ModuleModel getModuleDrop(final IRNode node) {
-    final IRNode modDecl = ModulePromises.getModuleDecl(node);
+	final IRNode modDecl = null;//ModulePromises.getModuleDecl(node);
     if (modDecl == null) { return theWorldDrop; }
 
     final String modName = Module.getId(modDecl);

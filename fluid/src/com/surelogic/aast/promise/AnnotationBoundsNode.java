@@ -8,22 +8,28 @@ import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
-public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode 
-{ 
-  private final NamedTypeNode[] threadSafe;	
+public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode { 
+  private final NamedTypeNode[] containable;
   private final NamedTypeNode[] immutable;
-  private final NamedTypeNode[] containable;  
+  private final NamedTypeNode[] reference;
+  private final NamedTypeNode[] threadSafe;
+  private final NamedTypeNode[] value;
 	  
   // Constructors
-  public AnnotationBoundsNode(int offset, NamedTypeNode[] threadSafe, 
-		  NamedTypeNode[] immutable, NamedTypeNode[] containable) {
+  public AnnotationBoundsNode(int offset, NamedTypeNode[] containable, 
+		  NamedTypeNode[] immutable, NamedTypeNode[] reference,
+		  NamedTypeNode[] threadSafe, NamedTypeNode value[]) {
     super(offset, JavaNode.ALL_FALSE);
-    this.threadSafe = threadSafe;
-    this.immutable = immutable;
     this.containable = containable;
-    setParents(threadSafe);
-    setParents(immutable);
+    this.immutable = immutable;
+    this.reference = reference;
+    this.threadSafe = threadSafe;
+    this.value = value;
     setParents(containable);
+    setParents(immutable);
+    setParents(reference);
+    setParents(threadSafe);
+    setParents(value);
   }
 
   @Override
@@ -33,17 +39,26 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode
 
   @Override
   protected void unparseExtra(boolean debug, int indent, StringBuilder sb) {
-	  boolean unparsed = unparseTypes(debug, indent, sb, LockRules.THREAD_SAFE, threadSafe);
-	  if (unparsed && immutable.length != 0) {
+    if (unparseTypes(debug, indent, sb, LockRules.CONTAINABLE_PROP, containable)) {
+      // Need a comma since something's coming up     
+      sb.append(", ");
+    }
+    if (unparseTypes(debug, indent, sb, LockRules.IMMUTABLE_PROP, immutable)) {
+      // Need a comma since something's coming up     
+      sb.append(", ");
+    }
+    if (unparseTypes(debug, indent, sb, LockRules.REFERENCE_PROP, reference)) {
+      // Need a comma since something's coming up     
+      sb.append(", ");
+    }
+	  if (unparseTypes(debug, indent, sb, LockRules.THREAD_SAFE_PROP, threadSafe)) {
 		  // Need a comma since something's coming up		  
 		  sb.append(", ");
 	  }
-	  unparsed |= unparseTypes(debug, indent, sb, LockRules.IMMUTABLE, immutable);
-	  if (unparsed && containable.length != 0) {
-		  // Need a comma since something's coming up		  
-		  sb.append(", ");
-	  }
-	  unparseTypes(debug, indent, sb, LockRules.CONTAINABLE, containable);
+    if (unparseTypes(debug, indent, sb, LockRules.VALUE_PROP, value)) {
+//      // Need a comma since something's coming up     
+//      sb.append(", ");
+    }
   }
   
   @Override
@@ -53,51 +68,74 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new AnnotationBoundsNode(offset, threadSafe, immutable, containable);
+  	return new AnnotationBoundsNode(offset, containable, immutable, reference, threadSafe, value);
   }
   
   @Override
   protected boolean hasChildren() {
-	  return (threadSafe.length + immutable.length + containable.length) > 0;
+	  return (threadSafe.length + immutable.length + containable.length + reference.length + value.length) > 0;
+  }
+  
+  
+  
+  public NamedTypeNode[] getContainable() {
+    return containable;
+  }  
+
+  public NamedTypeNode[] getImmutable() {
+    return immutable;
+  }
+  
+  public NamedTypeNode[] getReference() {
+    return reference;
   }
   
   public NamedTypeNode[] getThreadSafe() {
 	  return threadSafe;
   }
   
-  public NamedTypeNode[] getImmutable() {
-	  return immutable;
+  public NamedTypeNode[] getValue() {
+    return value;
   }
-  
-  public NamedTypeNode[] getContainable() {
-	  return containable;
-  }  
-  
   
   public static interface BoundsVisitor {
     public void visitWhenType(NamedTypeNode namedType);
   }
 
   public void visitAnnotationBounds(final BoundsVisitor visitor) {
-    visitThreadSafeBounds(visitor);
-    visitImmutableBounds(visitor);
     visitContainableBounds(visitor);
+    visitImmutableBounds(visitor);
+    visitReferenceBounds(visitor);
+    visitThreadSafeBounds(visitor);
+    visitValueBounds(visitor);
   }
   
-  public void visitThreadSafeBounds(final BoundsVisitor visitor) {
-    for (final NamedTypeNode named : threadSafe) {
+  public void visitContainableBounds(final BoundsVisitor visitor) {
+    for (final NamedTypeNode named : containable) {
       visitor.visitWhenType(named);
     }
   }
-  
+
   public void visitImmutableBounds(final BoundsVisitor visitor) {
     for (final NamedTypeNode named : immutable) {
       visitor.visitWhenType(named);
     }
   }
   
-  public void visitContainableBounds(final BoundsVisitor visitor) {
-    for (final NamedTypeNode named : containable) {
+  public void visitReferenceBounds(final BoundsVisitor visitor) {
+    for (final NamedTypeNode named : reference) {
+      visitor.visitWhenType(named);
+    }
+  }
+
+  public void visitThreadSafeBounds(final BoundsVisitor visitor) {
+    for (final NamedTypeNode named : threadSafe) {
+      visitor.visitWhenType(named);
+    }
+  }
+
+  public void visitValueBounds(final BoundsVisitor visitor) {
+    for (final NamedTypeNode named : value) {
       visitor.visitWhenType(named);
     }
   }

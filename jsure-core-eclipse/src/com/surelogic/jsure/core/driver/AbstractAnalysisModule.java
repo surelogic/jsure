@@ -40,6 +40,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#postBuild(IProject)
    */
+  @Override
   public void postBuild(IProject project) {
     // do nothing
   }
@@ -47,6 +48,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#resetForAFullBuild(IProject)
    */
+  @Override
   public void resetForAFullBuild(IProject project) {
     // do nothing
   }
@@ -54,6 +56,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#analyzeBegin(IProject)
    */
+  @Override
   public void analyzeBegin(IProject project) {
     // do nothing
   }
@@ -61,6 +64,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#analyzeResource(IResource, int)
    */
+  @Override
   public boolean analyzeResource(IResource resource, int kind) {
     return true; // do not call analyzeCompilationUnit()
   }
@@ -68,6 +72,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#needsAST()
    */
+  @Override
   public boolean needsAST() {
     return true;
   }
@@ -75,6 +80,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#analyzeCompilationUnit(ICompilationUnit, CompilationUnit)
    */
+  @Override
   public boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
           IAnalysisMonitor monitor) {
 	  // do nothing
@@ -84,6 +90,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#analyzeEnd(IProject)
    */
+  @Override
   public IResource[] analyzeEnd(IProject project, IAnalysisMonitor monitor) {
     return NONE_FURTHER;
   }
@@ -91,6 +98,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#preBuild(IProject)
    */
+  @Override
   public void preBuild(IProject project) {
     // do nothing
   }
@@ -98,6 +106,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see com.surelogic.jsure.core.driver.IAnalysis#getLabel()
    */
+  @Override
   public String getLabel() {
     return label;
   }
@@ -105,6 +114,7 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#setLabel(String)
    */
+  @Override
   public void setLabel(String label) {
     this.label = label;
   }
@@ -112,7 +122,8 @@ public class AbstractAnalysisModule<Q extends ICompUnitContext> extends Concurre
   /**
    * @see IAnalysis#setArguments(Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "rawtypes" })
+  @Override
 public void setArguments(Map args) {
     // do nothing
   }
@@ -120,6 +131,7 @@ public void setArguments(Map args) {
   /**
    * @see IAnalysis#cancel()
    */
+  @Override
   public void cancel() {
     // do nothing
   }

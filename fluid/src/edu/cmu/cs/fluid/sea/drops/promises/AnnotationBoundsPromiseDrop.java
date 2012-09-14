@@ -9,38 +9,54 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
-public final class AnnotationBoundsPromiseDrop extends
-    BooleanPromiseDrop<AnnotationBoundsNode> implements
+public final class AnnotationBoundsPromiseDrop extends BooleanPromiseDrop<AnnotationBoundsNode> implements
     ValidatedDropCallback<AnnotationBoundsPromiseDrop> {
-  public AnnotationBoundsPromiseDrop(AnnotationBoundsNode a) {
-    super(a); 
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
-    final AnnotationBoundsNode ast = getAST();
-    setResultMessage(Messages.AnnotationBounds,
-        getNameList(ast.getContainable()),
-        getNameList(ast.getImmutable()),
-        getNameList(ast.getThreadSafe()),
-        JavaNames.getTypeName(getNode()));
-  }
 
-  private String getNameList(final NamedTypeNode[] list) {
+  public AnnotationBoundsPromiseDrop(AnnotationBoundsNode a) {
+    super(a);
+    setCategory(JavaGlobals.ANNO_BOUNDS_CAT);
+    final AnnotationBoundsNode ast = getAAST();
+    final String[] attrs = new String[] { getNameList("containable", ast.getContainable()),
+        getNameList("immutable", ast.getImmutable()), getNameList("referenceObject", ast.getReference()),
+        getNameList("threadSafe", ast.getThreadSafe()), getNameList("valueObject", ast.getValue()) };
     final StringBuilder sb = new StringBuilder();
     boolean first = true;
-    for (final NamedTypeNode namedType : list) {
-      if (!first) {
-        sb.append(", ");
-      } else {
-        first = false;
+    for (final String at : attrs) {
+      if (at != null) {
+        if (!first) {
+          sb.append(", ");
+        } else {
+          first = false;
+        }
+        sb.append(at);
       }
-      sb.append(namedType.getType());      
     }
-    return sb.toString();
+
+    setResultMessage(Messages.AnnotationBounds, sb.toString(), JavaNames.getTypeName(getNode()));
   }
-  
+
+  private String getNameList(final String attribute, final NamedTypeNode[] list) {
+    if (list.length > 0) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(attribute);
+      sb.append(" = {");
+      boolean first = true;
+      for (final NamedTypeNode namedType : list) {
+        if (!first) {
+          sb.append("\", \"");
+        } else {
+          first = false;
+          sb.append('\"');
+        }
+        sb.append(namedType.getType());
+      }
+      sb.append("\"}");
+      return sb.toString();
+    } else {
+      return null;
+    }
+  }
+
   public void validated(final AnnotationBoundsPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

@@ -21,8 +21,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 /**
  * Uses a StructuredViewer
@@ -36,7 +36,7 @@ public abstract class AbstractScanStructuredView<T> extends
 
 	protected final Action f_annotate = new ProposedPromisesRefactoringAction() {
 		@Override
-		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {
+		protected List<? extends IProposedPromiseDrop> getProposedDrops() {
 			return getSelectedProposals();
 		}
 
@@ -52,7 +52,7 @@ public abstract class AbstractScanStructuredView<T> extends
 	 * 
 	 * @return the non-{@code null} list of proposed promises.
 	 */
-	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+	protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
 		return Collections.emptyList();
 	}
 
@@ -123,8 +123,8 @@ public abstract class AbstractScanStructuredView<T> extends
 
 	private final void handleDoubleClick(final IStructuredSelection selection) {
 		final Object d = selection.getFirstElement();
-		if (d instanceof IDropInfo) {
-			IDropInfo di = (IDropInfo) d;
+		if (d instanceof IDrop) {
+			IDrop di = (IDrop) d;
 			EditorUtil.highlightLineInJavaEditor(di.getSrcRef());
 		} else {
 			if (d != null)

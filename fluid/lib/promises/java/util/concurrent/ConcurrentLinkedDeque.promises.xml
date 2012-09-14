@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="2">
     <class name="ConcurrentLinkedDeque">
         <ThreadSafe/>
+
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
+
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

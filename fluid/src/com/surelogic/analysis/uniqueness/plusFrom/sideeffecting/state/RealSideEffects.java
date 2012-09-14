@@ -19,10 +19,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.Triple;
@@ -193,7 +193,7 @@ public final class RealSideEffects implements ISideEffects {
    * All the result drops we are going to have created.  Saved up here in case
    * we need to cancel them if the analysis times out.
    */
-  private final Set<ResultDropBuilder> drops = new HashSet<ResultDropBuilder>();
+  private final Set<ResultDrop> drops = new HashSet<ResultDrop>();
 
   
   
@@ -404,7 +404,7 @@ public final class RealSideEffects implements ISideEffects {
   // == Manage Result Drops
   // ==================================================================
 
-  private ResultDropBuilder createResultDrop(
+  private ResultDrop createResultDrop(
       final boolean abruptDrops, final boolean addToControlFlow,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
@@ -414,10 +414,8 @@ public final class RealSideEffects implements ISideEffects {
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
-    final ResultDropBuilder result =
-      ResultDropBuilder.create(analysis, Messages.toString(msg));
+    final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     if (promiseDrop != controlFlowDrop) {
       if (addToControlFlow) {
@@ -432,7 +430,7 @@ public final class RealSideEffects implements ISideEffects {
     return result;
   }
 
-  private ResultDropBuilder createResultDrop(
+  private ResultDrop createResultDrop(
       final boolean abruptDrops,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
@@ -456,7 +454,7 @@ public final class RealSideEffects implements ISideEffects {
       if (fieldPromise == null) continue;
       
       for (final CompromisedField cf : load.getValue()) {
-        final ResultDropBuilder r = createResultDrop(
+        final ResultDrop r = createResultDrop(
             isAbrupt, fieldPromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
         if (compromises != null) {
           for (final CompromisingSite compromisedAt : compromises) {
@@ -494,7 +492,7 @@ public final class RealSideEffects implements ISideEffects {
       final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
       if (loads != null) {
         for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
-          final ResultDropBuilder r = createResultDrop(read.isAbrupt,
+          final ResultDrop r = createResultDrop(read.isAbrupt,
               UniquenessUtils.getFieldUniqueOrBorrowed(e.getKey()), read.srcOp,              
               false, read.getMessage(), read.getVarArgs());
           for (final IRNode buriedAt : e.getValue()) {
@@ -507,7 +505,7 @@ public final class RealSideEffects implements ISideEffects {
       // Could be undefined because of a cleared FROM field
       final Set<UndefinedFrom> y = undefinedFroms.get(read.var);
       if (y != null) {
-        final ResultDropBuilder r = createResultDrop(
+        final ResultDrop r = createResultDrop(
             read.isAbrupt, controlFlowDrop, read.srcOp, false,
             Messages.READ_OF_UNDEFINED_VAR);
         for (final UndefinedFrom uf : y) {
@@ -518,7 +516,7 @@ public final class RealSideEffects implements ISideEffects {
       // Could be undefined because we were assigned an undefined value
       final Set<IRNode> z = badSets.get(read.var);
       if (z != null) {
-        final ResultDropBuilder r = createResultDrop(read.isAbrupt,
+        final ResultDrop r = createResultDrop(read.isAbrupt,
             controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
         for (final IRNode setOp : z) {
           r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
@@ -534,7 +532,7 @@ public final class RealSideEffects implements ISideEffects {
       final PromiseDrop<? extends IAASTRootNode> borrowedPromise = e.getKey();
       for (final BorrowedRead br : e.getValue()) {
         @SuppressWarnings("unused")
-        final ResultDropBuilder r = createResultDrop(
+        final ResultDrop r = createResultDrop(
             br.isAbrupt, borrowedPromise, br.srcOp, false,
             Messages.CANNOT_READ_BORROWED_FIELD);
       }

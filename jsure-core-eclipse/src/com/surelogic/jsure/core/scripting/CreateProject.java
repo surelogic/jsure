@@ -21,6 +21,7 @@ public class CreateProject extends AbstractCommand {
 	 *          arguments: 1 - name of the project 
 	 *          2 - location of source files (OPTIONAL)
 	 */
+	@Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		IProject p = resolveProject(contents[1], true);
@@ -72,7 +73,7 @@ public class CreateProject extends AbstractCommand {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initCompilerSettings(IJavaProject javaProject) {
 		// check for the .settings folder
 		IFile settings = resolveIFile(javaProject.getElementName() + "/.settings");

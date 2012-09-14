@@ -12,10 +12,10 @@ import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ContainableAnnotationTester;
-import com.surelogic.analysis.concurrency.util.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ContainableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 
@@ -31,14 +31,14 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.SingletonIterator;
 
@@ -66,16 +66,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
   }
 
   @Override
-  protected String message2string(final int msg) {
-    return Messages.toString(msg);
-  }
-
-  @Override
   protected void processSuperType(final IRNode tdecl) {
     final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
         LockRules.getThreadSafeImplPromise(tdecl);
     if (pDrop != null) {
-      final ResultDropBuilder result = createResult(tdecl, true,
+      final ResultDrop result = createResult(tdecl, true,
           Messages.THREAD_SAFE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrustedPromise(pDrop);
@@ -112,7 +107,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         LockRules.getVouchFieldIs(varDecl);
     if (vouchDrop != null && (vouchDrop.isThreadSafe() || vouchDrop.isImmutable())) {
       final String reason = vouchDrop.getReason();
-      final ResultDropBuilder result = 
+      final ResultDrop result = 
           reason == VouchFieldIsNode.NO_REASON ? createResult(
               varDecl, true, Messages.VOUCHED_THREADSAFE, id)
               : createResult(varDecl, true,
@@ -143,11 +138,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         final boolean isDeclaredContainable;
         final ContainableAnnotationTester cTester =
             new ContainableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
+                binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
 
         if (!isPrimitive && !isArray) { // type formal or declared type
           final ThreadSafeAnnotationTester tsTester =
-              new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
+              new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
           final boolean isTS = tsTester.testType(type);
           testedType = true;
           /*
@@ -229,9 +224,9 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
           isContained = false;
         }
 
-        final String typeString = type.toString();
+        final String typeString = type.toSourceText();
         if (isPrimitive || isThreadSafe || isContained) {
-          final ResultDropBuilder result;
+          final ResultDrop result;
           if (isFinal) {
             result = createResult(
                 varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
@@ -270,7 +265,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
             }
           }
         } else {
-          final ResultDropBuilder result = createResult(
+          final ResultDrop result = createResult(
               varDecl, false, Messages.UNSAFE_REFERENCE, id);
           // type could be a non-declared, non-primitive type,
           // that is, an array
@@ -279,11 +274,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
                 Messages.DECLARED_TYPE_IS_NOT_THREAD_SAFE,
                 typeString);
             for (final IRNode n : notThreadSafe) {
-              result.addProposal(new ProposedPromiseBuilder(
+              result.addProposal(new ProposedPromiseDrop(
                   "ThreadSafe", null, n, varDecl, Origin.MODEL));
             }
             for (final IRNode n : cTester.getFailed()) {
-              result.addProposal(new ProposedPromiseBuilder(
+              result.addProposal(new ProposedPromiseDrop(
                   "Containable", null, n, varDecl, Origin.MODEL));
             }
           }
@@ -303,7 +298,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
           }
 
           if (uDrop == null) {
-            result.addProposal(new ProposedPromiseBuilder(
+            result.addProposal(new ProposedPromiseDrop(
                 "Unique", null, varDecl, varDecl,
                 Origin.MODEL));
           }

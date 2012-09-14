@@ -3,10 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Operator Generation Plug-in
 Bundle-SymbolicName: edu.cs.cmu.fluid.opgen
 Bundle-Version: 3.2.4
-Bundle-Localization: plugin
 Require-Bundle: com.surelogic.common
-Eclipse-LazyStart: false
 Export-Package: com.surelogic.opgen,
  com.surelogic.opgen.generator,
  com.surelogic.opgen.syntax,
  com.surelogic.opgen.util
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

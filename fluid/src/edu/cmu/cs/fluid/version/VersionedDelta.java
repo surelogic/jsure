@@ -5,13 +5,14 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 /** Changes to a chunk during a particular era. */
 public class VersionedDelta extends IRChunkDelta {
@@ -62,14 +63,14 @@ public class VersionedDelta extends IRChunkDelta {
     era = e;
   }
 
-  private static Hashtable2<IRChunk, Era, VersionedDelta> deltas = new Hashtable2<IRChunk, Era, VersionedDelta>();
+  private static HashMap<Pair<IRChunk, Era>, VersionedDelta> deltas = new HashMap<Pair<IRChunk,Era>, VersionedDelta>();
 
   public static VersionedDelta find(IRChunk c, Era e) {
-    return deltas.get(c, e);
+    return deltas.get(Pair.getInstance(c, e));
   }
 
   protected static void add(VersionedDelta vd) {
-    deltas.put(vd.getChunk(), vd.getEra(), vd);
+    deltas.put(Pair.getInstance(vd.getChunk(), vd.getEra()), vd);
   }
 
   /** Force this delta to be defined.

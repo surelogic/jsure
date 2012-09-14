@@ -13,6 +13,7 @@ public class ConsistencyListener implements IAnalysisListener {
 		// nothing to do
 	}
 
+	@Override
 	public synchronized void analysisCompleted() {
 		Eclipse.initialize();
 
@@ -26,10 +27,12 @@ public class ConsistencyListener implements IAnalysisListener {
 		TestResult.checkConsistency();
 	}
 
+	@Override
 	public void analysisPostponed() {
 		// nothing to do
 	}
 
+	@Override
 	public void analysisStarting() {
 		// nothing to do
 	}

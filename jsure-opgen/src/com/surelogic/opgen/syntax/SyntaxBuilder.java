@@ -42,7 +42,9 @@ public class SyntaxBuilder {
   public static final String ANY_NODE = "ANY_NODE";
   private String defaultParentOp = "edu.cmu.cs.fluid.parse.JJNode";
   
-  public SyntaxBuilder() {}
+  public SyntaxBuilder() {
+	  // Nothing to do
+  }
   
   /**
    * @param parentOp Expected to be fully qualified

@@ -4,7 +4,6 @@ import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.IDropBuilder;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public class GroupedAnalysis implements IIRAnalysis {
@@ -91,9 +90,5 @@ public class GroupedAnalysis implements IIRAnalysis {
 		for(IIRAnalysis a : analyses) {
 			a.finish(env);
 		}
-	}
-	
-	public void handleBuilder(IDropBuilder b) {
-		throw new UnsupportedOperationException();
 	}
 }

@@ -9,6 +9,7 @@ public interface ICommandContext {
 	Object getArgument(String key);
 	
 	static ICommandContext nullContext = new ICommandContext() {
+		@Override
 		public Object getArgument(String key) {
 			return null;
 		}

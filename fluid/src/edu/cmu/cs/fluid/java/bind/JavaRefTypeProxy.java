@@ -52,6 +52,10 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 		return unparse;
 	}
 
+	public String toSourceText() {
+		return type.toSourceText();
+	}
+	
 	@Override
 	public IJavaType getSuperclass(ITypeEnvironment env) {
 		return type.getSuperclass(env);

@@ -1,9 +1,13 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.collections15.*;
-import org.apache.commons.collections15.multimap.*;
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
@@ -21,7 +25,6 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
@@ -32,395 +35,489 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop implements
-		IResultDrop, IProposedPromiseDropInfo {
-	public static final String ANNOTATION_TYPE = "annotation-type";
-	public static final String CONTENTS = "contents";
-	public static final String REPLACED_ANNO = "replaced-annotation";
-	public static final String REPLACED_CONTENTS = "replaced-contents";
-	public static final String ORIGIN = "origin";
-	public static final String JAVA_ANNOTATION = "java-annotation";
-	public static final String FROM_PROJECT = "from-project";
-	public static final String TARGET_PROJECT = "target-project";
-	public static final String FROM_INFO = "from-info";
-	public static final String TARGET_INFO = "target-info";
-	public static final String FROM_REF = "from-ref";
-	public static final String ANNO_ATTRS = "annotation-attrs";
-	public static final String REPLACED_ATTRS = "replaced-attrs";
+public final class ProposedPromiseDrop extends IRReferenceDrop implements IReportedByAnalysisDrop, IProposedPromiseDrop {
 
-	public enum Origin {
-		/**
-		 * This proposal was inferred from code with no model/annotation basis
-		 * for it whatsoever.
-		 */
-		CODE,
-		/**
-		 * This proposal was inferred from code and a model. It could be
-		 * extending or augmenting an existing model based upon the program's
-		 * implementation.
-		 */
-		MODEL,
-		/**
-		 * This proposed promise was created to help fix a modeling problem.
-		 */
-		PROBLEM
-	}
+  public static final String PROPOSED_PROMISE = "proposed-promise";
+  public static final String ANNOTATION_TYPE = "annotation-type";
+  public static final String CONTENTS = "contents";
+  public static final String REPLACED_ANNO = "replaced-annotation";
+  public static final String REPLACED_CONTENTS = "replaced-contents";
+  public static final String ORIGIN = "origin";
+  public static final String JAVA_ANNOTATION = "java-annotation";
+  public static final String FROM_PROJECT = "from-project";
+  public static final String TARGET_PROJECT = "target-project";
+  public static final String FROM_INFO = "from-info";
+  public static final String TARGET_INFO = "target-info";
+  public static final String FROM_REF = "from-ref";
+  public static final String ANNO_ATTRS = "annotation-attrs";
+  public static final String REPLACED_ATTRS = "replaced-attrs";
 
-	/**
-	 * Constructs a new proposed promise. Intended to be called from analysis
-	 * code.
-	 * 
-	 * @param annotation
-	 *            the Java annotation being proposed. For
-	 *            <code>@Starts("nothing")</code> the value of this string would
-	 *            be {@code "Starts"}.
-	 * @param contents
-	 *            the contents of the Java annotation being proposed. For
-	 *            <code>@Starts("nothing")</code> the value of this string would
-	 *            be {@code "nothing"}. For <code>@Borrowed</code>, which has no
-	 *            contents, the value of this string would be {@code null}. The
-	 *            contents placed into this string should not be escaped. Any
-	 *            embedded quotations or backward slashes will be escaped before
-	 *            output.
-	 * @param at
-	 *            the proposed location for the promise, a declaration.
-	 * @param from
-	 *            a node within the compilation unit where the analysis deems
-	 *            that this proposed promise is needed. This is used to remove
-	 *            this proposed promise if the compilation unit is reanalyzed.
-	 */
-	public ProposedPromiseDrop(final String annotation, final String contents,
-			final String replacedContents, final IRNode at, final IRNode from,
-			Origin origin) {
-		this(annotation, contents, Collections.<String, String> emptyMap(),
-				replacedContents != null ? annotation : null, replacedContents,
-				Collections.<String, String> emptyMap(), at, from, origin);
-	}
+  public enum Origin {
+    /**
+     * This proposal was inferred from code with no model/annotation basis for
+     * it whatsoever.
+     */
+    CODE,
+    /**
+     * This proposal was inferred from code and a model. It could be extending
+     * or augmenting an existing model based upon the program's implementation.
+     */
+    MODEL,
+    /**
+     * This proposed promise was created to help fix a modeling problem.
+     */
+    PROBLEM
+  }
 
-	public ProposedPromiseDrop(final String annotation, final String contents,
-			final Map<String, String> attrs, final String replacedAnno,
-			final String replacedContents,
-			final Map<String, String> replacedAttrs, final IRNode at,
-			final IRNode from, final Origin src) {
-		if (at == null) {
-			throw new IllegalArgumentException(I18N.err(44, "at"));
-		}
-		if (from == null) {
-			throw new IllegalArgumentException(I18N.err(44, "from"));
-		}
-		if (annotation == null) {
-			throw new IllegalArgumentException(I18N.err(44, "annotation"));
-		}
-		f_requestedFrom = from;
-		f_annotation = annotation;
-		f_contents = contents;
-		f_attrs = attrs;
-		f_replacedAnno = replacedAnno;
-		f_replacedContents = replacedContents;
-		f_replacedAttrs = replacedAttrs;
-		f_origin = src;
-		setNodeAndCompilationUnitDependency(at);
-		dependUponCompilationUnitOf(from);
+  /**
+   * Constructs a new proposed promise. Intended to be called from analysis
+   * code.
+   * 
+   * @param annotation
+   *          the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "Starts"}.
+   * @param contents
+   *          the contents of the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
+   *          contents, the value of this string would be {@code null}. The
+   *          contents placed into this string should not be escaped. Any
+   *          embedded quotations or backward slashes will be escaped before
+   *          output.
+   * @param attrs
+   *          TODO
+   * @param replacedAnnotation
+   *          the Java annotation being replaced.
+   * @param replacedContents
+   *          the contents of the Java annotation being replaced. For example,
+   *          if the annotation <code>@Starts("nothing")</code> was being
+   *          replaced the value of this string would be {@code "nothing"}.
+   * @param replacedAttrs
+   *          TODO
+   * @param at
+   *          the proposed location for the promise, a declaration.
+   * @param from
+   *          a node within the compilation unit where the analysis deems that
+   *          this proposed promise is needed. This is used to remove this
+   *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
+   */
+  public ProposedPromiseDrop(final String annotation, final String contents, final Map<String, String> attrs,
+      final String replacedAnnotation, final String replacedContents, final Map<String, String> replacedAttrs, final IRNode at,
+      final IRNode from, final Origin origin) {
+    super(at);
+    if (from == null) {
+      throw new IllegalArgumentException(I18N.err(44, "from"));
+    }
+    if (annotation == null) {
+      throw new IllegalArgumentException(I18N.err(44, "annotation"));
+    }
 
-		final String msg;
-		if (contents == null) {
-			msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation
-					+ "()");
-		} else {
-			msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + '('
-					+ contents + ')');
-		}
-		setMessage(msg);
-	}
+    // TODO can the rest be null?
 
-	public ProposedPromiseDrop(final String annotation, final String contents,
-			final IRNode at, final IRNode from, Origin origin) {
-		this(annotation, contents, null, at, from, origin);
-	}
+    f_requestedFrom = from;
+    f_annotation = annotation;
+    f_contents = contents;
+    f_attrs = attrs != null ? attrs : Collections.<String, String> emptyMap();
+    f_replacedAnnotation = replacedAnnotation;
+    f_replacedContents = replacedContents;
+    f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
+    f_origin = origin;
+    dependUponCompilationUnitOf(from);
 
-	private final Map<String, String> f_attrs, f_replacedAttrs;
+    final String msg;
+    if (contents == null) {
+      msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + "()");
+    } else {
+      msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + '(' + contents + ')');
+    }
+    setMessage(msg);
+  }
 
-	public Map<String, String> getAnnoAttributes() {
-		return f_attrs;
-	}
+  /**
+   * Constructs a new proposed promise. Intended to be called from analysis
+   * code.
+   * 
+   * @param annotation
+   *          the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "Starts"}.
+   * @param contents
+   *          the contents of the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
+   *          contents, the value of this string would be {@code null}. The
+   *          contents placed into this string should not be escaped. Any
+   *          embedded quotations or backward slashes will be escaped before
+   *          output.
+   * @param replacedContents
+   *          the contents of the Java annotation being replaced.
+   * @param at
+   *          the proposed location for the promise, a declaration.
+   * @param from
+   *          a node within the compilation unit where the analysis deems that
+   *          this proposed promise is needed. This is used to remove this
+   *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
+   */
+  public ProposedPromiseDrop(final String annotation, final String contents, final String replacedContents, final IRNode at,
+      final IRNode from, Origin origin) {
+    this(annotation, contents, Collections.<String, String> emptyMap(), replacedContents != null ? annotation : null,
+        replacedContents, Collections.<String, String> emptyMap(), at, from, origin);
+  }
 
-	public Map<String, String> getReplacedAttributes() {
-		return f_replacedAttrs;
-	}
+  /**
+   * Constructs a new proposed promise. Intended to be called from analysis
+   * code.
+   * 
+   * @param annotation
+   *          the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "Starts"}.
+   * @param contents
+   *          the contents of the Java annotation being proposed. For
+   *          <code>@Starts("nothing")</code> the value of this string would be
+   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
+   *          contents, the value of this string would be {@code null}. The
+   *          contents placed into this string should not be escaped. Any
+   *          embedded quotations or backward slashes will be escaped before
+   *          output.
+   * @param at
+   *          the proposed location for the promise, a declaration.
+   * @param from
+   *          a node within the compilation unit where the analysis deems that
+   *          this proposed promise is needed. This is used to remove this
+   *          proposed promise if the compilation unit is reanalyzed.
+   * @param origin
+   *          where this proposed promise originated.
+   */
+  public ProposedPromiseDrop(final String annotation, final String contents, final IRNode at, final IRNode from, Origin origin) {
+    this(annotation, contents, null, at, from, origin);
+  }
 
-	/**
-	 * An indication of how this proposal was generated
-	 */
-	private final Origin f_origin;
+  // TODO?
 
-	public Origin getOrigin() {
-		return f_origin;
-	}
-	
-	public boolean isAbductivelyInferred() {
-		/*
-		 * This could change but we take problem and model for now.
-		 */
-		return f_origin != Origin.CODE;
-	}
+  private final Map<String, String> f_attrs;
 
-	/**
-	 * The Java annotation being proposed. For <code>@Starts("nothing")</code>
-	 * the value of this string would be {@code "Starts"}.
-	 */
-	private final String f_annotation;
+  private final Map<String, String> f_replacedAttrs;
 
-	private final String f_replacedAnno;
+  /**
+   * @return a non-null (possibly empty) map.
+   */
+  public Map<String, String> getAnnoAttributes() {
+    return f_attrs;
+  }
 
-	/**
-	 * Gets the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be
-	 * {@code "Starts"}.
-	 * 
-	 * @return the Java annotation being proposed.
-	 */
-	public String getAnnotation() {
-		return f_annotation;
-	}
+  /**
+   * @return a non-null (possibly empty) map.
+   */
+  public Map<String, String> getReplacedAttributes() {
+    return f_replacedAttrs;
+  }
 
-	public String getReplacedAnnotation() {
-		return f_replacedAnno;
-	}
+  /**
+   * An indication of how this proposal was generated.
+   */
+  private final Origin f_origin;
 
-	private final IRNode f_requestedFrom;
+  /**
+   * Gets an indication of how this proposal was generated.
+   * 
+   * @return an indication of how this proposal was generated.
+   */
+  public Origin getOrigin() {
+    return f_origin;
+  }
 
-	/**
-	 * A node within the compilation unit where the analysis deems that this
-	 * proposed promise is needed. This is used to remove this proposed promise
-	 * if the compilation unit is reanalyzed.
-	 * 
-	 */
-	public IRNode getRequestedFrom() {
-		return f_requestedFrom;
-	}
+  /**
+   * Is this proposed promise inferred from an existing user annotation or
+   * model.
+   * 
+   * @return {@code true} if this proposed promise inferred from an existing
+   *         user annotation or model, {@code false} if this proposal was
+   *         inferred from code with no model/annotation basis for it whatsoever
+   */
+  public boolean isAbductivelyInferred() {
+    /*
+     * This could change but we take problem and model for now.
+     */
+    return f_origin != Origin.CODE;
+  }
 
-	/**
-	 * The enclosing type of the node where the analysis deems that this
-	 * proposed promise is needed. This is used to add an {@code Assume} promise
-	 * if the SrcRef is not in this project.
-	 * 
-	 * @return the node where the analysis deems that this proposed promise is
-	 *         needed.
-	 */
-	public IRNode getAssumptionNode() {
-		return VisitUtil.getClosestType(f_requestedFrom);
-	}
+  /**
+   * The Java annotation being proposed. For <code>@Starts("nothing")</code> the
+   * value of this string would be {@code "Starts"}.
+   */
+  private final String f_annotation;
 
-	/**
-	 * Gets the source reference of the fAST node this information references.
-	 * 
-	 * @return the source reference of the fAST node this information
-	 *         references.
-	 */
-	public ISrcRef getAssumptionRef() {
-		final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
-		if (ref == null) {
-			final IRNode parent = JavaPromise
-					.getParentOrPromisedFor(f_requestedFrom);
-			return JavaNode.getSrcRef(parent);
-		}
-		return ref;
-	}
+  /**
+   * Gets the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "Starts"}.
+   * 
+   * @return the Java annotation being proposed.
+   */
+  public String getAnnotation() {
+    return f_annotation;
+  }
 
-	/**
-	 * The contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be
-	 * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
-	 * value of this string would be {@code null}.
-	 * <p>
-	 * The contents placed into this string should not be escaped. Any embedded
-	 * quotations or backward slashes will be escaped before output.
-	 */
-	private final String f_contents;
+  /**
+   * The Java annotation being replaced.
+   */
+  private final String f_replacedAnnotation;
 
-	private final String f_replacedContents;
+  /**
+   * Gets the Java annotation being replaced.
+   * 
+   * @return the Java annotation being replaced, may be null.
+   */
+  public String getReplacedAnnotation() {
+    return f_replacedAnnotation;
+  }
 
-	public String getReplacedContents() {
-		return f_replacedContents;
-	}
+  private final IRNode f_requestedFrom;
 
-	/**
-	 * Checks if the proposed Java annotation has contents.
-	 * 
-	 * @return {@code true} if the proposed Java annotation has contents,
-	 *         {@code false} otherwise.
-	 */
-	public boolean hasContents() {
-		return f_contents != null;
-	}
+  /**
+   * A node within the compilation unit where the analysis deems that this
+   * proposed promise is needed. This is used to remove this proposed promise if
+   * the compilation unit is reanalyzed.
+   * 
+   */
+  public IRNode getRequestedFrom() {
+    return f_requestedFrom;
+  }
 
-	/**
-	 * Gets the raw contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be
-	 * {@code "nothing"} (without quotation marks). For <code>@Borrowed</code>,
-	 * which has no contents, the value of this string would be {@code null}.
-	 * 
-	 * @return the contents of the Java annotation being proposed, or {code
-	 *         null} if none.
-	 */
-	public String getContents() {
-		return f_contents;
-	}
+  /**
+   * The enclosing type of the node where the analysis deems that this proposed
+   * promise is needed. This is used to add an {@code Assume} promise if the
+   * SrcRef is not in this project.
+   * 
+   * @return the node where the analysis deems that this proposed promise is
+   *         needed.
+   */
+  public IRNode getAssumptionNode() {
+    return VisitUtil.getClosestType(f_requestedFrom);
+  }
 
-	/**
-	 * Gets the escaped contents of the Java annotation being proposed. For
-	 * <code>@Starts("nothing")</code> the value of this string would be
-	 * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
-	 * value of this string would be {@code null}.
-	 * 
-	 * @return the contents of the Java annotation being proposed, or {code
-	 *         null} if none.
-	 * 
-	 * @see SLUtility#escapeJavaStringForQuoting(String)
-	 */
-	public String getEscapedContents() {
-		return SLUtility.escapeJavaStringForQuoting(f_contents);
-	}
+  /**
+   * Gets the source reference of the fAST node this information references.
+   * 
+   * @return the source reference of the fAST node this information references.
+   */
+  public ISrcRef getAssumptionRef() {
+    final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
+    if (ref == null) {
+      final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
+      return JavaNode.getSrcRef(parent);
+    }
+    return ref;
+  }
 
-	public String getJavaAnnotationNoAtSign() {
-		return f_annotation
-				+ (f_contents == null ? "" : "(\"" + getEscapedContents()
-						+ "\")");
-	}
+  /**
+   * The contents of the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+   * value of this string would be {@code null}.
+   * <p>
+   * The contents placed into this string should not be escaped. Any embedded
+   * quotations or backward slashes will be escaped before output.
+   */
+  private final String f_contents;
 
-	public String getJavaAnnotation() {
-		return "@" + getJavaAnnotationNoAtSign();
-	}
+  /**
+   * Checks if the proposed Java annotation has contents.
+   * 
+   * @return {@code true} if the proposed Java annotation has contents,
+   *         {@code false} otherwise.
+   */
+  public boolean hasContents() {
+    return f_contents != null;
+  }
 
-	@Override
-	public String toString() {
-		return getJavaAnnotation();
-	}
+  /**
+   * Gets the raw contents of the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "nothing"} (without quotation marks). For <code>@Borrowed</code>,
+   * which has no contents, the value of this string would be {@code null}.
+   * 
+   * @return the contents of the Java annotation being proposed, or {code null}
+   *         if none.
+   */
+  public String getContents() {
+    return f_contents;
+  }
 
-	public boolean isSameProposalAs(IProposedPromiseDropInfo other) {
-		if (this == other)
-			return true;
-		if (other == null)
-			return false;
+  /**
+   * Gets the escaped contents of the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+   * value of this string would be {@code null}.
+   * 
+   * @return the contents of the Java annotation being proposed, or {code null}
+   *         if none.
+   * 
+   * @see SLUtility#escapeJavaStringForQuoting(String)
+   */
+  public String getEscapedContents() {
+    return SLUtility.escapeJavaStringForQuoting(f_contents);
+  }
 
-		return isSame(f_annotation, other.getAnnotation())
-				&& isSame(f_contents, other.getContents())
-				&& isSame(f_replacedContents, other.getReplacedContents())
-				&& isSame(getSrcRef(), other.getSrcRef());
-	}
+  public String getJavaAnnotationNoAtSign() {
+    return f_annotation + (f_contents == null ? "" : "(\"" + getEscapedContents() + "\")");
+  }
 
-	private static <T> boolean isSame(T o1, T o2) {
-		if (o1 == null) {
-			if (o2 != null) {
-				return false;
-			}
-		} else if (!o1.equals(o2)) {
-			return false;
-		}
-		return true;
-	}
+  public String getJavaAnnotation() {
+    return "@" + getJavaAnnotationNoAtSign();
+  }
 
-	public long computeHash() {
-		long hash = 0;
-		if (f_annotation != null) {
-			hash += f_annotation.hashCode();
-		}
-		if (f_contents != null) {
-			hash += f_contents.hashCode();
-		}
-		final ISrcRef ref = getSrcRef();
-		if (ref != null) {
-			hash += ref.getHash(); // Instead of hashCode()?
-		}
-		return hash;
-	}
+  /**
+   * The contents of the Java annotation being replaced&mdash;may be null.
+   */
+  private final String f_replacedContents;
 
-	/**
-	 * Filters out duplicate proposals so that they are not listed.
-	 * <p>
-	 * This doesn't handle proposed promises in binary files too well.
-	 * 
-	 * @param proposals
-	 *            the list of proposed promises.
-	 * @return the filtered list of proposals.
-	 */
-	public static List<IProposedPromiseDropInfo> filterOutDuplicates(
-			Collection<IProposedPromiseDropInfo> proposals) {
-		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
-		// Hash results
-		MultiMap<Long, IProposedPromiseDropInfo> hashed = new MultiHashMap<Long, IProposedPromiseDropInfo>();
-		for (IProposedPromiseDropInfo info : proposals) {
-			long hash = info.computeHash();
-			hashed.put(hash, info);
-		}
-		// Filter each list the old way
-		for (Map.Entry<Long, Collection<IProposedPromiseDropInfo>> e : hashed
-				.entrySet()) {
-			result.addAll(filterOutDuplicates_slow(e.getValue()));
-		}
-		return result;
-	}
+  /**
+   * Gets the contents of the Java annotation being replaced. For example, if
+   * the annotation <code>@Starts("nothing")</code> was being replaced the value
+   * of this string would be {@code "nothing"}.
+   * 
+   * @return the contents of the Java annotation being replaced&mdash;may be
+   *         null.
+   */
+  public String getReplacedContents() {
+    return f_replacedContents;
+  }
 
-	// n^2 comparisons
-	private static List<IProposedPromiseDropInfo> filterOutDuplicates_slow(
-			Collection<IProposedPromiseDropInfo> proposals) {
-		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
-		for (IProposedPromiseDropInfo h : proposals) {
-			boolean addToResult = true;
-			for (IProposedPromiseDropInfo i : result) {
-				if (h.isSameProposalAs(i)) {
-					addToResult = false;
-					break;
-				}
-			}
-			if (addToResult)
-				result.add(h);
-		}
-		return result;
-	}
+  @Override
+  public String toString() {
+    return getJavaAnnotation();
+  }
 
-	@Override
-	public void snapshotAttrs(XMLCreator.Builder s) {
-		super.snapshotAttrs(s);
-		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
-		s.addAttribute(ANNOTATION_TYPE, getAnnotation());
-		s.addAttribute(CONTENTS, getContents());
-		s.addAttribute(REPLACED_ANNO, getReplacedAnnotation());
-		s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
-		s.addAttribute(ORIGIN, getOrigin().toString());
-		s.addAttribute(TARGET_PROJECT, getTargetProjectName());
-		s.addAttribute(FROM_PROJECT, getFromProjectName());
-	}
+  public boolean isSameProposalAs(IProposedPromiseDrop other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
 
-	@Override
-	public void snapshotRefs(SeaSnapshot s, Builder db) {
-		super.snapshotRefs(s, db);
-		s.addSrcRef(db, getAssumptionNode(), getAssumptionRef(), FROM_REF);
-		s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
-		s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
-		s.addProperties(db, ANNO_ATTRS, f_attrs);
-		s.addProperties(db, REPLACED_ATTRS, f_replacedAttrs);
-	}
+    return isSame(f_annotation, other.getAnnotation()) && isSame(f_contents, other.getContents())
+        && isSame(f_replacedContents, other.getReplacedContents()) && isSame(getSrcRef(), other.getSrcRef());
+  }
 
-	public String getTargetProjectName() {
-		return JavaProjects.getEnclosingProject(getNode()).getName();
-	}
+  private static <T> boolean isSame(T o1, T o2) {
+    if (o1 == null) {
+      if (o2 != null) {
+        return false;
+      }
+    } else if (!o1.equals(o2)) {
+      return false;
+    }
+    return true;
+  }
 
-	public IJavaDeclaration getTargetInfo() {
-		return makeJavaDecl(getNode());
-	}
+  public long computeHash() {
+    long hash = 0;
+    if (f_annotation != null) {
+      hash += f_annotation.hashCode();
+    }
+    if (f_contents != null) {
+      hash += f_contents.hashCode();
+    }
+    final ISrcRef ref = getSrcRef();
+    if (ref != null) {
+      hash += ref.getHash(); // Instead of hashCode()?
+    }
+    return hash;
+  }
 
-	public String getFromProjectName() {
-		return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
-	}
+  /**
+   * Filters out duplicate proposals so that they are not listed.
+   * <p>
+   * This doesn't handle proposed promises in binary files too well.
+   * 
+   * @param proposals
+   *          the list of proposed promises.
+   * @return the filtered list of proposals.
+   */
+  public static List<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    // Hash results
+    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
+    for (IProposedPromiseDrop info : proposals) {
+      long hash = info.computeHash();
+      hashed.put(hash, info);
+    }
+    // Filter each list the old way
+    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
+      result.addAll(filterOutDuplicates_slow(e.getValue()));
+    }
+    return result;
+  }
 
-	public IJavaDeclaration getFromInfo() {
-		return makeJavaDecl(f_requestedFrom);
-	}
+  // n^2 comparisons
+  private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    for (IProposedPromiseDrop h : proposals) {
+      boolean addToResult = true;
+      for (IProposedPromiseDrop i : result) {
+        if (h.isSameProposalAs(i)) {
+          addToResult = false;
+          break;
+        }
+      }
+      if (addToResult)
+        result.add(h);
+    }
+    return result;
+  }
 
-	private static IJavaDeclaration makeJavaDecl(IRNode node) {
-		final IIRProject proj = JavaProjects.getEnclosingProject(node);
-		final IBinder b = proj.getTypeEnv().getBinder();
-		return IRNodeUtil.convert(b, node);
-	}
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
+  @Override
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
+    s.addAttribute(ANNOTATION_TYPE, getAnnotation());
+    s.addAttribute(CONTENTS, getContents());
+    s.addAttribute(REPLACED_ANNO, getReplacedAnnotation());
+    s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
+    s.addAttribute(ORIGIN, getOrigin().toString());
+    s.addAttribute(TARGET_PROJECT, getTargetProjectName());
+    s.addAttribute(FROM_PROJECT, getFromProjectName());
+  }
+
+  @Override
+  public void snapshotRefs(SeaSnapshot s, Builder db) {
+    super.snapshotRefs(s, db);
+    s.addSrcRef(db, getAssumptionNode(), getAssumptionRef(), FROM_REF);
+    s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
+    s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
+    s.addProperties(db, ANNO_ATTRS, f_attrs);
+    s.addProperties(db, REPLACED_ATTRS, f_replacedAttrs);
+  }
+
+  public String getTargetProjectName() {
+    return JavaProjects.getEnclosingProject(getNode()).getName();
+  }
+
+  public IJavaDeclaration getTargetInfo() {
+    return makeJavaDecl(getNode());
+  }
+
+  public String getFromProjectName() {
+    return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
+  }
+
+  public IJavaDeclaration getFromInfo() {
+    return makeJavaDecl(f_requestedFrom);
+  }
+
+  private static IJavaDeclaration makeJavaDecl(IRNode node) {
+    final IIRProject proj = JavaProjects.getEnclosingProject(node);
+    final IBinder b = proj.getTypeEnv().getBinder();
+    return IRNodeUtil.convert(b, node);
+  }
 }

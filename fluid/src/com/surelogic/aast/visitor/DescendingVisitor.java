@@ -16,6 +16,7 @@ import com.surelogic.aast.layers.UnidentifiedTargetNode;
 import com.surelogic.aast.layers.UnionTargetNode;
 import com.surelogic.aast.promise.*;
 
+@SuppressWarnings("deprecation")
 public class DescendingVisitor<T> implements INodeVisitor<T> {
   final T defaultValue;
   
@@ -377,7 +378,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
   }
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public T visit(ThreadRoleOrNode n) {
     T rv = defaultValue;
     for(AASTNode c : (List<AASTNode>) (List) n.getOrElemsList()) {
@@ -792,6 +793,18 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
 
   public T visit(RawNode rawNode) {
+	  return defaultValue;
+  }
+
+  public T visit(ValueObjectNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(RefObjectNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(MustInvokeOnOverrideNode n) {
 	  return defaultValue;
   }
 }

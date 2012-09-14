@@ -87,7 +87,7 @@ public class EffectSpecificationNode extends AASTNode {
 	      final IRegionBinding boundRegion = getRegion().resolveBinding();
 	      if (boundRegion != null) {
 	        if (boundRegion.getRegion().isStatic()) {
-	          final String s = boundRegion.getModel().regionName;
+	          final String s = boundRegion.getModel().getRegionName();
 	          sb.append(s.substring(0, s.lastIndexOf('.')));
 	          sb.append(':');
 	        } else {          

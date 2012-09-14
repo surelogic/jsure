@@ -52,11 +52,11 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 			this.msg = msg;
 			this.t = t;
 		}
-
+	    @Override
 		public int countTestCases() {
 			return 1;
 		}
-
+	    @Override
 		public void run(TestResult result) {
 			if (t == null) {
 				return;
@@ -69,11 +69,11 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 			}
 			throw new Error(t);
 		}
-
+	    @Override
 		public String getTestName() {
 			return msg;
 		}
-
+	    @Override
 		public String getClassName() {
 			return className; // this.getClass().getSimpleName();
 		}
@@ -101,6 +101,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 	 * @Override public ITest reportStart(ITest o) {
 	 * System.out.println("Started:  "+o); return super.reportStart(o); }
 	 */
+    @Override
 	public void reportSuccess(ITest o, String msg) {
 		// System.out.println("Reported success: "+o+" -- "+msg);
 		if (report(o, msg)) {
@@ -110,7 +111,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 			runs++;
 		}
 	}
-
+    @Override
 	public void reportFailure(ITest o, String msg) {
 		// System.out.println("Reported failure: "+o+" -- "+msg);
 		if (report(o, msg)) {
@@ -121,7 +122,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 			failures++;
 		}
 	}
-
+    @Override
 	public void reportError(ITest o, Throwable err) {
 		// System.out.println("Reported error:   "+o+" -- "+err.getClass().getSimpleName()+" : "+err.getMessage());
 		if (report(o, err)) {

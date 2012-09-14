@@ -46,14 +46,13 @@ import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.InfoDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReadOnlyPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,CompUnitPair> {	
@@ -111,7 +110,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			queueWork(new CompUnitPair(cud.cu, compUnit));
+			queueWork(new CompUnitPair(cud.getCompilationUnitIRNode(), compUnit));
 		} else {
 			checkEffectsForFile(compUnit);
 		}
@@ -143,10 +142,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           final RegionEffectsPromiseDrop declaredEffectsDrop =
               MethodEffectsRules.getRegionEffectsDrop(member);
           if (declaredEffectsDrop != null) {
-            final ResultDropBuilder rd = ResultDropBuilder.create(
-                this, Messages.toString(Messages.EMPTY_EFFECTS));
+            final ResultDrop rd = new ResultDrop(member);
             rd.addCheckedPromise(declaredEffectsDrop);
-            setResultDependUponDrop(rd, member);
             rd.setConsistent();
             rd.setResultMessage(Messages.EMPTY_EFFECTS);
           }
@@ -165,10 +162,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	            MethodEffectsRules.getRegionEffectsDrop(member);
 
 	          if (maskedFx.isEmpty()) {
-	            final ResultDropBuilder rd = ResultDropBuilder.create(
-	                this, Messages.toString(Messages.EMPTY_EFFECTS));
+              final ResultDrop rd = new ResultDrop(member);
 	            rd.addCheckedPromise(declaredEffectsDrop);
-	            setResultDependUponDrop(rd, member);
 	            rd.setConsistent();
 	            rd.setResultMessage(Messages.EMPTY_EFFECTS);
 	          } else {
@@ -182,11 +177,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	          // Infer effects
 	          final Set<Effect> inferredEffects = inferEffects(
 	              isConstructor, member, implFx);
-	          final ProposedPromiseBuilder pb = new ProposedPromiseBuilder(
+	          new ProposedPromiseDrop(
 	              "RegionEffects",
 	              Effects.unparseForPromise(inferredEffects), member,
 	              member, Origin.CODE);
-	          handleBuilder(pb);
 	        }
 			  }
 			} else if (TypeUtil.isTypeDecl(member)) {
@@ -339,10 +333,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDropBuilder drop = InfoDropBuilder.create(this, "EffectAssurance", InfoDrop.factory);
-	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
-      setResultDependUponDrop(drop, src);
+	    final InfoDrop drop = new InfoDrop(src);
+	    drop.setCategory(null);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
@@ -362,7 +355,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final Set<Effect> implFx) {
 		final IRNode receiverNode = PromiseUtil.getReceiverNode(constructor);
     final Set<Effect> missing = new HashSet<Effect>();
-    final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
+    final Set<ResultDrop> badDrops = new HashSet<ResultDrop>();
 		for (final Effect eff : implFx) {
 			/*
 			 * First see if the effect is accounted for by the special case of
@@ -371,7 +364,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			if (eff.affectsReceiver(receiverNode)) {
 				constructResultDrop(constructor, declEffDrop, true, eff, Messages.CONSTRUCTOR_RULE, eff);
 			} else {
-        final ResultDropBuilder r = 
+        final ResultDrop r = 
           checkEffect(constructor, declEffDrop, eff, declFx, missing);
         if (r != null) badDrops.add(r);				
 			}
@@ -381,19 +374,19 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       // Needed effects are those that are declared plus those that are missing
       missing.addAll(declFx);
       final Set<Effect> inferred = inferEffects(true, constructor, missing);
-      final ProposedPromiseBuilder proposed = 
-        new ProposedPromiseBuilder("RegionEffects", 
+      final ProposedPromiseDrop proposed = 
+        new ProposedPromiseDrop("RegionEffects", 
             Effects.unparseForPromise(inferred), 
             getPromiseContents(declEffDrop), 
             constructor, constructor, Origin.MODEL);
-      for (final ResultDropBuilder r : badDrops) {
+      for (final ResultDrop r : badDrops) {
         r.addProposal(proposed);
       }
     }       
 	}
 
   private String getPromiseContents(final RegionEffectsPromiseDrop declEffDrop) {
-	  return declEffDrop.getAST().toString().substring("RegionEffects".length()).trim();
+	  return declEffDrop.getAAST().toString().substring("RegionEffects".length()).trim();
   }
 	
 	/**
@@ -405,9 +398,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
   		final List<Effect> declFx, final Set<Effect> implFx) {
     final Set<Effect> missing = new HashSet<Effect>();
-    final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
+    final Set<ResultDrop> badDrops = new HashSet<ResultDrop>();
     for (final Effect eff : implFx) {
-      final ResultDropBuilder r = 
+      final ResultDrop r = 
         checkEffect(method, declEffDrop, eff, declFx, missing);
       if (r != null) badDrops.add(r);
   	}
@@ -415,12 +408,12 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       // Needed effects are those that are declared plus those that are missing
       missing.addAll(declFx);
       final Set<Effect> inferred = inferEffects(false, method, missing);
-      final ProposedPromiseBuilder proposed = 
-        new ProposedPromiseBuilder("RegionEffects", 
+      final ProposedPromiseDrop proposed = 
+        new ProposedPromiseDrop("RegionEffects", 
             Effects.unparseForPromise(inferred), 
             getPromiseContents(declEffDrop), 
             method, method, Origin.MODEL);
-      for (final ResultDropBuilder r : badDrops) {
+      for (final ResultDrop r : badDrops) {
         r.addProposal(proposed);
       }
     }
@@ -437,7 +430,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
    * @return The result drop if the effect is <em>not</em> assured. Otherwise
    *         <code>null</code>.
    */
-  private ResultDropBuilder checkEffect(final IRNode methodBeingChecked,
+  private ResultDrop checkEffect(final IRNode methodBeingChecked,
     final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
   	final List<Effect> declFx, final Set<Effect> missing) {
   	boolean checked = false;
@@ -464,19 +457,17 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	 * @param declEffDrop
 	 * @param eff
 	 */
-	private ResultDropBuilder constructResultDrop(
+	private ResultDrop constructResultDrop(
 	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDropBuilder rd =
-		  ResultDropBuilder.create(this, Messages.toString(msgTemplate));
+	  final IRNode src = eff.getSource();
+		final ResultDrop rd = new ResultDrop(src);
 		rd.addCheckedPromise(declEffDrop);
 
-		final IRNode src = eff.getSource();
 		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
 		
 		// Finish the drop
-		setResultDependUponDrop(rd, src);
 		rd.setConsistent(isConsistent);
 		rd.setResultMessage(msgTemplate, msgArgs);
 		
@@ -492,10 +483,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  
     public void writeToBorrowedReadOnly(
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
-      final ResultDropBuilder rd = ResultDropBuilder.create(
-          EffectsAnalysis.this, Messages.toString(Messages.READONLY_REFERENCE));
+      final ResultDrop rd = new ResultDrop(expr);
       rd.addCheckedPromise(pd);
-      setResultDependUponDrop(rd, expr);
       rd.setConsistent(false);
       rd.setResultMessage(Messages.READONLY_REFERENCE);
       (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());
@@ -505,10 +494,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
 	
 	private static final class EvidenceAdder extends EvidenceProcessor {
-	  private final ResultDropBuilder resultDrop;
+	  private final ResultDrop resultDrop;
 	  private final IBinder binder;
 	  
-	  public EvidenceAdder(final IBinder b, final ResultDropBuilder rd) {
+	  public EvidenceAdder(final IBinder b, final ResultDrop rd) {
 	    binder = b;
 	    resultDrop = rd;
 	  }

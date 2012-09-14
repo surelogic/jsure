@@ -9,17 +9,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNode;
-
-
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 
@@ -29,7 +27,7 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
  * Holds the caller and callee information for a single method or constructor.  There
  * should be no more than one of these drops for any specific IRNode.
  */
-public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop {
+public class SimpleCallGraphDrop extends IRReferenceDrop implements IThreadRoleDrop {
   private final int initSetSize = 2;
   private final Collection<IRNode> callers = new HashSet<IRNode>(initSetSize);
   private final Collection<IRNode> callees = new HashSet<IRNode>(initSetSize);
@@ -54,11 +52,13 @@ public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop 
   
   
   private SimpleCallGraphDrop() {
+    super(null); // THIS WILL BLOW UP!!!
   }
   
   private SimpleCallGraphDrop(IRNode node) {
+    super(node);
     ThreadRoleRules.setCGDrop(node, this);
-    setNodeAndCompilationUnitDependency(node);
+   // setNodeAndCompilationUnitDependency(node);
 
     String label = JJNode.getInfoOrNull(node);
     if (label == null) {
@@ -87,6 +87,7 @@ public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop 
    * @see edu.cmu.cs.fluid.sea.Drop#deponentInvalidAction()
    */
   @Override
+  @RequiresLock("SeaLock")
   protected void deponentInvalidAction(Drop invalidDeponent) {
     super.deponentInvalidAction(invalidDeponent);
     synchronized (SimpleCallGraphDrop.class) {

@@ -23,7 +23,7 @@ public class SourceRef extends AbstractRef {
 	}
 
 	public ISrcRef createSrcRef(int offset) {
-		SourceRef src = new SourceRef(ref, offset, offset, line);
+		SourceRef src = new SourceRef(ref, offset, offset, f_line);
 		return src;
 		// return this;
 	}
@@ -32,7 +32,7 @@ public class SourceRef extends AbstractRef {
 		return ref.getCUName();
 	}
 
-	public Object getEnclosingFile() {
+	public String getEnclosingFile() {
 		return ref.getURI().toString();
 	}
 
@@ -58,7 +58,7 @@ public class SourceRef extends AbstractRef {
 	}
 
 	public int getLineNumber() {
-		return line;
+		return f_line;
 	}
 
 	public int getOffset() {

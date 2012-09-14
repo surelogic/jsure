@@ -34,9 +34,11 @@ public enum KnownProperty implements Property {
     }
     return null;
   }
+  @Override
   public String getMessage() {
     return msg;
   }
+  @Override
   public String getName() {
     return val;
   }

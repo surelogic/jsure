@@ -40,6 +40,7 @@ import org.apache.tools.ant.types.Path;
  * instead of a target and only works for ant >= 1.6Beta3
  * @author Peter Reilly
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ForTask extends Task {
 
     private String     list;

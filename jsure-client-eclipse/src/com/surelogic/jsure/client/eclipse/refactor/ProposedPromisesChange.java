@@ -29,21 +29,21 @@ import com.surelogic.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public class ProposedPromisesChange {
-	private final List<? extends IProposedPromiseDropInfo> drops;
+	private final List<? extends IProposedPromiseDrop> drops;
 	private final String label;
 
 	public ProposedPromisesChange(
-			final List<? extends IProposedPromiseDropInfo> drops) {
+			final List<? extends IProposedPromiseDrop> drops) {
 		this.drops = drops;
 
 		// Just compute the label from the projects involved
 		//
 		// Get the projects involved (no dups)
 		Collection<String> projects = new HashSet<String>();
-		for (IProposedPromiseDropInfo p : drops) {
+		for (IProposedPromiseDrop p : drops) {
 			projects.add(p.getTargetProjectName());
 		}
 		// Sort them
@@ -64,7 +64,7 @@ public class ProposedPromisesChange {
 		label = sb.toString();
 	}
 
-	public List<? extends IProposedPromiseDropInfo> getDrops() {
+	public List<? extends IProposedPromiseDrop> getDrops() {
 		return drops;
 	}
 
@@ -77,7 +77,7 @@ public class ProposedPromisesChange {
 	void change(final CompositeChange root) {
 		final Set<String> projects = new HashSet<String>();
 		final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
-		for (final IProposedPromiseDropInfo drop : drops) {
+		for (final IProposedPromiseDrop drop : drops) {
 			projects.add(drop.getTargetProjectName());
 			projects.add(drop.getFromProjectName());
 
@@ -170,7 +170,7 @@ public class ProposedPromisesChange {
 	 * @param b
 	 * @return
 	 */
-	static AnnotationDescription desc(final IProposedPromiseDropInfo drop) {
+	static AnnotationDescription desc(final IProposedPromiseDrop drop) {
 		// final IBinder b = proj.getTypeEnv().getBinder();
 		final IJavaDeclaration target = drop.getTargetInfo();// IRNodeUtil.convert(b,
 																// drop.getNode());

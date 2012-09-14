@@ -3,21 +3,16 @@ package edu.cmu.cs.fluid.sea.drops;
 
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 
-/**
- * Using the OLD drop-sea
- * 
- * @author edwin
- */
 public class ModifiedBooleanPromiseDrop<A extends AbstractModifiedBooleanNode> extends BooleanPromiseDrop<A> {
   public ModifiedBooleanPromiseDrop(A a) {
     super(a);
   }
 
   public final boolean isImplementationOnly() {
-	  return getAST().isImplementationOnly();
+	  return getAAST().isImplementationOnly();
   }
 	
   public final boolean verify() {
-	return getAST().verify();  
+	return getAAST().verify();  
   }
 }

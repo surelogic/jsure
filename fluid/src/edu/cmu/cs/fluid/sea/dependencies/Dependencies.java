@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea.dependencies;
 
 import java.util.*;
@@ -7,7 +6,6 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.promise.PromiseDropStorage;
 
@@ -89,7 +87,7 @@ public class Dependencies {
 				final CUDrop cud = findEnclosingCUDrop(d);
 				if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) { 
 					if (cud != null) {
-						final IRNode type = VisitUtil.getPrimaryType(cud.cu);
+						final IRNode type = VisitUtil.getPrimaryType(cud.getCompilationUnitIRNode());
 						System.out.println("\t"+d.getMessage()+"\tfrom "+JavaNames.getTypeName(type));	
 					} else {
 						System.out.println("\t"+d.getMessage());	
@@ -149,7 +147,7 @@ public class Dependencies {
 			IRNode cu = VisitUtil.getEnclosingCompilationUnit(ird.getNode());
 			CUDrop cud = CUDrop.queryCU(cu);
 			if (cud != null) {
-				if ("java.lang.Object".equals(cud.javaOSFileName)) {
+				if ("java.lang.Object".equals(cud.getJavaOSFileName())) {
 					// This stuff should never get invalidated
 					throw ignored;
 				}
@@ -203,7 +201,7 @@ public class Dependencies {
 	 * @return 
 	 */
 	private Collection<PromiseWarningDrop> processPromiseWarningDrops() {
-		final Set<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
+		final List<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
 		for(Drop d : warnings) {	
 			System.out.println("Processing PWD: "+d.getMessage());
 			try {
@@ -225,14 +223,14 @@ public class Dependencies {
 	public void finishReprocessing() {
 		final Collection<PromiseWarningDrop> warnings = processPromiseWarningDrops();
 		for(CUDrop d : changed) {
-			System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
+			System.out.println("Changed:   "+d.getJavaOSFileName()+" "+d.getClass().getSimpleName());
 		}		
 		for(CUDrop d : reprocess) {
-			System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
+			System.out.println("Reprocess: "+d.getJavaOSFileName()+" "+d.getClass().getSimpleName());
 		}
-		if (AbstractWholeIRAnalysis.useDependencies) {
-			collectOldAnnotationInfo();
-		}
+//		if (AbstractWholeIRAnalysis.useDependencies) {
+//			collectOldAnnotationInfo();
+//		}
 		reprocess.removeAll(changed);						
 
 		IDE.getInstance().setAdapting();
@@ -252,17 +250,18 @@ public class Dependencies {
 						}
 					});					
 					*/
-				} else if (AbstractWholeIRAnalysis.useDependencies) { // Same as Util.clearOldResults
-					// Clear info/warnings
-					// Clear results
-					for(Drop dd : d.getDependents()) {
-						if (dd instanceof IResultDrop || dd instanceof PromiseWarningDrop) {
-							dd.invalidate();
-						} else {
-							System.out.println("\tIgnoring "+dd.getMessage());
-						}
-					}
 				}
+//				else if (AbstractWholeIRAnalysis.useDependencies) { // Same as Util.clearOldResults
+//					// Clear info/warnings
+//					// Clear results
+//					for(Drop dd : d.getDependents()) {
+//						if (dd instanceof IReportedByAnalysisDrop || dd instanceof PromiseWarningDrop) {
+//							dd.invalidate();
+//						} else {
+//							System.out.println("\tIgnoring "+dd.getMessage());
+//						}
+//					}
+//				}
 			}
 			// Necessary to process these after package drops 
 			// to ensure that newly created drops don't invalidated
@@ -292,7 +291,7 @@ public class Dependencies {
 	private void clearPromiseDrops(CUDrop d) {
 		// Clear out promise drops
 		//System.out.println("Reprocessing "+d.javaOSFileName);
-		for(IRNode n : JavaPromise.bottomUp(d.cu)) {
+		for(IRNode n : JavaPromise.bottomUp(d.getCompilationUnitIRNode())) {
 			PromiseDropStorage.clearDrops(n);
 		}
 	}
@@ -310,9 +309,9 @@ public class Dependencies {
 		oldInfo.clear();
 		
 		for(final CUDrop cud : reanalyze) {
-			System.out.println("Collecting old info for "+cud.javaOSFileName);
+			System.out.println("Collecting old info for "+cud.getJavaOSFileName());
 			// record old decls and what annotations were on them 
-			for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {
+			for(final IRNode n : JJNode.tree.bottomUp(cud.getCompilationUnitIRNode())) {
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op)) {
 					if (FieldDeclaration.prototype.includes(op)) {
@@ -373,9 +372,9 @@ public class Dependencies {
 		final MultiMap<ITypeEnvironment,AnnotationInfo> toScan = new MultiHashMap<ITypeEnvironment, AnnotationInfo>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
-			if (AbstractWholeIRAnalysis.debugDependencies) {		
-				System.out.println("Checking for new dependencies on "+info.getFileName());
-			}
+//			if (AbstractWholeIRAnalysis.debugDependencies) {		
+//				System.out.println("Checking for new dependencies on "+info.getFileName());
+//			}
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				// TODO what about receivers and what not?
@@ -411,9 +410,9 @@ public class Dependencies {
 		final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 		if (oldDrops == null) {
 			// New decl, so any annotations are brand-new, and will be analyzed
-			if (AbstractWholeIRAnalysis.debugDependencies) {						
-				System.err.println("New decl will be analyzed normally: "+name);
-			}
+//			if (AbstractWholeIRAnalysis.debugDependencies) {						
+//				System.err.println("New decl will be analyzed normally: "+name);
+//			}
 			return; 
 		}
 		// Otherwise, it's an existing decl
@@ -479,7 +478,7 @@ public class Dependencies {
 		public final int hashCode() {
 			return drop.getClass().hashCode() + 
 			       drop.getMessage().hashCode() + 
-			       drop.getLastNonnullNode().identity().hashCode();
+			       drop.getNode().identity().hashCode();
 		}
 		
 		/**
@@ -489,7 +488,7 @@ public class Dependencies {
 		public final boolean equals(Object o) {
 			if (o instanceof Wrapper) {
 				Wrapper w = (Wrapper) o;
-				return drop.getLastNonnullNode().equals(w.drop.getLastNonnullNode()) &&
+				return drop.getNode().equals(w.drop.getNode()) &&
 				drop.getClass().equals(w.drop.getClass()) && drop.getMessage().equals(w.drop.getMessage());
 			}
 			return false;
@@ -685,7 +684,7 @@ public class Dependencies {
 		private void scanForPublic(ITypeEnvironment te, Set<IRNode> decls) {
 			System.out.println("Scanning for public dependencies: "+this);
 			// TODO do i need to check binaries?
-			final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
+			final List<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
 			for(CUDrop cud : allCus) {
 				scanCUDrop(te.getBinder(), cud, decls);
 			}
@@ -699,12 +698,12 @@ public class Dependencies {
 	 */
 	void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
 		if (reanalyze.contains(cud)) {
-			System.out.println("Already slated to be reanalyzed: "+cud.javaOSFileName);
+			System.out.println("Already slated to be reanalyzed: "+cud.getJavaOSFileName());
 			return; // Already on the list
 		}
-		final boolean present = hasUses(binder, cud.cu, decls);
+		final boolean present = hasUses(binder, cud.getCompilationUnitIRNode(), decls);
 		if (present) {
-			System.out.println("Queued to be reanalyzed: "+cud.javaOSFileName);
+			System.out.println("Queued to be reanalyzed: "+cud.getJavaOSFileName());
 			reanalyze.add(cud);
 		}
 	}
@@ -740,7 +739,7 @@ public class Dependencies {
 	void scanCUDropForGivenTypedVarDecls(IBinder binder, CUDrop cud,
 		 	                             final Set<IRNode> typeDecls, DeclarationScanner depScanner) {
 		final Types types = new Types(binder, typeDecls);
-		for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {//JavaPromise.bottomUp(cu)) {
+		for(final IRNode n : JJNode.tree.bottomUp(cud.getCompilationUnitIRNode())) {//JavaPromise.bottomUp(cu)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (VariableDeclaration.prototype.includes(op)) {
 				if (ParameterDeclaration.prototype.includes(op)) {

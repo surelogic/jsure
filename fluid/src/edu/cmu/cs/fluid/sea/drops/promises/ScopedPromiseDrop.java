@@ -7,20 +7,19 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 /**
  * Abstract promise drop class for scoped promises.
  * 
- * @subtypedBy
- *   edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop,
- *   edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop
+ * @subtypedBy edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop,
+ *             edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop
  */
-@SuppressWarnings("unchecked")
-public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> 
-implements IDerivedDropCreator {
+public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> implements
+    IDerivedDropCreator<PromiseDrop<ScopedPromiseNode>> {
+
   public ScopedPromiseDrop(ScopedPromiseNode a) {
     super(a);
   }
 
   /**
-   * Scoped promises are not checked by analysis, but we don't want
-   * the user interface to show them as trusted, so we lie to it.
+   * Scoped promises are not checked by analysis, but we don't want the user
+   * interface to show them as trusted, so we lie to it.
    * 
    * @see edu.cmu.cs.fluid.sea.PromiseDrop#isCheckedByAnalysis()
    */
@@ -28,8 +27,8 @@ implements IDerivedDropCreator {
   public boolean isCheckedByAnalysis() {
     return true;
   }
-  
-  public void validated(PromiseDrop pd) {
-	  throw new UnsupportedOperationException();
+
+  public void validated(PromiseDrop<ScopedPromiseNode> pd) {
+    throw new UnsupportedOperationException();
   }
 }

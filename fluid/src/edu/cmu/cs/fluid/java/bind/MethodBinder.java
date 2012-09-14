@@ -10,13 +10,13 @@ import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 class MethodBinder {
 	private static final Logger LOG = AbstractJavaBinder.LOG;
 	
-    private final Hashtable2<IJavaType,IJavaType,Boolean> callCompatCache = 
-    	new Hashtable2<IJavaType,IJavaType,Boolean>();
+    private final HashMap<Pair<IJavaType,IJavaType>,Boolean> callCompatCache = 
+    	new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
 	
 	private final boolean debug;
 	private final AbstractJavaBinder binder;
@@ -32,10 +32,11 @@ class MethodBinder {
     	if (t1 == null || t2 == null) {    	
     		return false;
     	}
-    	Boolean result = callCompatCache.get(t1, t2);
+    	final Pair<IJavaType, IJavaType> key = Pair.getInstance(t1, t2);
+    	Boolean result = callCompatCache.get(key);
     	if (result == null) {
     		result = typeEnvironment.isCallCompatible(t1, t2);
-    		callCompatCache.put(t1, t2, result);
+    		callCompatCache.put(key, result);
     	}
     	return result;
     }

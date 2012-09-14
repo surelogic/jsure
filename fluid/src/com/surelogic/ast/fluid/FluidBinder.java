@@ -355,9 +355,11 @@ public class FluidBinder implements IJavaBinder {
       return couldBeCompatible(t);
     }
 
+    /*
     public boolean isCastCompatibleTo(IType t) {
       return couldBeCompatible(t);
     }
+    */
 
     public boolean isSubtypeOf(IType t) {
       return couldBeCompatible(t);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.util.Visibility;
 
 public class NewRegionDeclarationNode extends RegionDeclarationNode {
@@ -24,6 +25,7 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 			} else {
 				parent = (RegionSpecificationNode) _kids.get(0);
 			}
+			modifiers |= JavaNode.ABSTRACT;
 			return new NewRegionDeclarationNode(_start, modifiers, id, parent);
 		}
 	};
@@ -98,6 +100,10 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 		return isStatic(modifiers);
 	}
 
+	public boolean isAbstract() {
+		return isAbstract(modifiers);
+	}
+	
 	@Override
 	public IAASTNode cloneTree() {
 		return new NewRegionDeclarationNode(getOffset(), getModifiers(),

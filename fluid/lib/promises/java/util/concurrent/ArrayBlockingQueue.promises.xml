@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="3">
     <class name="ArrayBlockingQueue">
         <ThreadSafe/>
+        
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
+        
         <constructor params="int">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

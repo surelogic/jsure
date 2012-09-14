@@ -34,6 +34,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   final Set<IJavaProject> active = new HashSet<IJavaProject>(); // Used to simulate when only some are analyzed
   final boolean runAsynchronously;
   
+  @Override
   public Object getArgument(String key) {
 	  return args.get(key);
   }
@@ -74,6 +75,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
+      @Override
       public boolean execute(ICommandContext context, String... contents) throws Exception {
     	boolean building = false;
         if (ScriptCommands.AUTO_BUILD.equals(contents[1])) {
@@ -88,6 +90,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
       }  
     });
     commands.put("unset", new AbstractCommand() {
+      @Override
       public boolean execute(ICommandContext context, String... contents) throws Exception {
         if (ScriptCommands.AUTO_BUILD.equals(contents[1])) {
           autoBuild = false;
@@ -213,6 +216,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
    * 
    * TODO how to tell if it stopped?
    */
+  @Override
   public SLStatus run(SLProgressMonitor monitor) {
 	  try {
 		  while (resultsOk && (line = br.readLine()) != null) {    	
@@ -389,6 +393,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	SetFileArg(String key) {
 		this.key = key;
 	}
+    @Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final File expected = resolveFile(context, contents[1]);

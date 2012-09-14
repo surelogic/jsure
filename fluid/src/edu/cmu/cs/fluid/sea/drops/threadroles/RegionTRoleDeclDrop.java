@@ -10,7 +10,7 @@ import com.surelogic.analysis.threadroles.TRExpr;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.BindUtil;
-import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
@@ -20,10 +20,9 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
  * 
  * @see edu.cmu.cs.fluid.sea.drops.promises.RegionModel
  * @see edu.cmu.cs.fluid.java.analysis.Region
- * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  * @see edu.cmu.cs.fluid.sea.drops.promises.ColorRegionModel
  */
-public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop {
+public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleDrop {
 
   private final TRExpr userConstraint;
 
@@ -42,7 +41,7 @@ public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop 
    * @param where Location of the decl in the tree.
    */
   private RegionTRoleDeclDrop(final String regionName, final TRExpr constraint, IRNode where) {
-    super();
+    super(null); // will blow up!
     this.regionName = regionName;
     masterRegion = RegionModel.getInstance(regionName, where);
     userConstraint = constraint.doClone();
@@ -51,15 +50,15 @@ public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop 
 public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, final TRExpr constraint,
     final IRNode where) {
   RegionTRoleDeclDrop res = new RegionTRoleDeclDrop(regionName, constraint, where);
-  res.setNodeAndCompilationUnitDependency(where);
+  // res.setNodeAndCompilationUnitDependency(where);
   
-  RegionTRoleModel tRTRDDrop = (RegionTRoleModel) res.masterRegion.getColorInfo();
+  RegionTRoleModel tRTRDDrop = null; // (RegionTRoleModel) res.masterRegion.getColorInfo();
   if (tRTRDDrop == null) {
     
     final IRNode vdecl = BindUtil.findRegionInType(where, regionName);
     
     tRTRDDrop = RegionTRoleModel.getRegionTRoleModel(res.masterRegion, vdecl);
-    res.masterRegion.setColorInfo(tRTRDDrop);
+    //res.masterRegion.setColorInfo(tRTRDDrop);
   } 
   res.regionTRoleModelInfo = tRTRDDrop;
   
@@ -68,7 +67,7 @@ public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, 
   
   res.masterRegion.addDependent(res);
   
-  res.setMessage("ThreadRoleConstraint " +constraint+ " for region " +res.masterRegion.regionName);
+  res.setMessage("ThreadRoleConstraint " +constraint+ " for region " +res.masterRegion.getRegionName());
   
   return res;
 }

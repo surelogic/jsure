@@ -387,6 +387,7 @@ public abstract class AbstractASTImplGenerator extends AbstractSharedASTGenerato
     return makeNodeName("No"+optName.substring(OpSyntax.OPT_CHILD_PREFIX.length()));
   }
   
+  @SuppressWarnings("unused")
   protected String createNoFooNode(OpSyntax s, Child c) {
     if (convertOptNodes) {
       return "null";

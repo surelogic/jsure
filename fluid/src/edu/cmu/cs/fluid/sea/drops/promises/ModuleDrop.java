@@ -27,9 +27,9 @@ import edu.cmu.cs.fluid.java.promise.EnclosingModule;
 import edu.cmu.cs.fluid.java.promise.Module;
 import edu.cmu.cs.fluid.java.promise.Modules;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
@@ -74,6 +74,7 @@ public class ModuleDrop extends PromiseDrop {
   private IRNode modPromiseIR = null;
   
   ModuleDrop(final String name) {
+	super(null);
     declaredModules = new HashSet<ModuleModel>(2);
     claimsToWrap = new HashSet<String>(0);
     modName = name.intern();
@@ -87,7 +88,7 @@ public class ModuleDrop extends PromiseDrop {
     final IRNode modsIR = EnclosingModule.getModules(promise);
     res.modPromiseIR = modsIR;
    
-    res.setNodeAndCompilationUnitDependency(where);
+    //res.setNodeAndCompilationUnitDependency(where);
     synchronized (ModuleDrop.class) {
       Set<ModuleDrop> dropsHere = irToWrappingModule.get(where);
       if (dropsHere == null) {
@@ -133,7 +134,7 @@ public class ModuleDrop extends PromiseDrop {
   public static ModuleDrop buildModuleDrop(final IRNode where, final String name) {
     final ModuleDrop res = new ModuleDrop(name);
     
-    res.setNodeAndCompilationUnitDependency(where);
+   // res.setNodeAndCompilationUnitDependency(where);
 //    res.declaredModules.addAll(ModuleModel.queryModulesDefinedBy(name));
     
     res.image = "@module " +name;
@@ -350,11 +351,11 @@ public class ModuleDrop extends PromiseDrop {
     
   }
   
-  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
-    public boolean match(Drop d) {
+  private static DropPredicate definingDropPred = new DropPredicate() {
+    public boolean match(IDrop d) {
       return (d.isValid()) &&
-        d instanceof CUDrop ||
-        d instanceof BinaryCUDrop;
+        d.instanceOf(CUDrop.class) ||
+        d.instanceOf(BinaryCUDrop.class);
     }    
   };
   /* (non-Javadoc)

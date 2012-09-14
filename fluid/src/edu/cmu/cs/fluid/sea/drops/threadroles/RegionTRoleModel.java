@@ -8,6 +8,7 @@ package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import java.util.*;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.threadroles.TRoleMessages;
 
 import SableJBDD.bdd.JBDD;
@@ -19,61 +20,63 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
-
-
 public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
 
   private final RegionModel masterRegion;
   private final IRNode protoIR;
-  
+
   private JBDD andOfUserConstraints = null;
   private JBDD computedContext = null;
-  
-  private Set<PromiseDrop> userDeponents;
-  
-  private static final Set<RegionTRoleModel> allRegTRoleMods =
-    new HashSet<RegionTRoleModel>();
-  
+
+  private Set<PromiseDrop<? extends IAASTRootNode>> userDeponents;
+
+  private static final Set<RegionTRoleModel> allRegTRoleMods = new HashSet<RegionTRoleModel>();
+
   private RegionTRoleModel(RegionModel forRegion, IRNode rdsIR) {
+	super(null);
     masterRegion = forRegion;
     protoIR = rdsIR;
     setMessage("regionTRoles " + forRegion.getMessage());
-    userDeponents = new HashSet<PromiseDrop>(1);
+    userDeponents = new HashSet<PromiseDrop<? extends IAASTRootNode>>(1);
     setCategory(TRoleMessages.assuranceCategory);
   }
 
-  /** Get an appropriate ColorizedRegionModel for a region.  Create a new one if
+  /**
+   * Get an appropriate ColorizedRegionModel for a region. Create a new one if
    * necessary.
-   * @param forRegion A region we want to get Colorizer information for
-   * @return The (possibly freshly created) ColorizedRegionModel for that region.
+   * 
+   * @param forRegion
+   *          A region we want to get Colorizer information for
+   * @return The (possibly freshly created) ColorizedRegionModel for that
+   *         region.
    */
   public static RegionTRoleModel getRegionTRoleModel(RegionModel forRegion, IRNode rdsIR) {
-    RegionTRoleModel rtrm = (RegionTRoleModel) forRegion.getColorInfo();
+    RegionTRoleModel rtrm = null; //(RegionTRoleModel) forRegion.getColorInfo();
     if (rtrm == null) {
       rtrm = new RegionTRoleModel(forRegion, rdsIR);
-      forRegion.setColorInfo(rtrm);
+      //forRegion.setColorInfo(rtrm);
       forRegion.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
       allRegTRoleMods.add(rtrm);
     }
-    
+
     rtrm.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
     return rtrm;
   }
-  
-  
-  
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()
    */
   @Override
   protected void deponentInvalidAction(Drop invalidDeponent) {
     allRegTRoleMods.remove(this);
     if (masterRegion.isValid()) {
-      masterRegion.setColorInfo(null);
+     // masterRegion.setColorInfo(null);
     }
     // These drops are created and managed by colorSECONDpass, so don't report
     // invalidating them to colorFIRSTpass!
-//    TRolesFirstPass.trackCUchanges(this);
+    // TRolesFirstPass.trackCUchanges(this);
 
     super.deponentInvalidAction(invalidDeponent);
   }
@@ -81,7 +84,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
   public static boolean haveTRoleRegions() {
     return !allRegTRoleMods.isEmpty();
   }
-  
+
   public static Collection<RegionTRoleModel> getAllValidRegionTRoleMods() {
     List<RegionTRoleModel> res = new ArrayList<RegionTRoleModel>(allRegTRoleMods.size());
     synchronized (RegionTRoleModel.class) {
@@ -93,7 +96,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     }
     return res;
   }
-  
+
   /**
    * @return Returns the andOfUserConstraints.
    */
@@ -101,15 +104,14 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     return andOfUserConstraints;
   }
 
-  
   /**
-   * @param andOfUserConstraints The andOfUserConstraints to set.
+   * @param andOfUserConstraints
+   *          The andOfUserConstraints to set.
    */
   public void setAndOfUserConstraints(JBDD andOfUserConstraints) {
     this.andOfUserConstraints = andOfUserConstraints;
   }
 
-  
   /**
    * @return Returns the computedContext.
    */
@@ -117,15 +119,14 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     return computedContext;
   }
 
-  
   /**
-   * @param computedContext The computedContext to set.
+   * @param computedContext
+   *          The computedContext to set.
    */
   public void setComputedContext(JBDD computedConstraint) {
     this.computedContext = computedConstraint;
   }
 
-  
   /**
    * @return Returns the masterRegion.
    */
@@ -133,23 +134,21 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     return masterRegion;
   }
 
-  
   /**
    * @return Returns the userDeponents.
    */
-  public Set<PromiseDrop> getUserDeponents() {
+  public Set<PromiseDrop<? extends IAASTRootNode>> getUserDeponents() {
     return userDeponents;
   }
 
-  
   /**
-   * @param userDeponents The userDeponents to set.
+   * @param userDeponents
+   *          The userDeponents to set.
    */
-  public void setUserDeponents(Set<PromiseDrop> userDeponents) {
+  public void setUserDeponents(Set<PromiseDrop<? extends IAASTRootNode>> userDeponents) {
     this.userDeponents = userDeponents;
   }
 
-  
   /**
    * @return Returns the protoIR.
    */
@@ -157,5 +156,4 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     return protoIR;
   }
 
-  
 }

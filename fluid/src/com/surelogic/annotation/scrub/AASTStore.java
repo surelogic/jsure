@@ -8,7 +8,6 @@ import com.surelogic.annotation.test.TestResult;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -30,8 +29,8 @@ public final class AASTStore {
    */
   @SuppressWarnings("rawtypes")
   @UniqueInRegion("Store")
-  protected static final Map<Class,Collection<? extends IAASTRootNode>> byClass = 
-    new HashMap<Class,Collection<? extends IAASTRootNode>>();
+  protected static final Map<Class<?>,Collection<? extends IAASTRootNode>> byClass = 
+    new HashMap<Class<?>,Collection<? extends IAASTRootNode>>();
   
   /**
    * The AASTs organized by promisedFor
@@ -59,7 +58,7 @@ public final class AASTStore {
   /**
    * Callbacks to be run after the AAST is scrubbed
    */
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @UniqueInRegion("Store")
   protected static final Map<IAASTRootNode,List<ValidatedDropCallback>> triggers = 
     new HashMap<IAASTRootNode,List<ValidatedDropCallback>>();
@@ -174,7 +173,7 @@ public final class AASTStore {
 	  return cu;
   }
   
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static synchronized void triggerWhenValidated(IAASTRootNode root, ValidatedDropCallback r) {
     List<ValidatedDropCallback> l = triggers.get(root);
     if (l == null) {
@@ -184,20 +183,17 @@ public final class AASTStore {
     l.add(r);
   }
 
-  public static synchronized <A extends IAASTRootNode>
+  @SuppressWarnings("unchecked")
+public static synchronized <A extends IAASTRootNode>
   void validate(PromiseDrop<A> pd) {  
-    if (pd.getAST() == null) {
-      if (pd instanceof MethodEffectsPromiseDrop) {
-        // continue         
-      } else {
-        throw new IllegalArgumentException("No AST for "+pd);
-      }
+    if (pd.getAAST() == null) {
+    	throw new IllegalArgumentException("No AST for "+pd);      
     }
-    else if (pd.getAST().getStatus() != AASTStatus.VALID) {
+    else if (pd.getAAST().getStatus() != AASTStatus.VALID) {
       throw new IllegalArgumentException("AAST is not valid");
     }
     @SuppressWarnings("rawtypes")
-    List<ValidatedDropCallback> l = triggers.remove(pd.getAST());
+    List<ValidatedDropCallback> l = triggers.remove(pd.getAAST());
     if (l != null) {
       for(ValidatedDropCallback<PromiseDrop<A>> cb : l) {
         cb.validated(pd);
@@ -219,7 +215,7 @@ public final class AASTStore {
 	  add(clone);
 	  setPromiseSource(clone, pd);
 	  triggerWhenValidated(clone, r);
-	  cloneTestResult(pd.getAST(), clone);
+	  cloneTestResult(pd.getAAST(), clone);
   }
   
   public static synchronized void associateTestResult(IAASTRootNode root, TestResult result) {

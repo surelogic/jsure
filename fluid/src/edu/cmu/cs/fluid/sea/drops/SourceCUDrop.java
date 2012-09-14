@@ -1,11 +1,12 @@
-/*
- * Created on Jun 22, 2004
- *
- */
 package edu.cmu.cs.fluid.sea.drops;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.surelogic.InRegion;
+import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -17,49 +18,55 @@ import edu.cmu.cs.fluid.sea.Sea;
 /**
  * @lock CacheLock is class protects cachedDrops
  */
-public class SourceCUDrop extends CUDrop {
-  private static Map<ICodeFile, SourceCUDrop> cachedDrops = null;
-  
+public final class SourceCUDrop extends CUDrop {
+
+  /**
+   * Map from files to source CU drop. A value of {@code null} means the map
+   * needs to be rebuilt via a call to
+   * {@link #fillFileToInstanceMapFromSeaQuery()}.
+   * <p>
+   * Use {@link Sea#getSeaLock()} to protect mutations to the field.
+   */
+  private static ConcurrentHashMap<ICodeFile, SourceCUDrop> FILE_TO_INSTANCE;
+
   public SourceCUDrop(CodeInfo info, ProjectsDrop p) {
-    super(info);
-    //System.out.println("Creating SourceCUDrop for "+info.getFileName());
-    javaFile = info.getFile();
-    source   = info.getSource();
-    adaptedAsSource = info.isAsSource();
-    this.projects = p;
-    
-    synchronized (SourceCUDrop.class) {
+    super(info, info.isAsSource());
+    // System.out.println("Creating SourceCUDrop for "+info.getFileName());
+    f_projects = p;
+
+    synchronized (Sea.getDefault().getSeaLock()) {
       // clear cached drops, since we're creating new ones
-      cachedDrops = null;
+      FILE_TO_INSTANCE = null;
     }
   }
 
-  private ProjectsDrop projects;
-  public final ICodeFile javaFile;
-  public final String source;
-  public final boolean adaptedAsSource;
+  @InRegion("DropState")
+  private ProjectsDrop f_projects;
 
   /**
-   * @requiresLock CacheLock
+   * This is needed because we need to clean up some drops that we place in the
+   * sea but are destroyed after construction of the compilation units.
    */
-  private static void initCachedDrops() {
-    Set<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
-    cachedDrops = new HashMap<ICodeFile, SourceCUDrop>(drops.size());
+  @RequiresLock("SeaLock")
+  private static void fillFileToInstanceMapFromSeaQuery() {
+    final List<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+    FILE_TO_INSTANCE = new ConcurrentHashMap<ICodeFile, SourceCUDrop>(drops.size());
     for (SourceCUDrop drop : drops) {
-      if (drop.isValid() && drop.cu.equals(IRNode.destroyedNode)) {
+      if (drop.isValid() && drop.getCompilationUnitIRNode().equals(IRNode.destroyedNode)) {
         drop.invalidate();
         continue;
       }
-      if (drop.javaFile != null) {
-        SourceCUDrop d = cachedDrops.put(drop.javaFile, drop);
+      final ICodeFile javaFile = drop.f_codeInfo.getFile();
+      if (javaFile != null) {
+        SourceCUDrop d = FILE_TO_INSTANCE.put(javaFile, drop);
         if (d != null) {
           // duplicate drop?
-          LOG.severe("Got 2+ drops with same javaFile: "+drop.javaFile);
+          LOG.severe("Got 2+ drops with same javaFile: " + javaFile);
         }
       }
     }
   }
-  
+
   /**
    * Looks up the drop corresponding to the given ICompilationUnit.
    * 
@@ -68,72 +75,55 @@ public class SourceCUDrop extends CUDrop {
    * @return the corresponding drop, or <code>null</code> if a drop does not
    *         exist.
    */
-  static public SourceCUDrop queryCU(ICodeFile javaFile) {
-    /*
-    Set<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
-    for (SourceCUDrop drop : drops) {
-      if (drop.javaFile == null) {
-        System.out.println("javaFile is null");  
+  public static SourceCUDrop queryCU(ICodeFile javaFile) {
+    synchronized (Sea.getDefault().getSeaLock()) {
+      if (FILE_TO_INSTANCE == null) {
+        fillFileToInstanceMapFromSeaQuery();
       }
-      else if (drop.javaFile.equals(javaFile)) return drop;
-    }
-    return null;
-    */
-    synchronized (SourceCUDrop.class) {
-      if (cachedDrops == null) {
-        initCachedDrops();
-      }
-      return cachedDrops.get(javaFile);
+      return FILE_TO_INSTANCE.get(javaFile);
     }
   }
 
   /**
-   * Invalidates all SourceCUDrops contained within this sea. 
-   * Can be used as a reset method when closing a project.
-   * 
+   * Invalidates all SourceCUDrops contained within this sea. Can be used as a
+   * reset method when closing a project.
    */
-  public static Collection<SourceCUDrop> invalidateAll(final Collection<IIRProject> projects) {
-    synchronized (SourceCUDrop.class) {
-      cachedDrops = null;
+  public static Collection<IRNode> invalidateAll(final Collection<IIRProject> projects) {
+    final ArrayList<IRNode> result = new ArrayList<IRNode>();
+    synchronized (Sea.getDefault().getSeaLock()) {
+      final List<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+      for (SourceCUDrop d : drops) {
+        boolean invalidate = projects == null;
+
+        if (!invalidate) {
+          // TODO use hash map?
+          final ITypeEnvironment dTEnv = d.getTypeEnv();
+          for (IIRProject p : projects) {
+            if (dTEnv == p.getTypeEnv()) {
+              invalidate = true;
+              break;
+            }
+          }
+        }
+        if (invalidate) {
+          d.invalidate();
+          result.add(d.getCompilationUnitIRNode());
+        }
+      }
+      FILE_TO_INSTANCE = null;
     }
-    final Set<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
-    final List<SourceCUDrop> invalidated = new ArrayList<SourceCUDrop>();
-    for(SourceCUDrop d : cuds) {
-    	boolean invalidate = projects == null;
-    	if (!invalidate) {
-    		// TODO use hash map?
-    		final ITypeEnvironment dTEnv = d.getTypeEnv();
-    		for(IIRProject p : projects) {
-    			if (dTEnv == p.getTypeEnv()) {
-    				invalidate = true;
-    				break;
-    			}
-    		}
-    	}
-    	if (invalidate) {
-    		d.invalidate();    	
-    		invalidated.add(d);
-    	}
+    return result;
+  }
+
+  public void setProject(ProjectsDrop projects) {
+    synchronized (f_seaLock) {
+      f_projects = projects;
     }
-    return invalidated;
   }
 
-  @Override
-  public boolean isAsSource() {
-    return adaptedAsSource;
-  }
-  /*
-  @Override
-  protected void invalidate_internal() {
-	  System.out.println("Invalidating "+javaOSFileName);
-  }
-*/
-
-  public synchronized void setProject(ProjectsDrop p) {
-	  projects = p;
-  }
-
-  public synchronized ProjectsDrop getProject() {
-	  return projects;
+  public ProjectsDrop getProject() {
+    synchronized (f_seaLock) {
+      return f_projects;
+    }
   }
 }

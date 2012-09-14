@@ -8,7 +8,6 @@ import java.io.*;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 /**
@@ -36,11 +35,12 @@ public class CompareResults extends AbstractCommand {
 	 *      2 - results oracle file to compare against 
 	 *      3 - the results diffs file (w/ extension)
 	 */
+	@Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		resultsOk = true;
 		
-		final String projectName = contents[1]; 
+		//final String projectName = contents[1]; 
 		File oracle = resolveFile(context, contents[2]);
 		if (oracle == null) {
 			return false;

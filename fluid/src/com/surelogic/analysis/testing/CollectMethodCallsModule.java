@@ -89,8 +89,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
     private void getResult(final IRNode decl) {
       final ImmutableSet<IRNode> calls = currentQuery().getResultFor(decl);
       for (final IRNode call : calls) {      
-        final InfoDrop drop = new InfoDrop(null);
-        setResultDependUponDrop(drop, decl);
+        final InfoDrop drop = new InfoDrop(decl);
         drop.setCategory(Messages.DSC_COLLECT_METHOD_CALLS);
         final ISrcRef srcRef = JavaNode.getSrcRef(call);
         final int srcLine = srcRef == null ? -1 : srcRef.getLineNumber();

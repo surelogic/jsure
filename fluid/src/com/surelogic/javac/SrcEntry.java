@@ -3,9 +3,7 @@ package com.surelogic.javac;
 import java.io.File;
 import java.io.IOException;
 
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 /**
@@ -14,6 +12,7 @@ import com.surelogic.javac.persistence.PersistenceConstants;
  * @author Edwin
  */
 public class SrcEntry extends AbstractClassPathEntry {
+	@SuppressWarnings("unused")
 	private final Config project;
 	private final String projectRelativePath;
 	

@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
-import java.io.File;
 import java.util.*;
 
 import org.eclipse.core.runtime.CoreException;
@@ -19,7 +18,7 @@ import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
@@ -81,10 +80,10 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				if (id != null) {										
 					final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
 					if (info != null) {
-						final Map<String,List<IDropInfo>> promises = preprocessPromises(info);
-						List<IDropInfo> l = promises.get(id);
+						final Map<String,List<IDrop>> promises = preprocessPromises(info);
+						List<IDrop> l = promises.get(id);
 						if (l != null) {
-							for(IDropInfo d : l) {
+							for(IDrop d : l) {
 								System.out.println("Has promise: @"+d.getMessage());
 							}
 						}
@@ -115,9 +114,9 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 	}
 	
-	private Map<String,List<IDropInfo>> preprocessPromises(final JSureScanInfo info) {
-		Map<String,List<IDropInfo>> rv = new HashMap<String, List<IDropInfo>>();
-		for(IDropInfo d : info.getDropsOfType(PromiseDrop.class)) {
+	private Map<String,List<IDrop>> preprocessPromises(final JSureScanInfo info) {
+		Map<String,List<IDrop>> rv = new HashMap<String, List<IDrop>>();
+		for(IDrop d : info.getDropsOfType(PromiseDrop.class)) {
 			final ISrcRef ref = d.getSrcRef();						
 			if (ref == null) {
 				//System.out.println("No src ref:  @"+d.getMessage());
@@ -126,9 +125,9 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				if (rId == null) {
 					System.out.println("No id for @"+d.getMessage());
 				} else {
-					List<IDropInfo> l = rv.get(rId);
+					List<IDrop> l = rv.get(rId);
 					if (l == null) { 
-						l = new ArrayList<IDropInfo>();
+						l = new ArrayList<IDrop>();
 						rv.put(rId, l);
 					}
 					l.add(d);

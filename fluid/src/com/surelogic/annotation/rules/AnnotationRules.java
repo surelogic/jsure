@@ -194,8 +194,14 @@ public abstract class AnnotationRules {
 				 */
 				// System.out.println("Attribute '"+m.getName()+"' can appear on "+tag);
 				Object value = m.getDefaultValue();
+				Class<?> type = m.getReturnType();
+				if (m.getReturnType().equals(String[].class)) {
+					String[] values = (String[]) value;
+					type = String.class;
+					value = flattenStringArray(values);
+				}
 				l.put(m.getName(),
-						new Attribute(m.getName(), m.getReturnType(),
+						new Attribute(m.getName(), type,
 								value == null ? null : value.toString()));
 			}
 			return Collections.unmodifiableMap(l);
@@ -205,6 +211,21 @@ public abstract class AnnotationRules {
 		return Collections.emptyMap();
 	}
 
+	public static String flattenStringArray(String[] values) {
+		if (values == null || values.length == 0) {
+			return "";
+		} else {
+			StringBuilder b = new StringBuilder();
+			for(String v : values) {
+				if (b.length() != 0) {
+					b.append(", ");
+				}
+				b.append(v);
+				}
+			return b.toString();
+		}
+	}
+	
 	/* *************************************************
 	 * Initialization code ************************************************
 	 */
@@ -236,6 +257,9 @@ public abstract class AnnotationRules {
 		LayerRules.getInstance().register(fw);
 		UtilityRules.getInstance().register(fw);
 		NonNullRules.getInstance().register(fw);
+		EqualityRules.getInstance().register(fw);
+		StructureRules.getInstance().register(fw);
+		// This should always be last after registering any rules
 		PromiseDropStorage.init();
 	}
 
@@ -249,7 +273,7 @@ public abstract class AnnotationRules {
 	 * storage/scrubber
 	 */
 	protected void registerParseRuleStorage(PromiseFramework fw,
-			IAnnotationParseRule r) {
+			IAnnotationParseRule<?,?> r) {
 		fw.registerParseDropRule(r);
 
 		@SuppressWarnings("unchecked")
@@ -332,10 +356,9 @@ public abstract class AnnotationRules {
 		private PromiseWarningDrop reportError_private(String txt, IRNode n,
 				int offset) {
 			// System.out.println("SCRUBBER: "+txt);
-			PromiseWarningDrop d = new PromiseWarningDrop(offset);
+			PromiseWarningDrop d = new PromiseWarningDrop(n, offset);
 			d.setMessage(txt);
 			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
-			d.setNodeAndCompilationUnitDependency(n);
 			return d;
 		}
 
@@ -412,7 +435,7 @@ public abstract class AnnotationRules {
 	 * ************************************************
 	 */
 
-	private static boolean isBogus(PromiseDrop p) {
+	private static boolean isBogus(PromiseDrop<?> p) {
 		return !p.isValid();
 	}
 
@@ -436,7 +459,7 @@ public abstract class AnnotationRules {
 		return stor.add(mapped, pd);
 	}
 
-	private static <P extends PromiseDrop> P getMappedValue(SlotInfo<P> si,
+	private static <P extends PromiseDrop<?>> P getMappedValue(SlotInfo<P> si,
 			final IRNode n) {
 		final PromiseFramework frame = PromiseFramework.getInstance();
 		final IRNode mapped = frame.getProxyNode(n);
@@ -448,7 +471,7 @@ public abstract class AnnotationRules {
 		return getMappedValue(si, n, mapped, frame);
 	}
 
-	private static <P extends PromiseDrop> P getMappedValue(SlotInfo<P> si,
+	private static <P extends PromiseDrop<?>> P getMappedValue(SlotInfo<P> si,
 			final IRNode n, final IRNode mapped, PromiseFramework frame) {
 		P rv;
 
@@ -474,29 +497,29 @@ public abstract class AnnotationRules {
 	 * 
 	 * @return The drop that the AST was added to
 	 */
-	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> P ensureDropForAST(
-			IPromiseDropStorage<P> stor, IDropFactory<P, ? super A> factory, A a) {
-		final PromiseFramework frame = PromiseFramework.getInstance();
-		final IRNode n = a.getPromisedFor();
-		final IRNode mapped = frame.mapToProxyNode(n);
-		final SlotInfo<P> si = stor.getSlotInfo();
-
-		P pd = getMappedValue(si, n, mapped, frame);
-		if (pd == null) {
-			pd = factory.createDrop(n, a);
-			return pd == null ? null : stor.add(mapped, pd);
-		} else {
-			pd.addAST(a);
-		}
-		return pd;
-	}
+//	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> P ensureDropForAST(
+//			IPromiseDropStorage<P> stor, IDropFactory<P, ? super A> factory, A a) {
+//		final PromiseFramework frame = PromiseFramework.getInstance();
+//		final IRNode n = a.getPromisedFor();
+//		final IRNode mapped = frame.mapToProxyNode(n);
+//		final SlotInfo<P> si = stor.getSlotInfo();
+//
+//		P pd = getMappedValue(si, n, mapped, frame);
+//		if (pd == null) {
+//			pd = factory.createDrop(n, a);
+//			return pd == null ? null : stor.add(mapped, pd);
+//		} else {
+//			pd.setAAST(a);			
+//		}
+//		return pd;
+//	}
 
 	/**
 	 * Remove from associated IRNode
 	 */
 	protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> void removeDrop(
 			IPromiseDropStorage<P> stor, P pd) {
-		final IRNode n = pd.getAST().getPromisedFor();
+		final IRNode n = pd.getAAST().getPromisedFor();
 		final IRNode mapped = PromiseFramework.getInstance().getProxyNode(n);
 		stor.remove(mapped, pd);
 		// pd.invalidate();
@@ -505,7 +528,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for BooleanPromiseDrops
 	 */
-	protected static <D extends BooleanPromiseDrop> D getBooleanDrop(
+	protected static <D extends BooleanPromiseDrop<?>> D getBooleanDrop(
 			IPromiseDropStorage<D> s, IRNode n) {
 		IBooleanPromiseDropStorage<D> storage = (IBooleanPromiseDropStorage<D>) s;
 		if (n == null) {
@@ -521,7 +544,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for single PromiseDrops
 	 */
-	protected static <D extends PromiseDrop> D getDrop(
+	protected static <D extends PromiseDrop<?>> D getDrop(
 			IPromiseDropStorage<D> s, IRNode n) {
 		ISinglePromiseDropStorage<D> storage = (ISinglePromiseDropStorage<D>) s;
 		if (n == null) {
@@ -534,7 +557,7 @@ public abstract class AnnotationRules {
 		return d;
 	}
 
-	private static <D extends PromiseDrop> Iterator<D> getIterator(
+	private static <D extends PromiseDrop<?>> Iterator<D> getIterator(
 			SlotInfo<List<D>> si, IRNode n) {
 		if (n == null) {
 			return new EmptyIterator<D>();
@@ -549,7 +572,7 @@ public abstract class AnnotationRules {
 	/**
 	 * Getter for lists of PromiseDrops
 	 */
-	protected static <D extends PromiseDrop> Iterable<D> getDrops(
+	protected static <D extends PromiseDrop<?>> Iterable<D> getDrops(
 			IPromiseDropStorage<D> s, IRNode n) {
 		if (n == null) {
 			return new EmptyIterator<D>();
@@ -673,7 +696,7 @@ public abstract class AnnotationRules {
 		int i=0;
 		for(String s : values) {
 			// FIX can we get the exact offset?
-			rv[i] = new NamedTypeNode(offset, s);
+			rv[i] = new NamedTypeNode(offset, s.trim());
 			i++;
 		}
 		return rv;

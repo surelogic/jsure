@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="3">
     <class name="ConcurrentNavigableMap">
         <ThreadSafe/>
+
+        <AnnotationBounds threadSafe="K,V" referenceObject="K,V"/>
+
         <method name="descendingKeySet">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>

@@ -96,11 +96,10 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
@@ -310,7 +309,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final String methodName =
           JavaNames.genQualifiedMethodConstructorName(flowUnit);
       final UniquenessControlFlowDrop controlFlowDrop =
-          new UniquenessControlFlowDrop(flowUnit);
+          UniquenessControlFlowDrop.create(flowUnit);
       
       final long tooLongDuration = IDE.getInstance().getIntPreference(
           IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
@@ -325,13 +324,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long endTime = System.nanoTime();
         final long duration = endTime - startTime;
         if (duration > tooLongDuration) {
-          final InfoDropBuilder info =
-            InfoDropBuilder.create(analysis, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
-          analysis.setResultDependUponDrop(info, flowUnit);
+          final WarningDrop info = new WarningDrop(flowUnit);
           info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
               methodName, duration / NANO_SECONDS_PER_SECOND);
           info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-          info.addDependUponDrop(controlFlowDrop);
+          controlFlowDrop.addDependent(info);
         }
       } catch (final FlowAnalysis.AnalysisGaveUp e) {
         // Analysis of the flow unit gave up
@@ -339,9 +336,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long duration = endTime - startTime;
         gaveUp = true;
         
-        final ResultDropBuilder timeOutResult = 
-            ResultDropBuilder.create(analysis, Messages.toString(Messages.TIMEOUT));
-        analysis.setResultDependUponDrop(timeOutResult, flowUnit);
+        final ResultDrop timeOutResult = new ResultDrop(flowUnit);
         timeOutResult.setTimeout();
         timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
         timeOutResult.setResultMessage(Messages.TIMEOUT,

@@ -31,7 +31,8 @@ public class TestConfigurableSequenceView
       srcModel = src;
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
     public AVPair[] attributesFor( final Model model, final Set skippedNodes )
     {
       final StringBuilder sb = new StringBuilder( "ellipsis[" );
@@ -142,6 +143,7 @@ public class TestConfigurableSequenceView
       policy = p;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent e ) 
     {
       model.setSequenceEllipsisPolicy( policy );
@@ -164,6 +166,7 @@ public class TestConfigurableSequenceView
     }
     
     @SuppressWarnings("unchecked")
+    @Override
     public void actionPerformed( final ActionEvent e ) 
     {
       model.getCompAttribute(
@@ -190,6 +193,7 @@ public class TestConfigurableSequenceView
       value = v;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       model.setHidden( node, value );
@@ -216,6 +220,7 @@ public class TestConfigurableSequenceView
     }
     
     @SuppressWarnings("unchecked")
+    @Override
     public void actionPerformed( final ActionEvent actionEvent )
     {
       node.setSlotValue(

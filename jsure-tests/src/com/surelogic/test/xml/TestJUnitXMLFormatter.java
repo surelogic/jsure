@@ -31,7 +31,9 @@ public class TestJUnitXMLFormatter {
     //create a special test class that asserts a timout occurred,
     //and tell the formatter that it raised.  
     Test t = new Test() {
+     	    @Override
             public int countTestCases() { return 1; }
+    	    @Override
             public void run(TestResult r) {
                 throw new AssertionFailedError("Timeout occurred");
             }

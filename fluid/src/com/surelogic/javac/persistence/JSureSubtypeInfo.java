@@ -49,7 +49,7 @@ public class JSureSubtypeInfo {
 		if (cu instanceof SourceCUDrop) {
 			return cu.getRelativePath();
 		}
-		return cu.javaOSFileName;
+		return cu.getJavaOSFileName();
 	}
 
 	public static JSureSubtypeInfo load(File runDir) throws IOException {

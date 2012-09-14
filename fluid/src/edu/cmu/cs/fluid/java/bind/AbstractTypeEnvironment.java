@@ -53,8 +53,8 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   /*
   static int cached, total;
   */
-  private final Hashtable2<IJavaType, IJavaType, Boolean> subTypeCache = 
-	  new Hashtable2<IJavaType, IJavaType, Boolean>();
+  private final HashMap<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
+	  new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
   
   public void clearCaches(boolean clearAll) {
 	  objectType.set(null);
@@ -583,7 +583,7 @@ private long parseIntLiteral(String token) {
 	if (!ignoreGenerics) {
 		//total++;
 		synchronized (subTypeCache) {
-			Boolean result = subTypeCache.get(s, t);
+			Boolean result = subTypeCache.get(Pair.getInstance(s, t));
 
 			if (result != null) {
 				//cached++;
@@ -680,7 +680,7 @@ private long parseIntLiteral(String token) {
 	} finally {
 		if (!ignoreGenerics) {
 			synchronized (subTypeCache) {
-				subTypeCache.put(s, t, result);
+				subTypeCache.put(Pair.getInstance(s, t), result);
 			}
 		}
 	}

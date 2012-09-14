@@ -3,6 +3,7 @@
 <package name="java.util.concurrent" release="4">
     <class name="PriorityBlockingQueue">
         <ThreadSafe/>
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

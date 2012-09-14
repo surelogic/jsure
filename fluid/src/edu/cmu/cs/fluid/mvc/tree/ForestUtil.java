@@ -91,32 +91,6 @@ public class ForestUtil {
   }
   
   private static void addPromisesOnNode(final RootMutator model, final IRNode n, final Operator op) {    
-    PromiseFramework.getInstance().processPromises(n, new Processor(model));
-    /*
-    final Iterator infos = PromiseFramework.getInstance().getTokenInfos(op);
-    while (infos.hasNext()) {
-      final TokenInfo info = (TokenInfo) infos.next();
-      final IRType type    = info.si.getType();
-      // System.out.println("Got info for "+info.token.toString());
-    
-      if (type instanceof IRNodeType) {
-        if (n.valueExists(info.si)) {
-          addRootIfNonnull(model, n.getSlotValue(info.si));
-        }
-      } 
-      else if (type instanceof IRSequenceType) {
-        if (n.valueExists(info.si)) {
-          IRSequence seq = (IRSequence) n.getSlotValue(info.si);
-          if (seq == null) {
-            continue;
-          }
-          Iterator e  = seq.elements();
-          while (e.hasNext()) {
-            addRootIfNonnull(model, e.nextElement());
-          }
-        }
-      }
-    }    
-    */
+	  throw new UnsupportedOperationException();
   } 
 }

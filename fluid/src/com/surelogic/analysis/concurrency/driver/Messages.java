@@ -1,19 +1,16 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.util.*;
-
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
 public final class Messages extends AbstractMessages {
+  
   // Prevent instantiation
   private Messages() {
     super();
   }
-  
-  
   
   // Drop-sea category messages
   public static final Category DSC_LOCK_VIZ = Category.getInstance(200);
@@ -163,21 +160,7 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_IMPL = 488;
   public static final int IMMUTABLE_SUPERTYPE = 489;
   
-  public static final int ANNOTATION_BOUNDS_SATISFIED = 495;
-  public static final int ANNOTATION_BOUNDS_NOT_SATISFIED = 496;
-  public static final int BOUND_SATISFIED = 497;
-  public static final int BOUND_NOT_SATISFIED = 498;
-  
-  
-  private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
-
-  /** To support JSure-Sierra integration
-  */
-  public static String toString(int code) {
-	  return code2name.get(code);
-  }
-
-  static {
-    collectCodeNames(Messages.class, code2name);
-  }
+  public static final int ANNOTATION_BOUNDS_FOLDER = 495;
+  public static final int ANNOTATION_BOUND_SATISFIED = 496;
+  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
 }

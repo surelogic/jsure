@@ -5,50 +5,51 @@ import java.net.URI;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class ClassRef extends AbstractRef {
-	final ClassResource clazz;
-	
-	ClassRef(ClassResource c, int line) {
-		super(line);
-		clazz = c;
-	}
-	
-	public ISrcRef createSrcRef(int offset) {
-		return this;
-	}
 
-	public String getCUName() {
-		return clazz.getCUName();
-	}
+  private final ClassResource clazz;
 
-	public Object getEnclosingFile() {
-		return clazz.getRelativePath();
-	}
+  ClassRef(ClassResource c, int line) {
+    super(line);
+    clazz = c;
+  }
 
-	public URI getEnclosingURI() {
-		return null;
-	}
+  public ISrcRef createSrcRef(int offset) {
+    return this;
+  }
 
-	public Long getHash() {
-		return clazz.getHash()+line;
-	}
+  public String getCUName() {
+    return clazz.getCUName();
+  }
 
-	public int getLength() {
-		return 0;
-	}
+  public String getEnclosingFile() {
+    return clazz.getRelativePath();
+  }
 
-	public int getOffset() {
-		return 0;
-	}
+  public URI getEnclosingURI() {
+    return null;
+  }
 
-	public String getProject() {
-		return clazz.getProject();
-	}
-	
-	public String getPackage() {
-		return clazz.getPackage();
-	}
+  public Long getHash() {
+    return clazz.getHash() + f_line;
+  }
 
-	public String getRelativePath() {
-		return clazz.getRelativePath();
-	}
+  public int getLength() {
+    return 0;
+  }
+
+  public int getOffset() {
+    return 0;
+  }
+
+  public String getProject() {
+    return clazz.getProject();
+  }
+
+  public String getPackage() {
+    return clazz.getPackage();
+  }
+
+  public String getRelativePath() {
+    return clazz.getRelativePath();
+  }
 }

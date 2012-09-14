@@ -6,7 +6,13 @@
  */
 package edu.cmu.cs.fluid.sea.drops.modules;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.promise.ExportNode;
@@ -17,13 +23,14 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
-
-public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends PromiseDrop<T> implements PleaseFolderize {
+public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends PromiseDrop<T> {
   
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
   
@@ -69,7 +76,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
     } else if (a instanceof ExportNode) {
       refdModule = ((ExportNode) a).getToModuleName();
     }
-    setNodeAndCompilationUnitDependency(a.getPromisedFor());
+   // setNodeAndCompilationUnitDependency(a.getPromisedFor());
     setCategory(JavaGlobals.MODULE_CAT);
   }
 
@@ -79,7 +86,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
     synchronized (VisibilityDrop.class) {
       allVisDrops.add(res);
 //      newVisDrops.add(res);
-      final IRNode locInIR = res.getAST().getPromisedFor();
+      final IRNode locInIR = res.getAAST().getPromisedFor();
       Set<VisibilityDrop<? extends ModuleAnnotationNode>> dropsHere = edMap.get(locInIR);
       if (dropsHere == null) {
         dropsHere = new HashSet<VisibilityDrop<? extends ModuleAnnotationNode>>(2);

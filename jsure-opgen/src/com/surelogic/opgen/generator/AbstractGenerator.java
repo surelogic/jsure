@@ -985,6 +985,7 @@ public abstract class AbstractGenerator {
       return tag == null || isTaggedWith(s, tag);
     }
     
+    @Override
     public Iterator<Entry<String, OpSyntax>> iterator() {
       return new Iterator<Entry<String, OpSyntax>>() {
         final Iterator<Entry<String, OpSyntax>> it = syntax.entrySet().iterator();
@@ -1002,6 +1003,7 @@ public abstract class AbstractGenerator {
           }
           return null;
         }
+        @Override
         public boolean hasNext() {
           if (next != null) {
             return true;
@@ -1010,7 +1012,7 @@ public abstract class AbstractGenerator {
           next = getNext();
           return (next != null);
         }
-
+        @Override
         public Entry<String, OpSyntax> next() {
           Entry<String, OpSyntax> rv = null;
           if (next != null) {
@@ -1025,7 +1027,7 @@ public abstract class AbstractGenerator {
           }
           return rv;
         }
-
+        @Override
         public void remove() {
           throw new UnsupportedOperationException();
         }         
@@ -1097,6 +1099,7 @@ public abstract class AbstractGenerator {
    *********************************************************************/
   
   private static final FilenameFilter onlyJavaFiles = new FilenameFilter() {
+	  @Override
     public boolean accept(File dir, String name) {
       boolean rv = name.endsWith(".java");
       if (!rv) {
@@ -1472,13 +1475,17 @@ public abstract class AbstractGenerator {
     class R implements SyntaxRunnable {
       final Set<String> paths = new HashSet<String>();
       
+      @Override
       public void init(OpSyntax s, String name) {
         int lastSeparator = name.lastIndexOf(File.separatorChar);
         if (lastSeparator >= 0) {
           paths.add(name.substring(0, lastSeparator));
         }
       }
-      public void run(OpSyntax s) {}      
+      @Override
+      public void run(OpSyntax s) {
+    	  // Nothing to do
+      }      
     }
     R r = new R();
     generatePaths(r);
@@ -1487,11 +1494,13 @@ public abstract class AbstractGenerator {
   
   protected final void generate() {
     generatePaths(new SyntaxRunnable() {
+        @Override
       public void init(OpSyntax s, String name) {
         if (openPrintStream(name)) {
           System.err.println("Generating: "+name);
         } 
       }
+        @Override
       public void run(OpSyntax s) {
         initEach(s);
         generateEach(s);    
@@ -1507,6 +1516,7 @@ public abstract class AbstractGenerator {
   }
 
   protected void generateForAll() {
+	  // NOthing to do
   }
 
   protected boolean hasExtendedPath(OpSyntax s) {
@@ -1543,7 +1553,9 @@ public abstract class AbstractGenerator {
     return name;
   }
   
-  protected void initEach(OpSyntax s) {}
+  protected void initEach(OpSyntax s) {
+	  // Nothing to do
+  }
   protected abstract void generateEach(OpSyntax s);
 
   /*********************************************************************
@@ -1966,7 +1978,7 @@ public abstract class AbstractGenerator {
     for (Map.Entry<String,OpSyntax> e : iterate()) {
       OpSyntax s = e.getValue();
       if (!isAbstract(s)) {
-        
+        // Nothing to do
       }
     }
   }

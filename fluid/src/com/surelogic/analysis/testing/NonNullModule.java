@@ -94,8 +94,7 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
          // See if the current variable is considered to be null or not
         final Set<IRNode> nonNull = currentQuery().getResultFor(use);
         final IRNode varDecl = getBinder().getBinding(use);
-        final InfoDrop drop = new InfoDrop(null);
-        setResultDependUponDrop(drop, use);
+        final InfoDrop drop = new InfoDrop(use);
         drop.setCategory(Messages.DSC_NON_NULL);
         final String varName = VariableUseExpression.getId(use);
         if (nonNull.contains(varDecl)) {

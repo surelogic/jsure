@@ -1,24 +1,19 @@
 package com.surelogic.analysis.uniqueness.classic.sideeffecting;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.sea.Category;
 
-public final class Messages  {
+public final class Messages {
   private Messages() {
     // private constructor to prevent instantiation
   }
 
-  
-  
   public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance(300);
   public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance(301);
   public static final Category DSC_UNIQUENESS_TIMEOUT = Category.getInstance(302);
   public static final Category DSC_UNIQUENESS_LONG_RUNNING = Category.getInstance(303);
-  
+
   public static final String NORMAL_EXIT = I18N.misc(320);
   public static final String ABRUPT_EXIT = I18N.misc(321);
 
@@ -28,10 +23,10 @@ public final class Messages  {
   public static final int ASSIGNED_UNDEFINED_BY = 318;
   public static final int BORROWED_PASSED_TO_BORROWED = 319;
   public static final int COMPROMISED_READ = 320;
-  public static final int COMPROMISED_INDIRECT_READ = 321;  
+  public static final int COMPROMISED_INDIRECT_READ = 321;
   public static final int LOST_COMPROMISED_FIELD = 322;
   public static final int COMPROMISED_BY = 323;
-  public static final int UNDEFINED_BY = 324;  
+  public static final int UNDEFINED_BY = 324;
   public static final int READ_OF_BURIED = 325;
   public static final int BURIED_BY = 326;
   public static final int SHARED_NOT_UNIQUE_ACTUAL = 327;
@@ -57,48 +52,4 @@ public final class Messages  {
   public static final int RETURN_IS_NULL = 347;
   public static final int ASSIGN_IS_NULL = 348;
   public static final int CONTROL_FLOW_ROOT = 349;
-  
-  
-  
-  private static Map<Integer,String> code2name = new HashMap<Integer, String>();
-  static {
-    code2name.put(ASSIGNED_UNDEFINED_BY, "?");
-    code2name.put(BORROWED_PASSED_TO_BORROWED, "?");
-    code2name.put(COMPROMISED_READ, "?");
-    code2name.put(COMPROMISED_INDIRECT_READ, "?");
-    code2name.put(LOST_COMPROMISED_FIELD, "?");
-    code2name.put(COMPROMISED_BY, "?");
-    code2name.put(UNDEFINED_BY, "?");
-    code2name.put(READ_OF_BURIED, "?");
-    code2name.put(BURIED_BY, "?");
-    code2name.put(SHARED_NOT_UNIQUE_ACTUAL, "?");
-    code2name.put(SHARED_NOT_UNIQUE_RETURN, "?");
-    code2name.put(SHARED_NOT_UNIQUE_ASSIGN, "?");
-    code2name.put(BORROWED_NOT_UNIQUE_ACTUAL, "?");
-    code2name.put(BORROWED_NOT_UNIQUE_RETURN, "?");
-    code2name.put(BORROWED_NOT_UNIQUE_ASSIGN, "?");
-    code2name.put(BORROWED_AS_UNIQUE, "?");
-    code2name.put(BORROWED_AS_UNIQUE_RETURN, "?");
-    code2name.put(BORROWED_AS_SHARED, "?");
-    code2name.put(BORROWED_AS_SHARED_RETURN, "?");
-    code2name.put(ACTUAL_IS_UNDEFINED, "?");
-    code2name.put(BY_UNIQUE_PARAMETER, "?");
-    code2name.put(BY_UNIQUE_LOAD, "?");
-    code2name.put(BY_SIDE_EFFECT, "?");
-    code2name.put(INVARIANTS_RESPECTED, "?");
-    code2name.put(BORROWED_SATISFIED, "?");
-    code2name.put(ACTUAL_IS_UNIQUE, "?");
-    code2name.put(RETURN_IS_UNIQUE, "?");
-    code2name.put(ASSIGN_IS_UNIQUE, "?");
-    code2name.put(ACTUAL_IS_NULL, "?");
-    code2name.put(RETURN_IS_NULL, "?");
-    code2name.put(ASSIGN_IS_NULL, "?");
-    code2name.put(CONTROL_FLOW_ROOT, "?");
-    code2name.put(TIMEOUT, "?");
-    code2name.put(TOO_LONG, "?");
-  }
-  
-  public static String toString(int code) {
-    return code2name.get(code);
-  }
 }

@@ -55,9 +55,9 @@ public class TestSortedView
     dirMenu.add( new SortDirConvienenceAction( sortedSet, false ) );
     
     final JMenu pivotMenu = new JMenu( "Sort by" );
-    final Iterator iter = set.getNodeAttributes();
+    final Iterator<String> iter = set.getNodeAttributes();
     while( iter.hasNext() ) {
-      final String attr = (String) iter.next();
+      final String attr = iter.next();
       pivotMenu.add( new SortAction( sortedSet, attr ) );
       pivotMenu.add( new SortConvienenceAction( sortedSet, attr ) );
     }
@@ -87,6 +87,7 @@ public class TestSortedView
     }
     
     @SuppressWarnings("unchecked")
+    @Override
     public void actionPerformed( final ActionEvent e )
     {
       model.getCompAttribute( SortedView.IS_ASCENDING ).setValue( value );
@@ -108,6 +109,7 @@ public class TestSortedView
       value = v;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent e )
     {
       model.setAscending( value );
@@ -130,6 +132,7 @@ public class TestSortedView
     }
     
     @SuppressWarnings("unchecked")
+    @Override
     public void actionPerformed( final ActionEvent e )
     {
       model.getCompAttribute( SortedView.SORT_ATTR ).setValue( attr );
@@ -151,6 +154,7 @@ public class TestSortedView
       attr = a;
     }
     
+    @Override
     public void actionPerformed( final ActionEvent e )
     {
       model.setSortAttribute( attr );

@@ -9,6 +9,7 @@ public class TestEdgeDigraph {
 
   TestEdgeDigraph() {
 	  reporter = new IReporter() {
+		  @Override
 		  public void reportError(String msg) {
 			  System.out.println(msg);
 		  }

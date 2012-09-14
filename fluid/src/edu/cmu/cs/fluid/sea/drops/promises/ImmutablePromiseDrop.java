@@ -14,19 +14,15 @@ import edu.cmu.cs.fluid.sea.drops.*;
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ImmutablePromiseDrop extends
-    ModifiedBooleanPromiseDrop<ImmutableNode> implements
+public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<ImmutableNode> implements
     ValidatedDropCallback<ImmutablePromiseDrop> {
+
   public ImmutablePromiseDrop(ImmutableNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    final boolean isImplementationOnly = getAST().isImplementationOnly();
-    final boolean isVerify = getAST().verify();    
+    final boolean isImplementationOnly = getAAST().isImplementationOnly();
+    final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
         setResultMessage(Messages.LockAnnotation_immutableDrop, name);
@@ -41,7 +37,7 @@ public final class ImmutablePromiseDrop extends
       }
     }
   }
-  
+
   public void validated(final ImmutablePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

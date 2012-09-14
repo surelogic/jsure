@@ -11,18 +11,14 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
-  private IIRProject project;
+	//private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
-	
-	// TODO use ThreadLocal trick to collect all the builders
-	private final List<IDropBuilder> builders = new Vector<IDropBuilder>();
 	
 	protected AbstractIRAnalysis(boolean inParallel, Class<Q> type) {		
 		super(inParallel, type);
@@ -48,22 +44,11 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		return getClass().getSimpleName();
 	}
 	
-	public final void handleBuilder(IDropBuilder b) {
-		builders.add(b);
-	}
-	
 	/**
 	 * This doesn't affect other analyses, and so it can be called in analyzeEnd()
 	 */
 	protected final void finishBuild() {
 		flushWorkQueue();
-		
-		int num = 0;
-		for(IDropBuilder b : builders) {
-			num += b.build();
-		}
-		System.out.println("\tBuilding "+builders.size()+" results for "+this.getClass().getSimpleName());
-		builders.clear();
 	}
 		
 	public void init(IIRAnalysisEnvironment env) {
@@ -79,9 +64,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		//final IIRProject old        = project;
-		project = p;		
+		//project = p;		
 		this.binder = binder;
-		builders.clear();
 		
 		startAnalyzeBegin(p, binder);
 		if (flushAnalysis()) {
@@ -140,7 +124,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		*/
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
-				result = doAnalysisOnAFile(env, cud, cud.cu);
+				result = doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
 			}
 		});
 		return rv == Boolean.TRUE;
@@ -218,11 +202,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		InfoDropBuilder d = InfoDropBuilder.create(this, msg, WarningDrop.factory);
-		if (context != null) {
-			d.setNodeAndCompilationUnitDependency(context);
-		} else {
-			// TODO what if there's no context?
-		}
+		final WarningDrop d = new WarningDrop(context);
+		d.setMessage(msg);
 	}
 }

@@ -727,6 +727,8 @@ abstract class JavaType implements IJavaType {
 
   public final String getName() { return toString(); }
   
+  public String toSourceText() { return toString(); }
+  
   public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
     return env.isSubType(this, t2);
   }
@@ -870,7 +872,7 @@ class JavaPrimitiveType extends JavaType implements IJavaPrimitiveType {
     //return ((Operator)op).name();
     return ((JavaOperator)op).asToken().toString();
   }
-
+  
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
     return null;
@@ -974,6 +976,10 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   public String toString() {
     IRNode decl = VisitUtil.getEnclosingDecl(declaration);
     return JavaNames.getTypeName(declaration)+" in "+JavaNames.getFullName(decl);
+  }
+  
+  public String toSourceText() {
+    return TypeFormal.getId(declaration);
   }
   
   @Override
@@ -1120,6 +1126,10 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
 	return primaryBound+" & "+secondaryBound;
   }
   
+  public String toSourceText() {
+	  return primaryBound.toSourceText()+" & "+secondaryBound.toSourceText();
+  }
+  
   @Override
   public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
 	  if (super.isEqualTo(env, t2)) {
@@ -1190,6 +1200,10 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 	  @Override
 	  public String toString() {
 		return primaryBound+" | "+secondaryBound;
+	  }
+	  
+	  public String toSourceText() {
+		return primaryBound.toSourceText()+" | "+secondaryBound.toSourceText();
 	  }
 	  
 	  @Override
@@ -1281,6 +1295,17 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
 	      return "? extends "+lowerBound;
 	  } else if (upperBound != null) {
 		  return "? super "+upperBound;
+	  } else {
+		  return "?";
+	  }
+  }
+  
+  @Override
+  public String toSourceText() {
+	  if (lowerBound != null) {
+	      return "? extends "+lowerBound.toSourceText();
+	  } else if (upperBound != null) {
+		  return "? super "+upperBound.toSourceText();
 	  } else {
 		  return "?";
 	  }
@@ -1401,6 +1426,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
 
   @Override
+  public String toSourceText() {
+	  throw new UnsupportedOperationException();
+  }
+  
+  @Override
   public boolean isValid() {
     if (!wildcard.isValid()) return false;
     if (lowerBound != null && !lowerBound.isValid()) return false;    
@@ -1485,6 +1515,11 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   void writeValue(IROutput out) throws IOException {
     out.writeByte('[');
     elementType.writeValue(out);
+  }
+  
+  @Override
+  public final String toSourceText() {
+	  return elementType.toSourceText() + "[]";
   }
   
   @Override
@@ -1722,15 +1757,25 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
     
     @Override public String toString() {
-      return JavaDeclaredType.this.toString() + "." + super.toString(false);
+      return JavaDeclaredType.this.toString() + "." + super.toString(false, false);
+    }
+    
+    @Override
+    public String toSourceText() {
+    	return JavaDeclaredType.this.toString(false, true) + "." + super.toSourceText();
     }
   }
   
   @Override public String toString() {
-    return toString(true);
+    return toString(true, false);
   }
   
-  protected final String toString(boolean fullyQualify) {
+  @Override
+  public String toSourceText() {
+	  return toString(false, true);
+  }
+  
+  protected final String toString(boolean fullyQualify, boolean asSourceText) {
     if (declaration == null) return "?NULL?";
     if (declaration.identity() == IRNode.destroyedNode) {
     	return "?Destroyed?";
@@ -1758,7 +1803,11 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       } else {
         sb.append(',');
       }
-      sb.append(it.next().toString());
+      if (asSourceText) {
+    	  sb.append(it.next().toSourceText());
+      } else {
+    	  sb.append(it.next().toString());
+      }
     }
     sb.append(">");
     return sb.toString();

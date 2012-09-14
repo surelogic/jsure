@@ -130,19 +130,18 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   
   private SlotInfo<ISrcRef> makeSrcRefSI(String name, ISrcRef defaultVal,
 		                                 StoredSlotInfo<ISrcRef,ISrcRef> backupSI) 
-  throws SlotAlreadyRegisteredException {
-	  return new NodeStoredSlotInfo<ISrcRef>(ISrcRef.srcRefName, name, ISrcRef.srcRefType, 
-			                                 srcRefStorage, defaultVal, backupSI) { 
-		  @Override
-		  protected ISrcRef getSlot(SyntaxTreeNode n) {
-			  return n.srcRef;
-		  }
+      throws SlotAlreadyRegisteredException {
+    return new NodeStoredSlotInfo<ISrcRef>(ISrcRef.SRC_REF_SLOT_NAME, name, ISrcRef.SRC_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
+      @Override
+      protected ISrcRef getSlot(SyntaxTreeNode n) {
+        return n.srcRef;
+      }
 
-		  @Override
-		  protected void setSlot(SyntaxTreeNode n, ISrcRef slotState) {
-			  n.srcRef = slotState;
-		  }
-	  };
+      @Override
+      protected void setSlot(SyntaxTreeNode n, ISrcRef slotState) {
+        n.srcRef = slotState;
+      }
+    };
   }
   
   private static final String infoName = "JJNode.info";
@@ -166,14 +165,12 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   }
   
   @Override
-  @SuppressWarnings("unchecked")
   public <T> SlotInfo<T> newAttribute(String name, IRType<T> type) throws SlotAlreadyRegisteredException {
 	  //StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type);
 	  return newAttribute(name, type, null, true);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T> SlotInfo<T> newAttribute(String name, IRType<T> type, T defaultValue) throws SlotAlreadyRegisteredException {
 	  //StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type, defaultValue);
 	  return newAttribute(name, type, defaultValue, false);
@@ -232,7 +229,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         */
       }
     }
-    else if (type == ISrcRef.srcRefType && ISrcRef.srcRefName.equals(name)) {
+    else if (type == ISrcRef.SRC_REF_SLOT_TYPE && ISrcRef.SRC_REF_SLOT_NAME.equals(name)) {
     	ISrcRef def = undefined ? Constants.undefinedSrcRef : (ISrcRef) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<ISrcRef, ISrcRef>) backupSI);

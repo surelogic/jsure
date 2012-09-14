@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.concurrency.detector;
 
 import java.util.Iterator;
@@ -15,13 +14,10 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
-		InfoDropBuilder id = InfoDropBuilder.create(this, Messages.toString(number), InfoDrop.factory);
-		// rd.addCheckedPromise(pd);
-		id.setNodeAndCompilationUnitDependency(loc);
+		InfoDrop id = new InfoDrop(loc);
 		id.setResultMessage(number, arg);
 		id.setCategory(c);
 	}

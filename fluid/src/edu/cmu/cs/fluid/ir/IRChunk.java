@@ -4,10 +4,11 @@ package edu.cmu.cs.fluid.ir;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 /** 
  * This class represents a <em>chunk</em> of IR that can be written out
@@ -88,21 +89,21 @@ public class IRChunk extends IRPersistent implements IRState {
   }
   */
 
-  private static Hashtable2<IRRegion, Bundle, IRChunk> chunks = new Hashtable2<IRRegion, Bundle, IRChunk>();
+  private static HashMap<Pair<IRRegion, Bundle>, IRChunk> chunks = new HashMap<Pair<IRRegion,Bundle>, IRChunk>();
 
   /** Look for a chunk and return null if not found. */
   public static IRChunk find(IRRegion r, Bundle b) {
-    return chunks.get(r, b);
+    return chunks.get(Pair.getInstance(r, b));
   }
 
   /** Add a chunk to the database */
   protected static void add(IRChunk ch) {
-    chunks.put(ch.getRegion(), ch.getBundle(), ch);
+    chunks.put(Pair.getInstance(ch.getRegion(), ch.getBundle()), ch);
   }
 
   /** Make a new chunk for region and bundle or return an existing one. */
   public static IRChunk get(IRRegion r, Bundle b) {
-    IRChunk installed = chunks.get(r, b);
+    IRChunk installed = chunks.get(Pair.getInstance(r, b));
     if (installed == null) {
       installed = r.createChunk(b);
       add(installed);

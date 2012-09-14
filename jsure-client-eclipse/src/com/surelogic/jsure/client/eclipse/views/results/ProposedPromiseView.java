@@ -36,13 +36,13 @@ import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDrop;
 
 public class ProposedPromiseView extends
-		AbstractScanStructuredView<IProposedPromiseDropInfo> implements
+		AbstractScanStructuredView<IProposedPromiseDrop> implements
 		EclipseUIUtility.IContextMenuFiller {
 
-	private final ProposedPromiseContentProvider f_content;
+	private final ProposedPromiseViewContentProvider f_content;
 
 	private final Action f_toggleView;
 
@@ -109,7 +109,7 @@ public class ProposedPromiseView extends
 			"Copy the selected item to the clipboard");
 
 	public ProposedPromiseView() {
-		super(SWT.MULTI, IProposedPromiseDropInfo.class);
+		super(SWT.MULTI, IProposedPromiseDrop.class);
 		/*
 		 * Read persisted state of toggles that control what is displayed.
 		 */
@@ -136,7 +136,7 @@ public class ProposedPromiseView extends
 		 * Set the view to tree or table
 		 */
 		f_toggleView.setChecked(persistedAsTree);
-		f_content = new ProposedPromiseContentProvider(persistedAsTree);
+		f_content = new ProposedPromiseViewContentProvider(persistedAsTree);
 
 		/*
 		 * Setup toggle to filter list of promises
@@ -195,6 +195,7 @@ public class ProposedPromiseView extends
 		return f_content.build();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		super.fillLocalPullDown(manager);
@@ -209,6 +210,7 @@ public class ProposedPromiseView extends
 		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		super.fillLocalToolBar(manager);
@@ -231,8 +233,8 @@ public class ProposedPromiseView extends
 			final IStructuredSelection s) {
 		if (!s.isEmpty()) {
 			for (Object o : s.toArray()) {
-				if (o instanceof IProposedPromiseDropInfo) {
-					final IProposedPromiseDropInfo p = (IProposedPromiseDropInfo) o;
+				if (o instanceof IProposedPromiseDrop) {
+					final IProposedPromiseDrop p = (IProposedPromiseDrop) o;
 					ISrcRef ref = p.getSrcRef();
 					if (ref != null) {
 						manager.add(f_annotate);
@@ -251,7 +253,7 @@ public class ProposedPromiseView extends
 	}
 
 	@Override
-	protected List<? extends IProposedPromiseDropInfo> getSelectedProposals() {
+	protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
 		return getSelectedRows();
 	}
 

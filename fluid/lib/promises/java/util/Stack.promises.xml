@@ -3,6 +3,9 @@
 <package name="java.util" release="3">
     <class name="Stack">
         <ThreadSafe/>
+        
+        <AnnotationBounds threadSafe="E" referenceObject="E"/>
+        
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

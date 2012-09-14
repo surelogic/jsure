@@ -24,19 +24,21 @@ public class TestConfigurableForestView
   private static class proxyPolicy
   implements ForestProxyAttributePolicy
   {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     public AVPair[] attributesFor( Model model, Set skippedNodes )
     {
       final StringBuilder buf = new StringBuilder( "... [" );
-      final Iterator nodes = skippedNodes.iterator();
+      final Iterator<IRNode> nodes = skippedNodes.iterator();
       while( nodes.hasNext() ) {
-        final IRNode node = (IRNode) nodes.next();
+        final IRNode node = nodes.next();
         buf.append( model.idNode( node ) );
         if( nodes.hasNext() ) buf.append( ", " );
       }
       buf.append( ']' );
       return new AVPair[] { new AVPair( LabeledForest.LABEL, buf.toString() ) };
     }
-
+	@Override
     public AVPair[] attributesFor( ForestModel model, IRNode root )
     {
       return new AVPair[] { new AVPair( LabeledForest.LABEL,

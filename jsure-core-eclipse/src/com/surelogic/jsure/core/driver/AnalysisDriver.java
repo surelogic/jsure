@@ -23,7 +23,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Unused> {
 	public static final String ID = "com.surelogic.jsure.client.eclipse.AnalysisDriver";
 	
 	private IProject project;
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	private Map args;
 	private final List<Pair<IResource,Integer>> resources = 
 		new ArrayList<Pair<IResource,Integer>>();
@@ -41,7 +41,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Unused> {
 	/**
 	 * @see IAnalysis#setArguments(Map)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void setArguments(Map args) {
 		// Grab build arguments

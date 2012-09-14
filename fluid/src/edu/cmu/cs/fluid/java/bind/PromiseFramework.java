@@ -16,20 +16,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.NotImplemented;
-import edu.cmu.cs.fluid.ir.IRBooleanType;
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRNodeType;
-import edu.cmu.cs.fluid.ir.IRSequenceType;
-import edu.cmu.cs.fluid.ir.IRType;
-import edu.cmu.cs.fluid.ir.MarkedIRNode;
-import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
-import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.analysis.IWarningReport;
 import edu.cmu.cs.fluid.java.analysis.SilentWarningReport;
-import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -51,18 +42,9 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
   IWarningReport reporter = SilentWarningReport.prototype;
 
-  IPromiseParser parser = null;
-
-  final Collection<IPromiseAnnotation> annos = new ArrayList<IPromiseAnnotation>();
-
   final Map<String, IAnnotationParseRule> parseMap = new HashMap<String, IAnnotationParseRule>(); 
   final Map<String, IPromiseDropStorage> storageMap = new HashMap<String, IPromiseDropStorage>(); 
   
-  final Map<Operator, IPromiseBindRule> bindMap = new HashMap<Operator, IPromiseBindRule>(); // Of op -> rules
-
-  final ICustomHashMap checkMap = new CustomHashMap(); // Of op -> List<rules>
-
-  final ICustomHashMap storMap = new CustomHashMap(); // Of op -> List<rules>
   final Set<IPromiseStorage> storSet = new HashSet<IPromiseStorage>(); 
 
   private PromiseFramework() {
@@ -86,25 +68,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     SlotInfo<List<T>> si = SimpleSlotFactory.prototype.newLabeledAttribute("@"+promise, null);
     return si;
   }
-  
-  /**
-   * 
-   */
-  @Deprecated
-  public void finishInit(IBinder binder, IPromiseParser parser) {
-    setParser(parser);
-
-    setBinder(binder);
-  }
-
-  @Deprecated
-  public void setBinder(IBinder binder) {
-    Iterator<IPromiseAnnotation> it = annos.iterator();
-    while (it.hasNext()) {
-      IPromiseAnnotation anno = it.next();
-      anno.setBinder(binder);
-    }
-  }
 
   public void setReporter(IWarningReport report) {
     reporter = report;
@@ -116,38 +79,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
   public IWarningReport getReporter() {
     return reporter;
-  }
-
-  public void registerAnnotation(IPromiseAnnotation anno) {
-    annos.add(anno);
-    anno.register(this);
-  }
-
-  private final List<IPromiseParseRule> unregisteredParseRules = new ArrayList<IPromiseParseRule>();
-  
-  /**
-   * Register the tag (e.g., @foo) as being parsed by this rule
-   * 
-   * @param tag
-   * @param rule
-   * @return true if completed successfully
-   */
-  public boolean registerParseRule(String tag, IPromiseParseRule rule) {
-    if (parser == null) {
-      unregisteredParseRules.add(rule); // XXX fix to do something later
-      return true;
-    }
-    return registerParseRule_real(tag, rule);
-  }
-  
-  private boolean registerParseRule_real(String tag, IPromiseParseRule rule) {
-    IPromiseParseRule bumped = parser.addRule(rule);
-    if (bumped != null
-        && !bumped.getClass().getName().startsWith(
-            "edu.cmu.cs.fluid.eclipse.promise.PromiseParser")) {
-      LOG.warning("Bumped out parse rule: " + bumped);
-    }
-    return true;
   }
 
   /**
@@ -290,322 +221,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
       }
       
     };
-  }
-  
-  /*
-  public <T extends IAnnotationDrop>
-  void addSlotValue(IPromiseDropParseRule rule, IRNode declNode, T drop) {
-    final IRNode proxy = mapToProxyNode(declNode);
-    switch (rule.type()) {
-      case BOOLEAN:
-        if (!(drop instanceof IBooleanAnnotationDrop)) {
-          throw new IllegalArgumentException("Not a boolean drop");
-        }
-        SlotInfo<IBooleanAnnotationDrop> bsi = findBooleanStorage(rule.name());
-        // FIX for assumptions
-        proxy.setSlotValue(bsi, (IBooleanAnnotationDrop) drop);
-        break;
-      case NODE:
-        SlotInfo<T> nsi = findNodeStorage(rule.name());
-        // FIX for assumptions
-        proxy.setSlotValue(nsi, drop);
-        break;
-      case SEQ:
-        SlotInfo<List<T>> ssi = findSeqStorage(rule.name());          
-        // FIX for assumptions
-        List<T> l = proxy.getSlotValue(ssi);
-        if (l == null) {
-          l = new ArrayList<T>(); 
-          proxy.setSlotValue(ssi, l);
-        }
-        l.add(drop);
-        break;
-      case NONE:
-    }
-    //TODO drop.setAttachedTo(declNode, si);
-    //TODO JavaPromise.attachPromiseNode(n, elt);
-  }
-  */
-  /**
-   * Register the Operator as being bound by this rule
-   * 
-   * @param op
-   * @param rule
-   * @return true if completed successfully
-   */
-  public boolean registerBindRule(Operator op, IPromiseBindRule rule) {
-    registerBindRule_exact(op, rule);
-
-    Iterator<Operator> it = ((JavaOperator) op).subOperators();
-    while (it.hasNext()) {
-      registerBindRule_exact(it.next(), rule);
-    }
-    return true;
-  }
-
-  private boolean registerBindRule_exact(Operator op, IPromiseBindRule rule) {
-    if (!(op instanceof IHasCustomBinding)) {
-      LOG.severe("Does not have a custom binding: "+op.name());
-    }
-    Object o = bindMap.put(op, rule);
-    if (o != null) {
-      LOG.warning("Bumped out bind rule: " + o);
-    }
-    return true;
-  }
-
-  /**
-   * Register the Operator as being checked by this rule
-   * 
-   * @param op
-   * @param rule
-   * @return true if completed successfully
-   */
-  public boolean registerCheckRule(Operator op, IPromiseCheckRule rule) {
-    return registerOpsInMap(checkMap, op, rule);
-  }
-
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.promise.IPromiseFramework#registerStorage(edu.cmu.cs.fluid.tree.Operator, edu.cmu.cs.fluid.promise.IPromiseStorage)
-   */
-  public boolean registerStorage(Operator op, IPromiseStorage stor) {
-    if (LOG.isLoggable(Level.FINER)) {
-      LOG.finer("Registering: " + stor.name() + " for " + op.name());
-    }
-    registerStorage_exact(op, stor);
-    storSet.add(stor);
-
-    Iterator<Operator> it = ((JavaOperator) op).subOperators();
-    while (it.hasNext()) {
-      registerStorage_exact(it.next(), stor);
-    }
-    return true;
-  }
-
-  private boolean registerStorage_exact(Operator op, IPromiseStorage stor) {
-    return registerOpsInMap(storMap, op, stor);
-  }
-
-  private boolean registerOpsInMap(ICustomHashMap map, Operator op,
-      IPromiseRule rule) {
-    boolean ok = registerInMap(map, op, rule);
-
-    Iterator<Operator> it = ((JavaOperator) op).subOperators();
-    while (it.hasNext()) {
-      ok = ok && registerInMap(map, it.next(), rule);
-    }
-    return true;
-  }
-
-  private boolean registerInMap(ICustomHashMap map, Operator op,
-      IPromiseRule rule) {
-    Map.Entry e = map.getEntryAlways(op);
-    List l;
-
-    if (e.getValue() == null) {
-      l = new ArrayList();
-      e.setValue(l);
-    } else {
-      l = (List) e.getValue();
-    }
-    if (l.contains(rule)) {
-      // System.out.println("Already contains "+rule+" for "+op.name());
-    } else {
-      l.add(rule);
-    }
-    return true;
-  }
-
-  public Iterator<IPromiseParseRule> getParseRules() {
-    return parser.getRules();
-  }
-  
-  public void printCheckOps() {
-    if (!LOG.isLoggable(Level.FINER)) {
-      return;
-    }
-    final Iterator it = checkMap.keySet().iterator();
-    while (it.hasNext()) {
-      Operator op = (Operator) it.next();
-      LOG.finer("Got check rules for " + op.name());
-      final Collection c = (Collection) checkMap.get(op);
-      if (c != null) {
-        final Iterator it2 = c.iterator();
-        while (it2.hasNext()) {
-          final IPromiseCheckRule rule = (IPromiseCheckRule) it2.next();
-          LOG.finer("\tRule: " + rule.getClass().getName());
-        }
-      }
-    }
-  }
-
-  public IPromiseBindRule getBindRule(Operator op) {
-    IPromiseBindRule rule = bindMap.get(op);
-    if (rule == null) {
-      LOG.severe("Couldn't find bind rule for " + op);
-    }
-    return rule;
-  }
-
-  public IRNode getBinding(Operator op, IRNode n) {
-    // Operator op = tree.getOperator(n);
-    IPromiseBindRule rule = bindMap.get(op);
-    if (rule == null) {
-      LOG.severe("Couldn't find bind rule for " + op);
-      return null;
-    }
-    return rule.getBinding(op, n);
-  }
-
-  static class CheckReport implements IPromiseCheckReport {
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.bind.IPromiseCheckReport#reportWarning(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.ir.IRNode)
-     */
-    public void reportWarning(String description, IRNode promise) {
-      PromiseFramework.getInstance().getReporter().reportWarning(description, promise);
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.bind.IPromiseCheckReport#reportError(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.ir.IRNode)
-     */
-    public void reportError(String description, IRNode promise) {
-      PromiseFramework.getInstance().getReporter().reportProblem(description, promise);
-      if (promise != null) {
-        AbstractPromiseAnnotation.setBogus(promise, true);
-        LOG.info("Setting as BOGUS due to "+description+": "+DebugUnparser.toString(promise));
-      }
-    }
-  }
-
-  final IPromiseCheckReport checkReporter = new CheckReport();
-
-  
-  /**
-   * Iterates over the AST and checks the promises defined on each node
-   * @param report
-   * @param node
-   */
-  @Deprecated
-  public void checkAST(IWarningReport report, IRNode node) {
-    setReporter(report);
-
-    final Iterator<IRNode> enm = tree.topDown(node);
-    while (enm.hasNext()) {
-      final IRNode n = enm.next();
-      applyCheckRules(n);
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  public void checkAssumptionsOnAST(IWarningReport report, IRNode node) {
-    final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
-    
-    final Map context = getCurrentTypeContext();
-    if (context.isEmpty()) {      
-      LOG.fine("No scrubbing to do for this context");
-      return;
-    }
-    final Iterator it = context.entrySet().iterator();
-    while (it.hasNext()) {
-      final Map.Entry e = (Map.Entry) it.next();
-      final IRNode n = (IRNode) e.getKey();
-      // proxy = e.getValue(); 
-      final IRNode decl = ScopedPromises.findEnclosingDecl(n);
-      if (decl != null && !context.containsKey(decl)) {
-        if (fineIsLoggable) {
-          LOG.fine("Scrubbing enclosing decl " + DebugUnparser.toString(decl));
-        }
-        applyCheckRules(decl);
-      }
-      if (fineIsLoggable) {
-        LOG.fine("Scrubbing decl " + DebugUnparser.toString(n));
-      }
-      applyCheckRules(n);
-    }
-  }
-
-  private void applyCheckRules(IRNode n) {
-    final Operator op = tree.getOperator(n);
-    final Collection<IPromiseCheckRule> c = (Collection<IPromiseCheckRule>) checkMap.get(op);
-    if (c != null) {
-      Iterator<IPromiseCheckRule> it = c.iterator();
-      if (!it.hasNext()) {
-        return;
-      }
-      //System.out.println("Checking "+op.name()+": "+DebugUnparser.toString(VisitUtil.getEnclosingCompilationUnit(n)));
-      
-      while (it.hasNext()) {
-        final IPromiseCheckRule rule = it.next();
-        //System.out.println("Using rule "+rule.getClass().getName()+": "+DebugUnparser.toString(VisitUtil.getEnclosingCompilationUnit(n)));
-        //System.out.println("OBJECT = "+DebugUnparser.toString(object));
-        rule.checkSanity(op, n, checkReporter);
-      }
-    }
-  }
-
-  /**
-   * Returns info about what promises could appear on this node
-   * @param op
-   * @return
-   */
-  public Iterator<TokenInfo> getTokenInfos(Operator op) {
-    List<IPromiseStorage> l = (List<IPromiseStorage>) storMap.get(op);
-    if (l == null) {
-      return new EmptyIterator<TokenInfo>();
-    }
-    return new FilterIterator<IPromiseStorage,TokenInfo>(l.iterator()) {
-      @Override
-      protected Object select(IPromiseStorage o) {
-        return AbstractPromiseAnnotation.getInfo(o);
-      }
-    };
-  }
-
-  /**
-   * Get all the infos available
-   * @return
-   */
-  public Iterator<TokenInfo> getTokenInfos() {
-    Iterator<IPromiseStorage> it = storSet.iterator();
-    if (!it.hasNext()) {
-      return new EmptyIterator<TokenInfo>();
-    }
-    return new FilterIterator<IPromiseStorage,TokenInfo>(it) {
-      @Override protected Object select(IPromiseStorage o) {
-        return AbstractPromiseAnnotation.getInfo(o);
-      }
-    };
-  }
-  
-  public <T extends PromiseDrop> 
-  SlotInfo<T> findSlotInfo(String promise, Class<T> cls) {
-    for(IPromiseStorage s : storSet) {
-      if (promise.equals(s.name())) {
-        return AbstractPromiseAnnotation.getInfo(s).si;
-      }
-    }
-    return null;
-  }
-  
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.promise.IPromiseFramework#getParser()
-   */
-  public final IPromiseParser getParser() {
-    return parser;
-  }
-
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.promise.IPromiseFramework#setParser(edu.cmu.cs.fluid.promise.IPromiseParser)
-   */
-  public void setParser(IPromiseParser parser) {
-    if (this.parser != null && this.parser != parser) {
-      LOG.severe("Promise parser already set to "+this.parser);
-    }
-    this.parser = parser;
-    
-    for(IPromiseParseRule r : unregisteredParseRules) {
-      parser.addRule(r);
-    }
   }
 
   /**
@@ -835,76 +450,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     MyMap context = contextMap.get(type);
     return context != null && !context.isEmpty();    
   }
-  
-  /**
-   * Examines the given node and delegates to the IPromiseProcessor to process the
-   * promises that exist on the node.
-   * 
-   * @param n The IRNode we want to ask about
-   * @param p The policy object that decides what to do with the promises found
-   */
-  @Deprecated
-  public void processPromises(IRNode n, IPromiseProcessor p) {
-    if (n == null || !tree.isNode(n)) {
-      return;
-    }
-    final Operator op = tree.getOperator(n);
-    final Iterator<TokenInfo> it = getTokenInfos(op);
-    while (it.hasNext() && p.continueProcessing()) {
-      TokenInfo info = it.next();
-      final IRType type = info.si.getType();
-        
-      if (type instanceof IRBooleanType) {        
-        if (AbstractPromiseAnnotation.isX_filtered(info.si, n)) { 
-          p.processBooleanPromise(n, info);
-        }     
-      }
-      /*
-      else if (type instanceof IRIntegerType) {       
-      }
-      */
-      else if (type instanceof IRNodeType) {        
-        IRNode sub = AbstractPromiseAnnotation.getXorNull_filtered(info.si, n);
-        if (sub != null) {
-          p.processNodePromise(n, info, sub);
-        }
-      }
-      else if (type instanceof IRSequenceType) {
-       final Iteratable<IRNode> e = AbstractPromiseAnnotation.getEnum_filtered(info.si, n);        
-        if (e.hasNext()) {
-          p.processSequencePromise(n, info, e);
-        }
-      }
-    }
-    if (ConstructorDeclaration.prototype.includes(op)) {
-      processReceiverDecl(n, p);
-    }
-    else if (MethodDeclaration.prototype.includes(op)) {
-      processReceiverDecl(n, p);
-      
-      IRNode retnode  = JavaPromise.getReturnNodeOrNull(n);
-      if (retnode != null) {
-        processPromises(retnode, p.getProcessorForReturnNode(n, retnode));
-      }
-    }     
-  }
-
-  private void processReceiverDecl(IRNode n, IPromiseProcessor p) {
-    IRNode receiver = JavaPromise.getReceiverNodeOrNull(n);
-    if (receiver != null) {
-      processPromises(receiver, p.getProcessorForReceiver(n, receiver));
-    }
-    IRNode qr = JavaPromise.getQualifiedReceiverNodeOrNull(n);
-    if (qr != null) {
-      /*
-      if ("Promise Visitor".equals(p.getIdentifier())) {
-        System.out.println(qr+": "+DebugUnparser.toString(qr));
-        System.out.println(QualifiedReceiverDeclaration.getBase(qr));
-      }
-      */
-      processPromises(qr, p.getProcessorForReceiver(n, qr));
-    }
-  }
 
   public static class HasPromisesProcessor implements IPromiseProcessor {
     public String getIdentifier() {
@@ -956,18 +501,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }
     
   }
-  
-  /**
-   * @return true if the node has promises stored on it
-   */
-  public boolean hasPromises(IRNode n) {
-    if (n == null) {
-      return false;
-    }
-    HasPromisesProcessor p = new HasPromisesProcessor();
-    processPromises(n, p);
-    return p.found;
-  }
+ 
 /*
   public boolean hasPromises(IRNode n) {
     if (n == null) {
@@ -1014,14 +548,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return false;
   }
   */
-  public boolean subtreeHasPromises(IRNode n) {
-    final Iterator<IRNode> nodes = JJNode.tree.bottomUp(n);
-    while (nodes.hasNext()) {
-      IRNode node = nodes.next();
-      if (PromiseFramework.getInstance().hasPromises(node)) return true;
-    }
-    return false;
-  }
 
   /**
    * @return The set of annotation names that allow multiple annotations on a given declaration

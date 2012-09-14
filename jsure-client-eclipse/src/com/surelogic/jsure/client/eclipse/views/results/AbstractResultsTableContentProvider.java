@@ -4,17 +4,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 
-abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
+abstract class AbstractResultsTableContentProvider<T extends IDrop>
 		implements IResultsTableContentProvider {
 	private final List<T> f_contents = new ArrayList<T>();
 	private final String[] f_labels;

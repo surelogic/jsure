@@ -25,7 +25,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinding;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -143,7 +142,7 @@ public class MethodEffectsRules extends AnnotationRules {
             	  // Don't try to check consistency since it's an assumption
             	  continue;
               }
-              final RegionEffectsNode overriddenFx = fxDrop.getAST();
+              final RegionEffectsNode overriddenFx = fxDrop.getAAST();
               // Each overridden effect must be satisfied by write(All)
               boolean good = true;
               outer: for (final EffectsSpecificationNode n1 : overriddenFx.getEffectsList()) {
@@ -375,7 +374,7 @@ public class MethodEffectsRules extends AnnotationRules {
           
           final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
           if (fxDrop != null) {
-            final RegionEffectsNode overriddenFx = fxDrop.getAST();
+            final RegionEffectsNode overriddenFx = fxDrop.getAAST();
             // Each overriding effect must satisfy one of the ancestor effects
             for (EffectSpecificationNode overridingSpec : overridingEffects) {
               boolean found = false;

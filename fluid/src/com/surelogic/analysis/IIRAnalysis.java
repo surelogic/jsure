@@ -3,7 +3,6 @@ package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.*;
 
 /**
  * The sequence of events for analyses A1 to An, projects P1, P2 with shared analyses S1, S2:
@@ -81,6 +80,4 @@ public interface IIRAnalysis {
 	 * OK to finish things that might have affected other analyses
 	 */
 	void finish(IIRAnalysisEnvironment env);
-	
-	void handleBuilder(IDropBuilder b);
 }

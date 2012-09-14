@@ -22,18 +22,17 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
-public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolderize {
+public abstract class VisibilityDrop extends PromiseDrop {
   
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
   
@@ -73,8 +72,9 @@ public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolder
     "{0}";
 
   protected VisibilityDrop(IRNode locInIR, IRNode modIR) {
+	  super(null); // WILL BLOW UP;
     refdModule = modIR;
-    setNodeAndCompilationUnitDependency(locInIR);
+    //setNodeAndCompilationUnitDependency(locInIR);
     setCategory(JavaGlobals.MODULE_CAT);
   }
 
@@ -99,11 +99,9 @@ public abstract class VisibilityDrop extends PromiseDrop implements PleaseFolder
 //    newVisDrops.clear();
   }
 
-  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
-    public boolean match(Drop d) {
-      return (d.isValid()) &&
-        d instanceof CUDrop ||
-        d instanceof BinaryCUDrop;
+  private static DropPredicate definingDropPred = new DropPredicate() {
+    public boolean match(IDrop d) {
+      return (d.isValid()) && d.instanceOf(CUDrop.class) || d.instanceOf(BinaryCUDrop.class);
     }    
   };
   

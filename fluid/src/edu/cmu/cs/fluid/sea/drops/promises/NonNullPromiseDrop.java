@@ -8,13 +8,10 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class NonNullPromiseDrop extends BooleanPromiseDrop<NonNullNode> {
-	public NonNullPromiseDrop(NonNullNode a) {
-		super(a);
-	    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-	}
 
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage(NonNullRules.NONNULL+" on "+DebugUnparser.toString(getNode()));
-	}
+  public NonNullPromiseDrop(NonNullNode a) {
+    super(a);
+    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setMessage(NonNullRules.NONNULL + " on " + DebugUnparser.toString(getNode()));
+  }
 }

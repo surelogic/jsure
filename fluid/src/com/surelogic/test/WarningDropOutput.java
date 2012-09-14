@@ -22,14 +22,14 @@ public class WarningDropOutput extends AbstractTestOutput {
   }
   
   private IRReferenceDrop newDrop(ITest o, String msg, boolean success) {
-    IRReferenceDrop drop = success ? new InfoDrop(null) : new PromiseWarningDrop();
+    IRReferenceDrop drop = success ? new InfoDrop(o.getNode()) : new PromiseWarningDrop(o.getNode());
     drop.setMessage(msg);
     if (category != null) {
       drop.setCategory(null);
     }
-    if (o.getNode() != null) {
-      drop.setNodeAndCompilationUnitDependency(o.getNode());
-    }
+//    if (o.getNode() != null) {
+//      drop.setNodeAndCompilationUnitDependency(o.getNode());
+//    }
     return drop;
   }
   

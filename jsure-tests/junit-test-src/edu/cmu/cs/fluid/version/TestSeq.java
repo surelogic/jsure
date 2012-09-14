@@ -104,7 +104,7 @@ class TestSeq {
       dig.describeNode(n1, System.out);
       System.out.println();
       System.out.print("n1.children = {");
-      for (java.util.Iterator enm = dig.children(n1);
+      for (java.util.Iterator<IRNode> enm = dig.children(n1);
         enm.hasNext();
         ) {
         System.out.print(enm.next() + " ");

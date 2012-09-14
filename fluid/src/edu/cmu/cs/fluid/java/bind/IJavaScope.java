@@ -517,7 +517,7 @@ public interface IJavaScope {
 
     /**
      * Add a node to the local scope using its name as a key.
-     * @param node declaration node with INFO set
+     * @param f_node declaration node with INFO set
      */
     public void add(IBinding binding) {
       if (binding.getNode() != null) put(JJNode.getInfo(binding.getNode()),binding);

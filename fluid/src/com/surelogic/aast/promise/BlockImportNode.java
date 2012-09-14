@@ -12,6 +12,7 @@ public class BlockImportNode extends ModuleAnnotationNode {
   
   public static final AbstractAASTNodeFactory factory =
     new AbstractAASTNodeFactory("BlockImport") {
+      @SuppressWarnings("unchecked")
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
@@ -20,9 +21,9 @@ public class BlockImportNode extends ModuleAnnotationNode {
         OfNamesClauseNode ofNames;
         if (_kids.get(0) instanceof OfNamesClauseNode) {
           ofNames = (OfNamesClauseNode) _kids.get(0);
-          names = (List) _kids.get(1);
+          names = (List<String>) _kids.get(1);
         } else {
-          names = (List) _kids.get(0);
+          names = (List<String>) _kids.get(0);
           ofNames = null;
         }
         return new BlockImportNode (_start,ofNames, names);

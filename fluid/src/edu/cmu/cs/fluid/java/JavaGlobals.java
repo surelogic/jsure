@@ -15,7 +15,8 @@ import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public interface JavaGlobals {
-
+  static final String JLObject = "java.lang.Object";
+	
   static final ControlFlowGraph cfg = ControlFlowGraph.prototype;
 
   static final SyntaxTreeInterface jtree = JJNode.tree;
@@ -65,4 +66,5 @@ public interface JavaGlobals {
   static final Category MODULE_CAT = Category.getInstance(118);
   static final Category UTILITY_CAT = Category.getInstance(119);
   static final Category SINGLETON_CAT = Category.getInstance(120);
+  static final Category ANNO_BOUNDS_CAT = Category.getInstance(121);
 }

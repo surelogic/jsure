@@ -7,7 +7,6 @@ import java.io.*;
 
 import org.eclipse.core.resources.*;
 
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -24,6 +23,7 @@ public class ExportResults extends AbstractCommand {
 	 * 1 - project name
 	 * 2 - results file name prefix (w/o suffix)
 	 */
+	  @Override
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final IProject project = resolveProject(contents[1]);

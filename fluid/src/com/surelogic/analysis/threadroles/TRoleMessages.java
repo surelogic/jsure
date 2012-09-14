@@ -15,8 +15,6 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleInfoDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleWarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 /**
@@ -43,10 +41,10 @@ public class TRoleMessages {
 
 	public static ResultDrop createResultDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
+		ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
 		rd.setConsistent();
 		// rd.addCheckedPromise(pd);
-		rd.setNodeAndCompilationUnitDependency(loc);
+		//rd.setNodeAndCompilationUnitDependency(loc);
 		rd.setMessage(msg);
 		rd.setCategory(assuranceCategory);
 
@@ -60,9 +58,9 @@ public class TRoleMessages {
 	}
 
 	public static WarningDrop createWarningDrop(String msg, IRNode loc) {
-		WarningDrop wd = new TRoleWarningDrop(null);
+		WarningDrop wd = new WarningDrop(loc);
 		// rd.addCheckedPromise(pd);
-		wd.setNodeAndCompilationUnitDependency(loc);
+	//	wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(msg);
 		wd.setCategory(warningCategory);
 
@@ -76,9 +74,9 @@ public class TRoleMessages {
 	}
 
 	public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-		InfoDrop id = new TRoleInfoDrop(null);
+		InfoDrop id = new InfoDrop(loc);
 		// rd.addCheckedPromise(pd);
-		id.setNodeAndCompilationUnitDependency(loc);
+		//id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);
 		id.setCategory(infoCategory);
 
@@ -94,11 +92,11 @@ public class TRoleMessages {
 
 	public static ResultDrop createProblemDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
+		ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
 		rd.setInconsistent();
 		// rd.addCheckedPromise(pd);
 		if (loc != null) {
-			rd.setNodeAndCompilationUnitDependency(loc);
+			//rd.setNodeAndCompilationUnitDependency(loc);
 			if (loc != null) {
 				Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
 				if (d != null) {

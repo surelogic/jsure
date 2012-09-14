@@ -13,9 +13,11 @@ public interface IVoidType extends IType {
       return (t instanceof IVoidType);
     }
 
+    /*
     public boolean isCastCompatibleTo(IType t) {
       return (t instanceof IVoidType);
     }
+    */
 
     public boolean isSubtypeOf(IType t) {
       return (t instanceof IVoidType);

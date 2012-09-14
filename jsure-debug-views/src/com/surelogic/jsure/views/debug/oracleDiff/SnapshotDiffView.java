@@ -30,7 +30,7 @@ public class SnapshotDiffView extends AbstractScanTreeView<Object> {
 	private ISrcRef makeSrcRef(final Entity e) {
 		return new AbstractSrcRef() {
 			@Override
-			public Object getEnclosingFile() {
+			public String getEnclosingFile() {
 				return e.getAttribute(PATH_ATTR);
 			}
 

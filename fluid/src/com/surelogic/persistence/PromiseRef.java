@@ -3,7 +3,6 @@ package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -28,7 +27,7 @@ public class PromiseRef {
 	}
 	
 	public <T extends IAASTRootNode> PromiseRef(PromiseDrop<T> d) {
-		this(d.getPromiseName(), d.getAST().toString(), d.getNode(), false);
+		this(d.getPromiseName(), d.getAAST().toString(), d.getNode(), false);
 	}
 
 	public void toXML(XMLCreator.Builder b) {

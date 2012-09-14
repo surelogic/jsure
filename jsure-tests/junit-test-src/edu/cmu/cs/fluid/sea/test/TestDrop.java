@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 public class TestDrop extends TestCase {
 
   static class MyDrop extends Drop {
+	  // Nothing to add
   }
 
   private MyDrop d1, d2, d3, d4, d5, d6, d7;
@@ -66,7 +67,7 @@ public class TestDrop extends TestCase {
         && !d2.isValid() && !d3.isValid() && !d4.isValid());
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public void testDropExceptions() {
     // check that ClassCastException is thrown by addDependents(Collection) if
     // non-Drop objects exist within the Collection

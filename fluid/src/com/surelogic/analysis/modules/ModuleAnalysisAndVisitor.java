@@ -762,7 +762,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   private static void setResultDep(final IRReferenceDrop drop, final IRNode node) {
 //    drop.setNode(node);
-    drop.setNodeAndCompilationUnitDependency(node);
+    //drop.setNodeAndCompilationUnitDependency(node);
     if (resultDependUpon != null && resultDependUpon.isValid()) {
       resultDependUpon.addDependent(drop);
     } else {
@@ -774,19 +774,18 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final WarningDrop info = new WarningDrop(msgTemplate);
+    final WarningDrop info = new WarningDrop(context);
     setResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
     return info;
   }
   
-  @SuppressWarnings("unchecked")
   public static ResultDrop makeResultDrop(
-      final IRNode context, final PromiseDrop p, final boolean isConsistent,
+      final IRNode context, final PromiseDrop<?> p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final ResultDrop result = new ResultDrop("ModuleAnalysis_simpleModulePromiseDrop");
+    final ResultDrop result = new ResultDrop(context);
     setResultDep(result, context);
     result.setMessage(msg);
     result.addCheckedPromise(p);
@@ -798,7 +797,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final IRNode link, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    drop.addSupportingInformation(msg, link);
+    drop.addSupportingInformation(link, msg);
   }
  
 
@@ -912,7 +911,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         InfoDrop rd = makeWarningDrop(warnCat, javaThing,
                                       DS_API_WISH_CALLERS, 
                                       refStr, javaThingName, modName);
-        rd.addSupportingInformation(infoStr, null);
+        rd.addSupportingInformation(null, infoStr);
       }
       // restore fakingVis to its old value so that we will get useful
       // colorErrors as chosen by the user.

@@ -1,7 +1,6 @@
 package com.surelogic.annotation.rules;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.runtime.*;
 
@@ -56,9 +55,11 @@ public class LockRules extends AnnotationRules {
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   public static final String ANNO_BOUNDS = "AnnotationBounds";
   
-  public static final String CONTAINABLE_PROP = "containable";
-  public static final String THREAD_SAFE_PROP = "threadSafe";
   public static final String IMMUTABLE_PROP = "immutable";
+  public static final String CONTAINABLE_PROP = "containable";
+  public static final String REFERENCE_PROP = "referenceObject";
+  public static final String THREAD_SAFE_PROP = "threadSafe";
+  public static final String VALUE_PROP = "valueObject";
   
 	private static final AnnotationRules instance = new LockRules();
 
@@ -67,7 +68,6 @@ public class LockRules extends AnnotationRules {
 	private static final InitRegionSet initRegionSet = new InitRegionSet(protectedRegions);
   private static final Lock_ParseRule lockRule = new Lock_ParseRule(protectedRegions);
 	private static final PolicyLock_ParseRule policyRule = new PolicyLock_ParseRule();
-	private static final IsLock_ParseRule isLockRule = new IsLock_ParseRule();
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
@@ -164,12 +164,6 @@ public class LockRules extends AnnotationRules {
     return rv;
 	}
 
-	public static IsLockPromiseDrop getIsLock(IRNode vdecl) {
-		return getDrop(isLockRule.getStorage(), vdecl);
-	}
-	
-	
-	
 	public static AnnotationBoundsPromiseDrop getAnnotationBounds(final IRNode tDecl) {
 	  return getBooleanDrop(annoBoundsRule.getStorage(), tDecl);
 	}
@@ -335,7 +329,6 @@ public class LockRules extends AnnotationRules {
     registerScrubber(fw, initRegionSet);
 		registerParseRuleStorage(fw, policyRule);
 		registerParseRuleStorage(fw, lockRule);
-		registerParseRuleStorage(fw, isLockRule);
 		registerParseRuleStorage(fw, requiresLockRule);
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
@@ -461,7 +454,7 @@ public class LockRules extends AnnotationRules {
           final Map<IRNode, Integer> positionMap =
             buildParameterMap(annotatedMethod, parent);
           
-          final LockNameNode superLock = superDrop.getAST().getLock();
+          final LockNameNode superLock = superDrop.getAAST().getLock();
           if (!lockName.namesSameLockAs(superLock, positionMap, LockSpecificationNode.How.COVARIANT)) {
             okay = false;
             context.reportError(annotatedMethod,
@@ -626,7 +619,7 @@ public class LockRules extends AnnotationRules {
 	         * We can only name a read lock or a write lock if the underlying
 	         * lock is a ReadWriteLock.
 	         */
-				  if (!lockModel.getAST().isReadWriteLock()) {
+				  if (!lockModel.getAAST().isReadWriteLock()) {
 				    currentGood = false;
 				    context.reportError(
 				        "Lock is not a ReadWriteLock: cannot require the read or write lock",
@@ -637,7 +630,7 @@ public class LockRules extends AnnotationRules {
   				 * We cannot require a ReadWriteLock directly, only its
   				 * component read/write locks.
   				 */
-  				if (lockModel.getAST().isReadWriteLock()) {
+  				if (lockModel.getAAST().isReadWriteLock()) {
   					currentGood = false;
   					context.reportError(
   					    "Cannot require a ReadWriteLock: must require either the read or the write lock",
@@ -655,7 +648,7 @@ public class LockRules extends AnnotationRules {
 					final ExpressionNode expression = qLockName.getBase();
 					lockRefsThis = (expression instanceof ThisExpressionNode);
 				} else if (lockName instanceof SimpleLockNameNode) {
-					lockRefsThis = !lockModel.getAST().isLockStatic();
+					lockRefsThis = !lockModel.getAAST().isLockStatic();
 				} else {
 					// Shouldn't get here
 					lockRefsThis = false;
@@ -688,7 +681,7 @@ public class LockRules extends AnnotationRules {
 				 * method/constructor.
 				 */
 				boolean staticLockFromSameClass = false;
-				if (lockModel.getAST().isLockStatic()) {
+				if (lockModel.getAAST().isLockStatic()) {
 					final IRNode lockDeclClass =
 					  VisitUtil.getClosestType(lockModel.getNode());
 					final IRNode methodDeclClass =
@@ -698,7 +691,7 @@ public class LockRules extends AnnotationRules {
 				}
 				if (lockRefsThis || staticLockFromSameClass) {
 					final Visibility lockViz =
-					  getLockFieldVisibility(lockModel.getAST(), context.getBinder(annotatedMethod));
+					  getLockFieldVisibility(lockModel.getAAST(), context.getBinder(annotatedMethod));
 					final Visibility methodViz = Visibility.getVisibilityOf(annotatedMethod);
 					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
@@ -762,7 +755,7 @@ public class LockRules extends AnnotationRules {
            */
           final Map<IRNode, Integer> positionMap =
             buildParameterMap(annotatedMethod, parent);
-          final List<LockSpecificationNode> parentLocks = parentDrop.getAST().getLockList();
+          final List<LockSpecificationNode> parentLocks = parentDrop.getAAST().getLockList();
           outer: for (final LockSpecificationNode lock : locks) {
             for (final LockSpecificationNode parentLock : parentLocks) {
               if (lock.satisfiesSpecfication(parentLock, positionMap, LockSpecificationNode.How.CONTRAVARIANT)) {
@@ -860,12 +853,7 @@ public class LockRules extends AnnotationRules {
           LockRules.getVouchFieldIs(lockFieldNode);
         if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
           final String reason = vouchFieldIs.getReason();
-          final ResultDrop rd = new ResultDrop(
-              com.surelogic.analysis.concurrency.driver.Messages.toString(
-                  reason == VouchFieldIsNode.NO_REASON ?
-                      com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL :
-                      com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL_WITH_REASON));
-          rd.setNode(lockFieldNode);
+          final ResultDrop rd = new ResultDrop(lockFieldNode);
           rd.addCheckedPromise(lockModel);
           rd.setConsistent(true);
           rd.addTrustedPromise(vouchFieldIs);
@@ -910,7 +898,7 @@ public class LockRules extends AnnotationRules {
       final IRegionBinding regionBinding = region.resolveBinding();
       
       // Check that the region isn't already associated with a lock
-      final String regionName = regionBinding.getModel().regionName;
+      final String regionName = regionBinding.getModel().getRegionName();
       if (!protectedRegions.addIfNotAlreadyProtected(
           context.getBinder(promisedForType.getDeclaration()).getTypeEnvironment(), regionName, promisedForType)) {
         context.reportError(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);
@@ -996,8 +984,7 @@ public class LockRules extends AnnotationRules {
       if (declIsGood) {
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
-        final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        model.setAST(lockDecl);
+        final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setResultMessage(Messages.LockAnnotation_lockModel,
             model.getQualifiedName(), field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
@@ -1017,9 +1004,8 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
           wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
@@ -1040,8 +1026,7 @@ public class LockRules extends AnnotationRules {
         final boolean fieldIsStatic, final IRNode lockFieldNode) {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
-        final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor());
-        model.setAST(lockDecl);
+    	final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setResultMessage(Messages.LockAnnotation_policyLockModel,
             model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
@@ -1060,9 +1045,8 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
           wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
@@ -1343,12 +1327,12 @@ public class LockRules extends AnnotationRules {
 					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
-						    TypeUtil.isStatic(member), returnedLock.getAST().getLock(),
+						    TypeUtil.isStatic(member), returnedLock.getAAST().getLock(),
 						    null, true);
 						// Check for null because the requiresLock annotation
 						// could be bad
 						if (returnedLockModel != null
-								&& returnedLockModel.getAST().equals(lockDeclNode)) {
+								&& returnedLockModel.getAAST().equals(lockDeclNode)) {
 							// check the viz of the method
 							final Visibility methodViz = Visibility.getVisibilityOf(member);
 							if (methodViz.atLeastAsVisibleAs(maxViz)) {
@@ -1441,66 +1425,6 @@ public class LockRules extends AnnotationRules {
 			final PolicyLockDeclarationNode policyLockDecl) {
 	  // XXX: This is sleazy, passing a null reference to the ProtectedRegions parameter 
     return scrubAbstractLock(context, null, policyLockDecl, POLICY_LOCK_DECLARATION_CONTINUATION);
-	}
-
-	/**
-	 * Parse rule for the IsLock annotation
-	 */
-	public static class IsLock_ParseRule extends
-			DefaultSLAnnotationParseRule<IsLockNode, IsLockPromiseDrop> {
-
-		protected IsLock_ParseRule() {
-			super(IS_LOCK, functionDeclOps, IsLockNode.class);
-		}
-
-		@Override
-		protected Object parse(IAnnotationParsingContext context,
-				SLAnnotationsParser parser) throws RecognitionException {
-			return parser.isLock().getTree();
-		}
-
-		@Override
-		protected IPromiseDropStorage<IsLockPromiseDrop> makeStorage() {
-			return SinglePromiseDropStorage
-					.create(name(), IsLockPromiseDrop.class);
-		}
-
-		@Override
-		protected IAnnotationScrubber makeScrubber() {
-			return new AbstractAASTScrubber<IsLockNode, IsLockPromiseDrop>(this,
-					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
-				@Override
-        protected PromiseDrop<IsLockNode> makePromiseDrop(IsLockNode a) {
-					return storeDropIfNotNull(a, scrubIsLock(getContext(), a));
-				}
-
-			};
-		}
-
-	}
-
-	/**
-	 * @IsLock annotation
-	 * @param context
-	 * @param a
-	 * @return
-	 */
-	private static IsLockPromiseDrop scrubIsLock(
-			IAnnotationScrubberContext context, IsLockNode node) {
-		final LockNameNode lockName = node.getLock();
-		IsLockPromiseDrop promiseDrop = null;
-
-		if (lockName != null) {
-		  final IRNode promisedFor = node.getPromisedFor();
-			LockModel lockDecl = isLockNameOkay(
-			    JavaNode.getModifier(promisedFor, JavaNode.STATIC),
-			    lockName, context, TypeUtil.isBinary(promisedFor));
-			if (lockDecl != null) {
-				promiseDrop = new IsLockPromiseDrop(node);
-				lockDecl.addDependent(promiseDrop);
-			}
-		}
-		return promiseDrop;
 	}
 
 	/**
@@ -1611,7 +1535,7 @@ public class LockRules extends AnnotationRules {
             lockName);
         isBad = true;
       } else {
-        final boolean lockIsStatic = boundLock.getModel().getAST()
+        final boolean lockIsStatic = boundLock.getModel().getAAST()
             .isLockStatic();
         if (deferCheckForStaticUseOfThis) {
           staticUseOfThis = !lockIsStatic;
@@ -1991,9 +1915,11 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new AnnotationBoundsNode(offset, 
-					createNamedType(offset, context.getProperty(THREAD_SAFE_PROP)),
+					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)),
 					createNamedType(offset, context.getProperty(IMMUTABLE_PROP)),
-					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)));
+					createNamedType(offset, context.getProperty(REFERENCE_PROP)),
+					createNamedType(offset, context.getProperty(THREAD_SAFE_PROP)),
+					createNamedType(offset, context.getProperty(VALUE_PROP)));
 		}
 		
 		@Override
@@ -2054,14 +1980,19 @@ public class LockRules extends AnnotationRules {
             }
           }
 
-          final Visitor tsVisitor = new Visitor();
-          final Visitor iVisitor = new Visitor();
           final Visitor cVisitor = new Visitor();
-          a.visitThreadSafeBounds(tsVisitor);
+          final Visitor iVisitor = new Visitor();
+          final Visitor rVisitor = new Visitor();
+          final Visitor tsVisitor = new Visitor();
+          final Visitor vVisitor = new Visitor();
           a.visitImmutableBounds(iVisitor);
           a.visitContainableBounds(cVisitor);
+          a.visitReferenceBounds(rVisitor);
+          a.visitThreadSafeBounds(tsVisitor);
+          a.visitValueBounds(vVisitor);
 
-          if (tsVisitor.isGood() && iVisitor.isGood() && cVisitor.isGood()) {
+          if (cVisitor.isGood() && iVisitor.isGood() && rVisitor.isGood() &&
+              tsVisitor.isGood() && vVisitor.isGood()) {
             return new AnnotationBoundsPromiseDrop(a);
           } else {
             return null;
@@ -2470,9 +2401,8 @@ public class LockRules extends AnnotationRules {
          */
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.concurrency.driver.Messages.toString(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz));
+        final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
         wd.setResultMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
-        wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
         wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);
         model.addDependent(wd);
       }

@@ -34,7 +34,6 @@ import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.util.Iteratable;
 
 public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitorFactory, TypeBodyPair> {	
@@ -223,15 +222,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       super(a, uDrop, classDecl, classBody);
       binder = b;
     }
-
-    
-    
-    @Override
-    protected String message2string(final int msg) {
-      return Messages.toString(msg);
-    }
-
-    
+   
     
     @Override
     protected void preProcess() {
@@ -241,9 +232,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       
       // Prefer the class to be final
       if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
-        final InfoDropBuilder db =
-          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), WarningDrop.factory);
-        analysis.setResultDependUponDrop(db, typeDecl);
+        final WarningDrop db = new WarningDrop(typeDecl);
         db.setResultMessage(Messages.CONSIDER_FINAL);
       }
       

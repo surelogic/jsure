@@ -5,12 +5,19 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.ir.Bundle;
+import edu.cmu.cs.fluid.ir.IRChunk;
+import edu.cmu.cs.fluid.ir.IRInput;
+import edu.cmu.cs.fluid.ir.IROutput;
+import edu.cmu.cs.fluid.ir.IRPersistent;
+import edu.cmu.cs.fluid.ir.IRPersistentKind;
+import edu.cmu.cs.fluid.ir.IRRegion;
+import edu.cmu.cs.fluid.util.Pair;
 
 /** A snapshot in "time" of the values a chunk */
 class VersionedSnapshot extends IRChunk {
@@ -48,14 +55,14 @@ class VersionedSnapshot extends IRChunk {
     return IRChunk.get(getRegion(), getBundle());
   }
 
-  private static Hashtable2<IRChunk, Version, VersionedSnapshot> snapshots = new Hashtable2<IRChunk, Version, VersionedSnapshot>();
+  private static HashMap<Pair<IRChunk, Version>, VersionedSnapshot> snapshots = new HashMap<Pair<IRChunk,Version>, VersionedSnapshot>();
 
   public static VersionedSnapshot find(IRChunk c, Version v) {
-    return snapshots.get(c, v);
+    return snapshots.get(Pair.getInstance(c, v));
   }
 
   protected static void add(VersionedSnapshot vs) {
-    snapshots.put(vs.getChunk(), vs.getVersion(), vs);
+    snapshots.put(Pair.getInstance(vs.getChunk(), vs.getVersion()), vs);
   }
 
   public static VersionedSnapshot get(IRChunk c, Version v) {
@@ -67,7 +74,7 @@ class VersionedSnapshot extends IRChunk {
         vs = new VersionedSnapshot(c, v);
       else
         vs = new VersionedSnapshot(c, v, false);
-      snapshots.put(c, v, vs);
+      snapshots.put(Pair.getInstance(c, v), vs);
     }
     return vs;
   }

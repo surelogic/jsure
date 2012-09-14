@@ -54,7 +54,7 @@ import com.surelogic.test.xml.JUnitXMLOutput;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
@@ -396,6 +396,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			public String toString() {
 				return "RegressionTest " + tag;
 			}
+			@Override
 			public String identity() {
 				return super.toString();
 			} 
@@ -421,12 +422,14 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	// private ITest currentTest = null;
 	private final Stack<ITest> currentTest = new Stack<ITest>();
 
+	/*
 	private File findFile(final IProject project, final String file,
 			boolean checkParent) {
 		final String projectPath = project.getLocation().toOSString();
 		final File proj = new File(projectPath);
 		return findFile(proj, file, checkParent);
 	}
+	*/
 
 	private File findFile(File proj, String file, boolean checkParent) {
 		File result = lookForFile(proj, file);
@@ -607,7 +610,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}
-		Collection<IDropInfo> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
+		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
 		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
 
 		String diffPath = new File(workspaceFile, projectName

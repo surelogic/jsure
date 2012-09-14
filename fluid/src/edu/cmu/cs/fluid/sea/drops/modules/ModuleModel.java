@@ -111,6 +111,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
    * @param name
    */
   private ModuleModel(String name) {
+	super(null);
     this.name = name;
     enclosedModuleNames = null;
     enclosedModuleModels = new HashSet<ModuleModel>(0);
@@ -128,6 +129,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
    * pieces.
    */
   private ModuleModel(String name, ModuleWrapperNode thePromise) {
+    super(null);	  
     this.name = name;
    
     StringBuilder sb = new StringBuilder();
@@ -157,7 +159,8 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
    * never be used anywhere else!
    */
   private ModuleModel() {
-    name = "The World";
+	super(null);
+	name = "The World";
     enclosedModuleNames = null;
     enclosedModuleModels = null;
     setCategory(JavaGlobals.MODULE_CAT);
@@ -357,7 +360,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
                                                      DS_BAD_EXPORT, 
                                                      ed.toString(), 
                                                      ModuleAnalysisAndVisitor.javaName(where));
-           rd.addSupportingInformation(DS_BAD_EXPORT_INFO, null);
+           rd.addSupportingInformation(null, DS_BAD_EXPORT_INFO);
          }
       }
     }

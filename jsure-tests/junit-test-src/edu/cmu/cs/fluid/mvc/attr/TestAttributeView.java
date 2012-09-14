@@ -31,9 +31,9 @@ public class TestAttributeView
     dumper.dumpModel( attrModel );
 
     final IRNode[] attrs = new IRNode[attrModel.size()];
-    final Iterator nodes = attrModel.getNodes();
+    final Iterator<IRNode> nodes = attrModel.getNodes();
     for( int count = 0; nodes.hasNext(); ) {
-      attrs[count++] = (IRNode)nodes.next();
+      attrs[count++] = nodes.next();
     }
 
     PickledAttributeModelState pickledState = null;

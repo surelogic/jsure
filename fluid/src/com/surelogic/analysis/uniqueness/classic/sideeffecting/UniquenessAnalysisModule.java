@@ -24,11 +24,10 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
-import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
@@ -81,12 +80,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      * each control flow drop, and that would be dumb.
      */
     for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
-      final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-          this, Messages.toString(Messages.CONTROL_FLOW_ROOT));
+      final ResultDrop middleDrop = new ResultDrop(entry.getKey().getNode());
       middleDrop.addCheckedPromise(entry.getKey());
       middleDrop.setConsistent();
-      middleDrop.setNode(entry.getKey().getNode());
-      setResultDependUponDrop(middleDrop, entry.getKey().getNode());
       middleDrop.setResultMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
       for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
         middleDrop.addTrustedPromise(cfDrop);
@@ -173,13 +169,11 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        final InfoDropBuilder info =
-          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
-        this.setResultDependUponDrop(info, mr.mdecl);
+        final WarningDrop info = new WarningDrop(mr.mdecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-        info.addDependUponDrop(sl.getCFDrop());
+        sl.getCFDrop().addDependent(info);
       }
 	  } catch (final FlowAnalysis.AnalysisGaveUp e) { // Analysis self-aborted
       final long endTime = System.nanoTime();
@@ -193,9 +187,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDropBuilder timeOutResult = 
-        ResultDropBuilder.create(this, Messages.toString(Messages.TIMEOUT));
-      setResultDependUponDrop(timeOutResult, mr.mdecl);
+      final ResultDrop timeOutResult = new ResultDrop(mr.mdecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
       timeOutResult.setResultMessage(Messages.TIMEOUT,

@@ -6,7 +6,7 @@ import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 
 /**
  * Promise drop for "ThreadSafe" promises.
@@ -14,19 +14,14 @@ import edu.cmu.cs.fluid.sea.drops.*;
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ThreadSafePromiseDrop extends
-    ModifiedBooleanPromiseDrop<ThreadSafeNode> implements
+public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<ThreadSafeNode> implements
     ValidatedDropCallback<ThreadSafePromiseDrop> {
   public ThreadSafePromiseDrop(ThreadSafeNode a) {
-    super(a); 
+    super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
     final String name = JavaNames.getTypeName(getNode());
-    final boolean isImplementationOnly = getAST().isImplementationOnly();
-    final boolean isVerify = getAST().verify();
+    final boolean isImplementationOnly = getAAST().isImplementationOnly();
+    final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
         setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
@@ -41,7 +36,7 @@ public final class ThreadSafePromiseDrop extends
       }
     }
   }
-  
+
   public void validated(final ThreadSafePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

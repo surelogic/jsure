@@ -17,7 +17,6 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
-import edu.cmu.cs.fluid.java.promise.ColorDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -39,7 +38,7 @@ implements IThreadRoleDrop {
   private Collection<String> listedRenamedTRoles = null;
   
   TRoleNameListDrop(A a, String theKind, boolean addQual) {
-    super();
+    super(null);
     kind = theKind;
     List<ThreadRoleNameNode> declTRoles = a.getThreadRoleList();
     final IRNode locInIR = a.getPromisedFor();
@@ -72,7 +71,7 @@ implements IThreadRoleDrop {
       setFromSrc(false);
     }
     setCategory(TRoleMessages.assuranceCategory);
-    setNodeAndCompilationUnitDependency(locInIR);
+  //  setNodeAndCompilationUnitDependency(locInIR);
     makeTRoleNameModelDeps(locInIR, addQual);
   }
 

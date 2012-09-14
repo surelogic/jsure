@@ -24,7 +24,6 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.aast.promise.ThreadRoleNameListNode;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.InstanceInitializationVisitor;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.ThreadRoleRules;
@@ -34,7 +33,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -49,8 +49,8 @@ import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -169,10 +169,11 @@ private static int cuCount = 0;
       return;
     }
     
-    if (cud.cu == jlsCU) {
+    final IRNode cun = cud.getCompilationUnitIRNode();
+    if (cun == jlsCU) {
       LOG.severe("trying to invalidate something in Java.Lang.String!");
     }
-    getInstance().compUnitsToVisit.add(cud.cu);
+    getInstance().compUnitsToVisit.add(cun);
   }
   
   class TRoleImportWalkerNew extends TRoleStructVisitor {
@@ -195,7 +196,7 @@ private static int cuCount = 0;
       if (!((cud instanceof BinaryCUDrop) || (cud instanceof PackageDrop))) return;
       
  
-      final IRNode theCUsRoot = cud.cu;
+      final IRNode theCUsRoot = cud.getCompilationUnitIRNode();
       // next line has side effect of creating the TRoleRenamePerCU if it didn't already exist.
       final TRoleRenamePerCU theCUsTRRpCU = TRoleRenamePerCU.getTRoleRenamePerCU(theCUsRoot);
       final Object saveCookie = TRoleRenamePerCU.startACU(theCUsRoot);
@@ -224,10 +225,9 @@ private static int cuCount = 0;
       }
     }
     
-    private DropPredicate tRoleDeclPred = new AbstractDropPredicate() {
-
-      public boolean match(Drop d) {
-        return d instanceof TRoleDeclareDrop;
+    private DropPredicate tRoleDeclPred = new DropPredicate() {
+      public boolean match(IDrop d) {
+        return d.instanceOf(TRoleDeclareDrop.class);
       }
     };
     
@@ -374,9 +374,9 @@ private static int cuCount = 0;
 
           final RegionModel rModel = fieldAsRegion.getModel();
 
-          if (rModel.getColorInfo() != null) {
-            doLibraryRefImportWalk(fieldRef);
-          }
+//          if (rModel.getColorInfo() != null) {
+//            doLibraryRefImportWalk(fieldRef);
+//          }
         }
       }
     }
@@ -555,10 +555,10 @@ private static int cuCount = 0;
 
           final RegionModel rModel = fieldAsRegion.getModel();
 
-          if (rModel.getColorInfo() != null) {
-            doLibraryRefRename(fieldRef);
+//          if (rModel.getColorInfo() != null) {
+//            doLibraryRefRename(fieldRef);
 //            doLibraryRefImportWalk(fieldRef);
-          }
+//          }
         }
       }
     }
@@ -573,7 +573,7 @@ private static int cuCount = 0;
       if (!(cud instanceof BinaryCUDrop)) return;
 
 //      final ColorStaticClass hisClass = ColorStaticClass.getStaticClass(encClass);
-      final IRNode hisCU = cud.cu;
+      final IRNode hisCU = cud.getCompilationUnitIRNode();
 
       final Object saveCookie = TRoleRenamePerCU.startACU(hisCU);
       try {

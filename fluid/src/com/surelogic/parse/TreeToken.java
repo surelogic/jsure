@@ -11,6 +11,8 @@ import org.antlr.runtime.tree.Tree;
  * @author Edwin.Chan
  */
 public class TreeToken extends CommonToken implements Tree, Cloneable {
+  private static final long serialVersionUID = 1L;
+	
   int childIndex;
   Tree parent;
 	

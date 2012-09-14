@@ -255,11 +255,9 @@ public final class JSureDataDirHub {
 						}
 						monitor.worked(1);
 					}
-
-					JSureDataDirHub.getInstance()
-							.scanDirectoryOrDirectoriesDeleted();
-					monitor.worked(1);
 				} finally {
+					JSureDataDirHub.getInstance().scanDirectoryOrDirectoriesDeleted();
+					monitor.worked(1);
 					monitor.done();
 				}
 				return SLStatus.OK_STATUS;

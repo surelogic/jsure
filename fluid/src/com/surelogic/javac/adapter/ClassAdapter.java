@@ -351,7 +351,7 @@ public class ClassAdapter extends AbstractAdapter {
 		IRNode[] nodes = new IRNode[size];
 		for(int i = 0; i<size; i++) {
 			final int index = skipFirstArg ? i+1 : i;
-			Collection<IRNode> annoList = paramAnnos.get(i);
+			Collection<IRNode> annoList = paramAnnos.get(index);
 			final IRNode[] annos;
 			if (annoList == null) {
 				annos = noNodes;
@@ -359,7 +359,7 @@ public class ClassAdapter extends AbstractAdapter {
 				annos = annoList.toArray(noNodes);
 			}
 			IRNode pAnnos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annos);
-			IRNode type   = func.call(paramTypes[index], null, index, size);
+			IRNode type   = func.call(paramTypes[index], null, index, num);
 			String id     = getDummyArg(index);
 			nodes[i] = ParameterDeclaration.createNode(pAnnos, 0, type, id);
 		}

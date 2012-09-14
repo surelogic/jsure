@@ -3,6 +3,9 @@
 <package name="java.util.concurrent" release="2">
     <class name="ConcurrentHashMap">
         <ThreadSafe/>
+
+        <AnnotationBounds threadSafe="K,V" referenceObject="K,V"/>
+
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

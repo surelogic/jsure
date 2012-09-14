@@ -19,7 +19,7 @@ import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
 /**
@@ -386,8 +386,8 @@ public final class Selection implements
 	 * 
 	 * @return a collection of all the proof drop information from the scan.
 	 */
-	List<IProofDropInfo> getDropsFromSea() {
-		final List<IProofDropInfo> result;
+	List<IProofDrop> getDropsFromSea() {
+		final List<IProofDrop> result;
 		JSureScanInfo scanInfo = JSureDataDirHub.getInstance()
 				.getCurrentScanInfo();
 		if (scanInfo == null) {
@@ -399,9 +399,9 @@ public final class Selection implements
 		/*
 		 * Filter out annotations that are not from source.
 		 */
-		for (Iterator<IProofDropInfo> i = result.iterator(); i.hasNext();) {
-			IProofDropInfo drop = i.next();
-			if (!drop.isInstance(ResultDrop.class)) {
+		for (Iterator<IProofDrop> i = result.iterator(); i.hasNext();) {
+			IProofDrop drop = i.next();
+			if (!drop.instanceOf(ResultDrop.class)) {
 				if (!drop.isFromSrc()) {
 					i.remove();
 				}
@@ -416,7 +416,7 @@ public final class Selection implements
 	 * 
 	 * @return the list of results that this selection allows through it.
 	 */
-	public List<IProofDropInfo> getPorousDrops() {
+	public List<IProofDrop> getPorousDrops() {
 		synchronized (this) {
 			if (!f_filters.isEmpty()) {
 				return f_filters.getLast().getPorousDrops();

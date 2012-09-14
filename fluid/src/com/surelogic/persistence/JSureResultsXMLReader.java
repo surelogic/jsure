@@ -22,13 +22,13 @@ public class JSureResultsXMLReader extends
 		super(p);
 		for (SourceCUDrop d : Sea.getDefault().getDropsOfExactType(
 				SourceCUDrop.class)) {
-			cuds.put(d.javaOSFileName, d);
+			cuds.put(d.getJavaOSFileName(), d);
 		}
 	}
 
 	@Override
 	protected ResultDrop createResult() {
-		ResultDrop d = new ResultDrop("unknown");
+		ResultDrop d = new ResultDrop(null); // THIS WILL BLOW UP!
 		d.setConsistent();
 		return d;
 	}
@@ -36,9 +36,9 @@ public class JSureResultsXMLReader extends
 	@Override
 	protected void handleSourceRef(ResultDrop d, Entity srcRef) {
 		IRNode n = findIRNode(srcRef);
-		if (n != null) {
-			d.setNodeAndCompilationUnitDependency(n);
-		}
+//		if (n != null) {
+//			d.setNodeAndCompilationUnitDependency(n);
+//		}
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class JSureResultsXMLReader extends
 		if (d == null) {
 			return null; // Unknown CU
 		}
-		for (IRNode n : JJNode.tree.topDown(d.cu)) {
+		for (IRNode n : JJNode.tree.topDown(d.getCompilationUnitIRNode())) {
 			ISrcRef ref = JavaNode.getSrcRef(n);
 			if (ref != null && ref.getOffset() == offset) {
 				final long nHash = SeaSummary.computeHash(n);

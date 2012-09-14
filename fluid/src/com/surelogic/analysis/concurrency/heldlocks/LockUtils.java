@@ -30,6 +30,7 @@ import com.surelogic.common.logging.SLLogger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +65,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Hashtable2;
+import edu.cmu.cs.fluid.util.Pair;
 
 
 /**
@@ -229,8 +230,8 @@ public final class LockUtils {
   /**
    * Cache used to speed up isMethodFrom()
    */
-  private final Hashtable2<IJavaType, IJavaType, Boolean> subTypeCache = 
-	  new Hashtable2<IJavaType, IJavaType, Boolean>();
+  private final HashMap<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
+	  new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
   
   
   
@@ -465,12 +466,13 @@ public final class LockUtils {
 	  if (s == null || t == null) {
 		  return false;
 	  }
-	  Boolean result = subTypeCache.get(s, t);
+	  final Pair<IJavaType, IJavaType> key = Pair.getInstance(s, t);
+	  Boolean result = subTypeCache.get(key);
 	  if (result != null) {
 		  return result.booleanValue();
 	  }
 	  boolean rv = binder.getTypeEnvironment().isRawSubType(s, t);
-	  subTypeCache.put(s, t, rv);
+	  subTypeCache.put(key, rv);
 	  return rv;
   }
   
@@ -871,7 +873,7 @@ public final class LockUtils {
     if (reqLockD == null) {
       return locks;
     }
-    final List<LockSpecificationNode> lockNames = reqLockD.getAST().getLockList();
+    final List<LockSpecificationNode> lockNames = reqLockD.getAAST().getLockList();
     if (!lockNames.isEmpty()) {
       final Map<IRNode, IRNode> m =
         MethodCallUtils.constructFormalToActualMap(binder, mcall, mdecl, callingDecl);
@@ -1154,7 +1156,7 @@ public final class LockUtils {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
           binder, mcall, mdecl, callingDecl);
       return convertHeldLockNameToCallerContext(
-          mdecl, heldLockFactory, returnedLock.getAST().getLock(), type, src, m);
+          mdecl, heldLockFactory, returnedLock.getAAST().getLock(), type, src, m);
     } else {
       return null;
     }
@@ -1446,7 +1448,7 @@ public final class LockUtils {
     final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
     /* No RequiresLock means no lock precondition. */
     if (drop != null) {
-      for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
+      for(final LockSpecificationNode requiredLock : drop.getAAST().getLockList()) {
         final LockModel lm = requiredLock.resolveBinding().getModel();
         if (howTo.acceptsLock(lm)) {
           final HeldLock lock = convertLockNameToMethodContext(

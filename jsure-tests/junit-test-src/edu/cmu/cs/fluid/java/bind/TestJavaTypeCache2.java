@@ -9,9 +9,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
 
 public class TestJavaTypeCache2 extends TestCase {
-    @SuppressWarnings("unchecked")
     public void testPutGet() {
-      JavaTypeCache2 cache = new JavaTypeCache2<IRNode,List,JavaPrimitiveType>();
+      JavaTypeCache2<IRNode,List<?>,JavaPrimitiveType> cache = new JavaTypeCache2<IRNode,List<?>,JavaPrimitiveType>();
       IRNode n = new MarkedIRNode("Test");
       cache.put(n, Collections.EMPTY_LIST, (JavaPrimitiveType) JavaTypeFactory.intType);
 

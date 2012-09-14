@@ -6,8 +6,8 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.concurrency.driver.Messages;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.concurrency.util.ImmutableAnnotationTester;
+import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.analysis.typeAnnos.ImmutableAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -20,11 +20,11 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor<ImmutablePromiseDrop> {
   private boolean hasFields = false;
@@ -37,16 +37,11 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
   }
 
   @Override
-  protected String message2string(final int msg) {
-    return Messages.toString(msg);
-  }
-
-  @Override
   protected void processSuperType(final IRNode tdecl) {
     final ImmutablePromiseDrop pDrop =
         LockRules.getImmutableImplementation(tdecl);
     if (pDrop != null) {
-      final ResultDropBuilder result = createResult(tdecl, true,
+      final ResultDrop result = createResult(tdecl, true,
           Messages.IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrustedPromise(pDrop);
@@ -78,7 +73,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
     if (vouchDrop != null && vouchDrop.isImmutable()) {
       // VOUCHED
       final String reason = vouchDrop.getReason();
-      final ResultDropBuilder result = reason == VouchFieldIsNode.NO_REASON ? createResult(
+      final ResultDrop result = reason == VouchFieldIsNode.NO_REASON ? createResult(
           varDecl, true, Messages.IMMUTABLE_VOUCHED, id)
           : createResult(varDecl, true,
               Messages.IMMUTABLE_VOUCHED_WITH_REASON, id,
@@ -87,7 +82,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
     } else {
       final boolean isFinal = TypeUtil.isFinal(varDecl);
       final IJavaType type = binder.getJavaType(varDecl);
-      ResultDropBuilder result = null;
+      ResultDrop result = null;
       boolean proposeVouch = false;
 
       if (type instanceof IJavaPrimitiveType) {
@@ -104,7 +99,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         // REFERENCE-TYPED
         final ImmutableAnnotationTester tester = 
             new ImmutableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE); 
+                binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true); 
         final boolean isImmutable = tester.testType(type);
         
         if (isImmutable) {
@@ -163,7 +158,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
                   id);
             }
             for (final IRNode typeDecl : tester.getTested()) {
-              result.addProposal(new ProposedPromiseBuilder(
+              result.addProposal(new ProposedPromiseDrop(
                   "Immutable", null, typeDecl, varDecl,
                   Origin.MODEL));
             }
@@ -172,7 +167,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       }
 
       if (proposeVouch && result != null) {
-        result.addProposal(new ProposedPromiseBuilder("Vouch",
+        result.addProposal(new ProposedPromiseDrop("Vouch",
             "Immutable", varDecl, varDecl, Origin.MODEL));
       }
     }

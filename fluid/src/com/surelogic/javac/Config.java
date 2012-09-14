@@ -3,16 +3,22 @@ package com.surelogic.javac;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
-import edu.cmu.cs.fluid.util.*;
+import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.IteratorUtil;
 
 public class Config extends AbstractClassPathEntry {
 	protected static final boolean followRefs = false;
@@ -112,10 +118,12 @@ public class Config extends AbstractClassPathEntry {
 		}
 		if (!classPath.contains(e)) {
 			classPath.add(e);
+			/*
 			if (followRefs && e != this && e instanceof Config) {				
 				Config c = (Config) e;
 				c.requiringConfig = this;
 			}
+			*/
 		} else if (e != this) {
 			//System.out.println("Ignoring duplicate: "+e);
 		}
@@ -231,8 +239,8 @@ public class Config extends AbstractClassPathEntry {
 			return;
 		}
 		
-		final boolean processSources = !followRefs || 
-		                               (requiringConfig != null && requiringConfig.requiringConfig == null);
+		final boolean processSources = !followRefs;
+		                               //|| (requiringConfig != null && requiringConfig.requiringConfig == null);
 		// TODO which are actually exported, and which are not?
 		if (processSources) {
 			int num = 0;

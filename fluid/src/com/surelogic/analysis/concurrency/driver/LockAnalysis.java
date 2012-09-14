@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jsr166y.forkjoin.Ops.Procedure;
@@ -14,14 +16,12 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.annotationbounds.GenericTypeInstantiationChecker;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks.LockVisitor;
 import com.surelogic.analysis.concurrency.threadsafe.ContainableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ImmutableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ThreadSafeProcessor;
-import com.surelogic.analysis.concurrency.util.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.annotation.rules.LockRules;
 
@@ -30,7 +30,6 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -71,8 +70,6 @@ public class LockAnalysis
 	private final AtomicReference<GlobalLockModel> lockModelHandle =
 	    new AtomicReference<GlobalLockModel>(null);
 	
-	private GenericTypeInstantiationChecker genericVisitor = null;
-	
 	
 	
 	public LockAnalysis() {
@@ -84,16 +81,14 @@ public class LockAnalysis
 					if (byCompUnit) {
 						// System.out.println("Parallel Lock: "+JavaNames.genPrimaryTypeName(n));
 						TopLevelAnalysisVisitor.processCompilationUnit(
-								new ClassProcessor(getAnalysis(),
-										getResultDependUponDrop()),
+								new ClassProcessor(getAnalysis()),
 								// actually n.typeDecl is a CompilationUnit
 								// here!
 								n.typeDecl());
 					} else {
 						// System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 						actuallyAnalyzeClassBody(getAnalysis(),
-								getResultDependUponDrop(), n.typeDecl(),
-								n.classBody());
+								n.typeDecl(),	n.classBody());
 					}
 				}
 			});
@@ -101,9 +96,9 @@ public class LockAnalysis
 	}
 	
 	private final void actuallyAnalyzeClassBody(
-	    final LockVisitor lv, final Drop rd, 
+	    final LockVisitor lv, 
 	    final IRNode typeDecl, final IRNode typeBody) {
-	  lv.analyzeClass(typeBody, rd);
+	  lv.analyzeClass(typeBody);
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafeImplementation(typeDecl);
@@ -137,22 +132,12 @@ public class LockAnalysis
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK);
 	}
 
-	
-	@Override
-	public void finish(final IIRAnalysisEnvironment env) {
-	  super.finish(env);
-	  genericVisitor = null;
-	}
 	@Override
 	public void startAnalyzeBegin(final IIRProject p, final IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
 
-    genericVisitor = new GenericTypeInstantiationChecker(this, binder,
-        AnnotationBoundsTypeFormalEnv.INSTANCE);
-
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
-		LockModel.purgeUnusedLocks();
 
 		/*
 		 * This seems stupid to me. I feel like I should be able to get the
@@ -163,8 +148,7 @@ public class LockAnalysis
 		 */
 
 		// Run through the LockModel and add them to the GlobalLockModel
-		final Set<? extends LockModel> lockModelDrops = Sea.getDefault()
-				.getDropsOfType(LockModel.class);
+    final List<LockModel> lockModelDrops = Sea.getDefault().getDropsOfType(LockModel.class);
 		for (LockModel lockDrop : lockModelDrops) {
 			final IRNode classDecl = lockDrop.getNode();
 
@@ -173,11 +157,11 @@ public class LockAnalysis
 				lockDrop.invalidate();
 				continue;
 			}
-			if (lockDrop.getAST() == null) {
+			if (lockDrop.getAAST() == null) {
 				LOG.warning("No AST for " + lockDrop.getMessage());
 				continue;
 			}
-			if (lockDrop.getAST() instanceof LockDeclarationNode) {
+			if (lockDrop.getAAST() instanceof LockDeclarationNode) {
 				if (!lockDrop.hasMatchingDependents(DropPredicateFactory
 						.matchExactType(RegionModel.class))) {
 					// This is not really valid, but properly invalidated due to
@@ -237,8 +221,7 @@ public class LockAnalysis
 			return true;
 		}
 		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis(),
-				getResultDependUponDrop());
+		final ClassProcessor cp = new ClassProcessor(getAnalysis());
 		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
@@ -252,8 +235,6 @@ public class LockAnalysis
 			}
 		}
 		
-		genericVisitor.doAccept(compUnit);
-
 		return true;
 	}
 
@@ -277,12 +258,10 @@ public class LockAnalysis
 	private final class ClassProcessor extends
 			TopLevelAnalysisVisitor.SimpleClassProcessor {
 		private final LockVisitor lockVisitor;
-		private final Drop resultsDependUpon;
 		private final List<TypeBodyPair> types = new ArrayList<TypeBodyPair>();
 
-		public ClassProcessor(final LockVisitor lv, final Drop rd) {
+		public ClassProcessor(final LockVisitor lv) {
 			lockVisitor = lv;
-			resultsDependUpon = rd;
 		}
 
 		public Collection<TypeBodyPair> getTypeBodies() {
@@ -295,8 +274,7 @@ public class LockAnalysis
 			if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
 				types.add(new TypeBodyPair(typeDecl, classBody));
 			} else {
-				actuallyAnalyzeClassBody(lockVisitor, resultsDependUpon,
-						typeDecl, classBody);
+				actuallyAnalyzeClassBody(lockVisitor, typeDecl, classBody);
 			}
 		}
 	}

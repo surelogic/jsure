@@ -19,7 +19,7 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
 import edu.cmu.cs.fluid.util.ArrayUtil;
@@ -42,7 +42,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 			diff = null;
 			return null;
 		}
-		final Collection<IDropInfo> info = scan.getDropInfo();
+		final Collection<IDrop> info = scan.getDropInfo();
 		if (!info.isEmpty()) {
 			try {
 				File file = null;

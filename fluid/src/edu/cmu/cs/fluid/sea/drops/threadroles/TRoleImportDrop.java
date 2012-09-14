@@ -48,8 +48,8 @@ implements IThreadRoleDrop {
   public TRoleImportDrop(ThreadRoleImportNode n) {
     super(n);
     importedUnit = null;
-    setNodeAndCompilationUnitDependency(n.getPromisedFor());
-    setMessage("@ThreadRoleImport " + getAST().getId() + " (incomplete)");
+   // setNodeAndCompilationUnitDependency(n.getPromisedFor());
+    setMessage("@ThreadRoleImport " + getAAST().getId() + " (incomplete)");
     setCategory(JavaGlobals.THREAD_ROLES_CAT);
   }
 
@@ -63,17 +63,17 @@ implements IThreadRoleDrop {
    */
   public void computeImportName() {
     final boolean debuggingNames = false;
-    importedUnit = getAST().getId();
+    importedUnit = getAAST().getId();
    
-    boundImportedUnit = getAST().getTRoleImport();
+    boundImportedUnit = getAAST().getTRoleImport();
     if (boundImportedUnit == null) {
       // report an error on the @colorImport drop.
-      ResultDrop error = new ResultDrop("TROLEANALYSIS_BADIMPORT");
+      ResultDrop error = new ResultDrop(this.getNode());
       error.addCheckedPromise(this);
       error.setInconsistent();
 
       error.setMessage("no binding found for \"" + importedUnit + '"');
-      error.setNodeAndCompilationUnitDependency(this.getNode());
+      //error.setNodeAndCompilationUnitDependency(this.getNode());
       error.setCategory(JavaGlobals.THREAD_ROLES_CAT);
     } else {
       // 

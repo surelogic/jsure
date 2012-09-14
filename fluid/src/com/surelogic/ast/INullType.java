@@ -13,9 +13,11 @@ public interface INullType extends IReferenceType {
       return t instanceof IReferenceType;
     }
 
+    /*
     public boolean isCastCompatibleTo(IType t) {
       return t instanceof IReferenceType;
     }
+    */
 
     public boolean isSubtypeOf(IType t) {
       return t instanceof INullType;

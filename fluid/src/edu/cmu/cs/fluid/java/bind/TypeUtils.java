@@ -15,8 +15,8 @@ public class TypeUtils {
 	static final boolean useNewTypeInference = true;
 	
 	private final ITypeEnvironment tEnv;
-	private final Hashtable2<IJavaReferenceType, IJavaReferenceType, JavaRefTypeProxy> proxyCache = 
-		new Hashtable2<IJavaReferenceType, IJavaReferenceType, JavaRefTypeProxy>();
+	private final HashMap<Pair<IJavaReferenceType, IJavaReferenceType>, JavaRefTypeProxy> proxyCache = 
+		new HashMap<Pair<IJavaReferenceType,IJavaReferenceType>, JavaRefTypeProxy>();
 	
 	TypeUtils(ITypeEnvironment te) {
 		tEnv = te;
@@ -35,10 +35,11 @@ public class TypeUtils {
 			v = u;
 			u = tmp;
 		}
-		JavaRefTypeProxy p = proxyCache.get(u, v);
+		Pair<IJavaReferenceType, IJavaReferenceType> key = Pair.getInstance(u, v);
+		JavaRefTypeProxy p = proxyCache.get(key);
 		if (p == null) {
 			p = new JavaRefTypeProxy();
-			proxyCache.put(u, v, p);
+			proxyCache.put(key, p);
 		}
 		return p;		
 	}

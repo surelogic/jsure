@@ -29,7 +29,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @lock ColorNameModelLock is class protects globalNameToDrop
  */
-public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
+public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
 
   Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 
@@ -135,7 +135,7 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comp
 	  
 	  for (TRoleNameModel locTRNM : simpleMap.values()) {
 		  final Collection<? extends TRoleIncompatibleDrop> incompatibles =
-			  Sea.filterDropsOfTypeMutate(TRoleIncompatibleDrop.class, locTRNM.getDependents());
+			  Sea.filterDropsOfType(TRoleIncompatibleDrop.class, locTRNM.getDependents());
 		  final TRoleNameModel canonTRNM = locTRNM.getCanonicalNameModel();
 		  canonTRNM.addDependents(incompatibles);
 	  }
@@ -153,20 +153,21 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comp
    *          the lock name
    */
   private TRoleNameModel(String name, final IRNode locInIR) {
+    super(locInIR); // may blow up!! can't be null
     tRoleName = name;
     this.setMessage("ThreadRole " + name);
     setCategory(TRoleMessages.assuranceCategory);
-    if (locInIR != null) {
-      setNodeAndCompilationUnitDependency(locInIR);
-    }
+//    if (locInIR != null) {
+//      setNodeAndCompilationUnitDependency(locInIR);
+//    }
   }
 
-  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
+  private static DropPredicate definingDropPred = new DropPredicate() {
 
-    public boolean match(Drop d) {
-      return d instanceof TRoleDeclareDrop || d instanceof TRoleRevokeDrop
-          || d instanceof TRoleGrantDrop || d instanceof TRoleIncompatibleDrop
-          || d instanceof TRoleRenameDrop || d instanceof TRoleImportDrop;
+    public boolean match(IDrop d) {
+      return d.instanceOf(TRoleDeclareDrop.class) || d.instanceOf(TRoleRevokeDrop.class) || d.instanceOf(TRoleGrantDrop.class)
+          || d.instanceOf(TRoleIncompatibleDrop.class) || d.instanceOf(TRoleRenameDrop.class)
+          || d.instanceOf(TRoleImportDrop.class);
     }
   };
 

@@ -1,28 +1,39 @@
 package com.surelogic.analysis.threads;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.persistence.*;
+import com.surelogic.persistence.AndAnalysisResult;
+import com.surelogic.persistence.IAnalysisResult;
+import com.surelogic.persistence.PromiseRef;
+import com.surelogic.persistence.SimpleAnalysisResult;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
-import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ThreadEffectsAnalysis implements IBinderClient {
@@ -33,25 +44,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	public static final boolean createDrops = true;
 	
 	private final IBinder binder;
-	private final ThreadEffectsModule analysis;
 	
-	private Drop resultDependUpon = null;
-
-	private void setResultDependUponDrop(ResultDropBuilder drop, IRNode node,
+	private void setResultDependUponDrop(ResultDrop drop, IRNode node,
 			int resultNum, String arg) {
-		drop.setNodeAndCompilationUnitDependency(node);
 		drop.setResultMessage(resultNum, arg);
-		if (AbstractWholeIRAnalysis.useDependencies) {
-			return;
-		}
-		if (resultDependUpon != null && resultDependUpon.isValid()) {
-			drop.addDependUponDrop(resultDependUpon);
-			//resultDependUpon.addDependent(drop);
-		} else {
-			LOG
-					.log(Level.SEVERE,
-							"setLockResultDep found invalid or null resultDependUpon drop"); //$NON-NLS-1$
-		}
 	}
 
 	private static Operator getOperator(final IRNode n) {
@@ -184,7 +180,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		}
 
 		if (noThreadsStarted && createDrops) {
-			ResultDropBuilder r = ResultDropBuilder.create(analysis, Messages.toString(Messages.NO_THREADS_STARTED));
+			ResultDrop r = new ResultDrop(block);
 			r.setConsistent();
 			r.addCheckedPromise(pd);
 			setResultDependUponDrop(r, block, Messages.NO_THREADS_STARTED, JavaNames
@@ -256,7 +252,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							// System.out.println("[ThreadEffects] Thread.start() "
 							// + DebugUnparser.toString(node));
 							if (createDrops) {
-						    ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.PROHIBITED));
+							  ResultDrop rd = new ResultDrop(node);
 							rd.setInconsistent();
 							rd.addCheckedPromise(pd);
 							setResultDependUponDrop(rd, node, Messages.PROHIBITED, DebugUnparser
@@ -303,7 +299,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				// get the promise drop
 				StartsPromiseDrop callp = ThreadEffectsRules
 				.getStartsSpec(declaration);
-				ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.CALLED_METHOD_DOES_PROMISE));
+				ResultDrop rd = new ResultDrop(node);
 				rd.addCheckedPromise(pd);
 				rd.addTrustedPromise(callp);
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
@@ -311,11 +307,11 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				success = true;
 			} else {
 			  // No annotation: called method could start anything
-				ResultDropBuilder rd = ResultDropBuilder.create(analysis, Messages.toString(Messages.CALLED_METHOD_DOES_NOT_PROMISE));
+				ResultDrop rd = new ResultDrop(node);
 				rd.addCheckedPromise(pd);
 				rd.setInconsistent();
 				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
-				rd.addProposal(new ProposedPromiseBuilder("Starts", "nothing",
+				rd.addProposal(new ProposedPromiseDrop("Starts", "nothing",
 						declaration, node, Origin.MODEL));
 				success = false;
 			}		
@@ -328,13 +324,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 
 	public ThreadEffectsAnalysis(ThreadEffectsModule ted, final IBinder b) {
 		binder = b;
-		analysis = ted;
 	}
 
-	public List<IAnalysisResult> analyzeCompilationUnit(final IRNode compUnit,
-			final Drop resultDependUpon) {
+	public List<IAnalysisResult> analyzeCompilationUnit(final IRNode compUnit) {
 		List<IAnalysisResult> results = null;
-		this.resultDependUpon = resultDependUpon;
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(compUnit);
 		while (nodes.hasNext()) {
 			final IRNode node = nodes.next();

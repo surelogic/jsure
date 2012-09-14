@@ -12,7 +12,8 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 
 public class TestDumbDifferenceForest
 {
-  public static void main( final String[] args )
+  @SuppressWarnings("unchecked")
+public static void main( final String[] args )
   throws Exception
   {
     /* 
