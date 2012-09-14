@@ -21,6 +21,10 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 */
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.control");
 
+  /*
+   * TODO Could this be split up into thread-local maps?
+   * (if it doesn't matter that they use the same thing and they mostly don't overlap anyways)
+   */
   public static final JavaComponentFactory prototype = new JavaComponentFactory();
 
   /**
