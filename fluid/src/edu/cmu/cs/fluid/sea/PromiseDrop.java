@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import com.surelogic.InRegion;
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
@@ -371,12 +372,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Gets the annotation AST for this promise. The value is a subtype of
    * {@link IAASTRootNode}.
    * 
-   * @return the annotation AST for this promise, or {@code null} if none.
+   * @return the annotation AST for this promise.
    */
+  @NonNull
   public final A getAAST() {
-    synchronized (f_seaLock) {
-      return f_aast;
-    }
+    return f_aast;
   }
 
   @Override
@@ -391,35 +391,28 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   public final ISrcRef getSrcRef() {
-    synchronized (f_seaLock) {
-      final ISrcRef ref = super.getSrcRef();
-      if (ref != null) {
-        if (f_aast != null) {
-          // System.out.println("Getting ref for "+this.getMessage());
-          return new WrappedSrcRef(ref) {
-            public String getJavaId() {
-              final IRNode decl = getNode();
-              return decl == null ? null : JavaIdentifier.encodeDecl(decl);
-            }
-
-            public int getLineNumber() {
-              return f_lineNumber;
-            }
-
-            public int getOffset() {
-              return f_aast.getOffset();
-            }
-
-            public Long getHash() {
-              return f_hash;
-            }
-          };
-        } else {
-          return ref;
+    final ISrcRef ref = super.getSrcRef();
+    if (ref != null) {
+      return new WrappedSrcRef(ref) {
+        public String getJavaId() {
+          final IRNode decl = getNode();
+          return decl == null ? null : JavaIdentifier.encodeDecl(decl);
         }
-      }
-    }
-    return null;
+
+        public int getLineNumber() {
+          return f_lineNumber;
+        }
+
+        public int getOffset() {
+          return f_aast.getOffset();
+        }
+
+        public Long getHash() {
+          return f_hash;
+        }
+      };
+    } else
+      return null;
   }
 
   /**
@@ -480,12 +473,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   /**
    * Annotation AST for this drop
    */
-  @InRegion("DropState")
+  @NonNull
   private final A f_aast;
-  @InRegion("DropState")
   private final Long f_hash;
-  @InRegion("DropState")
   private final int f_lineNumber;
+
   @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
 
