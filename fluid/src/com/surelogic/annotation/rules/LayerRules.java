@@ -1,16 +1,32 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ThreadEffectsRules.java,v 1.15 2007/08/08 16:07:12 chance Exp $*/
 package com.surelogic.annotation.rules;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.*;
-import com.surelogic.aast.layers.*;
+import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.layers.AbstractLayerMatchDeclNode;
+import com.surelogic.aast.layers.AllowsReferencesFromNode;
+import com.surelogic.aast.layers.InLayerNode;
+import com.surelogic.aast.layers.LayerNode;
+import com.surelogic.aast.layers.MayReferToNode;
+import com.surelogic.aast.layers.TypeSetNode;
+import com.surelogic.aast.layers.UnidentifiedTargetNode;
 import com.surelogic.analysis.layers.CycleDetector;
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.parse.*;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.AbstractAntlrParseRule;
+import com.surelogic.annotation.AnnotationLocation;
+import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.parse.LayerPromisesParser;
+import com.surelogic.annotation.parse.SLLayerParse;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
@@ -19,14 +35,14 @@ import com.surelogic.dropsea.ir.drops.promises.layers.InLayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.layers.MayReferToPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.layers.TypeSetPromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.PromiseDropSeqStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class LayerRules extends AnnotationRules {

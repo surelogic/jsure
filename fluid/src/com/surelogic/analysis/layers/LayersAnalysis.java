@@ -1,9 +1,18 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.layers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.Unused;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -20,13 +29,17 @@ import com.surelogic.dropsea.ir.drops.promises.layers.TypeSetPromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
+import edu.cmu.cs.fluid.java.bind.IHasBinding;
+import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ImportName;
+import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.Pair;

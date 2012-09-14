@@ -7,11 +7,17 @@
 package com.surelogic.analysis.modules;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
@@ -28,12 +34,25 @@ import com.surelogic.dropsea.ir.drops.promises.modules.ModulePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.modules.VisibilityDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeRef;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.modules.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleAnalysisAndVisitor implements IBinderClient {
