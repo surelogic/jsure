@@ -52,11 +52,13 @@ public class SimpleCallGraphDrop extends IRReferenceDrop implements IThreadRoleD
   
   
   private SimpleCallGraphDrop() {
+    super(null); // THIS WILL BLOW UP!!!
   }
   
   private SimpleCallGraphDrop(IRNode node) {
+    super(node);
     ThreadRoleRules.setCGDrop(node, this);
-    setNodeAndCompilationUnitDependency(node);
+   // setNodeAndCompilationUnitDependency(node);
 
     String label = JJNode.getInfoOrNull(node);
     if (label == null) {

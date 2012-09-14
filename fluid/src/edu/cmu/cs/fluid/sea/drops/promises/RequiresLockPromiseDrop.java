@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.sea.UiPlaceInASubFolder;
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
 public final class RequiresLockPromiseDrop extends AbstractLockListPromiseDrop<RequiresLockNode> implements UiPlaceInASubFolder {
+
   public RequiresLockPromiseDrop(RequiresLockNode n) {
     super(n);
     setCategory(JavaGlobals.LOCK_REQUIRESLOCK_CAT);

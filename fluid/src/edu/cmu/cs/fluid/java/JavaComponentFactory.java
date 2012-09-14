@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.java;
 
-import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +20,10 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 */
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.control");
 
+  /*
+   * TODO Could this be split up into thread-local maps?
+   * (if it doesn't matter that they use the same thing and they mostly don't overlap anyways)
+   */
   public static final JavaComponentFactory prototype = new JavaComponentFactory();
 
   /**
@@ -42,13 +45,12 @@ public final class JavaComponentFactory implements ComponentFactory {
   public static Component getComponent(IRNode node, boolean quiet) {
     final Component comp = components.get(node);
     if (comp == null)
-      // Requires class lock to be held: method is static synchronized
       return prototype.createComponent(node, quiet);
     else
       return comp;
   }
   
-  // Class lock must be held
+  // No sync needed due to concurrent hash map
   private Component createComponent(final IRNode node, boolean quiet) {
     JavaOperator op = (JavaOperator) JJNode.tree.getOperator(node);
     Component comp = op.createComponent(node);

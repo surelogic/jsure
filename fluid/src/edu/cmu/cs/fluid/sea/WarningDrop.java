@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * Drops for reporting warnings that a particular verifying analyis wants to
  * bring to the attention of the tool user.
@@ -8,13 +10,7 @@ package edu.cmu.cs.fluid.sea;
  * {@link PromiseWarningDrop}.
  */
 public final class WarningDrop extends InfoDrop {
-  public WarningDrop() {
-    super();
+  public WarningDrop(IRNode node) {
+    super(node);
   }
-
-  public static final Factory factory = new Factory() {
-    public InfoDrop create() {
-      return new WarningDrop();
-    }
-  };
 }

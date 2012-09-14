@@ -270,19 +270,19 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		// Clear before creating warning
 		ClearProjectListener.clearJSureState();
 
-		PromiseWarningDrop d = new PromiseWarningDrop();
-		if (t != null) {
-			String msg2 = t.getMessage();
-			if (msg2 == null) {
-				msg2 = t.getClass().getSimpleName();
-			}
-			d.setMessage(msg + ": " + msg2);
-			LOG.log(Level.WARNING, msg, t);
-		} else {
-			d.setMessage(msg);
-			LOG.log(Level.INFO, msg);
-		}
-		d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
+//		PromiseWarningDrop d = new PromiseWarningDrop();
+//		if (t != null) {
+//			String msg2 = t.getMessage();
+//			if (msg2 == null) {
+//				msg2 = t.getClass().getSimpleName();
+//			}
+//			d.setMessage(msg + ": " + msg2);
+//			LOG.log(Level.WARNING, msg, t);
+//		} else {
+//			d.setMessage(msg);
+//			LOG.log(Level.INFO, msg);
+//		}
+//		d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
 	}
 
 	/**

@@ -32,7 +32,7 @@ public class SourceRef extends AbstractRef {
 		return ref.getCUName();
 	}
 
-	public Object getEnclosingFile() {
+	public String getEnclosingFile() {
 		return ref.getURI().toString();
 	}
 

@@ -15,6 +15,10 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
  */
 public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
+  protected ProofDrop(IRNode node) {
+    super(node);
+  }
+
   /**
    * Records if this element is able to be proved consistent with regards to the
    * whole-program.

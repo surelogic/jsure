@@ -37,7 +37,6 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.GroupedAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
@@ -437,7 +436,6 @@ public class Util {
 		  addRequired(cus, projects.getMonitor());
 		}		
 		final long drops = System.currentTimeMillis();
-		final boolean useDependencies = AbstractWholeIRAnalysis.useDependencies;
 		final Dependencies deps = checkDependencies(cus);
     	checkProjects(projects);   
 		
@@ -470,33 +468,7 @@ public class Util {
 		if (analyze) {
 			// These are all the SourceCUDrops for this project
 			final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(pd, singleThreaded, pool);
-			final IParallelArray<SourceCUDrop> allCuds;
-			if (useDependencies) {
-				allCuds = createArray(singleThreaded, SourceCUDrop.class, pool);
-
-				final List<SourceCUDrop> l = allCuds.asList();
-				l.addAll(cuds.asList()); // Needs to include everything that changed
-				if (AbstractWholeIRAnalysis.debugDependencies) {
-					for(SourceCUDrop cud : allCuds) {
-						System.out.println("Analyzing: "+cud.getJavaOSFileName());
-					}
-				}
-				for(CUDrop cud : deps.findDepsForNewlyAnnotatedDecls(cus.asList())) {
-					if (cud instanceof SourceCUDrop) {
-						if (!l.contains(cud)) {
-							System.out.println("Reanalyzing "+cud.getJavaOSFileName());
-							l.add((SourceCUDrop) cud);
-							clearOldResults(cud);
-						} else {
-							System.out.println("Already analyzing "+cud.getJavaOSFileName());
-						}
-					} else {
-						System.out.println("Not reanalyzing "+cud.getJavaOSFileName());
-					}
-				}
-			} else {
-				allCuds = findSourceCUDrops(null, singleThreaded, pool);
-			}		
+			final IParallelArray<SourceCUDrop> allCuds =findSourceCUDrops(null, singleThreaded, pool);
 
 			times = analyzeCUs(env, projects, analyses, cuds, allCuds, singleThreaded);
 			env.done();
@@ -623,8 +595,6 @@ public class Util {
 	}
 	
 	private static void makePromiseWarningDrop(String project, int num, Object... args) {
-		PromiseWarningDrop d = new PromiseWarningDrop();
-		d.setResultMessage(num, args);			
 		
 		// TODO note this is a memory leak if run as embedded
 		IRNode n = new MarkedIRNode("For src ref");
@@ -641,7 +611,8 @@ public class Util {
 				return -1;
 			}
 		});
-		d.setNode(n);
+		PromiseWarningDrop d = new PromiseWarningDrop(n);
+		d.setResultMessage(num, args);			
 		//LOG.warning(d.getMessage());
 	}
 
@@ -1398,14 +1369,14 @@ public class Util {
 						}
 						return;
 					}
-					if (AbstractWholeIRAnalysis.debugDependencies) {
-						System.out.println("Invalidating "+outOfDate+": "+
-								Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
-								Projects.getProject(info.getNode()));
-						if (!(outOfDate instanceof PackageDrop)) {
-							System.out.println("Found "+outOfDate);
-						}
-					}
+//					if (AbstractWholeIRAnalysis.debugDependencies) {
+//						System.out.println("Invalidating "+outOfDate+": "+
+//								Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
+//								Projects.getProject(info.getNode()));
+//						if (!(outOfDate instanceof PackageDrop)) {
+//							System.out.println("Found "+outOfDate);
+//						}
+//					}
 					//System.out.println("Destroying "+outOfDate.javaOSFileName);
 					AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
 					outOfDate.invalidate();

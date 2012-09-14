@@ -293,7 +293,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private void add_and_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
-    Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrusts();
+    Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrustedPromises();
     int count = trustedPromiseDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
@@ -334,7 +334,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
 
     // Create a folder to contain the choices
-    final Collection<String> or_TrustLabels = result.get_or_TrustLabelSet();
+    final Collection<String> or_TrustLabels = result.getTrustedPromises_orKeys();
     final int or_TrustLabelsSize = or_TrustLabels.size();
     ResultsViewContent orContentFolder = makeContent(or_TrustLabelsSize
         + (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:" : " possible prerequisite assertion choice:"));
@@ -354,7 +354,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       // set proof bits properly
       boolean choiceConsistent = true;
       boolean choiceUsesRedDot = false;
-      Collection<? extends IProofDrop> choiceSet = result.get_or_Trusts(key);
+      Collection<? extends IProofDrop> choiceSet = result.getTrustedPromises_or(key);
 
       // fill in the folder with choices
       for (IProofDrop trustedDrop : choiceSet) {
@@ -436,7 +436,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         // image
         int flags = 0; // assume no adornments
-        if (resultDrop.getTrustsComplete().size() > 0) {
+        if (resultDrop.hasTrusted()) {
           // only show reddot and proof status if this results has
           // preconditions
           flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
@@ -1006,7 +1006,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrusts().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
+      if (id.isValid() && ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
         if (id.getCategory() == null) {
           id.setCategory(Messages.DSC_UNPARENTED_DROP);
         }

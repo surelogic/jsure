@@ -32,7 +32,7 @@ public class TRolePhantomStructure extends IRReferenceDrop implements IThreadRol
   }
   
   public TRolePhantomStructure(final IRNode node) {
-    setNodeAndCompilationUnitDependency(node);
+    super(node);
   }
 
 }

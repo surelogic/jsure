@@ -7,13 +7,10 @@ import edu.cmu.cs.fluid.sea.UiShowAtTopLevel;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class ReadOnlyPromiseDrop extends BooleanPromiseDrop<ReadOnlyNode> implements UiShowAtTopLevel {
+
   public ReadOnlyPromiseDrop(ReadOnlyNode n) {
     super(n);
     setCategory(JavaGlobals.UNIQUENESS_CAT);
-  }
-
-  @Override
-  protected void computeBasedOnAST() {
     setMessage(getAAST().toString());
   }
 }

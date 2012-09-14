@@ -176,10 +176,12 @@ public class TRoleRenamePerCU extends IRReferenceDrop implements IThreadRoleDrop
   private static Map<IRNode, TRoleRenamePerCU> nodeToPerCU = null;
 
   private TRoleRenamePerCU(IRNode cu) {
+    super(cu); // may blow up if null
     this.cu = cu;
   }
 
   private TRoleRenamePerCU() {
+    super(null); // will blow up
     cu = null;
   }
 

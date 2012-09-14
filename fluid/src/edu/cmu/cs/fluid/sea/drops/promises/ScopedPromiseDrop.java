@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  */
 public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> implements
     IDerivedDropCreator<PromiseDrop<ScopedPromiseNode>> {
+
   public ScopedPromiseDrop(ScopedPromiseNode a) {
     super(a);
   }

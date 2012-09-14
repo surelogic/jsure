@@ -88,7 +88,7 @@ public class ModuleDrop extends PromiseDrop {
     final IRNode modsIR = EnclosingModule.getModules(promise);
     res.modPromiseIR = modsIR;
    
-    res.setNodeAndCompilationUnitDependency(where);
+    //res.setNodeAndCompilationUnitDependency(where);
     synchronized (ModuleDrop.class) {
       Set<ModuleDrop> dropsHere = irToWrappingModule.get(where);
       if (dropsHere == null) {
@@ -134,7 +134,7 @@ public class ModuleDrop extends PromiseDrop {
   public static ModuleDrop buildModuleDrop(final IRNode where, final String name) {
     final ModuleDrop res = new ModuleDrop(name);
     
-    res.setNodeAndCompilationUnitDependency(where);
+   // res.setNodeAndCompilationUnitDependency(where);
 //    res.declaredModules.addAll(ModuleModel.queryModulesDefinedBy(name));
     
     res.image = "@module " +name;

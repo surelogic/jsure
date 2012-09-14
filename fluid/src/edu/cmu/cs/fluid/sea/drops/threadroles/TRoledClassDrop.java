@@ -34,6 +34,7 @@ public class TRoledClassDrop extends IRReferenceDrop implements IThreadRoleDrop 
     new HashMap<IRNode,TRoledClassDrop>();
   
   private TRoledClassDrop(IRNode cu) {
+    super(cu);
     allTRCDs.put(cu, this);
   }
   

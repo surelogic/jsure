@@ -153,12 +153,13 @@ public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, 
    *          the lock name
    */
   private TRoleNameModel(String name, final IRNode locInIR) {
+    super(locInIR); // may blow up!! can't be null
     tRoleName = name;
     this.setMessage("ThreadRole " + name);
     setCategory(TRoleMessages.assuranceCategory);
-    if (locInIR != null) {
-      setNodeAndCompilationUnitDependency(locInIR);
-    }
+//    if (locInIR != null) {
+//      setNodeAndCompilationUnitDependency(locInIR);
+//    }
   }
 
   private static DropPredicate definingDropPred = new DropPredicate() {

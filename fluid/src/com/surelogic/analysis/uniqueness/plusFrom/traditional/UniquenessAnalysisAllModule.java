@@ -224,8 +224,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         System.out.println("______________________ too long ______________: " + methodName);
-        final WarningDrop info = new WarningDrop();
-        this.setResultDependUponDrop(info, node.methodDecl);
+        final WarningDrop info = new WarningDrop(node.methodDecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
@@ -527,11 +526,9 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
 		    if (uniqueFields.isEmpty()) {
 		      aggregatedUniqueFields = null;
 		    } else {
-          final ResultDrop middleDrop = new ResultDrop();
+          final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop, methodDecl);
           for (final PromiseDrop<? extends IAASTRootNode> ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -548,11 +545,9 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
         if (myUniqueParams.isEmpty()) {
           aggregatedUniqueParams = null;
         } else {
-          final ResultDrop middleDrop = new ResultDrop();
+          final ResultDrop middleDrop = new ResultDrop(methodDecl);
           middleDrop.setConsistent();
-          middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -569,9 +564,8 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
 	ResultDrop getMethodControlFlowDrop(final IRNode block) {
     ResultDrop drop = cachedControlFlow.get(block);
     if (drop == null || !drop.isValid()) {
-      drop = new ResultDrop();
+      drop = new ResultDrop(block);
       drop.setConsistent();
-      setResultDependUponDrop(drop, block);
 
       final String label, unparse;
       final Operator op = JJNode.tree.getOperator(block);
@@ -965,9 +959,8 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
           /* Here we hold off setting the message and category until the 
            * call is actually assured in checkMethodCall()
            */
-          final ResultDrop callDrop = new ResultDrop();
+          final ResultDrop callDrop = new ResultDrop(currentNode);
           callDrop.setConsistent();
-          setResultDependUponDrop(callDrop, currentNode);
           // This result checks the uniqueness promises of the parameters
           for (final UniquePromiseDrop uniqueParam : uniqueParams) {
             callDrop.addCheckedPromise(uniqueParam);
@@ -1098,10 +1091,9 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
 
   private <D extends PromiseDrop<? extends IAASTRootNode>> ResultDrop getMethodCallDrop(final IRNode n,
       final Set<D> promises, int num, Object... args) {
-    final ResultDrop rd = new ResultDrop();
+    final ResultDrop rd = new ResultDrop(n);
     rd.setConsistent();
     rd.setResultMessage(num, args);
-    setResultDependUponDrop(rd, n);
     for (final D pd : promises) {
       rd.addTrustedPromise(pd);
     }

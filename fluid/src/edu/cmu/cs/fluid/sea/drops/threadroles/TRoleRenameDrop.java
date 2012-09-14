@@ -87,7 +87,7 @@ implements IThreadRoleDrop{
     loopCheck = 0;
     simpleName = JavaNames.genSimpleName(a.getThreadRole().getId());
     qualName = simpleName;
-    setNodeAndCompilationUnitDependency(where);
+    //setNodeAndCompilationUnitDependency(where);
     qual = JavaNames.computeQualForOutermostTypeOrCU(where);
    
   }

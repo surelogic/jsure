@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea.xml;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -9,8 +10,12 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.xml.sax.Attributes;
 
+import com.surelogic.NonNull;
+
 import edu.cmu.cs.fluid.sea.IPromiseDrop;
+import edu.cmu.cs.fluid.sea.IProofDrop;
 import edu.cmu.cs.fluid.sea.IResultDrop;
+import edu.cmu.cs.fluid.sea.IResultFolderDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 
@@ -20,8 +25,9 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
    */
   final List<IRFreePromiseDrop> checkedPromises;
   final List<IRFreePromiseDrop> trustedPromises;
+  final List<IRFreeResultFolderDrop> trustedFolders;
   final MultiMap<String, IRFreePromiseDrop> orTrustedPromises;
-  
+
   void addCheckedPromise(IRFreePromiseDrop info) {
     checkedPromises.add(info);
   }
@@ -34,46 +40,70 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
     orTrustedPromises.put(label, info);
   }
 
+  void addTrustedFolder(IRFreeResultFolderDrop info) {
+	  trustedFolders.add(info);
+  }
+  
   IRFreeResultDrop(String name, Attributes a) {
     super(name, a);
 
     checkedPromises = new ArrayList<IRFreePromiseDrop>(0);
     trustedPromises = new ArrayList<IRFreePromiseDrop>(0);
+    trustedFolders = new ArrayList<IRFreeResultFolderDrop>(0);
     orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
   }
 
   public boolean isInResultFolder() {
-	return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
+    return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
   }
-  
+
+  @NonNull
   public Collection<? extends IPromiseDrop> getChecks() {
     return checkedPromises;
   }
 
-  public Collection<? extends IPromiseDrop> getTrusts() {
+  @NonNull
+  public Collection<? extends IPromiseDrop> getTrustedPromises() {
     return trustedPromises;
+  }
+
+  @NonNull
+  public Collection<? extends IResultFolderDrop> getTrustedFolders() {
+    return trustedFolders;
   }
 
   public boolean isConsistent() {
     return "true".equals(getAttribute(ResultDrop.CONSISTENT));
   }
 
-  public Collection<? extends IPromiseDrop> getTrustsComplete() {
-    Collection<IRFreePromiseDrop> rv = new HashSet<IRFreePromiseDrop>(trustedPromises);
+  @NonNull
+  public Collection<IProofDrop> getAllTrusted() {
+    Collection<IProofDrop> rv = new HashSet<IProofDrop>(trustedPromises);
+    rv.addAll(trustedFolders);
     rv.addAll(orTrustedPromises.values());
     return rv;
   }
 
-  public Collection<String> get_or_TrustLabelSet() {
+  @NonNull
+  public Collection<String> getTrustedPromises_orKeys() {
     return orTrustedPromises.keySet();
   }
 
-  public Collection<? extends IPromiseDrop> get_or_Trusts(String key) {
-    return orTrustedPromises.get(key);
+  @NonNull
+  public Collection<? extends IPromiseDrop> getTrustedPromises_or(String key) {
+    final Collection<? extends IPromiseDrop> result = orTrustedPromises.get(key);
+    if (result != null)
+      return result;
+    else
+      return Collections.emptySet();
   }
 
   public boolean hasOrLogic() {
     return orTrustedPromises != null && !orTrustedPromises.isEmpty();
+  }
+
+  public boolean hasTrusted() {
+    return hasOrLogic() || !trustedPromises.isEmpty() || !trustedFolders.isEmpty();
   }
 
   public boolean get_or_proofUsesRedDot() {

@@ -356,10 +356,9 @@ public abstract class AnnotationRules {
 		private PromiseWarningDrop reportError_private(String txt, IRNode n,
 				int offset) {
 			// System.out.println("SCRUBBER: "+txt);
-			PromiseWarningDrop d = new PromiseWarningDrop(offset);
+			PromiseWarningDrop d = new PromiseWarningDrop(n, offset);
 			d.setMessage(txt);
 			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
-			d.setNodeAndCompilationUnitDependency(n);
 			return d;
 		}
 

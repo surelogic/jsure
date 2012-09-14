@@ -12,10 +12,6 @@ public final class PromisePromiseDrop extends ScopedPromiseDrop {
   public PromisePromiseDrop(ScopedPromiseNode a) {
     super(a);
     setCategory(JavaGlobals.PROMISE_CAT);
-  }
-
-  @Override
-  protected void computeBasedOnAST() {
     setMessage("Promise " + getAAST());
   }
 }

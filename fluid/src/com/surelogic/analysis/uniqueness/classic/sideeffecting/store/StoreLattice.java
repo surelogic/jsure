@@ -277,7 +277,7 @@ extends TripleLattice<Element<Integer>,
     this.locals = locals;
     this.binder = binder;
     this.analysis = analysis;
-    this.controlFlowDrop = new UniquenessControlFlowDrop(flowUnit);
+    this.controlFlowDrop = UniquenessControlFlowDrop.create(flowUnit);
   }
   
   public int getNumLocals() {
@@ -1651,9 +1651,8 @@ extends TripleLattice<Element<Integer>,
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
-    final ResultDrop result = new ResultDrop();
+    final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    analysis.setResultDependUponDrop(result, node);
     result.addCheckedPromise(promiseDrop);
     if (promiseDrop != controlFlowDrop) {
       if (addToControlFlow) {
@@ -1943,4 +1942,3 @@ extends TripleLattice<Element<Integer>,
     public abstract int chooseMsg(int actual, int ret, int assign);
   }
 }
-

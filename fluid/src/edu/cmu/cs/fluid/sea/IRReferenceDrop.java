@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import com.surelogic.InRegion;
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
@@ -19,15 +20,11 @@ import com.surelogic.common.xml.XMLCreator.Builder;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
-
-//import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 
 /**
  * The abstract base class for all drops within the sea which reference fAST
@@ -37,19 +34,24 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
  */
 public abstract class IRReferenceDrop extends Drop {
 
-  public static final String PROPOSED_PROMISE = "proposed-promise";
+  /**
+   * Constructs a drop referencing the passed node. The {@link IRNode} passed
+   * must be non-null.
+   * 
+   * @param node
+   *          a non-null node related to this drop.
+   */
+  protected IRReferenceDrop(final IRNode node) {
+    if (node == null)
+      throw new IllegalArgumentException(I18N.err(44, "node"));
+    f_node = node;
+  }
 
   /**
-   * The fAST node that this PromiseDrop is associated with.
+   * The non-null fAST node that this PromiseDrop is associated with.
    */
-  @InRegion("DropState")
-  private IRNode f_node;
-
-  /**
-   * Used for dependency checking
-   */
-  @InRegion("DropState")
-  private IRNode f_lastNonNullNode;
+  @NonNull
+  private final IRNode f_node;
 
   /**
    * Gets the source reference of this drop.
@@ -59,14 +61,10 @@ public abstract class IRReferenceDrop extends Drop {
    */
   @Override
   public ISrcRef getSrcRef() {
-    final IRNode node;
-    synchronized (f_seaLock) {
-      node = f_node;
-    }
-    if (node != null) {
-      ISrcRef ref = JavaNode.getSrcRef(node);
+    if (f_node != null) {
+      ISrcRef ref = JavaNode.getSrcRef(f_node);
       if (ref == null) {
-        final IRNode parent = JavaPromise.getParentOrPromisedFor(node);
+        final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
         return JavaNode.getSrcRef(parent);
       }
       return ref;
@@ -80,71 +78,7 @@ public abstract class IRReferenceDrop extends Drop {
    * @return a fAST node
    */
   public final IRNode getNode() {
-    synchronized (f_seaLock) {
-      return f_node;
-    }
-  }
-
-  /**
-   * Sets the fAST node associated with this drop. The fAST node provided should
-   * be the {@link IRNode} that the analysis creating the result wishes to focus
-   * the user's attention on.
-   * 
-   * @param node
-   *          the fAST node this drop is associated with
-   * 
-   * @see #setNodeAndCompilationUnitDependency(IRNode)
-   */
-  public final void setNode(IRNode node) {
-    if (node == null) {
-      throw new IllegalArgumentException("Use clearNode()");
-    }
-    synchronized (f_seaLock) {
-      f_lastNonNullNode = node;
-      f_node = node;
-      if (node != null) {
-        computeBasedOnAST();
-      }
-    }
-  }
-
-  public void clearNode() {
-    // lastNonNullNode is not cleared
-    synchronized (f_seaLock) {
-      f_node = null;
-    }
-  }
-
-  /**
-   * Used for dependency checking
-   */
-  public final IRNode getLastNonnullNode() {
-    synchronized (f_seaLock) {
-      return f_lastNonNullNode;
-    }
-  }
-
-  @RequiresLock("SeaLock")
-  protected void computeBasedOnAST() {
-    // behavior extended by subclasses
-  }
-
-  /**
-   * Sets the fAST node associated with this drop and makes this drop dependent
-   * upon the compilation unit the given fAST node exists within. The fAST node
-   * provided should be the {@link IRNode} that the analysis creating the result
-   * wishes to focus the user's attention on.
-   * 
-   * @param node
-   *          the fAST node this drop is associated with
-   * 
-   * @see #setNode(IRNode)
-   */
-  public final void setNodeAndCompilationUnitDependency(IRNode node) {
-    synchronized (f_seaLock) {
-      setNode(node);
-      dependUponCompilationUnitOf(node);
-    }
+    return f_node;
   }
 
   /**
@@ -331,20 +265,7 @@ public abstract class IRReferenceDrop extends Drop {
   @Override
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
-    return createSourceRef(getNode(), getSrcRef());
-  }
-
-  public static JavaSourceReference createSourceRef(IRNode n, ISrcRef ref) {
-    if (ref == null) {
-      if (n == null) {
-        return null;
-      }
-      IRNode cu = VisitUtil.getEnclosingCUorHere(n);
-      String pkg = VisitUtil.getPackageName(cu);
-      IRNode type = VisitUtil.getPrimaryType(cu);
-      return new JavaSourceReference(pkg, JavaNames.getTypeName(type));
-    }
-    return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
+    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(getNode(), getSrcRef());
   }
 
   @Override
@@ -387,7 +308,7 @@ public abstract class IRReferenceDrop extends Drop {
       s.addSupportingInfo(db, si);
     }
     for (ProposedPromiseDrop pd : getProposals()) {
-      s.refDrop(db, PROPOSED_PROMISE, pd);
+      s.refDrop(db, ProposedPromiseDrop.PROPOSED_PROMISE, pd);
     }
   }
 }

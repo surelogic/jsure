@@ -12,10 +12,6 @@ implements IReferenceCheckDrop {
 	AbstractReferenceCheckDrop(A ast) {
 		super(ast);
 		setCategory(Messages.DSC_LAYERS_ISSUES);
-	}
-	
-	@Override
-	protected final void computeBasedOnAST() {
 		setMessage(getAAST().toString());
 	}
 	

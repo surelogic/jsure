@@ -7,13 +7,10 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class ImmutableRefPromiseDrop extends BooleanPromiseDrop<ImmutableRefNode> {
-	public ImmutableRefPromiseDrop(ImmutableRefNode a) {
-		super(a);
-	    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-	}
 
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage("Immutable on "+DebugUnparser.toString(getNode()));
-	}
+  public ImmutableRefPromiseDrop(ImmutableRefNode a) {
+    super(a);
+    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setMessage("Immutable on " + DebugUnparser.toString(getNode()));
+  }
 }

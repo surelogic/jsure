@@ -9,38 +9,30 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
-public final class AnnotationBoundsPromiseDrop extends
-    BooleanPromiseDrop<AnnotationBoundsNode> implements
+public final class AnnotationBoundsPromiseDrop extends BooleanPromiseDrop<AnnotationBoundsNode> implements
     ValidatedDropCallback<AnnotationBoundsPromiseDrop> {
+
   public AnnotationBoundsPromiseDrop(AnnotationBoundsNode a) {
-    super(a); 
+    super(a);
     setCategory(JavaGlobals.ANNO_BOUNDS_CAT);
-  }
-  
-  @Override
-  protected void computeBasedOnAST() {
     final AnnotationBoundsNode ast = getAAST();
-    final String[] attrs = new String[] {
-        getNameList("containable", ast.getContainable()),
-        getNameList("immutable", ast.getImmutable()),
-        getNameList("referenceObject", ast.getReference()),
-        getNameList("threadSafe", ast.getThreadSafe()),
-        getNameList("valueObject", ast.getValue()) };
+    final String[] attrs = new String[] { getNameList("containable", ast.getContainable()),
+        getNameList("immutable", ast.getImmutable()), getNameList("referenceObject", ast.getReference()),
+        getNameList("threadSafe", ast.getThreadSafe()), getNameList("valueObject", ast.getValue()) };
     final StringBuilder sb = new StringBuilder();
     boolean first = true;
-    for (final String a : attrs) {
-      if (a != null) {
+    for (final String at : attrs) {
+      if (at != null) {
         if (!first) {
           sb.append(", ");
         } else {
           first = false;
         }
-        sb.append(a);
+        sb.append(at);
       }
     }
-    
-    setResultMessage(Messages.AnnotationBounds, sb.toString(),
-        JavaNames.getTypeName(getNode()));
+
+    setResultMessage(Messages.AnnotationBounds, sb.toString(), JavaNames.getTypeName(getNode()));
   }
 
   private String getNameList(final String attribute, final NamedTypeNode[] list) {
@@ -56,7 +48,7 @@ public final class AnnotationBoundsPromiseDrop extends
           first = false;
           sb.append('\"');
         }
-        sb.append(namedType.getType());      
+        sb.append(namedType.getType());
       }
       sb.append("\"}");
       return sb.toString();
@@ -64,7 +56,7 @@ public final class AnnotationBoundsPromiseDrop extends
       return null;
     }
   }
-  
+
   public void validated(final AnnotationBoundsPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

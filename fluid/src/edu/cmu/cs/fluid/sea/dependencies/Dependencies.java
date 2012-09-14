@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.promise.PromiseDropStorage;
 
@@ -229,9 +228,9 @@ public class Dependencies {
 		for(CUDrop d : reprocess) {
 			System.out.println("Reprocess: "+d.getJavaOSFileName()+" "+d.getClass().getSimpleName());
 		}
-		if (AbstractWholeIRAnalysis.useDependencies) {
-			collectOldAnnotationInfo();
-		}
+//		if (AbstractWholeIRAnalysis.useDependencies) {
+//			collectOldAnnotationInfo();
+//		}
 		reprocess.removeAll(changed);						
 
 		IDE.getInstance().setAdapting();
@@ -251,17 +250,18 @@ public class Dependencies {
 						}
 					});					
 					*/
-				} else if (AbstractWholeIRAnalysis.useDependencies) { // Same as Util.clearOldResults
-					// Clear info/warnings
-					// Clear results
-					for(Drop dd : d.getDependents()) {
-						if (dd instanceof IReportedByAnalysisDrop || dd instanceof PromiseWarningDrop) {
-							dd.invalidate();
-						} else {
-							System.out.println("\tIgnoring "+dd.getMessage());
-						}
-					}
 				}
+//				else if (AbstractWholeIRAnalysis.useDependencies) { // Same as Util.clearOldResults
+//					// Clear info/warnings
+//					// Clear results
+//					for(Drop dd : d.getDependents()) {
+//						if (dd instanceof IReportedByAnalysisDrop || dd instanceof PromiseWarningDrop) {
+//							dd.invalidate();
+//						} else {
+//							System.out.println("\tIgnoring "+dd.getMessage());
+//						}
+//					}
+//				}
 			}
 			// Necessary to process these after package drops 
 			// to ensure that newly created drops don't invalidated
@@ -372,9 +372,9 @@ public class Dependencies {
 		final MultiMap<ITypeEnvironment,AnnotationInfo> toScan = new MultiHashMap<ITypeEnvironment, AnnotationInfo>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
-			if (AbstractWholeIRAnalysis.debugDependencies) {		
-				System.out.println("Checking for new dependencies on "+info.getFileName());
-			}
+//			if (AbstractWholeIRAnalysis.debugDependencies) {		
+//				System.out.println("Checking for new dependencies on "+info.getFileName());
+//			}
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				// TODO what about receivers and what not?
@@ -410,9 +410,9 @@ public class Dependencies {
 		final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 		if (oldDrops == null) {
 			// New decl, so any annotations are brand-new, and will be analyzed
-			if (AbstractWholeIRAnalysis.debugDependencies) {						
-				System.err.println("New decl will be analyzed normally: "+name);
-			}
+//			if (AbstractWholeIRAnalysis.debugDependencies) {						
+//				System.err.println("New decl will be analyzed normally: "+name);
+//			}
 			return; 
 		}
 		// Otherwise, it's an existing decl
@@ -478,7 +478,7 @@ public class Dependencies {
 		public final int hashCode() {
 			return drop.getClass().hashCode() + 
 			       drop.getMessage().hashCode() + 
-			       drop.getLastNonnullNode().identity().hashCode();
+			       drop.getNode().identity().hashCode();
 		}
 		
 		/**
@@ -488,7 +488,7 @@ public class Dependencies {
 		public final boolean equals(Object o) {
 			if (o instanceof Wrapper) {
 				Wrapper w = (Wrapper) o;
-				return drop.getLastNonnullNode().equals(w.drop.getLastNonnullNode()) &&
+				return drop.getNode().equals(w.drop.getNode()) &&
 				drop.getClass().equals(w.drop.getClass()) && drop.getMessage().equals(w.drop.getMessage());
 			}
 			return false;

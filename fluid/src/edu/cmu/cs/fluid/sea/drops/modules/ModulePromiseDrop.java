@@ -75,7 +75,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     final String name = mcn.getModPromise().getModuleName();
     // res.modPromiseIR = modsIR;
 
-    res.setNodeAndCompilationUnitDependency(where);
+    //res.setNodeAndCompilationUnitDependency(where);
     synchronized (ModulePromiseDrop.class) {
       Set<ModuleWrapperPromiseDrop> dropsHere = irToWrappingModule.get(where);
       if (dropsHere == null) {
@@ -136,7 +136,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     final IRNode where = mn.getPromisedFor();
     final String name = mn.getModPromise().getModuleName();
 
-    res.setNodeAndCompilationUnitDependency(where);
+    // res.setNodeAndCompilationUnitDependency(where);
     // res.declaredModules.addAll(ModuleModel.queryModulesDefinedBy(name));
 
     resAsMPD.image = "@module " + name;

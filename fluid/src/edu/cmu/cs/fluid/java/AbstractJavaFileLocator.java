@@ -542,8 +542,7 @@ public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
   }
   
   protected class SlotHandler implements IUndefinedSlotHandler {
-	@SuppressWarnings("unchecked")
-	public boolean handleSlotUndefinedException(PersistentSlotInfo si,
+	public boolean handleSlotUndefinedException(@SuppressWarnings("rawtypes") PersistentSlotInfo si,
 			  IRNode n) {
 		  IRRegion owner = IRRegion.getOwnerOrNull(n);
 		  if (owner == null) {

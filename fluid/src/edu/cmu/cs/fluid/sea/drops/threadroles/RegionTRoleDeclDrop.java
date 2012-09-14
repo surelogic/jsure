@@ -41,7 +41,7 @@ public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleD
    * @param where Location of the decl in the tree.
    */
   private RegionTRoleDeclDrop(final String regionName, final TRExpr constraint, IRNode where) {
-    super();
+    super(null); // will blow up!
     this.regionName = regionName;
     masterRegion = RegionModel.getInstance(regionName, where);
     userConstraint = constraint.doClone();
@@ -50,7 +50,7 @@ public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleD
 public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, final TRExpr constraint,
     final IRNode where) {
   RegionTRoleDeclDrop res = new RegionTRoleDeclDrop(regionName, constraint, where);
-  res.setNodeAndCompilationUnitDependency(where);
+  // res.setNodeAndCompilationUnitDependency(where);
   
   RegionTRoleModel tRTRDDrop = null; // (RegionTRoleModel) res.masterRegion.getColorInfo();
   if (tRTRDDrop == null) {

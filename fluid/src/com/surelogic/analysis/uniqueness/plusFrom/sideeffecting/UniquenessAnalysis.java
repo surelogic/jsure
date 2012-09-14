@@ -309,7 +309,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final String methodName =
           JavaNames.genQualifiedMethodConstructorName(flowUnit);
       final UniquenessControlFlowDrop controlFlowDrop =
-          new UniquenessControlFlowDrop(flowUnit);
+          UniquenessControlFlowDrop.create(flowUnit);
       
       final long tooLongDuration = IDE.getInstance().getIntPreference(
           IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
@@ -324,8 +324,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long endTime = System.nanoTime();
         final long duration = endTime - startTime;
         if (duration > tooLongDuration) {
-          final WarningDrop info = new WarningDrop();
-          analysis.setResultDependUponDrop(info, flowUnit);
+          final WarningDrop info = new WarningDrop(flowUnit);
           info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
               methodName, duration / NANO_SECONDS_PER_SECOND);
           info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
@@ -337,8 +336,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long duration = endTime - startTime;
         gaveUp = true;
         
-        final ResultDrop timeOutResult = new ResultDrop();
-        analysis.setResultDependUponDrop(timeOutResult, flowUnit);
+        final ResultDrop timeOutResult = new ResultDrop(flowUnit);
         timeOutResult.setTimeout();
         timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
         timeOutResult.setResultMessage(Messages.TIMEOUT,

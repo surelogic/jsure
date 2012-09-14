@@ -9,14 +9,10 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public class UtilityPromiseDrop extends BooleanPromiseDrop<UtilityNode> {
 
-	public UtilityPromiseDrop(UtilityNode a) {
-		super(a);
-		setCategory(JavaGlobals.UTILITY_CAT);
-	}
-
-	@Override
-	protected void computeBasedOnAST() {
-		String name = JavaNames.getTypeName(getNode());
-		setResultMessage(Messages.UtilityDrop, name);
-	}
+  public UtilityPromiseDrop(UtilityNode a) {
+    super(a);
+    setCategory(JavaGlobals.UTILITY_CAT);
+    String name = JavaNames.getTypeName(getNode());
+    setResultMessage(Messages.UtilityDrop, name);
+  }
 }

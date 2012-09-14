@@ -16,6 +16,7 @@ import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   private static String[] packages = { "edu.cmu.cs.fluid.sea.drops.promises.", "edu.cmu.cs.fluid.sea.",
       "edu.cmu.cs.fluid.sea.drops.", "edu.cmu.cs.fluid.sea.drops.threadroles.", "edu.cmu.cs.fluid.sea.drops.modules.",
       "edu.cmu.cs.fluid.sea.drops.callgraph.", "edu.cmu.cs.fluid.sea.drops.layers.", };
+  
+  /**
+   * A list of types that use to be in drop-sea and are in persisted scans, but
+   * no longer are used. This just helps to avoid lots of warnings.
+   */
+  private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
 
   @SuppressWarnings("unchecked")
   static Class<?> findType(String type) {
@@ -111,7 +118,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         }
       }
       if (thisType == null) {
-        SLLogger.getLogger().warning("Unknown class type: " + type);
+        /*
+         * Check if we know this type is no longer in the system.
+         */
+        if (!Arrays.asList(obsoleteTypes).contains(type))
+          SLLogger.getLogger().warning("Unknown class type: " + type);
       } else {
         ensureClassMapping((Class<? extends Drop>) thisType);
       }
@@ -291,25 +302,37 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       if (Drop.DEPONENT.equals(refType)) {
         fromE.addDeponent(toE);
         toE.addDependent(fromE);
-      } else if (IRReferenceDrop.PROPOSED_PROMISE.equals(refType)) {
+      } else if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
         fromE.addProposal((IRFreeProposedPromiseDrop) toE);
       } else if (fromE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
           final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;        
           if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
               fromPI.addCheckedByResult(toPI);
+          } else {
+              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
           }
       } else if (fromE instanceof IRFreeResultDrop) {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
-        final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
-  
-        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-          fromPI.addCheckedPromise(toPI);
-        } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
-          fromPI.addTrustedPromise(toPI);
-        } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-          final String label = to.getAttribute(ResultDrop.OR_LABEL);
-          fromPI.addOrTrustedPromise(label, toPI);
+        if (toE instanceof IRFreeResultFolderDrop) {
+        	if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
+                fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
+            } else {
+                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+            }
+        } else {
+        	final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+
+        	if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+        		fromPI.addCheckedPromise(toPI);
+        	} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
+        		fromPI.addTrustedPromise(toPI);
+        	} else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
+        		final String label = to.getAttribute(ResultDrop.OR_LABEL);
+        		fromPI.addOrTrustedPromise(label, toPI);
+            } else {
+                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+            }
         }
       } else if (fromE instanceof IRFreeResultFolderDrop) {
           final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
@@ -322,7 +345,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     	  } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
               final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;    	      	  
     		  fromPI.addSubFolder(toPI);
-    	  }
+          } else {
+              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+          }
       } else {
         throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }

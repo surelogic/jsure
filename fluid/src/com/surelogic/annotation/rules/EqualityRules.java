@@ -90,9 +90,9 @@ public class EqualityRules extends AnnotationRules {
 					
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
 					if (isInterface) {
-						makeResultDrop(d, true, 754, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, 754, JavaNames.getTypeName(tdecl));
 					} else if (isAbstract) {
-						makeResultDrop(d, true, 757, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, 757, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, true);
 					}
@@ -139,7 +139,7 @@ public class EqualityRules extends AnnotationRules {
 					
 					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);			
 					if (isInterface) {
-						makeResultDrop(d, true, 755, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, 755, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, false);
 					}
@@ -163,8 +163,8 @@ public class EqualityRules extends AnnotationRules {
 		}
 	}
 
-	static void makeResultDrop(PromiseDrop<?> p, boolean consistent, int num, Object... args) {
-		final ResultDrop r = new ResultDrop();
+	static void makeResultDrop(IRNode decl, PromiseDrop<?> p, boolean consistent, int num, Object... args) {
+		final ResultDrop r = new ResultDrop(decl);
 		r.setResultMessage(num, args);
 		r.addCheckedPromise(p);
 		if (consistent) {
@@ -174,20 +174,20 @@ public class EqualityRules extends AnnotationRules {
 		}
 	}
 	
-	static void computeResults(IRNode tdecl, final PromiseDrop<?> d, boolean ifOverrides) {
-		final IRNode hashCode = findNonObjectImpl(tdecl, HASHCODE);
-		if (hashCode != null) {		
-			makeResultDrop(d, ifOverrides, OVERRIDES, HASHCODE, "", JavaNames.getFullName(hashCode));
-		} else {
-			makeResultDrop(d, !ifOverrides, INHERITS, HASHCODE, "");
-		}
-		final IRNode equals = findSingleObjectArgImpl(tdecl, EQUALS);
-		if (equals != null) {		
-			makeResultDrop(d, ifOverrides, OVERRIDES, EQUALS, "Object", JavaNames.getFullName(equals));
-		} else {
-			makeResultDrop(d, !ifOverrides, INHERITS, EQUALS, "Object");
-		}
-	}
+  static void computeResults(IRNode tdecl, final PromiseDrop<?> d, boolean ifOverrides) {
+    final IRNode hashCode = findNonObjectImpl(tdecl, HASHCODE);
+    if (hashCode != null) {
+      makeResultDrop(tdecl, d, ifOverrides, OVERRIDES, HASHCODE, "", JavaNames.getFullName(hashCode));
+    } else {
+      makeResultDrop(tdecl, d, !ifOverrides, INHERITS, HASHCODE, "");
+    }
+    final IRNode equals = findSingleObjectArgImpl(tdecl, EQUALS);
+    if (equals != null) {
+      makeResultDrop(tdecl, d, ifOverrides, OVERRIDES, EQUALS, "Object", JavaNames.getFullName(equals));
+    } else {
+      makeResultDrop(tdecl, d, !ifOverrides, INHERITS, EQUALS, "Object");
+    }
+  }
 	
 	static final String HASHCODE = "hashCode";
 	static final String EQUALS = "equals";

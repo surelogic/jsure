@@ -71,7 +71,7 @@ implements IThreadRoleDrop {
       setFromSrc(false);
     }
     setCategory(TRoleMessages.assuranceCategory);
-    setNodeAndCompilationUnitDependency(locInIR);
+  //  setNodeAndCompilationUnitDependency(locInIR);
     makeTRoleNameModelDeps(locInIR, addQual);
   }
 

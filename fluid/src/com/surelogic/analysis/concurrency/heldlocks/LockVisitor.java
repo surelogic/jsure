@@ -22,7 +22,6 @@ import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.aast.promise.QualifiedLockNameNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.InstanceInitAction;
@@ -96,8 +95,8 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop.Origin;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -206,13 +205,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * The LockAssurance simply updates the handle and everyone is happy.
 	 */
 	private final AtomicReference<GlobalLockModel> sysLockModelHandle;
-
-	/**
-	 * Bogus drop that all the lock-related drops are made to depend upon so
-	 * that we can easily invalidate and remove them when the analysis is
-	 * re-run.
-	 */
-	private Drop resultDependUpon;
 
 	// ---------------------------------
 	// -- Context information
@@ -791,7 +783,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private void clear() {
-		resultDependUpon = null;
 		ctxtTypeDecl = null;
 		ctxtJavaType = null;
 		ctxtTheHeldLocks = null;
@@ -816,10 +807,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * @param node
 	 *            A ClassBody node
 	 */
-	public synchronized void analyzeClass(final IRNode node, final Drop rd) {
+	public synchronized void analyzeClass(final IRNode node) {
 		final Operator op = JJNode.tree.getOperator(node);
 		if (ClassBody.prototype.includes(op)) {
-			resultDependUpon = rd;
 			ctxtTypeDecl = JJNode.tree.getParentOrNull(node);
 			ctxtJavaType = (IJavaDeclaredType) binder.getTypeEnvironment().getMyThisType(
 					ctxtTypeDecl);
@@ -838,25 +828,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Drop management methods
 	// ----------------------------------------------------------------------
 
-	private void setLockResultDep(final IRReferenceDrop drop,
-			final IRNode node) {
-		drop.setNodeAndCompilationUnitDependency(node);
-		if (AbstractWholeIRAnalysis.useDependencies) {
-			return;
-		}
-		if (resultDependUpon != null && resultDependUpon.isValid()) {
-			resultDependUpon.addDependent(drop);
-		} else {
-			LOG.log(Level.SEVERE,
-					"setLockResultDep found invalid or null resultDependUpon drop");
-		}
-	}
-
 	private InfoDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDrop info = new InfoDrop();
-		setLockResultDep(info, context);
+		final InfoDrop info = new InfoDrop(context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
@@ -865,8 +840,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private WarningDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final WarningDrop info = new WarningDrop();
-		setLockResultDep(info, context);
+		final WarningDrop info = new WarningDrop(context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
@@ -876,8 +850,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final PromiseDrop<? extends IAASTRootNode> p,
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDrop result = new ResultDrop();
-		setLockResultDep(result, context);
+		final ResultDrop result = new ResultDrop(context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);
 		if (isConsistent) {

@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop implements IReportedByAnalysisDrop, IProposedPromiseDrop {
 
+  public static final String PROPOSED_PROMISE = "proposed-promise";
   public static final String ANNOTATION_TYPE = "annotation-type";
   public static final String CONTENTS = "contents";
   public static final String REPLACED_ANNO = "replaced-annotation";
@@ -106,9 +107,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
   public ProposedPromiseDrop(final String annotation, final String contents, final Map<String, String> attrs,
       final String replacedAnnotation, final String replacedContents, final Map<String, String> replacedAttrs, final IRNode at,
       final IRNode from, final Origin origin) {
-    if (at == null) {
-      throw new IllegalArgumentException(I18N.err(44, "at"));
-    }
+    super(at);
     if (from == null) {
       throw new IllegalArgumentException(I18N.err(44, "from"));
     }
@@ -126,7 +125,6 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     f_replacedContents = replacedContents;
     f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
     f_origin = origin;
-    setNodeAndCompilationUnitDependency(at);
     dependUponCompilationUnitOf(from);
 
     final String msg;

@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 import java.util.Collections;
 import java.util.Map;
 
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.SimpleBorrowedInRegionNode;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -17,13 +17,17 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
  */
-public final class SimpleBorrowedInRegionPromiseDrop extends PromiseDrop<SimpleBorrowedInRegionNode> 
-implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
+public final class SimpleBorrowedInRegionPromiseDrop extends PromiseDrop<SimpleBorrowedInRegionNode> implements
+    IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
+
   public SimpleBorrowedInRegionPromiseDrop(SimpleBorrowedInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
+    final String name = JavaNames.getFieldDecl(getNode());
+    final String regionName = getAAST().getSpec().unparse(false);
+    setResultMessage(Messages.RegionAnnotation_borrowedInRegionDrop, regionName, name);
   }
-  
+
   /**
    * Region definitions are not checked by analysis (other than the promise
    * scrubber).
@@ -32,25 +36,15 @@ implements IDerivedDropCreator<InRegionPromiseDrop>, RegionAggregationDrop {
   public boolean isIntendedToBeCheckedByAnalysis() {
     return true;
   }
-  
-  @Override
-  protected void computeBasedOnAST() {
-    if (getAAST() != null) {
-      final String name       = JavaNames.getFieldDecl(getNode());
-      final String regionName = getAAST().getSpec().unparse(false);
-      setResultMessage(
-          Messages.RegionAnnotation_borrowedInRegionDrop, regionName, name);
-    }
-  }
-  
+
   public void validated(final InRegionPromiseDrop pd) {
-	  pd.setVirtual(true);
-	  pd.setSourceDrop(this);
+    pd.setVirtual(true);
+    pd.setSourceDrop(this);
   }
-  
+
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
     final IRegion dest = this.getAAST().getSpec().resolveBinding().getRegion();
-    return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
+    return Collections.<IRegion, IRegion> singletonMap(instanceRegion, dest);
   }
 }

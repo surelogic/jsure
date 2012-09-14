@@ -80,11 +80,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      * each control flow drop, and that would be dumb.
      */
     for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
-      final ResultDrop middleDrop = new ResultDrop();
+      final ResultDrop middleDrop = new ResultDrop(entry.getKey().getNode());
       middleDrop.addCheckedPromise(entry.getKey());
       middleDrop.setConsistent();
-      middleDrop.setNode(entry.getKey().getNode());
-      setResultDependUponDrop(middleDrop, entry.getKey().getNode());
       middleDrop.setResultMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
       for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
         middleDrop.addTrustedPromise(cfDrop);
@@ -171,8 +169,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        final WarningDrop info = new WarningDrop();
-        this.setResultDependUponDrop(info, mr.mdecl);
+        final WarningDrop info = new WarningDrop(mr.mdecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
@@ -190,8 +187,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDrop timeOutResult = new ResultDrop();
-      setResultDependUponDrop(timeOutResult, mr.mdecl);
+      final ResultDrop timeOutResult = new ResultDrop(mr.mdecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
       timeOutResult.setResultMessage(Messages.TIMEOUT,

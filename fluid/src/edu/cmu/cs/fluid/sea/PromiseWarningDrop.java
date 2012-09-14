@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
@@ -12,12 +13,13 @@ public final class PromiseWarningDrop extends IRReferenceDrop {
 
   private final int f_offset;
 
-  public PromiseWarningDrop(int off) {
+  public PromiseWarningDrop(IRNode node, int off) {
+    super(node);
     f_offset = off;
   }
 
-  public PromiseWarningDrop() {
-    this(-1);
+  public PromiseWarningDrop(IRNode node) {
+    this(node, -1);
   }
 
   @Override
