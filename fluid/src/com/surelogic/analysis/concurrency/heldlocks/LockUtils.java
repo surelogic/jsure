@@ -26,6 +26,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +63,6 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;

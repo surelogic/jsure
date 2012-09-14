@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.drops.effects;
+package com.surelogic.dropsea.ir.drops.promises;
 
 import java.util.List;
 

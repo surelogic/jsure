@@ -24,6 +24,7 @@ import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattic
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -76,7 +77,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;

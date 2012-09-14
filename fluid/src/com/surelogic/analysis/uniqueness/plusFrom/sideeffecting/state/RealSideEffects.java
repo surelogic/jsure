@@ -16,11 +16,11 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.IUniquePromise;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;

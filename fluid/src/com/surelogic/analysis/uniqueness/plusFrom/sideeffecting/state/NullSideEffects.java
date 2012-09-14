@@ -7,9 +7,9 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTripl
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
 public final class NullSideEffects implements ISideEffects {
