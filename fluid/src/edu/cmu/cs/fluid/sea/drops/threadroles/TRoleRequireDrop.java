@@ -39,7 +39,7 @@ implements IThreadRoleDrop {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("built ThreadRoleConstraint " + getRawExpr() + " for " + JJNode.getInfo(locInIR));
     }
-    setMessage("ThreadRoleConstraint " + getRawExpr());
+    setResultMessage(12,"ThreadRoleConstraint " + getRawExpr());
   }
   
 //  public TRoleRequireDrop(TRoleRequireDrop parentDrop, IRNode locInIR) {
@@ -91,7 +91,7 @@ implements IThreadRoleDrop {
   protected TRoleRequireDrop(ThreadRoleNode n, String kind, IRNode locInIR) {
     super(n);
     rawExpr = buildTRExpr(n, locInIR);
-    setMessage(kind + ' ' + rawExpr);
+    setResultMessage(12,kind + ' ' + rawExpr);
     
     XML e = XML.getDefault();
     if (e == null || e.processingXML()) {
@@ -111,7 +111,7 @@ implements IThreadRoleDrop {
   protected TRoleRequireDrop(TRExpr exp, String kind, IRNode locInIR) {
     super(null);
     rawExpr = exp;
-    setMessage(kind + ' ' + rawExpr);
+    setResultMessage(12,kind + ' ' + rawExpr);
     setFromSrc(false);
     this.setCategory(TRoleMessages.assuranceCategory);
  //   setNodeAndCompilationUnitDependency(locInIR);

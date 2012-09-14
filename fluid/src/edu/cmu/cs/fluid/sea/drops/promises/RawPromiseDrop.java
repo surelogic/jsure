@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.RawNode;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -14,6 +14,6 @@ public final class RawPromiseDrop extends BooleanPromiseDrop<RawNode> {
   public RawPromiseDrop(RawNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-    setMessage(getAAST() + " on " + DebugUnparser.toString(getNode()));
+    setResultMessage(20, getAAST(), DebugUnparser.toString(getNode()));
   }
 }

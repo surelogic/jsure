@@ -145,7 +145,7 @@ public abstract class CUDrop extends Drop {
     } else {
       LOG.severe("No node while building CUDrop for " + f_javaOSFileName);
     }
-    setMessage(this.getClass().getSimpleName() + " " + f_javaOSFileName);
+    setResultMessage(11, getClass().getSimpleName(), f_javaOSFileName);
   }
 
   public final ITypeEnvironment getTypeEnv() {
@@ -203,6 +203,9 @@ public abstract class CUDrop extends Drop {
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
     final ISrcRef ref = JavaNode.getSrcRef(f_cu);
-    return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
+    if (ref != null)
+      return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
+    else
+      return super.createSourceRef();
   }
 }

@@ -100,7 +100,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     }
 
     resAsMPD.image = "@module " + resAsMPD.modName + " contains " + sb.toString();
-    res.setMessage(resAsMPD.image);
+    res.setResultMessage(12, resAsMPD.image);
 
     // asdfasdf
     // res.declaredModules.add(ModuleModel.confirmDrop(name, promise));
@@ -140,7 +140,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     // res.declaredModules.addAll(ModuleModel.queryModulesDefinedBy(name));
 
     resAsMPD.image = "@module " + name;
-    res.setMessage(resAsMPD.image + "(Incomplete)");
+    res.setResultMessage(12, resAsMPD.image + "(Incomplete)");
 
     synchronized (ModulePromiseDrop.class) {
       irToSimpleModule.put(where, res);
@@ -278,7 +278,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
       simples.addAll(ModuleModel.queryModulesDefinedBy(md.modName));
       md.addDeponents(simples);
       simples.clear();
-      md.setMessage(md.image);
+      md.setResultMessage(12, md.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
       rd.setCategory(JavaGlobals.MODULE_CAT);
@@ -299,11 +299,11 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     Collection<ModuleModel> wraps = new LinkedList<ModuleModel>();
     for (ModuleWrapperPromiseDrop mwd : safeWrappingModules) {
       ModuleModel mm = ModuleModel.confirmDrop(mwd.modName, mwd.getAAST().getModWrapper());
-      mm.setMessage(mwd.getMessage());
+      mm.setResultMessage(12, mwd.getMessage());
       wraps.addAll(ModuleModel.queryModulesDefinedBy(mwd.modName));
       mwd.addDeponents(wraps); // do we really want to do this?? asdfasdf
       wraps.clear();
-      mwd.setMessage(mwd.image);
+      mwd.setResultMessage(12, mwd.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
       rd.setCategory(JavaGlobals.MODULE_CAT);

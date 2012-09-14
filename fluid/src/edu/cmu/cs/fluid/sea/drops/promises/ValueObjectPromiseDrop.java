@@ -12,6 +12,6 @@ public final class ValueObjectPromiseDrop extends BooleanPromiseDrop<ValueObject
   public ValueObjectPromiseDrop(ValueObjectNode a) {
     super(a);
     setCategory(Messages.DSC_LAYERS_ISSUES);
-    setMessage(EqualityRules.VALUE_OBJECT + " on " + JavaNames.getFullName(getNode()));
+    setResultMessage(20, EqualityRules.VALUE_OBJECT, JavaNames.getFullName(getNode()));
   }
 }

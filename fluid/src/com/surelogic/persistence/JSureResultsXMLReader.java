@@ -70,7 +70,7 @@ public class JSureResultsXMLReader extends
 	@Override
 	protected void finishResult(ResultDrop d, Entity e, boolean checkedPromises) {
 		if (checkedPromises) {
-			d.setMessage(d.isConsistent() ? "Consistent" : "Inconsistent");
+			//d.setMessage(d.isConsistent() ? "Consistent" : "Inconsistent");
 		} else {
 			int number = Integer.parseInt(e.getAttribute(MESSAGE_CODE));
 			d.setResultMessage(number, (Object[]) e.getAttribute(MESSAGE_ARGS)

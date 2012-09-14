@@ -49,7 +49,7 @@ implements IThreadRoleDrop {
     super(n);
     importedUnit = null;
    // setNodeAndCompilationUnitDependency(n.getPromisedFor());
-    setMessage("@ThreadRoleImport " + getAAST().getId() + " (incomplete)");
+    setResultMessage(12,"@ThreadRoleImport " + getAAST().getId() + " (incomplete)");
     setCategory(JavaGlobals.THREAD_ROLES_CAT);
   }
 
@@ -72,7 +72,7 @@ implements IThreadRoleDrop {
       error.addCheckedPromise(this);
       error.setInconsistent();
 
-      error.setMessage("no binding found for \"" + importedUnit + '"');
+      error.setResultMessage(12,"no binding found for \"" + importedUnit + '"');
       //error.setNodeAndCompilationUnitDependency(this.getNode());
       error.setCategory(JavaGlobals.THREAD_ROLES_CAT);
     } else {
@@ -88,7 +88,7 @@ implements IThreadRoleDrop {
         importersOfImportedUnit.add(VisitUtil.getEnclosingCUorHere(getNode()));
       }
     }
-    setMessage("@ThreadRoleImport " + importedUnit);
+    setResultMessage(12,"@ThreadRoleImport " + importedUnit);
   }
 
   /* (non-Javadoc)

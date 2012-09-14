@@ -776,7 +776,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final WarningDrop info = new WarningDrop(context);
     setResultDep(info, context);
-    info.setMessage(msg);
+    info.setResultMessage(12, msg);
     info.setCategory(category);
     return info;
   }
@@ -787,7 +787,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final ResultDrop result = new ResultDrop(context);
     setResultDep(result, context);
-    result.setMessage(msg);
+    result.setResultMessage(12, msg);
     result.addCheckedPromise(p);
     result.setConsistent(isConsistent);
     return result;

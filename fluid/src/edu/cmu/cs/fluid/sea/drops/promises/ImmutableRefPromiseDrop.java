@@ -11,6 +11,6 @@ public final class ImmutableRefPromiseDrop extends BooleanPromiseDrop<ImmutableR
   public ImmutableRefPromiseDrop(ImmutableRefNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-    setMessage("Immutable on " + DebugUnparser.toString(getNode()));
+    setResultMessage(14, DebugUnparser.toString(getNode()));
   }
 }

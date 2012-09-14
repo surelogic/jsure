@@ -14,7 +14,6 @@ import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.IJavaDeclaration;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.refactor.IRNodeUtil;
@@ -125,15 +124,8 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IRepor
     f_replacedContents = replacedContents;
     f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
     f_origin = origin;
-    dependUponCompilationUnitOf(from);
 
-    final String msg;
-    if (contents == null) {
-      msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + "()");
-    } else {
-      msg = Entity.maybeIntern("ProposedPromiseDrop @" + annotation + '(' + contents + ')');
-    }
-    setMessage(msg);
+    setResultMessage(10, annotation, contents == null ? "" : contents);
   }
 
   /**

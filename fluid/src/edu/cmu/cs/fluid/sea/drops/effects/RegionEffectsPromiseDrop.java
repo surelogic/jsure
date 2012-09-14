@@ -29,9 +29,9 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
       }
       sb.append(" on ");
       sb.append(target);
-      setMessage(sb.toString());
+      setResultMessage(12, sb.toString());
     } else {
-      setMessage("No effects on " + target);
+      setResultMessage(171, target);
     }
   }
 

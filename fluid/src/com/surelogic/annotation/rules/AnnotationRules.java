@@ -357,7 +357,7 @@ public abstract class AnnotationRules {
 				int offset) {
 			// System.out.println("SCRUBBER: "+txt);
 			PromiseWarningDrop d = new PromiseWarningDrop(n, offset);
-			d.setMessage(txt);
+			d.setResultMessage(12, txt);
 			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
 			return d;
 		}

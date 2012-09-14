@@ -1,13 +1,11 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.InRegion;
@@ -17,23 +15,15 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
 import com.surelogic.common.i18n.AnalysisResultMessage;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.bind.PromiseConstants;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.promise.TextFile;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * The abstract base class for all drops within the sea, intended to be
@@ -108,8 +98,41 @@ public abstract class Drop implements IDrop {
   }
 
   /**
-   * For now, this depends on the drop having the info to create a
-   * JavaSourceReference
+   * This method sets the message for this drop. Calling this method is similar
+   * to calling
+   * 
+   * <pre>
+   * String.format(<i>formatString</i>, args)
+   * </pre>
+   * 
+   * where <i>formatString</i> is obtained from the
+   * <tt>SureLogicResults.properties</tt> file in the
+   * <tt>com.surelogic.common.i18n</tt> package.
+   * <p>
+   * The <tt>number</tt> for the result message in the
+   * <tt>SureLogicResults.properties</tt> file is <i>result.nnnnn</i>. For
+   * example, if <tt>number == 2001</tt> would result in the string
+   * <tt>"A singular problem."</tt> if the definition
+   * 
+   * <pre>
+   * result.02001=A singular problem.
+   * </pre>
+   * 
+   * is contained in the SureLogicResults.properties file. If the key is not
+   * defined in the SureLogicResults.properties file an exception is thrown.
+   * <p>
+   * <i>Implementation Note:</i> The {@code getInstance} methods of
+   * {@link AnalysisResultMessage} are used to an {@link AnalysisResultMessage}
+   * which is stored internally to this drop.
+   * 
+   * @param number
+   *          the number of the result in the
+   *          <tt>SureLogicResults.properties</tt> file.
+   * @param args
+   *          arguments to <tt>String.format</tt>.
+   * 
+   * @see AnalysisResultMessage
+   * @see I18N
    */
   public final void setResultMessage(int number, Object... args) {
     if (number < 1) {
@@ -117,9 +140,8 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef();
-      this.f_resultMessage = AnalysisResultMessage.getInstance(srcRef, number, args);
-      this.f_message = f_resultMessage.getResultString();
+      JavaSourceReference srcRef = createSourceRef(); // may be null
+      this.f_message = AnalysisResultMessage.getInstance(srcRef, number, args);
     }
   }
 
@@ -135,42 +157,10 @@ public abstract class Drop implements IDrop {
    */
   public final String getMessage() {
     synchronized (f_seaLock) {
-      return f_message;
-    }
-  }
-
-  /**
-   * Sets this drop's message.
-   * 
-   * @param message
-   *          the message to set for the UI about this drop.
-   */
-  public final void setMessage(String message) {
-    synchronized (f_seaLock) {
-      this.f_message = message;
-      this.f_resultMessage = null;
-    }
-  }
-
-  /**
-   * Sets this drop's message using a call to
-   * {@link MessageFormat#format(String, Object[])}.
-   * <P>
-   * An example is
-   * 
-   * <pre>
-   * Drop d;
-   * ...
-   * d.setMessage(&quot;lock {0} (pre-scrubbed, not complete)&quot;, lock);
-   * </pre>
-   * 
-   * @param message
-   *          the message to set for the UI about this drop.
-   */
-  public final void setMessage(String message, Object... args) {
-    synchronized (f_seaLock) {
-      this.f_message = (args.length == 0) ? message : MessageFormat.format(message, args);
-      this.f_resultMessage = null;
+      if (f_message == null)
+        return getClass().getSimpleName() + " (EMPTY)";
+      else
+        return f_message.getResultString();
     }
   }
 
@@ -431,62 +421,6 @@ public abstract class Drop implements IDrop {
   }
 
   /**
-   * Utility function that helps build required drop dependencies upon
-   * compilation unit drops, it causes this drop to be dependent upon the
-   * compilation unit drop that the given fAST node exists within.
-   * <p>
-   * <b>HACK WARNING:</b> This method depends upon (in its implementation) the
-   * existence of the {@link CUDrop} class. Fluid, within Eclipse, uses
-   * compilation unit level change. As Fluid becomes more incremental, i.e., we
-   * have a working incremental parser, this part of change dependency
-   * management will have to be overhauled. I see two problems with the current
-   * implementation of this method:
-   * <ul>
-   * <li>Drop depends upon CUDrop (a subclass), a design no-no</li>
-   * <li>We are not flexible enough to allow dependencies as fine-grained as the
-   * actual program analyses can support (e.g., constructor, method, etc.)</li>
-   * </ul>
-   * 
-   * @param node
-   *          the fAST node specifying the compilation unit this drop needs to
-   *          depend upon. If this is <code>null</code> no dependency is added.
-   */
-  public final void dependUponCompilationUnitOf(IRNode node) {
-    if (node == null)
-      return;
-    try {
-      Operator op = JJNode.tree.getOperator(node);
-      IRNode cu;
-      if (CompilationUnit.prototype.includes(op)) {
-        cu = node;
-      } else if (TextFile.prototype.includes(op)) {
-        // Not from a compilation unit
-        return;
-      } else {
-        cu = VisitUtil.getEnclosingCompilationUnit(node);
-      }
-      if (cu == null) {
-        LOG.log(Level.SEVERE, "unable to find enclosing compilation unit for " + DebugUnparser.toString(node));
-      } else {
-        CUDrop cuDrop = CUDrop.queryCU(cu);
-        if (cuDrop == null) {
-          IRNode type = VisitUtil.getEnclosingType(node);
-          if (!PromiseConstants.ARRAY_CLASS_NAME.equals(JJNode.getInfo(type))) {
-            LOG.log(Level.WARNING, "unable to find compilation unit drop for " + DebugUnparser.toString(node));
-          }
-        } else {
-          /*
-           * the promise depends upon the compilation unit it is within
-           */
-          cuDrop.addDependent(this);
-        }
-      }
-    } catch (Throwable e) {
-      LOG.log(Level.WARNING, "unable to find compilation unit drop for " + DebugUnparser.toString(node));
-    }
-  }
-
-  /**
    * Invoked when a dependent drop is invalidated. This method has no effect,
    * however, a subclass may override to change this behavior. This method's
    * behavior is consistent with truth maintenance system use, as the truth of
@@ -578,16 +512,12 @@ public abstract class Drop implements IDrop {
   private boolean f_valid = true;
 
   /**
-   * A mutable text message about this drop, usually used by the UI.
+   * An analysis result message about this drop, usually used by the UI.
+   * <p>
+   * May be {@code null}.
    */
   @InRegion("DropState")
-  private String f_message = this.getClass().getSimpleName() + " (EMPTY)";
-
-  /**
-   * A mutable result message about this drop, usually used by the UI.
-   */
-  @InRegion("DropState")
-  private AnalysisResultMessage f_resultMessage;
+  private AnalysisResultMessage f_message;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -636,8 +566,8 @@ public abstract class Drop implements IDrop {
   @RequiresLock("SeaLock")
   public void snapshotAttrs(XMLCreator.Builder s) {
     s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
-    if (f_resultMessage != null) {
-      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_resultMessage.getResultStringCanonical()));
+    if (f_message != null) {
+      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_message.getResultStringCanonical()));
     }
   }
 

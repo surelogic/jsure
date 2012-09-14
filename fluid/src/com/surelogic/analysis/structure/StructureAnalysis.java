@@ -90,7 +90,6 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 						// Check if it really invokes the parent
 						final boolean found = getAnalysis().doAccept(cu);
 						rd.setConsistent(found);		
-						rd.setMessage("");
 					}
 				}
 			}

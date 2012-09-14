@@ -64,7 +64,7 @@ public class SimpleCallGraphDrop extends IRReferenceDrop implements IThreadRoleD
     if (label == null) {
     	label = DebugUnparser.toString(node);
     }
-    setMessage(/*"SimpleCallGraphDrop for " + */label);
+    //setMessage(/*"SimpleCallGraphDrop for " + */label);
     synchronized (SimpleCallGraphDrop.class) {
       allCGDrops.add(this);
     }

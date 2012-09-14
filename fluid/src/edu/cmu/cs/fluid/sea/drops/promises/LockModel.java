@@ -57,7 +57,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
   private LockModel(AbstractLockDeclarationNode decl, String lockName) {
     super(decl);
     f_lockName = lockName;
-    this.setMessage("lock " + lockName);
+    this.setResultMessage(15, lockName);
     this.setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
@@ -77,7 +77,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
       ResultDrop rd = new ResultDrop(decl.getPromisedFor());
       rd.addCheckedPromise(result);
       rd.setConsistent();
-      rd.setMessage(msg);
+      rd.setResultMessage(12, msg);
     }
     return result;
   }

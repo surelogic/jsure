@@ -90,7 +90,7 @@ public final class ModuleModel extends ModelDrop {
     cache = new HashMap<String, ModuleModel>();
     childrenOfWorld = new HashSet<ModuleModel>();
     theWorldDrop = new ModuleModel();
-    theWorldDrop.setMessage("The world");
+    theWorldDrop.setResultMessage(12, "The world");
      moduleInformationIsConsistent = true;
     
     DS_BAD_EXPORT_INFO = 
@@ -172,7 +172,7 @@ public final class ModuleModel extends ModelDrop {
     enclosedModuleNames = null;
     enclosedModuleIR = null;
     setCategory(JavaGlobals.MODULE_CAT);
-    setMessage("(Module \"The World\")");
+    setResultMessage(12, "(Module \"The World\")");
   }
 
   /**
@@ -201,7 +201,7 @@ public final class ModuleModel extends ModelDrop {
     ModuleModel d = query(name);
     if (d == null) {
       d = new ModuleModel(name);
-      d.setMessage("Module " + name);
+      d.setResultMessage(12, "Module " + name);
       d.setParents();
       dependOn.addDependent(d);
     }
@@ -214,7 +214,7 @@ public final class ModuleModel extends ModelDrop {
     if (d == null) {
       d = new ModuleModel(name, thePromise);
 
-      d.setMessage("Module " + d.name + " contains " + d.enclosedModuleNames);
+      d.setResultMessage(12, "Module " + d.name + " contains " + d.enclosedModuleNames);
     }
     return d;
   }

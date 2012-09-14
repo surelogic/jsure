@@ -2,19 +2,27 @@ package com.surelogic.annotation.rules;
 
 import java.util.Iterator;
 
+import com.surelogic.aast.promise.RefObjectNode;
+import com.surelogic.aast.promise.ValueObjectNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
-import com.surelogic.analysis.layers.Messages;
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.scrub.*;
-import com.surelogic.aast.promise.*;
+import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.AbstractSuperTypeSearchStrategy;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -23,7 +31,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.sea.drops.promises.RefObjectPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ValueObjectPromiseDrop;
 
 public class EqualityRules extends AnnotationRules {
 	public static final String VALUE_OBJECT = "ValueObject";

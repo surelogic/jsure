@@ -705,7 +705,7 @@ public class TRoleSecondPass implements IBinderClient {
             // this API method.", null);
           }
         } else {
-          reqSumm.setMessage(Messages.ColorSecondPass_inferredColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
+         // reqSumm.setMessage(Messages.ColorSecondPass_inferredColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
           if (reqSumm.isEmpty()) {
             usefulInferDependOn.addDependent(reqSumm);
           } else {
@@ -715,9 +715,9 @@ public class TRoleSecondPass implements IBinderClient {
         }
       } else if (reqSumm.isInherited()) {
         if (reqSumm.reqsAreRelevant()) {
-          reqSumm.setMessage(Messages.ColorSecondPass_inheritedColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
+      //    reqSumm.setMessage(Messages.ColorSecondPass_inheritedColor, reqSumm.getReqString(), expandedMName); //$NON-NLS-1$
         } else {
-          reqSumm.setMessage(Messages.ColorSecondPass_inheritedTransparent, expandedMName); //$NON-NLS-1$
+      //    reqSumm.setMessage(Messages.ColorSecondPass_inheritedTransparent, expandedMName); //$NON-NLS-1$
         }
         inheritDependOn.addDependent(reqSumm);
         inheritCount += 1;
@@ -884,8 +884,8 @@ public class TRoleSecondPass implements IBinderClient {
       // StringBuilder sb = new StringBuilder();
       final JBDD userConstraint = regTRoleMod.getAndOfUserConstraints();
       if (userConstraint == null || userConstraint.isOne()) {
-        regTRoleMod.setMessage(Messages.ColorSecondPass_colorContextDrop, regTRoleMod.getMessage(),
-            TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext()));
+     //   regTRoleMod.setMessage(Messages.ColorSecondPass_colorContextDrop, regTRoleMod.getMessage(),
+      //      TRoleRenamePerCU.jbddMessageName(regTRoleMod.getComputedContext()));
         // just report the computed constraint
         final String colorizedRegion_OK = "{0} is accessed from ThreadRole context {1}.";
         ResultDrop rd = makeResultDrop(null, regTRoleMod, true, tRoleReportDataDependOn, colorizedRegion_OK,

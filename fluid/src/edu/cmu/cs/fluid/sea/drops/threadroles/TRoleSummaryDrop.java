@@ -21,7 +21,7 @@ implements IThreadRoleDrop {
    
    public TRoleSummaryDrop(String msg) {
 	 super(null);
-     setMessage(msg);
+	 setResultMessage(12,msg);
      setCategory(TRoleMessages.assuranceCategory);
    }
    

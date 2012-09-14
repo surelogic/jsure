@@ -12,7 +12,7 @@ implements IReferenceCheckDrop {
 	AbstractReferenceCheckDrop(A ast) {
 		super(ast);
 		setCategory(Messages.DSC_LAYERS_ISSUES);
-		setMessage(getAAST().toString());
+		setResultMessage(12, getAAST().toString());
 	}
 	
 	public final boolean check(IRNode type) {
