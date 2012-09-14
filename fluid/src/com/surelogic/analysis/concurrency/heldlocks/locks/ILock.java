@@ -1,9 +1,7 @@
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.dropsea.ir.drops.promises.LockModel;
-
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public interface ILock {
   public enum Type { 

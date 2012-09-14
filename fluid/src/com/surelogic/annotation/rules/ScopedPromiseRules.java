@@ -1,24 +1,58 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ScopedPromiseRules.java,v 1.23 2009/01/15 15:53:05 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.*;
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.promise.AssumeScopedPromiseNode;
+import com.surelogic.aast.promise.ConcreteTargetNode;
+import com.surelogic.aast.promise.ConstructorDeclPatternNode;
+import com.surelogic.aast.promise.FieldDeclPatternNode;
+import com.surelogic.aast.promise.InPackagePatternNode;
+import com.surelogic.aast.promise.MethodDeclPatternNode;
+import com.surelogic.aast.promise.PackageScopedPromiseNode;
+import com.surelogic.aast.promise.PromiseTargetNode;
+import com.surelogic.aast.promise.ScopedPromiseNode;
+import com.surelogic.aast.promise.TypeDeclPatternNode;
+import com.surelogic.aast.promise.WildcardTypeQualifierPatternNode;
 import com.surelogic.aast.visitor.DescendingVisitor;
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.parse.*;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.AbstractAnnotationParsingContext;
+import com.surelogic.annotation.AbstractAntlrParseRule;
+import com.surelogic.annotation.AnnotationLocation;
+import com.surelogic.annotation.AnnotationParsingContextProxy;
+import com.surelogic.annotation.AnnotationSource;
+import com.surelogic.annotation.IAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.ParseResult;
+import com.surelogic.annotation.SimpleAnnotationParsingContext;
+import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.parse.ScopedPromiseAdaptor;
+import com.surelogic.annotation.parse.ScopedPromiseParse;
+import com.surelogic.annotation.parse.ScopedPromisesParser;
+import com.surelogic.annotation.scrub.AASTStore;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberOrder;
+import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.promises.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ScopedPromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.PromiseDropSeqStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -30,12 +64,18 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.ReturnType;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ScopedPromiseRules extends AnnotationRules {

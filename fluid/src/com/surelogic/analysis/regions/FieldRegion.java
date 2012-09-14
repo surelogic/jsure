@@ -2,7 +2,8 @@
 package com.surelogic.analysis.regions;
 
 import com.surelogic.aast.bind.IRegionBinding;
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.InRegionNode;
+import com.surelogic.aast.promise.RegionSpecificationNode;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.dropsea.ir.drops.promises.InRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
@@ -12,9 +13,11 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.Visibility;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class FieldRegion extends AbstractRegion {
   private final IRNode field;

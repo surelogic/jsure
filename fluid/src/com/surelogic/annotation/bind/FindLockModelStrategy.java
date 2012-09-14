@@ -2,13 +2,13 @@ package com.surelogic.annotation.bind;
 
 import java.util.logging.Level;
 
-import com.surelogic.annotation.rules.*;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.drops.promises.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.bind.AbstractSuperTypeSearchStrategy;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  */

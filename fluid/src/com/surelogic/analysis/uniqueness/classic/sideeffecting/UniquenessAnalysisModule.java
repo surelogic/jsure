@@ -1,14 +1,24 @@
 package com.surelogic.analysis.uniqueness.classic.sideeffecting;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
+import com.surelogic.analysis.ConcurrencyType;
+import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.ICompUnitContext;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.uniqueness.classic.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -24,14 +34,17 @@ import com.surelogic.dropsea.ir.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;

@@ -3,20 +3,22 @@ package com.surelogic.annotation.rules;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.*;
+import com.surelogic.aast.promise.SingletonNode;
+import com.surelogic.aast.promise.UtilityNode;
+import com.surelogic.annotation.DefaultSLAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.SingletonPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.UtilityPromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class UtilityRules extends AnnotationRules {
 	public static final String UTILITY = "Utility";

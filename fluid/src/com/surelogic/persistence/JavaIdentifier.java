@@ -1,24 +1,46 @@
 package com.surelogic.persistence;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.*;
-import com.surelogic.analysis.*;
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.parse.*;
+import com.surelogic.aast.promise.PromiseTargetNode;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.IIRProjects;
+import com.surelogic.analysis.JavaProjects;
+import com.surelogic.annotation.AbstractAnnotationParsingContext;
+import com.surelogic.annotation.AnnotationLocation;
+import com.surelogic.annotation.AnnotationSource;
+import com.surelogic.annotation.IAnnotationParseRule;
+import com.surelogic.annotation.ParseResult;
+import com.surelogic.annotation.parse.ScopedPromiseAdaptor;
+import com.surelogic.annotation.parse.ScopedPromiseParse;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedTypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class JavaIdentifier {

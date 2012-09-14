@@ -11,20 +11,27 @@ import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
-import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.*;
+import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.QualifiedClassLockExpressionNode;
+import com.surelogic.aast.promise.RegionNameNode;
+import com.surelogic.annotation.DefaultSLAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AASTStore;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.GuardedByPromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class JcipRules extends AnnotationRules {
 	public static final String GUARDED_BY = "GuardedBy";

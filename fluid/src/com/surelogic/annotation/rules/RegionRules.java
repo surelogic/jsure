@@ -1,20 +1,42 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/RegionRules.java,v 1.45 2007/12/21 18:36:37 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.*;
+import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.bind.IRegionBinding;
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
+import com.surelogic.aast.promise.FieldMappingsNode;
+import com.surelogic.aast.promise.InRegionNode;
+import com.surelogic.aast.promise.NewRegionDeclarationNode;
+import com.surelogic.aast.promise.RegionMappingNode;
+import com.surelogic.aast.promise.RegionNameNode;
+import com.surelogic.aast.promise.RegionSpecificationNode;
+import com.surelogic.aast.promise.SimpleBorrowedInRegionNode;
+import com.surelogic.aast.promise.UniqueInRegionNode;
+import com.surelogic.aast.promise.UniqueMappingNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.annotation.*;
+import com.surelogic.annotation.DefaultSLAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.NullAnnotationParseRule;
+import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AASTStore;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.annotation.scrub.SimpleScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ExplicitBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ExplicitUniqueInRegionPromiseDrop;
@@ -23,7 +45,9 @@ import com.surelogic.dropsea.ir.drops.promises.MapFieldsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.dropsea.ir.drops.promises.SimpleBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.SimpleUniqueInRegionPromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.PromiseDropSeqStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -37,7 +61,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class RegionRules extends AnnotationRules {

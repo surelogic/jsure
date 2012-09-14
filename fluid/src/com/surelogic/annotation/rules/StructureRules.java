@@ -1,11 +1,14 @@
 package com.surelogic.annotation.rules;
 
-import com.surelogic.annotation.*;
-import com.surelogic.annotation.scrub.*;
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.MustInvokeOnOverrideNode;
+import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.MustInvokeOnOverridePromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -14,7 +17,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public class StructureRules extends AnnotationRules {
 	public static final String MUST_INVOKE_ON_OVERRIDE = "MustInvokeOnOverride";

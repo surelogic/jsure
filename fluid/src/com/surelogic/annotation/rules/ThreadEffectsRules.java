@@ -4,20 +4,23 @@ package com.surelogic.annotation.rules;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.promise.StartsSpecificationNode;
-import com.surelogic.annotation.*;
+import com.surelogic.annotation.DefaultSLAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
-import com.surelogic.promise.*;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.java.bind.IBinding;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 
 public class ThreadEffectsRules extends AnnotationRules {
   public static final String STARTS = "Starts";

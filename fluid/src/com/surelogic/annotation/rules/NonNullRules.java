@@ -3,23 +3,28 @@ package com.surelogic.annotation.rules;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.*;
+import com.surelogic.aast.promise.NonNullNode;
+import com.surelogic.aast.promise.NullableNode;
+import com.surelogic.aast.promise.RawNode;
+import com.surelogic.annotation.AnnotationSource;
+import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
-import com.surelogic.annotation.scrub.*;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RawPromiseDrop;
-
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public class NonNullRules extends AnnotationRules {	
 	public static final String NONNULL = "NonNull";

@@ -1,8 +1,15 @@
 package com.surelogic.dropsea.ir;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
@@ -10,7 +17,6 @@ import com.surelogic.dropsea.ir.drops.promises.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.VouchPromiseDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public final class SeaStats {
 	private SeaStats() {
