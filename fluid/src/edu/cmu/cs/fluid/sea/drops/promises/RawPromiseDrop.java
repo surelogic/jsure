@@ -1,10 +1,10 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.RawNode;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 /**
  * Promise drop for "Raw" promises established by the null value analysis.

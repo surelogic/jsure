@@ -6,6 +6,7 @@ import java.util.Map;
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -14,7 +15,6 @@ import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 /**
  * Promise drop for "unique" promises established by the uniqueness analysis.

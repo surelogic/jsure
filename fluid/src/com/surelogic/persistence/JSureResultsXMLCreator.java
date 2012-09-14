@@ -4,9 +4,9 @@ package com.surelogic.persistence;
 import java.io.*;
 import java.util.List;
 
+import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.irfree.AbstractSeaXmlCreator;
 
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class JSureResultsXMLCreator extends AbstractSeaXmlCreator {
 	public JSureResultsXMLCreator(OutputStream out) throws IOException {

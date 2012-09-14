@@ -6,8 +6,9 @@ import java.util.zip.*;
 
 import org.apache.commons.collections15.MultiMap;
 
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.SourceCUDrop;
+
 
 public class JSureSubtypeInfo {
 	private static final String SUBTYPES_ZIP = "subtypes.zip";	

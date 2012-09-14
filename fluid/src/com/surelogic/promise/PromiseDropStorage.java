@@ -6,9 +6,9 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class PromiseDropStorage {
 	private static final Logger LOG = SLLogger.getLogger();

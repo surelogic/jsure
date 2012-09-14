@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.surelogic.annotation.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.NotImplemented;
@@ -24,7 +25,6 @@ import edu.cmu.cs.fluid.java.analysis.SilentWarningReport;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
-import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 

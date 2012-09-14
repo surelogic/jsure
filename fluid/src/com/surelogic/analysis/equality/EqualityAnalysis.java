@@ -8,6 +8,7 @@ import com.surelogic.analysis.typeAnnos.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.typeAnnos.ValueObjectAnnotationTester;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

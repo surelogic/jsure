@@ -2,8 +2,9 @@ package com.surelogic.analysis;
 
 import java.util.List;
 
+import com.surelogic.dropsea.ir.drops.CUDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public class GroupedAnalysis implements IIRAnalysis {

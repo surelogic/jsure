@@ -1,8 +1,9 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/IIRAnalysis.java,v 1.4 2008/08/14 20:31:20 chance Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.dropsea.ir.drops.CUDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 /**
  * The sequence of events for analyses A1 to An, projects P1, P2 with shared analyses S1, S2:

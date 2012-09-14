@@ -14,14 +14,14 @@ import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.*;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
+import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
-import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T,P> {

@@ -25,6 +25,8 @@ import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -33,8 +35,6 @@ import edu.cmu.cs.fluid.java.promise.EnclosingModule;
 import edu.cmu.cs.fluid.java.promise.Module;
 import edu.cmu.cs.fluid.java.promise.Modules;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 
 public class ModuleDrop extends PromiseDrop {

@@ -10,6 +10,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ir.IRNode;

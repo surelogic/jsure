@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.drops;
+package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProjects;

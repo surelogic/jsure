@@ -1,9 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/WholeIRAnalysisTemplate.java,v 1.2 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.dropsea.ir.drops.CUDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends ICompUnitContext> extends AbstractWholeIRAnalysis<T,Q> {
 	public WholeIRAnalysisTemplate() {

@@ -4,7 +4,8 @@ package com.surelogic.analysis;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
+
 
 public abstract class AbstractAnalysisEnvironment implements IIRAnalysisEnvironment {
 	public IAnalysisMonitor getMonitor() {

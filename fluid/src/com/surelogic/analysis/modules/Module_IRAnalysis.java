@@ -2,10 +2,10 @@
 package com.surelogic.analysis.modules;
 
 import com.surelogic.analysis.*;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAndVisitor, Unused> {
 	public  Module_IRAnalysis() {

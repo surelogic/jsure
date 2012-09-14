@@ -5,10 +5,10 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Unused> {
 	private static final Logger LOG = SLLogger

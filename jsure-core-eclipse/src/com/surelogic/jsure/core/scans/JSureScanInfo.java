@@ -15,13 +15,13 @@ import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 
 /**
  * Manages the project information, the loading of drop information and other

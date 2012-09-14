@@ -40,6 +40,7 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.dropsea.irfree.SeaSummary.Diff;
@@ -68,7 +69,6 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {

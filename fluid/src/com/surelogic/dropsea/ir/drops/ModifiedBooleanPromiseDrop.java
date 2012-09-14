@@ -1,5 +1,5 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/sea/drops/BooleanPromiseDrop.java,v 1.2 2007/06/27 14:37:40 chance Exp $*/
-package edu.cmu.cs.fluid.sea.drops;
+package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 

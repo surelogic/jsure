@@ -5,11 +5,11 @@ import java.io.*;
 import java.util.List;
 
 import com.surelogic.analysis.*;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.persistence.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAnalysis,Unused> {	
 	public ThreadEffectsModule() {

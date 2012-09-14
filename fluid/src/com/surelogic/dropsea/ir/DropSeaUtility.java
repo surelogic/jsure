@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import com.surelogic.Utility;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -15,7 +16,6 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 @Utility
@@ -85,5 +85,4 @@ public final class DropSeaUtility {
   private DropSeaUtility() {
     // no instances
   }
-
 }

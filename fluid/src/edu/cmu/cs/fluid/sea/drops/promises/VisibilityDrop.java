@@ -24,13 +24,13 @@ import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
+import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public abstract class VisibilityDrop extends PromiseDrop {
   

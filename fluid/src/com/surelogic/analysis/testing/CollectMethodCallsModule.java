@@ -8,13 +8,13 @@ import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
 import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
 public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Unused> {

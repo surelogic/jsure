@@ -21,11 +21,11 @@ import org.eclipse.ui.ide.IDE;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class EditorUtil {
 

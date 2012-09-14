@@ -12,8 +12,6 @@ import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.sea.xml.*;
-
 /**
  * Export the Drop-Sea results as XML to the specified file name
  * 

@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
+
 
 /**
  * Map is used to share info 

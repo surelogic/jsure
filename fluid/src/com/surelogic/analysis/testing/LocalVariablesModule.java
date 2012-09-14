@@ -5,13 +5,13 @@ import java.util.List;
 
 import com.surelogic.analysis.*;
 import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
 	public LocalVariablesModule() {

@@ -2,11 +2,11 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.ThreadSafeNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 
 /**
  * Promise drop for "ThreadSafe" promises.

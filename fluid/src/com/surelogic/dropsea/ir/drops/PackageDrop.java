@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.sea.drops;
+package com.surelogic.dropsea.ir.drops;
 
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 

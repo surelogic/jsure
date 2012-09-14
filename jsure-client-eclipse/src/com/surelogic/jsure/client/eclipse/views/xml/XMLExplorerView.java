@@ -50,6 +50,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractSLView;
+import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
@@ -63,7 +64,6 @@ import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.PromisesXMLReader;
 import com.surelogic.xml.TestXMLParserConstants;
 
-import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 
 public class XMLExplorerView extends AbstractSLView implements
 		EclipseUIUtility.IContextMenuFiller {
