@@ -25,6 +25,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
    */
   final List<IRFreePromiseDrop> checkedPromises;
   final List<IRFreePromiseDrop> trustedPromises;
+  final List<IRFreeResultFolderDrop> trustedFolders;
   final MultiMap<String, IRFreePromiseDrop> orTrustedPromises;
 
   void addCheckedPromise(IRFreePromiseDrop info) {
@@ -44,6 +45,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
 
     checkedPromises = new ArrayList<IRFreePromiseDrop>(0);
     trustedPromises = new ArrayList<IRFreePromiseDrop>(0);
+    trustedFolders = new ArrayList<IRFreeResultFolderDrop>(0);
     orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
   }
 
@@ -63,8 +65,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
 
   @NonNull
   public Collection<? extends IResultFolderDrop> getTrustedFolders() {
-    // TODO NEED REAL LIST
-    return Collections.emptyList();
+    return trustedFolders;
   }
 
   public boolean isConsistent() {
@@ -74,9 +75,8 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
   @NonNull
   public Collection<IProofDrop> getAllTrusted() {
     Collection<IProofDrop> rv = new HashSet<IProofDrop>(trustedPromises);
+    rv.addAll(trustedFolders);
     rv.addAll(orTrustedPromises.values());
-
-    // TODO FOLDERS
     return rv;
   }
 
@@ -99,7 +99,7 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
   }
 
   public boolean hasTrusted() {
-    return hasOrLogic() || !trustedPromises.isEmpty(); // TODO FOLDERS
+    return hasOrLogic() || !trustedPromises.isEmpty() || !trustedFolders.isEmpty();
   }
 
   public boolean get_or_proofUsesRedDot() {
