@@ -35,6 +35,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   public static final String VOUCHED = "vouched";
   public static final String CONSISTENT = "consistent";
   public static final String TRUSTED_PROMISE = "trusted-promise";
+  public static final String TRUSTED_FOLDER = "trusted-folder";
   public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
   public static final String OR_LABEL = "or-label";
   public static final String OR_USES_RED_DOT = "or-uses-red-dot";
@@ -359,6 +360,9 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     for (Drop t : getTrustedPromises()) {
       s.snapshotDrop(t);
     }
+    for (Drop t : getTrustedFolders()) {
+      s.snapshotDrop(t);
+    }
     if (hasOrLogic()) {
       for (String label : getTrustedPromises_orKeys()) {
         for (Drop t : getTrustedPromises_or(label)) {
@@ -385,6 +389,9 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     super.snapshotRefs(s, db);
     for (Drop t : getTrustedPromises()) {
       s.refDrop(db, TRUSTED_PROMISE, t);
+    }
+    for (Drop t : getTrustedFolders()) {
+      s.refDrop(db, TRUSTED_FOLDER, t);
     }
     if (hasOrLogic()) {
       for (String label : getTrustedPromises_orKeys()) {
