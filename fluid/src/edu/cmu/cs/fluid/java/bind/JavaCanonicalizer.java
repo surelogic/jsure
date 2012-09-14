@@ -434,6 +434,10 @@ public class JavaCanonicalizer {
       if (JavaNode.getModifier(calleeThis.getDeclaration(), JavaNode.STATIC)) {
         return false;
       }
+      Operator op = JJNode.tree.getOperator(calleeThis.getDeclaration());
+      if (!(op instanceof NestedDeclInterface)) {
+    	  return false;
+      }
       IJavaNestedType calleeNested = ((IJavaNestedType)calleeThis);
       IRNode thisNode = createThisExpression(call,calleeNested.getOuterType(), null); // FIX
        if (pop instanceof AnonClassExpression) {
