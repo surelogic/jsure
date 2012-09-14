@@ -340,7 +340,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 			return DeclStatement.createNode(annos, mods, type, vdecls);
 		}
 		else if (t instanceof ClassTree) {
-			IRNode decl = adaptClass((ClassTree) t, context, true);
+			IRNode decl = adaptClass((ClassTree) t, context, false);
 			return TypeDeclarationStatement.createNode(decl);
 		}
 		return acceptNode(t, context);
