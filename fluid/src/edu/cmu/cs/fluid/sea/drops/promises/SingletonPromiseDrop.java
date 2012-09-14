@@ -1,7 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.SingletonNode;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;

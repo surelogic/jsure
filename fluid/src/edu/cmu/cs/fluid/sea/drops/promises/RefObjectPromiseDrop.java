@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.rules.*;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.*;
 

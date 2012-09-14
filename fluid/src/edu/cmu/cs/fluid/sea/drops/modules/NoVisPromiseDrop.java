@@ -2,7 +2,7 @@
 package edu.cmu.cs.fluid.sea.drops.modules;
 
 import com.surelogic.aast.promise.NoVisClauseNode;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
 
 
 public class NoVisPromiseDrop extends VisibilityDrop<NoVisClauseNode> {

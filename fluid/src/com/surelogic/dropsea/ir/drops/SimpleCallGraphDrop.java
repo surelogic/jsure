@@ -2,7 +2,7 @@
  * Created on Nov 6, 2004
  *
  */
-package edu.cmu.cs.fluid.sea.drops.callgraph;
+package com.surelogic.dropsea.ir.drops;
 
 import java.util.ArrayList;
 import java.util.Collection;

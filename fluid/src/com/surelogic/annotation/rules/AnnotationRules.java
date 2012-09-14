@@ -38,7 +38,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.PromiseWarningDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
 import com.surelogic.promise.IBooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropSeqStorage;
 import com.surelogic.promise.IPromiseDropStorage;

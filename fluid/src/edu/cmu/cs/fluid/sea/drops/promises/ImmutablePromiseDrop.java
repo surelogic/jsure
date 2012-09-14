@@ -2,7 +2,7 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
-import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;

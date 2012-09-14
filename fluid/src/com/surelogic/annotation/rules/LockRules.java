@@ -21,8 +21,8 @@ import com.surelogic.dropsea.ir.PromiseWarningDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
-import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.ModifiedBooleanPromiseDrop;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
