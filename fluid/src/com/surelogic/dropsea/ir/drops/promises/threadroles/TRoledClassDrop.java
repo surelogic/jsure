@@ -2,7 +2,7 @@
  * Created on Oct 14, 2004
  *
  */
-package edu.cmu.cs.fluid.sea.drops.threadroles;
+package com.surelogic.dropsea.ir.drops.promises.threadroles;
 
 import java.util.HashMap;
 import java.util.Map;

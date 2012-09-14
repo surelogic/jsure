@@ -8,8 +8,9 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Set;
 
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleNameModel;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenameDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleNameModel;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+
 
 import SableJBDD.bdd.JBDD;
 

@@ -3,9 +3,10 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.*;
 
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleIncompatibleDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleIncompatibleDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenameDrop;
 
 
 public class TRoleStaticCU extends TRoleStaticWithChildren {

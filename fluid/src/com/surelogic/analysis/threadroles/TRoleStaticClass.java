@@ -4,9 +4,10 @@ package com.surelogic.analysis.threadroles;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleImportDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleImportDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenameDrop;
 
 
 public class TRoleStaticClass extends TRoleStaticWithChildren {

@@ -12,16 +12,16 @@ import java.util.Iterator;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropEvent;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleCtxSummaryDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleDeclareDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleGrantDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleIncompatibleDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleNameModel;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleReqSummaryDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRequireDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRevokeDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleIncompatibleDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleNameModel;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleReqSummaryDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRequireDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 
 /**
  * @author dfsuther

@@ -3,10 +3,11 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Set;
 
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleGrantDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRevokeDrop;
+
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 
 
 public class TRoleStaticBlock extends TRoleStaticBlockish {

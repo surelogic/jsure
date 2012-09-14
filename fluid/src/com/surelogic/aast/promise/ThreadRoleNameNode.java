@@ -6,9 +6,9 @@ import com.surelogic.aast.*;
 import com.surelogic.analysis.threadroles.TRExpr;
 import com.surelogic.analysis.threadroles.TRLeafExpr;
 import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleNameModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleNameModel;
 
 
 

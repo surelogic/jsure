@@ -14,9 +14,9 @@ import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoledClassDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 /**
  * @author dfsuther

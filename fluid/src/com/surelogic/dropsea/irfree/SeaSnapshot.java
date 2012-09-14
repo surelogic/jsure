@@ -41,6 +41,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.promises.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
@@ -50,7 +51,6 @@ import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
   public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
