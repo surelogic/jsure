@@ -2,7 +2,7 @@
  */
 package com.surelogic.analysis.concurrency.heldlocks;
 
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

@@ -36,7 +36,7 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleDeclDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleModel;
 import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;

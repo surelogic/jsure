@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.locks;
 
 import com.surelogic.aast.promise.RequiresLockNode;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;

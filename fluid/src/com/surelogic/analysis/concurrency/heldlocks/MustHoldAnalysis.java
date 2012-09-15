@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
-import com.surelogic.dropsea.ir.drops.promises.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;

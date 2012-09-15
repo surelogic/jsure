@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.regions;
 
 import java.util.Map;
 

@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.promises;
 
 import com.surelogic.aast.promise.ReadOnlyNode;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 

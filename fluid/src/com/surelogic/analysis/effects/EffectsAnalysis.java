@@ -30,7 +30,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

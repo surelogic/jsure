@@ -27,11 +27,11 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.promises.ContainablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.ImmutablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
-import com.surelogic.dropsea.ir.drops.promises.ThreadSafePromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.threadsafe.ContainablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.threadsafe.ImmutablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.threadsafe.ThreadSafePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;

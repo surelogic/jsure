@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.*;
 

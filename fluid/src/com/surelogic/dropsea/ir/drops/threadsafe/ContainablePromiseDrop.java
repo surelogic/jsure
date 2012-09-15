@@ -1,7 +1,8 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.threadsafe;
 
 import com.surelogic.aast.promise.ContainableNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;

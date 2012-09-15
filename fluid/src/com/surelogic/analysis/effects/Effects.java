@@ -45,7 +45,7 @@ import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

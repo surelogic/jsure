@@ -4,7 +4,7 @@ package com.surelogic.annotation.test;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.IDerivedDropCreator;
+import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 import com.surelogic.test.ITest;
 
 import edu.cmu.cs.fluid.ir.IRNode;

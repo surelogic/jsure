@@ -46,7 +46,7 @@ import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.TypeSetPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

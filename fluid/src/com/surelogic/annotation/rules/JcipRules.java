@@ -24,7 +24,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.GuardedByPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 

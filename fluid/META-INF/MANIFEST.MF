@@ -55,6 +55,7 @@ Export-Package:
  com.surelogic.dropsea.ir,
  com.surelogic.dropsea.ir.drops,
  com.surelogic.dropsea.ir.drops.promises,
+ com.surelogic.dropsea.ir.drops.regions,
  com.surelogic.dropsea.irfree,
  com.surelogic.javac,
  com.surelogic.javac.jobs,

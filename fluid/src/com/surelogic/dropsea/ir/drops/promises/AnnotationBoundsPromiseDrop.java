@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir.drops.promises;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;

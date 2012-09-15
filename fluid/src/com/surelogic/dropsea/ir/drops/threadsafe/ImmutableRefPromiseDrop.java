@@ -1,6 +1,7 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.threadsafe;
 
 import com.surelogic.aast.promise.ImmutableRefNode;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;

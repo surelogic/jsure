@@ -1,7 +1,7 @@
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 
 /**

@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.promises;
 
 import com.surelogic.aast.promise.ScopedPromiseNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 
 
 /**

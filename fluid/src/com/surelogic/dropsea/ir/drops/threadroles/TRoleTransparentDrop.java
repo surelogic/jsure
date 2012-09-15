@@ -3,7 +3,7 @@ package com.surelogic.dropsea.ir.drops.threadroles;
 
 import com.surelogic.aast.promise.ThreadRoleTransparentNode;
 import com.surelogic.analysis.threadroles.TRoleMessages;
-import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 
 public class TRoleTransparentDrop extends BooleanPromiseDrop<ThreadRoleTransparentNode> 

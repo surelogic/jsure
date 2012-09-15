@@ -11,7 +11,7 @@ import com.surelogic.aast.promise.QualifiedReceiverDeclarationNode;
 import com.surelogic.aast.promise.ReceiverDeclarationNode;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

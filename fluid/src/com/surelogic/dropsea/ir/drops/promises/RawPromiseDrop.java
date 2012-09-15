@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.promises;
 
 import com.surelogic.aast.promise.RawNode;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;

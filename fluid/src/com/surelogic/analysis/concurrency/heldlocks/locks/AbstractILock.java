@@ -1,7 +1,7 @@
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 
 // Only needed in the analysis package, no need to be public

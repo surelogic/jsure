@@ -4,7 +4,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.ModifiedBooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir.drops.promises;
 import com.surelogic.aast.promise.MustInvokeOnOverrideNode;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.rules.StructureRules;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaNames;
 

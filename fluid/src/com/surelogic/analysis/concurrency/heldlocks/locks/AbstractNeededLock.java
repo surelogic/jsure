@@ -3,7 +3,7 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
 

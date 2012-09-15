@@ -55,10 +55,10 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.promises.LockModel;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
-import com.surelogic.dropsea.ir.drops.promises.RequiresLockPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;

@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops;
 
 import java.util.logging.Level;
 
@@ -8,7 +8,6 @@ import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

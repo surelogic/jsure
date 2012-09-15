@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.promises;
 
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
