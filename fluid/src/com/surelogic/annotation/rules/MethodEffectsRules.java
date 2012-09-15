@@ -19,7 +19,7 @@ import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.IPromiseDropStorage;

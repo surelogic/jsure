@@ -25,10 +25,10 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 

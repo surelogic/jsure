@@ -1,13 +1,14 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 import com.surelogic.aast.promise.RegionMappingNode;
-import com.surelogic.aast.promise.UniqueMappingNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionAggregationDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -19,28 +20,20 @@ import edu.cmu.cs.fluid.java.bind.Messages;
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
  */
-public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> implements RegionAggregationDrop,
-    IUniquePromise {
+public final class ExplicitBorrowedInRegionPromiseDrop extends PromiseDrop<ExplicitBorrowedInRegionNode> implements
+    RegionAggregationDrop {
 
-  public ExplicitUniqueInRegionPromiseDrop(UniqueMappingNode n) {
+  public ExplicitBorrowedInRegionPromiseDrop(ExplicitBorrowedInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
     final String name = JavaNames.getFieldDecl(getNode());
     final String mappings = getAAST().getMapping().unparse(false);
-    setMessage(Messages.RegionAnnotation_uniqueInRegionDrop, mappings, name);
+    setMessage(Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name);
   }
 
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return true;
-  }
-
-  public boolean allowRead() {
-    return getAAST().allowRead();
-  }
-
-  public ExplicitUniqueInRegionPromiseDrop getDrop() {
-    return this;
   }
 
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {

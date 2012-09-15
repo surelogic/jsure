@@ -32,12 +32,12 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ImmutablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;

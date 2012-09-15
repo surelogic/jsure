@@ -24,9 +24,9 @@ import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattic
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;

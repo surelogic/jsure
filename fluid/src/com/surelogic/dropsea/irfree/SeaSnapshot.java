@@ -101,8 +101,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   }
 
   private static String ROOT_DROP_PACKAGE = "com.surelogic.dropsea.ir.";
-  private static String[] SUB_DROP_PACKAGES = { "drops.", "drops.promises.", "drops.promises.layers.", "drops.promises.modules.",
-      "drops.promises.threadroles.", };
+  private static String[] SUB_DROP_PACKAGES = { "drops.", "drops.layers.", "drops.modules.", "drops.promises.",
+      "drops.threadroles.", };
 
   private static Collection<String> getPossibleClassNames(String simpleClassName) {
     Collection<String> result = new ArrayList<String>();

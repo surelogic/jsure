@@ -1,10 +1,13 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.aast.promise.BorrowedNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionAggregationDrop;
+import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;

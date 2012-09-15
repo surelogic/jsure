@@ -24,7 +24,7 @@ import com.surelogic.analysis.regions.*;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.WholeModuleFXDrop;
-import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
+//import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleModel;
 
@@ -445,7 +445,7 @@ public class TRoleTargets {
     //if call-site and callee are in different modules, or if either is part of
     // TheWorld we can only depend on the declared effects!
     
-    if (!ModuleModel.sameNonWorldModule(mCall, mDecl)) {
+    if (false){//!ModuleModel.sameNonWorldModule(mCall, mDecl)) {
       // it's declared effects, or WritesAll!
     	Effects e = null;
       return e.getMethodEffects(mDecl, mCall);

@@ -28,10 +28,10 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.SimpleCallGraphDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
 import com.surelogic.dropsea.ir.drops.modules.ModulePromiseDrop;
 import com.surelogic.dropsea.ir.drops.modules.VisibilityDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

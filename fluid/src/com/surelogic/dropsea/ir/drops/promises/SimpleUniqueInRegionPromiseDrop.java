@@ -6,6 +6,7 @@ import java.util.Map;
 import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;

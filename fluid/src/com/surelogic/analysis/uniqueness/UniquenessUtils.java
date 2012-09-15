@@ -13,12 +13,12 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.ExplicitUniqueInRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.promises.RegionAggregationDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.dropsea.ir.drops.promises.SimpleUniqueInRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

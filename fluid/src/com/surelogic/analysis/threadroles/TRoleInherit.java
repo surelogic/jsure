@@ -13,8 +13,8 @@ import java.util.logging.Logger;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.WarningDrop;
-import com.surelogic.dropsea.ir.drops.SimpleCallGraphDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
+import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;

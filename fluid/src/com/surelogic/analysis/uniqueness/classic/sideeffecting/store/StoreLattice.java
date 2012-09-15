@@ -21,11 +21,11 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquenessControlFlowDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

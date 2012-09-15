@@ -7,7 +7,7 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.FieldTripl
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.util.ImmutableSet;

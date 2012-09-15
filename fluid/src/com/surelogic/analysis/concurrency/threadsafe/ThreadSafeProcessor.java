@@ -21,11 +21,11 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.promises.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.promises.ModifiedBooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
 import com.surelogic.dropsea.ir.drops.promises.ThreadSafePromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

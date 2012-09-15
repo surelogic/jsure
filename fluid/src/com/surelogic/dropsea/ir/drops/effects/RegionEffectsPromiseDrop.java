@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.effects;
 
 import java.util.List;
 

@@ -29,8 +29,8 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquenessControlFlowDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;

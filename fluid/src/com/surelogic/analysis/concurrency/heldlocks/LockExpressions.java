@@ -16,10 +16,10 @@ import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.drops.promises.BorrowedPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.UniquePromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
