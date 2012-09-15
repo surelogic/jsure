@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.typeAnnos;
 
 import com.surelogic.aast.promise.UtilityNode;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;

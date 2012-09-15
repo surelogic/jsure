@@ -13,8 +13,8 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.drops.promises.RefObjectPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.ValueObjectPromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.RefObjectPromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.ValueObjectPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 

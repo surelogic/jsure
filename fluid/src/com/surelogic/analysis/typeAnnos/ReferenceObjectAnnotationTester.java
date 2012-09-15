@@ -3,7 +3,7 @@ package com.surelogic.analysis.typeAnnos;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.EqualityRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RefObjectPromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.RefObjectPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

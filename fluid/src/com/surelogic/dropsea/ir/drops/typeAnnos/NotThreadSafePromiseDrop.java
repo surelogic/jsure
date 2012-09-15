@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.threadsafe;
+package com.surelogic.dropsea.ir.drops.typeAnnos;
 
 import com.surelogic.aast.promise.NotThreadSafeNode;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;

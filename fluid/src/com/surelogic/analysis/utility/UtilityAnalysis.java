@@ -15,7 +15,7 @@ import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
 import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.promises.UtilityPromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.UtilityPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

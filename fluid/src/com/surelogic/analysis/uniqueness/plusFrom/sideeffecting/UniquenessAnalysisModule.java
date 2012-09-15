@@ -34,8 +34,8 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.ReadOnlyPromiseDrop;
-import com.surelogic.dropsea.ir.drops.threadsafe.ImmutablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.threadsafe.ImmutableRefPromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.ImmutablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 

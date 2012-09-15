@@ -15,7 +15,7 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.threadsafe.ContainablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.typeAnnos.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
