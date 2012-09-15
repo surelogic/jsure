@@ -2,7 +2,7 @@
 package com.surelogic.aast.bind;
 
 import com.surelogic.aast.layers.LayerBindingKind;
-import com.surelogic.dropsea.ir.drops.promises.layers.IReferenceCheckDrop;
+import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

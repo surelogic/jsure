@@ -43,10 +43,10 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.FindLockModelStrategy;
 import com.surelogic.annotation.bind.FindRegionModelStrategy;
 import com.surelogic.annotation.rules.LayerRules;
+import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
+import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
+import com.surelogic.dropsea.ir.drops.layers.TypeSetPromiseDrop;
 import com.surelogic.dropsea.ir.drops.promises.LockModel;
-import com.surelogic.dropsea.ir.drops.promises.layers.IReferenceCheckDrop;
-import com.surelogic.dropsea.ir.drops.promises.layers.LayerPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.layers.TypeSetPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
