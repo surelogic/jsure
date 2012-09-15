@@ -18,8 +18,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  */
 public final class InfoDrop extends IRReferenceDrop implements IInfoDrop, IReportedByAnalysisDrop {
 
-  public static final String LEVEL = "level";
-
   public InfoDrop(IRNode node) {
     this(node, null);
   }
@@ -49,6 +47,6 @@ public final class InfoDrop extends IRReferenceDrop implements IInfoDrop, IRepor
 
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
-    s.addAttribute(LEVEL, f_level.toString());
+    s.addAttribute(AbstractXMLReader.INFO_LEVEL_ATTR, f_level.toString());
   }
 }
