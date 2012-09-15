@@ -45,7 +45,7 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -632,7 +632,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   private int getModelProblemCount(final JSureScanInfo info) {
     int result = 0;
     if (info != null) {
-      Set<? extends IDrop> promiseWarningDrops = info.getDropsOfType(PromiseWarningDrop.class);
+      Set<? extends IDrop> promiseWarningDrops = info.getDropsOfType(ModelingProblemDrop.class);
       for (IDrop id : promiseWarningDrops) {
         final String resource = DropInfoUtility.getResource(id);
         /*

@@ -59,7 +59,7 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IReportedByAnalysisDrop;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -583,7 +583,7 @@ public class Util {
         return -1;
       }
     });
-    PromiseWarningDrop d = new PromiseWarningDrop(n);
+    ModelingProblemDrop d = new ModelingProblemDrop(n);
     d.setMessage(num, args);
     // LOG.warning(d.getMessage());
   }

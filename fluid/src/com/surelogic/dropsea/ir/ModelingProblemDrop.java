@@ -1,24 +1,26 @@
 package com.surelogic.dropsea.ir;
 
+import com.surelogic.dropsea.IModelingProblem;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
 /**
- * Drop to represent promise scrubber warnings reported by the analysis
- * infrastructure. These warnings indicated a syntactical or semantic problem
- * with a user-expressed model of design intent.
+ * Drop to represent modeling problems reported by the promise scrubber in the
+ * analysis infrastructure. These problems indicated a syntactical or semantic
+ * problem with a user-expressed model of design intent.
  */
-public final class PromiseWarningDrop extends IRReferenceDrop {
+public final class ModelingProblemDrop extends IRReferenceDrop implements IModelingProblem {
 
   private final int f_offset;
 
-  public PromiseWarningDrop(IRNode node, int off) {
+  public ModelingProblemDrop(IRNode node, int off) {
     super(node);
     f_offset = off;
   }
 
-  public PromiseWarningDrop(IRNode node) {
+  public ModelingProblemDrop(IRNode node) {
     this(node, -1);
   }
 

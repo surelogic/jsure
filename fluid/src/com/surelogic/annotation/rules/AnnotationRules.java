@@ -36,7 +36,7 @@ import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.promise.IBooleanPromiseDropStorage;
@@ -334,12 +334,12 @@ public abstract class AnnotationRules {
 
 		public void reportErrorAndProposal(ProposedPromiseDrop p,
 				String msgTemplate, Object... args) {
-			PromiseWarningDrop d = reportError_private(p.getNode(),
+			ModelingProblemDrop d = reportError_private(p.getNode(),
 					msgTemplate, args);
 			d.addProposal(p);
 		}
 
-		private PromiseWarningDrop reportError_private(IRNode n,
+		private ModelingProblemDrop reportError_private(IRNode n,
 				String msgTemplate, Object... args) {
 			final ISrcRef ref = JavaNode.getSrcRef(n);
 			final int offset;
@@ -353,10 +353,10 @@ public abstract class AnnotationRules {
 			return reportError_private(txt, n, offset);
 		}
 
-		private PromiseWarningDrop reportError_private(String txt, IRNode n,
+		private ModelingProblemDrop reportError_private(String txt, IRNode n,
 				int offset) {
 			// System.out.println("SCRUBBER: "+txt);
-			PromiseWarningDrop d = new PromiseWarningDrop(n, offset);
+			ModelingProblemDrop d = new ModelingProblemDrop(n, offset);
 			d.setMessage(12, txt);
 			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
 			return d;

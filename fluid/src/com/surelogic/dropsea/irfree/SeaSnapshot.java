@@ -38,6 +38,7 @@ import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -46,6 +47,7 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeInfoDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultDrop;
@@ -146,6 +148,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   }
 
   public static Class<?> findType(String className) {
+    /*
+     * Handle classes we changed the names of
+     */
+    if (className.endsWith("PromiseWarningDrop")) {
+      className = ModelingProblemDrop.class.getName();
+    }
     /*
      * Check our cache.
      */
@@ -325,6 +333,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
             return new IRFreeResultDrop(name, a);
           } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeResultFolderDrop(name, a);
+          } else if (ModelingProblemDrop.class.isAssignableFrom(thisType)) {
+            return new IRFreeModelingProblemDrop(name, a);
           }
         }
       }

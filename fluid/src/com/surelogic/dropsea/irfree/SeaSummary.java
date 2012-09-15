@@ -57,7 +57,7 @@ import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 
@@ -200,7 +200,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     if (d.instanceOf(IThreadRoleDrop.class)) {
       return null;
     }
-    if (d.instanceOf(PromiseWarningDrop.class) && d.getMessage().contains("ThreadRole")) {
+    if (d.instanceOf(ModelingProblemDrop.class) && d.getMessage().contains("ThreadRole")) {
       return null;
     }
     if (d.instanceOf(IRReferenceDrop.class)) {

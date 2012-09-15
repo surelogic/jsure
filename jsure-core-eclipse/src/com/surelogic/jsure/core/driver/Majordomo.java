@@ -48,13 +48,11 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.builder.AbstractJavaBuilder;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 
 /**
  * The central controller to notify analysis modules that changes to the state

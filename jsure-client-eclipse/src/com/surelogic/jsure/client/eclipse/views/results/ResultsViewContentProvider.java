@@ -40,7 +40,7 @@ import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
@@ -494,7 +494,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         result.f_isInfo = true;
         result.f_isInfoWarning = infoDrop.getLevel() == InfoDropLevel.WARNING;
 
-      } else if (drop.instanceOf(PromiseWarningDrop.class)) {
+      } else if (drop.instanceOf(ModelingProblemDrop.class)) {
 
         /*
          * PROMISE WARNING DROP

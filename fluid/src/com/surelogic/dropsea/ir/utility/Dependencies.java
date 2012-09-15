@@ -14,7 +14,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
@@ -222,8 +222,8 @@ public class Dependencies {
 	 * Collect CU deponents of promise warnings
 	 * @return 
 	 */
-	private Collection<PromiseWarningDrop> processPromiseWarningDrops() {
-		final List<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
+	private Collection<ModelingProblemDrop> processPromiseWarningDrops() {
+		final List<ModelingProblemDrop> warnings = Sea.getDefault().getDropsOfType(ModelingProblemDrop.class);
 		for(Drop d : warnings) {	
 			System.out.println("Processing PWD: "+d.getMessage());
 			try {
@@ -243,7 +243,7 @@ public class Dependencies {
 	 * Clears drops!
 	 */
 	public void finishReprocessing() {
-		final Collection<PromiseWarningDrop> warnings = processPromiseWarningDrops();
+		final Collection<ModelingProblemDrop> warnings = processPromiseWarningDrops();
 		for(CUDrop d : changed) {
 			System.out.println("Changed:   "+d.getJavaOSFileName()+" "+d.getClass().getSimpleName());
 		}		
@@ -294,7 +294,7 @@ public class Dependencies {
 					//ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
 				}
 			}
-			for(PromiseWarningDrop w : warnings) {
+			for(ModelingProblemDrop w : warnings) {
 				w.invalidate();
 			}
 		} finally {

@@ -70,7 +70,7 @@ import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -1102,7 +1102,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
+          final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
           wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
@@ -1143,7 +1143,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
+          final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
           wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
@@ -2499,7 +2499,7 @@ public class LockRules extends AnnotationRules {
          */
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        final PromiseWarningDrop wd = new PromiseWarningDrop(lockDecl.getPromisedFor());
+        final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
         wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
         wd.setCategory(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);
         model.addDependent(wd);

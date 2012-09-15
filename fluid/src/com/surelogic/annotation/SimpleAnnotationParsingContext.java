@@ -12,7 +12,7 @@ import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.PromiseWarningDrop;
+import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -199,7 +199,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   }
   
   public static void reportError(IRNode node, int offset, String txt) {	    
-	  PromiseWarningDrop d = new PromiseWarningDrop(node, offset);
+	  ModelingProblemDrop d = new ModelingProblemDrop(node, offset);
 	  d.setMessage(12, txt);
 	  d.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
   }
