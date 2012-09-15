@@ -3,7 +3,7 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.*;
 
-import com.surelogic.dropsea.ir.drops.promises.threadroles.RegionTRoleModel;
+import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleModel;
 
 
 import edu.cmu.cs.fluid.ir.IRNode;

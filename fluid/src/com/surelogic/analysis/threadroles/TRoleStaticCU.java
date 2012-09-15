@@ -3,8 +3,8 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.*;
 
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleIncompatibleDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleIncompatibleDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleRenameDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

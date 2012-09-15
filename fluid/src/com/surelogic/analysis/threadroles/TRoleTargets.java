@@ -26,7 +26,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.WholeModuleFXDrop;
 import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
 import com.surelogic.dropsea.ir.drops.promises.RegionModel;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.RegionTRoleModel;
+import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;

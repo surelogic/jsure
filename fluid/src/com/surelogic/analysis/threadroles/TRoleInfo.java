@@ -4,7 +4,7 @@
 package com.surelogic.analysis.threadroles;
 
 
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleReqSummaryDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;

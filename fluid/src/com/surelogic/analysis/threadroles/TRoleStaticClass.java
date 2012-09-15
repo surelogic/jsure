@@ -4,8 +4,8 @@ package com.surelogic.analysis.threadroles;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleImportDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleImportDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleRenameDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

@@ -1,5 +1,5 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/sea/drops/modules/NoVisPromiseDrop.java,v 1.1 2007/10/27 17:11:10 dfsuther Exp $*/
-package com.surelogic.dropsea.ir.drops.promises.modules;
+package com.surelogic.dropsea.ir.drops.modules;
 
 import com.surelogic.aast.promise.NoVisClauseNode;
 import com.surelogic.dropsea.ir.drops.promises.BooleanPromiseDrop;

@@ -2,7 +2,7 @@
  * Created on Oct 14, 2004
  *
  */
-package com.surelogic.dropsea.ir.drops.promises.threadroles;
+package com.surelogic.dropsea.ir.drops.threadroles;
 
 import java.util.HashMap;
 import java.util.Map;

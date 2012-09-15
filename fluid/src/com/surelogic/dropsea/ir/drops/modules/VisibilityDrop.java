@@ -4,7 +4,7 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-package com.surelogic.dropsea.ir.drops.promises.modules;
+package com.surelogic.dropsea.ir.drops.modules;
 
 import java.util.ArrayList;
 import java.util.Collection;

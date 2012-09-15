@@ -4,7 +4,7 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-package com.surelogic.dropsea.ir.drops.promises.threadroles;
+package com.surelogic.dropsea.ir.drops.threadroles;
 
 import java.util.Collection;
 import java.util.HashSet;

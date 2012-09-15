@@ -24,10 +24,10 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.modules.ExportDrop;
-import com.surelogic.dropsea.ir.drops.promises.modules.ModulePromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.modules.NoVisPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.modules.VisDrop;
+import com.surelogic.dropsea.ir.drops.modules.ExportDrop;
+import com.surelogic.dropsea.ir.drops.modules.ModulePromiseDrop;
+import com.surelogic.dropsea.ir.drops.modules.NoVisPromiseDrop;
+import com.surelogic.dropsea.ir.drops.modules.VisDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 

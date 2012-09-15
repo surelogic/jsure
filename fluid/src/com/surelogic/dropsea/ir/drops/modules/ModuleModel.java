@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises.modules;
+package com.surelogic.dropsea.ir.drops.modules;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -11,7 +11,7 @@ import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.promises.ModelDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.IThreadRoleDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

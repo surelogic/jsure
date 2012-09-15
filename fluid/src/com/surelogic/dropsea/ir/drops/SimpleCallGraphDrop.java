@@ -13,7 +13,7 @@ import com.surelogic.RequiresLock;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.IThreadRoleDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

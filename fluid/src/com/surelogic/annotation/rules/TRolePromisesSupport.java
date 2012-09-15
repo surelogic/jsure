@@ -9,15 +9,15 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.RegionTRoleDeclDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleCtxSummaryDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleDeclareDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleGrantDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleImportDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleIncompatibleDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleReqSummaryDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRequireDrop;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRevokeDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleDeclDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleCtxSummaryDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleDeclareDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleGrantDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleImportDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleIncompatibleDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleRequireDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleRevokeDrop;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;

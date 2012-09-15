@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.drops.promises.threadroles.TRoleRenameDrop;
+import com.surelogic.dropsea.ir.drops.threadroles.TRoleRenameDrop;
 
 
 import SableJBDD.bdd.JBDD;

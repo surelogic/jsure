@@ -2,7 +2,7 @@
  * Created on Nov 5, 2004
  *
  */
-package com.surelogic.dropsea.ir.drops.promises.threadroles;
+package com.surelogic.dropsea.ir.drops.threadroles;
 
 import java.util.Collection;
 import java.util.logging.Logger;

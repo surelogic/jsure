@@ -4,11 +4,11 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-package com.surelogic.dropsea.ir.drops.promises.threadroles;
+package com.surelogic.dropsea.ir.drops.threadroles;
 
 import java.util.Collection;
 
-import com.surelogic.aast.promise.ThreadRoleGrantNode;
+import com.surelogic.aast.promise.ThreadRoleRevokeNode;
 import com.surelogic.dropsea.ir.Drop;
 
 
@@ -19,22 +19,15 @@ import com.surelogic.dropsea.ir.Drop;
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleGrantDrop extends TRoleNameListDrop<ThreadRoleGrantNode>  {
-  private static final String myKind = "TRoleGrant";
-
-//  public ColorGrantDrop(Collection declColors) {
-//    super(declColors, myKind);
+public class TRoleRevokeDrop extends TRoleNameListDrop<ThreadRoleRevokeNode> {
+  private static final String myKind = "TRoleRevoke";
+//  public TRoleRevokeDrop(Collection names) {
+//    super(names, myKind);
 //  }
   
-  public TRoleGrantDrop(ThreadRoleGrantNode cgn) {
-    // note that super handles the ColorAnnoMap stuff for us...
-    super(cgn, myKind, false);
-  }
-  
-  
-  
-  public Collection<String> getGrantedNames() {
-    return super.getListedTRoles();
+  public TRoleRevokeDrop(ThreadRoleRevokeNode trrn) {
+    // note that super... takes care of the ColorAnnoMap for us...  
+    super(trrn, myKind, false);
   }
   
   /* (non-Javadoc)
@@ -50,4 +43,10 @@ public class TRoleGrantDrop extends TRoleNameListDrop<ThreadRoleGrantNode>  {
     super.deponentInvalidAction(invalidDeponent);
   }
   
+  /**
+   * @return a Collection holding the String representation of the revoked color names.
+   */
+  public Collection<String> getRevokedNames() {
+    return getListedTRoles();
+  }
 }
