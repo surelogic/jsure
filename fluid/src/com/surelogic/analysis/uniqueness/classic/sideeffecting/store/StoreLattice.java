@@ -21,7 +21,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;

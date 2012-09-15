@@ -16,7 +16,7 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 

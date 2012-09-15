@@ -29,7 +29,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.WarningDrop;
-import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 import com.surelogic.util.IThunk;
 

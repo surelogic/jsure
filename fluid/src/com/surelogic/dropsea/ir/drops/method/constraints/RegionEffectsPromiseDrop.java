@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.effects;
+package com.surelogic.dropsea.ir.drops.method.constraints;
 
 import java.util.List;
 
