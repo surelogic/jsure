@@ -466,6 +466,18 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   }
 
   @Override
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute(VOUCHED, isVouched());
+    s.addAttribute(CONSISTENT, isConsistent());
+    s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
+    s.addAttribute(OR_PROVED, get_or_provedConsistent());
+    s.addAttribute(TIMEOUT, isTimeout());
+    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
+    s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
+  }
+
+  @Override
   public void preprocessRefs(SeaSnapshot s) {
     super.preprocessRefs(s);
     for (Drop t : getTrustedPromises()) {
@@ -481,18 +493,6 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
         }
       }
     }
-  }
-
-  @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    super.snapshotAttrs(s);
-    s.addAttribute(VOUCHED, isVouched());
-    s.addAttribute(CONSISTENT, isConsistent());
-    s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
-    s.addAttribute(OR_PROVED, get_or_provedConsistent());
-    s.addAttribute(TIMEOUT, isTimeout());
-    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
-    s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
   }
 
   @Override

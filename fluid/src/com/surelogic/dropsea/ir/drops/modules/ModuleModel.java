@@ -295,7 +295,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
                                                          aModDecl, false, 
                                                          DS_BAD_MODULE_ENCLOSURE, 
                                                          mod.name, encMD.name);
-            rd.setCategory(DSC_BAD_MODULE_PROMISE);
+            //rd.setCategory(DSC_BAD_MODULE_PROMISE);
             moduleInformationIsConsistent = false;
           }
           
@@ -772,7 +772,7 @@ public static void updateWishIWere(IRNode javaThing, ModuleModel refingMod) {
   public  ResultDrop getMyResultDrop() {
     if (myRD == null || !myRD.isValid()) {
       myRD = ModuleAnalysisAndVisitor.makeResultDrop(null, this, true, getMessage());
-      myRD.setCategory(JavaGlobals.MODULE_CAT);
+     // myRD.setCategory(JavaGlobals.MODULE_CAT);
     }
     return myRD;
   }

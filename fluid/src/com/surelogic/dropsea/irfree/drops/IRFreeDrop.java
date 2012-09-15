@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
@@ -52,7 +53,7 @@ public class IRFreeDrop extends Entity implements IDrop {
   final List<IRFreeDrop> dependents;
   final List<IRFreeDrop> deponents;
   final List<IRFreeProposedPromiseDrop> proposals;
-
+  Category category;
   ISrcRef ref;
   List<ISupportingInformation> supportingInfos;
 
@@ -98,6 +99,7 @@ public class IRFreeDrop extends Entity implements IDrop {
       deponents = Collections.emptyList();
       proposals = Collections.emptyList();
     }
+    category = Category.getInstance(getAttribute(CATEGORY_ATTR));
   }
 
   public void finishInit() {
@@ -241,6 +243,10 @@ public class IRFreeDrop extends Entity implements IDrop {
 
   public boolean isValid() {
     return true;
+  }
+
+  public Category getCategory() {
+    return category;
   }
 
   public String getMessage() {

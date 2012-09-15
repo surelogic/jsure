@@ -3,6 +3,7 @@ package com.surelogic.dropsea;
 import java.util.Collection;
 
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 
@@ -45,6 +46,14 @@ public interface IDrop {
    * @return the message set for this drop, usually used by the UI.
    */
   String getMessage();
+
+  /**
+   * Gets the user interface reporting category for this drop, or {@code null}
+   * if none has been defined.
+   * 
+   * @return a category, or {@code null} if none is set.
+   */
+  Category getCategory();
 
   /**
    * Returns whether this drop is valid or not. A drop being valid indicates

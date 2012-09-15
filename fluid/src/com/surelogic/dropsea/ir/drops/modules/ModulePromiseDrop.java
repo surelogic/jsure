@@ -206,7 +206,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
 
     // build the error here!
     ResultDrop rd = ModuleAnalysisAndVisitor.makeResultDrop(getNode(), this, false, DS_ERR_MODULE_WRAPPING_LOOP, this.toString());
-    rd.setCategory(DSC_BAD_MODULE_PROMISE);
+   // rd.setCategory(DSC_BAD_MODULE_PROMISE);
     LOG.severe(toString() + " participates in a wrapping loop!");
   }
 
@@ -281,7 +281,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
       md.setMessage(12, md.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
-      rd.setCategory(JavaGlobals.MODULE_CAT);
+     // rd.setCategory(JavaGlobals.MODULE_CAT);
     }
     safeSimpleModules.clear();
 
@@ -306,7 +306,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
       mwd.setMessage(12, mwd.image);
       ResultDrop rd = mm.getMyResultDrop();
       rd.setConsistent();
-      rd.setCategory(JavaGlobals.MODULE_CAT);
+    //  rd.setCategory(JavaGlobals.MODULE_CAT);
     }
     safeWrappingModules.clear();
   }
@@ -384,7 +384,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     for (ModulePromiseDrop mod : allMDs) {
       if (!mod.badDecl) {
         ResultDrop rd = ModuleAnalysisAndVisitor.makeResultDrop(mod.getNode(), mod, true, mod.getMessage());
-        rd.setCategory(DSC_OK_MODULE_PROMISE);
+        //rd.setCategory(DSC_OK_MODULE_PROMISE);
       }
     }
 

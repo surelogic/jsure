@@ -181,7 +181,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   @Override
   public String getXMLElementName() {
-    return "proof-drop";
+    return AbstractXMLReader.PROOF_DROP;
   }
 
   @Override
@@ -190,7 +190,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     super.snapshotAttrs(s);
     s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
     s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
-    // System.out.println(getMessage()+" proved consistent: "+provedConsistent());
     s.addAttribute(AbstractXMLReader.DERIVED_FROM_SRC_ATTR, derivedFromSrc());
   }
 }

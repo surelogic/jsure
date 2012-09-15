@@ -9,12 +9,14 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.InRegion;
+import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -114,38 +116,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
      * Text describing the promise annotation.
      */
     public String text;
-  }
-
-  /**
-   * A user interface reporting category for this drop.
-   * 
-   * @see Category
-   */
-  @InRegion("DropState")
-  private Category f_category = null;
-
-  /**
-   * Gets the user interface reporting category for this drop.
-   * 
-   * @return a category, or {@code null} if none is set.
-   */
-  public final Category getCategory() {
-    synchronized (f_seaLock) {
-      return f_category;
-    }
-  }
-
-  /**
-   * Sets the user interface reporting category for this drop.
-   * 
-   * @param category
-   *          a category to set, or {@code null} to clear the category.
-   */
-  @Override
-  public final void setCategory(Category category) {
-    synchronized (f_seaLock) {
-      f_category = category;
-    }
   }
 
   /**
@@ -570,10 +540,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   public String getXMLElementName() {
-    return "promise-drop";
+    return AbstractXMLReader.PROMISE_DROP;
   }
 
   @Override
+  @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
     final Category cat = getCategory();
@@ -587,6 +558,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
+  @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
     if (useCheckedByResults) {

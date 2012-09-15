@@ -3,8 +3,10 @@ package com.surelogic.dropsea.ir.drops;
 import java.util.Collections;
 import java.util.Set;
 
+import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Drop;
 
@@ -189,17 +191,6 @@ public abstract class CUDrop extends Drop {
   }
 
   @Override
-  public String getXMLElementName() {
-    return "cu-drop";
-  }
-
-  @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    super.snapshotAttrs(s);
-    s.addAttribute("filename", f_javaOSFileName);
-  }
-
-  @Override
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
     final ISrcRef ref = JavaNode.getSrcRef(f_cu);
@@ -207,5 +198,21 @@ public abstract class CUDrop extends Drop {
       return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
     else
       return super.createSourceRef();
+  }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
+  @Override
+  public String getXMLElementName() {
+    return AbstractXMLReader.CU_DROP;
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute("filename", f_javaOSFileName);
   }
 }

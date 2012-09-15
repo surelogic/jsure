@@ -7,8 +7,8 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
 
+public final class ProjectsDrop extends Drop {
 
-public class ProjectsDrop extends Drop {
   static private ProjectsDrop active = null;
 
   @InRegion("DropState")
@@ -34,17 +34,6 @@ public class ProjectsDrop extends Drop {
       return match;
     }
     return new ProjectsDrop(p);
-  }
-
-  @Override
-  public String getXMLElementName() {
-    return "projects-drop";
-  }
-
-  @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    super.snapshotAttrs(s);
-    s.addAttribute(AbstractXMLReader.PROJECTS, f_projects.getLabel());
   }
 
   public IIRProjects getIIRProjects() {
@@ -87,5 +76,20 @@ public class ProjectsDrop extends Drop {
       return null;
     else
       return pd.getIIRProjects();
+  }
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
+  @Override
+  public String getXMLElementName() {
+    return AbstractXMLReader.PROJECTS_DROP;
+  }
+
+  @Override
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute(AbstractXMLReader.PROJECTS, f_projects.getLabel());
   }
 }

@@ -1,5 +1,7 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,6 +11,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.InRegion;
+import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
@@ -17,6 +22,7 @@ import com.surelogic.Vouch;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
@@ -145,6 +151,29 @@ public abstract class Drop implements IDrop {
     synchronized (f_seaLock) {
       JavaSourceReference srcRef = createSourceRef(); // may be null
       this.f_message = AnalysisResultMessage.getInstance(srcRef, number, args);
+    }
+  }
+
+  /**
+   * Gets the user interface reporting category for this drop.
+   * 
+   * @return a category, or {@code null} if none is set.
+   */
+  public final Category getCategory() {
+    synchronized (f_seaLock) {
+      return f_category;
+    }
+  }
+
+  /**
+   * Sets the user interface reporting category for this drop.
+   * 
+   * @param category
+   *          a category to set, or {@code null} to clear the category.
+   */
+  public final void setCategory(Category category) {
+    synchronized (f_seaLock) {
+      f_category = category;
     }
   }
 
@@ -520,7 +549,17 @@ public abstract class Drop implements IDrop {
    * May be {@code null}.
    */
   @InRegion("DropState")
+  @Nullable
   private AnalysisResultMessage f_message;
+
+  /**
+   * A user interface reporting category for this drop.
+   * 
+   * @see Category
+   */
+  @InRegion("DropState")
+  @Nullable
+  private Category f_category = null;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -543,38 +582,42 @@ public abstract class Drop implements IDrop {
   /**
    * A link to the {@link Sea} object this drop exists within.
    */
+  @NonNull
   final private Sea f_mySea;
 
   /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.
    */
+  @NonNull
   final protected Object f_seaLock;
 
   /*
    * XML Methods are invoked single-threaded
    */
 
-  @RequiresLock("SeaLock")
   public String getXMLElementName() {
-    return "drop";
+    return AbstractXMLReader.DROP;
   }
 
-  @RequiresLock("SeaLock")
+  @MustInvokeOnOverride
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
+    if (f_message != null)
+      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_message.getResultStringCanonical()));
+
+    final Category cat = getCategory();
+    if (cat != null)
+      s.addAttribute(CATEGORY_ATTR, cat.getKey());
+  }
+
+  @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
     for (Drop deponent : getDeponentsReference()) {
       s.snapshotDrop(deponent);
     }
   }
 
-  @RequiresLock("SeaLock")
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
-    if (f_message != null) {
-      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_message.getResultStringCanonical()));
-    }
-  }
-
-  @RequiresLock("SeaLock")
+  @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     for (Drop deponent : getDeponentsReference()) {
       s.refDrop(db, DEPONENT, deponent);
@@ -597,14 +640,6 @@ public abstract class Drop implements IDrop {
 
   public boolean instanceOf(Class<?> type) {
     return type.isInstance(this);
-  }
-
-  public Category getCategory() {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setCategory(Category c) {
-    throw new UnsupportedOperationException();
   }
 
   public ISrcRef getSrcRef() {

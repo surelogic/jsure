@@ -704,25 +704,28 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
-        if (drop != null && drop.instanceOf(InfoDrop.class)) {
-          ContentJavaContext context = new ContentJavaContext(item);
-          if (context.complete) {
-            hasJavaContext = true;
-            String packageKey = context.packageName;
-            String typeKey = context.typeName;
-            Map<String, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
-            if (typeToFolder == null) {
-              typeToFolder = new HashMap<String, ResultsViewContent>();
-              packageToClassToFolder.put(packageKey, typeToFolder);
+        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class))) {
+          boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
+          if (resultHasACategory || drop.instanceOf(InfoDrop.class)) {
+            ContentJavaContext context = new ContentJavaContext(item);
+            if (context.complete) {
+              hasJavaContext = true;
+              String packageKey = context.packageName;
+              String typeKey = context.typeName;
+              Map<String, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
+              if (typeToFolder == null) {
+                typeToFolder = new HashMap<String, ResultsViewContent>();
+                packageToClassToFolder.put(packageKey, typeToFolder);
+              }
+              ResultsViewContent folder = typeToFolder.get(typeKey);
+              if (folder == null) {
+                // create the class/type folder, save it in the map
+                folder = makeContent(typeKey);
+                folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE : CommonImages.IMG_CLASS);
+                typeToFolder.put(typeKey, folder);
+              }
+              folder.addChild(item);
             }
-            ResultsViewContent folder = typeToFolder.get(typeKey);
-            if (folder == null) {
-              // create the class/type folder, save it in the map
-              folder = makeContent(typeKey);
-              folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE : CommonImages.IMG_CLASS);
-              typeToFolder.put(typeKey, folder);
-            }
-            folder.addChild(item);
           }
         }
         /*
