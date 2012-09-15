@@ -45,7 +45,7 @@ import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.WarningDrop;
-import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
+import com.surelogic.dropsea.ir.drops.scoped.PromisePromiseDrop;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 

@@ -21,7 +21,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.ir.drops.promises.RegionModel;
+import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JavacProject;
