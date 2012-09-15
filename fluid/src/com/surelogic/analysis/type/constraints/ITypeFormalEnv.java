@@ -1,4 +1,4 @@
-package com.surelogic.analysis.typeAnnos;
+package com.surelogic.analysis.type.constraints;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;

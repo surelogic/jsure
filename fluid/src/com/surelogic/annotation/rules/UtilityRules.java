@@ -11,8 +11,8 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.typeAnnos.SingletonPromiseDrop;
-import com.surelogic.dropsea.ir.drops.typeAnnos.UtilityPromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.SingletonPromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.UtilityPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 

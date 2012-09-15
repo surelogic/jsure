@@ -1,9 +1,9 @@
-package com.surelogic.analysis.typeAnnos;
+package com.surelogic.analysis.type.constraints;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.typeAnnos.ContainablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

@@ -1,6 +1,6 @@
-package com.surelogic.dropsea.ir.drops.typeAnnos;
+package com.surelogic.dropsea.ir.drops.type.constraints;
 
-import com.surelogic.aast.promise.ContainableNode;
+import com.surelogic.aast.promise.ThreadSafeNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
@@ -14,10 +14,9 @@ import edu.cmu.cs.fluid.java.bind.Messages;
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<ContainableNode> implements
-    ValidatedDropCallback<ContainablePromiseDrop> {
-
-  public ContainablePromiseDrop(ContainableNode a) {
+public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<ThreadSafeNode> implements
+    ValidatedDropCallback<ThreadSafePromiseDrop> {
+  public ThreadSafePromiseDrop(ThreadSafeNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = JavaNames.getTypeName(getNode());
@@ -25,20 +24,20 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
-        setMessage(Messages.LockAnnotation_containableDrop, name);
+        setMessage(Messages.LockAnnotation_threadSafeDrop, name);
       } else {
-        setMessage(Messages.LockAnnotation_containable_implOnly, name);
+        setMessage(Messages.LockAnnotation_threadSafe_implOnly, name);
       }
     } else {
       if (isImplementationOnly) {
-        setMessage(Messages.LockAnnotation_containable_implOnly_noVerify, name);
+        setMessage(Messages.LockAnnotation_threadSafe_implOnly_noVerify, name);
       } else {
-        setMessage(Messages.LockAnnotation_containable_noVerify, name);
+        setMessage(Messages.LockAnnotation_threadSafe_noVerify, name);
       }
     }
   }
 
-  public void validated(final ContainablePromiseDrop pd) {
+  public void validated(final ThreadSafePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);
   }

@@ -1,4 +1,4 @@
-package com.surelogic.analysis.typeAnnos;
+package com.surelogic.analysis.type.constraints;
 
 import java.util.EnumSet;
 import java.util.Set;

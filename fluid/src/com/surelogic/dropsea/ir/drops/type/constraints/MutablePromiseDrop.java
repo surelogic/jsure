@@ -1,6 +1,6 @@
-package com.surelogic.dropsea.ir.drops.typeAnnos;
+package com.surelogic.dropsea.ir.drops.type.constraints;
 
-import com.surelogic.aast.promise.NotContainableNode;
+import com.surelogic.aast.promise.*;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -8,17 +8,17 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 
 /**
- * Promise drop for "NotContainable" promises.
+ * Promise drop for "Mutable" promises.
  * 
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotContainableNode> {
+public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
 
-  public NotContainablePromiseDrop(NotContainableNode a) {
+  public MutablePromiseDrop(MutableNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = JavaNames.getTypeName(getNode());
-    setMessage(Messages.LockAnnotation_notContainableDrop, name);
+    setMessage(Messages.LockAnnotation_mutableDrop, name);
   }
 }

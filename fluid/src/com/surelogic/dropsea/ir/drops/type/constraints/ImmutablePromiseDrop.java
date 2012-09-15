@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.typeAnnos;
+package com.surelogic.dropsea.ir.drops.type.constraints;
 
 import com.surelogic.aast.promise.ImmutableNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;

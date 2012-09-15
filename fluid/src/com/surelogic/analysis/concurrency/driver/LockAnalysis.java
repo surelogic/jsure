@@ -29,9 +29,9 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.regions.RegionModel;
-import com.surelogic.dropsea.ir.drops.typeAnnos.ContainablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.typeAnnos.ImmutablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.typeAnnos.ThreadSafePromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ThreadSafePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
