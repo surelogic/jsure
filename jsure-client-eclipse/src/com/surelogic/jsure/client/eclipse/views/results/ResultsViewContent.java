@@ -17,6 +17,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -287,8 +288,9 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
   }
 
   public Category getCategory() {
-    if (getDropInfo() != null && getDropInfo().instanceOf(IRReferenceDrop.class)) {
-      return getDropInfo().getCategory();
+    final IDrop drop = getDropInfo();
+    if (drop instanceof IPromiseDrop) {
+      return ((IPromiseDrop) drop).getCategory();
     }
     return null;
   }

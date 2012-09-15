@@ -2,12 +2,22 @@ package com.surelogic.dropsea;
 
 import java.util.Collection;
 
+import com.surelogic.dropsea.ir.Category;
+
 /**
  * The interface for the base class for all promise drops within the sea,
  * intended to allow multiple implementations. The analysis uses the IR drop-sea
  * and the Eclipse client loads snapshots using a IR-free drop-sea.
  */
 public interface IPromiseDrop extends IProofDrop {
+  
+  /**
+   * Gets the user interface reporting category for this drop.
+   * 
+   * @return a category, or {@code null} if none is set.
+   */
+  Category getCategory();
+  
   /**
    * Gets if this promise is assumed.
    * 

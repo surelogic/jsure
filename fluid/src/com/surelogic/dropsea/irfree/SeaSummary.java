@@ -549,6 +549,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   }
 
   static class Categories extends HashMap<Pair<String, String>, Category> {
+    private static final long serialVersionUID = -9045897254507985423L;
+
     Category getOrCreate(Entity e) {
       final String type = e.getAttribute(TYPE_ATTR);
       String path = e.getAttribute(PATH_ATTR);

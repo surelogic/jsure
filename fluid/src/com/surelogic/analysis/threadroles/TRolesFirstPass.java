@@ -157,8 +157,8 @@ private static int cuCount = 0;
   private static IRNode jlsCU = null;
   public static void trackCUchanges(IRReferenceDrop iDrop) {
     
-    final CUDrop cud = iDrop.getCUDeponent();
-    trackCUchanges(cud);
+    //final CUDrop cud = iDrop.getCUDeponent();
+    //trackCUchanges(cud);
    
   }
   

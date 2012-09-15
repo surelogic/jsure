@@ -1,7 +1,5 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,10 +12,8 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ISupportingInformation;
-import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
 
@@ -80,27 +76,6 @@ public abstract class IRReferenceDrop extends Drop {
    */
   public final IRNode getNode() {
     return f_node;
-  }
-
-  /**
-   * Look in the deponent drops of the current drop to find a CU on which this
-   * drop depends. Expect to find either 0 or 1 such drop.
-   * 
-   * @return null, if no such drop; the CUDrop if one is found; the first CUDrop
-   *         if more than one such drop is present. Note that the returned
-   *         CUDrop may be invalid.
-   */
-  public final CUDrop getCUDeponent() {
-    final ArrayList<CUDrop> cus;
-    synchronized (f_seaLock) {
-      cus = Sea.filterDropsOfType(CUDrop.class, getDeponentsReference());
-    }
-    if (cus.size() < 1) {
-      return null;
-    } else if (cus.size() > 1) {
-      LOG.severe("Drop " + this + "has more than one CU deponent");
-    }
-    return cus.get(0);
   }
 
   /**
@@ -231,38 +206,6 @@ public abstract class IRReferenceDrop extends Drop {
     }
   }
 
-  /**
-   * A user interface reporting category for this drop.
-   * 
-   * @see Category
-   */
-  @InRegion("DropState")
-  private Category f_category = null;
-
-  /**
-   * Gets the user interface reporting category for this drop.
-   * 
-   * @return a category, or {@code null} if none is set.
-   */
-  public final Category getCategory() {
-    synchronized (f_seaLock) {
-      return f_category;
-    }
-  }
-
-  /**
-   * Sets the user interface reporting category for this drop.
-   * 
-   * @param category
-   *          a category to set, or {@code null} to clear the category.
-   */
-  @Override
-  public final void setCategory(Category category) {
-    synchronized (f_seaLock) {
-      f_category = category;
-    }
-  }
-
   @Override
   @RequiresLock("SeaLock")
   protected JavaSourceReference createSourceRef() {
@@ -286,14 +229,6 @@ public abstract class IRReferenceDrop extends Drop {
   @Override
   public String getXMLElementName() {
     return "ir-drop";
-  }
-
-  @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    super.snapshotAttrs(s);
-    if (getCategory() != null) {
-      s.addAttribute(CATEGORY_ATTR, getCategory().getKey());
-    }
   }
 
   @Override

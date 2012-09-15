@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.ir;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 import com.surelogic.Utility;
@@ -67,6 +68,30 @@ public final class DropSeaUtility {
     } catch (Throwable e) {
       SLLogger.getLogger().log(Level.WARNING, "unable to find compilation unit drop for " + DebugUnparser.toString(node));
     }
+  }
+
+  /**
+   * Look in the deponent drops of the current drop to find a CU on which this
+   * drop depends. Expect to find either 0 or 1 such drop.
+   * 
+   * @param drop
+   *          the drop to find the CUDrop.
+   * 
+   * @return null, if no such drop; the CUDrop if one is found; the first CUDrop
+   *         if more than one such drop is present. Note that the returned
+   *         CUDrop may be invalid.
+   */
+  public final CUDrop getCUDeponent(Drop drop) {
+    if (drop == null)
+      return null;
+
+    final ArrayList<CUDrop> cus = Sea.filterDropsOfType(CUDrop.class, drop.getDeponentsReference());
+    if (cus.size() < 1) {
+      return null;
+    } else if (cus.size() > 1) {
+      SLLogger.getLogger().severe("Drop " + this + "has more than one CU deponent");
+    }
+    return cus.get(0);
   }
 
   public static JavaSourceReference createJavaSourceReferenceFromOneOrTheOther(IRNode n, ISrcRef ref) {

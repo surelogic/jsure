@@ -3,7 +3,6 @@ package com.surelogic.dropsea;
 import java.util.Collection;
 
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 
@@ -106,13 +105,6 @@ public interface IDrop {
    *         can be <code>null</code>
    */
   ISrcRef getSrcRef();
-
-  /**
-   * Gets the user interface reporting category for this drop.
-   * 
-   * @return a category, or {@code null} if none is set.
-   */
-  Category getCategory();
 
   /**
    * Gets the supporting information about this drop.
