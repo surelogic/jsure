@@ -16,6 +16,7 @@ public class ThreadRoleIncompatibleNode extends ThreadRoleNameListNode {
 	@Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings("rawtypes")
         List<ThreadRoleNameNode> tRoles = ((List) _kids);
         return new ThreadRoleIncompatibleNode (_start, tRoles);
       }

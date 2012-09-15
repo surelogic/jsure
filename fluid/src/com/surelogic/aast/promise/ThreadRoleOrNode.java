@@ -23,6 +23,7 @@ public class ThreadRoleOrNode extends AASTNode implements ThreadRoleExprElem {
       @SuppressWarnings("unchecked")
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings("rawtypes")
         List<ThreadRoleOrElem> orElems = ((List) _kids);
         return new ThreadRoleOrNode (_start,
           orElems        );

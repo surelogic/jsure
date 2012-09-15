@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 public class RegionReportRolesNode extends DataThreadRoleAnnotationNode { 
@@ -17,6 +16,7 @@ public class RegionReportRolesNode extends DataThreadRoleAnnotationNode {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings("unchecked")
         List<RegionSpecificationNode> trRegions =  ((TempListNode) _kids.get(0)).toList();
         return new RegionReportRolesNode (_start, trRegions);
       }

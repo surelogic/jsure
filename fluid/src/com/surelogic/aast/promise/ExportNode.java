@@ -21,7 +21,8 @@ public class ExportNode extends ModuleAnnotationNode {
                            String _id, int _dims, List<AASTNode> _kids) {
       
       // Export has two children: first a List<String>, second a String
-      List<String> names = (List) _kids.get(0);
+      @SuppressWarnings("unchecked")
+      List<String> names = (List<String>) _kids.get(0);
 
       return new ExportNode(_start, names, _id);
     }

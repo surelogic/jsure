@@ -20,6 +20,7 @@ public class UsedBySpecificationNode extends AASTRootNode
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         List<NamedTypeNode> types = ((List) _kids);
         return new UsedBySpecificationNode (_start,
           types        );

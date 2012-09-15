@@ -1,7 +1,6 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.aast.promise;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.surelogic.aast.AASTNode;

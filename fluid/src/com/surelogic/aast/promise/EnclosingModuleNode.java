@@ -7,7 +7,6 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 public class EnclosingModuleNode extends ModuleNode { 
@@ -20,6 +19,7 @@ public class EnclosingModuleNode extends ModuleNode {
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         String id = _id;
+        @SuppressWarnings("unchecked")
         List<ModuleNode> modules =  ((TempListNode) _kids.get(0)).toList();
         return new EnclosingModuleNode (_start,
           id,

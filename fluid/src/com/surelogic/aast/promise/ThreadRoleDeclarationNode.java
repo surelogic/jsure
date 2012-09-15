@@ -7,7 +7,6 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ThreadRoleDeclarationNode extends ThreadRoleNameListNode { 
   // Fields
@@ -17,6 +16,7 @@ public class ThreadRoleDeclarationNode extends ThreadRoleNameListNode {
       @Override 
       public AASTNode create(String _token, int _start, int _stop,
           int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         List<ThreadRoleNameNode> tRole = ((List) _kids);
         return new ThreadRoleDeclarationNode (_start, tRole);
       }

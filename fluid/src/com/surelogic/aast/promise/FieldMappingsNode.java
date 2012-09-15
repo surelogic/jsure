@@ -7,7 +7,6 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 public class FieldMappingsNode extends AASTRootNode { 
@@ -20,6 +19,7 @@ public class FieldMappingsNode extends AASTRootNode {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        @SuppressWarnings("unchecked")
         List<RegionSpecificationNode> fields =  ((TempListNode) _kids.get(0)).toList();
         RegionSpecificationNode to =  (RegionSpecificationNode) _kids.get(1);
         return new FieldMappingsNode (_start,

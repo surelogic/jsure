@@ -3,7 +3,6 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ThreadRoleGrantNode extends ThreadRoleNameListNode {
 
@@ -12,6 +11,7 @@ public class ThreadRoleGrantNode extends ThreadRoleNameListNode {
     @Override
     public AASTNode create(String _token, int _start, int _stop, int _mods,
                            String _id, int _dims, List<AASTNode> _kids) {
+      @SuppressWarnings({ "rawtypes", "unchecked" })
       List<ThreadRoleNameNode> tRoles = ((List) _kids);
       return new ThreadRoleGrantNode(_start, tRoles);
     }

@@ -122,7 +122,7 @@ public class TypeQualifierPatternNode extends AASTNode {
 		final IRNode packg = CompilationUnit.getPkg(compUnit);
 		if (NamedPackageDeclaration.prototype.includes(JJNode.tree.getOperator(packg))) {
 			final String pkgName = NamedPackageDeclaration.getId(packg);
-			final String pattern2 = pkg.replaceAll("\\*", ".*");
+			//final String pattern2 = pkg.replaceAll("\\*", ".*");
 
 			return pkgName.matches(pkg);
 		}

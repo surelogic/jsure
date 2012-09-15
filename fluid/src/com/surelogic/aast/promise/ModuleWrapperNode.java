@@ -17,6 +17,7 @@ public class ModuleWrapperNode extends ModuleAnnotationNode {
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         String id = _id;
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         List<String> names = ((List) _kids);
         return new ModuleWrapperNode (_start, id,
           names        );
