@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.drops.promises.VouchFieldIsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;

@@ -13,7 +13,7 @@ import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.drops.promises.VouchPromiseDrop;
+import com.surelogic.dropsea.ir.drops.VouchPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 

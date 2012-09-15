@@ -16,7 +16,7 @@ import com.surelogic.annotation.rules.StructureRules;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.promises.MustInvokeOnOverridePromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.MustInvokeOnOverridePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

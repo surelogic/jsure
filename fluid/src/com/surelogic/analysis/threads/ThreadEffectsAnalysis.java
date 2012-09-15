@@ -13,7 +13,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.persistence.AndAnalysisResult;
 import com.surelogic.persistence.IAnalysisResult;
 import com.surelogic.persistence.PromiseRef;

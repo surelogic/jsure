@@ -25,7 +25,7 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
-import com.surelogic.dropsea.ir.drops.promises.AnnotationBoundsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

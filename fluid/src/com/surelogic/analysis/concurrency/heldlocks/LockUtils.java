@@ -54,7 +54,7 @@ import com.surelogic.dropsea.ir.drops.effects.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.StartsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;

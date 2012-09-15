@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.method.constraints;
 
 import com.surelogic.aast.promise.MustInvokeOnOverrideNode;
 import com.surelogic.analysis.layers.Messages;

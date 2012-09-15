@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.VouchSpecificationNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
