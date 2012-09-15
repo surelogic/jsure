@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.scoped;
 
 import com.surelogic.aast.promise.ScopedPromiseNode;
 

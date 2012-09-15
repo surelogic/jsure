@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.nullable;
 
 import com.surelogic.aast.promise.RawNode;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;

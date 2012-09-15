@@ -66,7 +66,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.ir.drops.promises.PromisePromiseDrop;
+import com.surelogic.dropsea.ir.drops.scoped.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;

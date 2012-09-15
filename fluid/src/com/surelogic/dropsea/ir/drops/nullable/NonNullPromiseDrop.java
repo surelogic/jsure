@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.promises;
+package com.surelogic.dropsea.ir.drops.nullable;
 
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.annotation.rules.NonNullRules;

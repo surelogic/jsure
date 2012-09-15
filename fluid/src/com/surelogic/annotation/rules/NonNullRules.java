@@ -15,9 +15,9 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.NonNullPromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.NullablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.promises.RawPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
