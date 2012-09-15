@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +54,8 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
   public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
-  public static final boolean useFullType = true;
 
-  static final Map<String, Class<? extends Drop>> classMap = new HashMap<String, Class<? extends Drop>>();
+  private static final Map<String, Class<?>> NAME_TO_CLASS = new HashMap<String, Class<?>>();
 
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
 
@@ -90,59 +90,93 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
   }
 
-  private static void ensureClassMapping(Class<? extends Drop> cls) {
-    if (classMap.containsKey(cls.getName())) {
+  private static void ensureClassMapping(Class<?> cls) {
+    if (NAME_TO_CLASS.containsKey(cls.getName())) {
       return;
     }
     String simple = Entity.internString(cls.getSimpleName());
     String qname = Entity.internString(cls.getName());
-    classMap.put(simple, cls);
-    classMap.put(qname, cls);
+    NAME_TO_CLASS.put(simple, cls);
+    NAME_TO_CLASS.put(qname, cls);
   }
 
-  private static String[] packages = { "edu.cmu.cs.fluid.sea.drops.promises.", "edu.cmu.cs.fluid.sea.",
-      "edu.cmu.cs.fluid.sea.drops.", "edu.cmu.cs.fluid.sea.drops.threadroles.", "edu.cmu.cs.fluid.sea.drops.modules.",
-      "edu.cmu.cs.fluid.sea.drops.callgraph.", "edu.cmu.cs.fluid.sea.drops.layers.", };
-  
+  private static String ROOT_DROP_PACKAGE = "com.surelogic.dropsea.ir.";
+  private static String[] SUB_DROP_PACKAGES = { "drops.", "drops.promises.", "drops.promises.layers.", "drops.promises.modules.",
+      "drops.promises.threadroles.", };
+
+  private static Collection<String> getPossibleClassNames(String simpleClassName) {
+    Collection<String> result = new ArrayList<String>();
+    result.add(ROOT_DROP_PACKAGE + simpleClassName);
+    for (String subPkg : SUB_DROP_PACKAGES) {
+      result.add(ROOT_DROP_PACKAGE + subPkg + simpleClassName);
+    }
+    return result;
+  }
+
+  private static String getSimpleName(String className) {
+    int index = className.lastIndexOf(".");
+    if (index == -1)
+      return className;
+    index++;
+    if (index >= className.length())
+      return "";
+    final String simpleName = className.substring(index);
+    return simpleName;
+  }
+
   /**
    * A list of types that use to be in drop-sea and are in persisted scans, but
    * no longer are used. This just helps to avoid lots of warnings.
    */
   private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
 
-  @SuppressWarnings("unchecked")
-  public static Class<?> findType(String type) {
-    Class<?> thisType = classMap.get(type);
-    if (thisType == null) {
-      if (useFullType) {
-        try {
-          // System.out.println("Loading class "+type);
-          thisType = Class.forName(type);
-        } catch (ClassNotFoundException e) {
-          // Keep going
-        }
-      } else {
-        for (String prefix : packages) {
-
-          try {
-            thisType = Class.forName(prefix + type);
-            break;
-          } catch (ClassNotFoundException e) {
-            // Keep going
-          }
-        }
+  private static Class<?> forNameOrNull(String className) {
+    try {
+      final Class<?> result = Class.forName(className);
+      if (result != null) {
+        ensureClassMapping(result);
+        return result;
       }
-      if (thisType == null) {
-        /*
-         * Check if we know this type is no longer in the system.
-         */
-        if (!Arrays.asList(obsoleteTypes).contains(type))
-          SLLogger.getLogger().warning("Unknown class type: " + type);
-      } else {
-        ensureClassMapping((Class<? extends Drop>) thisType);
-      }
+    } catch (ClassNotFoundException ignore) {
+      // Keep going
     }
-    return thisType;
+    return null;
+  }
+
+  public static Class<?> findType(String className) {
+    /*
+     * Check our cache.
+     */
+    Class<?> result = NAME_TO_CLASS.get(className);
+    if (result != null)
+      return result;
+
+    /*
+     * Check the classpath.
+     */
+    result = forNameOrNull(className);
+    if (result != null)
+      return result;
+
+    /*
+     * Check known packages using the simple name of the type.
+     */
+    String simpleName = getSimpleName(className);
+    for (String possibleClassName : getPossibleClassNames(simpleName)) {
+      result = forNameOrNull(possibleClassName);
+      if (result != null)
+        return result;
+    }
+
+    /*
+     * Check if we know this type is no longer in the system.
+     */
+    if (!Arrays.asList(obsoleteTypes).contains(className)) {
+      SLLogger.getLogger().warning("Unknown class type: " + className);
+      SLLogger.getLogger().warning("-- simplenme: " + getSimpleName(className));
+      SLLogger.getLogger().warning("-- searched: " + getPossibleClassNames(getSimpleName(className)));
+    }
+    return null;
   }
 
   private static boolean preprocessRefs = false;
@@ -166,13 +200,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
 
     final String name = d.getXMLElementName();
-    final String type = d.getClass().getSimpleName();
     ensureClassMapping(d.getClass());
     final Builder db = b.nest(name);
-    db.addAttribute(TYPE_ATTR, type);
-    if (useFullType) {
-      db.addAttribute(FULL_TYPE_ATTR, d.getClass().getName());
-    }
+    final Class<?> c = d.getClass();
+    db.addAttribute(TYPE_ATTR, c.getSimpleName());
+    db.addAttribute(FULL_TYPE_ATTR, c.getName());
     db.addAttribute(ID_ATTR, id);
     if (d instanceof IRReferenceDrop) {
       db.addAttribute(HASH_ATTR, d.getTreeHash());
@@ -277,7 +309,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       if (JAVA_DECL_INFO.equals(name)) {
         return new JavaDeclInfo(name, a);
       }
-      final String type = Entity.getValue(a, useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
+      final String type = Entity.getValue(a, FULL_TYPE_ATTR);
       if (type != null) {
         final Class<?> thisType = findType(type);
         if (thisType != null) {
@@ -286,10 +318,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreePromiseDrop(name, a);
           } else if (ResultDrop.class.isAssignableFrom(thisType)) {
-      	    return new IRFreeResultDrop(name, a);
+            return new IRFreeResultDrop(name, a);
           } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeResultFolderDrop(name, a);
-          } 
+          }
         }
       }
       return new IRFreeDrop(name, a);
@@ -320,49 +352,49 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       } else if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
         fromE.addProposal((IRFreeProposedPromiseDrop) toE);
       } else if (fromE instanceof IRFreePromiseDrop) {
-          final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
-          final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;        
-          if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
-              fromPI.addCheckedByResult(toPI);
-          } else {
-              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-          }
+        final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
+        final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;
+        if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
+          fromPI.addCheckedByResult(toPI);
+        } else {
+          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+        }
       } else if (fromE instanceof IRFreeResultDrop) {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
         if (toE instanceof IRFreeResultFolderDrop) {
-        	if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
-                fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
-            } else {
-                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-            }
+          if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
+            fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
+          } else {
+            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+          }
         } else {
-        	final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
 
-        	if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-        		fromPI.addCheckedPromise(toPI);
-        	} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
-        		fromPI.addTrustedPromise(toPI);
-        	} else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-        		final String label = to.getAttribute(ResultDrop.OR_LABEL);
-        		fromPI.addOrTrustedPromise(label, toPI);
-            } else {
-                throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-            }
+          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+            fromPI.addCheckedPromise(toPI);
+          } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
+            fromPI.addTrustedPromise(toPI);
+          } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
+            final String label = to.getAttribute(ResultDrop.OR_LABEL);
+            fromPI.addOrTrustedPromise(label, toPI);
+          } else {
+            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+          }
         }
       } else if (fromE instanceof IRFreeResultFolderDrop) {
-          final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;    
-          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-              final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;    	              
-              fromPI.addCheckedPromise(toPI);
-          } else if (ResultFolderDrop.RESULT.equals(refType)) {
-              final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;    	        	  
-    		  fromPI.addResult(toPI);
-    	  } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
-              final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;    	      	  
-    		  fromPI.addSubFolder(toPI);
-          } else {
-              throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-          }
+        final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;
+        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+          fromPI.addCheckedPromise(toPI);
+        } else if (ResultFolderDrop.RESULT.equals(refType)) {
+          final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;
+          fromPI.addResult(toPI);
+        } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
+          final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;
+          fromPI.addSubFolder(toPI);
+        } else {
+          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+        }
       } else {
         throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }
