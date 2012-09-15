@@ -10,7 +10,7 @@ import java.util.*;
 
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.ISrcRef;

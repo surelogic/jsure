@@ -5,8 +5,8 @@ import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.aast.promise.RegionSpecificationNode;
 import com.surelogic.annotation.rules.RegionRules;
-import com.surelogic.dropsea.ir.drops.regions.InRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.InRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

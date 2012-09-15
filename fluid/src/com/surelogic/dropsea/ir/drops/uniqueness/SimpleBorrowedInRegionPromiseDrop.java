@@ -7,9 +7,8 @@ import com.surelogic.aast.promise.SimpleBorrowedInRegionNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
-import com.surelogic.dropsea.ir.drops.regions.InRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionAggregationDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.InRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;

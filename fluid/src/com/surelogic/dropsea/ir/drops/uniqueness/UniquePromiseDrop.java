@@ -7,8 +7,7 @@ import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionAggregationDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;

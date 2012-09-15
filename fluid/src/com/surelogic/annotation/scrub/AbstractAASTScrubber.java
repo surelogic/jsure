@@ -15,7 +15,7 @@ import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.scoped.AssumePromiseDrop;
+import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 

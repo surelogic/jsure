@@ -1,8 +1,9 @@
-package com.surelogic.dropsea.ir.drops.regions;
+package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import java.util.Map;
 
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

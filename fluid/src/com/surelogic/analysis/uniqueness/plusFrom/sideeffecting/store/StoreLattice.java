@@ -23,8 +23,8 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 

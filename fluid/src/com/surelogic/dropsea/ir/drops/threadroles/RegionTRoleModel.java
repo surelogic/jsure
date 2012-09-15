@@ -13,7 +13,7 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;

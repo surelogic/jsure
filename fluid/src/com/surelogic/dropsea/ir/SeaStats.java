@@ -13,8 +13,8 @@ import java.util.zip.ZipOutputStream;
 
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.VouchPromiseDrop;
-import com.surelogic.dropsea.ir.drops.scoped.AssumePromiseDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 

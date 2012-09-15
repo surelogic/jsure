@@ -23,9 +23,9 @@ import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.WholeModuleFXDrop;
 //import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
 import com.surelogic.dropsea.ir.drops.threadroles.RegionTRoleModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;

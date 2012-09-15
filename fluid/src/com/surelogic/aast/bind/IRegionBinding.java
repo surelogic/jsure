@@ -2,7 +2,7 @@
 package com.surelogic.aast.bind;
 
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 
 
 public interface IRegionBinding {

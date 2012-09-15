@@ -13,10 +13,10 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionAggregationDrop;
-import com.surelogic.dropsea.ir.drops.regions.RegionModel;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
+import com.surelogic.dropsea.ir.drops.uniqueness.RegionAggregationDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleUniqueInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 

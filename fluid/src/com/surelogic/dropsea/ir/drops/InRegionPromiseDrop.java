@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.ir.drops.regions;
+package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
