@@ -26,12 +26,14 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IInfoDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
@@ -39,12 +41,10 @@ import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.PromiseWarningDrop;
-import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
-import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
@@ -478,20 +478,21 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, resultDrop);
 
       } else if (drop.instanceOf(InfoDrop.class)) {
+        IInfoDrop infoDrop = (IInfoDrop) drop;
 
         /*
          * INFO DROP
          */
 
         // image
-        result.setBaseImageName(drop.instanceOf(WarningDrop.class) ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
+        result.setBaseImageName(infoDrop.getLevel() == InfoDropLevel.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
 
         // children
-        addSupportingInformation(result, drop);
-        addProposedPromises(result, drop);
+        addSupportingInformation(result, infoDrop);
+        addProposedPromises(result, infoDrop);
 
         result.f_isInfo = true;
-        result.f_isInfoWarning = drop.instanceOf(WarningDrop.class);
+        result.f_isInfoWarning = infoDrop.getLevel() == InfoDropLevel.WARNING;
 
       } else if (drop.instanceOf(PromiseWarningDrop.class)) {
 
@@ -607,17 +608,19 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
       // image (try to show proof status if it makes sense)
       Set<IProofDrop> proofDrops = new HashSet<IProofDrop>();
-      Set<IDrop> warningDrops = new HashSet<IDrop>();
-      Set<IDrop> infoDrops = new HashSet<IDrop>();
+      Set<IInfoDrop> warningDrops = new HashSet<IInfoDrop>();
+      Set<IInfoDrop> infoDrops = new HashSet<IInfoDrop>();
 
       for (ResultsViewContent item : categoryFolder.getChildrenAsCollection()) {
-        if (item.getDropInfo().instanceOf(ProofDrop.class)) {
+        final IDrop drop = item.getDropInfo();
+        if (drop instanceof IProofDrop) {
           proofDrops.add((IProofDrop) item.getDropInfo());
-        } else if (item.getDropInfo().instanceOf(InfoDrop.class)) {
-          infoDrops.add(item.getDropInfo());
-          if (item.getDropInfo().instanceOf(WarningDrop.class)) {
-            warningDrops.add(item.getDropInfo());
-          }
+        } else if (drop instanceof IInfoDrop) {
+          IInfoDrop infoDrop = (IInfoDrop) drop;
+          if (infoDrop.getLevel() == InfoDropLevel.INFORMATION)
+            infoDrops.add(infoDrop);
+          else
+            warningDrops.add(infoDrop);
         }
       }
       if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {

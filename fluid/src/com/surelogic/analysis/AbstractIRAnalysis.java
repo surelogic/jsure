@@ -1,13 +1,15 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractIRAnalysis.java,v 1.4 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
-import java.util.*;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.surelogic.dropsea.ir.WarningDrop;
+import com.surelogic.dropsea.InfoDropLevel;
+import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
-import edu.cmu.cs.fluid.ide.*;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -203,7 +205,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		final WarningDrop d = new WarningDrop(context);
+		final InfoDrop d = new InfoDrop(context, InfoDropLevel.WARNING);
 		d.setMessage(12, msg);
 	}
 }

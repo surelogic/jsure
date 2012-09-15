@@ -46,6 +46,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -53,7 +54,6 @@ import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -837,10 +837,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return info;
 	}
 
-	private WarningDrop makeWarningDrop(final Category category,
+	private InfoDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final WarningDrop info = new WarningDrop(context);
+		final InfoDrop info = new InfoDrop(context, InfoDropLevel.WARNING);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;

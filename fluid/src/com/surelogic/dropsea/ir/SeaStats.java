@@ -92,7 +92,7 @@ public final class SeaStats {
 	    labelMap.put(VouchPromiseDrop.class.getName(), VOUCHES);
 	    labelMap.put(AssumePromiseDrop.class.getName(), ASSUMES);
 	    labelMap.put(InfoDrop.class.getName(), INFO);
-	    labelMap.put(WarningDrop.class.getName(), WARNING);
+	   // labelMap.put(WarningDrop.class.getName(), WARNING);
 	}
 	
 	public static final Splitter<String> splitByProject = new Splitter<String>() {

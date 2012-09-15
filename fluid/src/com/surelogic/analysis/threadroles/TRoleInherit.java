@@ -12,13 +12,14 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.WarningDrop;
+import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
 import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -238,7 +239,7 @@ final public class TRoleInherit {
       }
      
       if (wantWarning) {
-        WarningDrop wd = 
+        InfoDrop wd = 
           TRoleMessages.createWarningDrop(warnMsg.toString(), here);
       }
 //            wd.addSupportingInformation(reqSumHere.getFullExpr().toString() +

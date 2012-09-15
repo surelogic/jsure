@@ -27,18 +27,19 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLatti
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.InfoDropLevel;
+import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.AbruptExitPort;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -324,7 +325,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final long endTime = System.nanoTime();
         final long duration = endTime - startTime;
         if (duration > tooLongDuration) {
-          final WarningDrop info = new WarningDrop(flowUnit);
+          final InfoDrop info = new InfoDrop(flowUnit, InfoDropLevel.WARNING);
           info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
               methodName, duration / NANO_SECONDS_PER_SECOND);
           info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);

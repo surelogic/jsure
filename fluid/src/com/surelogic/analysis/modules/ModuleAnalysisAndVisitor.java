@@ -20,13 +20,13 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
 import com.surelogic.dropsea.ir.drops.modules.ModulePromiseDrop;
@@ -799,11 +799,11 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
           "setResultDep found invalid or null resultDependUpon drop"); //$NON-NLS-1$
     }
   }
-  public static WarningDrop makeWarningDrop(
+  public static InfoDrop makeWarningDrop(
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final WarningDrop info = new WarningDrop(context);
+    final InfoDrop info = new InfoDrop(context, InfoDropLevel.WARNING);
     setResultDep(info, context);
     info.setMessage(12, msg);
     info.setCategory(category);

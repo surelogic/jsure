@@ -1,8 +1,12 @@
 package com.surelogic.dropsea.ir;
 
+import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IInfoDrop;
 import com.surelogic.dropsea.IReportedByAnalysisDrop;
+import com.surelogic.dropsea.InfoDropLevel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -12,10 +16,26 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * The only subtype of this should be {@link WarningDrop}. This type is not
  * intended to be otherwise subtyped.
  */
-public class InfoDrop extends IRReferenceDrop implements IInfoDrop, IReportedByAnalysisDrop {
+public final class InfoDrop extends IRReferenceDrop implements IInfoDrop, IReportedByAnalysisDrop {
+
+  public static final String LEVEL = "level";
 
   public InfoDrop(IRNode node) {
+    this(node, null);
+  }
+
+  public InfoDrop(IRNode node, InfoDropLevel level) {
     super(node);
+    f_level = level == null ? InfoDropLevel.INFORMATION : level;
+  }
+
+  private final InfoDropLevel f_level;
+
+  @Override
+  @NonNull
+  public InfoDropLevel getLevel() {
+    // TODO Auto-generated method stub
+    return f_level;
   }
 
   /*
@@ -25,5 +45,10 @@ public class InfoDrop extends IRReferenceDrop implements IInfoDrop, IReportedByA
   @Override
   public String getXMLElementName() {
     return AbstractXMLReader.INFO_DROP;
+  }
+
+  @MustInvokeOnOverride
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    s.addAttribute(LEVEL, f_level.toString());
   }
 }

@@ -8,12 +8,12 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Iterator;
 
+import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.WarningDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoledClassDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -58,8 +58,8 @@ public class TRoleMessages {
 		return rd;
 	}
 
-	public static WarningDrop createWarningDrop(String msg, IRNode loc) {
-		WarningDrop wd = new WarningDrop(loc);
+	public static InfoDrop createWarningDrop(String msg, IRNode loc) {
+		InfoDrop wd = new InfoDrop(loc, InfoDropLevel.WARNING);
 		// rd.addCheckedPromise(pd);
 	//	wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(12, msg);
@@ -113,12 +113,12 @@ public class TRoleMessages {
 
 	public static void invalidateDrops() {
 		{
-			Iterator<WarningDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
-					.getDropsOfExactType(WarningDrop.class).iterator();
+			Iterator<InfoDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
+					.getDropsOfExactType(InfoDrop.class).iterator();
 
 			while (it.hasNext()) {
-				WarningDrop d = (WarningDrop) it.next();
-				if (d.getCategory() == warningCategory) {
+				InfoDrop d = it.next();
+				if (d.getLevel() == InfoDropLevel.WARNING && d.getCategory() == warningCategory) {
 					d.invalidate();
 				}
 			}
