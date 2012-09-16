@@ -6,11 +6,11 @@ import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 
-public final class IRFreeInfoDrop extends IRFreeDrop implements IAnalysisHintDrop {
+public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysisHintDrop {
 
   private final HintType f_type;
 
-  public IRFreeInfoDrop(String name, Attributes a) {
+  public IRFreeAnalysisHintDrop(String name, Attributes a) {
     super(name, a);
     final String levelString = getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
 

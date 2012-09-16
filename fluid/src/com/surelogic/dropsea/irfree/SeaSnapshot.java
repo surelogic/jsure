@@ -46,7 +46,7 @@ import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeInfoDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
@@ -328,7 +328,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreePromiseDrop(name, a);
           } else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {
-            return new IRFreeInfoDrop(name, a);
+            return new IRFreeAnalysisHintDrop(name, a);
           } else if (ResultDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeResultDrop(name, a);
           } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
