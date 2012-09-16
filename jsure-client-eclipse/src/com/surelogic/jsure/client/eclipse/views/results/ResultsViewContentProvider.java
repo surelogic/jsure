@@ -33,7 +33,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ISupportingInformation;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
@@ -485,14 +484,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
 
         // image
-        result.setBaseImageName(infoDrop.getLevel() == InfoDropLevel.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
+        result.setBaseImageName(infoDrop.getLevel() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
 
         // children
         addSupportingInformation(result, infoDrop);
         addProposedPromises(result, infoDrop);
 
         result.f_isInfo = true;
-        result.f_isInfoWarning = infoDrop.getLevel() == InfoDropLevel.WARNING;
+        result.f_isInfoWarning = infoDrop.getLevel() == IAnalysisHintDrop.HintType.WARNING;
 
       } else if (drop.instanceOf(ModelingProblemDrop.class)) {
 
@@ -617,7 +616,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (drop instanceof IAnalysisHintDrop) {
           IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-          if (infoDrop.getLevel() == InfoDropLevel.INFORMATION)
+          if (infoDrop.getLevel() == IAnalysisHintDrop.HintType.SUGGESTION)
             infoDrops.add(infoDrop);
           else
             warningDrops.add(infoDrop);

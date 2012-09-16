@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
-		InfoDrop id = new InfoDrop(loc);
+		InfoDrop id = InfoDrop.newSuggestion(loc);
 		id.setMessage(number, arg);
 		id.setCategory(c);
 	}

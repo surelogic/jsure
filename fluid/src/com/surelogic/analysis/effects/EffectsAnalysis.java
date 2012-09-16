@@ -334,7 +334,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
-	    final InfoDrop drop = new InfoDrop(src);
+	    final InfoDrop drop = InfoDrop.newSuggestion(src);
 	    drop.setCategory(null);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setMessage(Messages.CLASS_INIT_EFFECT,

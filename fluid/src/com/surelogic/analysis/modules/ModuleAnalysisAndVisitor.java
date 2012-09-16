@@ -20,7 +20,6 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -803,7 +802,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final InfoDrop info = new InfoDrop(context, InfoDropLevel.WARNING);
+    final InfoDrop info = InfoDrop.newWarning(context);
     setResultDep(info, context);
     info.setMessage(12, msg);
     info.setCategory(category);

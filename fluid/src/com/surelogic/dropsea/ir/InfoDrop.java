@@ -6,7 +6,6 @@ import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
-import com.surelogic.dropsea.InfoDropLevel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -18,22 +17,40 @@ import edu.cmu.cs.fluid.ir.IRNode;
  */
 public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop, IAnalysisOutputDrop {
 
-  public InfoDrop(IRNode node) {
-    this(node, null);
+  /**
+   * Constructs a new suggestion pointing to the passed node.
+   * 
+   * @param node
+   *          referenced in the suggestion
+   * @return a suggestion.
+   */
+  public static InfoDrop newSuggestion(IRNode node) {
+    return new InfoDrop(node, HintType.SUGGESTION);
   }
 
-  public InfoDrop(IRNode node, InfoDropLevel level) {
+  /**
+   * Constructs a new warning pointing to the passed node.
+   * 
+   * @param node
+   *          referenced in the warning
+   * @return a warning.
+   */
+  public static InfoDrop newWarning(IRNode node) {
+    return new InfoDrop(node, HintType.WARNING);
+  }
+
+  private InfoDrop(IRNode node, HintType level) {
     super(node);
-    f_level = level == null ? InfoDropLevel.INFORMATION : level;
+    f_type = level == null ? HintType.SUGGESTION : level;
   }
 
-  private final InfoDropLevel f_level;
+  private final HintType f_type;
 
   @Override
   @NonNull
-  public InfoDropLevel getLevel() {
+  public HintType getLevel() {
     // TODO Auto-generated method stub
-    return f_level;
+    return f_type;
   }
 
   /*
@@ -47,6 +64,6 @@ public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop
 
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
-    s.addAttribute(AbstractXMLReader.INFO_LEVEL_ATTR, f_level.toString());
+    s.addAttribute(AbstractXMLReader.HINT_TYPE_ATTR, f_type.toString());
   }
 }

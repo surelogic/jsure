@@ -13,7 +13,6 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.UtilityPromiseDrop;
@@ -233,7 +232,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       
       // Prefer the class to be final
       if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
-        final InfoDrop db = new InfoDrop(typeDecl, InfoDropLevel.WARNING);
+        final InfoDrop db = InfoDrop.newWarning(typeDecl);
         db.setMessage(Messages.CONSIDER_FINAL);
       }
       

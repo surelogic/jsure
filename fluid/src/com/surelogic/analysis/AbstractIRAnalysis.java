@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -205,7 +204,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		final InfoDrop d = new InfoDrop(context, InfoDropLevel.WARNING);
+		final InfoDrop d = InfoDrop.newWarning(context);
 		d.setMessage(12, msg);
 	}
 }

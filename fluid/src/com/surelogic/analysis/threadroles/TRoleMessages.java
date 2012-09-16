@@ -8,7 +8,7 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Iterator;
 
-import com.surelogic.dropsea.InfoDropLevel;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -59,7 +59,7 @@ public class TRoleMessages {
 	}
 
 	public static InfoDrop createWarningDrop(String msg, IRNode loc) {
-		InfoDrop wd = new InfoDrop(loc, InfoDropLevel.WARNING);
+		InfoDrop wd = InfoDrop.newWarning(loc);
 		// rd.addCheckedPromise(pd);
 	//	wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(12, msg);
@@ -75,7 +75,7 @@ public class TRoleMessages {
 	}
 
 	public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-		InfoDrop id = new InfoDrop(loc);
+		InfoDrop id = InfoDrop.newSuggestion(loc);
 		// rd.addCheckedPromise(pd);
 		//id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(12, msg);
@@ -118,7 +118,7 @@ public class TRoleMessages {
 
 			while (it.hasNext()) {
 				InfoDrop d = it.next();
-				if (d.getLevel() == InfoDropLevel.WARNING && d.getCategory() == warningCategory) {
+				if (d.getLevel() == IAnalysisHintDrop.HintType.WARNING && d.getCategory() == warningCategory) {
 					d.invalidate();
 				}
 			}

@@ -22,7 +22,6 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.InfoDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -187,7 +186,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        final InfoDrop info = new InfoDrop(mr.mdecl, InfoDropLevel.WARNING);
+        final InfoDrop info = InfoDrop.newWarning(mr.mdecl);
         info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);

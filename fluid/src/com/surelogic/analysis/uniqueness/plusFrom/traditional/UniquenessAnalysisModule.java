@@ -29,7 +29,6 @@ import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.InfoDrop;
@@ -225,7 +224,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
         System.out.println("______________________ too long ______________: " + methodName);
-        final InfoDrop info = new InfoDrop(node.methodDecl, InfoDropLevel.WARNING);
+        final InfoDrop info = InfoDrop.newWarning(node.methodDecl);
         info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);

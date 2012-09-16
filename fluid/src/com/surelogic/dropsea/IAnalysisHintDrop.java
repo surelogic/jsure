@@ -12,9 +12,15 @@ import com.surelogic.NonNull;
  */
 public interface IAnalysisHintDrop extends IAnalysisOutputDrop {
 
+  enum HintType {
+
+    SUGGESTION, WARNING
+
+  }
+
   /**
    * Gets the level of this information drop.
    */
   @NonNull
-  InfoDropLevel getLevel();
+  HintType getLevel();
 }

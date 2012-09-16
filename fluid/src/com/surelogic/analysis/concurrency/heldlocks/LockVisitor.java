@@ -46,7 +46,6 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.InfoDropLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -831,7 +830,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDrop info = new InfoDrop(context);
+		final InfoDrop info = InfoDrop.newSuggestion(context);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
@@ -840,7 +839,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDrop info = new InfoDrop(context, InfoDropLevel.WARNING);
+		final InfoDrop info = InfoDrop.newWarning(context);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;

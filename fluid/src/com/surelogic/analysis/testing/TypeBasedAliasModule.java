@@ -63,7 +63,7 @@ public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderC
 		  for (int i = 0; i < numFormals - 1; i++) {
 		    for (int j = i + 1; j < numFormals; j++) {
 		      if (alias.mayAlias(exprs[i], exprs[j])) {
-		        final InfoDrop drop = new InfoDrop(decl);
+		        final InfoDrop drop = InfoDrop.newSuggestion(decl);
 		        drop.setCategory(Messages.DSC_TEST_ALIAS);
 		        drop.setMessage(Messages.ALIASED_PARAMETERS,
 		            ParameterDeclaration.getId(exprs[i]),
