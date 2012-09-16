@@ -7,7 +7,7 @@ import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawTypeLattice.Element;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -113,7 +113,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
       }
 
       final Element rawness = currentQuery().getResultFor(expr);
-      final InfoDrop drop = InfoDrop.newSuggestion(expr);
+      final AnalysisHintDrop drop = AnalysisHintDrop.newSuggestion(expr);
       drop.setCategory(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness);
       return null;
@@ -122,7 +122,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     @Override
     public void handleConstructorCall(final IRNode expr) {
       final Element rawness = currentQuery().getResultFor(expr);
-      final InfoDrop drop = InfoDrop.newSuggestion(expr);
+      final AnalysisHintDrop drop = AnalysisHintDrop.newSuggestion(expr);
       drop.setCategory(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness);
       

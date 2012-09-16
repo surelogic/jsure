@@ -3,7 +3,7 @@ package com.surelogic.test;
 
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 public class WarningDropOutput extends AbstractTestOutput {
@@ -25,7 +25,7 @@ public class WarningDropOutput extends AbstractTestOutput {
   }
   
   private IRReferenceDrop newDrop(ITest o, String msg, boolean success) {
-    IRReferenceDrop drop = success ? InfoDrop.newSuggestion(o.getNode()) : new ModelingProblemDrop(o.getNode());
+    IRReferenceDrop drop = success ? AnalysisHintDrop.newSuggestion(o.getNode()) : new ModelingProblemDrop(o.getNode());
     drop.setMessage(12, msg);
     if (category != null) {
       drop.setCategory(null);

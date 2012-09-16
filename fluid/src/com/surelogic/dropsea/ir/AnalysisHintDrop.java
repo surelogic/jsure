@@ -5,27 +5,24 @@ import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IAnalysisHintDrop;
-import com.surelogic.dropsea.IAnalysisOutputDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /**
- * Drops for reporting inferred or information to the user, "i" results.
- * <p>
- * The only subtype of this should be {@link WarningDrop}. This type is not
- * intended to be otherwise subtyped.
+ * Drops for the analyses to use to give "hints" (suggestions and warnings) to
+ * the user.
  */
-public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop, IAnalysisOutputDrop {
+public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysisHintDrop {
 
   /**
-   * Constructs a new suggestion pointing to the passed node.
+   * Constructs a new suggestions pointing to the passed node.
    * 
    * @param node
    *          referenced in the suggestion
    * @return a suggestion.
    */
-  public static InfoDrop newSuggestion(IRNode node) {
-    return new InfoDrop(node, HintType.SUGGESTION);
+  public static AnalysisHintDrop newSuggestion(IRNode node) {
+    return new AnalysisHintDrop(node, HintType.SUGGESTION);
   }
 
   /**
@@ -35,11 +32,11 @@ public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop
    *          referenced in the warning
    * @return a warning.
    */
-  public static InfoDrop newWarning(IRNode node) {
-    return new InfoDrop(node, HintType.WARNING);
+  public static AnalysisHintDrop newWarning(IRNode node) {
+    return new AnalysisHintDrop(node, HintType.WARNING);
   }
 
-  private InfoDrop(IRNode node, HintType level) {
+  private AnalysisHintDrop(IRNode node, HintType level) {
     super(node);
     f_type = level == null ? HintType.SUGGESTION : level;
   }
@@ -48,8 +45,7 @@ public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop
 
   @Override
   @NonNull
-  public HintType getLevel() {
-    // TODO Auto-generated method stub
+  public HintType getHintType() {
     return f_type;
   }
 

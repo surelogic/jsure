@@ -22,7 +22,7 @@ import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
@@ -204,7 +204,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
           final ModuleModel enclosingLeafMod = ModuleModel.getModuleDrop(where);
           if (enclosingLeafMod.moduleIsTheWorld()) {
             // warning: no point in @vis or @export on item in TheWorld
-            InfoDrop wd = 
+            AnalysisHintDrop wd = 
               ModuleAnalysisAndVisitor.makeWarningDrop(DSC_WARN_VISIBILITY_DECL,
                                                        where, DS_WARN_WORLD_VIS,
                                                        vd.toString(), 

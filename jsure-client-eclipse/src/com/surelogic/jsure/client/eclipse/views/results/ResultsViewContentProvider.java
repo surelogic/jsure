@@ -37,7 +37,7 @@ import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -429,7 +429,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         final Set<IDrop> matching = new HashSet<IDrop>();
         matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
-        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(InfoDrop.class)));
+        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(AnalysisHintDrop.class)));
         addDrops(result, matching);
         addDrops(result, promiseDrop.getCheckedBy());
 
@@ -476,7 +476,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addDrops(result, resultDrop.getContents());
         addProposedPromises(result, resultDrop);
 
-      } else if (drop.instanceOf(InfoDrop.class)) {
+      } else if (drop.instanceOf(AnalysisHintDrop.class)) {
         IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
 
         /*
@@ -484,14 +484,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
 
         // image
-        result.setBaseImageName(infoDrop.getLevel() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
+        result.setBaseImageName(infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
 
         // children
         addSupportingInformation(result, infoDrop);
         addProposedPromises(result, infoDrop);
 
         result.f_isInfo = true;
-        result.f_isInfoWarning = infoDrop.getLevel() == IAnalysisHintDrop.HintType.WARNING;
+        result.f_isInfoWarning = infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
 
       } else if (drop.instanceOf(ModelingProblemDrop.class)) {
 
@@ -616,7 +616,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (drop instanceof IAnalysisHintDrop) {
           IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-          if (infoDrop.getLevel() == IAnalysisHintDrop.HintType.SUGGESTION)
+          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.SUGGESTION)
             infoDrops.add(infoDrop);
           else
             warningDrops.add(infoDrop);
@@ -706,9 +706,9 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
-        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(InfoDrop.class))) {
+        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(AnalysisHintDrop.class))) {
           boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
-          if (resultHasACategory || drop.instanceOf(InfoDrop.class)) {
+          if (resultHasACategory || drop.instanceOf(AnalysisHintDrop.class)) {
             ContentJavaContext context = new ContentJavaContext(item);
             if (context.complete) {
               hasJavaContext = true;
@@ -997,7 +997,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       }
     }
 
-    final Collection<IDrop> infoDrops = getDropsOfType(InfoDrop.class, IDrop.class);
+    final Collection<IDrop> infoDrops = getDropsOfType(AnalysisHintDrop.class, IDrop.class);
     if (!infoDrops.isEmpty()) {
       final String msg = "Suggestions and warnings";
       ResultsViewContent infoFolder = makeContent(msg);

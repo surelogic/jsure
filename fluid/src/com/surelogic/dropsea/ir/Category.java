@@ -9,7 +9,7 @@ import com.surelogic.common.i18n.I18N;
 
 /**
  * Defines a category which may be attached to
- * {@link com.surelogic.dropsea.ir.InfoDrop} and
+ * {@link com.surelogic.dropsea.ir.AnalysisHintDrop} and
  * {@link com.surelogic.dropsea.ir.ResultDrop}.  Categories are intended to
  * help the user interface report results.
  * <p>

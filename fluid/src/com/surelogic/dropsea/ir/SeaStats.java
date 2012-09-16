@@ -91,7 +91,7 @@ public final class SeaStats {
 	static {
 	    labelMap.put(VouchPromiseDrop.class.getName(), VOUCHES);
 	    labelMap.put(AssumePromiseDrop.class.getName(), ASSUMES);
-	    labelMap.put(InfoDrop.class.getName(), INFO);
+	    labelMap.put(AnalysisHintDrop.class.getName(), INFO);
 	   // labelMap.put(WarningDrop.class.getName(), WARNING);
 	}
 	

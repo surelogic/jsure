@@ -27,7 +27,7 @@ public final class IRFreeInfoDrop extends IRFreeDrop implements IAnalysisHintDro
 
   @Override
   @NonNull
-  public HintType getLevel() {
+  public HintType getHintType() {
     return f_type;
   }
 }

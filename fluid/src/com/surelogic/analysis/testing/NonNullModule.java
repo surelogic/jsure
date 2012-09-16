@@ -6,7 +6,7 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -94,7 +94,7 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
          // See if the current variable is considered to be null or not
         final Set<IRNode> nonNull = currentQuery().getResultFor(use);
         final IRNode varDecl = getBinder().getBinding(use);
-        final InfoDrop drop = InfoDrop.newSuggestion(use);
+        final AnalysisHintDrop drop = AnalysisHintDrop.newSuggestion(use);
         drop.setCategory(Messages.DSC_NON_NULL);
         final String varName = VariableUseExpression.getId(use);
         if (nonNull.contains(varDecl)) {

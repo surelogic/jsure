@@ -7,7 +7,7 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
-import com.surelogic.dropsea.ir.InfoDrop;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -89,7 +89,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
     private void getResult(final IRNode decl) {
       final ImmutableSet<IRNode> calls = currentQuery().getResultFor(decl);
       for (final IRNode call : calls) {      
-        final InfoDrop drop = InfoDrop.newSuggestion(decl);
+        final AnalysisHintDrop drop = AnalysisHintDrop.newSuggestion(decl);
         drop.setCategory(Messages.DSC_COLLECT_METHOD_CALLS);
         final ISrcRef srcRef = JavaNode.getSrcRef(call);
         final int srcLine = srcRef == null ? -1 : srcRef.getLineNumber();

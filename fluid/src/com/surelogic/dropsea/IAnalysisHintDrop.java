@@ -22,5 +22,5 @@ public interface IAnalysisHintDrop extends IAnalysisOutputDrop {
    * Gets the level of this information drop.
    */
   @NonNull
-  HintType getLevel();
+  HintType getHintType();
 }
