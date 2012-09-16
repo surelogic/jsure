@@ -26,7 +26,7 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IInfoDrop;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
@@ -478,7 +478,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, resultDrop);
 
       } else if (drop.instanceOf(InfoDrop.class)) {
-        IInfoDrop infoDrop = (IInfoDrop) drop;
+        IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
 
         /*
          * INFO DROP
@@ -608,15 +608,15 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
       // image (try to show proof status if it makes sense)
       Set<IProofDrop> proofDrops = new HashSet<IProofDrop>();
-      Set<IInfoDrop> warningDrops = new HashSet<IInfoDrop>();
-      Set<IInfoDrop> infoDrops = new HashSet<IInfoDrop>();
+      Set<IAnalysisHintDrop> warningDrops = new HashSet<IAnalysisHintDrop>();
+      Set<IAnalysisHintDrop> infoDrops = new HashSet<IAnalysisHintDrop>();
 
       for (ResultsViewContent item : categoryFolder.getChildrenAsCollection()) {
         final IDrop drop = item.getDropInfo();
         if (drop instanceof IProofDrop) {
           proofDrops.add((IProofDrop) item.getDropInfo());
-        } else if (drop instanceof IInfoDrop) {
-          IInfoDrop infoDrop = (IInfoDrop) drop;
+        } else if (drop instanceof IAnalysisHintDrop) {
+          IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
           if (infoDrop.getLevel() == InfoDropLevel.INFORMATION)
             infoDrops.add(infoDrop);
           else

@@ -4,8 +4,8 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IInfoDrop;
-import com.surelogic.dropsea.IReportedByAnalysisDrop;
+import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.InfoDropLevel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * The only subtype of this should be {@link WarningDrop}. This type is not
  * intended to be otherwise subtyped.
  */
-public final class InfoDrop extends IRReferenceDrop implements IInfoDrop, IReportedByAnalysisDrop {
+public final class InfoDrop extends IRReferenceDrop implements IAnalysisHintDrop, IAnalysisOutputDrop {
 
   public InfoDrop(IRNode node) {
     this(node, null);

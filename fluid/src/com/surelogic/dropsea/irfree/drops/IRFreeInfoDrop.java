@@ -4,10 +4,10 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.dropsea.IInfoDrop;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.InfoDropLevel;
 
-public final class IRFreeInfoDrop extends IRFreeDrop implements IInfoDrop {
+public final class IRFreeInfoDrop extends IRFreeDrop implements IAnalysisHintDrop {
 
   private final InfoDropLevel f_level;
 

@@ -17,7 +17,7 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.IReportedByAnalysisDrop;
+import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.refactor.IRNodeUtil;
 
@@ -36,7 +36,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop implements IReportedByAnalysisDrop, IProposedPromiseDrop {
+public final class ProposedPromiseDrop extends IRReferenceDrop implements IAnalysisOutputDrop, IProposedPromiseDrop {
 
   public static final String PROPOSED_PROMISE = "proposed-promise";
   public static final String ANNOTATION_TYPE = "annotation-type";

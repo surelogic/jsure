@@ -2,9 +2,12 @@
 package com.surelogic.dropsea;
 
 /**
- * The interface for the base class for all proof drops within the sea, intended
- * to allow multiple implementations. The analysis uses the IR drop-sea and the
- * Eclipse client loads snapshots using a IR-free drop-sea.
+ * The interface for the base class for all drops involved with the JSure
+ * mode-code consistency proof within the sea, intended to allow multiple
+ * implementations.
+ * <p>
+ * The verifying analyses use the IR drop-sea and the Eclipse client loads
+ * snapshots using the IR-free drop-sea.
  */
 public interface IProofDrop extends IDrop {
 

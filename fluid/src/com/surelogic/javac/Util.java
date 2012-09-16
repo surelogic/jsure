@@ -57,7 +57,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.dropsea.IReportedByAnalysisDrop;
+import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -717,7 +717,7 @@ public class Util {
   private static void clearOldResults(CUDrop cud) {
     System.out.println("Clearing old results for " + cud);
     for (Drop d : cud.getDependents()) {
-      if (d instanceof IReportedByAnalysisDrop) {
+      if (d instanceof IAnalysisOutputDrop) {
         if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
           System.err.println("\t" + d.getMessage());
         }
