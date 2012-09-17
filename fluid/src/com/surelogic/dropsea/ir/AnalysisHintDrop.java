@@ -55,7 +55,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.INFO_DROP;
+    return AbstractXMLReader.HINT_DROP;
   }
 
   @MustInvokeOnOverride

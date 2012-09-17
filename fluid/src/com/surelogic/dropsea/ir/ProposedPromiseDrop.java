@@ -13,6 +13,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -468,6 +469,14 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   /*
    * XML Methods are invoked single-threaded
    */
+
+  /*
+   * XML Methods are invoked single-threaded
+   */
+
+  public String getXMLElementName() {
+    return AbstractXMLReader.PROPOSED_PROMISE_DROP;
+  }
 
   @Override
   public void snapshotAttrs(XMLCreator.Builder s) {

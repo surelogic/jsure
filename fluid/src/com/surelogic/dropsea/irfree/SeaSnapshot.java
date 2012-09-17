@@ -34,10 +34,10 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -45,8 +45,8 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
@@ -104,7 +104,31 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     NAME_TO_CLASS.put(qname, cls);
   }
 
+  /**
+   * List of how of drop type names have changed. For backwards scan
+   * compatibility.
+   * 
+   * The string is matched at the end of the fully qualified type and then the
+   * class name replaces
+   */
+  private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", ModelingProblemDrop.class.getName() },
+      { "InfoDrop", AnalysisHintDrop.class.getName() } };
+
+  /**
+   * A list of types that use to be in drop-sea and are in persisted scans, but
+   * no longer are used. This just helps to avoid lots of warnings. For
+   * backwards scan compatibility.
+   */
+  private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
+
+  /**
+   * Root package where all drops exist.
+   */
   private static String ROOT_DROP_PACKAGE = "com.surelogic.dropsea.ir.";
+  /**
+   * Sub-packages (appeneded to {@link #ROOT_DROP_PACKAGE} to form a package
+   * name) where drops exist.
+   */
   private static String[] SUB_DROP_PACKAGES = { "drops.", "drops.layers.", "drops.locks.", "drops.method.constraints.",
       "drops.nullable.", "drops.type.constraints.", "drops.uniqueness.", "drops.modules.", "drops.threadroles.", };
 
@@ -128,15 +152,18 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     return simpleName;
   }
 
-  /**
-   * A list of types that use to be in drop-sea and are in persisted scans, but
-   * no longer are used. This just helps to avoid lots of warnings.
-   */
-  private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
-
   private static Class<?> forNameOrNull(String className) {
+    /*
+     * Try the cache
+     */
+    Class<?> result = NAME_TO_CLASS.get(className);
+    if (result != null)
+      return result;
+    /*
+     * Try the classpath
+     */
     try {
-      final Class<?> result = Class.forName(className);
+      result = Class.forName(className);
       if (result != null) {
         ensureClassMapping(result);
         return result;
@@ -148,25 +175,32 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   }
 
   public static Class<?> findType(String className) {
+    if (className == null)
+      return null;
+
     /*
-     * Handle classes we changed the names of
+     * Try to find the full type name in our cache or on the classpath. This is
+     * the most common case so we try it first. Everything else is for backwards
+     * scan compatibility.
      */
-    if (className.endsWith("PromiseWarningDrop")) {
-      className = ModelingProblemDrop.class.getName();
-    }
-    /*
-     * Check our cache.
-     */
-    Class<?> result = NAME_TO_CLASS.get(className);
+    Class<?> result = forNameOrNull(className);
     if (result != null)
       return result;
 
     /*
-     * Check the classpath.
+     * Handle classes we changed the names of
      */
-    result = forNameOrNull(className);
-    if (result != null)
-      return result;
+    for (String[] old2new : OLDSUFFIX_TO_NEWNAME) {
+      final String oldSuffix = old2new[0];
+      final String newTypeName = old2new[1];
+      if (className.endsWith(oldSuffix)) {
+        className = newTypeName;
+        // try lookup now
+        result = forNameOrNull(className);
+        if (result != null)
+          return result;
+      }
+    }
 
     /*
      * Check known packages using the simple name of the type.
@@ -182,9 +216,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
      * Check if we know this type is no longer in the system.
      */
     if (!Arrays.asList(obsoleteTypes).contains(className)) {
-      SLLogger.getLogger().warning("Unknown class type: " + className);
-      SLLogger.getLogger().warning("-- simplenme: " + getSimpleName(className));
-      SLLogger.getLogger().warning("-- searched: " + getPossibleClassNames(getSimpleName(className)));
+      SLLogger.getLogger().warning("  Unknown class type: " + className);
     }
     return null;
   }

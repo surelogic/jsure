@@ -12,7 +12,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ISupportingInformation;
@@ -227,11 +226,6 @@ public abstract class IRReferenceDrop extends Drop {
   /*
    * XML Methods are invoked single-threaded
    */
-
-  @Override
-  public String getXMLElementName() {
-    return AbstractXMLReader.IR_DROP;
-  }
 
   @Override
   @MustInvokeOnOverride
