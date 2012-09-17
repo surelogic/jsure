@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IAnalysisHintDrop;
@@ -22,7 +21,6 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -228,9 +226,7 @@ public class JSureScanInfo {
   }
 
   public synchronized String findProjectsLabel() {
-    for (IDrop info : getDropsOfType(ProjectsDrop.class)) {
-      return info.getAttribute(AbstractXMLReader.PROJECTS);
-    }
-    return null;
+    final Projects p = getProjects();
+    return p != null ? getProjects().getLabel() : null;
   }
 }
