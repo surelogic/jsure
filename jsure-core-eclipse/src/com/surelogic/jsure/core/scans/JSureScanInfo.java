@@ -22,7 +22,6 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Projects;
@@ -144,15 +143,6 @@ public class JSureScanInfo {
 
   public synchronized List<IDrop> getDropInfo() {
     return loadOrGetDropInfo();
-  }
-
-  public synchronized boolean dropsExist(Class<? extends Drop> type) {
-    for (IDrop i : loadOrGetDropInfo()) {
-      if (i.instanceOf(type)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public synchronized <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
