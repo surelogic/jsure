@@ -1,7 +1,7 @@
 package com.surelogic.dropsea.ir;
 
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.dropsea.IModelingProblem;
+import com.surelogic.dropsea.IModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.WrappedSrcRef;
  * analysis infrastructure. These problems indicated a syntactical or semantic
  * problem with a user-expressed model of design intent.
  */
-public final class ModelingProblemDrop extends IRReferenceDrop implements IModelingProblem {
+public final class ModelingProblemDrop extends IRReferenceDrop implements IModelingProblemDrop {
 
   private final int f_offset;
 
