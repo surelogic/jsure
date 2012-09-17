@@ -43,8 +43,6 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
-//import com.surelogic.dropsea.ir.ModelingProblemDrop;
-
 final class ResultsViewContentProvider implements ITreeContentProvider {
   private static final boolean allowDuplicateNodes = true;
   private static final Object[] noObjects = ArrayUtil.empty;

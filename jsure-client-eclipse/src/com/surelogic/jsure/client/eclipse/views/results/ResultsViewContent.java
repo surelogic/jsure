@@ -17,9 +17,8 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
@@ -107,14 +106,8 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
       c.setParent(this);
     }
     f_referencedDrop = drop;
-    if (drop != null) {
-      if (drop instanceof IRReferenceDrop) {
-        IRReferenceDrop ird = (IRReferenceDrop) drop;
-        f_sourceRef = ird.getSrcRef();
-      } else {
-        f_sourceRef = drop.getSrcRef();
-      }
-    }
+    if (drop != null)
+      f_sourceRef = drop.getSrcRef();
   }
 
   ResultsViewContent(String msg, ISrcRef ref) {
@@ -199,7 +192,7 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
         name = f.toString();
       }
 
-      final boolean referencesAResultDrop = getDropInfo() != null && getDropInfo().instanceOf(ResultDrop.class);
+      final boolean referencesAResultDrop = getDropInfo() instanceof IResultDrop;
       if (ref.getLineNumber() > 0) {
         if (referencesAResultDrop) {
           result += " at line " + ref.getLineNumber();
@@ -287,7 +280,7 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
   }
 
   public Category getCategory() {
-    if (getDropInfo() != null && getDropInfo().instanceOf(IRReferenceDrop.class)) {
+    if (getDropInfo() != null) {
       return getDropInfo().getCategory();
     }
     return null;
@@ -386,8 +379,7 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
 
     @Override
     public boolean equals(Object o) {
-      // if (o instanceof Identity) {
-      if (Identity.class.isInstance(o)) {
+      if (o instanceof Identity) {
         ResultsViewContent c = ((Identity) o).content();
         if (getDropInfo() == c.getDropInfo()) {
           return true;
