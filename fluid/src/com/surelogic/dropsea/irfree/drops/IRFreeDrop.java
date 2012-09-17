@@ -28,6 +28,8 @@ import java.util.Set;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
@@ -44,6 +46,7 @@ import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop extends Entity implements IDrop {
+
   static {
     for (Category c : Category.getAll()) {
       internString(c.getMessage());
@@ -53,15 +56,14 @@ public class IRFreeDrop extends Entity implements IDrop {
   final List<IRFreeDrop> dependents;
   final List<IRFreeDrop> deponents;
   final List<IRFreeProposedPromiseDrop> proposals;
-  Category category;
-  ISrcRef ref;
-  List<ISupportingInformation> supportingInfos;
+  protected Category category;
+  private ISrcRef ref;
+  private List<ISupportingInformation> supportingInfos;
 
   public void snapshotAttrs(XMLCreator.Builder s) {
     for (Map.Entry<String, String> a : attributes.entrySet()) {
       s.addAttribute(a.getKey(), a.getValue());
     }
-    // TODO handle src refs specially?
   }
 
   public Long getTreeHash() {
@@ -241,27 +243,34 @@ public class IRFreeDrop extends Entity implements IDrop {
     };
   }
 
-  public boolean isValid() {
-    return true;
-  }
-
+  @Nullable
   public Category getCategory() {
     return category;
   }
 
+  @NonNull
   public String getMessage() {
-    return getAttribute(MESSAGE_ATTR);
+    final String result = getAttribute(MESSAGE_ATTR);
+    if (result != null)
+      return result;
+    else
+      return getClass().getSimpleName() + " (EMPTY)";
   }
 
   public ISrcRef getSrcRef() {
     return ref;
   }
 
+  @NonNull
   public String getTypeName() {
-    return getAttribute(TYPE_ATTR);
+    final String result = getAttribute(TYPE_ATTR);
+    if (result != null)
+      return result;
+    else
+      return getClass().getName();
   }
 
-  public boolean instanceOf(Class<?> type) {
+  public final boolean instanceOf(Class<?> type) {
     final String thisTypeName = getAttribute(FULL_TYPE_ATTR);
     final Class<?> thisType = SeaSnapshot.findType(thisTypeName);
     if (thisType != null)
@@ -270,7 +279,7 @@ public class IRFreeDrop extends Entity implements IDrop {
       return false;
   }
 
-  public boolean hasMatchingDeponents(DropPredicate p) {
+  public final boolean hasMatchingDeponents(DropPredicate p) {
     for (IRFreeDrop i : deponents) {
       if (p.match(i)) {
         return true;
@@ -279,8 +288,8 @@ public class IRFreeDrop extends Entity implements IDrop {
     return false;
   }
 
-  // @Override
-  public Set<? extends IDrop> getMatchingDeponents(DropPredicate p) {
+  @NonNull
+  public final Set<? extends IDrop> getMatchingDeponents(DropPredicate p) {
     final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
     for (IRFreeDrop i : deponents) {
       if (p.match(i)) {
@@ -290,8 +299,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     return result;
   }
 
-  // @Override
-  public boolean hasMatchingDependents(DropPredicate p) {
+  public final boolean hasMatchingDependents(DropPredicate p) {
     for (IRFreeDrop i : dependents) {
       if (p.match(i)) {
         return true;
@@ -300,8 +308,8 @@ public class IRFreeDrop extends Entity implements IDrop {
     return false;
   }
 
-  // @Override
-  public Set<? extends IDrop> getMatchingDependents(DropPredicate p) {
+  @NonNull
+  public final Set<? extends IDrop> getMatchingDependents(DropPredicate p) {
     final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
     for (IRFreeDrop i : dependents) {
       if (p.match(i)) {

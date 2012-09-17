@@ -1,7 +1,5 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +16,6 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
    * Only for PromiseDrops
    */
   final List<IAnalysisResultDrop> checkedByResults;
-  Category category;
 
   public void addCheckedByResult(IAnalysisResultDrop info) {
     if (PromiseDrop.useCheckedByResults) {
@@ -33,18 +30,10 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
     /*
      * The viewer expects promises to be in a category so we use an
      * "unparented drops" category for any promise that didn't load one from the
-     * XML snapshot.
-     * 
-     * We don't want to do this for results so this check is here. If you set a
-     * category for results the viewer gets unhappy.
+     * XML snapshot. This is updating a field in IRFreeDrop.
      */
-    category = Category.getInstance(getAttribute(CATEGORY_ATTR));
     if (category == null)
       category = Category.getInstance(149);
-  }
-
-  public Category getCategory() {
-    return category;
   }
 
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {

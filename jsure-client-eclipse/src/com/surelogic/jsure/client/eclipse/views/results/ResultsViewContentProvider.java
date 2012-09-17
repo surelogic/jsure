@@ -484,7 +484,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
 
         // image
-        result.setBaseImageName(infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
+        result.setBaseImageName(infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
+            : CommonImages.IMG_INFO);
 
         // children
         addSupportingInformation(result, infoDrop);
@@ -1015,8 +1016,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     for (IResultDrop id : resultDrops) {
       // only show result drops at the main level if they are not attached
       // to a promise drop or a result drop
-      if (id.isValid()
-          && ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id))) {
+      if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id)) {
         root.add(encloseDrop(id));
       }
     }

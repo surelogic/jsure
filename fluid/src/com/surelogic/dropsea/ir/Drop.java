@@ -88,11 +88,21 @@ public abstract class Drop implements IDrop {
     f_mySea.notify(this, DropEvent.Created);
   }
 
+  @NonNull
+  public String getTypeName() {
+    return getClass().getName();
+  }
+
+  public boolean instanceOf(Class<?> type) {
+    return type.isInstance(this);
+  }
+
   /**
    * Gets the sea that this drop is part of.
    * 
    * @return the sea this drop exists within.
    */
+  @NonNull
   public final Sea getSea() {
     return f_mySea;
   }
@@ -166,11 +176,7 @@ public abstract class Drop implements IDrop {
       f_message = value;
   }
 
-  /**
-   * Gets the user interface reporting category for this drop.
-   * 
-   * @return a category, or {@code null} if none is set.
-   */
+  @Nullable
   public final Category getCategory() {
     synchronized (f_seaLock) {
       return f_category;
@@ -194,11 +200,7 @@ public abstract class Drop implements IDrop {
     return JavaSourceReference.UNKNOWN;
   }
 
-  /**
-   * Gets this drop's message.
-   * 
-   * @return the message set for this drop, usually used by the UI.
-   */
+  @NonNull
   public final String getMessage() {
     synchronized (f_seaLock) {
       if (f_message == null)
@@ -332,44 +334,19 @@ public abstract class Drop implements IDrop {
     return f_deponents;
   }
 
-  /**
-   * Queries if any of this drop's dependent drops matches the given drop
-   * predicate.
-   * 
-   * @param pred
-   *          a drop predicate.
-   * @return <code>true</code> if at least one of this drop's dependent drops
-   *         matches the specified drop predicate.
-   */
   public final boolean hasMatchingDependents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_dependents);
     }
   }
 
-  /**
-   * Queries if any of this drop's deponent drops matches the given drop
-   * predicate.
-   * 
-   * @param pred
-   *          a drop predicate.
-   * @return <code>true</code> if at least one of this drop's deponent drops
-   *         matches the specified drop predicate.
-   */
   public final boolean hasMatchingDeponents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_deponents);
     }
   }
 
-  /**
-   * Returns a new list containing of this drop's dependents drops that match a
-   * drop predicate.
-   * 
-   * @param pred
-   *          a drop predicate.
-   * @return a list of drops. This may be empty but will never be {@code null}.
-   */
+  @NonNull
   public final ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
     final ArrayList<Drop> result;
     synchronized (f_seaLock) {
@@ -378,14 +355,7 @@ public abstract class Drop implements IDrop {
     return result;
   }
 
-  /**
-   * Returns the set of this drop's deponent drops matches the given drop
-   * predicate.
-   * 
-   * @param pred
-   *          a drop predicate.
-   * @return a set of drops. This may be empty but will never be {@code null}.
-   */
+  @NonNull
   public final ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
     final ArrayList<Drop> result;
     synchronized (f_seaLock) {
@@ -455,8 +425,7 @@ public abstract class Drop implements IDrop {
    * that the knowledge represented by the drop is currently still supported
    * within the truth maintenance system.
    * 
-   * @return <code>true</code> if the drop is invalid, <code>false</code>
-   *         otherwise
+   * @return {@code true} if the drop is invalid, {@code false} otherwise.
    */
   public final boolean isValid() {
     synchronized (f_seaLock) {
@@ -644,14 +613,6 @@ public abstract class Drop implements IDrop {
       return (T) this;
     } else
       throw new UnsupportedOperationException();
-  }
-
-  public String getTypeName() {
-    return getClass().getName();
-  }
-
-  public boolean instanceOf(Class<?> type) {
-    return type.isInstance(this);
   }
 
   public ISrcRef getSrcRef() {

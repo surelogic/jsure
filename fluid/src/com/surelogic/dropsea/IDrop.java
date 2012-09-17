@@ -2,6 +2,8 @@ package com.surelogic.dropsea;
 
 import java.util.Collection;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
@@ -24,6 +26,7 @@ public interface IDrop {
    * 
    * @return the IR drop-sea type name, descended from {@link Drop}
    */
+  @NonNull
   String getTypeName();
 
   /**
@@ -43,10 +46,12 @@ public interface IDrop {
   boolean instanceOf(Class<?> type);
 
   /**
-   * Gets this drop's message.
+   * Gets this drop's message. If no message has been set then the output will
+   * look like <tt>"</tt><i>SimpleTypeName</i><tt> (EMPTY)</tt>.
    * 
-   * @return the message set for this drop, usually used by the UI.
+   * @return a message describing this drop, usually used by the UI.
    */
+  @NonNull
   String getMessage();
 
   /**
@@ -55,53 +60,41 @@ public interface IDrop {
    * 
    * @return a category, or {@code null} if none is set.
    */
+  @Nullable
   Category getCategory();
 
   /**
-   * Returns whether this drop is valid or not. A drop being valid indicates
-   * that the knowledge represented by the drop is currently still supported
-   * within the truth maintenance system.
-   * 
-   * @return <code>true</code> if the drop is invalid, <code>false</code>
-   *         otherwise
-   */
-  boolean isValid();
-
-  /**
-   * Queries if any of this drop's deponent drops matches the given drop
-   * predicate.
+   * Queries if any of this drop's deponent drops matches a drop predicate.
    * 
    * @param p
    *          the drop predicate to use.
-   * @return <code>true</code> if at least one of this drop's deponent drops
-   *         matches the specified drop predicate.
+   * @return {@code true} if at least one of this drop's deponent drops matches
+   *         the specified drop predicate, {@code false} otherwise.
    */
   boolean hasMatchingDeponents(DropPredicate p);
 
   /**
-   * Returns the set of this drop's deponent drops matches the given drop
-   * predicate.
+   * Returns the set of this drop's deponent drops matches a drop predicate.
    * 
    * @param p
    *          the drop predicate to use.
    * @return a set of drops. This may be empty but will never be {@code null}.
    */
+  @NonNull
   Collection<? extends IDrop> getMatchingDeponents(DropPredicate p);
 
   /**
-   * Queries if any of this drop's dependent drops matches the given drop
-   * predicate.
+   * Queries if any of this drop's dependent drops matches a drop predicate.
    * 
    * @param p
    *          the drop predicate to use.
-   * @return <code>true</code> if at least one of this drop's dependent drops
-   *         matches the specified drop predicate.
+   * @return {@code true} if at least one of this drop's dependent drops matches
+   *         the specified drop predicate, {@code false} otherwise.
    */
   boolean hasMatchingDependents(DropPredicate p);
 
   /**
-   * Returns the set of this drop's dependents drops matches the given drop
-   * predicate.
+   * Returns the set of this drop's dependents drops matches a drop predicate.
    * 
    * @param p
    *          the drop predicate to use.
