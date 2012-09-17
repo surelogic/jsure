@@ -1,10 +1,13 @@
 package com.surelogic.dropsea;
 
 import java.util.Collection;
+import java.util.Set;
+
+import com.surelogic.NonNull;
 
 /**
- * The interface for the base class for all promises, or assertion, drops within
- * the sea, intended to allow multiple implementations.
+ * The interface for for all promises, or assertion, drops within the sea,
+ * intended to allow multiple implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
@@ -66,4 +69,20 @@ public interface IPromiseDrop extends IProofDrop {
    * @return a non-null (possibly empty) set which check this promise drop
    */
   Collection<? extends IAnalysisResultDrop> getCheckedBy();
+
+  /**
+   * Gets the set of promise drops that are a dependent of this promise drop.
+   * 
+   * @return the set of promise drops that are a dependent of this promise drop.
+   */
+  @NonNull
+  Set<IPromiseDrop> getDependentPromises();
+  
+  /**
+   * Gets the set of promise drops that are a deponent of this promise drop.
+   * 
+   * @return the set of promise drops that are a deponent of this promise drop.
+   */
+  @NonNull
+  Set<IPromiseDrop> getDeponentPromises();
 }

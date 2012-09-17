@@ -32,18 +32,16 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.DropPredicate;
-import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.UiShowAtTopLevel;
-import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -427,8 +425,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, promiseDrop);
 
         final Set<IDrop> matching = new HashSet<IDrop>();
-        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
-        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(AnalysisHintDrop.class)));
+        matching.addAll(promiseDrop.getDependentPromises());
+        matching.addAll(promiseDrop.getAnalysisHintsAbout());
         addDrops(result, matching);
         addDrops(result, promiseDrop.getCheckedBy());
 
@@ -960,19 +958,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  private static final DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
-
-  private static final DropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
-
-  /**
-   * Matches non-@Promise PromiseDrops
-   */
-  private static DropPredicate predicate = new DropPredicate() {
-    public boolean match(IDrop d) {
-      return promisePred.match(d) && !scopedPromisePred.match(d);
-    }
-  };
-
   ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
@@ -984,7 +969,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       for (IPromiseDrop pd : scan.getPromiseDrops()) {
         if (pd.isFromSrc() || pd.derivedFromSrc()) {
           // System.out.println("Considering: "+pd.getMessage());
-          if (!pd.hasMatchingDeponents(predicate) || showAtTopLevel(pd)) {
+          if (showAtTopLevel(pd)) {
             root.add(encloseDrop(pd));
           } else {
             // System.out.println("Rejected: "+pd.getMessage());
@@ -1009,7 +994,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       for (IResultDrop id : scan.getResultDrops()) {
         // only show result drops at the main level if they are not attached
         // to a promise drop or a result drop
-        if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id)) {
+        if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder())) {
           root.add(encloseDrop(id));
         }
       }
@@ -1026,7 +1011,19 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return this;
   }
 
-  private static boolean showAtTopLevel(IDrop d) {
-    return d != null && d.instanceOf(UiShowAtTopLevel.class);
+  private static boolean showAtTopLevel(IPromiseDrop d) {
+    if (d == null)
+      return false;
+    if (d.instanceOf(UiShowAtTopLevel.class))
+      return true;
+    /*
+     * If we have a deponent promise that is not a scoped promise we do not want
+     * to show at the top level.
+     */
+    for (IPromiseDrop pd : d.getDeponentPromises()) {
+      if (!(pd instanceof IScopedPromiseDrop))
+        return false;
+    }
+    return true;
   }
 }

@@ -1,10 +1,13 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.dropsea;
 
+import java.util.Set;
+
+import com.surelogic.NonNull;
+
 /**
- * The interface for the base class for all drops involved with the JSure
- * mode-code consistency proof within the sea, intended to allow multiple
- * implementations.
+ * The interface for all drops involved with the JSure mode-code consistency
+ * proof within the sea, intended to allow multiple implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
@@ -45,4 +48,12 @@ public interface IProofDrop extends IDrop {
    *         source code, <code>false</code> otherwise
    */
   boolean isFromSrc();
+
+  /**
+   * Returns the set of analysis hints about this proof drop.
+   * 
+   * @return the set of analysis hints about this proof drop.
+   */
+  @NonNull
+  Set<IAnalysisHintDrop> getAnalysisHintsAbout();
 }

@@ -3,8 +3,8 @@ package com.surelogic.dropsea;
 import java.util.Collection;
 
 /**
- * The interface for the base class for all analysis results, or verification
- * judgement, drops within the sea, intended to allow multiple implementations.
+ * The interface for all analysis results, or verification judgement, drops
+ * within the sea, intended to allow multiple implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.

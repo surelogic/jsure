@@ -12,8 +12,8 @@ import com.surelogic.dropsea.ir.DropPredicate;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
- * The interface for the base class for all drops within the sea, intended to
- * allow multiple implementations.
+ * The interface for for all drops within the sea, intended to allow multiple
+ * implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
@@ -62,45 +62,6 @@ public interface IDrop {
    */
   @Nullable
   Category getCategory();
-
-  /**
-   * Queries if any of this drop's deponent drops matches a drop predicate.
-   * 
-   * @param p
-   *          the drop predicate to use.
-   * @return {@code true} if at least one of this drop's deponent drops matches
-   *         the specified drop predicate, {@code false} otherwise.
-   */
-  boolean hasMatchingDeponents(DropPredicate p);
-
-  /**
-   * Returns the set of this drop's deponent drops matches a drop predicate.
-   * 
-   * @param p
-   *          the drop predicate to use.
-   * @return a set of drops. This may be empty but will never be {@code null}.
-   */
-  @NonNull
-  Collection<? extends IDrop> getMatchingDeponents(DropPredicate p);
-
-  /**
-   * Queries if any of this drop's dependent drops matches a drop predicate.
-   * 
-   * @param p
-   *          the drop predicate to use.
-   * @return {@code true} if at least one of this drop's dependent drops matches
-   *         the specified drop predicate, {@code false} otherwise.
-   */
-  boolean hasMatchingDependents(DropPredicate p);
-
-  /**
-   * Returns the set of this drop's dependents drops matches a drop predicate.
-   * 
-   * @param p
-   *          the drop predicate to use.
-   * @return a set of drops. This may be empty but will never be {@code null}.
-   */
-  Collection<? extends IDrop> getMatchingDependents(DropPredicate p);
 
   /**
    * Gets the source reference of this drop.

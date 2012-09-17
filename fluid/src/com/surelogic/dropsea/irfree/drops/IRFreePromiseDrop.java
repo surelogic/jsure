@@ -2,16 +2,19 @@ package com.surelogic.dropsea.irfree.drops;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.NonNull;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
-public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
+public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   /**
    * Only for PromiseDrops
    */
@@ -38,6 +41,26 @@ public final class IRFreePromiseDrop extends IRFreeProofDrop implements IPromise
 
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
     return checkedByResults;
+  }
+
+  @NonNull
+  public Set<IPromiseDrop> getDependentPromises() {
+    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+    for (IRFreeDrop d : dependents) {
+      if (d instanceof IPromiseDrop)
+        result.add((IPromiseDrop) d);
+    }
+    return result;
+  }
+
+  @NonNull
+  public Set<IPromiseDrop> getDeponentPromises() {
+    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+    for (IRFreeDrop d : deponents) {
+      if (d instanceof IPromiseDrop)
+        result.add((IPromiseDrop) d);
+    }
+    return result;
   }
 
   public boolean isAssumed() {

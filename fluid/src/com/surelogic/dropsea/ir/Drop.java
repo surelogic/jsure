@@ -334,18 +334,41 @@ public abstract class Drop implements IDrop {
     return f_deponents;
   }
 
+  /**
+   * Queries if any of this drop's dependent drops matches a drop predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return {@code true} if at least one of this drop's dependent drops matches
+   *         the specified drop predicate, {@code false} otherwise.
+   */
   public final boolean hasMatchingDependents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_dependents);
     }
   }
 
+  /**
+   * Queries if any of this drop's deponent drops matches a drop predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return {@code true} if at least one of this drop's deponent drops matches
+   *         the specified drop predicate, {@code false} otherwise.
+   */
   public final boolean hasMatchingDeponents(DropPredicate pred) {
     synchronized (f_seaLock) {
       return Sea.hasMatchingDrops(pred, f_deponents);
     }
   }
 
+  /**
+   * Returns the set of this drop's dependents drops matches a drop predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return a set of drops. This may be empty but will never be {@code null}.
+   */
   @NonNull
   public final ArrayList<Drop> getMatchingDependents(DropPredicate pred) {
     final ArrayList<Drop> result;
@@ -355,6 +378,13 @@ public abstract class Drop implements IDrop {
     return result;
   }
 
+  /**
+   * Returns the set of this drop's deponent drops matches a drop predicate.
+   * 
+   * @param p
+   *          the drop predicate to use.
+   * @return a set of drops. This may be empty but will never be {@code null}.
+   */
   @NonNull
   public final ArrayList<Drop> getMatchingDeponents(DropPredicate pred) {
     final ArrayList<Drop> result;
