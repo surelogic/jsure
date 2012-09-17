@@ -141,13 +141,17 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     return result;
   }
 
+  /*
+   * Consistency proof methods
+   */
+
   /**
    * Called by {@link Sea#updateConsistencyProof()} to allow this proof drop to
    * initialize its state for running the the reverse flow analysis used by that
    * method to calculate promise consistency.
    */
   @RequiresLock("SeaLock")
-  abstract void proofInitialize();
+  abstract protected void proofInitialize();
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} on iteration to a
@@ -156,7 +160,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * proof drop.
    */
   @RequiresLock("SeaLock")
-  abstract void proofTransfer();
+  abstract protected void proofTransfer();
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} when this proof drop's
@@ -173,10 +177,22 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    *          the worklist to add to.
    */
   @RequiresLock("SeaLock")
-  abstract void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist);
+  abstract protected void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist);
+
+  /**
+   * Called by {@link Sea#updateConsistencyProof()} on each proof drop after the
+   * consistency proof has been completed. This allows the drop to examine the
+   * results and make any state changes necessary.
+   * <p>
+   * The default implementation does nothing.
+   */
+  @RequiresLock("SeaLock")
+  protected void proofFinalize() {
+    // by default we do nothing
+  }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output is invoked single-threaded
    */
 
   @Override

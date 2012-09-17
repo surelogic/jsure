@@ -482,9 +482,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(n, getSrcRef());
   }
 
+  /*
+   * Consistency proof methods
+   */
+
   @Override
   @RequiresLock("SeaLock")
-  final void proofInitialize() {
+  protected final void proofInitialize() {
     // for a promise drop we flag a red dot if it is not checked by analysis
     setProofUsesRedDot(!isCheckedByAnalysis());
     if (isAssumed())
@@ -510,7 +514,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @RequiresLock("SeaLock")
-  final void proofTransfer() {
+  protected final void proofTransfer() {
     // examine dependent analysis results and dependent promises
     final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(getCheckedBy());
     proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDependents()));
@@ -527,7 +531,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @RequiresLock("SeaLock")
-  final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
+  protected final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
     // add all result drops trusted by this promise
     mutableWorklist.addAll(getTrustedBy());
     // add all deponent promise drops of this promise

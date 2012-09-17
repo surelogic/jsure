@@ -94,10 +94,14 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  /*
+   * Consistency proof methods
+   */
+
   @Override
   @MustInvokeOnOverride
   @RequiresLock("SeaLock")
-  void proofInitialize() {
+  protected void proofInitialize() {
     // analysis result drops, by definition, can not start off with a red dot
     setProofUsesRedDot(false);
 
@@ -106,7 +110,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
 
   @Override
   @RequiresLock("SeaLock")
-  final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
+  protected final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
     // add all result drops trusted by this result
     mutableWorklist.addAll(getTrustedBy());
     // add all promise drops that this result checks
@@ -116,7 +120,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output is invoked single-threaded
    */
 
   @Override

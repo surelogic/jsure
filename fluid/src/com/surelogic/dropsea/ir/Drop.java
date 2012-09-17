@@ -145,12 +145,12 @@ public abstract class Drop implements IDrop {
    */
   public final void setMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning("Ignoring negative result number: " + number);
+      LOG.warning(I18N.err(247, number));
       return;
     }
     synchronized (f_seaLock) {
       JavaSourceReference srcRef = createSourceRef(); // may be null
-      this.f_message = AnalysisResultMessage.getInstance(srcRef, number, args);
+      f_message = AnalysisResultMessage.getInstance(srcRef, number, args);
     }
   }
 
@@ -592,7 +592,7 @@ public abstract class Drop implements IDrop {
   final protected Object f_seaLock;
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output is invoked single-threaded
    */
 
   public String getXMLElementName() {

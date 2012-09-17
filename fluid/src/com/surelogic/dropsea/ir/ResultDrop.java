@@ -356,9 +356,13 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     }
   }
 
+  /*
+   * Consistency proof methods
+   */
+
   @Override
   @RequiresLock("SeaLock")
-  void proofInitialize() {
+  protected void proofInitialize() {
     super.proofInitialize();
 
     setProvedConsistent(isConsistent() || isVouched());
@@ -366,7 +370,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
 
   @Override
   @RequiresLock("SeaLock")
-  void proofTransfer() {
+  protected void proofTransfer() {
     // "and" trust promise drops
     for (final PromiseDrop<? extends IAASTRootNode> promise : getTrustedPromises()) {
       // all must be consistent for this drop to be consistent

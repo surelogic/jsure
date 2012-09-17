@@ -60,6 +60,8 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+
     s.addAttribute(AbstractXMLReader.HINT_TYPE_ATTR, f_type.toString());
   }
 }
