@@ -31,6 +31,7 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
@@ -89,8 +90,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     } finally {
       b.end();
       close();
-      // pw = null;
-      // JSureXMLReader.readSnapshot(location, null);
     }
   }
 
@@ -112,7 +111,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
    * class name replaces
    */
   private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", ModelingProblemDrop.class.getName() },
-      { "InfoDrop", AnalysisHintDrop.class.getName() } };
+      { "InfoDrop", AnalysisHintDrop.class.getName() }, { "WarningDrop", AnalysisHintDrop.class.getName() } };
 
   /**
    * A list of types that use to be in drop-sea and are in persisted scans, but
@@ -309,10 +308,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     pb.end();
   }
 
-  /*
-   * private void outputPromiseDropAttrs(StringBuilder b, PromiseDrop d) {
-   * d.isAssumed(); d.isCheckedByAnalysis(); d.isFromSrc(); }
-   */
   public static List<IDrop> loadSnapshot(File location) throws Exception {
     XMLListener l = new XMLListener();
     new JSureXMLReader(l).read(location);
@@ -360,7 +355,18 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreePromiseDrop(name, a);
           } else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {
-            return new IRFreeAnalysisHintDrop(name, a);
+            /*
+             * The old scheme used WarningDrop as a subtype of InfoDrop. The new
+             * scheme just has AnalysisHintDrop with an attribute, hint type. We
+             * need to set the hint type attribute correctly if we are dealing
+             * with an old scan. No extra work for InfoDrop (default is
+             * SUGGESTION), but we need to explicitly set the hint type to
+             * WARNING if an old WarningDrop.
+             */
+            if (type.endsWith("WarningDrop"))
+              return new IRFreeAnalysisHintDrop(name, a, IAnalysisHintDrop.HintType.WARNING);
+            else
+              return new IRFreeAnalysisHintDrop(name, a);
           } else if (ResultDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeResultDrop(name, a);
           } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {

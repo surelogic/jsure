@@ -11,18 +11,26 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
   private final HintType f_type;
 
   public IRFreeAnalysisHintDrop(String name, Attributes a) {
-    super(name, a);
-    final String levelString = getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
+    this(name, a, null);
+  }
 
-    HintType level = HintType.SUGGESTION;
-    if (levelString != null) {
-      try {
-        level = HintType.valueOf(levelString);
-      } catch (Exception ignore) {
-        // ignore
+  public IRFreeAnalysisHintDrop(String name, Attributes a, HintType forBackwardsCompatiblityOnly) {
+    super(name, a);
+    if (forBackwardsCompatiblityOnly != null) {
+      f_type = forBackwardsCompatiblityOnly;
+    } else {
+      final String levelString = getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
+
+      HintType level = HintType.SUGGESTION;
+      if (levelString != null) {
+        try {
+          level = HintType.valueOf(levelString);
+        } catch (Exception ignore) {
+          // ignore
+        }
       }
+      f_type = level;
     }
-    f_type = level;
   }
 
   @Override
