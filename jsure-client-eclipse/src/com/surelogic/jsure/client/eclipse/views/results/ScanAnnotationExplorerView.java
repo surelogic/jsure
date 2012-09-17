@@ -1,6 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -30,7 +32,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -172,7 +174,7 @@ public class ScanAnnotationExplorerView extends
 				return null;
 			}
 			final MultiMap<String, IDrop> pkgToDrop = new MultiHashMap<String, IDrop>();
-			for (IDrop d : info.getDropsOfType(PromiseDrop.class)) {
+			for (IPromiseDrop d : info.getPromiseDrops()) {
 				final ISrcRef sr = d.getSrcRef();
 				if (sr == null) {
 					continue;

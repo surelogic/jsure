@@ -2,14 +2,13 @@ package com.surelogic.jsure.client.eclipse.views.results;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
@@ -26,8 +25,7 @@ final class ProblemsViewContentProvider extends AbstractResultsTableContentProvi
     if (info == null) {
       return null;
     }
-    Set<? extends IDrop> promiseWarningDrops = info.getDropsOfType(ModelingProblemDrop.class);
-    for (IDrop id : promiseWarningDrops) {
+    for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
       final String resource = DropInfoUtility.getResource(id);
       /*
        * We filter results based upon the resource.

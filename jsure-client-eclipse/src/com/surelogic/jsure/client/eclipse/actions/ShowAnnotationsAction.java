@@ -12,7 +12,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.*;
 
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.jsure.core.scans.*;
@@ -116,7 +116,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	
 	private Map<String,List<IDrop>> preprocessPromises(final JSureScanInfo info) {
 		Map<String,List<IDrop>> rv = new HashMap<String, List<IDrop>>();
-		for(IDrop d : info.getDropsOfType(PromiseDrop.class)) {
+		for(IPromiseDrop d : info.getPromiseDrops()) {
 			final ISrcRef ref = d.getSrcRef();						
 			if (ref == null) {
 				//System.out.println("No src ref:  @"+d.getMessage());

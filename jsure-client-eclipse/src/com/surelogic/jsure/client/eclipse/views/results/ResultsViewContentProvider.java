@@ -25,21 +25,20 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ISupportingInformation;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
@@ -974,50 +973,45 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
   };
 
-  private <R extends IDrop> Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scan != null) {
-      return scan.getDropsOfType(type);
-    }
-    return Collections.emptyList();
-  }
-
   ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
 
-    final Collection<IProofDrop> promiseDrops = getDropsOfType(PromiseDrop.class, IProofDrop.class);
-    for (IProofDrop pd : promiseDrops) {
-      if (pd.isFromSrc() || pd.derivedFromSrc()) {
-        // System.out.println("Considering: "+pd.getMessage());
-        if (!pd.hasMatchingDeponents(predicate) || showAtTopLevel(pd)) {
-          root.add(encloseDrop(pd));
-        } else {
-          // System.out.println("Rejected: "+pd.getMessage());
+    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+
+    if (scan != null) {
+
+      for (IPromiseDrop pd : scan.getPromiseDrops()) {
+        if (pd.isFromSrc() || pd.derivedFromSrc()) {
+          // System.out.println("Considering: "+pd.getMessage());
+          if (!pd.hasMatchingDeponents(predicate) || showAtTopLevel(pd)) {
+            root.add(encloseDrop(pd));
+          } else {
+            // System.out.println("Rejected: "+pd.getMessage());
+          }
         }
       }
-    }
 
-    final Collection<IDrop> infoDrops = getDropsOfType(AnalysisHintDrop.class, IDrop.class);
-    if (!infoDrops.isEmpty()) {
-      final String msg = "Suggestions and warnings";
-      ResultsViewContent infoFolder = makeContent(msg);
-      infoFolder.setCount(infoDrops.size());
+      final Collection<IAnalysisHintDrop> infoDrops = scan.getAnalysisHintDrops();
+      if (!infoDrops.isEmpty()) {
+        final String msg = "Suggestions and warnings";
+        ResultsViewContent infoFolder = makeContent(msg);
+        infoFolder.setCount(infoDrops.size());
 
-      for (IDrop id : infoDrops) {
-        infoFolder.addChild(encloseDrop(id));
+        for (IDrop id : infoDrops) {
+          infoFolder.addChild(encloseDrop(id));
+        }
+        infoFolder.setBaseImageName(CommonImages.IMG_INFO);
+        infoFolder.f_isInfo = true;
+        root.add(infoFolder);
       }
-      infoFolder.setBaseImageName(CommonImages.IMG_INFO);
-      infoFolder.f_isInfo = true;
-      root.add(infoFolder);
-    }
 
-    final Collection<IResultDrop> resultDrops = getDropsOfType(ResultDrop.class, IResultDrop.class);
-    for (IResultDrop id : resultDrops) {
-      // only show result drops at the main level if they are not attached
-      // to a promise drop or a result drop
-      if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id)) {
-        root.add(encloseDrop(id));
+      for (IResultDrop id : scan.getResultDrops()) {
+        // only show result drops at the main level if they are not attached
+        // to a promise drop or a result drop
+        if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id)) {
+          root.add(encloseDrop(id));
+        }
       }
     }
 

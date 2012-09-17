@@ -393,7 +393,7 @@ public final class Selection implements
 		if (scanInfo == null) {
 			result = Collections.emptyList();
 		} else {
-			result = scanInfo.getProofDropInfo();
+			result = scanInfo.getProofDrops();
 		}
 
 		/*

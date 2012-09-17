@@ -7,13 +7,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -60,6 +68,7 @@ public class JSureScanInfo {
     return null;
   }
 
+  @NonNull
   private synchronized List<IDrop> loadOrGetDropInfo() {
     if (f_dropInfo != null) {
       return f_dropInfo;
@@ -75,9 +84,10 @@ public class JSureScanInfo {
       final long end = System.currentTimeMillis();
       System.out.println("Finished loading info = " + (end - start) + " ms");
     } catch (Exception e) {
-      e.printStackTrace(); // TODO
-      f_dropInfo = Collections.emptyList();
+      SLLogger.getLogger().log(Level.WARNING, "general failure loading all drops from a snapshot of drop-sea", e);
     }
+    if (f_dropInfo == null)
+      f_dropInfo = Collections.emptyList();
     return f_dropInfo;
   }
 
@@ -145,7 +155,7 @@ public class JSureScanInfo {
     return false;
   }
 
-  public synchronized <T extends IDrop, T2 extends Drop> Set<T> getDropsOfType(Class<T2> dropType) {
+  public synchronized <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
     List<IDrop> info = loadOrGetDropInfo();
     if (!info.isEmpty()) {
       final Set<T> result = new HashSet<T>();
@@ -161,11 +171,66 @@ public class JSureScanInfo {
     return Collections.emptySet();
   }
 
-  public synchronized List<IProofDrop> getProofDropInfo() {
-    final List<IProofDrop> result = new ArrayList<IProofDrop>();
+  public synchronized ArrayList<IProofDrop> getProofDrops() {
+    final ArrayList<IProofDrop> result = new ArrayList<IProofDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IProofDrop) {
         final IProofDrop ipd = (IProofDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+
+  public synchronized ArrayList<IPromiseDrop> getPromiseDrops() {
+    final ArrayList<IPromiseDrop> result = new ArrayList<IPromiseDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IPromiseDrop) {
+        final IPromiseDrop ipd = (IPromiseDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+
+  public synchronized ArrayList<IProposedPromiseDrop> getProposedPromiseDrops() {
+    final ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IProposedPromiseDrop) {
+        final IProposedPromiseDrop ipd = (IProposedPromiseDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+
+  public synchronized ArrayList<IResultDrop> getResultDrops() {
+    final ArrayList<IResultDrop> result = new ArrayList<IResultDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IResultDrop) {
+        final IResultDrop ipd = (IResultDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+
+  public synchronized ArrayList<IAnalysisHintDrop> getAnalysisHintDrops() {
+    final ArrayList<IAnalysisHintDrop> result = new ArrayList<IAnalysisHintDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IAnalysisHintDrop) {
+        final IAnalysisHintDrop ipd = (IAnalysisHintDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+
+  public synchronized ArrayList<IModelingProblemDrop> getModelingProblemDrops() {
+    final ArrayList<IModelingProblemDrop> result = new ArrayList<IModelingProblemDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IModelingProblemDrop) {
+        final IModelingProblemDrop ipd = (IModelingProblemDrop) i;
         result.add(ipd);
       }
     }

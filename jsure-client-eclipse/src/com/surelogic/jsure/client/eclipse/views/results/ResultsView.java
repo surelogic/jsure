@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IResource;
@@ -43,9 +42,9 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -632,8 +631,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
   private int getModelProblemCount(final JSureScanInfo info) {
     int result = 0;
     if (info != null) {
-      Set<? extends IDrop> promiseWarningDrops = info.getDropsOfType(ModelingProblemDrop.class);
-      for (IDrop id : promiseWarningDrops) {
+      for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
         final String resource = DropInfoUtility.getResource(id);
         /*
          * We filter results based upon the resource.

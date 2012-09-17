@@ -34,7 +34,6 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-
 final class ProposedPromiseViewContentProvider extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
     IResultsTableContentProvider, IJSureTreeContentProvider {
   private static final Package[] noPackages = new Package[0];
@@ -62,8 +61,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
       packages = noPackages;
       return null;
     }
-    List<IProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop.filterOutDuplicates(info
-        .<IProposedPromiseDrop, ProposedPromiseDrop> getDropsOfType(ProposedPromiseDrop.class));
+    List<IProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop.filterOutDuplicates(info.getProposedPromiseDrops());
     final boolean showAbductiveOnly = EclipseUtility
         .getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
 
