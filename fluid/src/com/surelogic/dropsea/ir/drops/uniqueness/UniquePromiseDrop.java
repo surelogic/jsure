@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.dropsea.ir.UiShowAtTopLevel;
+import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 

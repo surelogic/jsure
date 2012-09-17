@@ -34,19 +34,16 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
-import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
-import com.surelogic.dropsea.ir.UiShowAtTopLevel;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.ArrayUtil;
+
+//import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 final class ResultsViewContentProvider implements ITreeContentProvider {
   private static final boolean allowDuplicateNodes = true;
@@ -400,13 +397,12 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       result = makeContent(drop.getMessage(), drop);
       putInContentCache(drop, result); // to avoid infinite recursion
 
-      if (drop.instanceOf(PromiseDrop.class)) {
+      if (drop instanceof IPromiseDrop) {
+        final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         /*
          * PROMISE DROP
          */
-
-        IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -430,12 +426,12 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addDrops(result, matching);
         addDrops(result, promiseDrop.getCheckedBy());
 
-      } else if (drop.instanceOf(ResultDrop.class)) {
+      } else if (drop instanceof IResultDrop) {
+        final IResultDrop resultDrop = (IResultDrop) drop;
 
         /*
          * RESULT DROP
          */
-        IResultDrop resultDrop = (IResultDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -456,12 +452,12 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromisesAndFolders(result, resultDrop);
 
-      } else if (drop.instanceOf(ResultFolderDrop.class)) {
+      } else if (drop instanceof IResultFolderDrop) {
+        final IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
         /*
          * RESULT FOLDER DROP
          */
-        IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -473,8 +469,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addDrops(result, resultDrop.getContents());
         addProposedPromises(result, resultDrop);
 
-      } else if (drop.instanceOf(AnalysisHintDrop.class)) {
-        IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
+      } else if (drop instanceof IAnalysisHintDrop) {
+        final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
 
         /*
          * INFO DROP
@@ -490,19 +486,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         result.f_isInfo = true;
         result.f_isInfoWarning = infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
-
-      } else if (drop.instanceOf(ModelingProblemDrop.class)) {
-
-        /*
-         * PROMISE WARNING DROP
-         */
-
-        // image
-        result.setBaseImageName(CommonImages.IMG_WARNING);
-
-        // children
-        addSupportingInformation(result, drop);
-        result.f_isPromiseWarning = true;
       } else {
         LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
       }
@@ -559,10 +542,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         final IDrop info = item.getDropInfo();
         boolean dontCategorize = false;
         if (info != null) {
-          if (info.instanceOf(PromiseDrop.class)) {
+          if (info instanceof IPromiseDrop) {
             dontCategorize = !atRoot && !(info.instanceOf(UiPlaceInASubFolder.class));
-          } else if (info.instanceOf(ResultDrop.class)) {
-            IResultDrop r = (IResultDrop) info;
+          } else if (info instanceof IResultDrop) {
+            final IResultDrop r = (IResultDrop) info;
             dontCategorize = r.isInResultFolder();
           }
         }
@@ -704,9 +687,9 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
-        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(AnalysisHintDrop.class))) {
-          boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
-          if (resultHasACategory || drop.instanceOf(AnalysisHintDrop.class)) {
+        if (drop != null && (drop instanceof IResultDrop || drop instanceof IAnalysisHintDrop)) {
+          boolean resultHasACategory = drop instanceof IResultDrop && drop.getCategory() != null;
+          if (resultHasACategory || drop instanceof IAnalysisHintDrop) {
             ContentJavaContext context = new ContentJavaContext(item);
             if (context.complete) {
               hasJavaContext = true;
