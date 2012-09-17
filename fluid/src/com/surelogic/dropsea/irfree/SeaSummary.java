@@ -505,11 +505,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     private void separate() {
       for (Entity e : oldDrops) {
         Category c = categories.getOrCreate(e);
-        c.addOld(e);
+        if (c != null) {
+        	c.addOld(e);
+        }
       }
       for (Entity e : newDrops) {
         Category c = categories.getOrCreate(e);
-        c.addNew(e);
+        if (c != null) {
+        	c.addNew(e);
+        }
       }
     }
 
@@ -552,7 +556,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     private static final long serialVersionUID = -9045897254507985423L;
 
     Category getOrCreate(Entity e) {
-      final String type = e.getAttribute(TYPE_ATTR);
+      final String typeName = e.getAttribute(TYPE_ATTR);
+      final Class<?> type = SeaSnapshot.findType(typeName);
+      if (type == null) {
+    	  return null;
+      }
       String path = e.getAttribute(PATH_ATTR);
       String uri = e.getAttribute(URI_ATTR);
       String file = e.getAttribute(FILE_ATTR);
@@ -560,10 +568,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       if (f != null) {
         f = FileUtility.normalizePath(f);
       }
-      final Pair<String, String> key = Pair.getInstance(f, type);
+      final Pair<String, String> key = Pair.getInstance(f, type.getName());
       Category c = this.get(key);
       if (c == null) {
-        c = new Category(f, type);
+        c = new Category(f, key.second());
         this.put(key, c);
       }
       return c;
