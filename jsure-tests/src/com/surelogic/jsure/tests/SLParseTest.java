@@ -219,7 +219,7 @@ public class SLParseTest extends TestCase {
 		String expected;
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ JavaNode.PUBLIC + "\n" + "  id=region1\n";
+					+ (JavaNode.PUBLIC | JavaNode.ABSTRACT) + "\n" + "  id=region1\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("public region1").region().getTree();
 			RegionDeclarationNode ldn = (RegionDeclarationNode) root
@@ -234,7 +234,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ JavaNode.PROTECTED + "\n" + "  id=region1\n"
+					+ (JavaNode.PROTECTED | JavaNode.ABSTRACT) + "\n" + "  id=region1\n"
 					+ "  RegionName\n" + "    id=region2\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("protected region1 extends region2").region()
@@ -251,7 +251,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ (JavaNode.PRIVATE | JavaNode.STATIC) + "\n"
+					+ (JavaNode.PRIVATE | JavaNode.STATIC | JavaNode.ABSTRACT) + "\n"
 					+ "  id=region1\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("private static region1").region().getTree();
@@ -267,7 +267,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ JavaNode.STATIC + "\n" + "  id=region1\n";
+					+ (JavaNode.STATIC | JavaNode.ABSTRACT) + "\n" + "  id=region1\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("static region1").region().getTree();
 			RegionDeclarationNode ldn = (RegionDeclarationNode) root
@@ -282,7 +282,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ (JavaNode.PUBLIC | JavaNode.STATIC) + "\n"
+					+ (JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.ABSTRACT) + "\n"
 					+ "  id=region1\n" + "  RegionName\n" + "    id=region2\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("public static region1 extends region2")
@@ -299,7 +299,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ (JavaNode.PUBLIC | JavaNode.STATIC) + "\n"
+					+ (JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.ABSTRACT) + "\n"
 					+ "  id=region1\n" + "  QualifiedRegionName\n"
 					+ "    NamedType\n" + "      type=Class2\n"
 					+ "    id=region2\n";
@@ -318,7 +318,7 @@ public class SLParseTest extends TestCase {
 		}
 		try {
 			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ (JavaNode.PUBLIC | JavaNode.STATIC) + "\n"
+					+ (JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.ABSTRACT) + "\n"
 					+ "  id=region1\n" + "  QualifiedRegionName\n"
 					+ "    NamedType\n" + "      type=inner.inner2\n"
 					+ "    id=region2\n";
