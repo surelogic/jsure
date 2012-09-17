@@ -473,16 +473,17 @@ public final class Sea {
         return f_timeStamp;
       }
 
+      // run hooks (if any)
       for (SeaConsistencyProofHook hook : f_proofHooks)
         hook.preConsistencyProof(this);
 
       /*
-       * INITIALIZE drop-sea flow analysis "proof" (a drop-sea query)
+       * INITIALIZE drop-sea flow analysis "proof"
        */
 
       final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
-      final List<ProofDrop> s = getDropsOfType(ProofDrop.class);
-      for (ProofDrop d : s) {
+      final List<ProofDrop> allProofDrops = getDropsOfType(ProofDrop.class);
+      for (ProofDrop d : allProofDrops) {
         d.proofInitialize();
         worklist.add(d);
       }
@@ -514,13 +515,19 @@ public final class Sea {
         worklist.addAll(nextWorklist);
       }
 
-      f_timeStamp = System.currentTimeMillis();
-      if (LOG.isLoggable(Level.FINE))
-        LOG.fine("Done updating consistency proof: " + f_timeStamp);
+      /*
+       * FINALIZE drop-sea flow analysis "proof"
+       */
+      for (ProofDrop d : allProofDrops)
+        d.proofFinalize();
 
+      // run hooks (if any)
       for (SeaConsistencyProofHook hook : f_proofHooks)
         hook.postConsistencyProof(this);
 
+      f_timeStamp = System.currentTimeMillis();
+      if (LOG.isLoggable(Level.FINE))
+        LOG.fine("Done updating consistency proof: " + f_timeStamp);
       return f_timeStamp;
     }
   }

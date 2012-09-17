@@ -461,7 +461,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

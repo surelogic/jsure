@@ -467,11 +467,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   }
 
   /*
-   * XML Methods are invoked single-threaded
-   */
-
-  /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   public String getXMLElementName() {

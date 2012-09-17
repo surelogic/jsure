@@ -2,13 +2,8 @@ package com.surelogic.dropsea.ir;
 
 import java.util.List;
 
-import com.surelogic.InRegion;
 import com.surelogic.NonNull;
-import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.i18n.AnalysisResultMessage;
-import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IResultFolderDrop;
@@ -81,43 +76,6 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     return result;
   }
 
-  @InRegion("DropState")
-  @Nullable
-  private AnalysisResultMessage f_messageWhenConsistent;
-
-  public final void setMessageWhenConsistent(int number, Object... args) {
-    if (number < 1) {
-      LOG.warning(I18N.err(247, number));
-      return;
-    }
-    synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef();
-      f_messageWhenConsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
-    }
-  }
-
-  @InRegion("DropState")
-  @Nullable
-  private AnalysisResultMessage f_messageWhenInconsistent;
-
-  public final void setMessageWhenInconsistent(int number, Object... args) {
-    if (number < 1) {
-      LOG.warning(I18N.err(247, number));
-      return;
-    }
-    synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef();
-      f_messageWhenInconsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
-    }
-  }
-
-  public final void setMessagesByJudgement(int whenConsistent, int whenInconsistent, Object... args) {
-    synchronized (f_seaLock) {
-      setMessageWhenConsistent(whenConsistent, args);
-      setMessageWhenInconsistent(whenInconsistent, args);
-    }
-  }
-
   /*
    * Consistency proof methods
    */
@@ -145,7 +103,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   }
 
   /*
-   * XML output is invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

@@ -155,6 +155,18 @@ public abstract class Drop implements IDrop {
   }
 
   /**
+   * Used by {@link ProofDrop} to set the message based upon the verification
+   * judgment.
+   * 
+   * @param value
+   *          a message.
+   */
+  void setMessage(AnalysisResultMessage value) {
+    if (value != null)
+      f_message = value;
+  }
+
+  /**
    * Gets the user interface reporting category for this drop.
    * 
    * @return a category, or {@code null} if none is set.
@@ -592,7 +604,7 @@ public abstract class Drop implements IDrop {
   final protected Object f_seaLock;
 
   /*
-   * XML output is invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   public String getXMLElementName() {

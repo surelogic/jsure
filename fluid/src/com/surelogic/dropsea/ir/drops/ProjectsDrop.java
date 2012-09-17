@@ -79,7 +79,7 @@ public final class ProjectsDrop extends Drop {
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

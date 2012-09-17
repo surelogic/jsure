@@ -50,7 +50,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

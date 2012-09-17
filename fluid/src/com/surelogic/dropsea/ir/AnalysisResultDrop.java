@@ -120,7 +120,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   /*
-   * XML output is invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

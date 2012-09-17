@@ -539,7 +539,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

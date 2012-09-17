@@ -55,7 +55,7 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
   }
 
   /*
-   * XML Methods are invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override

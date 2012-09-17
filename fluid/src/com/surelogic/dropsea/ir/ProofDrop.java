@@ -8,7 +8,11 @@ import java.util.Set;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
+import com.surelogic.common.i18n.AnalysisResultMessage;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IProofDrop;
@@ -35,11 +39,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   private boolean provedConsistent = false;
 
   /**
-   * Returns if this element is able to be proved consistent (model/code
-   * consistency) with regards to the whole-program.
+   * Returns if this element has been judged to be consistent by
+   * {@link Sea#updateConsistencyProof()}.
    * 
-   * @return <code>true</code> if consistent, <code>false</code> if
-   *         inconsistent.
+   * @return {@code true} if consistent, {@code false} otherwise (consistency
+   *         can't be proved).
    */
   public boolean provedConsistent() {
     synchronized (f_seaLock) {
@@ -141,6 +145,43 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     return result;
   }
 
+  @InRegion("DropState")
+  @Nullable
+  private AnalysisResultMessage f_messageConsistent;
+
+  public final void setMessageWhenProvedConsistent(int number, Object... args) {
+    if (number < 1) {
+      LOG.warning(I18N.err(247, number));
+      return;
+    }
+    synchronized (f_seaLock) {
+      JavaSourceReference srcRef = createSourceRef();
+      f_messageConsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
+    }
+  }
+
+  @InRegion("DropState")
+  @Nullable
+  private AnalysisResultMessage f_messageInconsistent;
+
+  public final void setMessageWhenNotProvedConsistent(int number, Object... args) {
+    if (number < 1) {
+      LOG.warning(I18N.err(247, number));
+      return;
+    }
+    synchronized (f_seaLock) {
+      JavaSourceReference srcRef = createSourceRef();
+      f_messageInconsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
+    }
+  }
+
+  public final void setMessagesByJudgement(int whenConsistent, int whenInconsistent, Object... args) {
+    synchronized (f_seaLock) {
+      setMessageWhenProvedConsistent(whenConsistent, args);
+      setMessageWhenNotProvedConsistent(whenInconsistent, args);
+    }
+  }
+
   /*
    * Consistency proof methods
    */
@@ -184,15 +225,23 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * consistency proof has been completed. This allows the drop to examine the
    * results and make any state changes necessary.
    * <p>
-   * The default implementation does nothing.
+   * The default implementation changes the message based upon the analysis
+   * judgment (if necessary) so overriding methods must invoke this one.
    */
   @RequiresLock("SeaLock")
+  @MustInvokeOnOverride
   protected void proofFinalize() {
-    // by default we do nothing
+    if (provedConsistent()) {
+      if (f_messageConsistent != null)
+        setMessage(f_messageConsistent);
+    } else {
+      if (f_messageInconsistent != null)
+        setMessage(f_messageInconsistent);
+    }
   }
 
   /*
-   * XML output is invoked single-threaded
+   * XML output methods are invoked single-threaded
    */
 
   @Override
