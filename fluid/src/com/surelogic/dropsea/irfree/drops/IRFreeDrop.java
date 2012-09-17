@@ -21,10 +21,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.xml.sax.Attributes;
 
@@ -38,7 +36,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -277,46 +274,6 @@ public class IRFreeDrop extends Entity implements IDrop {
       return type.isAssignableFrom(thisType);
     else
       return false;
-  }
-
-  public final boolean hasMatchingDeponents(DropPredicate p) {
-    for (IRFreeDrop i : deponents) {
-      if (p.match(i)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @NonNull
-  public final Set<? extends IDrop> getMatchingDeponents(DropPredicate p) {
-    final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
-    for (IRFreeDrop i : deponents) {
-      if (p.match(i)) {
-        result.add(i);
-      }
-    }
-    return result;
-  }
-
-  public final boolean hasMatchingDependents(DropPredicate p) {
-    for (IRFreeDrop i : dependents) {
-      if (p.match(i)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @NonNull
-  public final Set<? extends IDrop> getMatchingDependents(DropPredicate p) {
-    final Set<IRFreeDrop> result = new HashSet<IRFreeDrop>();
-    for (IRFreeDrop i : dependents) {
-      if (p.match(i)) {
-        result.add(i);
-      }
-    }
-    return result;
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
