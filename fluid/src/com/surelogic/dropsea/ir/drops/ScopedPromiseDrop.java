@@ -1,8 +1,8 @@
 package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.ScopedPromiseNode;
+import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-
 
 /**
  * Abstract promise drop class for scoped promises.
@@ -10,7 +10,7 @@ import com.surelogic.dropsea.ir.PromiseDrop;
  * @subtypedBy edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop,
  *             edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop
  */
-public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> implements
+public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> implements IScopedPromiseDrop,
     IDerivedDropCreator<PromiseDrop<ScopedPromiseNode>> {
 
   public ScopedPromiseDrop(ScopedPromiseNode a) {

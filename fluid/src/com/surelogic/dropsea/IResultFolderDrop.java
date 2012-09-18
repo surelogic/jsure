@@ -5,9 +5,9 @@ import java.util.Collection;
 import com.surelogic.NonNull;
 
 /**
- * The interface for the base class for folders that contain
- * consistent/inconsistent judgment drops reported by verifying analyses within
- * the sea, intended to allow multiple implementations.
+ * The interface for folders that contain consistent/inconsistent judgment drops
+ * reported by verifying analyses within the sea, intended to allow multiple
+ * implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.

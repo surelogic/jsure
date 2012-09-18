@@ -15,6 +15,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -180,6 +181,18 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       setMessageWhenProvedConsistent(whenConsistent, args);
       setMessageWhenNotProvedConsistent(whenInconsistent, args);
     }
+  }
+
+  @NonNull
+  public final Set<IAnalysisHintDrop> getAnalysisHintsAbout() {
+    final Set<IAnalysisHintDrop> result = new HashSet<IAnalysisHintDrop>();
+    synchronized (f_seaLock) {
+      for (Drop d : getDependentsReference()) {
+        if (d instanceof IAnalysisHintDrop)
+          result.add((IAnalysisHintDrop) d);
+      }
+    }
+    return result;
   }
 
   /*

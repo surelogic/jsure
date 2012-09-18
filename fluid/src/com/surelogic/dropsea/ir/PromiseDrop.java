@@ -254,7 +254,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
-  public final HashSet<AnalysisResultDrop> getCheckedBy() {
+  public final Set<AnalysisResultDrop> getCheckedBy() {
     final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*
      * check if any dependent result drop checks this drop ("trusts" doesn't
@@ -263,7 +263,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     synchronized (f_seaLock) {
       final List<AnalysisResultDrop> ss = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
       for (AnalysisResultDrop rd : ss) {
-        if (rd.getChecksReference().contains(this)) {
+        if (rd.getCheckedPromisesReference().contains(this)) {
           result.add(rd);
         }
       }
@@ -278,6 +278,30 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
      * Only overridden to ensure that no subtype changes this call's behavior.
      */
     return super.getTrustedBy();
+  }
+
+  @NonNull
+  public final Set<IPromiseDrop> getDependentPromises() {
+    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+    synchronized (f_seaLock) {
+      for (Drop d : getDependentsReference()) {
+        if (d instanceof IPromiseDrop)
+          result.add((IPromiseDrop) d);
+      }
+    }
+    return result;
+  }
+
+  @NonNull
+  public final Set<IPromiseDrop> getDeponentPromises() {
+    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+    synchronized (f_seaLock) {
+      for (Drop d : getDeponentsReference()) {
+        if (d instanceof IPromiseDrop)
+          result.add((IPromiseDrop) d);
+      }
+    }
+    return result;
   }
 
   /**

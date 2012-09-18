@@ -45,6 +45,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -53,6 +54,7 @@ import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeScopedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -352,6 +354,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         if (thisType != null) {
           if (ProposedPromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreeProposedPromiseDrop(name, a);
+          } else if (ScopedPromiseDrop.class.isAssignableFrom(thisType)) {
+            return new IRFreeScopedPromiseDrop(name, a);
           } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
             return new IRFreePromiseDrop(name, a);
           } else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {

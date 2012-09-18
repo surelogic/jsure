@@ -32,18 +32,11 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.DropPredicate;
-import com.surelogic.dropsea.ir.DropPredicateFactory;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
-import com.surelogic.dropsea.ir.UiPlaceInASubFolder;
-import com.surelogic.dropsea.ir.UiShowAtTopLevel;
-import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -402,13 +395,12 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       result = makeContent(drop.getMessage(), drop);
       putInContentCache(drop, result); // to avoid infinite recursion
 
-      if (drop.instanceOf(PromiseDrop.class)) {
+      if (drop instanceof IPromiseDrop) {
+        final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         /*
          * PROMISE DROP
          */
-
-        IPromiseDrop promiseDrop = (IPromiseDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -427,17 +419,17 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, promiseDrop);
 
         final Set<IDrop> matching = new HashSet<IDrop>();
-        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(PromiseDrop.class)));
-        matching.addAll(promiseDrop.getMatchingDependents(DropPredicateFactory.matchType(AnalysisHintDrop.class)));
+        matching.addAll(promiseDrop.getDependentPromises());
+        matching.addAll(promiseDrop.getAnalysisHintsAbout());
         addDrops(result, matching);
         addDrops(result, promiseDrop.getCheckedBy());
 
-      } else if (drop.instanceOf(ResultDrop.class)) {
+      } else if (drop instanceof IResultDrop) {
+        final IResultDrop resultDrop = (IResultDrop) drop;
 
         /*
          * RESULT DROP
          */
-        IResultDrop resultDrop = (IResultDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -458,12 +450,12 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         add_or_TrustedPromises(result, resultDrop);
         add_and_TrustedPromisesAndFolders(result, resultDrop);
 
-      } else if (drop.instanceOf(ResultFolderDrop.class)) {
+      } else if (drop instanceof IResultFolderDrop) {
+        final IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
         /*
          * RESULT FOLDER DROP
          */
-        IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
 
         // image
         int flags = 0; // assume no adornments
@@ -475,8 +467,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addDrops(result, resultDrop.getContents());
         addProposedPromises(result, resultDrop);
 
-      } else if (drop.instanceOf(AnalysisHintDrop.class)) {
-        IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
+      } else if (drop instanceof IAnalysisHintDrop) {
+        final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
 
         /*
          * INFO DROP
@@ -492,19 +484,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         result.f_isInfo = true;
         result.f_isInfoWarning = infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
-
-      } else if (drop.instanceOf(ModelingProblemDrop.class)) {
-
-        /*
-         * PROMISE WARNING DROP
-         */
-
-        // image
-        result.setBaseImageName(CommonImages.IMG_WARNING);
-
-        // children
-        addSupportingInformation(result, drop);
-        result.f_isPromiseWarning = true;
       } else {
         LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
       }
@@ -561,10 +540,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         final IDrop info = item.getDropInfo();
         boolean dontCategorize = false;
         if (info != null) {
-          if (info.instanceOf(PromiseDrop.class)) {
+          if (info instanceof IPromiseDrop) {
             dontCategorize = !atRoot && !(info.instanceOf(UiPlaceInASubFolder.class));
-          } else if (info.instanceOf(ResultDrop.class)) {
-            IResultDrop r = (IResultDrop) info;
+          } else if (info instanceof IResultDrop) {
+            final IResultDrop r = (IResultDrop) info;
             dontCategorize = r.isInResultFolder();
           }
         }
@@ -706,9 +685,9 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IDrop drop = item.getDropInfo();
         boolean hasJavaContext = false;
-        if (drop != null && (drop.instanceOf(ResultDrop.class) || drop.instanceOf(AnalysisHintDrop.class))) {
-          boolean resultHasACategory = drop.instanceOf(ResultDrop.class) && drop.getCategory() != null;
-          if (resultHasACategory || drop.instanceOf(AnalysisHintDrop.class)) {
+        if (drop != null && (drop instanceof IResultDrop || drop instanceof IAnalysisHintDrop)) {
+          boolean resultHasACategory = drop instanceof IResultDrop && drop.getCategory() != null;
+          if (resultHasACategory || drop instanceof IAnalysisHintDrop) {
             ContentJavaContext context = new ContentJavaContext(item);
             if (context.complete) {
               hasJavaContext = true;
@@ -960,19 +939,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  private static final DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
-
-  private static final DropPredicate scopedPromisePred = DropPredicateFactory.matchType(PromisePromiseDrop.class);
-
-  /**
-   * Matches non-@Promise PromiseDrops
-   */
-  private static DropPredicate predicate = new DropPredicate() {
-    public boolean match(IDrop d) {
-      return promisePred.match(d) && !scopedPromisePred.match(d);
-    }
-  };
-
   ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
@@ -984,7 +950,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       for (IPromiseDrop pd : scan.getPromiseDrops()) {
         if (pd.isFromSrc() || pd.derivedFromSrc()) {
           // System.out.println("Considering: "+pd.getMessage());
-          if (!pd.hasMatchingDeponents(predicate) || showAtTopLevel(pd)) {
+          if (showAtTopLevel(pd)) {
             root.add(encloseDrop(pd));
           } else {
             // System.out.println("Rejected: "+pd.getMessage());
@@ -1009,7 +975,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       for (IResultDrop id : scan.getResultDrops()) {
         // only show result drops at the main level if they are not attached
         // to a promise drop or a result drop
-        if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder()) || showAtTopLevel(id)) {
+        if ((!id.hasChecked() && !id.hasTrusted() && !id.isInResultFolder())) {
           root.add(encloseDrop(id));
         }
       }
@@ -1026,7 +992,19 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return this;
   }
 
-  private static boolean showAtTopLevel(IDrop d) {
-    return d != null && d.instanceOf(UiShowAtTopLevel.class);
+  private static boolean showAtTopLevel(IPromiseDrop d) {
+    if (d == null)
+      return false;
+    if (d.instanceOf(UiShowAtTopLevel.class))
+      return true;
+    /*
+     * If we have a deponent promise that is not a scoped promise we do not want
+     * to show at the top level.
+     */
+    for (IPromiseDrop pd : d.getDeponentPromises()) {
+      if (!(pd instanceof IScopedPromiseDrop))
+        return false;
+    }
+    return true;
   }
 }

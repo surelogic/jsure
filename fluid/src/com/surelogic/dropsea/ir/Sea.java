@@ -80,7 +80,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> ArrayList<T> filterDropsOfType(Class<? extends T> dropType, Collection<Drop> drops) {
+  public static <T extends Drop> ArrayList<T> filterDropsOfType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
       throw new IllegalArgumentException(I18N.err(44, "dropType"));
     if (drops == null)
@@ -128,7 +128,7 @@ public final class Sea {
    * @throws IllegalArgumentException
    *           if any of the parameters are null.
    */
-  public static <T extends Drop> ArrayList<T> filterDropsOfExactType(Class<? extends T> dropType, Collection<Drop> drops) {
+  public static <T extends Drop> ArrayList<T> filterDropsOfExactType(Class<T> dropType, Collection<Drop> drops) {
     if (dropType == null)
       throw new IllegalArgumentException(I18N.err(44, "dropType"));
     if (drops == null)

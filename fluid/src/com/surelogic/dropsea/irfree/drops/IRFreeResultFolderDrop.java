@@ -8,22 +8,16 @@ import java.util.List;
 import org.xml.sax.Attributes;
 
 import com.surelogic.dropsea.IAnalysisResultDrop;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
-public final class IRFreeResultFolderDrop extends IRFreeProofDrop implements IResultFolderDrop {
+public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
   /**
    * Only for ResultDrops
    */
-  final List<IRFreePromiseDrop> checkedPromises;
-  final List<IRFreeResultFolderDrop> subFolders;
-  final List<IRFreeResultDrop> results;
-
-  public void addCheckedPromise(IRFreePromiseDrop info) {
-    checkedPromises.add(info);
-  }
+  final List<IRFreeResultFolderDrop> subFolders = new ArrayList<IRFreeResultFolderDrop>(0);
+  final List<IRFreeResultDrop> results = new ArrayList<IRFreeResultDrop>(0);
 
   public void addSubFolder(IRFreeResultFolderDrop info) {
     subFolders.add(info);
@@ -35,14 +29,6 @@ public final class IRFreeResultFolderDrop extends IRFreeProofDrop implements IRe
 
   public IRFreeResultFolderDrop(String name, Attributes a) {
     super(name, a);
-
-    checkedPromises = new ArrayList<IRFreePromiseDrop>(0);
-    subFolders = new ArrayList<IRFreeResultFolderDrop>(0);
-    results = new ArrayList<IRFreeResultDrop>(0);
-  }
-
-  public Collection<? extends IPromiseDrop> getChecks() {
-    return checkedPromises;
   }
 
   public Collection<? extends IResultDrop> getAnalysisResults() {

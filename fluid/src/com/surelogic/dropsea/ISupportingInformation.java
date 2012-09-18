@@ -4,9 +4,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
- * The interface for the base class for supporting information (not a drop)
- * reported by verifying analyses within the sea, intended to allow multiple
- * implementations.
+ * The interface for supporting information (not a drop) reported by verifying
+ * analyses within the sea, intended to allow multiple implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.

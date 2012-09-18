@@ -8,10 +8,10 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
- * The interface for the base class for all proposed promise drops within the
- * sea, intended to allow multiple implementations. A verifying analysis uses
- * this type to propose to the tool user that an annotation might be needed in
- * the code based upon abductive inference.
+ * The interface for all proposed promise drops within the sea, intended to
+ * allow multiple implementations. A verifying analysis uses this type to
+ * propose to the tool user that an annotation might be needed in the code based
+ * upon abductive inference.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
