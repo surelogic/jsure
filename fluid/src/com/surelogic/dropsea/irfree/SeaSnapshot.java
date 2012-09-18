@@ -407,18 +407,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       final int toId = Integer.valueOf(to.getId());
       final IRFreeDrop toE = entities.get(toId);
 
-      // info
-      // if (Drop.DEPONENT.equals(refType)) {
-      // fromE.addDeponent(toE);
-      // toE.addDependent(fromE);
-      // } else
-
       /*
        * The approach is to check the types and also the XML label. If
        * everything matches a reference is set on the IRFreeDrop involved and we
        * return immediately. If we fall through all of them we throw an
        * exception that we didn't handle the link.
        */
+
       if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
         /*
          * To a PROPOSED PROMISE
@@ -429,41 +424,66 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           return;
         }
       }
+
       if (fromE instanceof IRFreeProofDrop) {
-        final IRFreeProofDrop fromPI = (IRFreeProofDrop) fromE;
+        final IRFreeProofDrop fromPD = (IRFreeProofDrop) fromE;
         /*
          * PROOF DROP
          */
         if (toE instanceof IRFreeAnalysisHintDrop) {
           final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
           if (HINT_ABOUT.equals(refType)) {
-            fromPI.addAnalysisHint(toAHD);
+            fromPD.addAnalysisHint(toAHD);
             return;
           }
         }
       }
+      /*
+       * Backwards compatibility with old scans to add analysis hints to promise
+       * drops using only deponent links.
+       */
+      if (Drop.DEPONENT.equals(refType)) {
+        if (fromE instanceof IRFreeAnalysisHintDrop) {
+          final IRFreeAnalysisHintDrop fromAHD = (IRFreeAnalysisHintDrop) fromE;
+          if (toE instanceof IRFreeProofDrop) {
+            final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
+            toPD.addAnalysisHint(fromAHD);
+            return;
+          }
+        }
+      }
+
       if (fromE instanceof IRFreePromiseDrop) {
-        final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
+        final IRFreePromiseDrop fromPD = (IRFreePromiseDrop) fromE;
         /*
          * PROMISE DROP
          */
         if (toE instanceof IRFreeAnalysisResultDrop) {
           final IRFreeAnalysisResultDrop toARD = (IRFreeAnalysisResultDrop) toE;
           if (CHECKED_BY_RESULTS.equals(refType)) {
-            fromPI.addCheckedByResult(toARD);
+            fromPD.addCheckedByResult(toARD);
             return;
           }
         } else if (toE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
           if (DEPENDENT_PROMISES.equals(refType)) {
-            fromPI.addDependentPromise(toPD);
+            fromPD.addDependentPromise(toPD);
             return;
           } else if (DEPONENT_PROMISES.equals(refType)) {
-            fromPI.addDeponentPromise(toPD);
+            fromPD.addDeponentPromise(toPD);
+            return;
+          } else if (Drop.DEPONENT.equals(refType)) {
+            /*
+             * Backwards compatibility with old scans to add deponent and
+             * dependent promises to promise drops using only deponent links
+             */
+            fromPD.addDeponentPromise(toPD);
+            toPD.addDependentPromise(fromPD);
             return;
           }
         }
       }
+
       if (fromE instanceof IRFreeResultDrop) {
         final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
         /*
@@ -492,6 +512,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           }
         }
       }
+
       if (fromE instanceof IRFreeResultFolderDrop) {
         final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;
         /*
@@ -513,11 +534,14 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       }
 
       /*
-       * Backwards compatiblity -- we use to track deponents ignore these if we
-       * find them
+       * Backwards compatibility with old scans -- we use to track all proof
+       * maintenance connections even though we didn't need them. We can safely
+       * drop these on the floor because if the connection was useful it was
+       * handled above.
        */
       if (Drop.DEPONENT.equals(refType))
         return;
+
       /*
        * The reference not handled if we got to here.
        */
