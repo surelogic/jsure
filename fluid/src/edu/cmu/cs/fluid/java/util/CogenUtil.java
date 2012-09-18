@@ -396,17 +396,28 @@ public class CogenUtil implements JavaGlobals {
 
   /// other stuff
   public static IRNode makeCorrespondingTypeRef(IRNode type) {
-	// FIX how can this refer correctly to local classes?
+
     Operator op = JJNode.tree.getOperator(type);
     if (op instanceof NestedTypeDeclInterface ||
         op instanceof AnonClassExpression) {
-      IRNode enclosingT = VisitUtil.getEnclosingType(type);
-      IRNode tr         = makeCorrespondingTypeRef(enclosingT);
-      String name       = JavaNames.getTypeName(type);
-      return TypeRef.createNode(tr, name);
+    	return makeTypeRefForEnclosedType(type, null);
+    }
+	// Handle method-local classes?
+    IRNode enclosingT = VisitUtil.getEnclosingType(type);
+    if (enclosingT != null) {
+    	return makeTypeRefForEnclosedType(type, enclosingT);
     }
     String name = JavaNames.getFullTypeName(type);
     name = CommonStrings.intern(name);
     return NamedType.createNode(name);
+  }
+  
+  private static IRNode makeTypeRefForEnclosedType(IRNode type, IRNode enclosingT) {
+	  if (enclosingT == null) {
+		  enclosingT = VisitUtil.getEnclosingType(type);
+	  }
+      IRNode tr         = makeCorrespondingTypeRef(enclosingT);
+      String name       = JavaNames.getTypeName(type);
+      return TypeRef.createNode(tr, name);
   }
 }
