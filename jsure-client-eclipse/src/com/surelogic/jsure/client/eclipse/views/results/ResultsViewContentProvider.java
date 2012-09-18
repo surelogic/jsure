@@ -26,6 +26,7 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -274,19 +275,34 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Adds "and" precondition logic information about promise drops and result
-   * folder drops to the mutable set of viewer content items passed into this
-   * method.
+   * Adds "and" trusts logic information about a result drop to the mutable set
+   * of viewer content items passed into this method.
    * 
    * @param mutableContentSet
    *          A parent {@link ResultsViewContent} object to add children to
    * @param result
    *          the result to add "and" precondition logic about
    */
-  private void add_and_TrustedPromisesAndFolders(ResultsViewContent mutableContentSet, IResultDrop result) {
+  private void add_and_Trusted(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
-    Collection<? extends IProofDrop> trustedProofDrops = result.getTrusted_and();
-    int count = trustedProofDrops.size();
+    Collection<IPromiseDrop> trustedPromises = new ArrayList<IPromiseDrop>();
+    Collection<IAnalysisResultDrop> trustedResults = new ArrayList<IAnalysisResultDrop>();
+    for (IProofDrop pd : result.getTrusted_and()) {
+      if (pd instanceof IPromiseDrop)
+        trustedPromises.add((IPromiseDrop) pd);
+      if (pd instanceof IAnalysisResultDrop)
+        trustedResults.add((IAnalysisResultDrop) pd);
+    }
+
+    // Add results and folders directly
+    for (IAnalysisResultDrop resultDrop : trustedResults) {
+      mutableContentSet.addChild(encloseDrop(resultDrop));
+    }
+
+    /*
+     * Add promises in a prerequisite assertion folder
+     */
+    int count = trustedPromises.size();
     // bail out if no preconditions exist
     if (count < 1)
       return;
@@ -297,7 +313,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     boolean elementsProvedConsistent = true; // assume true
 
     // add trusted proof drops to the folder
-    for (IProofDrop trustedDrop : trustedProofDrops) {
+    for (IProofDrop trustedDrop : trustedPromises) {
       preconditionFolder.addChild(encloseDrop(trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
     }
@@ -310,15 +326,15 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Adds "or" precondition logic information about a drop to the mutable set of
-   * viewer content items passed into this method.
+   * Adds "or" trusts logic information about a result drop to the mutable set
+   * of viewer content items passed into this method.
    * 
    * @param mutableContentSet
    *          A parent {@link ResultsViewContent} object to add children to
    * @param result
    *          the result to add "or" precondition logic about
    */
-  private void add_or_TrustedPromises(ResultsViewContent mutableContentSet, IResultDrop result) {
+  private void add_or_Trusted(ResultsViewContent mutableContentSet, IResultDrop result) {
     if (!result.hasOrLogic()) {
       // no "or" logic on this result, thus bail out
       return;
@@ -440,8 +456,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         // children
         addSupportingInformation(result, resultDrop);
         addProposedPromises(result, resultDrop);
-        add_or_TrustedPromises(result, resultDrop);
-        add_and_TrustedPromisesAndFolders(result, resultDrop);
+        add_or_Trusted(result, resultDrop);
+        add_and_Trusted(result, resultDrop);
 
       } else if (drop instanceof IResultFolderDrop) {
         final IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
@@ -535,10 +551,11 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         if (info != null) {
           if (info instanceof IPromiseDrop) {
             dontCategorize = !atRoot && !(info.instanceOf(UiPlaceInASubFolder.class));
-          } else if (info instanceof IResultDrop) {
-            final IResultDrop r = (IResultDrop) info;
-            dontCategorize = r.isInResultFolder();
           }
+//          else if (info instanceof IAnalysisResultDrop) {
+//            final IAnalysisResultDrop r = (IAnalysisResultDrop) info;
+//            dontCategorize = r.isInResultFolder();
+//          }
         }
         if (dontCategorize) {
           /*

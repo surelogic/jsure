@@ -23,6 +23,7 @@ import com.surelogic.persistence.SimpleAnalysisResult;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
@@ -163,24 +164,43 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 
       // TODO REMOVE TEST CODE
       ResultDrop r2 = new ResultDrop(block);
-      r2.setConsistent();
+      // r2.setConsistent();
       r2.setMessage(12, "RESULT 2");
+      r2.setCategory(JavaGlobals.THREAD_EFFECTS_CAT);
       ResultDrop r4 = new ResultDrop(block);
       r4.setConsistent();
+      r4.setCategory(JavaGlobals.THREAD_EFFECTS_CAT);
       r4.setMessage(12, "RESULT 4");
+      ResultDrop r4a = new ResultDrop(block);
+      r4a.setConsistent();
+      r4a.setCategory(JavaGlobals.THREAD_EFFECTS_CAT);
+      r4a.setMessage(12, "RESULT 4a");
       ResultDrop r5 = new ResultDrop(block);
       r5.setConsistent();
       r5.setMessage(12, "RESULT 5");
-      
+      ResultDrop r6 = new ResultDrop(block);
+      r6.setConsistent();
+      r6.setMessage(12, "RESULT 6");
+      ResultDrop r6a = new ResultDrop(block);
+      r6a.setConsistent();
+      r6a.setMessage(12, "RESULT 6a");
+      ResultDrop r7 = new ResultDrop(block);
+      r7.setConsistent();
+      r7.setCategory(JavaGlobals.THREAD_EFFECTS_CAT);
+
       ResultFolderDrop f = new ResultFolderDrop(block);
       f.add(r4);
+      f.add(r4a);
       f.add(r5);
-      
-      r.addTrusted_and(r2);
-      r.addTrusted_and(f);
+
+      r.addTrusted_or("one choice", r2);
+      r.addTrusted_or("one choice", f);
+      r.addTrusted_or("second choice", pd);
+
+      r.addTrusted_and(r7);
+      r.addTrusted_and(r6);
       r.addTrusted_and(pd);
-      
-      
+
     }
     return results;
   }
