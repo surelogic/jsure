@@ -1,6 +1,17 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_LABEL;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_PROVED;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_USES_RED_DOT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.VOUCHED;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +26,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IResultDrop;
@@ -31,20 +41,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Not intended to be subclassed.
  */
 public final class ResultDrop extends AnalysisResultDrop implements IResultDrop {
-
-  /*
-   * XML attribute constants
-   */
-  public static final String TIMEOUT = "timeout";
-  public static final String VOUCHED = "vouched";
-  public static final String CONSISTENT = "consistent";
-  public static final String TRUSTED_PROMISE = "trusted-promise";
-  public static final String TRUSTED_FOLDER = "trusted-folder";
-  public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
-  public static final String OR_LABEL = "or-label";
-  public static final String OR_USES_RED_DOT = "or-uses-red-dot";
-  public static final String OR_PROVED = "or-proved-consistent";
-  public static final String ENCLOSED_IN_FOLDER = "enclosed-in-folder";
 
   /**
    * Constructs a new analysis result.
@@ -468,7 +464,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.RESULT_DROP;
+    return RESULT_DROP;
   }
 
   @Override

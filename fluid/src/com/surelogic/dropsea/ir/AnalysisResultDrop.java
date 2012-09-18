@@ -1,5 +1,7 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,11 +29,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @see ResultFolderDrop
  */
 public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisResultDrop {
-
-  /*
-   * XML attribute constants
-   */
-  public static final String CHECKED_PROMISE = "checked-promise";
 
   protected AnalysisResultDrop(IRNode node) {
     super(node);

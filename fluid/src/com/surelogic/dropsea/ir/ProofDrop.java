@@ -1,5 +1,11 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +19,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProofDrop;
@@ -260,7 +265,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.PROOF_DROP;
+    return PROOF_DROP;
   }
 
   @Override
@@ -276,9 +281,9 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
-    s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
-    s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
-    s.addAttribute(AbstractXMLReader.DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+    s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());
+    s.addAttribute(PROVED_ATTR, provedConsistent());
+    s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
   }
 
   @Override
@@ -286,7 +291,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
     for (Drop c : getAnalysisHintsAbout()) {
-      s.refDrop(db, AbstractXMLReader.HINT_ABOUT, c);
+      s.refDrop(db, HINT_ABOUT, c);
     }
   }
 }

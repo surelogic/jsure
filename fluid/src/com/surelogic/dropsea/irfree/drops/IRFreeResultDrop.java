@@ -1,10 +1,15 @@
 package com.surelogic.dropsea.irfree.drops;
 
-
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_PROVED;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_USES_RED_DOT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.VOUCHED;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +26,6 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
@@ -46,7 +50,7 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean isInResultFolder() {
-    return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
+    return "true".equals(getAttribute(ENCLOSED_IN_FOLDER));
   }
 
   @NonNull
@@ -60,7 +64,7 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean isConsistent() {
-    return "true".equals(getAttribute(ResultDrop.CONSISTENT));
+    return "true".equals(getAttribute(CONSISTENT));
   }
 
   @NonNull
@@ -94,19 +98,19 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean get_or_proofUsesRedDot() {
-    return "true".equals(getAttribute(ResultDrop.OR_USES_RED_DOT));
+    return "true".equals(getAttribute(OR_USES_RED_DOT));
   }
 
   public boolean get_or_provedConsistent() {
-    return "true".equals(getAttribute(ResultDrop.OR_PROVED));
+    return "true".equals(getAttribute(OR_PROVED));
   }
 
   public boolean isVouched() {
-    return "true".equals(getAttribute(ResultDrop.VOUCHED));
+    return "true".equals(getAttribute(VOUCHED));
   }
 
   public boolean isTimeout() {
-    return "true".equals(getAttribute(ResultDrop.TIMEOUT));
+    return "true".equals(getAttribute(TIMEOUT));
   }
 
   public boolean isAssumed() {

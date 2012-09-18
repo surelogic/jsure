@@ -1,13 +1,23 @@
 package com.surelogic.dropsea.irfree;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_LABEL;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.ID_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.JAVA_DECL_INFO;
@@ -40,7 +50,6 @@ import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.AnalysisHintDrop;
-import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
@@ -287,7 +296,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
   public void addSupportingInfo(Builder db, ISupportingInformation si) {
     Builder sib = db.nest(SUPPORTING_INFO);
-    sib.addAttribute(Drop.MESSAGE, si.getMessage());
+    sib.addAttribute(MESSAGE, si.getMessage());
     addSrcRef(sib, si.getLocation(), si.getSrcRef(), 3, null);
     sib.end();
   }
@@ -414,7 +423,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
        * exception that we didn't handle the link.
        */
 
-      if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
+      if (PROPOSED_PROMISE.equals(refType)) {
         /*
          * To a PROPOSED PROMISE
          */
@@ -442,7 +451,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
        * Backwards compatibility with old scans to add analysis hints to promise
        * drops using only deponent links.
        */
-      if (Drop.DEPONENT.equals(refType)) {
+      if (DEPONENT.equals(refType)) {
         if (fromE instanceof IRFreeAnalysisHintDrop) {
           final IRFreeAnalysisHintDrop fromAHD = (IRFreeAnalysisHintDrop) fromE;
           if (toE instanceof IRFreeProofDrop) {
@@ -472,7 +481,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
           } else if (DEPONENT_PROMISES.equals(refType)) {
             fromPD.addDeponentPromise(toPD);
             return;
-          } else if (Drop.DEPONENT.equals(refType)) {
+          } else if (DEPONENT.equals(refType)) {
             /*
              * Backwards compatibility with old scans to add deponent and
              * dependent promises to promise drops using only deponent links
@@ -492,21 +501,21 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         if (toE instanceof IRFreeResultFolderDrop) {
           final IRFreeResultFolderDrop toFD = (IRFreeResultFolderDrop) toE;
 
-          if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
+          if (TRUSTED_FOLDER.equals(refType)) {
             fromPI.addTrustedFolder(toFD);
             return;
           }
         } else if (toE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
 
-          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+          if (CHECKED_PROMISE.equals(refType)) {
             fromPI.addCheckedPromise(toPI);
             return;
-          } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
+          } else if (TRUSTED_PROMISE.equals(refType)) {
             fromPI.addTrustedPromise(toPI);
             return;
-          } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-            final String label = to.getAttribute(ResultDrop.OR_LABEL);
+          } else if (OR_TRUSTED_PROMISE.equals(refType)) {
+            final String label = to.getAttribute(OR_LABEL);
             fromPI.addOrTrustedPromise(label, toPI);
             return;
           }
@@ -518,15 +527,15 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         /*
          * RESULT FOLDER DROP
          */
-        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
+        if (CHECKED_PROMISE.equals(refType)) {
           final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
           fromPI.addCheckedPromise(toPI);
           return;
-        } else if (ResultFolderDrop.RESULT.equals(refType)) {
+        } else if (RESULT.equals(refType)) {
           final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;
           fromPI.addResult(toPI);
           return;
-        } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
+        } else if (SUB_FOLDER.equals(refType)) {
           final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;
           fromPI.addSubFolder(toPI);
           return;
@@ -539,7 +548,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
        * drop these on the floor because if the connection was useful it was
        * handled above.
        */
-      if (Drop.DEPONENT.equals(refType))
+      if (DEPONENT.equals(refType))
         return;
 
       /*

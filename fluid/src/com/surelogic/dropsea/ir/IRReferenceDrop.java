@@ -1,5 +1,7 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -249,7 +251,7 @@ public abstract class IRReferenceDrop extends Drop {
       s.addSupportingInfo(db, si);
     }
     for (ProposedPromiseDrop pd : getProposals()) {
-      s.refDrop(db, ProposedPromiseDrop.PROPOSED_PROMISE, pd);
+      s.refDrop(db, PROPOSED_PROMISE, pd);
     }
   }
 }

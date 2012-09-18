@@ -7,6 +7,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULT
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROMISE_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
 
@@ -24,7 +25,6 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -566,7 +566,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.PROMISE_DROP;
+    return PROMISE_DROP;
   }
 
   @Override
