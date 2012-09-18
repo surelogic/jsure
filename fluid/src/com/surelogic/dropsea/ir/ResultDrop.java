@@ -2,7 +2,6 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.AND_TRUSTED_PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_LABEL;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_PROVED;
@@ -66,12 +65,6 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   @InRegion("DropState")
   private boolean consistent = false;
-
-  public boolean isInResultFolder() {
-    synchronized (f_seaLock) {
-      return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
-    }
-  }
 
   /**
    * Adds a proof drop to the set of drops this result uses as a prerequisite
@@ -435,7 +428,6 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
-    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
     s.addAttribute(FROM_SRC, isFromSrc());
   }
 

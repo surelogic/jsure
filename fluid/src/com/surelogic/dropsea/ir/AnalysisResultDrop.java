@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -95,6 +96,12 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  public boolean isInResultFolder() {
+    synchronized (f_seaLock) {
+      return !Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()).isEmpty();
+    }
+  }
+
   /*
    * Consistency proof methods
    */
@@ -130,6 +137,13 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     for (Drop c : getCheckedPromisesReference()) {
       s.snapshotDrop(c);
     }
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void snapshotAttrs(Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
   }
 
   @Override

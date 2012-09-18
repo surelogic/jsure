@@ -3,7 +3,6 @@ package com.surelogic.dropsea.irfree.drops;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_PROVED;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_USES_RED_DOT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
@@ -27,28 +26,24 @@ import com.surelogic.dropsea.IResultDrop;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
-  private final List<IRFreeProofDrop> trustedPromises = new ArrayList<IRFreeProofDrop>(0);
-  private final MultiMap<String, IRFreeProofDrop> orTrustedPromises = new MultiHashMap<String, IRFreeProofDrop>(0);
+  private final List<IRFreeProofDrop> trusted = new ArrayList<IRFreeProofDrop>(0);
+  private final MultiMap<String, IRFreeProofDrop> orTrusted = new MultiHashMap<String, IRFreeProofDrop>(0);
 
   public void addTrusted_and(IRFreeProofDrop info) {
-    trustedPromises.add(info);
+    trusted.add(info);
   }
 
   public void addTrusted_or(String label, IRFreeProofDrop info) {
-    orTrustedPromises.put(label, info);
+    orTrusted.put(label, info);
   }
 
   public IRFreeResultDrop(String name, Attributes a) {
     super(name, a);
   }
 
-  public boolean isInResultFolder() {
-    return "true".equals(getAttribute(ENCLOSED_IN_FOLDER));
-  }
-
   @NonNull
   public Collection<? extends IProofDrop> getTrusted_and() {
-    return trustedPromises;
+    return trusted;
   }
 
   public boolean isConsistent() {
@@ -57,19 +52,19 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
 
   @NonNull
   public Collection<IProofDrop> getAllTrusted() {
-    Collection<IProofDrop> rv = new HashSet<IProofDrop>(trustedPromises);
-    rv.addAll(orTrustedPromises.values());
+    Collection<IProofDrop> rv = new HashSet<IProofDrop>(trusted);
+    rv.addAll(orTrusted.values());
     return rv;
   }
 
   @NonNull
   public Collection<String> getTrusted_orKeys() {
-    return orTrustedPromises.keySet();
+    return orTrusted.keySet();
   }
 
   @NonNull
   public Collection<? extends IProofDrop> getTrusted_or(String key) {
-    final Collection<? extends IProofDrop> result = orTrustedPromises.get(key);
+    final Collection<? extends IProofDrop> result = orTrusted.get(key);
     if (result != null)
       return result;
     else
@@ -77,11 +72,11 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean hasOrLogic() {
-    return orTrustedPromises != null && !orTrustedPromises.isEmpty();
+    return orTrusted != null && !orTrusted.isEmpty();
   }
 
   public boolean hasTrusted() {
-    return hasOrLogic() || !trustedPromises.isEmpty();
+    return hasOrLogic() || !trusted.isEmpty();
   }
 
   public boolean get_or_proofUsesRedDot() {

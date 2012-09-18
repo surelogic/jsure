@@ -964,14 +964,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         infoFolder.f_isInfo = true;
         root.add(infoFolder);
       }
-
-      for (IResultDrop id : scan.getResultDrops()) {
-        // only show result drops at the main level if they are not attached
-        // to a promise drop or a result drop
-        if ((!id.hasChecked() && !id.hasTrusted() && !id.isInResultFolder())) {
-          root.add(encloseDrop(id));
-        }
-      }
     }
 
     root = categorize(root);

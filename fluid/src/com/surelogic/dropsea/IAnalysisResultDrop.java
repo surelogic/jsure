@@ -27,4 +27,12 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
    *         checked, by this result.
    */
   Collection<? extends IPromiseDrop> getCheckedPromises();
+
+  /**
+   * Checks if this result is within an analysis results folder.
+   * 
+   * @return {@code true} if this result is within a results folder,
+   *         {@code false} otherwise.
+   */
+  boolean isInResultFolder();
 }

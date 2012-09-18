@@ -4,10 +4,14 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_FOLDER_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -23,6 +27,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Not intended to be subclassed.
  */
 public final class ResultFolderDrop extends AnalysisResultDrop implements IResultFolderDrop {
+
+  /**
+   * The set of promise drops being checked, or established, by this result.
+   */
+  @UniqueInRegion("DropState")
+  private final Set<AnalysisResultDrop> f_contains = new HashSet<AnalysisResultDrop>();
 
   /**
    * Constructs a new analysis result folder.
@@ -42,6 +52,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     if (result == null)
       return;
     synchronized (f_seaLock) {
+      f_contains.add(result);
       this.addDependent(result);
     }
   }
@@ -50,7 +61,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   public List<ResultDrop> getAnalysisResults() {
     final List<ResultDrop> result;
     synchronized (f_seaLock) {
-      result = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
+      result = Sea.filterDropsOfType(ResultDrop.class, f_contains);
     }
     return result;
   }
@@ -59,16 +70,16 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   public List<ResultFolderDrop> getSubFolders() {
     final List<ResultFolderDrop> result;
     synchronized (f_seaLock) {
-      result = Sea.filterDropsOfType(ResultFolderDrop.class, getDependentsReference());
+      result = Sea.filterDropsOfType(ResultFolderDrop.class, f_contains);
     }
     return result;
   }
 
   @NonNull
   public List<AnalysisResultDrop> getContents() {
-    final List<AnalysisResultDrop> result;
+    final List<AnalysisResultDrop> result = new ArrayList<AnalysisResultDrop>();
     synchronized (f_seaLock) {
-      result = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+      result.addAll(f_contains);
     }
     return result;
   }
@@ -111,10 +122,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @Override
   public void preprocessRefs(SeaSnapshot s) {
     super.preprocessRefs(s);
-    for (Drop t : getSubFolders()) {
-      s.snapshotDrop(t);
-    }
-    for (Drop t : getAnalysisResults()) {
+    for (Drop t : getContents()) {
       s.snapshotDrop(t);
     }
   }
@@ -122,11 +130,11 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop t : getSubFolders()) {
-      s.refDrop(db, SUB_FOLDER, t);
-    }
-    for (Drop t : getAnalysisResults()) {
-      s.refDrop(db, RESULT, t);
+    for (Drop t : getContents()) {
+      if (t instanceof ResultFolderDrop)
+        s.refDrop(db, SUB_FOLDER, t);
+      else
+        s.refDrop(db, RESULT, t);
     }
   }
 }

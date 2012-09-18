@@ -40,14 +40,6 @@ public interface IResultDrop extends IAnalysisResultDrop {
   boolean isTimeout();
 
   /**
-   * Checks if this result is within an analysis results folder.
-   * 
-   * @return {@code true} if this result is within a results folder,
-   *         {@code false} otherwise.
-   */
-  boolean isInResultFolder();
-
-  /**
    * Checks if this drop has any prerequisite assertions at all.
    * 
    * @return {@code true} if this drop has one or more prerequisite assertions,
