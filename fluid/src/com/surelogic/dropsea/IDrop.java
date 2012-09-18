@@ -108,7 +108,7 @@ public interface IDrop {
    * @return the XML element name for this drop.
    */
   String getXMLElementName();
-
+  
   /**
    * Gets the requested XML attribute or {@code null}. Only used for persisting
    * drops.

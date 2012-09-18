@@ -229,6 +229,14 @@ public abstract class IRReferenceDrop extends Drop {
 
   @Override
   @MustInvokeOnOverride
+  public void preprocessRefs(SeaSnapshot s) {
+    super.preprocessRefs(s);
+    for (ProposedPromiseDrop pd : getProposals()) {
+      s.snapshotDrop(pd);
+    }
+  }
+
+  @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
     try {

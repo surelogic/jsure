@@ -1,5 +1,7 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -478,7 +480,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(OR_PROVED, get_or_provedConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
     s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
-    s.addAttribute(PromiseDrop.FROM_SRC, isFromSrc());
+    s.addAttribute(FROM_SRC, isFromSrc());
   }
 
   @Override

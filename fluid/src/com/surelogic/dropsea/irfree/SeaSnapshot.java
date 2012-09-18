@@ -1,9 +1,13 @@
 package com.surelogic.dropsea.irfree;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.ID_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.JAVA_DECL_INFO;
@@ -25,6 +29,7 @@ import java.util.UUID;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.JSureXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.JavaDeclInfo;
@@ -32,7 +37,6 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisHintDrop;
-import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.AnalysisHintDrop;
@@ -48,9 +52,11 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisResultDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeProofDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
@@ -399,61 +405,123 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       final String refType = to.getName();
       final IRFreeDrop fromE = entities.get(fromId);
       final int toId = Integer.valueOf(to.getId());
-      final IRFreeDrop toE = entities.get(toId); // The entity above is really
-                                                 // the ref
+      final IRFreeDrop toE = entities.get(toId);
+
       // info
-      if (Drop.DEPONENT.equals(refType)) {
-        fromE.addDeponent(toE);
-        toE.addDependent(fromE);
-      } else if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
-        fromE.addProposal((IRFreeProposedPromiseDrop) toE);
-      } else if (fromE instanceof IRFreePromiseDrop) {
-        final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
-        final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;
-        if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
-          fromPI.addCheckedByResult(toPI);
-        } else {
-          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+      // if (Drop.DEPONENT.equals(refType)) {
+      // fromE.addDeponent(toE);
+      // toE.addDependent(fromE);
+      // } else
+
+      /*
+       * The approach is to check the types and also the XML label. If
+       * everything matches a reference is set on the IRFreeDrop involved and we
+       * return immediately. If we fall through all of them we throw an
+       * exception that we didn't handle the link.
+       */
+      if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
+        /*
+         * To a PROPOSED PROMISE
+         */
+        if (toE instanceof IRFreeProposedPromiseDrop) {
+          final IRFreeProposedPromiseDrop toPPD = (IRFreeProposedPromiseDrop) toE;
+          fromE.addProposal(toPPD);
+          return;
         }
-      } else if (fromE instanceof IRFreeResultDrop) {
-        final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
-        if (toE instanceof IRFreeResultFolderDrop) {
-          if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
-            fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
-          } else {
-            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+      }
+      if (fromE instanceof IRFreeProofDrop) {
+        final IRFreeProofDrop fromPI = (IRFreeProofDrop) fromE;
+        /*
+         * PROOF DROP
+         */
+        if (toE instanceof IRFreeAnalysisHintDrop) {
+          final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
+          if (HINT_ABOUT.equals(refType)) {
+            fromPI.addAnalysisHint(toAHD);
+            return;
           }
-        } else {
+        }
+      }
+      if (fromE instanceof IRFreePromiseDrop) {
+        final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
+        /*
+         * PROMISE DROP
+         */
+        if (toE instanceof IRFreeAnalysisResultDrop) {
+          final IRFreeAnalysisResultDrop toARD = (IRFreeAnalysisResultDrop) toE;
+          if (CHECKED_BY_RESULTS.equals(refType)) {
+            fromPI.addCheckedByResult(toARD);
+            return;
+          }
+        } else if (toE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
+          if (DEPENDENT_PROMISES.equals(refType)) {
+            fromPI.addDependentPromise(toPD);
+            return;
+          } else if (DEPONENT_PROMISES.equals(refType)) {
+            fromPI.addDeponentPromise(toPD);
+            return;
+          }
+        }
+      }
+      if (fromE instanceof IRFreeResultDrop) {
+        final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
+        /*
+         * RESULT DROP
+         */
+        if (toE instanceof IRFreeResultFolderDrop) {
+          final IRFreeResultFolderDrop toFD = (IRFreeResultFolderDrop) toE;
+
+          if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
+            fromPI.addTrustedFolder(toFD);
+            return;
+          }
+        } else if (toE instanceof IRFreePromiseDrop) {
           final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
 
           if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
             fromPI.addCheckedPromise(toPI);
+            return;
           } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
             fromPI.addTrustedPromise(toPI);
+            return;
           } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
             final String label = to.getAttribute(ResultDrop.OR_LABEL);
             fromPI.addOrTrustedPromise(label, toPI);
-          } else {
-            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+            return;
           }
         }
-      } else if (fromE instanceof IRFreeResultFolderDrop) {
+      }
+      if (fromE instanceof IRFreeResultFolderDrop) {
         final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;
+        /*
+         * RESULT FOLDER DROP
+         */
         if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
           final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
           fromPI.addCheckedPromise(toPI);
+          return;
         } else if (ResultFolderDrop.RESULT.equals(refType)) {
           final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;
           fromPI.addResult(toPI);
+          return;
         } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
           final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;
           fromPI.addSubFolder(toPI);
-        } else {
-          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+          return;
         }
-      } else {
-        throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }
+
+      /*
+       * Backwards compatiblity -- we use to track deponents ignore these if we
+       * find them
+       */
+      if (Drop.DEPONENT.equals(refType))
+        return;
+      /*
+       * The reference not handled if we got to here.
+       */
+      throw new IllegalStateException(I18N.err(248, refType, fromLabel, to.getId()));
     }
   }
 }

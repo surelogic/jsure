@@ -1,7 +1,6 @@
 package com.surelogic.dropsea;
 
 import java.util.Collection;
-import java.util.Set;
 
 import com.surelogic.NonNull;
 
@@ -76,13 +75,13 @@ public interface IPromiseDrop extends IProofDrop {
    * @return the set of promise drops that are a dependent of this promise drop.
    */
   @NonNull
-  Set<IPromiseDrop> getDependentPromises();
-  
+  Collection<? extends IPromiseDrop> getDependentPromises();
+
   /**
    * Gets the set of promise drops that are a deponent of this promise drop.
    * 
    * @return the set of promise drops that are a deponent of this promise drop.
    */
   @NonNull
-  Set<IPromiseDrop> getDeponentPromises();
+  Collection<? extends IPromiseDrop> getDeponentPromises();
 }

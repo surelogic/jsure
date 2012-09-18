@@ -623,16 +623,16 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop deponent : getDeponentsReference()) {
-      s.snapshotDrop(deponent);
-    }
+    // for (Drop deponent : getDeponentsReference()) {
+    // s.snapshotDrop(deponent);
+    // }
   }
 
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    for (Drop deponent : getDeponentsReference()) {
-      s.refDrop(db, DEPONENT, deponent);
-    }
+    // for (Drop deponent : getDeponentsReference()) {
+    // s.refDrop(db, DEPONENT, deponent);
+    // }
   }
 
   /****************************************************************/

@@ -15,8 +15,9 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -184,12 +185,12 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   @NonNull
-  public final Set<IAnalysisHintDrop> getAnalysisHintsAbout() {
-    final Set<IAnalysisHintDrop> result = new HashSet<IAnalysisHintDrop>();
+  public final Set<AnalysisHintDrop> getAnalysisHintsAbout() {
+    final Set<AnalysisHintDrop> result = new HashSet<AnalysisHintDrop>();
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
-        if (d instanceof IAnalysisHintDrop)
-          result.add((IAnalysisHintDrop) d);
+        if (d instanceof AnalysisHintDrop)
+          result.add((AnalysisHintDrop) d);
       }
     }
     return result;
@@ -264,10 +265,28 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   @Override
   @MustInvokeOnOverride
+  public void preprocessRefs(SeaSnapshot s) {
+    super.preprocessRefs(s);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.snapshotDrop(c);
+    }
+  }
+
+  @Override
+  @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
     s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
     s.addAttribute(AbstractXMLReader.DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void snapshotRefs(SeaSnapshot s, Builder db) {
+    super.snapshotRefs(s, db);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.refDrop(db, AbstractXMLReader.HINT_ABOUT, c);
+    }
   }
 }

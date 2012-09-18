@@ -50,8 +50,8 @@ public class IRFreeDrop extends Entity implements IDrop {
     }
   }
 
-  protected final List<IRFreeDrop> dependents;
-  protected final List<IRFreeDrop> deponents;
+ // protected final List<IRFreeDrop> dependents;
+//  protected final List<IRFreeDrop> deponents;
   private final List<IRFreeProposedPromiseDrop> proposals;
   protected Category category;
   private ISrcRef ref;
@@ -79,23 +79,23 @@ public class IRFreeDrop extends Entity implements IDrop {
     proposals.add(info);
   }
 
-  public void addDeponent(IRFreeDrop info) {
-    deponents.add(info);
-  }
-
-  public void addDependent(IRFreeDrop info) {
-    dependents.add(info);
-  }
+//  public void addDeponent(IRFreeDrop info) {
+//    deponents.add(info);
+//  }
+//
+//  public void addDependent(IRFreeDrop info) {
+//    dependents.add(info);
+//  }
 
   public IRFreeDrop(String name, Attributes a) {
     super(name, a);
     if (name.endsWith("drop")) {
-      dependents = new ArrayList<IRFreeDrop>(1);
-      deponents = new ArrayList<IRFreeDrop>(1);
+//      dependents = new ArrayList<IRFreeDrop>(1);
+//      deponents = new ArrayList<IRFreeDrop>(1);
       proposals = new ArrayList<IRFreeProposedPromiseDrop>(0);
     } else {
-      dependents = Collections.emptyList();
-      deponents = Collections.emptyList();
+      // dependents = Collections.emptyList();
+      // deponents = Collections.emptyList();
       proposals = Collections.emptyList();
     }
     category = Category.getInstance(getAttribute(CATEGORY_ATTR));

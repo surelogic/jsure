@@ -1,5 +1,11 @@
 package com.surelogic.dropsea.irfree.drops;
 
+
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +21,6 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
@@ -105,18 +110,18 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean isAssumed() {
-    return "true".equals(getAttribute(PromiseDrop.ASSUMED));
+    return "true".equals(getAttribute(ASSUMED));
   }
 
   public boolean isCheckedByAnalysis() {
-    return "true".equals(getAttribute(PromiseDrop.CHECKED_BY_ANALYSIS));
+    return "true".equals(getAttribute(CHECKED_BY_ANALYSIS));
   }
 
   public boolean isIntendedToBeCheckedByAnalysis() {
-    return "true".equals(getAttribute(PromiseDrop.TO_BE_CHECKED_BY_ANALYSIS));
+    return "true".equals(getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
   }
 
   public boolean isVirtual() {
-    return "true".equals(getAttribute(PromiseDrop.VIRTUAL));
+    return "true".equals(getAttribute(VIRTUAL));
   }
 }
