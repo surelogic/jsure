@@ -43,7 +43,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   private final HintType f_type;
 
-  @Override
+//  @Override
   @NonNull
   public HintType getHintType() {
     return f_type;

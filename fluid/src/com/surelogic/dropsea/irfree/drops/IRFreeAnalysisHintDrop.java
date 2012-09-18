@@ -33,7 +33,7 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
     }
   }
 
-  @Override
+//  @Override
   @NonNull
   public HintType getHintType() {
     return f_type;

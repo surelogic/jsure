@@ -265,7 +265,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         }        
       }
       
-      if (!passesPart2 && !hasAggregationSubFolder) {
+      if (!passesPart2) { // && !hasAggregationSubFolder) {
         createResultInFolder(folder, varDecl, false, Messages.UNPROTECTED_REFERENCE);
       }
       

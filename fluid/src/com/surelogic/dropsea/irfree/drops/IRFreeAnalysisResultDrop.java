@@ -21,12 +21,12 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
     checkedPromises.add(info);
   }
 
-  @Override
+//  @Override
   public boolean hasChecked() {
     return !checkedPromises.isEmpty();
   }
 
-  @Override
+//  @Override
   public Collection<? extends IPromiseDrop> getCheckedPromises() {
     return checkedPromises;
   }
