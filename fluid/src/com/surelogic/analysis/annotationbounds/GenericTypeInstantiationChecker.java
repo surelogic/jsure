@@ -41,6 +41,9 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
 final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implements IBinderClient {
+  private static final Map<IRNode, ResultFolderDrop> folders =
+      new ConcurrentHashMap<IRNode, ResultFolderDrop>();
+      
   private static final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
       new ConcurrentHashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
 
@@ -166,10 +169,31 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     // Nothing to do yet
   }
   
+  
+  
+  static ResultFolderDrop getFolderFromTypeNode(final IRNode node) {
+    return folders.get(node);
+  }
 
+  static void clearFolders() {
+    folders.clear();
+  }
+  
+  
   
   @Override
   public Void visitParameterizedType(final IRNode pType) {
+    /* Need to go inside-out because if there are nested uses of parameterized
+     * types, we may depend on the results of the nested uses, e.g.,
+     * 
+     *  CopyOnWriteArrayList<CopyOnWriteArrayList<X>>
+     *  
+     * The outer parameterization of CopyOnWriteArrayList depends on the 
+     * correctness of the inner parameterization of CopyOnWriteArrayList.
+     */
+    doAcceptForChildren(pType);
+
+    /* Now analyze self */
     final IRNode baseTypeDecl =
         binder.getBinding(ParameterizedType.getBase(pType));
     final AnnotationBoundsPromiseDrop boundsDrop = 
@@ -181,8 +205,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         checkActualsAgainstBounds(boundsDrop, pType, bounds);
       }
     }
-    
-    doAcceptForChildren(pType);
     return null;
   }
 
@@ -298,6 +320,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     folder.setMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
     folder.addCheckedPromise(boundsDrop);
+    folders.put(parameterizedType, folder);
     
     for (int i = 0; i < boundsList.size(); i++) {
       final IRNode formalDecl = boundsList.get(i).first();
@@ -315,16 +338,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         promises.addAll(tester.getPromises());
       }      
 
-      final int msg = checks ? Messages.ANNOTATION_BOUND_SATISFIED
-          : Messages.ANNOTATION_BOUND_NOT_SATISFIED;
       final ResultDrop result = new ResultDrop(parameterizedType);
-      result.setMessage(msg, jTypeOfActual.toSourceText(),
-            boundsString, nameOfTypeFormal);
+      result.setMessagesByJudgement(
+          Messages.ANNOTATION_BOUND_SATISFIED,
+          Messages.ANNOTATION_BOUND_NOT_SATISFIED,
+          jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
-      for (final PromiseDrop<? extends IAASTRootNode> p : promises) {
-        result.addTrustedPromise(p);
-      }
-      
+      result.addTrusted_and(promises);
       folder.add(result);
     }
   }

@@ -44,7 +44,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       final ResultDrop result = createResult(name, true,
           Messages.IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
-      result.addTrustedPromise(pDrop);
+      result.addTrusted_and(pDrop);
     }
   }
 
@@ -80,31 +80,30 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         result = createResult(
             varDecl, true, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
       }
-      result.addTrustedPromise(vouchDrop);
+      result.addTrusted_and(vouchDrop);
     } else {
       /* Now we use a result folder because we are conjoining two results:
        * (1) the field is final
        * (2) the field's type is immutable or primitive
        */
       final ResultFolderDrop folder = createResultFolder(varDecl);
-      boolean isGood;
+      folder.setMessagesByJudgement(
+          Messages.FOLDER_IS_IMMUTABLE, Messages.FOLDER_IS_NOT_IMMUTABLE, id);
       
       // (1) Check finality of the field
       final boolean isFinal = TypeUtil.isFinal(varDecl);
       if (isFinal) {
         final ResultDrop fDrop = createResultInFolder(
             folder, fieldDecl, true, Messages.IMMUTABLE_FINAL);
-        isGood = true;
         
         // Get the @Vouch("final") annotation if there is one
         final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(varDecl);
         if (vouchFinal != null && vouchFinal.isFinal()) {
-          fDrop.addTrustedPromise(vouchFinal);
+          fDrop.addTrusted_and(vouchFinal);
         }
       } else {
         createResultInFolder(
             folder, fieldDecl, false, Messages.IMMUTABLE_NOT_FINAL);
-        isGood = false;
         folder.addProposal(new ProposedPromiseDrop("Vouch",
             "final", varDecl, varDecl, Origin.MODEL));
       }
@@ -120,7 +119,6 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       if (type instanceof IJavaPrimitiveType) { // PRIMITIVELY TYPED
         createResultInFolder(folder, FieldDeclaration.getType(fieldDecl), true,
             Messages.IMMUTABLE_PRIMITIVE, type.toSourceText());
-        isGood &= true;
       } else { // REFERENCE-TYPED
         final ImmutableAnnotationTester tester = 
             new ImmutableAnnotationTester(
@@ -131,8 +129,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
           final ResultDrop iResult = createResultInFolder(
               folder, FieldDeclaration.getType(fieldDecl), true,
               Messages.FIELD_TYPE_IMMUTABLE, type.toSourceText());
-          iResult.addTrustedPromises(tester.getPromises());
-          isGood &= true;
+          iResult.addTrusted_and(tester.getPromises());
         } else {
           /*
            * If the type is not immutable, we can check to see
@@ -153,15 +150,13 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
                   stillBad = false;
                   final ResultDrop iResult = createResultInFolder(
                       folder, initExpr, true, Messages.IMMUTABLE_IMPL); 
-                  iResult.addTrustedPromise(implTypeIDrop);
+                  iResult.addTrusted_and(implTypeIDrop);
                 }
               }
             }
           }
           
-          if (!stillBad) {
-            isGood &= true;
-          } else {
+          if (stillBad) {
             final ResultDrop iResult = createResultInFolder(
                 folder, FieldDeclaration.getType(fieldDecl), false,
                 Messages.FIELD_TYPE_NOT_IMMUTABLE, type.toSourceText());
@@ -174,12 +169,6 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
                 "Immutable", varDecl, varDecl, Origin.MODEL));
           }
         }
-      }
-
-      if (isGood) {
-        folder.setMessage(Messages.FOLDER_IS_IMMUTABLE, id);
-      } else {
-        folder.setMessage(Messages.FOLDER_IS_NOT_IMMUTABLE, id);
       }
     }
   }

@@ -50,16 +50,21 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
 		init(LayersAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");
-		init(EqualityAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.EqualityAssurance", true, "Reference equality");
 		init(EffectsAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
-		init(LockAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy");
 		
-		init(ParameterizedTypeAnalysis.class,
-        "com.surelogic.jsure.client.eclipse.ParameterizedType", true, "Annotation Bounds");
-		
+		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
+		 * equality analyses, depend on the results of annotation bounds checking.
+		 */
+		final AnalysisInfo annoBoundsChecking = init(ParameterizedTypeAnalysis.class,
+		    "com.surelogic.jsure.client.eclipse.ParameterizedType", true, "Annotation Bounds");
+    init(LockAnalysis.class,
+        "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
+        annoBoundsChecking);
+    init(EqualityAnalysis.class,
+        "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
+        "Reference equality", annoBoundsChecking);
+
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule.class,

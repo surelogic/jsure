@@ -5,6 +5,7 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -41,5 +42,17 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		finishBuild();
 		return super.analyzeEnd(env, p);
+	}
+	
+	@Override
+  public void finish(final IIRAnalysisEnvironment env) {
+	  GenericTypeInstantiationChecker.clearFolders();
+	  super.finish(env);
+  }
+	
+	
+	
+	public static ResultFolderDrop getFolderForTypeNode(final IRNode node) {
+	  return GenericTypeInstantiationChecker.getFolderFromTypeNode(node);
 	}
 }

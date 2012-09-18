@@ -70,7 +70,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
       final ResultDrop result = createResult(name, true,
           Messages.THREAD_SAFE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
-      result.addTrustedPromise(pDrop);
+      result.addTrusted_and(pDrop);
     }
   }
 
@@ -109,7 +109,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
               varDecl, true, Messages.VOUCHED_THREADSAFE, id)
               : createResult(varDecl, true,
                   Messages.VOUCHED_THREADSAFE_WITH_REASON, id, reason);
-      result.addTrustedPromise(vouchDrop);
+      result.addTrusted_and(vouchDrop);
     } else {
       /* Create a Results Folder for the field.  We are going to AND together
        * a bunch of results.  Keep track of the overall correctness though
@@ -139,7 +139,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
       if (fieldLock != null) {
         final ResultDrop result = createResultInFolder(
             folder, varDecl, true, Messages.LOCK_PROTECTED, fieldLock.name);
-        result.addTrustedPromise(fieldLock.lockDecl);
+        result.addTrusted_and(fieldLock.lockDecl);
         passesPart1 = true;
       }
       
@@ -151,13 +151,13 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
        * Part2: Check that the field's type is thread safe or contained.
        */
       boolean passesPart2 = false;
-      boolean hasAggregationSubFolder = false;
       final IJavaType type = binder.getJavaType(varDecl);
 
       // Test if the type of the field is primitive
       final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+      final IRNode fieldTypeNode = FieldDeclaration.getType(fieldDecl);
       if (isPrimitive) {
-        createResultInFolder(folder, FieldDeclaration.getType(fieldDecl),
+        createResultInFolder(folder, fieldTypeNode,
             true, Messages.THREADSAFE_PRIMITIVE, type.toSourceText());
         passesPart2 = true;
       } else { // REFERENCE TYPE
@@ -167,9 +167,12 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         final boolean isTS = tsTester.testType(type);
         if (isTS) {
           final ResultDrop result = createResultInFolder(
-              folder, FieldDeclaration.getType(fieldDecl), true,
+              folder, fieldTypeNode, true,
               Messages.THREADSAFE_THREADSAFE, type.toSourceText());
-          result.addTrustedPromises(tsTester.getPromises());
+          result.addTrusted_and(tsTester.getPromises());
+//          final ResultFolderDrop annoFolder = 
+//              ParameterizedTypeAnalysis.getFolderForTypeNode(fieldTypeNode);
+//          if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
           passesPart2 = true;
         } else {
           /*
@@ -183,14 +186,21 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
             if (Initialization.prototype.includes(init)) {
               final IRNode initExpr = Initialization.getValue(init);
               if (NewExpression.prototype.includes(initExpr)) {
+                final IRNode declaredTypeOfNewExpr =
+                    ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration();
                 final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
                     LockRules.getThreadSafeImplPromise(
-                        ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration());
+                        declaredTypeOfNewExpr);
                 if (implTypeTSDrop != null) {
                   stillBad = false;
+                  passesPart2 = true;
                   final ResultDrop result = createResultInFolder(
                       folder, initExpr, true, Messages.THREADSAFE_IMPL); 
-                  result.addTrustedPromise(implTypeTSDrop);
+                  result.addTrusted_and(implTypeTSDrop);
+//                  final IRNode xx = NewExpression.getType(initExpr);
+//                  final ResultFolderDrop annoFolder = 
+//                      ParameterizedTypeAnalysis.getFolderForTypeNode(xx);
+//                  if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
                 }
               }
             }
@@ -204,9 +214,9 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
             if (cTester.testType(type)) {
               passesPart2 = true; // may be made false again, below, if the field is not aggregated
               final ResultDrop result = createResultInFolder(
-                  folder, FieldDeclaration.getType(fieldDecl), true,
+                  folder, fieldTypeNode, true,
                   Messages.THREADSAFE_CONTAINABLE, type.toSourceText());
-              result.addTrustedPromises(cTester.getPromises());
+              result.addTrusted_and(cTester.getPromises());
             } else { // NEITHER THREAD SAFE NOR CONTAINABLE
               // Propose to make the type @ThreadSafe
               for (final IRNode n : tsTester.getFailed()) {
@@ -226,11 +236,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
             if (uDrop != null) {
               final ResultDrop result = createResultInFolder(
                   folder, varDecl, true, Messages.THREADSAFE_UNIQUE);
-              result.addTrustedPromise(uDrop.getDrop());
+              result.addTrusted_and(uDrop.getDrop());
               passesPart2 &= true; // might still be made false if the aggregation isn't lock protected
 
               // Check that the destination regions are lock protected
-              hasAggregationSubFolder = true;
               final ResultFolderDrop subFolder = createSubFolder(folder, varDecl);
               final Map<IRegion, IRegion> aggMap =
                   UniquenessUtils.constructRegionMapping(varDecl);
@@ -241,7 +250,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
                   final ResultDrop result2 = createResultInFolder(
                       subFolder, varDecl, true,Messages.DEST_REGION_PROTECTED,
                       destRegion.getName(), lock.name);
-                  result2.addTrustedPromise(lock.lockDecl);
+                  result2.addTrusted_and(lock.lockDecl);
                 } else {
                   protectedRegions = false;
                   createResultInFolder(subFolder, varDecl, false,
