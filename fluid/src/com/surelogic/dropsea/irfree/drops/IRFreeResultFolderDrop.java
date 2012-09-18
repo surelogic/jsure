@@ -1,5 +1,7 @@
 package com.surelogic.dropsea.irfree.drops;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,12 +12,9 @@ import org.xml.sax.Attributes;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
-  /**
-   * Only for ResultDrops
-   */
+
   final List<IRFreeResultFolderDrop> subFolders = new ArrayList<IRFreeResultFolderDrop>(0);
   final List<IRFreeResultDrop> results = new ArrayList<IRFreeResultDrop>(0);
 
@@ -40,7 +39,7 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
   }
 
   public boolean isConsistent() {
-    return "true".equals(getAttribute(ResultDrop.CONSISTENT));
+    return "true".equals(getAttribute(CONSISTENT));
   }
 
   public Collection<? extends IAnalysisResultDrop> getContents() {

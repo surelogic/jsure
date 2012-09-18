@@ -1,6 +1,15 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROMISE_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,7 +25,6 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -34,19 +42,6 @@ import edu.cmu.cs.fluid.java.WrappedSrcRef;
  * cutpoints for the analyses.
  */
 public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop implements IPromiseDrop, IHasPromisedFor {
-
-  public static final String VIRTUAL = "virtual";
-
-  public static final String FROM_SRC = "from-src";
-
-  public static final String CHECKED_BY_ANALYSIS = "checked-by-analysis";
-
-  public static final String TO_BE_CHECKED_BY_ANALYSIS = "to-be-checked-by-analysis";
-
-  public static final String ASSUMED = "assumed";
-
-  public static final boolean useCheckedByResults = true;
-  public static final String CHECKED_BY_RESULTS = "checked-by-result";
 
   /**
    * Constructs a promise drop with the root of the associated annotation
@@ -271,34 +266,28 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return result;
   }
 
-  @Override
   @NonNull
-  public final Set<ResultDrop> getTrustedBy() {
-    /*
-     * Only overridden to ensure that no subtype changes this call's behavior.
-     */
-    return super.getTrustedBy();
-  }
-
-  @NonNull
-  public final Set<IPromiseDrop> getDependentPromises() {
-    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+  public final Set<PromiseDrop<? extends IAASTRootNode>> getDependentPromises() {
     synchronized (f_seaLock) {
-      for (Drop d : getDependentsReference()) {
-        if (d instanceof IPromiseDrop)
-          result.add((IPromiseDrop) d);
-      }
+      return getPromisesHelper(getDependentsReference());
     }
-    return result;
   }
 
   @NonNull
-  public final Set<IPromiseDrop> getDeponentPromises() {
-    final Set<IPromiseDrop> result = new HashSet<IPromiseDrop>();
+  public final Set<PromiseDrop<? extends IAASTRootNode>> getDeponentPromises() {
     synchronized (f_seaLock) {
-      for (Drop d : getDeponentsReference()) {
-        if (d instanceof IPromiseDrop)
-          result.add((IPromiseDrop) d);
+      return getPromisesHelper(getDeponentsReference());
+    }
+  }
+
+  @NonNull
+  private Set<PromiseDrop<? extends IAASTRootNode>> getPromisesHelper(Collection<Drop> toFilter) {
+    final Set<PromiseDrop<? extends IAASTRootNode>> result = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+    for (Drop d : toFilter) {
+      if (d instanceof PromiseDrop) {
+        @SuppressWarnings("unchecked")
+        final PromiseDrop<? extends IAASTRootNode> pd = (PromiseDrop<? extends IAASTRootNode>) d;
+        result.add(pd);
       }
     }
     return result;
@@ -568,7 +557,22 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.PROMISE_DROP;
+    return PROMISE_DROP;
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void preprocessRefs(SeaSnapshot s) {
+    super.preprocessRefs(s);
+    for (Drop c : getCheckedBy()) {
+      s.snapshotDrop(c);
+    }
+    for (Drop c : getDependentPromises()) {
+      s.snapshotDrop(c);
+    }
+    for (Drop c : getDeponentPromises()) {
+      s.snapshotDrop(c);
+    }
   }
 
   @Override
@@ -589,10 +593,14 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    if (useCheckedByResults) {
-      for (Drop c : getCheckedBy()) {
-        s.refDrop(db, CHECKED_BY_RESULTS, c);
-      }
+    for (Drop c : getCheckedBy()) {
+      s.refDrop(db, CHECKED_BY_RESULTS, c);
+    }
+    for (Drop c : getDependentPromises()) {
+      s.refDrop(db, DEPENDENT_PROMISES, c);
+    }
+    for (Drop c : getDeponentPromises()) {
+      s.refDrop(db, DEPONENT_PROMISES, c);
     }
   }
 }

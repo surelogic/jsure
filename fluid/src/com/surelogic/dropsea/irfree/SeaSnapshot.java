@@ -1,9 +1,23 @@
 package com.surelogic.dropsea.irfree;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_LABEL;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.ID_ATTR;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.JAVA_DECL_INFO;
@@ -25,6 +39,7 @@ import java.util.UUID;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.JSureXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.JavaDeclInfo;
@@ -32,11 +47,9 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisHintDrop;
-import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.AnalysisHintDrop;
-import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
@@ -48,9 +61,11 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisResultDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeProofDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
@@ -281,7 +296,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
   public void addSupportingInfo(Builder db, ISupportingInformation si) {
     Builder sib = db.nest(SUPPORTING_INFO);
-    sib.addAttribute(Drop.MESSAGE, si.getMessage());
+    sib.addAttribute(MESSAGE, si.getMessage());
     addSrcRef(sib, si.getLocation(), si.getSrcRef(), 3, null);
     sib.end();
   }
@@ -399,61 +414,152 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       final String refType = to.getName();
       final IRFreeDrop fromE = entities.get(fromId);
       final int toId = Integer.valueOf(to.getId());
-      final IRFreeDrop toE = entities.get(toId); // The entity above is really
-                                                 // the ref
-      // info
-      if (Drop.DEPONENT.equals(refType)) {
-        fromE.addDeponent(toE);
-        toE.addDependent(fromE);
-      } else if (ProposedPromiseDrop.PROPOSED_PROMISE.equals(refType)) {
-        fromE.addProposal((IRFreeProposedPromiseDrop) toE);
-      } else if (fromE instanceof IRFreePromiseDrop) {
-        final IRFreePromiseDrop fromPI = (IRFreePromiseDrop) fromE;
-        final IAnalysisResultDrop toPI = (IAnalysisResultDrop) toE;
-        if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
-          fromPI.addCheckedByResult(toPI);
-        } else {
-          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-        }
-      } else if (fromE instanceof IRFreeResultDrop) {
-        final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
-        if (toE instanceof IRFreeResultFolderDrop) {
-          if (ResultDrop.TRUSTED_FOLDER.equals(refType)) {
-            fromPI.addTrustedFolder((IRFreeResultFolderDrop) toE);
-          } else {
-            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-          }
-        } else {
-          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
+      final IRFreeDrop toE = entities.get(toId);
 
-          if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-            fromPI.addCheckedPromise(toPI);
-          } else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
-            fromPI.addTrustedPromise(toPI);
-          } else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-            final String label = to.getAttribute(ResultDrop.OR_LABEL);
-            fromPI.addOrTrustedPromise(label, toPI);
-          } else {
-            throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+      /*
+       * The approach is to check the types and also the XML label. If
+       * everything matches a reference is set on the IRFreeDrop involved and we
+       * return immediately. If we fall through all of them we throw an
+       * exception that we didn't handle the link.
+       */
+
+      if (PROPOSED_PROMISE.equals(refType)) {
+        /*
+         * To a PROPOSED PROMISE
+         */
+        if (toE instanceof IRFreeProposedPromiseDrop) {
+          final IRFreeProposedPromiseDrop toPPD = (IRFreeProposedPromiseDrop) toE;
+          fromE.addProposal(toPPD);
+          return;
+        }
+      }
+
+      if (fromE instanceof IRFreeProofDrop) {
+        final IRFreeProofDrop fromPD = (IRFreeProofDrop) fromE;
+        /*
+         * PROOF DROP
+         */
+        if (toE instanceof IRFreeAnalysisHintDrop) {
+          final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
+          if (HINT_ABOUT.equals(refType)) {
+            fromPD.addAnalysisHint(toAHD);
+            return;
           }
         }
-      } else if (fromE instanceof IRFreeResultFolderDrop) {
-        final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;
-        if (AnalysisResultDrop.CHECKED_PROMISE.equals(refType)) {
-          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
-          fromPI.addCheckedPromise(toPI);
-        } else if (ResultFolderDrop.RESULT.equals(refType)) {
-          final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;
-          fromPI.addResult(toPI);
-        } else if (ResultFolderDrop.SUB_FOLDER.equals(refType)) {
-          final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;
-          fromPI.addSubFolder(toPI);
-        } else {
-          throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
-        }
-      } else {
-        throw new IllegalStateException("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
       }
+      /*
+       * Backwards compatibility with old scans to add analysis hints to promise
+       * drops using only deponent links.
+       */
+      if (DEPONENT.equals(refType)) {
+        if (fromE instanceof IRFreeAnalysisHintDrop) {
+          final IRFreeAnalysisHintDrop fromAHD = (IRFreeAnalysisHintDrop) fromE;
+          if (toE instanceof IRFreeProofDrop) {
+            final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
+            toPD.addAnalysisHint(fromAHD);
+            return;
+          }
+        }
+      }
+
+      if (fromE instanceof IRFreePromiseDrop) {
+        final IRFreePromiseDrop fromPD = (IRFreePromiseDrop) fromE;
+        /*
+         * PROMISE DROP
+         */
+        if (toE instanceof IRFreeAnalysisResultDrop) {
+          final IRFreeAnalysisResultDrop toARD = (IRFreeAnalysisResultDrop) toE;
+          if (CHECKED_BY_RESULTS.equals(refType)) {
+            fromPD.addCheckedByResult(toARD);
+            return;
+          }
+        } else if (toE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
+          if (DEPENDENT_PROMISES.equals(refType)) {
+            fromPD.addDependentPromise(toPD);
+            return;
+          } else if (DEPONENT_PROMISES.equals(refType)) {
+            fromPD.addDeponentPromise(toPD);
+            return;
+          } else if (DEPONENT.equals(refType)) {
+            /*
+             * Backwards compatibility with old scans to add deponent and
+             * dependent promises to promise drops using only deponent links
+             */
+            fromPD.addDeponentPromise(toPD);
+            toPD.addDependentPromise(fromPD);
+            return;
+          }
+        }
+      }
+
+      if (fromE instanceof IRFreeAnalysisResultDrop) {
+        final IRFreeAnalysisResultDrop fromARD = (IRFreeAnalysisResultDrop) fromE;
+        /*
+         * ANALYSIS RESULT DROP
+         */
+        if (toE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
+
+          if (CHECKED_PROMISE.equals(refType)) {
+            fromARD.addCheckedPromise(toPD);
+            return;
+          }
+        }
+      }
+
+      if (fromE instanceof IRFreeResultDrop) {
+        final IRFreeResultDrop fromRD = (IRFreeResultDrop) fromE;
+        /*
+         * RESULT DROP
+         */
+        if (toE instanceof IRFreeProofDrop) {
+          final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
+          if (AND_TRUSTED_PROOF_DROP.equals(refType) || TRUSTED_FOLDER.equals(refType) || TRUSTED_PROMISE.equals(refType)) {
+            fromRD.addTrusted_and(toPD);
+            return;
+          } else if (OR_TRUSTED_PROOF_DROP.equals(refType) || OR_TRUSTED_PROMISE.equals(refType)) {
+            final String label = to.getAttribute(OR_LABEL);
+            fromRD.addTrusted_or(label, toPD);
+            return;
+          }
+        }
+      }
+
+      if (fromE instanceof IRFreeResultFolderDrop) {
+        final IRFreeResultFolderDrop fromRFD = (IRFreeResultFolderDrop) fromE;
+        /*
+         * RESULT FOLDER DROP
+         */
+        if (toE instanceof IRFreeResultDrop) {
+          final IRFreeResultDrop toRD = (IRFreeResultDrop) toE;
+          if (RESULT.equals(refType)) {
+            fromRFD.addResult(toRD);
+            return;
+          }
+        }
+        if (toE instanceof IRFreeResultFolderDrop) {
+          final IRFreeResultFolderDrop toRFD = (IRFreeResultFolderDrop) toE;
+          if (SUB_FOLDER.equals(refType)) {
+            fromRFD.addSubFolder(toRFD);
+            return;
+          }
+        }
+      }
+
+      /*
+       * Backwards compatibility with old scans -- we use to track all proof
+       * maintenance connections even though we didn't need them. We can safely
+       * drop these on the floor because if the connection was useful it was
+       * handled above.
+       */
+      if (DEPONENT.equals(refType))
+        return;
+
+      /*
+       * The reference not handled if we got to here.
+       */
+      throw new IllegalStateException(I18N.err(248, refType, fromLabel, to.getId()));
     }
   }
 }

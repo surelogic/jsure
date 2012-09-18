@@ -1,5 +1,20 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ATTRS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +28,6 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -38,20 +52,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop implements IProposedPromiseDrop {
 
-  public static final String PROPOSED_PROMISE = "proposed-promise";
-  public static final String ANNOTATION_TYPE = "annotation-type";
-  public static final String CONTENTS = "contents";
-  public static final String REPLACED_ANNO = "replaced-annotation";
-  public static final String REPLACED_CONTENTS = "replaced-contents";
-  public static final String ORIGIN = "origin";
-  public static final String JAVA_ANNOTATION = "java-annotation";
-  public static final String FROM_PROJECT = "from-project";
-  public static final String TARGET_PROJECT = "target-project";
-  public static final String FROM_INFO = "from-info";
-  public static final String TARGET_INFO = "target-info";
-  public static final String FROM_REF = "from-ref";
-  public static final String ANNO_ATTRS = "annotation-attrs";
-  public static final String REPLACED_ATTRS = "replaced-attrs";
+
 
   public enum Origin {
     /**
@@ -471,7 +472,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
    */
 
   public String getXMLElementName() {
-    return AbstractXMLReader.PROPOSED_PROMISE_DROP;
+    return PROPOSED_PROMISE_DROP;
   }
 
   @Override

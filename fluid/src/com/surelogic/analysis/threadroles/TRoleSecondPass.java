@@ -798,7 +798,7 @@ public class TRoleSecondPass implements IBinderClient {
       //
       // ResultDrop rd = reqSumm.getResDrop();
       // rd.addCheckedPromise(reqSumm);
-      // rd.addTrustedPromise(ctxSumm);
+      // rd.addTrusted_and(ctxSumm);
       // rd.setInconsistent();
       // rd.addSupportingInformation("calling context "
       // + ctxSumm.getFullExpr() + " does not imply requirement "
@@ -904,7 +904,7 @@ public class TRoleSecondPass implements IBinderClient {
         tRoleReportDataDependOn.addDependent(regTRoleMod);
         regionReportingTRoleCount += 1;
         rd.addCheckedPromises(regTRoleMod.getUserDeponents());
-        rd.addTrustedPromise(regTRoleMod);
+        rd.addTrusted_and(regTRoleMod);
         rd.setConsistent();
         rd.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
       } else {
@@ -938,7 +938,7 @@ public class TRoleSecondPass implements IBinderClient {
         threadRoleConstrainedResultsDependOn.addDependent(regTRoleMod);
         tRoleConstrainedRegionCount += 1;
         rd.addCheckedPromises(regTRoleMod.getUserDeponents());
-        rd.addTrustedPromise(regTRoleMod);
+        rd.addTrusted_and(regTRoleMod);
         rd.setConsistent();
         rd.setCategory(JavaGlobals.THREAD_ROLE_CONSTRAINED_REGION_CAT);
 
@@ -1194,7 +1194,7 @@ public class TRoleSecondPass implements IBinderClient {
             TRoleRenamePerCU.jbddMessageName(constraint) + '.');
         prd.addCheckedPromises(userDeponents);
 
-        prd.addTrustedPromise(regTroleMod);
+        prd.addTrusted_and(regTroleMod);
       } else if (!reqIsEmpty) {
         // report an OK reference
         StringBuilder msg = new StringBuilder();
@@ -1205,7 +1205,7 @@ public class TRoleSecondPass implements IBinderClient {
             TRoleRenamePerCU.jbddMessageName(localCtx) + "; constraint is " + //$NON-NLS-1$
             TRoleRenamePerCU.jbddMessageName(constraint) + '.');
         rd.addCheckedPromises(userDeponents);
-        rd.addTrustedPromise(regTroleMod);
+        rd.addTrusted_and(regTroleMod);
         rd.setConsistent();
       }
     }
@@ -1269,7 +1269,7 @@ public class TRoleSecondPass implements IBinderClient {
           msg.append(aRevoke.getMessage());
           msg.append(" successful."); //$NON-NLS-1$
           ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", node);
-          rd.addTrustedPromise(aRevoke);
+          rd.addTrusted_and(aRevoke);
           rd.addCheckedPromises(userDeponents);
           msg = new StringBuilder();
           msg.append("Context before revoke was "); //$NON-NLS-1$
@@ -1334,7 +1334,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg.append("Error: Granting thread role " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" yields unsatisfiable context."); //$NON-NLS-1$
               ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", node);
-              prd.addTrustedPromise(aGrant);
+              prd.addTrusted_and(aGrant);
               prd.addCheckedPromises(userDeponents);
               prd.setInconsistent();
               msg = new StringBuilder();
@@ -1360,7 +1360,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg.append(", because " + canonTRNM.getTRoleName() //$NON-NLS-1$
                   + " has conflicts that are not satisfied."); //$NON-NLS-1$
               ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(), "TODO: Fill Me In", node);
-              prd.addTrustedPromise(aGrant);
+              prd.addTrusted_and(aGrant);
               prd.addCheckedPromises(userDeponents);
               prd.setInconsistent();
               msg = new StringBuilder();
@@ -1373,7 +1373,7 @@ public class TRoleSecondPass implements IBinderClient {
               msg.append("@grant of " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" successful."); //$NON-NLS-1$
               ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(), "TODO: fill me in", node);
-              rd.addTrustedPromise(aGrant);
+              rd.addTrusted_and(aGrant);
               rd.addCheckedPromises(userDeponents);
               msg = new StringBuilder();
               msg.append("Context before grant was "); //$NON-NLS-1$
@@ -1550,7 +1550,7 @@ public class TRoleSecondPass implements IBinderClient {
               + "; constraint is " + reqStr + '.'); //$NON-NLS-1$
           prd.addCheckedPromises(userDeponents);
           final TRoleReqSummaryDrop mReqSumm = TRoleReqSummaryDrop.getSummaryFor(mDecl);
-          prd.addTrustedPromise(mReqSumm);
+          prd.addTrusted_and(mReqSumm);
         } else {
           // this call is NOT one of the error sites we're looking for.
           StringBuilder msg = new StringBuilder();
@@ -1560,7 +1560,7 @@ public class TRoleSecondPass implements IBinderClient {
           rd.addSupportingInformation(null, "Local thread role context is " + TRoleRenamePerCU.jbddMessageName(currCtx) //$NON-NLS-1$
               + "; constraint is " + reqSumm.getReqString() + '.'); //$NON-NLS-1$
           rd.addCheckedPromises(userDeponents);
-          rd.addTrustedPromise(TRoleReqSummaryDrop.getSummaryFor(mDecl));
+          rd.addTrusted_and(TRoleReqSummaryDrop.getSummaryFor(mDecl));
           rd.setConsistent();
         }
       } else {

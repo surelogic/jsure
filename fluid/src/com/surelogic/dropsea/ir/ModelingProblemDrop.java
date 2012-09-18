@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir;
 
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MODELING_PROBLEM_DROP;
+
 import com.surelogic.dropsea.IModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -60,6 +61,6 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.MODELING_PROBLEM_DROP;
+    return MODELING_PROBLEM_DROP;
   }
 }

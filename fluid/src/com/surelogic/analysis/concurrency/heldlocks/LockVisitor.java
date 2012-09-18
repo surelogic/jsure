@@ -885,7 +885,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final PromiseDrop<?> supportingDrop = lock.lock
 						.getSupportingDrop();
 				if (supportingDrop != null) {
-					result.addTrustedPromise(supportingDrop);
+					result.addTrusted_and(supportingDrop);
 				}
 				/*
 				 * Only one annotation can support the holding of any given
@@ -899,7 +899,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (lock.getName().equals(lockKey)) {
 				final PromiseDrop<?> supportingDrop = lock.getSupportingDrop();
 				if (supportingDrop != null) {
-					result.addTrustedPromise(supportingDrop);
+					result.addTrusted_and(supportingDrop);
 				}
 				/*
 				 * Only one annotation can support the holding of any given

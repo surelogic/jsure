@@ -285,9 +285,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private void add_and_TrustedPromisesAndFolders(ResultsViewContent mutableContentSet, IResultDrop result) {
     // Create a folder to contain the preconditions
-    Collection<? extends IProofDrop> trustedPromiseDrops = result.getTrustedPromises();
-    Collection<? extends IResultFolderDrop> trustedFolderDrops = result.getTrustedFolders();
-    int count = trustedPromiseDrops.size() + trustedFolderDrops.size();
+    Collection<? extends IProofDrop> trustedProofDrops = result.getTrusted_and();
+    int count = trustedProofDrops.size();
     // bail out if no preconditions exist
     if (count < 1)
       return;
@@ -297,14 +296,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
     boolean elementsProvedConsistent = true; // assume true
 
-    // add trusted folders to the folder
-    for (IResultFolderDrop trustedFolder : trustedFolderDrops) {
-      preconditionFolder.addChild(encloseDrop(trustedFolder));
-      elementsProvedConsistent &= trustedFolder.provedConsistent();
-    }
-
-    // add trusted promises to the folder
-    for (IProofDrop trustedDrop : trustedPromiseDrops) {
+    // add trusted proof drops to the folder
+    for (IProofDrop trustedDrop : trustedProofDrops) {
       preconditionFolder.addChild(encloseDrop(trustedDrop));
       elementsProvedConsistent &= trustedDrop.provedConsistent();
     }
@@ -332,7 +325,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
 
     // Create a folder to contain the choices
-    final Collection<String> or_TrustLabels = result.getTrustedPromises_orKeys();
+    final Collection<String> or_TrustLabels = result.getTrusted_orKeys();
     final int or_TrustLabelsSize = or_TrustLabels.size();
     ResultsViewContent orContentFolder = makeContent(or_TrustLabelsSize
         + (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:" : " possible prerequisite assertion choice:"));
@@ -352,7 +345,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       // set proof bits properly
       boolean choiceConsistent = true;
       boolean choiceUsesRedDot = false;
-      Collection<? extends IProofDrop> choiceSet = result.getTrustedPromises_or(key);
+      Collection<? extends IProofDrop> choiceSet = result.getTrusted_or(key);
 
       // fill in the folder with choices
       for (IProofDrop trustedDrop : choiceSet) {

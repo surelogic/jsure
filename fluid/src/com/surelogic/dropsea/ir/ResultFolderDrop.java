@@ -1,10 +1,13 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_FOLDER_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
+
 import java.util.List;
 
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -20,12 +23,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Not intended to be subclassed.
  */
 public final class ResultFolderDrop extends AnalysisResultDrop implements IResultFolderDrop {
-
-  /*
-   * XML attribute constants
-   */
-  public static final String SUB_FOLDER = "sub-folder";
-  public static final String RESULT = "result";
 
   /**
    * Constructs a new analysis result folder.
@@ -108,7 +105,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.RESULT_FOLDER_DROP;
+    return RESULT_FOLDER_DROP;
   }
 
   @Override

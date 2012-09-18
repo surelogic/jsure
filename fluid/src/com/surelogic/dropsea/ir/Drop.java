@@ -1,6 +1,9 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +25,6 @@ import com.surelogic.Vouch;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
@@ -55,10 +57,6 @@ public abstract class Drop implements IDrop {
    * drops is output.
    */
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
-  public static final String DEPONENT = "deponent";
-  public static final String DEPENDENT = "dependent";
-  public static final String MESSAGE = "message";
-  public static final String MESSAGE_ID = "message-id";
 
   /**
    * Logger for this class
@@ -607,7 +605,7 @@ public abstract class Drop implements IDrop {
    */
 
   public String getXMLElementName() {
-    return AbstractXMLReader.DROP;
+    return DROP;
   }
 
   @MustInvokeOnOverride
@@ -623,16 +621,12 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop deponent : getDeponentsReference()) {
-      s.snapshotDrop(deponent);
-    }
+    // by default do nothing
   }
 
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    for (Drop deponent : getDeponentsReference()) {
-      s.refDrop(db, DEPONENT, deponent);
-    }
+    // by default do nothing
   }
 
   /****************************************************************/

@@ -1,5 +1,11 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,10 +19,10 @@ import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -120,16 +126,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   /**
    * Returns a copy of set of result drops which directly trust (as an "and" or
    * an "or" precondition) this proof drop.
-   * <p>
-   * This method can only return elements for {@link PromiseDrop} and
-   * {@link ResultFolderDrop} instances. It will always return an empty
-   * collection if called on a {@link ResultDrop}.
    * 
-   * @return a set, all members of the type {@link ResultDrop}, which trust this
-   *         promise drop
+   * @return a set of result drops which trust this proof drop
    */
   @NonNull
-  public Set<ResultDrop> getTrustedBy() {
+  public final Set<ResultDrop> getTrustedBy() {
     final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
@@ -184,12 +185,12 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   @NonNull
-  public final Set<IAnalysisHintDrop> getAnalysisHintsAbout() {
-    final Set<IAnalysisHintDrop> result = new HashSet<IAnalysisHintDrop>();
+  public final Set<AnalysisHintDrop> getAnalysisHintsAbout() {
+    final Set<AnalysisHintDrop> result = new HashSet<AnalysisHintDrop>();
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
-        if (d instanceof IAnalysisHintDrop)
-          result.add((IAnalysisHintDrop) d);
+        if (d instanceof AnalysisHintDrop)
+          result.add((AnalysisHintDrop) d);
       }
     }
     return result;
@@ -259,15 +260,33 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.PROOF_DROP;
+    return PROOF_DROP;
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void preprocessRefs(SeaSnapshot s) {
+    super.preprocessRefs(s);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.snapshotDrop(c);
+    }
   }
 
   @Override
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
-    s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
-    s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
-    s.addAttribute(AbstractXMLReader.DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+    s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());
+    s.addAttribute(PROVED_ATTR, provedConsistent());
+    s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+  }
+
+  @Override
+  @MustInvokeOnOverride
+  public void snapshotRefs(SeaSnapshot s, Builder db) {
+    super.snapshotRefs(s, db);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.refDrop(db, HINT_ABOUT, c);
+    }
   }
 }

@@ -1,6 +1,18 @@
 package com.surelogic.dropsea.irfree.drops;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.PROPERTIES;
 import static com.surelogic.common.jsure.xml.JSureXMLReader.SOURCE_REF;
 
@@ -22,9 +34,9 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop, IJavaDeclInfoClient,
     Comparable<IRFreeProposedPromiseDrop> {
   static {
-    internString(ProposedPromiseDrop.FROM_INFO);
-    internString(ProposedPromiseDrop.TARGET_INFO);
-    internString(ProposedPromiseDrop.FROM_REF);
+    internString(FROM_INFO);
+    internString(TARGET_INFO);
+    internString(FROM_REF);
     internString(ProposedPromiseDrop.class.getName());
     internString("ProposedPromiseDrop @RegionEffects(writes java.lang.Object:All)");
     internString("@RegionEffects(writes java.lang.Object:All)");
@@ -55,27 +67,27 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public String getJavaAnnotation() {
-    return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
+    return getAttribute(JAVA_ANNOTATION);
   }
 
   public String getAnnotation() {
-    return getAttribute(ProposedPromiseDrop.ANNOTATION_TYPE);
+    return getAttribute(ANNOTATION_TYPE);
   }
 
   public String getContents() {
-    return getAttribute(ProposedPromiseDrop.CONTENTS);
+    return getAttribute(CONTENTS);
   }
 
   public String getReplacedAnnotation() {
-    return getAttribute(ProposedPromiseDrop.REPLACED_ANNO);
+    return getAttribute(REPLACED_ANNO);
   }
 
   public String getReplacedContents() {
-    return getAttribute(ProposedPromiseDrop.REPLACED_CONTENTS);
+    return getAttribute(REPLACED_CONTENTS);
   }
 
   public Origin getOrigin() {
-    final String origin = getAttribute(ProposedPromiseDrop.ORIGIN);
+    final String origin = getAttribute(ORIGIN);
     Origin result = Origin.MODEL;
     if (origin == null) {
       /*
@@ -97,11 +109,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public String getTargetProjectName() {
-    return getAttribute(ProposedPromiseDrop.TARGET_PROJECT);
+    return getAttribute(TARGET_PROJECT);
   }
 
   public String getFromProjectName() {
-    return getAttribute(ProposedPromiseDrop.FROM_PROJECT);
+    return getAttribute(FROM_PROJECT);
   }
 
   public ISrcRef getAssumptionRef() {
@@ -118,9 +130,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public void addInfo(JavaDeclInfo info) {
     String flavor = info.getAttribute(FLAVOR_ATTR);
-    if (ProposedPromiseDrop.FROM_INFO.equals(flavor)) {
+    if (FROM_INFO.equals(flavor)) {
       fromInfo = info;
-    } else if (ProposedPromiseDrop.TARGET_INFO.equals(flavor)) {
+    } else if (TARGET_INFO.equals(flavor)) {
       targetInfo = info;
     } else {
       throw new IllegalStateException("Unknown flavor of info: " + flavor);
@@ -132,13 +144,13 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     final String name = e.getName();
     if (SOURCE_REF.equals(name)) {
       SourceRef sr = new SourceRef(e);
-      if (ProposedPromiseDrop.FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
+      if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
         assumptionRef = makeSrcRef(sr);
       } else {
         setSource(sr);
       }
     } else if (PROPERTIES.equals(name)) {
-      if (ProposedPromiseDrop.ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
+      if (ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
         annoAttrs = e.getAttributes();
       } else {
         replacedAttrs = e.getAttributes();

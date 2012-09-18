@@ -60,36 +60,26 @@ public interface IResultDrop extends IAnalysisResultDrop {
    * this call it is impossible to distinguish "and" prerequisite assertions
    * from "or" prerequisite assertions. The returned set is a copy.
    * 
-   * @return a new non-null (possibly empty) set of promises and folders trusted
-   *         by this result, its prerequisite assertions.
+   * @return a new non-null (possibly empty) set of proof drops trusted by this
+   *         result, its prerequisite assertions.
    */
   @NonNull
   Collection<? extends IProofDrop> getAllTrusted();
 
   /**
-   * Returns the promise prerequisite assertions of this result, this set does
-   * not include any "or" promise or folder prerequisite assertions. Do
-   * <b>not</b> modify the returned set in any way.
+   * Returns the prerequisite assertions of this result, this set does not
+   * include any "or" prerequisite assertions. Do <b>not</b> modify the returned
+   * set in any way.
    * 
-   * @return a non-null (possibly empty) set of promises trusted by this result.
+   * @return a non-null (possibly empty) set of proof drops trusted by this
+   *         result.
    */
   @NonNull
-  Collection<? extends IPromiseDrop> getTrustedPromises();
-
-  /**
-   * Returns the folder prerequisite assertions of this result, this set does
-   * not include any promise prerequisite assertions. Do <b>not</b> modify the
-   * returned set in any way.
-   * 
-   * @return a non-null (possibly empty) set of folders trusted by this result.
-   */
-  @NonNull
-  Collection<? extends IResultFolderDrop> getTrustedFolders();
+  Collection<? extends IProofDrop> getTrusted_and();
 
   /**
    * Flags if this result has groups of "or" prerequisite assertion sets which
-   * must be considered in the whole-program consistency proof. Most results do
-   * not include "or" prerequisite assertion logic.
+   * must be considered in the whole-program consistency proof.
    * 
    * @return {@code true} if "or" prerequisite assertion logic exists,
    *         {@code false} otherwise.
@@ -103,18 +93,18 @@ public interface IResultDrop extends IAnalysisResultDrop {
    * @return the non-null (possibly empty) set of "or" keys used by this promise
    */
   @NonNull
-  Collection<String> getTrustedPromises_orKeys();
+  Collection<String> getTrusted_orKeys();
 
   /**
-   * Returns the set of promise drops for a specific "or" key. Do <b>not</b>
+   * Returns the set of proof drops for a specific "or" key. Do <b>not</b>
    * modify the returned set in any way.
    * 
    * @param orKey
-   *          the key to provide the promise drop set for
-   * @return the non-null (possibly empty) promise drop set
+   *          the key to provide the proof drop set for
+   * @return the non-null (possibly empty) proof drop set
    */
   @NonNull
-  Collection<? extends IPromiseDrop> getTrustedPromises_or(String key);
+  Collection<? extends IProofDrop> getTrusted_or(String key);
 
   /**
    * Returns if the proof of "or" trusted promises uses a red dot.

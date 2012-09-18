@@ -1,8 +1,10 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_TYPE_ATTR;
+
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 
@@ -55,13 +57,13 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.HINT_DROP;
+    return HINT_DROP;
   }
 
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
 
-    s.addAttribute(AbstractXMLReader.HINT_TYPE_ATTR, f_type.toString());
+    s.addAttribute(HINT_TYPE_ATTR, f_type.toString());
   }
 }
