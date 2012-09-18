@@ -126,16 +126,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   /**
    * Returns a copy of set of result drops which directly trust (as an "and" or
    * an "or" precondition) this proof drop.
-   * <p>
-   * This method can only return elements for {@link PromiseDrop} and
-   * {@link ResultFolderDrop} instances. It will always return an empty
-   * collection if called on a {@link ResultDrop}.
    * 
-   * @return a set, all members of the type {@link ResultDrop}, which trust this
-   *         promise drop
+   * @return a set of result drops which trust this proof drop
    */
   @NonNull
-  public Set<ResultDrop> getTrustedBy() {
+  public final Set<ResultDrop> getTrustedBy() {
     final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't

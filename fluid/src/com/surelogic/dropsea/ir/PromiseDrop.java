@@ -266,15 +266,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return result;
   }
 
-  @Override
-  @NonNull
-  public final Set<ResultDrop> getTrustedBy() {
-    /*
-     * Only overridden to ensure that no subtype changes this call's behavior.
-     */
-    return super.getTrustedBy();
-  }
-
   @NonNull
   public final Set<PromiseDrop<? extends IAASTRootNode>> getDependentPromises() {
     synchronized (f_seaLock) {

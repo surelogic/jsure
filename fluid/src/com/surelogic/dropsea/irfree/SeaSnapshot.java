@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
@@ -493,52 +493,57 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         }
       }
 
+      if (fromE instanceof IRFreeAnalysisResultDrop) {
+        final IRFreeAnalysisResultDrop fromARD = (IRFreeAnalysisResultDrop) fromE;
+        /*
+         * ANALYSIS RESULT DROP
+         */
+        if (toE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
+
+          if (CHECKED_PROMISE.equals(refType)) {
+            fromARD.addCheckedPromise(toPD);
+            return;
+          }
+        }
+      }
+
       if (fromE instanceof IRFreeResultDrop) {
-        final IRFreeResultDrop fromPI = (IRFreeResultDrop) fromE;
+        final IRFreeResultDrop fromRD = (IRFreeResultDrop) fromE;
         /*
          * RESULT DROP
          */
-        if (toE instanceof IRFreeResultFolderDrop) {
-          final IRFreeResultFolderDrop toFD = (IRFreeResultFolderDrop) toE;
-
-          if (TRUSTED_FOLDER.equals(refType)) {
-            fromPI.addTrustedFolder(toFD);
+        if (toE instanceof IRFreeProofDrop) {
+          final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
+          if (AND_TRUSTED_PROOF_DROP.equals(refType) || TRUSTED_FOLDER.equals(refType) || TRUSTED_PROMISE.equals(refType)) {
+            fromRD.addTrusted_and(toPD);
             return;
-          }
-        } else if (toE instanceof IRFreePromiseDrop) {
-          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
-
-          if (CHECKED_PROMISE.equals(refType)) {
-            fromPI.addCheckedPromise(toPI);
-            return;
-          } else if (TRUSTED_PROMISE.equals(refType)) {
-            fromPI.addTrustedPromise(toPI);
-            return;
-          } else if (OR_TRUSTED_PROMISE.equals(refType)) {
+          } else if (OR_TRUSTED_PROOF_DROP.equals(refType) || OR_TRUSTED_PROMISE.equals(refType)) {
             final String label = to.getAttribute(OR_LABEL);
-            fromPI.addOrTrustedPromise(label, toPI);
+            fromRD.addTrusted_or(label, toPD);
             return;
           }
         }
       }
 
       if (fromE instanceof IRFreeResultFolderDrop) {
-        final IRFreeResultFolderDrop fromPI = (IRFreeResultFolderDrop) fromE;
+        final IRFreeResultFolderDrop fromRFD = (IRFreeResultFolderDrop) fromE;
         /*
          * RESULT FOLDER DROP
          */
-        if (CHECKED_PROMISE.equals(refType)) {
-          final IRFreePromiseDrop toPI = (IRFreePromiseDrop) toE;
-          fromPI.addCheckedPromise(toPI);
-          return;
-        } else if (RESULT.equals(refType)) {
-          final IRFreeResultDrop toPI = (IRFreeResultDrop) toE;
-          fromPI.addResult(toPI);
-          return;
-        } else if (SUB_FOLDER.equals(refType)) {
-          final IRFreeResultFolderDrop toPI = (IRFreeResultFolderDrop) toE;
-          fromPI.addSubFolder(toPI);
-          return;
+        if (toE instanceof IRFreeResultDrop) {
+          final IRFreeResultDrop toRD = (IRFreeResultDrop) toE;
+          if (RESULT.equals(refType)) {
+            fromRFD.addResult(toRD);
+            return;
+          }
+        }
+        if (toE instanceof IRFreeResultFolderDrop) {
+          final IRFreeResultFolderDrop toRFD = (IRFreeResultFolderDrop) toE;
+          if (SUB_FOLDER.equals(refType)) {
+            fromRFD.addSubFolder(toRFD);
+            return;
+          }
         }
       }
 

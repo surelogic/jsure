@@ -65,7 +65,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
           location, Origin.valueOf(nested.getAttribute(ORIGIN))));// TODO
                                                                   // d.getNode()));
     } else {
-      d.addTrustedPromise(pd);
+      d.addTrusted_and(pd);
     }
   }
 

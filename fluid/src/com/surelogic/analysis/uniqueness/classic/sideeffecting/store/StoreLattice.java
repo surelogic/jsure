@@ -754,7 +754,7 @@ extends TripleLattice<Element<Integer>,
                         JavaPromise.getReturnNode(binder.getBinding(n)));
                   }
                   if (uDrop != null) {
-                    resultDrop.addTrustedPromise(uDrop);
+                    resultDrop.addTrusted_and(uDrop);
                   }
                 }
               }
@@ -1009,7 +1009,7 @@ extends TripleLattice<Element<Integer>,
                         JavaPromise.getReturnNode(binder.getBinding(n)));
                   }
                   if (uDrop != null) {
-                    resultDrop.addTrustedPromise(uDrop);
+                    resultDrop.addTrusted_and(uDrop);
                   }
                 }
               });
@@ -1529,7 +1529,7 @@ extends TripleLattice<Element<Integer>,
             Messages.BORROWED_PASSED_TO_BORROWED,
             actualParameterName,
             JavaNames.genMethodConstructorName(calledMethod));
-      result.addTrustedPromise(passedToBorrowedDrop);
+      result.addTrusted_and(passedToBorrowedDrop);
     }
   }
 
@@ -1563,7 +1563,7 @@ extends TripleLattice<Element<Integer>,
             public void addSupportingInformation(
                 final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
                 final IBinder binder, final ResultDrop resultDrop) {
-              resultDrop.addTrustedPromise(uDrop);
+              resultDrop.addTrusted_and(uDrop);
             }
           });
     }    
@@ -1605,7 +1605,7 @@ extends TripleLattice<Element<Integer>,
                   if (triple.second() != srcOp) {
                     for (final IRNode field : triple.first()) {
                       if (triple.third() != null) {
-                        resultDrop.addTrustedPromise(triple.third());
+                        resultDrop.addTrusted_and(triple.third());
                       }
                       resultDrop.addSupportingInformation(
                           triple.second(), Messages.BY_SIDE_EFFECT,

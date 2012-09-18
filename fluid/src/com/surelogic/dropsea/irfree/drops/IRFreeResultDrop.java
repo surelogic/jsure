@@ -22,27 +22,20 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.xml.sax.Attributes;
 
 import com.surelogic.NonNull;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.IResultFolderDrop;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
-  private final List<IRFreePromiseDrop> trustedPromises = new ArrayList<IRFreePromiseDrop>(0);
-  private final List<IRFreeResultFolderDrop> trustedFolders = new ArrayList<IRFreeResultFolderDrop>(0);
-  private final MultiMap<String, IRFreePromiseDrop> orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
+  private final List<IRFreeProofDrop> trustedPromises = new ArrayList<IRFreeProofDrop>(0);
+  private final MultiMap<String, IRFreeProofDrop> orTrustedPromises = new MultiHashMap<String, IRFreeProofDrop>(0);
 
-  public void addTrustedPromise(IRFreePromiseDrop info) {
+  public void addTrusted_and(IRFreeProofDrop info) {
     trustedPromises.add(info);
   }
 
-  public void addOrTrustedPromise(String label, IRFreePromiseDrop info) {
+  public void addTrusted_or(String label, IRFreeProofDrop info) {
     orTrustedPromises.put(label, info);
-  }
-
-  public void addTrustedFolder(IRFreeResultFolderDrop info) {
-    trustedFolders.add(info);
   }
 
   public IRFreeResultDrop(String name, Attributes a) {
@@ -54,13 +47,8 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   @NonNull
-  public Collection<? extends IPromiseDrop> getTrustedPromises() {
+  public Collection<? extends IProofDrop> getTrusted_and() {
     return trustedPromises;
-  }
-
-  @NonNull
-  public Collection<? extends IResultFolderDrop> getTrustedFolders() {
-    return trustedFolders;
   }
 
   public boolean isConsistent() {
@@ -70,19 +58,18 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   @NonNull
   public Collection<IProofDrop> getAllTrusted() {
     Collection<IProofDrop> rv = new HashSet<IProofDrop>(trustedPromises);
-    rv.addAll(trustedFolders);
     rv.addAll(orTrustedPromises.values());
     return rv;
   }
 
   @NonNull
-  public Collection<String> getTrustedPromises_orKeys() {
+  public Collection<String> getTrusted_orKeys() {
     return orTrustedPromises.keySet();
   }
 
   @NonNull
-  public Collection<? extends IPromiseDrop> getTrustedPromises_or(String key) {
-    final Collection<? extends IPromiseDrop> result = orTrustedPromises.get(key);
+  public Collection<? extends IProofDrop> getTrusted_or(String key) {
+    final Collection<? extends IProofDrop> result = orTrustedPromises.get(key);
     if (result != null)
       return result;
     else
@@ -94,7 +81,7 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean hasTrusted() {
-    return hasOrLogic() || !trustedPromises.isEmpty() || !trustedFolders.isEmpty();
+    return hasOrLogic() || !trustedPromises.isEmpty();
   }
 
   public boolean get_or_proofUsesRedDot() {

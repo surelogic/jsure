@@ -14,9 +14,7 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
-  /**
-   * Only for ResultDrops
-   */
+
   final List<IRFreeResultFolderDrop> subFolders = new ArrayList<IRFreeResultFolderDrop>(0);
   final List<IRFreeResultDrop> results = new ArrayList<IRFreeResultDrop>(0);
 
