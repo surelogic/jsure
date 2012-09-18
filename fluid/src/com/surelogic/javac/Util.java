@@ -1204,6 +1204,9 @@ public class Util {
     endSubTask(monitor);
   }
 
+  /**
+   * @return true if the type is declared somewhere inside of a method
+   */
   protected static boolean insideOfMethod(IRNode type) {
     IRNode here = VisitUtil.getEnclosingClassBodyDecl(type);
     while (here != null) {
