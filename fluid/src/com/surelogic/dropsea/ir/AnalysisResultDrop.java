@@ -43,6 +43,10 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @UniqueInRegion("DropState")
   private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
+  public boolean hasChecked() {
+    return !f_checks.isEmpty();
+  }
+
   /**
    * Gets the set of promise drops established, or checked, by this result. The
    * returned set is a copy.
@@ -50,13 +54,13 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecks() {
+  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedPromises() {
     synchronized (f_seaLock) {
       return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
     }
   }
 
-  final Set<? extends PromiseDrop<? extends IAASTRootNode>> getChecksReference() {
+  final Set<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedPromisesReference() {
     synchronized (f_seaLock) {
       return f_checks;
     }
@@ -114,7 +118,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     // add all result drops trusted by this result
     mutableWorklist.addAll(getTrustedBy());
     // add all promise drops that this result checks
-    mutableWorklist.addAll(getChecksReference());
+    mutableWorklist.addAll(getCheckedPromisesReference());
     // add all result folder drops that this result is within
     mutableWorklist.addAll(Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()));
   }
@@ -126,7 +130,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @Override
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getChecksReference()) {
+    for (Drop c : getCheckedPromisesReference()) {
       s.snapshotDrop(c);
     }
   }
@@ -135,7 +139,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop c : getChecksReference()) {
+    for (Drop c : getCheckedPromisesReference()) {
       s.refDrop(db, CHECKED_PROMISE, c);
     }
   }

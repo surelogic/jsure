@@ -18,18 +18,11 @@ import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
-public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDrop {
-  /**
-   * Only for ResultDrops
-   */
-  final List<IRFreePromiseDrop> checkedPromises;
-  final List<IRFreePromiseDrop> trustedPromises;
-  final List<IRFreeResultFolderDrop> trustedFolders;
-  final MultiMap<String, IRFreePromiseDrop> orTrustedPromises;
+public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
-  public void addCheckedPromise(IRFreePromiseDrop info) {
-    checkedPromises.add(info);
-  }
+  private final List<IRFreePromiseDrop> trustedPromises = new ArrayList<IRFreePromiseDrop>(0);
+  private final List<IRFreeResultFolderDrop> trustedFolders = new ArrayList<IRFreeResultFolderDrop>(0);
+  private final MultiMap<String, IRFreePromiseDrop> orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
 
   public void addTrustedPromise(IRFreePromiseDrop info) {
     trustedPromises.add(info);
@@ -45,20 +38,10 @@ public final class IRFreeResultDrop extends IRFreeProofDrop implements IResultDr
 
   public IRFreeResultDrop(String name, Attributes a) {
     super(name, a);
-
-    checkedPromises = new ArrayList<IRFreePromiseDrop>(0);
-    trustedPromises = new ArrayList<IRFreePromiseDrop>(0);
-    trustedFolders = new ArrayList<IRFreeResultFolderDrop>(0);
-    orTrustedPromises = new MultiHashMap<String, IRFreePromiseDrop>(0);
   }
 
   public boolean isInResultFolder() {
     return "true".equals(getAttribute(ResultDrop.ENCLOSED_IN_FOLDER));
-  }
-
-  @NonNull
-  public Collection<? extends IPromiseDrop> getChecks() {
-    return checkedPromises;
   }
 
   @NonNull

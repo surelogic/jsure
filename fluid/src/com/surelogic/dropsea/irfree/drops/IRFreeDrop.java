@@ -50,9 +50,9 @@ public class IRFreeDrop extends Entity implements IDrop {
     }
   }
 
-  final List<IRFreeDrop> dependents;
-  final List<IRFreeDrop> deponents;
-  final List<IRFreeProposedPromiseDrop> proposals;
+  protected final List<IRFreeDrop> dependents;
+  protected final List<IRFreeDrop> deponents;
+  private final List<IRFreeProposedPromiseDrop> proposals;
   protected Category category;
   private ISrcRef ref;
   private List<ISupportingInformation> supportingInfos;

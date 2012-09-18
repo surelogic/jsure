@@ -10,11 +10,21 @@ import java.util.Collection;
  * snapshots using the IR-free drop-sea.
  */
 public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
+
+  /**
+   * Checks if the set of promise drops established, or checked, by this result
+   * contains any elements.
+   * 
+   * @return {@code true} if this drop has one or more consequential assertions,
+   *         {@code false} if it has no consequential assertions.
+   */
+  boolean hasChecked();
+
   /**
    * Gets the set of promise drops established, or checked, by this result.
    * 
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  Collection<? extends IPromiseDrop> getChecks();
+  Collection<? extends IPromiseDrop> getCheckedPromises();
 }

@@ -121,7 +121,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     // Remove any control flow drops that aren't used for anything
     for (final ResultDrop cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);
-      if (cfDrop.getChecks().isEmpty()) {
+      if (cfDrop.getCheckedPromises().isEmpty()) {
         cfDrop.invalidate();
       }
     }
@@ -228,7 +228,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecks()) {
+        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getCheckedPromises()) {
           pd.addDependent(info);
         }
       }

@@ -15,10 +15,8 @@ import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
-  /**
-   * Only for PromiseDrops
-   */
-  final List<IAnalysisResultDrop> checkedByResults;
+
+  final List<IAnalysisResultDrop> checkedByResults = new ArrayList<IAnalysisResultDrop>(0);
 
   public void addCheckedByResult(IAnalysisResultDrop info) {
     if (PromiseDrop.useCheckedByResults) {
@@ -28,7 +26,6 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
   public IRFreePromiseDrop(String name, Attributes a) {
     super(name, a);
-    checkedByResults = new ArrayList<IAnalysisResultDrop>(0);
 
     /*
      * The viewer expects promises to be in a category so we use an

@@ -975,7 +975,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       for (IResultDrop id : scan.getResultDrops()) {
         // only show result drops at the main level if they are not attached
         // to a promise drop or a result drop
-        if ((id.getChecks().isEmpty() && id.getTrustedPromises().isEmpty() && !id.isInResultFolder())) {
+        if ((!id.hasChecked() && !id.hasTrusted() && !id.isInResultFolder())) {
           root.add(encloseDrop(id));
         }
       }

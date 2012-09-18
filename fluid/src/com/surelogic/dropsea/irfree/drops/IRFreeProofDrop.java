@@ -15,6 +15,7 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
+
   IRFreeProofDrop(String name, Attributes a) {
     super(name, a);
   }
