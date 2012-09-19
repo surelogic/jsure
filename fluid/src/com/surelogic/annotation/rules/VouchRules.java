@@ -9,10 +9,7 @@ import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.VouchPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -32,8 +29,6 @@ public class VouchRules extends AnnotationRules {
   private static final AnnotationRules instance = new VouchRules();
 
   private static final Vouch_ParseRule vouchRule = new Vouch_ParseRule();
-
-  private static final VouchProcessor vouchProcessor = new VouchProcessor();
 
   public static AnnotationRules getInstance() {
     return instance;
@@ -64,27 +59,6 @@ public class VouchRules extends AnnotationRules {
   @Override
   public void register(PromiseFramework fw) {
     registerParseRuleStorage(fw, vouchRule);
-    Sea.getDefault().addConsistencyProofHook(vouchProcessor);
-  }
-
-  static class VouchProcessor extends AbstractSeaConsistencyProofHook {
-
-    @Override
-    public void preConsistencyProof(Sea sea) {
-      for (final ResultDrop rd : sea.getDropsOfType(ResultDrop.class)) {
-        if (!rd.isConsistent()) {
-          if (rd.getNode() == null) {
-            continue; // No possible vouch
-          }
-          VouchPromiseDrop vouch = getEnclosingVouch(rd.getNode());
-          if (vouch != null) {
-            rd.setVouched();
-            rd.addTrusted_and(vouch);
-            vouch.addSupportingInformation(rd.getNode(), "(analysis result vouched for) " + rd.getMessage());
-          }
-        }
-      }
-    }
   }
 
   static class Vouch_ParseRule extends DefaultSLAnnotationParseRule<VouchSpecificationNode, VouchPromiseDrop> {

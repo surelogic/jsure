@@ -50,6 +50,7 @@ import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
+import com.surelogic.annotation.rules.VouchProcessorConsistencyProofHook;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -61,11 +62,13 @@ import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
+import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
@@ -457,8 +460,14 @@ public class Util {
     }
     final long sea = System.currentTimeMillis();
     System.out.println("Updating consistency proof");
-    // TODO include this above?
+    final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
+    final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticConsistencyProofHook();
+    Sea.getDefault().addConsistencyProofHook(vouchHook);
+    Sea.getDefault().addConsistencyProofHook(staticHook);
     Sea.getDefault().updateConsistencyProof();
+    Sea.getDefault().removeConsistencyProofHook(staticHook);
+    Sea.getDefault().removeConsistencyProofHook(vouchHook);
+    
 
     final long export = System.currentTimeMillis();
 

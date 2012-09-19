@@ -300,6 +300,17 @@ public abstract class Drop implements IDrop {
   }
 
   /**
+   * Gets the number of immediate dependent drops of this drop.
+   * 
+   * @return the number of immediate dependent drops of this drop.
+   */
+  public final int getDependentCount() {
+    synchronized (f_seaLock) {
+      return f_dependents.size();
+    }
+  }
+
+  /**
    * Returns the internal set that tracks dependent drops of this drop.
    * <p>
    * Callers <b>must not</b> mutate this set.
@@ -318,6 +329,17 @@ public abstract class Drop implements IDrop {
   public final HashSet<Drop> getDeponents() {
     synchronized (f_seaLock) {
       return new HashSet<Drop>(f_deponents);
+    }
+  }
+
+  /**
+   * Gets the number of immediate deponent drops of this drop.
+   * 
+   * @return the number of immediate deponent drops of this drop.
+   */
+  public final int getDeponentCount() {
+    synchronized (f_seaLock) {
+      return f_deponents.size();
     }
   }
 

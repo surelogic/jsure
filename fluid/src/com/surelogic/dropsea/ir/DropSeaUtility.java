@@ -85,7 +85,7 @@ public final class DropSeaUtility {
     if (drop == null)
       return null;
 
-    final ArrayList<CUDrop> cus = Sea.filterDropsOfType(CUDrop.class, drop.getDeponentsReference());
+    final ArrayList<CUDrop> cus = Sea.filterDropsOfType(CUDrop.class, drop.getDeponents());
     if (cus.size() < 1) {
       return null;
     } else if (cus.size() > 1) {

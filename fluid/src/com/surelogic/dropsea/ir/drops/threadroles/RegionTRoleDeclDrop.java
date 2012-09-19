@@ -43,7 +43,7 @@ public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleD
   private RegionTRoleDeclDrop(final String regionName, final TRExpr constraint, IRNode where) {
     super(null); // will blow up!
     this.regionName = regionName;
-    masterRegion = RegionModel.getInstance(regionName, where);
+    masterRegion = null; // RegionModel.getInstance(where);
     userConstraint = constraint.doClone();
   }
 
