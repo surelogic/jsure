@@ -114,12 +114,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     if (NAME_TO_CLASS.containsKey(cls.getName())) {
       return;
     }
-    String simple = Entity.internString(cls.getSimpleName());
-    String qname = Entity.internString(cls.getName());
-    NAME_TO_CLASS.put(simple, cls);
-    NAME_TO_CLASS.put(qname, cls);
+    cacheMapping(cls.getSimpleName(), cls);
+    cacheMapping(cls.getName(), cls);
   }
 
+  private static Class<?> cacheMapping(String orig, Class<?> cls) {
+	  String name = Entity.internString(orig);
+	  NAME_TO_CLASS.put(name, cls);
+	  return cls;
+  }
+  
   /**
    * List of how of drop type names have changed. For backwards scan
    * compatibility.
@@ -194,6 +198,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     if (className == null)
       return null;
 
+    final String origName = className;
     /*
      * Try to find the full type name in our cache or on the classpath. This is
      * the most common case so we try it first. Everything else is for backwards
@@ -214,7 +219,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
         // try lookup now
         result = forNameOrNull(className);
         if (result != null)
-          return result;
+          return cacheMapping(origName, result);
       }
     }
 
@@ -225,7 +230,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     for (String possibleClassName : getPossibleClassNames(simpleName)) {
       result = forNameOrNull(possibleClassName);
       if (result != null)
-        return result;
+          return cacheMapping(origName, result);
     }
 
     /*
