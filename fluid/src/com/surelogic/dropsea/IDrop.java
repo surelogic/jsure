@@ -54,6 +54,9 @@ public interface IDrop {
   @NonNull
   String getMessage();
 
+  @NonNull
+  String getMessageCanonical();
+
   /**
    * Gets the user interface reporting category for this drop, or {@code null}
    * if none has been defined.
