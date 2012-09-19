@@ -195,13 +195,13 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
       final boolean referencesAResultDrop = getDropInfo() instanceof IResultDrop;
       if (ref.getLineNumber() > 0) {
         if (referencesAResultDrop) {
-          result += " at line " + ref.getLineNumber();
+//          result += " at line " + ref.getLineNumber();
         } else {
-          result += " at " + name + " line " + ref.getLineNumber();
+//          result += " at " + name + " line " + ref.getLineNumber();
         }
       } else if (!name.equals("?")) {
         if (!referencesAResultDrop) {
-          result += " at " + name;
+//          result += " at " + name;
         }
       }
     } else if (f_numIssues > 0) {

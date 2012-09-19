@@ -36,6 +36,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -108,7 +110,34 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
-    setupViewer();
+    treeViewer.setContentProvider(f_contentProvider);
+    treeViewer.setLabelProvider(f_labelProvider);
+    treeViewer.setSorter(createSorter());
+    ColumnViewerToolTipSupport.enableFor(treeViewer);
+
+    final Tree tree = treeViewer.getTree();
+    tree.setHeaderVisible(true);
+    tree.setLinesVisible(true);
+
+    TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+    column1.setAlignment(SWT.LEFT);
+    column1.setWidth(300);
+    TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
+    column2.setAlignment(SWT.LEFT);
+    column2.setText("Project");
+    column2.setWidth(100);
+    TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
+    column3.setAlignment(SWT.LEFT);
+    column3.setText("Package");
+    column3.setWidth(100);
+    TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
+    column4.setAlignment(SWT.LEFT);
+    column4.setText("Type");
+    column4.setWidth(100);
+    TreeColumn column5 = new TreeColumn(tree, SWT.RIGHT);
+  //  column5.setAlignment(SWT.LEFT);
+    column5.setText("Line");
+    column5.setWidth(35);
 
     treeViewer.setInput(getViewSite());
     makeActions_private();
@@ -152,7 +181,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
 
   private final ResultsViewContentProvider f_contentProvider = new ResultsViewContentProvider();
 
-  private final ResultsViewLabelProvider f_labelProvider = new ResultsViewLabelProvider();
+  private final XResultsViewLabelProvider f_labelProvider = new XResultsViewLabelProvider();
 
   private final Action f_actionShowInferences = new Action() {
     @Override
@@ -401,13 +430,6 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     }
   }
 
-  private void setupViewer() {
-    treeViewer.setContentProvider(f_contentProvider);
-    treeViewer.setLabelProvider(f_labelProvider);
-    treeViewer.setSorter(createSorter());
-    ColumnViewerToolTipSupport.enableFor(treeViewer);
-  }
-
   private void hookContextMenu() {
     MenuManager menuMgr = new MenuManager("#PopupMenu");
     menuMgr.setRemoveAllWhenShown(true);
@@ -459,7 +481,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
       if (sb.length() > 0) {
         sb.append('\n');
       }
-      sb.append(f_labelProvider.getText(elt));
+      sb.append(f_labelProvider.getColumnText(elt, 0));
     }
     return sb.toString();
   }

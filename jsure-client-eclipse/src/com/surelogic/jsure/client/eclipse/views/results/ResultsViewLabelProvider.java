@@ -1,17 +1,17 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
+import com.surelogic.common.ui.SLImages;
 
 public final class ResultsViewLabelProvider extends ColumnLabelProvider {
-  // private static final boolean showCustomToolTips = false;
+
   private boolean m_showInferences = true;
 
   /**
@@ -43,7 +43,7 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider {
         }
       }
       ImageDescriptor id = SLImages.getImageDescriptor(c.getBaseImageName());
-      ResultsImageDescriptor rid = new ResultsImageDescriptor(id, flags, AbstractJSureResultsView.ICONSIZE);
+      ResultsImageDescriptor rid = new ResultsImageDescriptor(id, flags, ResultsView.ICONSIZE);
       return rid.getCachedImage();
     }
     return SLImages.getImage(CommonImages.IMG_UNKNOWN);
@@ -51,31 +51,24 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider {
 
   public Image getToolTipImage(Object element) {
     return null;
-    // return showCustomToolTips ? getImage(element) : null;
   }
 
-  // @Override
   public String getToolTipText(Object element) {
     return null;
-    // return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
   }
 
-  // @Override
   public Point getToolTipShift(Object object) {
     return new Point(5, 5);
   }
 
-  // @Override
   public int getToolTipDisplayDelayTime(Object object) {
     return 200;
   }
 
-  // @Override
   public int getToolTipTimeDisplayed(Object object) {
     return 5000;
   }
 
-  // @Override
   public void update(ViewerCell cell) {
     final Object element = cell.getElement();
     cell.setText(getText(element));
