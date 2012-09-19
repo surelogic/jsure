@@ -125,7 +125,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public void addInfo(JavaDeclInfo info) {
     String flavor = info.getAttribute(FLAVOR_ATTR);
-    System.out.println("addInfo " + flavor + " called on proposed promise drop " + this + " : " + info);
+   // System.out.println("addInfo " + flavor + " called on proposed promise drop " + this + " : " + info);
     if (FROM_INFO.equals(flavor)) {
       fromInfo = info;
     } else if (TARGET_INFO.equals(flavor)) {

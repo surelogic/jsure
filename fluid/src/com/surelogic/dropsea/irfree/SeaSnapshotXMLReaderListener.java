@@ -79,7 +79,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
     public void addRef(Entity e) {
       if (f_drop instanceof IRFreeProposedPromiseDrop) {
         IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) f_drop;
-        System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
+    //    System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
         final String name = e.getName();
         if (SOURCE_REF.equals(name)) {
           SourceRef sr = new SourceRef(e);

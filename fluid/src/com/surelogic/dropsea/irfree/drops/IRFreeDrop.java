@@ -9,6 +9,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
@@ -43,6 +44,12 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop implements IDrop {
 
+  static {
+    for (Category c : Category.getAll()) {
+      Entity.internString(c.getMessage());
+    }
+  }
+
   @NonNull
   private final Entity f_entity; // TODO PERHAPS REMOVE IN FUTURE
 
@@ -52,22 +59,10 @@ public class IRFreeDrop implements IDrop {
     return f_entity;
   }
 
-  static {
-    for (Category c : Category.getAll()) {
-      Entity.internString(c.getMessage());
-    }
-  }
-
-  private final List<IRFreeProposedPromiseDrop> proposals = new ArrayList<IRFreeProposedPromiseDrop>(0);
-  protected Category category;
+  private final List<IRFreeProposedPromiseDrop> f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(0);
+  protected Category f_category;
   private ISrcRef ref;
   private List<ISupportingInformation> supportingInfos;
-
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-      s.addAttribute(a.getKey(), a.getValue());
-    }
-  }
 
   public Long getTreeHash() {
     String hash = getEntity().getAttribute(HASH_ATTR);
@@ -82,14 +77,14 @@ public class IRFreeDrop implements IDrop {
   }
 
   public void addProposal(IRFreeProposedPromiseDrop info) {
-    proposals.add(info);
+    f_proposedPromises.add(info);
   }
 
   public IRFreeDrop(Entity e) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
     f_entity = e;
-    category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
+    f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
   }
 
   public void finishInit() {
@@ -233,12 +228,21 @@ public class IRFreeDrop implements IDrop {
 
   @Nullable
   public Category getCategory() {
-    return category;
+    return f_category;
   }
 
   @NonNull
   public String getMessage() {
     final String result = getEntity().getAttribute(MESSAGE_ATTR);
+    if (result != null)
+      return result;
+    else
+      return getClass().getSimpleName() + " (EMPTY)";
+  }
+
+  @NonNull
+  public String getMessageCanonical() {
+    final String result = getEntity().getAttribute(MESSAGE_ID);
     if (result != null)
       return result;
     else
@@ -268,15 +272,20 @@ public class IRFreeDrop implements IDrop {
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
-    return proposals;
+    return f_proposedPromises;
   }
 
   public Collection<ISupportingInformation> getSupportingInformation() {
     return supportingInfos;
   }
 
-  // @Override
   public String getXMLElementName() {
     return f_entity.getEntityName();
+  }
+
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
+      s.addAttribute(a.getKey(), a.getValue());
+    }
   }
 }

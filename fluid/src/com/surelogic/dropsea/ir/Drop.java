@@ -208,6 +208,16 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @NonNull
+  public String getMessageCanonical() {
+    synchronized (f_seaLock) {
+      if (f_message == null)
+        return getClass().getSimpleName() + " (EMPTY)";
+      else
+        return f_message.getResultStringCanonical();
+    }
+  }
+
   /**
    * Adds a dependent drop to this drop, meaning that the truth of the added
    * dependent drop relies upon the truth of this drop. This method makes this

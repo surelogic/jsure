@@ -41,8 +41,8 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
      * "unparented drops" category for any promise that didn't load one from the
      * XML snapshot. This is updating a field in IRFreeDrop.
      */
-    if (category == null)
-      category = Category.getInstance(149);
+    if (f_category == null)
+      f_category = Category.getInstance(149);
   }
 
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
