@@ -139,11 +139,11 @@ public class JSureScanInfo {
     return loadOrGetDropInfo().isEmpty();
   }
 
-  public synchronized List<IDrop> getDropInfo() {
+  public List<IDrop> getDropInfo() {
     return loadOrGetDropInfo();
   }
 
-  public synchronized <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
+  public <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
     List<IDrop> info = loadOrGetDropInfo();
     if (!info.isEmpty()) {
       final Set<T> result = new HashSet<T>();
@@ -159,7 +159,7 @@ public class JSureScanInfo {
     return Collections.emptySet();
   }
 
-  public synchronized ArrayList<IProofDrop> getProofDrops() {
+  public ArrayList<IProofDrop> getProofDrops() {
     final ArrayList<IProofDrop> result = new ArrayList<IProofDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IProofDrop) {
@@ -170,7 +170,7 @@ public class JSureScanInfo {
     return result;
   }
 
-  public synchronized ArrayList<IPromiseDrop> getPromiseDrops() {
+  public ArrayList<IPromiseDrop> getPromiseDrops() {
     final ArrayList<IPromiseDrop> result = new ArrayList<IPromiseDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IPromiseDrop) {
@@ -181,7 +181,7 @@ public class JSureScanInfo {
     return result;
   }
 
-  public synchronized ArrayList<IProposedPromiseDrop> getProposedPromiseDrops() {
+  public ArrayList<IProposedPromiseDrop> getProposedPromiseDrops() {
     final ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IProposedPromiseDrop) {
@@ -192,7 +192,7 @@ public class JSureScanInfo {
     return result;
   }
 
-  public synchronized ArrayList<IResultDrop> getResultDrops() {
+  public ArrayList<IResultDrop> getResultDrops() {
     final ArrayList<IResultDrop> result = new ArrayList<IResultDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IResultDrop) {
@@ -203,7 +203,7 @@ public class JSureScanInfo {
     return result;
   }
 
-  public synchronized ArrayList<IAnalysisHintDrop> getAnalysisHintDrops() {
+  public ArrayList<IAnalysisHintDrop> getAnalysisHintDrops() {
     final ArrayList<IAnalysisHintDrop> result = new ArrayList<IAnalysisHintDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IAnalysisHintDrop) {
@@ -214,7 +214,7 @@ public class JSureScanInfo {
     return result;
   }
 
-  public synchronized ArrayList<IModelingProblemDrop> getModelingProblemDrops() {
+  public ArrayList<IModelingProblemDrop> getModelingProblemDrops() {
     final ArrayList<IModelingProblemDrop> result = new ArrayList<IModelingProblemDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IModelingProblemDrop) {
