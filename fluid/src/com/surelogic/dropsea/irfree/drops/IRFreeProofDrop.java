@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.xml.sax.Attributes;
-
 import com.surelogic.NonNull;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 
@@ -23,24 +22,24 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
     analysisHints.add(hint);
   }
 
-  IRFreeProofDrop(String name, Attributes a) {
-    super(name, a);
+  IRFreeProofDrop(Entity e) {
+    super(e);
   }
 
   public final boolean proofUsesRedDot() {
-    return "true".equals(getAttribute(USES_RED_DOT_ATTR));
+    return "true".equals(getEntity().getAttribute(USES_RED_DOT_ATTR));
   }
 
   public final boolean provedConsistent() {
-    return "true".equals(getAttribute(PROVED_ATTR));
+    return "true".equals(getEntity().getAttribute(PROVED_ATTR));
   }
 
   public final boolean derivedFromSrc() {
-    return "true".equals(getAttribute(DERIVED_FROM_SRC_ATTR));
+    return "true".equals(getEntity().getAttribute(DERIVED_FROM_SRC_ATTR));
   }
 
   public final boolean isFromSrc() {
-    return "true".equals(getAttribute(FROM_SRC));
+    return "true".equals(getEntity().getAttribute(FROM_SRC));
   }
 
   @NonNull

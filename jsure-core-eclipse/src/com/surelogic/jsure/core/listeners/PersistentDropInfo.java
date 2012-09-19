@@ -11,15 +11,16 @@ import java.util.Set;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-
 
 public class PersistentDropInfo {
   private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
@@ -90,7 +91,10 @@ public class PersistentDropInfo {
 
   public synchronized String findProjectsLabel() {
     for (IDrop info : getDropsOfType(ProjectsDrop.class)) {
-      return info.getAttribute(AbstractXMLReader.PROJECTS);
+      if (info instanceof IRFreeDrop) {
+        IRFreeDrop d = (IRFreeDrop) info;
+        return d.getEntity().getAttribute(AbstractXMLReader.PROJECTS);
+      }
     }
     return null;
   }

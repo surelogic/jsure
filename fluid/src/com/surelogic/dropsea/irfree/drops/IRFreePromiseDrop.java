@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.xml.sax.Attributes;
-
 import com.surelogic.NonNull;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
@@ -34,8 +33,8 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     deponentPromises.add(p);
   }
 
-  public IRFreePromiseDrop(String name, Attributes a) {
-    super(name, a);
+  public IRFreePromiseDrop(Entity e) {
+    super(e);
 
     /*
      * The viewer expects promises to be in a category so we use an
@@ -61,18 +60,18 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   }
 
   public boolean isAssumed() {
-    return "true".equals(getAttribute(ASSUMED));
+    return "true".equals(getEntity().getAttribute(ASSUMED));
   }
 
   public boolean isCheckedByAnalysis() {
-    return "true".equals(getAttribute(CHECKED_BY_ANALYSIS));
+    return "true".equals(getEntity().getAttribute(CHECKED_BY_ANALYSIS));
   }
 
   public boolean isIntendedToBeCheckedByAnalysis() {
-    return "true".equals(getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
+    return "true".equals(getEntity().getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
   }
 
   public boolean isVirtual() {
-    return "true".equals(getAttribute(VIRTUAL));
+    return "true".equals(getEntity().getAttribute(VIRTUAL));
   }
 }

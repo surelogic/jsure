@@ -7,8 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import org.xml.sax.Attributes;
-
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
@@ -26,8 +25,8 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
     results.add(info);
   }
 
-  public IRFreeResultFolderDrop(String name, Attributes a) {
-    super(name, a);
+  public IRFreeResultFolderDrop(Entity e) {
+    super(e);
   }
 
   public Collection<? extends IResultDrop> getAnalysisResults() {
@@ -39,7 +38,7 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
   }
 
   public boolean isConsistent() {
-    return "true".equals(getAttribute(CONSISTENT));
+    return "true".equals(getEntity().getAttribute(CONSISTENT));
   }
 
   public Collection<? extends IAnalysisResultDrop> getContents() {

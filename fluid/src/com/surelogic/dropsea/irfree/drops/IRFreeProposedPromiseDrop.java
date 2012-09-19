@@ -1,7 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
@@ -13,49 +12,45 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
-import static com.surelogic.common.jsure.xml.JSureXMLReader.PROPERTIES;
-import static com.surelogic.common.jsure.xml.JSureXMLReader.SOURCE_REF;
 
 import java.util.Map;
 
-import org.xml.sax.Attributes;
-
-import com.surelogic.common.refactor.IJavaDeclInfoClient;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop, IJavaDeclInfoClient,
+public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop,
     Comparable<IRFreeProposedPromiseDrop> {
+
   static {
-    internString(FROM_INFO);
-    internString(TARGET_INFO);
-    internString(FROM_REF);
-    internString(ProposedPromiseDrop.class.getName());
-    internString("ProposedPromiseDrop @RegionEffects(writes java.lang.Object:All)");
-    internString("@RegionEffects(writes java.lang.Object:All)");
-    internString("ProposedPromiseDrop");
-    internString("RegionEffects");
-    internString("writes java.lang.Object:All");
-    internString("ProposedPromiseDrop @RegionEffects(reads this:Instance)");
-    internString("ProposedPromiseDrop @RegionEffects(none)");
-    internString("@RegionEffects(reads this:Instance)");
-    internString("@RegionEffects(none)");
+    Entity.internString(FROM_INFO);
+    Entity.internString(TARGET_INFO);
+    Entity.internString(FROM_REF);
+    Entity.internString(ProposedPromiseDrop.class.getName());
+    Entity.internString("ProposedPromiseDrop @RegionEffects(writes java.lang.Object:All)");
+    Entity.internString("@RegionEffects(writes java.lang.Object:All)");
+    Entity.internString("ProposedPromiseDrop");
+    Entity.internString("RegionEffects");
+    Entity.internString("writes java.lang.Object:All");
+    Entity.internString("ProposedPromiseDrop @RegionEffects(reads this:Instance)");
+    Entity.internString("ProposedPromiseDrop @RegionEffects(none)");
+    Entity.internString("@RegionEffects(reads this:Instance)");
+    Entity.internString("@RegionEffects(none)");
   }
 
   private JavaDeclInfo fromInfo;
   private JavaDeclInfo targetInfo;
-  private ISrcRef assumptionRef;
-  private Map<String, String> annoAttrs, replacedAttrs;
+  // TODO
+  public ISrcRef assumptionRef;
+  public Map<String, String> annoAttrs, replacedAttrs;
 
-  public IRFreeProposedPromiseDrop(String name, Attributes a) {
-    super(name, a);
+  public IRFreeProposedPromiseDrop(Entity e) {
+    super(e);
   }
 
   public Map<String, String> getAnnoAttributes() {
@@ -67,27 +62,27 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public String getJavaAnnotation() {
-    return getAttribute(JAVA_ANNOTATION);
+    return getEntity().getAttribute(JAVA_ANNOTATION);
   }
 
   public String getAnnotation() {
-    return getAttribute(ANNOTATION_TYPE);
+    return getEntity().getAttribute(ANNOTATION_TYPE);
   }
 
   public String getContents() {
-    return getAttribute(CONTENTS);
+    return getEntity().getAttribute(CONTENTS);
   }
 
   public String getReplacedAnnotation() {
-    return getAttribute(REPLACED_ANNO);
+    return getEntity().getAttribute(REPLACED_ANNO);
   }
 
   public String getReplacedContents() {
-    return getAttribute(REPLACED_CONTENTS);
+    return getEntity().getAttribute(REPLACED_CONTENTS);
   }
 
   public Origin getOrigin() {
-    final String origin = getAttribute(ORIGIN);
+    final String origin = getEntity().getAttribute(ORIGIN);
     Origin result = Origin.MODEL;
     if (origin == null) {
       /*
@@ -109,11 +104,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public String getTargetProjectName() {
-    return getAttribute(TARGET_PROJECT);
+    return getEntity().getAttribute(TARGET_PROJECT);
   }
 
   public String getFromProjectName() {
-    return getAttribute(FROM_PROJECT);
+    return getEntity().getAttribute(FROM_PROJECT);
   }
 
   public ISrcRef getAssumptionRef() {
@@ -130,33 +125,13 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public void addInfo(JavaDeclInfo info) {
     String flavor = info.getAttribute(FLAVOR_ATTR);
+    System.out.println("addInfo " + flavor + " called on proposed promise drop " + this + " : " + info);
     if (FROM_INFO.equals(flavor)) {
       fromInfo = info;
     } else if (TARGET_INFO.equals(flavor)) {
       targetInfo = info;
     } else {
       throw new IllegalStateException("Unknown flavor of info: " + flavor);
-    }
-  }
-
-  @Override
-  public void addRef(Entity e) {
-    final String name = e.getName();
-    if (SOURCE_REF.equals(name)) {
-      SourceRef sr = new SourceRef(e);
-      if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
-        assumptionRef = makeSrcRef(sr);
-      } else {
-        setSource(sr);
-      }
-    } else if (PROPERTIES.equals(name)) {
-      if (ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
-        annoAttrs = e.getAttributes();
-      } else {
-        replacedAttrs = e.getAttributes();
-      }
-    } else {
-      super.addRef(e);
     }
   }
 
