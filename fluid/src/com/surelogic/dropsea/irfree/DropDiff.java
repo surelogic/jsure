@@ -1,0 +1,127 @@
+package com.surelogic.dropsea.irfree;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import com.surelogic.common.IViewable;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ISupportingInformation;
+
+public class DropDiff extends DiffNode implements IViewable {
+	private static boolean allowMissingSupportingInfos = true;
+	
+	final IDrop old;
+	final Object[] children;
+
+	private DropDiff(IDrop n, IDrop o, Object[] children) {
+		super(n);
+		this.children = children;
+		this.old = o;
+	}
+
+	@Override
+	public String toString() {
+		return drop.getMessage();
+	}
+
+	public String getText() {
+		return toString();
+	}
+
+	public boolean hasChildren() {
+		// This exists because there are diffs
+		return true;
+	}
+
+	public Object[] getChildren() {
+		return children;
+	}
+
+	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
+		if (o.drop.getSupportingInformation().isEmpty()) {
+			if (n.drop.getSupportingInformation().isEmpty()) {
+				return null;
+			}
+			if (allowMissingSupportingInfos) {
+				// System.out.println("Temporarily ignoring missing details in old oracles");
+				return null;
+			}
+		}
+		final Map<String, DiffInfo> oldDetails = extractDetails(o.drop);
+		final Map<String, DiffInfo> newDetails = extractDetails(n.drop);
+		final List<String> temp = new ArrayList<String>();
+		// Remove matching ones
+		for (String ns : newDetails.keySet()) {
+			DiffInfo oe = oldDetails.remove(ns);
+			if (oe != null) {
+				temp.add(ns);
+			}
+		}
+		for (String match : temp) {
+			newDetails.remove(match);
+		}
+
+		if (oldDetails.isEmpty() && newDetails.isEmpty()) {
+			return null;
+		}
+		out.println("\tDiffs in details for " + n.drop.getMessage());
+		for (String old : sort(oldDetails.keySet(), temp)) {
+			out.println("\t\tOld    : " + old);
+			DiffInfo e = oldDetails.get(old);
+			e.setAsOld();
+		}
+		for (String newMsg : sort(newDetails.keySet(), temp)) {
+			out.println("\t\tNewer  : " + newMsg);
+			DiffInfo e = newDetails.get(newMsg);
+			e.setAsNewer();
+		}
+		List<DiffInfo> remaining = new ArrayList<DiffInfo>(oldDetails.size() + newDetails.size());
+		remaining.addAll(oldDetails.values());
+		remaining.addAll(newDetails.values());
+		Collections.sort(remaining);
+		return new DropDiff(n.drop, o.drop, remaining.toArray());
+	}
+	
+	// Assume that we only have supporting info
+	public static Map<String, DiffInfo> extractDetails(IDrop e) {
+		if (e.getSupportingInformation().isEmpty()) {
+			return Collections.emptyMap();
+		}
+		final Map<String, DiffInfo> rv = new TreeMap<String, DiffInfo>();
+		for (ISupportingInformation i : e.getSupportingInformation()) {
+			String msg = i.getMessage();
+			if (msg != null) {
+				rv.put(msg, new DiffInfo(i));
+			} else {
+				System.out.println("No message for " + i);
+			}
+		}
+		return rv;
+	}
+	
+	private static Collection<String> sort(Collection<String> s, List<String> temp) {
+	    temp.clear();
+	    temp.addAll(s);
+	    Collections.sort(temp);
+	    return temp;
+	}
+
+	public void write(PrintWriter w) {
+		w.println("\tDiffs in details for " + drop.getMessage());
+		final Map<String, DiffInfo> oldDetails = extractDetails(old);
+		final Map<String, DiffInfo> newDetails = extractDetails(drop);
+		final List<String> temp = new ArrayList<String>();
+		for (String old : sort(oldDetails.keySet(), temp)) {
+			w.println("\t\tOld    : " + old);
+		}
+		for (String newMsg : sort(newDetails.keySet(), temp)) {
+			w.println("\t\tNewer  : " + newMsg);
+		}		
+	}
+}

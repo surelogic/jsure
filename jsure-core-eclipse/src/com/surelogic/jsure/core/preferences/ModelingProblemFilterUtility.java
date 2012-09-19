@@ -8,7 +8,7 @@ import com.surelogic.Utility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.irfree.SeaSummary;
+import com.surelogic.dropsea.irfree.*;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -63,7 +63,7 @@ public final class ModelingProblemFilterUtility {
 		return true; // show this resource
 	}
 
-	public static SeaSummary.Filter defaultFilter = new SeaSummary.Filter() {
+	public static IDropFilter defaultFilter = new IDropFilter() {
 		@Override
 		public boolean showResource(String path) {
 			return ModelingProblemFilterUtility.showResource(path);
