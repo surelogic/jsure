@@ -37,8 +37,8 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
     orTrusted.put(label, info);
   }
 
-  public IRFreeResultDrop(Entity e) {
-    super(e);
+  public IRFreeResultDrop(Entity e, Class<?> irClass) {
+    super(e, irClass);
   }
 
   @NonNull

@@ -35,7 +35,6 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -79,7 +78,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
     public void addRef(Entity e) {
       if (f_drop instanceof IRFreeProposedPromiseDrop) {
         IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) f_drop;
-    //    System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
+        // System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
         final String name = e.getName();
         if (SOURCE_REF.equals(name)) {
           SourceRef sr = new SourceRef(e);
@@ -156,12 +155,11 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       final Class<?> thisType = DropTypeUtility.findType(type);
       if (thisType != null) {
         if (ProposedPromiseDrop.class.isAssignableFrom(thisType)) {
-          System.out.println("created a proposed promise");
-          entity.setDrop(new IRFreeProposedPromiseDrop(entity));
+          entity.setDrop(new IRFreeProposedPromiseDrop(entity, thisType));
         } else if (ScopedPromiseDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeScopedPromiseDrop(entity));
+          entity.setDrop(new IRFreeScopedPromiseDrop(entity, thisType));
         } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreePromiseDrop(entity));
+          entity.setDrop(new IRFreePromiseDrop(entity, thisType));
         } else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {
           /*
            * The old scheme used WarningDrop as a subtype of InfoDrop. The new
@@ -172,15 +170,15 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
            * if an old WarningDrop.
            */
           if (type.endsWith("WarningDrop"))
-            entity.setDrop(new IRFreeAnalysisHintDrop(entity, IAnalysisHintDrop.HintType.WARNING));
+            entity.setDrop(new IRFreeAnalysisHintDrop(entity, thisType, IAnalysisHintDrop.HintType.WARNING));
           else
-            entity.setDrop(new IRFreeAnalysisHintDrop(entity));
+            entity.setDrop(new IRFreeAnalysisHintDrop(entity, thisType));
         } else if (ResultDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeResultDrop(entity));
+          entity.setDrop(new IRFreeResultDrop(entity, thisType));
         } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeResultFolderDrop(entity));
+          entity.setDrop(new IRFreeResultFolderDrop(entity, thisType));
         } else if (ModelingProblemDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeModelingProblemDrop(entity));
+          entity.setDrop(new IRFreeModelingProblemDrop(entity, thisType));
         }
       }
     }

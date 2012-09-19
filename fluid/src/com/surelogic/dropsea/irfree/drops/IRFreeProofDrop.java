@@ -22,8 +22,8 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
     analysisHints.add(hint);
   }
 
-  IRFreeProofDrop(Entity e) {
-    super(e);
+  IRFreeProofDrop(Entity e, Class<?> irClass) {
+    super(e, irClass);
   }
 
   public final boolean proofUsesRedDot() {
