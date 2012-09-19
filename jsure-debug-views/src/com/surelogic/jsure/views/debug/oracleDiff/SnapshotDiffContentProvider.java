@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IViewable;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;

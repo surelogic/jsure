@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.IViewable;
 import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
 import com.surelogic.dropsea.irfree.SeaSnapshotXMLReader;
@@ -319,7 +320,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return l;
   }
 
-  public static Diff diff(Filter f, File location1, File location2) throws Exception {
+  public static Diff diff(IDropFilter f, File location1, File location2) throws Exception {
     final Listener l1 = read(location1);
     final Listener l2 = read(location2);
     Diff d = new Diff(filter(f, l1), filter(f, l2));
@@ -329,26 +330,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
   public static Diff diff(final Sea sea, File location) throws Exception {
     List<Drop> drops = sea.getDrops();
-    return diff(drops, location, nullFilter);
+    return diff(drops, location, IDropFilter.nullFilter);
   }
 
-  public interface Filter {
-    boolean showResource(IDrop d);
-
-    boolean showResource(String path);
-  }
-
-  private static final Filter nullFilter = new Filter() {
-    public boolean showResource(String path) {
-      return true;
-    }
-
-    public boolean showResource(IDrop d) {
-      return true;
-    }
-  };
-
-  private static List<Entity> filter(Filter f, Listener l) {
+  private static List<Entity> filter(IDropFilter f, Listener l) {
     final List<Entity> drops = new ArrayList<Entity>();
     // Collections.sort(oldDrops, EntityComparator.prototype);
     for (Entity e : l.drops) {
@@ -360,7 +345,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return drops;
   }
 
-  public static Diff diff(Collection<? extends IDrop> drops, File location, Filter f) throws Exception {
+  public static Diff diff(Collection<? extends IDrop> drops, File location, IDropFilter f) throws Exception {
     // Load up current contents
     final Listener l = read(location);
 
@@ -593,14 +578,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     }
   }
 
-  public interface IViewable {
-    Object[] getChildren();
-
-    boolean hasChildren();
-
-    String getText();
-  }
-
   static final Comparator<Entity> entityComparator = new Comparator<Entity>() {
     public int compare(Entity o1, Entity o2) {
       int rv = o1.getAttribute(MESSAGE_ATTR).compareTo(o2.getAttribute(MESSAGE_ATTR));
@@ -637,13 +614,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
             final List<String> temp = new ArrayList<String>();
             for (String old : sort(oldDetails.keySet(), temp)) {
               w.println("\t\tOld    : " + old);
-              Entity e = oldDetails.get(old);
-              e.setAsOld();
             }
             for (String newMsg : sort(newDetails.keySet(), temp)) {
               w.println("\t\tNewer  : " + newMsg);
-              Entity e = newDetails.get(newMsg);
-              e.setAsNewer();
             }
           }
         }
