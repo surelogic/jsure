@@ -376,6 +376,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
          * id.getMessage().contains("InRegion(TotalRegion)")) {
          * System.out.println("Found scoped promise: "+id.getMessage()); }
          */
+        /*
+        if (id.getMessage().contains("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
+        	System.out.println("Found proposal");
+        }
+        */
         Entity e = b.build();
         newDrops.add(e);
       } else {
@@ -507,12 +512,21 @@ public class SeaSummary extends AbstractSeaXmlCreator {
         Category c = categories.getOrCreate(e);
         if (c != null) {
         	c.addOld(e);
+        } else {
+          	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
         }
       }
       for (Entity e : newDrops) {
+        /*
+    	if ("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)".equals(e.getAttribute(MESSAGE_ATTR))) {
+    		System.out.println("Found proposal");
+    	}
+    	*/
         Category c = categories.getOrCreate(e);
         if (c != null) {
         	c.addNew(e);
+        } else {
+        	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
         }
       }
     }
@@ -670,11 +684,22 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     public void match(PrintStream out) {
       String title = "Category: " + name + " in " + file;
+      //Set<Entity> newCopy = new HashSet<Entity>(newer);
+      //Set<Entity> oldCopy = new HashSet<Entity>(old);
       title = match(title, out, EXACT, "Exact  ");
+      /*
+      if (name.endsWith("ProposedPromiseDrop") && !old.isEmpty()) {
+    	  // Get matched
+    	  List<Entity> origOld = new ArrayList<Entity>(oldCopy);
+    	  oldCopy.removeAll(old);
+    	  List<Entity> matched = new ArrayList<Entity>(oldCopy);
+    	  System.out.println("MAtching proposals");
+      }
+      */
       title = match(title, out, HASHED, "Hashed ");
       title = match(title, out, HASHED2, "Hashed2");
       // title = match(title, out, SAME_LINE, "Line   ");
-      if ("ResultDrop".equals(name)) {
+      if (name.endsWith(".ResultDrop")) {
         title = match(title, out, RESULT, "Results");
       }
       if (isEmpty()) {
