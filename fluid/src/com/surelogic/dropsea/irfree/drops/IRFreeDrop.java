@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +58,97 @@ public class IRFreeDrop implements IDrop {
     return f_entity;
   }
 
+  @NonNull
   private final List<IRFreeProposedPromiseDrop> f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(0);
+  @Nullable
   protected Category f_category;
-  private ISrcRef ref;
-  private List<ISupportingInformation> supportingInfos;
+  @Nullable
+  private ISrcRef f_srcRef;
+  @NonNull
+  private final List<ISupportingInformation> f_supportingInformation = new ArrayList<ISupportingInformation>(0);
+  @NonNull
+  private final String f_message;
+  @NonNull
+  private final String f_messageCanonical;
+
+  public void addProposal(IRFreeProposedPromiseDrop info) {
+    f_proposedPromises.add(info);
+  }
+
+  public IRFreeDrop(Entity e, Class<?> irClass) {
+    if (e == null)
+      throw new IllegalArgumentException(I18N.err(44, "e"));
+    f_entity = e;
+    f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
+
+    final String message = e.getAttribute(MESSAGE_ATTR);
+    if (message != null)
+      f_message = message;
+    else
+      f_message = getClass().getSimpleName() + " (EMPTY)";
+
+    final String messageCanonical = e.getAttribute(MESSAGE_ID);
+    if (messageCanonical != null)
+      f_messageCanonical = messageCanonical;
+    else
+      f_messageCanonical = getClass().getSimpleName() + " (EMPTY)";
+  }
+
+  public void finishInit() {
+    if (f_entity.getSource() != null) {
+      f_srcRef = makeSrcRef(f_entity.getSource());
+    } else {
+      f_srcRef = null;
+    }
+    for (MoreInfo i : f_entity.getInfos()) {
+      f_supportingInformation.add(makeSupportingInfo(i));
+    }
+  }
+
+  @Nullable
+  public Category getCategory() {
+    return f_category;
+  }
+
+  @NonNull
+  public String getMessage() {
+    return f_message;
+  }
+
+  @NonNull
+  public String getMessageCanonical() {
+    return f_messageCanonical;
+  }
+
+  public ISrcRef getSrcRef() {
+    return f_srcRef;
+  }
+
+  @NonNull
+  public String getTypeName() {
+    final String result = getEntity().getAttribute(TYPE_ATTR);
+    if (result != null)
+      return result;
+    else
+      return getClass().getName();
+  }
+
+  public final boolean instanceOf(Class<?> type) {
+    final String thisTypeName = getEntity().getAttribute(FULL_TYPE_ATTR);
+    final Class<?> thisType = DropTypeUtility.findType(thisTypeName);
+    if (thisType != null)
+      return type.isAssignableFrom(thisType);
+    else
+      return false;
+  }
+
+  public Collection<? extends IProposedPromiseDrop> getProposals() {
+    return f_proposedPromises;
+  }
+
+  public Collection<ISupportingInformation> getSupportingInformation() {
+    return f_supportingInformation;
+  }
 
   public Long getTreeHash() {
     String hash = getEntity().getAttribute(HASH_ATTR);
@@ -76,30 +162,13 @@ public class IRFreeDrop implements IDrop {
     return Long.parseLong(getEntity().getAttribute(CONTEXT_ATTR));
   }
 
-  public void addProposal(IRFreeProposedPromiseDrop info) {
-    f_proposedPromises.add(info);
+  public String getXMLElementName() {
+    return f_entity.getEntityName();
   }
 
-  public IRFreeDrop(Entity e) {
-    if (e == null)
-      throw new IllegalArgumentException(I18N.err(44, "e"));
-    f_entity = e;
-    f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
-  }
-
-  public void finishInit() {
-    if (f_entity.getSource() != null) {
-      ref = makeSrcRef(f_entity.getSource());
-    } else {
-      ref = null;
-    }
-    if (!f_entity.getInfos().isEmpty()) {
-      supportingInfos = new ArrayList<ISupportingInformation>();
-      for (MoreInfo i : f_entity.getInfos()) {
-        supportingInfos.add(makeSupportingInfo(i));
-      }
-    } else {
-      supportingInfos = Collections.emptyList();
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
+      s.addAttribute(a.getKey(), a.getValue());
     }
   }
 
@@ -126,7 +195,6 @@ public class IRFreeDrop implements IDrop {
       public boolean sameAs(IRNode link, String message) {
         throw new UnsupportedOperationException();
       }
-
     };
   }
 
@@ -136,6 +204,7 @@ public class IRFreeDrop implements IDrop {
     }
     final int line = Integer.valueOf(ref.getLine());
     return new AbstractSrcRef() {
+
       @Override
       public boolean equals(Object o) {
         if (this.getClass().isInstance(o)) {
@@ -224,68 +293,5 @@ public class IRFreeDrop implements IDrop {
         return ref.getAttribute(PROJECT_ATTR);
       }
     };
-  }
-
-  @Nullable
-  public Category getCategory() {
-    return f_category;
-  }
-
-  @NonNull
-  public String getMessage() {
-    final String result = getEntity().getAttribute(MESSAGE_ATTR);
-    if (result != null)
-      return result;
-    else
-      return getClass().getSimpleName() + " (EMPTY)";
-  }
-
-  @NonNull
-  public String getMessageCanonical() {
-    final String result = getEntity().getAttribute(MESSAGE_ID);
-    if (result != null)
-      return result;
-    else
-      return getClass().getSimpleName() + " (EMPTY)";
-  }
-
-  public ISrcRef getSrcRef() {
-    return ref;
-  }
-
-  @NonNull
-  public String getTypeName() {
-    final String result = getEntity().getAttribute(TYPE_ATTR);
-    if (result != null)
-      return result;
-    else
-      return getClass().getName();
-  }
-
-  public final boolean instanceOf(Class<?> type) {
-    final String thisTypeName = getEntity().getAttribute(FULL_TYPE_ATTR);
-    final Class<?> thisType = DropTypeUtility.findType(thisTypeName);
-    if (thisType != null)
-      return type.isAssignableFrom(thisType);
-    else
-      return false;
-  }
-
-  public Collection<? extends IProposedPromiseDrop> getProposals() {
-    return f_proposedPromises;
-  }
-
-  public Collection<ISupportingInformation> getSupportingInformation() {
-    return supportingInfos;
-  }
-
-  public String getXMLElementName() {
-    return f_entity.getEntityName();
-  }
-
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-      s.addAttribute(a.getKey(), a.getValue());
-    }
   }
 }

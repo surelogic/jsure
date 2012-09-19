@@ -25,8 +25,8 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
     results.add(info);
   }
 
-  public IRFreeResultFolderDrop(Entity e) {
-    super(e);
+  public IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
+    super(e, irClass);
   }
 
   public Collection<? extends IResultDrop> getAnalysisResults() {

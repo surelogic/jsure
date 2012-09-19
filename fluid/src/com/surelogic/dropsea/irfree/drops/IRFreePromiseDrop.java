@@ -33,8 +33,8 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     deponentPromises.add(p);
   }
 
-  public IRFreePromiseDrop(Entity e) {
-    super(e);
+  public IRFreePromiseDrop(Entity e, Class<?> irClass) {
+    super(e, irClass);
 
     /*
      * The viewer expects promises to be in a category so we use an
