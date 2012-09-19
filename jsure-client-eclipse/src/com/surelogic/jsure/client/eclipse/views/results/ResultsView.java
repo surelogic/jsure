@@ -12,24 +12,36 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
@@ -47,22 +59,32 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureResultsView;
-import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 
-public final class ResultsView extends AbstractJSureResultsView implements JSureDataDirHub.CurrentScanChangeListener {
+public final class ResultsView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
   private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
 
   final File f_viewStatePersistenceFile;
+
+  final public static Point ICONSIZE = new Point(22, 16);
+
+  /**
+   * leave {@code null} if the subclass doesn't want to use this capability.
+   */
+  private PageBook f_viewerbook = null;
+
+  private Label f_noResultsToShowLabel = null;
+  private TreeViewer treeViewer;
+
+  private Action doubleClickAction;
 
   public ResultsView() {
     File viewState = null;
@@ -82,7 +104,21 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
 
   @Override
   public void createPartControl(Composite parent) {
-    super.createPartControl(parent);
+    f_viewerbook = new PageBook(parent, SWT.NONE);
+    f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
+    f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
+    treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+    setupViewer();
+
+    treeViewer.setInput(getViewSite());
+    makeActions_private();
+    hookContextMenu();
+    hookDoubleClickAction();
+    contributeToActionBars();
+    // start empty until the initial build is done
+    setViewerVisibility(false);
+
+    finishCreatePartControl();
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -351,12 +387,65 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     }
   }
 
-  @Override
-  protected void setupViewer() {
+  /**
+   * Toggles between the empty viewer page and the Fluid results
+   */
+  private void setViewerVisibility(boolean showResults) {
+    if (f_viewerbook.isDisposed())
+      return;
+    if (showResults) {
+      treeViewer.setInput(getViewSite());
+      f_viewerbook.showPage(treeViewer.getControl());
+    } else {
+      f_viewerbook.showPage(f_noResultsToShowLabel);
+    }
+  }
+
+  private void setupViewer() {
     treeViewer.setContentProvider(f_contentProvider);
     treeViewer.setLabelProvider(f_labelProvider);
     treeViewer.setSorter(createSorter());
     ColumnViewerToolTipSupport.enableFor(treeViewer);
+  }
+
+  private void hookContextMenu() {
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      public void menuAboutToShow(IMenuManager manager) {
+        IStructuredSelection s = (IStructuredSelection) treeViewer.getSelection();
+        ResultsView.this.fillContextMenu_private(manager, s);
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(treeViewer.getControl());
+    treeViewer.getControl().setMenu(menu);
+    getSite().registerContextMenu(menuMgr, treeViewer);
+  }
+
+  private void contributeToActionBars() {
+    IActionBars bars = getViewSite().getActionBars();
+    fillLocalPullDown(bars.getMenuManager());
+    fillLocalToolBar(bars.getToolBarManager());
+  }
+
+  private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
+    fillContextMenu(manager, s);
+    manager.add(new Separator());
+    // Other plug-ins can contribute there actions here
+    manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+  }
+
+  private void makeActions_private() {
+    doubleClickAction = new Action() {
+      @Override
+      public void run() {
+        ISelection selection = treeViewer.getSelection();
+        handleDoubleClick((IStructuredSelection) selection);
+      }
+    };
+
+    makeActions();
+    setViewState();
   }
 
   private ViewerSorter createSorter() {
@@ -375,8 +464,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     return sb.toString();
   }
 
-  @Override
-  protected void fillLocalPullDown(final IMenuManager manager) {
+  private void fillLocalPullDown(final IMenuManager manager) {
     manager.add(f_actionCollapseAll);
     manager.add(new Separator());
     manager.add(f_showQuickRef);
@@ -386,8 +474,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
   }
 
-  @Override
-  protected void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
+  private void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
     if (!s.isEmpty()) {
       final Object first = s.getFirstElement();
       if (first instanceof ResultsViewContent) {
@@ -435,8 +522,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     }
   }
 
-  @Override
-  protected void fillLocalToolBar(final IToolBarManager manager) {
+  private void fillLocalToolBar(final IToolBarManager manager) {
     manager.add(f_actionCollapseAll);
     manager.add(new Separator());
     manager.add(f_showQuickRef);
@@ -444,8 +530,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     manager.add(f_modelProblemsIndicator);
   }
 
-  @Override
-  protected void makeActions() {
+  private void makeActions() {
     f_actionShowInferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
 
     f_actionExpand.setText("Expand");
@@ -478,15 +563,16 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     setViewState();
   }
 
-  @Override
-  protected void setViewState() {
+  /**
+   * Ensure that any relevant view state is set, based on the internal state
+   */
+  private void setViewState() {
     f_actionShowInferences.setChecked(f_contentProvider.isShowInferences());
     f_actionShowInferences.setText("Show Information/Warning Results");
     f_actionShowInferences.setToolTipText("Show information and warning analysis results");
   }
 
-  @Override
-  protected void handleDoubleClick(final IStructuredSelection selection) {
+  private void handleDoubleClick(final IStructuredSelection selection) {
     final Object obj = selection.getFirstElement();
     if (obj instanceof ResultsViewContent) {
       // try to open an editor at the point this item references
@@ -507,27 +593,44 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     }
   }
 
+  /**
+   * Open and highlight a line within the Java editor, if possible. Otherwise,
+   * try to open as a text file
+   * 
+   * @param srcRef
+   *          the source reference to highlight
+   */
+  private void highlightLineInJavaEditor(ISrcRef srcRef) {
+    EditorUtil.highlightLineInJavaEditor(srcRef);
+  }
+
+  private void hookDoubleClickAction() {
+    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      public void doubleClick(DoubleClickEvent event) {
+        doubleClickAction.run();
+      }
+    });
+  }
+
+  /**
+   * Passing the focus request to the viewer's control.
+   */
   @Override
-  protected void updateView() {
-    try {
-      AbstractJavaBinder.printStats();
+  public void setFocus() {
+    setViewState();
+    treeViewer.getControl().setFocus();
+  }
 
-      // update the whole-program proof
-      ConsistencyListener.prototype.analysisCompleted();
-
-      final long start = System.currentTimeMillis();
-      f_contentProvider.buildModelOfDropSea(treeViewer, f_viewStatePersistenceFile, f_viewerbook);
-      final long buildEnd = System.currentTimeMillis();
-      System.err.println("Time to build model  = " + (buildEnd - start) + " ms");
-
-      /*
-       * if (IJavaFileLocator.testIRPaging) { final EclipseFileLocator loc =
-       * (EclipseFileLocator) IDE.getInstance() .getJavaFileLocator();
-       * loc.testUnload(false, false); SlotInfo.compactAll(); }
-       */
-      setViewState();
-    } catch (final Throwable t) {
-      SLLogger.getLogger().log(Level.SEVERE, "Problem updating COE view", t);
+  /*
+   * For use by view contribution actions in other plug-ins so that they can get
+   * a pointer to the TreeViewer
+   */
+  @Override
+  public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+    if (adapter == TreeViewer.class) {
+      return treeViewer;
+    } else {
+      return super.getAdapter(adapter);
     }
   }
 
@@ -568,8 +671,7 @@ public final class ResultsView extends AbstractJSureResultsView implements JSure
     return null;
   }
 
-  @Override
-  protected void finishCreatePartControl() {
+  private void finishCreatePartControl() {
     final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scanInfo != null) {
       final long start = System.currentTimeMillis();
