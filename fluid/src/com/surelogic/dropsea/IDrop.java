@@ -107,17 +107,8 @@ public interface IDrop {
    * 
    * @return the XML element name for this drop.
    */
+  @Deprecated
   String getXMLElementName();
-  
-  /**
-   * Gets the requested XML attribute or {@code null}. Only used for persisting
-   * drops.
-   * 
-   * @param key
-   *          the attribute key.
-   * @return the requested XML attribute or {@code null}
-   */
-  String getAttribute(String key);
 
   /**
    * Places the needed attributes for persistence of this drop on the passed XML
@@ -129,5 +120,6 @@ public interface IDrop {
    * @param s
    *          an XML builder.
    */
+  @Deprecated
   void snapshotAttrs(XMLCreator.Builder s);
 }

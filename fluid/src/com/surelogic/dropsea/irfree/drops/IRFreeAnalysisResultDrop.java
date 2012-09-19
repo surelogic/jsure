@@ -6,15 +6,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.xml.sax.Attributes;
-
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 
 public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implements IAnalysisResultDrop {
 
-  IRFreeAnalysisResultDrop(String name, Attributes a) {
-    super(name, a);
+  IRFreeAnalysisResultDrop(Entity e) {
+    super(e);
   }
 
   private final List<IRFreePromiseDrop> checkedPromises = new ArrayList<IRFreePromiseDrop>(0);;
@@ -32,6 +31,6 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
   }
 
   public boolean isInResultFolder() {
-    return "true".equals(getAttribute(ENCLOSED_IN_FOLDER));
+    return "true".equals(getEntity().getAttribute(ENCLOSED_IN_FOLDER));
   }
 }

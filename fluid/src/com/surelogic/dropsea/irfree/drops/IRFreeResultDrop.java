@@ -18,9 +18,9 @@ import java.util.List;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.xml.sax.Attributes;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
 
@@ -37,8 +37,8 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
     orTrusted.put(label, info);
   }
 
-  public IRFreeResultDrop(String name, Attributes a) {
-    super(name, a);
+  public IRFreeResultDrop(Entity e) {
+    super(e);
   }
 
   @NonNull
@@ -47,7 +47,7 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean isConsistent() {
-    return "true".equals(getAttribute(CONSISTENT));
+    return "true".equals(getEntity().getAttribute(CONSISTENT));
   }
 
   @NonNull
@@ -80,34 +80,34 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   }
 
   public boolean get_or_proofUsesRedDot() {
-    return "true".equals(getAttribute(OR_USES_RED_DOT));
+    return "true".equals(getEntity().getAttribute(OR_USES_RED_DOT));
   }
 
   public boolean get_or_provedConsistent() {
-    return "true".equals(getAttribute(OR_PROVED));
+    return "true".equals(getEntity().getAttribute(OR_PROVED));
   }
 
   public boolean isVouched() {
-    return "true".equals(getAttribute(VOUCHED));
+    return "true".equals(getEntity().getAttribute(VOUCHED));
   }
 
   public boolean isTimeout() {
-    return "true".equals(getAttribute(TIMEOUT));
+    return "true".equals(getEntity().getAttribute(TIMEOUT));
   }
 
   public boolean isAssumed() {
-    return "true".equals(getAttribute(ASSUMED));
+    return "true".equals(getEntity().getAttribute(ASSUMED));
   }
 
   public boolean isCheckedByAnalysis() {
-    return "true".equals(getAttribute(CHECKED_BY_ANALYSIS));
+    return "true".equals(getEntity().getAttribute(CHECKED_BY_ANALYSIS));
   }
 
   public boolean isIntendedToBeCheckedByAnalysis() {
-    return "true".equals(getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
+    return "true".equals(getEntity().getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
   }
 
   public boolean isVirtual() {
-    return "true".equals(getAttribute(VIRTUAL));
+    return "true".equals(getEntity().getAttribute(VIRTUAL));
   }
 }

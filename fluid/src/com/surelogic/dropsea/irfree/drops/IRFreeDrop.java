@@ -24,10 +24,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.xml.sax.Attributes;
-
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
@@ -36,35 +35,42 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-public class IRFreeDrop extends Entity implements IDrop {
+public class IRFreeDrop implements IDrop {
+
+  @NonNull
+  private final Entity f_entity; // TODO PERHAPS REMOVE IN FUTURE
+
+  @Deprecated
+  public @NonNull
+  Entity getEntity() {
+    return f_entity;
+  }
 
   static {
     for (Category c : Category.getAll()) {
-      internString(c.getMessage());
+      Entity.internString(c.getMessage());
     }
   }
 
- // protected final List<IRFreeDrop> dependents;
-//  protected final List<IRFreeDrop> deponents;
-  private final List<IRFreeProposedPromiseDrop> proposals;
+  private final List<IRFreeProposedPromiseDrop> proposals = new ArrayList<IRFreeProposedPromiseDrop>(0);
   protected Category category;
   private ISrcRef ref;
   private List<ISupportingInformation> supportingInfos;
 
   public void snapshotAttrs(XMLCreator.Builder s) {
-    for (Map.Entry<String, String> a : attributes.entrySet()) {
+    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
       s.addAttribute(a.getKey(), a.getValue());
     }
   }
 
   public Long getTreeHash() {
-    String hash = getAttribute(HASH_ATTR);
+    String hash = getEntity().getAttribute(HASH_ATTR);
     if (hash == null) {
       return Long.valueOf(0);
     }
@@ -72,44 +78,29 @@ public class IRFreeDrop extends Entity implements IDrop {
   }
 
   public Long getContextHash() {
-    return Long.parseLong(getAttribute(CONTEXT_ATTR));
+    return Long.parseLong(getEntity().getAttribute(CONTEXT_ATTR));
   }
 
   public void addProposal(IRFreeProposedPromiseDrop info) {
     proposals.add(info);
   }
 
-//  public void addDeponent(IRFreeDrop info) {
-//    deponents.add(info);
-//  }
-//
-//  public void addDependent(IRFreeDrop info) {
-//    dependents.add(info);
-//  }
-
-  public IRFreeDrop(String name, Attributes a) {
-    super(name, a);
-    if (name.endsWith("drop")) {
-//      dependents = new ArrayList<IRFreeDrop>(1);
-//      deponents = new ArrayList<IRFreeDrop>(1);
-      proposals = new ArrayList<IRFreeProposedPromiseDrop>(0);
-    } else {
-      // dependents = Collections.emptyList();
-      // deponents = Collections.emptyList();
-      proposals = Collections.emptyList();
-    }
-    category = Category.getInstance(getAttribute(CATEGORY_ATTR));
+  public IRFreeDrop(Entity e) {
+    if (e == null)
+      throw new IllegalArgumentException(I18N.err(44, "e"));
+    f_entity = e;
+    category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
   }
 
   public void finishInit() {
-    if (getSource() != null) {
-      ref = makeSrcRef(getSource());
+    if (f_entity.getSource() != null) {
+      ref = makeSrcRef(f_entity.getSource());
     } else {
       ref = null;
     }
-    if (!getInfos().isEmpty()) {
+    if (!f_entity.getInfos().isEmpty()) {
       supportingInfos = new ArrayList<ISupportingInformation>();
-      for (MoreInfo i : getInfos()) {
+      for (MoreInfo i : f_entity.getInfos()) {
         supportingInfos.add(makeSupportingInfo(i));
       }
     } else {
@@ -144,7 +135,7 @@ public class IRFreeDrop extends Entity implements IDrop {
     };
   }
 
-  static ISrcRef makeSrcRef(final SourceRef ref) {
+  public static ISrcRef makeSrcRef(final SourceRef ref) {
     if (ref == null) {
       return null;
     }
@@ -247,7 +238,7 @@ public class IRFreeDrop extends Entity implements IDrop {
 
   @NonNull
   public String getMessage() {
-    final String result = getAttribute(MESSAGE_ATTR);
+    final String result = getEntity().getAttribute(MESSAGE_ATTR);
     if (result != null)
       return result;
     else
@@ -260,7 +251,7 @@ public class IRFreeDrop extends Entity implements IDrop {
 
   @NonNull
   public String getTypeName() {
-    final String result = getAttribute(TYPE_ATTR);
+    final String result = getEntity().getAttribute(TYPE_ATTR);
     if (result != null)
       return result;
     else
@@ -268,8 +259,8 @@ public class IRFreeDrop extends Entity implements IDrop {
   }
 
   public final boolean instanceOf(Class<?> type) {
-    final String thisTypeName = getAttribute(FULL_TYPE_ATTR);
-    final Class<?> thisType = SeaSnapshot.findType(thisTypeName);
+    final String thisTypeName = getEntity().getAttribute(FULL_TYPE_ATTR);
+    final Class<?> thisType = DropTypeUtility.findType(thisTypeName);
     if (thisType != null)
       return type.isAssignableFrom(thisType);
     else
@@ -286,6 +277,6 @@ public class IRFreeDrop extends Entity implements IDrop {
 
   // @Override
   public String getXMLElementName() {
-    return getEntityName();
+    return f_entity.getEntityName();
   }
 }

@@ -12,8 +12,8 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
-import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.ROOT;
-import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.TIME_ATTR;
+import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.ROOT;
+import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.TIME_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.io.File;
@@ -45,8 +45,8 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
-import com.surelogic.common.jsure.xml.JSureXMLReader;
+import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
+import com.surelogic.dropsea.irfree.SeaSnapshotXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entity;
@@ -237,7 +237,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   // Note: not using addAttribute(), so we can't convert a Snapshot into a
   // Summary properly?
   private void outputSupportingInfo(Builder outer, ISupportingInformation si) {
-    final Builder b = outer.nest(JSureXMLReader.SUPPORTING_INFO);
+    final Builder b = outer.nest(SeaSnapshotXMLReader.SUPPORTING_INFO);
     b.addAttribute(MESSAGE_ATTR, si.getMessage());
     if (si.getSrcRef() != null) {
       addLocation(b, si.getSrcRef());
@@ -377,10 +377,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
          * System.out.println("Found scoped promise: "+id.getMessage()); }
          */
         /*
-        if (id.getMessage().contains("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
-        	System.out.println("Found proposal");
-        }
-        */
+         * if (id.getMessage().contains(
+         * "ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
+         * System.out.println("Found proposal"); }
+         */
         Entity e = b.build();
         newDrops.add(e);
       } else {
@@ -511,22 +511,23 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       for (Entity e : oldDrops) {
         Category c = categories.getOrCreate(e);
         if (c != null) {
-        	c.addOld(e);
+          c.addOld(e);
         } else {
-          	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
+          System.out.println("Couldn't categorize: " + e.getAttribute(MESSAGE_ATTR));
         }
       }
       for (Entity e : newDrops) {
         /*
-    	if ("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)".equals(e.getAttribute(MESSAGE_ATTR))) {
-    		System.out.println("Found proposal");
-    	}
-    	*/
+         * if
+         * ("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)".equals
+         * (e.getAttribute(MESSAGE_ATTR))) {
+         * System.out.println("Found proposal"); }
+         */
         Category c = categories.getOrCreate(e);
         if (c != null) {
-        	c.addNew(e);
+          c.addNew(e);
         } else {
-        	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
+          System.out.println("Couldn't categorize: " + e.getAttribute(MESSAGE_ATTR));
         }
       }
     }
@@ -571,9 +572,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     Category getOrCreate(Entity e) {
       final String typeName = e.getAttribute(TYPE_ATTR);
-      final Class<?> type = SeaSnapshot.findType(typeName);
+      final Class<?> type = DropTypeUtility.findType(typeName);
       if (type == null) {
-    	  return null;
+        return null;
       }
       String path = e.getAttribute(PATH_ATTR);
       String uri = e.getAttribute(URI_ATTR);
@@ -684,18 +685,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     public void match(PrintStream out) {
       String title = "Category: " + name + " in " + file;
-      //Set<Entity> newCopy = new HashSet<Entity>(newer);
-      //Set<Entity> oldCopy = new HashSet<Entity>(old);
+      // Set<Entity> newCopy = new HashSet<Entity>(newer);
+      // Set<Entity> oldCopy = new HashSet<Entity>(old);
       title = match(title, out, EXACT, "Exact  ");
       /*
-      if (name.endsWith("ProposedPromiseDrop") && !old.isEmpty()) {
-    	  // Get matched
-    	  List<Entity> origOld = new ArrayList<Entity>(oldCopy);
-    	  oldCopy.removeAll(old);
-    	  List<Entity> matched = new ArrayList<Entity>(oldCopy);
-    	  System.out.println("MAtching proposals");
-      }
-      */
+       * if (name.endsWith("ProposedPromiseDrop") && !old.isEmpty()) { // Get
+       * matched List<Entity> origOld = new ArrayList<Entity>(oldCopy);
+       * oldCopy.removeAll(old); List<Entity> matched = new
+       * ArrayList<Entity>(oldCopy); System.out.println("MAtching proposals"); }
+       */
       title = match(title, out, HASHED, "Hashed ");
       title = match(title, out, HASHED2, "Hashed2");
       // title = match(title, out, SAME_LINE, "Line   ");
