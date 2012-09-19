@@ -4,7 +4,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
@@ -13,7 +12,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
@@ -35,7 +33,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
@@ -59,6 +56,8 @@ public class IRFreeDrop implements IDrop {
   }
 
   @NonNull
+  private final Class<?> f_irClass;
+  @NonNull
   private final List<IRFreeProposedPromiseDrop> f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(0);
   @Nullable
   protected Category f_category;
@@ -78,6 +77,9 @@ public class IRFreeDrop implements IDrop {
   public IRFreeDrop(Entity e, Class<?> irClass) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
+    if (irClass == null)
+      throw new IllegalArgumentException(I18N.err(44, "irClass"));
+    f_irClass = irClass;
     f_entity = e;
     f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
 
@@ -126,20 +128,14 @@ public class IRFreeDrop implements IDrop {
 
   @NonNull
   public String getTypeName() {
-    final String result = getEntity().getAttribute(TYPE_ATTR);
-    if (result != null)
-      return result;
-    else
-      return getClass().getName();
+    return f_irClass.getName();
   }
 
   public final boolean instanceOf(Class<?> type) {
-    final String thisTypeName = getEntity().getAttribute(FULL_TYPE_ATTR);
-    final Class<?> thisType = DropTypeUtility.findType(thisTypeName);
-    if (thisType != null)
-      return type.isAssignableFrom(thisType);
-    else
+    if (type == null)
       return false;
+
+    return type.isAssignableFrom(f_irClass);
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
