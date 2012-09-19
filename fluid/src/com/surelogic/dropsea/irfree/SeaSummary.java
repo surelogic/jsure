@@ -12,8 +12,8 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
-import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.ROOT;
-import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.TIME_ATTR;
+import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.ROOT;
+import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.TIME_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.io.File;
@@ -44,9 +44,10 @@ import java.util.logging.Level;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.IViewable;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
-import com.surelogic.common.jsure.xml.JSureXMLReader;
+import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
+import com.surelogic.dropsea.irfree.SeaSnapshotXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entity;
@@ -237,7 +238,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   // Note: not using addAttribute(), so we can't convert a Snapshot into a
   // Summary properly?
   private void outputSupportingInfo(Builder outer, ISupportingInformation si) {
-    final Builder b = outer.nest(JSureXMLReader.SUPPORTING_INFO);
+    final Builder b = outer.nest(SeaSnapshotXMLReader.SUPPORTING_INFO);
     b.addAttribute(MESSAGE_ATTR, si.getMessage());
     if (si.getSrcRef() != null) {
       addLocation(b, si.getSrcRef());
@@ -319,7 +320,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return l;
   }
 
-  public static Diff diff(Filter f, File location1, File location2) throws Exception {
+  public static Diff diff(IDropFilter f, File location1, File location2) throws Exception {
     final Listener l1 = read(location1);
     final Listener l2 = read(location2);
     Diff d = new Diff(filter(f, l1), filter(f, l2));
@@ -329,26 +330,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
   public static Diff diff(final Sea sea, File location) throws Exception {
     List<Drop> drops = sea.getDrops();
-    return diff(drops, location, nullFilter);
+    return diff(drops, location, IDropFilter.nullFilter);
   }
 
-  public interface Filter {
-    boolean showResource(IDrop d);
-
-    boolean showResource(String path);
-  }
-
-  private static final Filter nullFilter = new Filter() {
-    public boolean showResource(String path) {
-      return true;
-    }
-
-    public boolean showResource(IDrop d) {
-      return true;
-    }
-  };
-
-  private static List<Entity> filter(Filter f, Listener l) {
+  private static List<Entity> filter(IDropFilter f, Listener l) {
     final List<Entity> drops = new ArrayList<Entity>();
     // Collections.sort(oldDrops, EntityComparator.prototype);
     for (Entity e : l.drops) {
@@ -360,7 +345,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return drops;
   }
 
-  public static Diff diff(Collection<? extends IDrop> drops, File location, Filter f) throws Exception {
+  public static Diff diff(Collection<? extends IDrop> drops, File location, IDropFilter f) throws Exception {
     // Load up current contents
     final Listener l = read(location);
 
@@ -377,10 +362,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
          * System.out.println("Found scoped promise: "+id.getMessage()); }
          */
         /*
-        if (id.getMessage().contains("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
-        	System.out.println("Found proposal");
-        }
-        */
+         * if (id.getMessage().contains(
+         * "ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
+         * System.out.println("Found proposal"); }
+         */
         Entity e = b.build();
         newDrops.add(e);
       } else {
@@ -511,22 +496,23 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       for (Entity e : oldDrops) {
         Category c = categories.getOrCreate(e);
         if (c != null) {
-        	c.addOld(e);
+          c.addOld(e);
         } else {
-          	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
+          System.out.println("Couldn't categorize: " + e.getAttribute(MESSAGE_ATTR));
         }
       }
       for (Entity e : newDrops) {
         /*
-    	if ("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)".equals(e.getAttribute(MESSAGE_ATTR))) {
-    		System.out.println("Found proposal");
-    	}
-    	*/
+         * if
+         * ("ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)".equals
+         * (e.getAttribute(MESSAGE_ATTR))) {
+         * System.out.println("Found proposal"); }
+         */
         Category c = categories.getOrCreate(e);
         if (c != null) {
-        	c.addNew(e);
+          c.addNew(e);
         } else {
-        	System.out.println("Couldn't categorize: "+e.getAttribute(MESSAGE_ATTR));
+          System.out.println("Couldn't categorize: " + e.getAttribute(MESSAGE_ATTR));
         }
       }
     }
@@ -571,9 +557,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     Category getOrCreate(Entity e) {
       final String typeName = e.getAttribute(TYPE_ATTR);
-      final Class<?> type = SeaSnapshot.findType(typeName);
+      final Class<?> type = DropTypeUtility.findType(typeName);
       if (type == null) {
-    	  return null;
+        return null;
       }
       String path = e.getAttribute(PATH_ATTR);
       String uri = e.getAttribute(URI_ATTR);
@@ -590,14 +576,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       }
       return c;
     }
-  }
-
-  public interface IViewable {
-    Object[] getChildren();
-
-    boolean hasChildren();
-
-    String getText();
   }
 
   static final Comparator<Entity> entityComparator = new Comparator<Entity>() {
@@ -636,13 +614,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
             final List<String> temp = new ArrayList<String>();
             for (String old : sort(oldDetails.keySet(), temp)) {
               w.println("\t\tOld    : " + old);
-              Entity e = oldDetails.get(old);
-              e.setAsOld();
             }
             for (String newMsg : sort(newDetails.keySet(), temp)) {
               w.println("\t\tNewer  : " + newMsg);
-              Entity e = newDetails.get(newMsg);
-              e.setAsNewer();
             }
           }
         }
@@ -684,18 +658,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     public void match(PrintStream out) {
       String title = "Category: " + name + " in " + file;
-      //Set<Entity> newCopy = new HashSet<Entity>(newer);
-      //Set<Entity> oldCopy = new HashSet<Entity>(old);
+      // Set<Entity> newCopy = new HashSet<Entity>(newer);
+      // Set<Entity> oldCopy = new HashSet<Entity>(old);
       title = match(title, out, EXACT, "Exact  ");
       /*
-      if (name.endsWith("ProposedPromiseDrop") && !old.isEmpty()) {
-    	  // Get matched
-    	  List<Entity> origOld = new ArrayList<Entity>(oldCopy);
-    	  oldCopy.removeAll(old);
-    	  List<Entity> matched = new ArrayList<Entity>(oldCopy);
-    	  System.out.println("MAtching proposals");
-      }
-      */
+       * if (name.endsWith("ProposedPromiseDrop") && !old.isEmpty()) { // Get
+       * matched List<Entity> origOld = new ArrayList<Entity>(oldCopy);
+       * oldCopy.removeAll(old); List<Entity> matched = new
+       * ArrayList<Entity>(oldCopy); System.out.println("MAtching proposals"); }
+       */
       title = match(title, out, HASHED, "Hashed ");
       title = match(title, out, HASHED2, "Hashed2");
       // title = match(title, out, SAME_LINE, "Line   ");
