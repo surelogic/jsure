@@ -403,7 +403,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
 
     @SuppressWarnings("unchecked")
     Collection<? extends TRoleRequireDrop> reqDrops = Sea.filterDropsOfType(TRoleRequireDrop.class, getDeponents());
-    resDrop.addTrusted_and(reqDrops);
+    resDrop.addTrusted(reqDrops);
     return resDrop;
   }
 

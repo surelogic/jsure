@@ -49,7 +49,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
   protected final ResultFolderDrop createSubFolder(
       final ResultFolderDrop parent, final IRNode node) {
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
-    parent.add(folder);
+    parent.addTrusted(folder);
     return folder;
   }
 
@@ -64,7 +64,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
       final ResultFolderDrop folder, final IRNode node,
       final boolean isConsistent, final int msg, final Object... args) {
     final ResultDrop result = createResultSimple(node, isConsistent, msg, args);
-    folder.add(result);
+    folder.addTrusted(result);
     return result;
   }
   

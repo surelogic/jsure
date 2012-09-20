@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
@@ -130,16 +131,16 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * @return a set of result drops which trust this proof drop
    */
   @NonNull
-  public final Set<ResultDrop> getTrustedBy() {
-    final HashSet<ResultDrop> result = new HashSet<ResultDrop>();
+  public final Set<AnalysisResultDrop> getTrustedBy() {
+    final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
      */
     synchronized (f_seaLock) {
-      final List<ResultDrop> s = Sea.filterDropsOfType(ResultDrop.class, getDependentsReference());
-      for (ResultDrop rd : s) {
-        if (rd.getAllTrusted().contains(this)) {
+      final List<AnalysisResultDrop> s = Sea.filterDropsOfType(AnalysisResultDrop.class, getDependentsReference());
+      for (AnalysisResultDrop rd : s) {
+        if (rd.getTrusted().contains(this)) {
           result.add(rd);
         }
       }
@@ -279,6 +280,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());
     s.addAttribute(PROVED_ATTR, provedConsistent());
     s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+    s.addAttribute(FROM_SRC, isFromSrc());
   }
 
   @Override

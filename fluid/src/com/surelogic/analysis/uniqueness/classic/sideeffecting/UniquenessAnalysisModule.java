@@ -102,7 +102,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       middleDrop.setConsistent();
       middleDrop.setMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
       for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
-        middleDrop.addTrusted_and(cfDrop);
+        middleDrop.addTrusted(cfDrop);
       }
     }
     

@@ -17,7 +17,7 @@ public final class VouchProcessorConsistencyProofHook extends AbstractSeaConsist
         VouchPromiseDrop vouch = VouchRules.getEnclosingVouch(rd.getNode());
         if (vouch != null) {
           rd.setVouched();
-          rd.addTrusted_and(vouch);
+          rd.addTrusted(vouch);
           vouch.addSupportingInformation(rd.getNode(), "(analysis result vouched for) " + rd.getMessage());
         }
       }

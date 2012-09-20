@@ -21,7 +21,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -310,7 +309,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     // Create a folder to contain the preconditions
     Collection<IPromiseDrop> trustedPromises = new ArrayList<IPromiseDrop>();
     Collection<IAnalysisResultDrop> trustedResults = new ArrayList<IAnalysisResultDrop>();
-    for (IProofDrop pd : result.getTrusted_and()) {
+    for (IProofDrop pd : result.getTrusted()) {
       if (pd instanceof IPromiseDrop)
         trustedPromises.add((IPromiseDrop) pd);
       if (pd instanceof IAnalysisResultDrop)
@@ -353,71 +352,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     // preconditionFolder.setImageFlags(flags);
     // preconditionFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
     // mutableContentSet.addChild(preconditionFolder);
-  }
-
-  /**
-   * Adds "or" trusts logic information about a result drop to the mutable set
-   * of viewer content items passed into this method.
-   * 
-   * @param mutableContentSet
-   *          A parent {@link ResultsViewContent} object to add children to
-   * @param result
-   *          the result to add "or" precondition logic about
-   */
-  private void add_or_Trusted(ResultsViewContent mutableContentSet, IResultDrop result) {
-    if (!result.hasOrLogic()) {
-      // no "or" logic on this result, thus bail out
-      return;
-    }
-
-    final Collection<String> or_TrustLabels = result.getTrusted_orKeys();
-    if (or_TrustLabels.size() < 2) {
-      /*
-       * Not really an "or" -- only one choice
-       */
-      // Add results and folders directly
-      for (String key : or_TrustLabels) {
-        for (IProofDrop proofDrop : result.getTrusted_or(key)) {
-          mutableContentSet.addChild(encloseDrop(proofDrop));
-        }
-      }
-    } else {
-      /*
-       * Create a folder to contain the choices
-       */
-      ResultsViewContent orContentFolder = makeContent(or_TrustLabels.size() + " possible prerequisite assertion choices:");
-      int flags = 0; // assume no adornments
-      flags |= (result.get_or_proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-      flags |= (result.get_or_provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-      orContentFolder.setImageFlags(flags);
-      orContentFolder.setBaseImageName(CommonImages.IMG_CHOICE);
-      mutableContentSet.addChild(orContentFolder);
-
-      // create a folder for each choice
-      for (String key : or_TrustLabels) {
-        // String key = (String) i.next();
-        ResultsViewContent choiceFolder = makeContent(key + ":");
-        orContentFolder.addChild(choiceFolder);
-
-        // set proof bits properly
-        boolean choiceConsistent = true;
-        boolean choiceUsesRedDot = false;
-        Collection<? extends IProofDrop> choiceSet = result.getTrusted_or(key);
-
-        // fill in the folder with choices
-        for (IProofDrop trustedDrop : choiceSet) {
-          // ProofDrop trustedDrop = (ProofDrop) j.next();
-          choiceFolder.addChild(encloseDrop(trustedDrop));
-          choiceConsistent &= trustedDrop.provedConsistent();
-          if (trustedDrop.proofUsesRedDot())
-            choiceUsesRedDot = true;
-        }
-        flags = (choiceUsesRedDot ? CoE_Constants.REDDOT : 0);
-        flags |= (choiceConsistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-        choiceFolder.setImageFlags(flags);
-        choiceFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
-      }
-    }
   }
 
   /**
@@ -498,7 +432,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         // children
         addSupportingInformation(result, resultDrop);
         addProposedPromises(result, resultDrop);
-        add_or_Trusted(result, resultDrop);
+       // add_or_Trusted(result, resultDrop);
         add_and_Trusted(result, resultDrop);
 
       } else if (drop instanceof IResultFolderDrop) {
@@ -516,7 +450,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         result.setBaseImageName(folderDrop.getFolderLogic() == IResultFolderDrop.FolderLogic.AND ? CommonImages.IMG_FOLDER
             : CommonImages.IMG_FOLDER_OR);
 
-        addDrops(result, folderDrop.getContents());
+        addDrops(result, folderDrop.getTrusted());
         addProposedPromises(result, folderDrop);
 
       } else if (drop instanceof IAnalysisHintDrop) {

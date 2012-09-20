@@ -484,7 +484,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           middleDrop.setConsistent();
           middleDrop.setMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           for (final PromiseDrop<? extends IAASTRootNode> ud : uniqueFields) {
-            middleDrop.addTrusted_and(ud);
+            middleDrop.addTrusted(ud);
           }       
           aggregatedUniqueFields = middleDrop;
 		    }
@@ -503,7 +503,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           middleDrop.setConsistent();
           middleDrop.setMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           for (final UniquePromiseDrop ud : myUniqueParams) {
-            middleDrop.addTrusted_and(ud);
+            middleDrop.addTrusted(ud);
           }       
           aggregatedUniqueParams = middleDrop;
         }
@@ -738,7 +738,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					// Add depended upon promises
 					for (final PromiseDrop<? extends IAASTRootNode> trustedPD : dependsOnPromises) {
 						if (trustedPD != null) {
-							callToCheck.addTrusted_and(trustedPD);
+							callToCheck.addTrusted(trustedPD);
 						}
 					}
 
@@ -748,7 +748,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					  callToCheck.addSupportingInformation(methodCall,
 							  Messages.UNIQUE_RETURN_VALUE,
 					          DebugUnparser.toString(methodCall));
-					  callToCheck.addTrusted_and(entry.getValue());
+					  callToCheck.addTrusted(entry.getValue());
 					}
 
           // Add depended on contructors with borrowed("this") or unique("return")
@@ -757,14 +757,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             callToCheck.addSupportingInformation(constructorCall,
             		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
-            callToCheck.addTrusted_and(entry.getValue());
+            callToCheck.addTrusted(entry.getValue());
           }
           for (Map.Entry<ResultDrop, UniquePromiseDrop> entry : pr.calledUniqueConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
             callToCheck.addSupportingInformation(constructorCall,
             		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
-            callToCheck.addTrusted_and(entry.getValue());
+            callToCheck.addTrusted(entry.getValue());
           }
 				}
 			}
@@ -1049,7 +1049,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     rd.setConsistent();
     rd.setMessage(num, args);
     for (final D pd : promises) {
-      rd.addTrusted_and(pd);
+      rd.addTrusted(pd);
     }
     return rd;
   }

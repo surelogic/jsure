@@ -44,7 +44,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       final ResultDrop result = createResult(name, true,
           Messages.IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
-      result.addTrusted_and(pDrop);
+      result.addTrusted(pDrop);
     }
   }
 
@@ -80,7 +80,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         result = createResult(
             varDecl, true, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
       }
-      result.addTrusted_and(vouchDrop);
+      result.addTrusted(vouchDrop);
     } else {
       /* Now we use a result folder because we are conjoining two results:
        * (1) the field is final
@@ -99,7 +99,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         // Get the @Vouch("final") annotation if there is one
         final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(varDecl);
         if (vouchFinal != null && vouchFinal.isFinal()) {
-          fDrop.addTrusted_and(vouchFinal);
+          fDrop.addTrusted(vouchFinal);
         }
       } else {
         createResultInFolder(
@@ -129,7 +129,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
           final ResultDrop iResult = createResultInFolder(
               folder, FieldDeclaration.getType(fieldDecl), true,
               Messages.FIELD_TYPE_IMMUTABLE, type.toSourceText());
-          iResult.addTrusted_and(tester.getPromises());
+          iResult.addTrusted(tester.getPromises());
         } else {
           /*
            * If the type is not immutable, we can check to see
@@ -150,7 +150,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
                   stillBad = false;
                   final ResultDrop iResult = createResultInFolder(
                       folder, initExpr, true, Messages.IMMUTABLE_IMPL); 
-                  iResult.addTrusted_and(implTypeIDrop);
+                  iResult.addTrusted(implTypeIDrop);
                 }
               }
             }

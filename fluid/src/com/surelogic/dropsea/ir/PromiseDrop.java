@@ -6,7 +6,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYS
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROMISE_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
@@ -579,7 +578,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       s.addAttribute(CATEGORY_ATTR, cat.getKey());
     s.addAttribute(ASSUMED, isAssumed());
     s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());
-    s.addAttribute(FROM_SRC, isFromSrc());
     s.addAttribute(VIRTUAL, isVirtual());
     s.addAttribute(TO_BE_CHECKED_BY_ANALYSIS, isIntendedToBeCheckedByAnalysis());
   }

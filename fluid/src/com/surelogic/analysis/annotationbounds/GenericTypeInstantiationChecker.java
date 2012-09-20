@@ -344,8 +344,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           Messages.ANNOTATION_BOUND_NOT_SATISFIED,
           jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
-      result.addTrusted_and(promises);
-      folder.add(result);
+      result.addTrusted(promises);
+      folder.addTrusted(result);
     }
   }
 }

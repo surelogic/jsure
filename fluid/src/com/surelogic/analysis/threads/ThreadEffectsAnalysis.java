@@ -261,7 +261,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       StartsPromiseDrop callp = ThreadEffectsRules.getStartsSpec(declaration);
       ResultDrop rd = new ResultDrop(node);
       rd.addCheckedPromise(pd);
-      rd.addTrusted_and(callp);
+      rd.addTrusted(callp);
       rd.setMessage(Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
       rd.setConsistent();
       success = true;

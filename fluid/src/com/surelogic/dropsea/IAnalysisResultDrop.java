@@ -2,6 +2,8 @@ package com.surelogic.dropsea;
 
 import java.util.Collection;
 
+import com.surelogic.NonNull;
+
 /**
  * The interface for all analysis results, or verification judgement, drops
  * within the sea, intended to allow multiple implementations.
@@ -26,6 +28,7 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
+  @NonNull
   Collection<? extends IPromiseDrop> getCheckedPromises();
 
   /**
@@ -35,4 +38,23 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
    *         {@code false} otherwise.
    */
   boolean isInResultFolder();
+
+  /**
+   * Checks if this drop has any prerequisite assertions at all. For a results
+   * folder, this method checks if any proof drops are in the folder.
+   * 
+   * @return {@code true} if this drop has one or more prerequisite assertions,
+   *         {@code false} if it has no prerequisite assertions.
+   */
+  boolean hasTrusted();
+
+  /**
+   * Returns the prerequisite assertions of this result. For a results folder,
+   * this method returns its contents. The returned set is a copy.
+   * 
+   * @return a new non-null (possibly empty) set of proof drops trusted by this
+   *         result, its prerequisite assertions.
+   */
+  @NonNull
+  Collection<? extends IProofDrop> getTrusted();
 }

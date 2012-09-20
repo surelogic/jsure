@@ -1,6 +1,5 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.AND_TRUSTED_PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
@@ -12,15 +11,9 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_LABEL;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SOURCE_REF;
@@ -230,10 +223,10 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
        * exception that we didn't handle the link.
        */
 
+      /*
+       * To a PROPOSED PROMISE
+       */
       if (PROPOSED_PROMISE.equals(refType)) {
-        /*
-         * To a PROPOSED PROMISE
-         */
         if (toE instanceof IRFreeProposedPromiseDrop) {
           final IRFreeProposedPromiseDrop toPPD = (IRFreeProposedPromiseDrop) toE;
           fromE.addProposal(toPPD);
@@ -241,11 +234,11 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         }
       }
 
+      /*
+       * PROOF DROP
+       */
       if (fromE instanceof IRFreeProofDrop) {
         final IRFreeProofDrop fromPD = (IRFreeProofDrop) fromE;
-        /*
-         * PROOF DROP
-         */
         if (toE instanceof IRFreeAnalysisHintDrop) {
           final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
           if (HINT_ABOUT.equals(refType)) {
@@ -269,11 +262,11 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         }
       }
 
+      /*
+       * PROMISE DROP
+       */
       if (fromE instanceof IRFreePromiseDrop) {
         final IRFreePromiseDrop fromPD = (IRFreePromiseDrop) fromE;
-        /*
-         * PROMISE DROP
-         */
         if (toE instanceof IRFreeAnalysisResultDrop) {
           final IRFreeAnalysisResultDrop toARD = (IRFreeAnalysisResultDrop) toE;
           if (CHECKED_BY_RESULTS.equals(refType)) {
@@ -300,55 +293,26 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         }
       }
 
+      /*
+       * ANALYSIS RESULT DROP
+       */
       if (fromE instanceof IRFreeAnalysisResultDrop) {
         final IRFreeAnalysisResultDrop fromARD = (IRFreeAnalysisResultDrop) fromE;
-        /*
-         * ANALYSIS RESULT DROP
-         */
-        if (toE instanceof IRFreePromiseDrop) {
-          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
-
-          if (CHECKED_PROMISE.equals(refType)) {
-            fromARD.addCheckedPromise(toPD);
-            return;
-          }
-        }
-      }
-
-      if (fromE instanceof IRFreeResultDrop) {
-        final IRFreeResultDrop fromRD = (IRFreeResultDrop) fromE;
-        /*
-         * RESULT DROP
-         */
         if (toE instanceof IRFreeProofDrop) {
           final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
-          if (AND_TRUSTED_PROOF_DROP.equals(refType) || TRUSTED_FOLDER.equals(refType) || TRUSTED_PROMISE.equals(refType)) {
-            fromRD.addTrusted_and(toPD);
+          if (TRUSTED_PROOF_DROP.equals(refType) || "and-trusted-proof-drop".equals(refType) || "trusted-folder".equals(refType)
+              || "trusted-promise".equals(refType) || "sub-folder".equals(refType) || "result".equals(refType)) {
+            fromARD.addTrusted(toPD);
             return;
-          } else if (OR_TRUSTED_PROOF_DROP.equals(refType) || OR_TRUSTED_PROMISE.equals(refType)) {
-            final String label = to.getAttribute(OR_LABEL);
-            fromRD.addTrusted_or(label, toPD);
-            return;
-          }
-        }
-      }
-
-      if (fromE instanceof IRFreeResultFolderDrop) {
-        final IRFreeResultFolderDrop fromRFD = (IRFreeResultFolderDrop) fromE;
-        /*
-         * RESULT FOLDER DROP
-         */
-        if (toE instanceof IRFreeResultDrop) {
-          final IRFreeResultDrop toRD = (IRFreeResultDrop) toE;
-          if (RESULT.equals(refType)) {
-            fromRFD.addResult(toRD);
+          } else if ("or-trusted-proof-drop".equals(refType) || "or-trusted-promise".equals(refType)) {
+            // Drop on the floor -- we don't support this in old scans
             return;
           }
         }
-        if (toE instanceof IRFreeResultFolderDrop) {
-          final IRFreeResultFolderDrop toRFD = (IRFreeResultFolderDrop) toE;
-          if (SUB_FOLDER.equals(refType)) {
-            fromRFD.addSubFolder(toRFD);
+        if (toE instanceof IRFreePromiseDrop) {
+          final IRFreePromiseDrop toPD = (IRFreePromiseDrop) toE;
+          if (CHECKED_PROMISE.equals(refType)) {
+            fromARD.addCheckedPromise(toPD);
             return;
           }
         }
@@ -366,7 +330,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       /*
        * The reference not handled if we got to here.
        */
-      throw new IllegalStateException(I18N.err(248, refType, fromLabel, to.getId()));
+      throw new IllegalStateException(I18N.err(248, refType, fromLabel, fromE, to.getId(), toE));
     }
   }
 }

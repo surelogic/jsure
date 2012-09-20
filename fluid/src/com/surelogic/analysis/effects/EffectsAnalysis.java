@@ -540,7 +540,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final RegionEffectsPromiseDrop cutpoint =
           MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
       if (cutpoint != null) {
-        resultDrop.addTrusted_and(cutpoint);
+        resultDrop.addTrusted(cutpoint);
       }
     }
     
@@ -568,7 +568,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final RegionEffectsPromiseDrop cutpoint =
           MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
       if (cutpoint != null) {
-        resultDrop.addTrusted_and(cutpoint);
+        resultDrop.addTrusted(cutpoint);
         
         final IRNode formal = e.getFormal();
         final Operator formalOp = JJNode.tree.getOperator(formal);
@@ -596,7 +596,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       final RegionEffectsPromiseDrop cutpoint =
           MethodEffectsRules.getRegionEffectsDrop(e.getMethod());
       if (cutpoint != null) {
-        resultDrop.addTrusted_and(cutpoint);
+        resultDrop.addTrusted(cutpoint);
         final String qString = JavaNames.getFullTypeName(
             QualifiedReceiverDeclaration.getType(
                 binder, e.getQualifiedReceiver())) + " .this";

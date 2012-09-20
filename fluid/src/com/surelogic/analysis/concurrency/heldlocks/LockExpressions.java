@@ -16,6 +16,7 @@ import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
@@ -122,16 +123,28 @@ final class LockExpressions {
     }
     
     public void addSingleThreadedEvidence(final ResultDrop result) {
+      /*
+       * TODO Aaron needs to fix this up to look reasonable
+       */
+     ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
+     result.addTrusted(f);
+     f.setMessage(12, "OR FOLDER (needs a better message)");
       if (isUniqueReturn) {
-        result.addTrusted_or(Messages.UNIQUE_RETURN, uDrop);
+       // result.addTrusted_or(Messages.UNIQUE_RETURN, uDrop);
+        f.addTrusted(uDrop);
       }
       if (isBorrowedThis) {
-        result.addTrusted_or(Messages.BORROWED_RECEIVER, bDrop);
+      //  result.addTrusted_or(Messages.BORROWED_RECEIVER, bDrop);
+        f.addTrusted(bDrop);
       }
       if (isEffects) {
         // Note: "by effects" has to be the same string to "and" the "or"
-        result.addTrusted_or(Messages.DECLARED_EFFECTS, eDrop);
-        result.addTrusted_or(Messages.DECLARED_EFFECTS, teDrop);
+        ResultFolderDrop ef = ResultFolderDrop.newAndFolder(result.getNode());
+        ef.setMessage(12, Messages.DECLARED_EFFECTS);
+        ef.addTrusted(eDrop);
+        ef.addTrusted(teDrop);
+//        result.addTrusted_or(Messages.DECLARED_EFFECTS, eDrop);
+//        result.addTrusted_or(Messages.DECLARED_EFFECTS, teDrop);
       }
     }
   }

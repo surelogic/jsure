@@ -2,12 +2,14 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
@@ -102,6 +104,65 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  /**
+   * The set of proof drops trusted by this result, its prerequisite assertions.
+   */
+  @UniqueInRegion("DropState")
+  private final HashSet<ProofDrop> f_trusts = new HashSet<ProofDrop>(0);
+
+  /**
+   * Adds a proof drop to the set of drops this result uses as a prerequisite
+   * assertion, or <i>trusts</i>. For a result folder, this method adds a proof
+   * drop into the folder.
+   * 
+   * @param proofDrop
+   *          the proof drop being trusted by this result.
+   */
+  public void addTrusted(ProofDrop proofDrop) {
+    synchronized (f_seaLock) {
+      f_trusts.add(proofDrop);
+      proofDrop.addDependent(this);
+    }
+  }
+
+  /**
+   * Adds a set of proof drop to the set of proof drops this result uses as a
+   * prerequisite assertion, or <i>trusts</i>. For a result folder, this method
+   * adds the set of proof drops into the folder.
+   * 
+   * @param proofDrops
+   *          the proof drops being trusted by this result.
+   */
+  public void addTrusted(Collection<? extends ProofDrop> proofDrops) {
+    if (proofDrops == null)
+      return;
+
+    synchronized (f_seaLock) {
+      for (ProofDrop pd : proofDrops) {
+        addTrusted(pd);
+      }
+    }
+  }
+
+  @NonNull
+  public HashSet<ProofDrop> getTrusted() {
+    synchronized (f_seaLock) {
+      return new HashSet<ProofDrop>(f_trusts);
+    }
+  }
+
+  final Set<ProofDrop> getTrustedReference() {
+    synchronized (f_seaLock) {
+      return f_trusts;
+    }
+  }
+
+  public boolean hasTrusted() {
+    synchronized (f_seaLock) {
+      return !f_trusts.isEmpty();
+    }
+  }
+
   /*
    * Consistency proof methods
    */
@@ -132,10 +193,12 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    */
 
   @Override
-  @MustInvokeOnOverride
-  public void preprocessRefs(SeaSnapshot s) {
+  public final void preprocessRefs(SeaSnapshot s) {
     for (Drop c : getCheckedPromisesReference()) {
       s.snapshotDrop(c);
+    }
+    for (Drop t : getTrustedReference()) {
+      s.snapshotDrop(t);
     }
   }
 
@@ -147,11 +210,13 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   @Override
-  @MustInvokeOnOverride
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
+  public final void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
     for (Drop c : getCheckedPromisesReference()) {
       s.refDrop(db, CHECKED_PROMISE, c);
+    }
+    for (Drop t : getTrustedReference()) {
+      s.refDrop(db, TRUSTED_PROOF_DROP, t);
     }
   }
 }

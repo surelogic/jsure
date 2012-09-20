@@ -1,23 +1,13 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FOLDER_LOGIC_OPERATOR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_FOLDER_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
-import com.surelogic.UniqueInRegion;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IResultFolderDrop;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -57,12 +47,6 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     return new ResultFolderDrop(node, FolderLogic.OR);
   }
 
-  /**
-   * The set of promise drops being checked, or established, by this result.
-   */
-  @UniqueInRegion("DropState")
-  private final Set<AnalysisResultDrop> f_contains = new HashSet<AnalysisResultDrop>();
-
   @NonNull
   private final FolderLogic f_operator;
 
@@ -74,52 +58,9 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     f_operator = operator == null ? FolderLogic.AND : operator;
   }
 
-  /**
-   * Adds an analysis result into this folder. The result added could possibly
-   * be another folder&mdash;nesting of folders is allowed.
-   * 
-   * @param result
-   *          an analysis result.
-   */
-  public void add(AnalysisResultDrop result) {
-    if (result == null)
-      return;
-    synchronized (f_seaLock) {
-      f_contains.add(result);
-      this.addDependent(result);
-    }
-  }
-
   @NonNull
   public FolderLogic getFolderLogic() {
     return f_operator;
-  }
-
-  @NonNull
-  public List<ResultDrop> getAnalysisResults() {
-    final List<ResultDrop> result;
-    synchronized (f_seaLock) {
-      result = Sea.filterDropsOfType(ResultDrop.class, f_contains);
-    }
-    return result;
-  }
-
-  @NonNull
-  public List<ResultFolderDrop> getSubFolders() {
-    final List<ResultFolderDrop> result;
-    synchronized (f_seaLock) {
-      result = Sea.filterDropsOfType(ResultFolderDrop.class, f_contains);
-    }
-    return result;
-  }
-
-  @NonNull
-  public List<AnalysisResultDrop> getContents() {
-    final List<AnalysisResultDrop> result = new ArrayList<AnalysisResultDrop>();
-    synchronized (f_seaLock) {
-      result.addAll(f_contains);
-    }
-    return result;
   }
 
   /*
@@ -141,7 +82,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       /*
        * CONJUNCTION (AND)
        */
-      for (AnalysisResultDrop result : getContents()) {
+      for (ProofDrop result : getTrusted()) {
         // all must be consistent for this folder to be consistent
         setProvedConsistent(provedConsistent() & result.provedConsistent());
         // any red dot means this folder depends upon a red dot
@@ -158,7 +99,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       boolean overall_or_UsesRedDot = false;
       boolean overall_or_derivedFromSource = false;
 
-      for (AnalysisResultDrop result : getContents()) {
+      for (ProofDrop result : getTrusted()) {
         boolean choiceResult = result.provedConsistent();
         boolean choiceUsesRedDot = result.proofUsesRedDot();
         // if anything is derived from source we will be as well
@@ -209,29 +150,9 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   }
 
   @Override
-  public void preprocessRefs(SeaSnapshot s) {
-    super.preprocessRefs(s);
-    for (Drop t : getContents()) {
-      s.snapshotDrop(t);
-    }
-  }
-
-  @Override
   @MustInvokeOnOverride
   public void snapshotAttrs(Builder s) {
     super.snapshotAttrs(s);
-    s.addAttribute(ENCLOSED_IN_FOLDER, isInResultFolder());
     s.addAttribute(FOLDER_LOGIC_OPERATOR, getFolderLogic().toString());
-  }
-
-  @Override
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
-    super.snapshotRefs(s, db);
-    for (Drop t : getContents()) {
-      if (t instanceof ResultFolderDrop)
-        s.refDrop(db, SUB_FOLDER, t);
-      else
-        s.refDrop(db, RESULT, t);
-    }
   }
 }
