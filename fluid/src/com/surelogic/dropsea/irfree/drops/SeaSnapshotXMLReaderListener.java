@@ -139,9 +139,6 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       return new JavaDeclInfo(name, a);
 
     final SeaEntity entity = new SeaEntity(name, a);
-    if (!name.equals(entity.getName())) {
-      System.out.print("*********************************************************(#%)*$#)(*$#)(#* bnames sont' math");
-    }
     final String type = Entity.getValue(a, FULL_TYPE_ATTR);
     if (type != null) {
       final Class<?> thisType = DropTypeUtility.findType(type);
