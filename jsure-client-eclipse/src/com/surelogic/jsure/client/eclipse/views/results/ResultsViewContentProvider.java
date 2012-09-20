@@ -550,7 +550,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         boolean dontCategorize = false;
         if (info != null) {
           if (info instanceof IPromiseDrop) {
-            dontCategorize = !atRoot && !(info.instanceOf(UiPlaceInASubFolder.class));
+            dontCategorize = !atRoot && !(info.instanceOfIRDropSea(UiPlaceInASubFolder.class));
           }
 //          else if (info instanceof IAnalysisResultDrop) {
 //            final IAnalysisResultDrop r = (IAnalysisResultDrop) info;
@@ -997,7 +997,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   private static boolean showAtTopLevel(IPromiseDrop d) {
     if (d == null)
       return false;
-    if (d.instanceOf(UiShowAtTopLevel.class))
+    if (d.instanceOfIRDropSea(UiShowAtTopLevel.class))
       return true;
     /*
      * If we have a deponent promise that is not a scoped promise we do not want

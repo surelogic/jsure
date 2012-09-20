@@ -86,7 +86,7 @@ public final class FilterAnnotation extends Filter {
    */
   private static String getAnnotationName(IProofDrop promiseDropInfo) {
     final String suffix = "PromiseDrop";
-    if (!promiseDropInfo.instanceOf(PromiseDrop.class))
+    if (!promiseDropInfo.instanceOfIRDropSea(PromiseDrop.class))
       return null;
     final String result = promiseDropInfo.getIRDropSeaClass().getSimpleName();
     if (result == null)

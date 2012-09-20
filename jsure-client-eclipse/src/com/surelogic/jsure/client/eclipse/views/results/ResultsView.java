@@ -304,7 +304,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
            * Deal with the case where a single proposed promise drop is
            * selected.
            */
-          if (c.getDropInfo().instanceOf(ProposedPromiseDrop.class)) {
+          if (c.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
             final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
             if (pp != null) {
               proposals.add(pp);
@@ -316,7 +316,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
              */
             if (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
               for (ResultsViewContent content : c.getChildrenAsCollection()) {
-                if (content.getDropInfo().instanceOf(ProposedPromiseDrop.class)) {
+                if (content.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
                   final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
                   if (pp != null) {
                     proposals.add(pp);
@@ -387,8 +387,8 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
         } else if (c2IsNonProof && !c1IsNonProof) {
           result = -1;
         } else {
-          final boolean c1isPromise = c1.getDropInfo() != null && c1.getDropInfo().instanceOf(PromiseDrop.class);
-          final boolean c2isPromise = c2.getDropInfo() != null && c2.getDropInfo().instanceOf(PromiseDrop.class);
+          final boolean c1isPromise = c1.getDropInfo() != null && c1.getDropInfo().instanceOfIRDropSea(PromiseDrop.class);
+          final boolean c2isPromise = c2.getDropInfo() != null && c2.getDropInfo().instanceOfIRDropSea(PromiseDrop.class);
           // Separating promise drops from other proof drops
           if (c1isPromise && !c2isPromise) {
             result = 1;
@@ -524,7 +524,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
         final ResultsViewContent c = (ResultsViewContent) first;
         final IDrop dropInfo = c.getDropInfo();
         if (dropInfo != null) {
-          if (dropInfo.instanceOf(ProposedPromiseDrop.class)) {
+          if (dropInfo.instanceOfIRDropSea(ProposedPromiseDrop.class)) {
             manager.add(f_addPromiseToCode);
             f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
             manager.add(new Separator());

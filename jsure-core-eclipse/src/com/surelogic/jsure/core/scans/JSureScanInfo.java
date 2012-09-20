@@ -148,7 +148,7 @@ public class JSureScanInfo {
     if (!info.isEmpty()) {
       final Set<T> result = new HashSet<T>();
       for (IDrop i : info) {
-        if (i.instanceOf(dropType)) {
+        if (i.instanceOfIRDropSea(dropType)) {
           @SuppressWarnings("unchecked")
           final T i1 = (T) i;
           result.add(i1);

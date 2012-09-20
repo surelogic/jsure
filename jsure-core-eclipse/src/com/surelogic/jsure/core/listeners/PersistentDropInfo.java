@@ -109,7 +109,7 @@ public class PersistentDropInfo {
 
   public synchronized boolean dropsExist(Class<? extends Drop> type) {
     for (IDrop i : dropInfo) {
-      if (i.instanceOf(type)) {
+      if (i.instanceOfIRDropSea(type)) {
         return true;
       }
     }
@@ -121,7 +121,7 @@ public class PersistentDropInfo {
     if (!dropInfo.isEmpty()) {
       final Set<T> result = new HashSet<T>();
       for (IDrop i : dropInfo) {
-        if (i.instanceOf(dropType)) {
+        if (i.instanceOfIRDropSea(dropType)) {
           result.add((T) i);
         }
       }

@@ -401,7 +401,7 @@ public final class Selection implements
 		 */
 		for (Iterator<IProofDrop> i = result.iterator(); i.hasNext();) {
 			IProofDrop drop = i.next();
-			if (!drop.instanceOf(ResultDrop.class)) {
+			if (!drop.instanceOfIRDropSea(ResultDrop.class)) {
 				if (!drop.isFromSrc()) {
 					i.remove();
 				}

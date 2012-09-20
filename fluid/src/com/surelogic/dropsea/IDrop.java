@@ -7,7 +7,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.DropPredicate;
+import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -21,25 +21,32 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 public interface IDrop {
 
   /**
-   * Gets the IR drop-sea type, descended from {@link Drop}, even if this is the
-   * IR-free drop-sea used for saving and restoring.
+   * Gets the IR drop-sea type, descended from {@link Drop}, even if this is an
+   * IR-free drop, descended from {@link IRFreeDrop}.
+   * <p>
+   * In the IR drop-sea this method simply returns <tt>getClass()</tt>. In the
+   * IR-free drop-sea this method returns the {@link Class} saved, by name, in
+   * the sea snapshot file that corresponds to the IR drop-sea drop type of this
+   * drop before it was persisted.
    * 
-   * @return the IR drop-sea type, descended from {@link Drop}
+   * @return the IR drop-sea type, descended from {@link Drop}.
    */
   @NonNull
   Class<?> getIRDropSeaClass();
 
   /**
    * Checks if this drop, in the IR drop-sea, is an instance of the passed
-   * class. Typically this replaces code like: <i>receiver<i>
-   * <tt>instanceof</tt> <i>type</i>.
+   * class. Typically this replaces code like: <i>receiver</i>
+   * <tt>instanceof</tt> <i>type</i>. This allows type checks in the IR-free
+   * drop-sea used for saving and restoring.
    * <p>
-   * This allows type checks in the IR-free drop-sea used for saving and
-   * restoring. In particular this call should be used in {@link DropPredicate}
-   * instances.
+   * If you are comparing an instance of the IR drop-sea using this method the
+   * code is a shortcut for <tt>type.isInstance(this)</tt>. If you are comparing
+   * an instance of the IR-free drop-sea this method is a shortcut for
+   * <tt>type.isAssignableFrom({@link #getIRDropSeaClass()})</tt>
    * 
-   * @param a
-   *          type in the IR drop-sea, descended from {@link Drop}.
+   * @param type
+   *          in the IR drop-sea, descended from {@link Drop}.
    * @return {@code true} if this drop, in the IR drop-sea, is an instance of
    *         the passed type, {@code false} otherwise.
    */

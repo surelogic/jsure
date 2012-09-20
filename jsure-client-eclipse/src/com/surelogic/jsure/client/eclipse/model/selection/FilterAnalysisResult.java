@@ -101,7 +101,7 @@ public final class FilterAnalysisResult extends Filter {
 	}
 
 	private String getFilterValueOrNull(IProofDrop d) {
-		if (d.instanceOf(ResultDrop.class)) {
+		if (d.instanceOfIRDropSea(ResultDrop.class)) {
 			IResultDrop rd = (IResultDrop) d; 
 			final String value;
 			if (rd.isVouched())

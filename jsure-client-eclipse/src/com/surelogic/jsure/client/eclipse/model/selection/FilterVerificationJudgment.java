@@ -117,7 +117,7 @@ public final class FilterVerificationJudgment extends Filter {
 	}
 
 	private String getFilterValueOrNull(IProofDrop d) {
-		if (d.instanceOf(PromiseDrop.class)) {
+		if (d.instanceOfIRDropSea(PromiseDrop.class)) {
 			final boolean reddot = d.proofUsesRedDot();
 			final String value;
 			if (d.provedConsistent())
