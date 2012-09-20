@@ -47,6 +47,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
+import com.surelogic.dropsea.irfree.drops.DropFactory;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
@@ -328,7 +329,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return d;
   }
 
-  public static Diff diff(final Sea sea, File location) throws Exception {
+  public static ISeaDiff diff(final Sea sea, File location) throws Exception {
     List<Drop> drops = sea.getDrops();
     return diff(drops, location, IDropFilter.nullFilter);
   }
@@ -345,37 +346,44 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return drops;
   }
 
-  public static Diff diff(Collection<? extends IDrop> drops, File location, IDropFilter f) throws Exception {
+  public static ISeaDiff diff(Collection<? extends IDrop> drops, File location, IDropFilter f) throws Exception {
     // Load up current contents
     final Listener l = read(location);
 
     final List<Entity> oldDrops = filter(f, l);
-    final SeaSummary s = new SeaSummary(null);
-    final List<Entity> newDrops = new ArrayList<Entity>();
-    for (IDrop d : drops) {
-      IDrop id = checkIfReady(d);
-      if (id != null && f.showResource(id)) {
-        Builder b = s.summarizeDrop(id);
-        /*
-         * if (id.getClass().equals(PromisePromiseDrop.class) &&
-         * id.getMessage().contains("InRegion(TotalRegion)")) {
-         * System.out.println("Found scoped promise: "+id.getMessage()); }
-         */
-        /*
-         * if (id.getMessage().contains(
-         * "ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
-         * System.out.println("Found proposal"); }
-         */
-        Entity e = b.build();
-        newDrops.add(e);
-      } else {
-        // System.out.println("Ignoring "+d.getMessage());
-      }
+    ISeaDiff diff;
+    if (true) {
+    	List<IDrop> oracle = convertToSnapshot(oldDrops);
+    	diff = SeaSnapshotDiff.diff(f, oracle, drops);
+    } else {
+    	final SeaSummary s = new SeaSummary(null);
+    	final List<Entity> newDrops = new ArrayList<Entity>();
+    	for (IDrop d : drops) {
+    		IDrop id = checkIfReady(d);
+    		if (id != null && f.showResource(id)) {
+    			Builder b = s.summarizeDrop(id);
+    			/*
+    			 * if (id.getClass().equals(PromisePromiseDrop.class) &&
+    			 * id.getMessage().contains("InRegion(TotalRegion)")) {
+    			 * System.out.println("Found scoped promise: "+id.getMessage()); }
+    			 */
+    			/*
+    			 * if (id.getMessage().contains(
+    			 * "ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
+    			 * System.out.println("Found proposal"); }
+    			 */
+    			Entity e = b.build();
+    			newDrops.add(e);
+    		} else {
+    			// System.out.println("Ignoring "+d.getMessage());
+    		}
+    	}
+    	// Collections.sort(newDrops, EntityComparator.prototype);
+    	Diff d = new Diff(oldDrops, newDrops);
+    	d.diff();
+    	diff = d;
     }
-    // Collections.sort(newDrops, EntityComparator.prototype);
-    Diff d = new Diff(oldDrops, newDrops);
-    d.diff();
-    return d;
+    return diff;
   }
 
   static class Listener implements IXMLResultListener {
@@ -458,7 +466,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
   }
 
-  public static class Diff {
+  public static class Diff implements ISeaDiff {
     final List<Entity> oldDrops;
     final List<Entity> newDrops;
     final Categories categories = new Categories();
@@ -1028,4 +1036,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       return match(n, o, HASH_ATTR) && false;
     }
   };
+  
+  static List<IDrop> convertToSnapshot(List<Entity> l) {
+	  List<IDrop> drops = new ArrayList<IDrop>(l.size());
+	  for(Entity e : l) {
+		  drops.add(DropFactory.create(e));
+	  }
+	  return drops;
+  }
 }

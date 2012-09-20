@@ -36,6 +36,7 @@ import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.javac.Projects;
@@ -611,7 +612,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			return resultsOk;
 		}
 		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
-		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
+		ISeaDiff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)

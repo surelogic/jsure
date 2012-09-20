@@ -1,5 +1,12 @@
 package com.surelogic.dropsea.irfree;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.*;
 
@@ -7,14 +14,14 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.dropsea.*;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.util.CPair;
 
 /**
  * Diff code for IRFreeDrops
  * 
  * @author Edwin
  */
-public class SeaSnapshotDiff<K> {
+public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	private final Map<K, DiffCategory<K>> categories = new HashMap<K, DiffCategory<K>>();
 	private IDropFilter filter;
 	private IDropSeparator<K> separator;
@@ -50,10 +57,52 @@ public class SeaSnapshotDiff<K> {
 		matcher = c;
 	}
 
+	public boolean isEmpty() {
+		if (categories.isEmpty()) {
+			return true;
+		}
+		for (DiffCategory<K> c : categories.values()) {
+			if (!c.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static final DiffCategory[] noCategories = new DiffCategory[0];
+	
+	@SuppressWarnings("unchecked")
+	public DiffCategory<K>[] getCategories() {
+		if (categories.isEmpty()) {
+			return noCategories;
+		}
+		List<DiffCategory<K>> l = new ArrayList<DiffCategory<K>>();
+		for (DiffCategory<K> c : categories.values()) {
+			if (c.isEmpty()) {
+				continue;
+			}
+			l.add(c);
+		}
+		Collections.sort(l);
+		return l.toArray(new DiffCategory[l.size()]);
+	}
+	
+	public void write(File file) throws IOException {
+		OutputStream os = new FileOutputStream(file);
+		Writer w = new OutputStreamWriter(os, "UTF-8");
+		PrintWriter pw = new PrintWriter(w);
+		for (DiffCategory<K> c : categories.values()) {
+			c.write(pw);
+		}
+		pw.flush();
+		pw.close();
+	}
+	
 	/**
 	 * @return true if non-empty
 	 */
-	public boolean build(List<IDrop> old, List<IDrop> newer) {
+	public boolean build(Collection<? extends IDrop> old, Collection<? extends IDrop> newer) {
 		if (!categories.isEmpty()) {
 			throw new IllegalStateException("Already built");
 		}
@@ -79,7 +128,7 @@ public class SeaSnapshotDiff<K> {
 		return true;
 	}
 
-	private static List<IDrop> filter(IDropFilter f, List<IDrop> l) {
+	private static List<IDrop> filter(IDropFilter f, Collection<? extends IDrop> l) {
 	    final List<IDrop> drops = new ArrayList<IDrop>();
 	    // Collections.sort(oldDrops, EntityComparator.prototype);
 	    for (IDrop d : l) {	    	    	
@@ -96,7 +145,7 @@ public class SeaSnapshotDiff<K> {
 	    return drops;
 	}
 	
-	private void separateIntoCategories(List<IDrop> old, List<IDrop> newer) {
+	private void separateIntoCategories(Collection<? extends IDrop> old, Collection<? extends IDrop> newer) {
 		for(IDrop d : old) {
 			DiffCategory<K> category = getOrCreateCategory(d);
 			if (category != null) {
@@ -124,12 +173,12 @@ public class SeaSnapshotDiff<K> {
 		return c;
 	}
 			
-	public static SeaSnapshotDiff<Pair<String,String>> diff(IDropFilter f, List<IDrop> old, List<IDrop> newer) {
-		SeaSnapshotDiff<Pair<String,String>> rv = new SeaSnapshotDiff<Pair<String,String>>();
+	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, Collection<IDrop> old, Collection<? extends IDrop> newer) {
+		SeaSnapshotDiff<CPair<String,String>> rv = new SeaSnapshotDiff<CPair<String,String>>();
 		rv.setFilter(f);
-		rv.setSeparator(new IDropSeparator<Pair<String,String>>() {
+		rv.setSeparator(new IDropSeparator<CPair<String,String>>() {
 			@Override
-			public Pair<String, String> makeKey(IDrop d) {
+			public CPair<String, String> makeKey(IDrop d) {
 				final Class<?> type = d.getIRDropSeaClass();
 			    if (type == null) {
 			    	return null;
@@ -145,7 +194,7 @@ public class SeaSnapshotDiff<K> {
 			    		f = FileUtility.normalizePath(f);
 			    	}
 			    }
-			    return Pair.getInstance(f, type.getName());
+			    return new CPair<String,String>(f, type.getName());
 			}
 		});
 		rv.setMatcher(new DropMatcher("Exact  ", "Hashed ", "Hashed2", "Results") {

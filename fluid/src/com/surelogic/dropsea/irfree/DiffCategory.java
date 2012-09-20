@@ -9,7 +9,7 @@ import com.surelogic.dropsea.IProofDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-public final class DiffCategory<K> implements IViewable {
+public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
 	final K key;
 	final Set<DiffNode> old = new HashSet<DiffNode>();
 	final Set<DiffNode> newer = new HashSet<DiffNode>();
@@ -27,13 +27,13 @@ public final class DiffCategory<K> implements IViewable {
 		newer.add(new DiffNode(d));
 	}
 
-	public void addAllOld(Collection<IDrop> o) {
+	public void addAllOld(Collection<? extends IDrop> o) {
 		for(IDrop d : o) {
 			addOld(d);
 		}
 	}
 
-	public void addAllNew(Collection<IDrop> n) {
+	public void addAllNew(Collection<? extends IDrop> n) {
 		for(IDrop d : n) {
 			addNew(d);
 		}
@@ -81,6 +81,10 @@ public final class DiffCategory<K> implements IViewable {
 		return key.toString(); // FIX
 	}
 
+	public int compareTo(DiffCategory<K> other) {
+		return key.compareTo(other.key);
+	}
+	
 	public void diff(PrintStream out, DropMatcher m) {
 		String title = "Category: " + getText();
 		for(int i=0; i<m.numPasses(); i++) {

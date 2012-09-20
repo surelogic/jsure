@@ -5,6 +5,7 @@ package com.surelogic.jsure.core.scripting;
 
 import java.io.*;
 
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -49,7 +50,7 @@ public class CompareResults extends AbstractCommand {
 		
 		
 		System.out.println("Using oracle: "+oracle);
-		final SeaSummary.Diff diff = SeaSummary.diff(PersistentDropInfo.getInstance().getRawInfo(), 
+		final ISeaDiff diff = SeaSummary.diff(PersistentDropInfo.getInstance().getRawInfo(), 
 				oracle, ModelingProblemFilterUtility.defaultFilter);
 
 		final File diffs = resolveFile(context, contents[3], true);	

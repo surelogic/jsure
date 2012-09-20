@@ -16,6 +16,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.dropsea.irfree.SeaSummary.*;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
@@ -33,7 +34,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 		nothingToDiff[0] = new Category(null, "Nothing to diff");
 		nothingToShow[0] = new Category(null, "No differences");
 	}
-	private Diff diff;
+	private ISeaDiff diff;
 
 	@Override
 	public String build() {
