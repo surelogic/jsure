@@ -20,6 +20,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.part.PageBook;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
@@ -114,21 +116,22 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   /**
-   * Map used to ensure building a model for the viewer doesn't go into infinite
-   * recursion.
+   * Map from a <i>drop</i> to a <i>viewer content object</i> used to ensure
+   * building a model for the viewer doesn't go into infinite recursion.
    */
   private final Map<IDrop, ResultsViewContent> m_contentCache = new HashMap<IDrop, ResultsViewContent>();
 
-  private ResultsViewContent putInContentCache(IDrop key, ResultsViewContent value) {
+  private ResultsViewContent putInContentCache(IDrop key, @NonNull ResultsViewContent value) {
+    if (key == null)
+      throw new IllegalArgumentException(I18N.err(44, " key"));
+    if (value == null)
+      throw new IllegalArgumentException(I18N.err(44, "value"));
     return m_contentCache.put(key, value);
   }
 
-  private ResultsViewContent getFromContentCache(IDrop key) {
+  private @Nullable
+  ResultsViewContent getFromContentCache(IDrop key) {
     return m_contentCache.get(key);
-  }
-
-  private boolean existsInCache(IDrop key) {
-    return m_contentCache.containsKey(key);
   }
 
   /**
@@ -241,20 +244,18 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     if (result != null) {
       // in cache
       return result;
-    } else if (existsInCache(drop)) {
-      return null;
     } else {
+
+      // create & add to cache
+      // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
+      result = makeContent(drop.getMessage(), drop);
+      putInContentCache(drop, result); // to avoid infinite recursion
 
       if (drop instanceof IPromiseDrop) {
         /*
          * PROMISE DROP
          */
         final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
-
-        // create & add to cache
-        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
-        result = makeContent(drop.getMessage(), drop);
-        putInContentCache(drop, result); // to avoid infinite recursion
 
         // image
         int flags = 0; // assume no adornments
@@ -281,11 +282,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          */
         final IResultDrop resultDrop = (IResultDrop) drop;
 
-        // create & add to cache
-        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
-        result = makeContent(drop.getMessage(), drop);
-        putInContentCache(drop, result); // to avoid infinite recursion
-
         // image
         int flags = 0; // assume no adornments
         if (resultDrop.hasTrusted()) {
@@ -308,14 +304,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          * RESULT FOLDER DROP
          */
         final IResultFolderDrop folderDrop = (IResultFolderDrop) drop;
-        if (folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.OR) {
-          // TODO
-        }
-
-        // create & add to cache
-        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
-        result = makeContent(drop.getMessage(), drop);
-        putInContentCache(drop, result); // to avoid infinite recursion
 
         // image
         int flags = 0; // assume no adornments
@@ -330,11 +318,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, folderDrop);
 
       } else if (drop instanceof IAnalysisHintDrop) {
-        final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-
         /*
          * INFO DROP
          */
+        final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
 
         // image
         result.setBaseImageName(infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
