@@ -1,9 +1,6 @@
 package com.surelogic.jsure.views.debug.resultsView.actions;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IFile;
@@ -18,13 +15,12 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-
-import edu.cmu.cs.fluid.ide.IDE;
 
 public class ExportToSnapshot implements IViewActionDelegate {
   //private IViewPart currentView = null;
@@ -75,15 +71,7 @@ public class ExportToSnapshot implements IViewActionDelegate {
       return;
     }
    
-    //final String oracleName = resultsBelongTo.getName() + SeaSnapshot.SUFFIX;
-    Date date = new Date();
-    DateFormat format = new SimpleDateFormat("yyyyMMdd");
-    final String oracleName;
-    if (IDE.useJavac) {
-    	oracleName = "oracleJavac"+format.format(date)+SeaSnapshot.SUFFIX;
-    } else {
-    	oracleName = "oracle"+format.format(date)+SeaSnapshot.SUFFIX;
-    }
+    final String oracleName = RegressionUtility.computeOracleName();
     final IFile oracleFile = resultsBelongTo.getFile(oracleName);
     
     if (oracleFile.exists()) {
@@ -96,13 +84,13 @@ public class ExportToSnapshot implements IViewActionDelegate {
     }
     
     try {
-    	/*
-		SeaSummary.summarize(resultsBelongTo.getName(), Sea.getDefault(), 
-				             oracleFile.getLocation().toFile());
-				             */
-    	SeaSummary.summarize(resultsBelongTo.getName(), 
-    			scan.getDropInfo(), 
-    			oracleFile.getLocation().toFile());
+    	if (RegressionUtility.useSnapshotOracles) {
+    		FileUtility.copy(scan.getJSureRun().getResultsFile(), oracleFile.getLocation().toFile());
+    	} else {
+    		SeaSummary.summarize(resultsBelongTo.getName(), 
+    				scan.getDropInfo(), 
+    				oracleFile.getLocation().toFile());
+    	}
 	} catch (IOException e1) {
 		e1.printStackTrace();
 	}

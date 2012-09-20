@@ -173,6 +173,12 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		return c;
 	}
 			
+	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, File old, Collection<? extends IDrop> newer) 
+	throws Exception {
+		Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
+		return diff(f, oldResults, newer);
+	}
+	
 	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, Collection<IDrop> old, Collection<? extends IDrop> newer) {
 		SeaSnapshotDiff<CPair<String,String>> rv = new SeaSnapshotDiff<CPair<String,String>>();
 		rv.setFilter(f);

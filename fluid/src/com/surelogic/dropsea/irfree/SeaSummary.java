@@ -50,20 +50,17 @@ import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
 import com.surelogic.dropsea.irfree.drops.DropFactory;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ISupportingInformation;
-import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -82,59 +79,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
   private SeaSummary(File location) throws IOException {
     super(location);
-  }
-
-  public static File findSummary(String projectPath) {
-    String xmlOracle = null;
-    File xmlLocation = null;
-    if (IDE.useJavac) {
-      xmlOracle = RegressionUtility.getOracleName(projectPath, RegressionUtility.javacOracleFilter, "oracleJavac"
-          + SeaSnapshot.SUFFIX);
-      xmlLocation = new File(xmlOracle);
-      System.out.println("Looking for " + xmlOracle);
-    }
-    if (true) {
-      String tempOracle = RegressionUtility.getOracleName(projectPath, RegressionUtility.xmlOracleFilter, "oracle"
-          + SeaSnapshot.SUFFIX);
-      File tempLocation = new File(tempOracle);
-      System.out.println("Looking for " + tempOracle);
-
-      final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
-      boolean replace;
-      if (noOracleYet) {
-        replace = true;
-      } else {
-        System.out.println("Checking for newer oracle");
-        replace = tempLocation.exists() && isNewer(tempOracle, xmlOracle);
-      }
-      if (replace) {
-        xmlOracle = tempOracle;
-        xmlLocation = tempLocation;
-      }
-      System.out.println("Using " + xmlOracle);
-    }
-    assert (xmlLocation.exists());
-    return xmlLocation;
-  }
-
-  private static boolean isNewer(String oracle1, String oracle2) {
-    String date1 = getDate(oracle1);
-    String date2 = getDate(oracle2);
-    boolean rv = date1.compareTo(date2) > 0;
-    // if (XUtil.testing) {
-    System.out.println(date1 + " ?= " + date2 + " => " + (rv ? "first" : "second"));
-    // }
-    return rv;
-  }
-
-  private static String getDate(String oracle) {
-    // Start with last segment
-    for (int i = oracle.lastIndexOf(File.separatorChar) + 1; i < oracle.length(); i++) {
-      if (Character.isDigit(oracle.charAt(i))) {
-        return oracle.substring(i);
-      }
-    }
-    return oracle;
   }
 
   public static void summarize(String project, final Sea sea, File location) throws IOException {
@@ -314,7 +258,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return 0;
   }
 
-  public static Listener read(File location) throws Exception {
+  private static Listener read(File location) throws Exception {
     // Load up current contents
     final Listener l = new Listener();
     new JSureSummaryXMLReader(l).read(location);
@@ -327,11 +271,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     Diff d = new Diff(filter(f, l1), filter(f, l2));
     d.diff();
     return d;
-  }
-
-  public static ISeaDiff diff(final Sea sea, File location) throws Exception {
-    List<Drop> drops = sea.getDrops();
-    return diff(drops, location, IDropFilter.nullFilter);
   }
 
   private static List<Entity> filter(IDropFilter f, Listener l) {
@@ -473,7 +412,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
   }
 
-  public static class Diff implements ISeaDiff {
+  static class Diff implements ISeaDiff {
     final List<Entity> oldDrops;
     final List<Entity> newDrops;
     final Categories categories = new Categories();
@@ -606,7 +545,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   /**
    * Storage for old and new drops that might match
    */
-  public static class Category implements IViewable {
+  static class Category implements IViewable {
     public final String file;
     public final String name;
     final Set<Entity> old = new HashSet<Entity>();
@@ -831,7 +770,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     }
   }
 
-  public static class ContentDiff implements IViewable {
+  static class ContentDiff implements IViewable {
     final Entity n, o;
     final Object[] children;
 

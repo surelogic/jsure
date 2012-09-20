@@ -41,9 +41,9 @@ import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
-import com.surelogic.dropsea.irfree.SeaSummary.Diff;
 import com.surelogic.javac.*;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
@@ -651,7 +651,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		if (script != null) {
 			// Export results
 			final String prefix = "expectedResults" + getId();
-			final String name = prefix + SeaSnapshot.SUFFIX;
+			final String name = prefix + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 			final File location = new File(scriptResourcesDir, name);
 			try {
 				final String path = computePrefix();
@@ -696,7 +696,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						System.out.println("\nUpdated " + f.getName() + ": \t"
 								+ oldLength + " -> " + f.length());
 						try {
-							final Diff d = SeaSummary.diff(ModelingProblemFilterUtility.defaultFilter,
+							final ISeaDiff d = SeaSummary.diff(ModelingProblemFilterUtility.defaultFilter,
 									new File(deletedDir, f.getName()), f);
 							if (d.isEmpty()) {
 								System.out.println("\tNo differences.");

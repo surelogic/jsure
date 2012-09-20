@@ -35,9 +35,7 @@ import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-public class SeaSnapshot extends AbstractSeaXmlCreator {
-  public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
-
+public class SeaSnapshot extends AbstractSeaXmlCreator {	
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
 
   public SeaSnapshot(File location) throws IOException {

@@ -38,6 +38,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -529,7 +530,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		try {
 			// TODO Is this the right location?
 			FileUtility.copy(results, new File(workspaceFile, projectName
-					+ SeaSnapshot.SUFFIX));
+					+ RegressionUtility.JSURE_SNAPSHOT_SUFFIX));
 			end("Done exporting");
 
 			start("comparing results");
@@ -565,8 +566,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			final ITestOutput XML_LOG = IDE.getInstance().makeLog(
 					"EclipseLogHandler");
 			final String oracleName = RegressionUtility.getOracleName(
-					projectPath, RegressionUtility.logOracleFilter,
-					"oracle.log.xml");
+					projectPath, RegressionUtility.logOracleFilter);
 			final String logDiffsName = projectName + ".log.diffs.xml";
 			final File oracle = new File(oracleName);
 			final File log = new File(logName);
@@ -607,12 +607,17 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	private boolean compareResults(final File resultsSnapshot,
 			final File workspaceFile, final String projectPath,
 			final String projectName, boolean resultsOk) throws Exception {
-		final File xmlLocation = SeaSummary.findSummary(projectPath);
+		final File xmlLocation = RegressionUtility.findOracle(projectPath);
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}
-		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
-		ISeaDiff diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
+		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);		
+		ISeaDiff diff;
+		if (RegressionUtility.snapshotOracleFilter.accept(xmlLocation.getParentFile(), xmlLocation.getName())) {
+			diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, xmlLocation, newResults);
+		} else {
+			diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
+		}
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)

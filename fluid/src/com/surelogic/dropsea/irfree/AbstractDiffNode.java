@@ -2,7 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import com.surelogic.common.i18n.AnalysisResultMessage;
 
-abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNode> {
+public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNode> {
 	Status status = null;
 	
 	void setAsOld() {

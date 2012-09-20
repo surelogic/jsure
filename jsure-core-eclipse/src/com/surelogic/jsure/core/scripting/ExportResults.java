@@ -7,7 +7,8 @@ import java.io.*;
 
 import org.eclipse.core.resources.*;
 
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.common.FileUtility;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
@@ -39,15 +40,19 @@ public class ExportResults extends AbstractCommand {
 			}
 			if (location == null) {
 				String name;
-				if (loc.endsWith(SeaSnapshot.SUFFIX)) {
+				if (loc.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX)) {
 					name = loc;
 				} else {
-					name = loc + SeaSnapshot.SUFFIX;
+					name = loc + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 				}
 				location = new File(workspaceFile, name);
 			}
 			final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-			SeaSummary.summarize(info.findProjectsLabel(), info.getDropInfo(), location);
+			if (RegressionUtility.useSnapshotOracles) {
+				FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+			} else {
+				SeaSummary.summarize(info.findProjectsLabel(), info.getDropInfo(), location);
+			}
 			System.out.println("Exported: "+location);
 			assert (location.exists());
 		} catch (FileNotFoundException e) {
