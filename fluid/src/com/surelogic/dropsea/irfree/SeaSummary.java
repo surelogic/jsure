@@ -190,7 +190,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   }
 
   private static IDrop checkIfReady(IDrop d) {
-    if (d.instanceOf(PromiseDrop.class)) {
+    if (d.instanceOfIRDropSea(PromiseDrop.class)) {
       IProofDrop pd = (IProofDrop) d;
       if (!pd.isFromSrc()) {
         // no need to do anything
@@ -198,13 +198,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
       }
     }
     // TODO skipping for now
-    if (d.instanceOf(IThreadRoleDrop.class)) {
+    if (d.instanceOfIRDropSea(IThreadRoleDrop.class)) {
       return null;
     }
-    if (d.instanceOf(ModelingProblemDrop.class) && d.getMessage().contains("ThreadRole")) {
+    if (d.instanceOfIRDropSea(ModelingProblemDrop.class) && d.getMessage().contains("ThreadRole")) {
       return null;
     }
-    if (d.instanceOf(IRReferenceDrop.class)) {
+    if (d.instanceOfIRDropSea(IRReferenceDrop.class)) {
       // Need a location to report
       ISrcRef ref = d.getSrcRef();
       if (ref == null) {

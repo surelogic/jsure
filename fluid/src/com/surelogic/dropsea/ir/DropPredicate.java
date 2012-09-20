@@ -11,7 +11,7 @@ public interface DropPredicate {
    * Decides if a specific drop should be an element of the resulting set.
    * <p>
    * If checking that the passed drop is of a specific type use
-   * {@link IDrop#instanceOf(Class)} rather than the <tt>instatnceof</tt>
+   * {@link IDrop#instanceOfIRDropSea(Class)} rather than the <tt>instatnceof</tt>
    * operator. An exact type check should use the {@link IDrop#getTypeName()}
    * 
    * @param d

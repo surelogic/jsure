@@ -91,7 +91,7 @@ public abstract class Drop implements IDrop {
     return getClass();
   }
 
-  public boolean instanceOf(Class<?> type) {
+  public boolean instanceOfIRDropSea(Class<?> type) {
     return type.isInstance(this);
   }
 

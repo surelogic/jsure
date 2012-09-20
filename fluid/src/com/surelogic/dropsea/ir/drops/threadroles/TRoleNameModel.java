@@ -177,9 +177,9 @@ public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, 
   private static DropPredicate definingDropPred = new DropPredicate() {
 
     public boolean match(IDrop d) {
-      return d.instanceOf(TRoleDeclareDrop.class) || d.instanceOf(TRoleRevokeDrop.class) || d.instanceOf(TRoleGrantDrop.class)
-          || d.instanceOf(TRoleIncompatibleDrop.class) || d.instanceOf(TRoleRenameDrop.class)
-          || d.instanceOf(TRoleImportDrop.class);
+      return d.instanceOfIRDropSea(TRoleDeclareDrop.class) || d.instanceOfIRDropSea(TRoleRevokeDrop.class) || d.instanceOfIRDropSea(TRoleGrantDrop.class)
+          || d.instanceOfIRDropSea(TRoleIncompatibleDrop.class) || d.instanceOfIRDropSea(TRoleRenameDrop.class)
+          || d.instanceOfIRDropSea(TRoleImportDrop.class);
     }
   };
 

@@ -157,7 +157,7 @@ public class IRFreeDrop implements IDrop {
     return f_irDropSeaClass;
   }
 
-  public final boolean instanceOf(Class<?> type) {
+  public final boolean instanceOfIRDropSea(Class<?> type) {
     if (type == null)
       return false;
 

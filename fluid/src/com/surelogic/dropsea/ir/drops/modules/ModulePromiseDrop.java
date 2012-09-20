@@ -394,7 +394,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     public boolean match(IDrop d) {
       if (d instanceof Drop) {
         Drop rd = (Drop) d;
-        return (rd.isValid()) && d.instanceOf(CUDrop.class) || d.instanceOf(BinaryCUDrop.class);
+        return (rd.isValid()) && d.instanceOfIRDropSea(CUDrop.class) || d.instanceOfIRDropSea(BinaryCUDrop.class);
       } else
         return false;
     }

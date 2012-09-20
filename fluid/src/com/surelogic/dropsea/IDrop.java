@@ -43,7 +43,7 @@ public interface IDrop {
    * @return {@code true} if this drop, in the IR drop-sea, is an instance of
    *         the passed type, {@code false} otherwise.
    */
-  boolean instanceOf(Class<?> type);
+  boolean instanceOfIRDropSea(Class<?> type);
 
   /**
    * Gets this drop's message. If no message has been set then the output will

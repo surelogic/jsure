@@ -127,10 +127,10 @@ public final class SeaStats {
                 if (l != null) {
                     return l;
                 }
-                if (d.instanceOf(PromiseDrop.class)) {
+                if (d.instanceOfIRDropSea(PromiseDrop.class)) {
                     return PROMISES;
                 }
-                else if (d.instanceOf(ResultDrop.class)) {
+                else if (d.instanceOfIRDropSea(ResultDrop.class)) {
                     IResultDrop pd = (IResultDrop) d;
                     return pd.isConsistent() ? CONSISTENT : INCONSISTENT;
                 }
