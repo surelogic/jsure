@@ -293,36 +293,41 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       if (pd instanceof IAnalysisResultDrop)
         trustedResults.add((IAnalysisResultDrop) pd);
     }
+    
+    // X Add promises directly
+    for (IProofDrop trustedDrop : trustedPromises) {
+      mutableContentSet.addChild(encloseDrop(trustedDrop));
+    }
 
     // Add results and folders directly
     for (IAnalysisResultDrop resultDrop : trustedResults) {
       mutableContentSet.addChild(encloseDrop(resultDrop));
     }
 
-    /*
-     * Add promises in a prerequisite assertion folder
-     */
-    int count = trustedPromises.size();
-    // bail out if no preconditions exist
-    if (count < 1)
-      return;
-    ResultsViewContent preconditionFolder = makeContent(count
-        + (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
-    int flags = 0; // assume no adornments
-    flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-    boolean elementsProvedConsistent = true; // assume true
-
-    // add trusted proof drops to the folder
-    for (IProofDrop trustedDrop : trustedPromises) {
-      preconditionFolder.addChild(encloseDrop(trustedDrop));
-      elementsProvedConsistent &= trustedDrop.provedConsistent();
-    }
-
-    // finish up the folder
-    flags |= (elementsProvedConsistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-    preconditionFolder.setImageFlags(flags);
-    preconditionFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
-    mutableContentSet.addChild(preconditionFolder);
+//    /*
+//     * Add promises in a prerequisite assertion folder
+//     */
+//    int count = trustedPromises.size();
+//    // bail out if no preconditions exist
+//    if (count < 1)
+//      return;
+//    ResultsViewContent preconditionFolder = makeContent(count
+//        + (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
+//    int flags = 0; // assume no adornments
+//    flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+//    boolean elementsProvedConsistent = true; // assume true
+//
+//    // add trusted proof drops to the folder
+//    for (IProofDrop trustedDrop : trustedPromises) {
+//      preconditionFolder.addChild(encloseDrop(trustedDrop));
+//      elementsProvedConsistent &= trustedDrop.provedConsistent();
+//    }
+//
+//    // finish up the folder
+//    flags |= (elementsProvedConsistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
+//    preconditionFolder.setImageFlags(flags);
+//    preconditionFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
+//    mutableContentSet.addChild(preconditionFolder);
   }
 
   /**
@@ -668,7 +673,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   private Collection<ResultsViewContent> packageTypeFolderize(Collection<ResultsViewContent> contentRoot) {
     // fake out the recursive function by pretending the root is node
     ResultsViewContent root = makeContent("", contentRoot);
-    packageTypeFolderizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
+   // packageTypeFolderizeRecursive(root, true, new HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
     return root.getChildrenAsCollection();
   }
 
