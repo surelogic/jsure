@@ -136,7 +136,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       }
       setProvedConsistent(overall_or_Result);
       setProofUsesRedDot(overall_or_UsesRedDot);
-      setDerivedFromSrc(overall_or_derivedFromSource);
+      setDerivedFromSrc(derivedFromSrc() | overall_or_derivedFromSource);
     }
   }
 
