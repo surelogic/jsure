@@ -14,7 +14,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 
 public class DropDiff extends DiffNode implements IViewable {
-	private static boolean allowMissingSupportingInfos = true;
+	static boolean allowMissingSupportingInfos = true;
 	
 	final IDrop old;
 	final Object[] children;
