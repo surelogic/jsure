@@ -29,7 +29,7 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
    *         checked, by this result.
    */
   @NonNull
-  Collection<? extends IPromiseDrop> getCheckedPromises();
+  Collection<? extends IPromiseDrop> getChecked();
 
   /**
    * Checks if this result is within an analysis results folder.

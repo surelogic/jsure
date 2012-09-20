@@ -54,13 +54,13 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedPromises() {
+  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecked() {
     synchronized (f_seaLock) {
       return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
     }
   }
 
-  final Set<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedPromisesReference() {
+  final Set<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedReference() {
     synchronized (f_seaLock) {
       return f_checks;
     }
@@ -73,7 +73,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @param promise
    *          the promise being supported by this result
    */
-  public final void addCheckedPromise(PromiseDrop<? extends IAASTRootNode> promise) {
+  public final void addChecked(PromiseDrop<? extends IAASTRootNode> promise) {
     synchronized (f_seaLock) {
       f_checks.add(promise);
       promise.addDependent(this);
@@ -87,13 +87,13 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @param promises
    *          the promises being supported by this result
    */
-  public final void addCheckedPromises(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
+  public final void addChecked(Collection<? extends PromiseDrop<? extends IAASTRootNode>> promises) {
     if (promises == null)
       return;
 
     synchronized (f_seaLock) {
       for (PromiseDrop<? extends IAASTRootNode> promise : promises) {
-        addCheckedPromise(promise);
+        addChecked(promise);
       }
     }
   }
@@ -183,7 +183,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     // add all result drops trusted by this result
     mutableWorklist.addAll(getTrustedBy());
     // add all promise drops that this result checks
-    mutableWorklist.addAll(getCheckedPromisesReference());
+    mutableWorklist.addAll(getCheckedReference());
     // add all result folder drops that this result is within
     mutableWorklist.addAll(Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()));
   }
@@ -194,7 +194,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
 
   @Override
   public final void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getCheckedPromisesReference()) {
+    for (Drop c : getCheckedReference()) {
       s.snapshotDrop(c);
     }
     for (Drop t : getTrustedReference()) {
@@ -212,7 +212,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @Override
   public final void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    for (Drop c : getCheckedPromisesReference()) {
+    for (Drop c : getCheckedReference()) {
       s.refDrop(db, CHECKED_PROMISE, c);
     }
     for (Drop t : getTrustedReference()) {

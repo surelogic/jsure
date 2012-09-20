@@ -816,7 +816,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     final ResultDrop result = new ResultDrop(context);
     setResultDep(result, context);
     result.setMessage(12, msg);
-    result.addCheckedPromise(p);
+    result.addChecked(p);
     result.setConsistent(isConsistent);
     return result;
   }

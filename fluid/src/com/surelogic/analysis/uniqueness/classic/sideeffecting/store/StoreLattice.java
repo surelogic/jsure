@@ -1653,10 +1653,10 @@ extends TripleLattice<Element<Integer>,
     
     final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    result.addCheckedPromise(promiseDrop);
+    result.addChecked(promiseDrop);
     if (promiseDrop != controlFlowDrop) {
       if (addToControlFlow) {
-        result.addCheckedPromise(controlFlowDrop);
+        result.addChecked(controlFlowDrop);
         hasControlFlowResults = true;
       }
     } else {

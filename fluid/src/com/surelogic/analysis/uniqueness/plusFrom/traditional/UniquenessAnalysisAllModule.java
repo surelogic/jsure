@@ -121,7 +121,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
     // Remove any control flow drops that aren't used for anything
     for (final ResultDrop cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);
-      if (cfDrop.getCheckedPromises().isEmpty()) {
+      if (cfDrop.getChecked().isEmpty()) {
         cfDrop.invalidate();
       }
     }
@@ -228,7 +228,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
         info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
         info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getCheckedPromises()) {
+        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecked()) {
           pd.addDependent(info);
         }
       }
@@ -963,12 +963,12 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
           callDrop.setConsistent();
           // This result checks the uniqueness promises of the parameters
           for (final UniquePromiseDrop uniqueParam : uniqueParams) {
-            callDrop.addCheckedPromise(uniqueParam);
+            callDrop.addChecked(uniqueParam);
             
             /* The uniqueness of the parameter also depends on the control flow
              * of the calling method.
              */
-            pr.controlFlow.addCheckedPromise(uniqueParam);
+            pr.controlFlow.addChecked(uniqueParam);
           }
           allCallDrops.add(callDrop);
           pr.calledUniqueParams.add(callDrop);          
@@ -1107,7 +1107,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
         // Add depended on method calls, etc.
         if (!dependsOnResults.isEmpty()) {
           for (ResultDrop rd : dependsOnResults) {
-            rd.addCheckedPromise(promiseToCheck);
+            rd.addChecked(promiseToCheck);
           }
         }
       }

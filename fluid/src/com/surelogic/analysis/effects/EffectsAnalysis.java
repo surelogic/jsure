@@ -143,7 +143,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
               MethodEffectsRules.getRegionEffectsDrop(member);
           if (declaredEffectsDrop != null) {
             final ResultDrop rd = new ResultDrop(member);
-            rd.addCheckedPromise(declaredEffectsDrop);
+            rd.addChecked(declaredEffectsDrop);
             rd.setConsistent();
             rd.setMessage(Messages.EMPTY_EFFECTS);
           }
@@ -163,7 +163,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 
 	          if (maskedFx.isEmpty()) {
               final ResultDrop rd = new ResultDrop(member);
-	            rd.addCheckedPromise(declaredEffectsDrop);
+	            rd.addChecked(declaredEffectsDrop);
 	            rd.setConsistent();
 	            rd.setMessage(Messages.EMPTY_EFFECTS);
 	          } else {
@@ -462,7 +462,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final Object... msgArgs) {
 	  final IRNode src = eff.getSource();
 		final ResultDrop rd = new ResultDrop(src);
-		rd.addCheckedPromise(declEffDrop);
+		rd.addChecked(declEffDrop);
 
 		(new EvidenceAdder(getBinder(), rd)).accept(eff.getTarget().getEvidence());
 		
@@ -483,7 +483,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     public void writeToBorrowedReadOnly(
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
       final ResultDrop rd = new ResultDrop(expr);
-      rd.addCheckedPromise(pd);
+      rd.addChecked(pd);
       rd.setConsistent(false);
       rd.setMessage(Messages.READONLY_REFERENCE);
       (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());

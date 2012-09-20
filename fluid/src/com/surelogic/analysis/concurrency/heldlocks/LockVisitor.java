@@ -851,7 +851,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final Object... msgArgs) {
 		final ResultDrop result = new ResultDrop(context);
 		result.setMessage(msgTemplate, msgArgs);
-		result.addCheckedPromise(p);
+		result.addChecked(p);
 		if (isConsistent) {
 			result.setConsistent();
 		} else {

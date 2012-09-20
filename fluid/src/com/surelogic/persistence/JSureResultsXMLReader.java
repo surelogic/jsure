@@ -52,7 +52,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
       handlePromiseRef(pe);
       throw new IllegalStateException("Unmatched about-ref: " + pe.getAttribute(PROMISE_LOCATION));
     }
-    d.addCheckedPromise(pd);
+    d.addChecked(pd);
   }
 
   @Override

@@ -96,7 +96,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			if (tester.testType(t)) {
 				ResultDrop d = createFailureDrop(e);
 				for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-				  d.addCheckedPromise(p);
+				  d.addChecked(p);
 				}
 				d.setMessage(758, DebugUnparser.toString(e));
 			}

@@ -342,7 +342,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         timeOutResult.setMessage(Messages.TIMEOUT,
             e.timeOut / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
-        timeOutResult.addCheckedPromise(controlFlowDrop);
+        timeOutResult.addChecked(controlFlowDrop);
           
         /* TODO: Add "time out" result to
          * (2) Borrowed promises of the method's

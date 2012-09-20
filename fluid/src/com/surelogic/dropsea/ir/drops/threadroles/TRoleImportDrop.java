@@ -69,7 +69,7 @@ implements IThreadRoleDrop {
     if (boundImportedUnit == null) {
       // report an error on the @colorImport drop.
       ResultDrop error = new ResultDrop(this.getNode());
-      error.addCheckedPromise(this);
+      error.addChecked(this);
       error.setInconsistent();
 
       error.setMessage(12,"no binding found for \"" + importedUnit + '"');

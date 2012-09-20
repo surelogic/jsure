@@ -98,7 +98,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      */
     for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
       final ResultDrop middleDrop = new ResultDrop(entry.getKey().getNode());
-      middleDrop.addCheckedPromise(entry.getKey());
+      middleDrop.addChecked(entry.getKey());
       middleDrop.setConsistent();
       middleDrop.setMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
       for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
@@ -212,19 +212,19 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
           methodName, duration / NANO_SECONDS_PER_SECOND);
       
       // (1)
-      timeOutResult.addCheckedPromise(sl.getCFDrop());
+      timeOutResult.addChecked(sl.getCFDrop());
       
       if (!ClassInitDeclaration.prototype.includes(mr.mdecl)) {
         final IRNode formals = SomeFunctionDeclaration.getParams(mr.mdecl);
         for (final IRNode p : Parameters.getFormalIterator(formals)) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(p);
-          if (pd != null) timeOutResult.addCheckedPromise(pd);
+          if (pd != null) timeOutResult.addChecked(pd);
         }
         
         final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(mr.mdecl);
         if (rcvr != null) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(rcvr);
-          if (pd != null) timeOutResult.addCheckedPromise(pd);
+          if (pd != null) timeOutResult.addChecked(pd);
         }      
         
         final IRNode ret = JavaPromise.getReturnNodeOrNull(mr.mdecl);
@@ -233,7 +233,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
            * borrowed receiver for a constructor. 
            */
           final UniquePromiseDrop pd = UniquenessRules.getUnique(ret);
-          if (pd != null) timeOutResult.addCheckedPromise(pd);
+          if (pd != null) timeOutResult.addChecked(pd);
         }
       }
 	  }
