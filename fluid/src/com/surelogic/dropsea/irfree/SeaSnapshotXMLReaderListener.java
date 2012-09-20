@@ -32,6 +32,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
@@ -83,15 +84,15 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         if (SOURCE_REF.equals(name)) {
           SourceRef sr = new SourceRef(e);
           if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
-            ppd.assumptionRef = IRFreeDrop.makeSrcRef(sr);
+            ppd.setAssumptionRef(IRFreeDrop.makeSrcRef(sr));
           } else {
             setSource(sr);
           }
         } else if (PROPERTIES.equals(name)) {
           if (ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
-            ppd.annoAttrs = e.getAttributes();
+            ppd.setAnnoAttributes(e.getAttributes());
           } else {
-            ppd.replacedAttrs = e.getAttributes();
+            ppd.setReplacedAttributes(e.getAttributes());
           }
         } else
           super.addRef(e);
@@ -189,9 +190,20 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
   protected boolean define(final int id, Entity e) {
     add(id, e);
     if (e instanceof SeaEntity) {
+      /*
+       * Add the source ref and supporting information (if any) to the drop
+       * under construction.
+       */
       IRFreeDrop drop = ((SeaEntity) e).getDrop();
-      if (drop != null)
-        drop.finishInit();
+      if (drop != null) {
+        final SourceRef sr = e.getSource();
+        if (sr != null)
+          drop.setSrcRef(IRFreeDrop.makeSrcRef(sr));
+
+        for (MoreInfo i : e.getInfos()) {
+          drop.addSupportingInformation(IRFreeDrop.makeSupportingInfo(i));
+        }
+      }
     }
     return true;
   }

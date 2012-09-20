@@ -13,6 +13,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
+import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.common.refactor.IJavaDeclaration;
@@ -43,22 +44,40 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     Entity.internString("@RegionEffects(none)");
   }
 
-  private JavaDeclInfo fromInfo;
-  private JavaDeclInfo targetInfo;
-  // TODO
-  public ISrcRef assumptionRef;
-  public Map<String, String> annoAttrs, replacedAttrs;
+  private JavaDeclInfo f_fromInfo;
+  private JavaDeclInfo f_targetInfo;
+  private ISrcRef f_assumptionRef;
+  private Map<String, String> f_annoAttributes = null;
+  private Map<String, String> f_replacedAttributes = null;
+
+  public void setAssumptionRef(ISrcRef value) {
+    f_assumptionRef = value;
+  }
+
+  public void setAnnoAttributes(Map<String, String> value) {
+    f_annoAttributes = value;
+  }
+
+  public void setReplacedAttributes(Map<String, String> value) {
+    f_replacedAttributes = value;
+  }
 
   public IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
 
   public Map<String, String> getAnnoAttributes() {
-    return annoAttrs;
+    if (f_annoAttributes != null)
+      return f_annoAttributes;
+    else
+      return Collections.emptyMap();
   }
 
   public Map<String, String> getReplacedAttributes() {
-    return replacedAttrs;
+    if (f_replacedAttributes != null)
+      return f_replacedAttributes;
+    else
+      return Collections.emptyMap();
   }
 
   public String getJavaAnnotation() {
@@ -112,15 +131,15 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public ISrcRef getAssumptionRef() {
-    return assumptionRef;
+    return f_assumptionRef;
   }
 
   public IJavaDeclaration getFromInfo() {
-    return fromInfo.makeDecl();
+    return f_fromInfo.makeDecl();
   }
 
   public IJavaDeclaration getTargetInfo() {
-    return targetInfo.makeDecl();
+    return f_targetInfo.makeDecl();
   }
 
   public void addInfo(JavaDeclInfo info) {
@@ -128,9 +147,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     // System.out.println("addInfo " + flavor +
     // " called on proposed promise drop " + this + " : " + info);
     if (FROM_INFO.equals(flavor)) {
-      fromInfo = info;
+      f_fromInfo = info;
     } else if (TARGET_INFO.equals(flavor)) {
-      targetInfo = info;
+      f_targetInfo = info;
     } else {
       throw new IllegalStateException("Unknown flavor of info: " + flavor);
     }

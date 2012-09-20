@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -59,14 +60,22 @@ public class IRFreeDrop implements IDrop {
 
   @NonNull
   private final Class<?> f_irDropSeaClass;
-  @NonNull
-  private final List<IRFreeProposedPromiseDrop> f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(0);
+  /**
+   * This collection is {@code null} until some exist&mdash;most drops have no
+   * proposed promises.
+   */
   @Nullable
-  protected Category f_category;
+  private List<IRFreeProposedPromiseDrop> f_proposedPromises = null;
   @Nullable
-  private ISrcRef f_srcRef;
-  @NonNull
-  private final List<ISupportingInformation> f_supportingInformation = new ArrayList<ISupportingInformation>(0);
+  protected Category f_category = null;
+  @Nullable
+  private ISrcRef f_srcRef = null;
+  /**
+   * This collection is {@code null} until some exist&mdash;most drops have no
+   * supporting information.
+   */
+  @Nullable
+  private List<ISupportingInformation> f_supportingInformation = null;
   @NonNull
   private final String f_message;
   @NonNull
@@ -77,7 +86,21 @@ public class IRFreeDrop implements IDrop {
   private final Long f_contextHash;
 
   public void addProposal(IRFreeProposedPromiseDrop info) {
+    if (f_proposedPromises == null) {
+      f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
+    }
     f_proposedPromises.add(info);
+  }
+
+  public void addSupportingInformation(ISupportingInformation si) {
+    if (f_supportingInformation == null) {
+      f_supportingInformation = new ArrayList<ISupportingInformation>(1);
+    }
+    f_supportingInformation.add(si);
+  }
+
+  public void setSrcRef(ISrcRef value) {
+    f_srcRef = value;
   }
 
   public IRFreeDrop(Entity e, Class<?> irClass) {
@@ -124,15 +147,6 @@ public class IRFreeDrop implements IDrop {
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
   }
 
-  public void finishInit() {
-    final SourceRef sr = f_entity.getSource();
-    f_srcRef = sr != null ? makeSrcRef(sr) : null;
-
-    for (MoreInfo i : f_entity.getInfos()) {
-      f_supportingInformation.add(makeSupportingInfo(i));
-    }
-  }
-
   @Nullable
   public Category getCategory() {
     return f_category;
@@ -165,11 +179,17 @@ public class IRFreeDrop implements IDrop {
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
-    return f_proposedPromises;
+    if (f_proposedPromises != null)
+      return f_proposedPromises;
+    else
+      return Collections.emptyList();
   }
 
   public Collection<ISupportingInformation> getSupportingInformation() {
-    return f_supportingInformation;
+    if (f_supportingInformation != null)
+      return f_supportingInformation;
+    else
+      return Collections.emptyList();
   }
 
   public Long getTreeHash() {
@@ -190,7 +210,7 @@ public class IRFreeDrop implements IDrop {
     }
   }
 
-  private ISupportingInformation makeSupportingInfo(final MoreInfo i) {
+  public static ISupportingInformation makeSupportingInfo(final MoreInfo i) {
     return new ISupportingInformation() {
       final ISrcRef ref = makeSrcRef(i.source);
 
