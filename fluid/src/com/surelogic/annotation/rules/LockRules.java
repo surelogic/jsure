@@ -952,7 +952,7 @@ public class LockRules extends AnnotationRules {
         if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
           final String reason = vouchFieldIs.getReason();
           final ResultDrop rd = new ResultDrop(lockFieldNode);
-          rd.addCheckedPromise(lockModel);
+          rd.addChecked(lockModel);
           rd.setConsistent(true);
           rd.addTrusted(vouchFieldIs);
           final String id = VariableDeclarator.getId(lockFieldNode);

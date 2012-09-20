@@ -76,7 +76,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
     if ("java.lang.Object.MUTEX".equals(lockName)) {
       final String msg = "java.lang.Object.MUTEX is consistent with the code in java.lang.Object";
       ResultDrop rd = new ResultDrop(decl.getPromisedFor());
-      rd.addCheckedPromise(result);
+      rd.addChecked(result);
       rd.setConsistent();
       rd.setMessage(12, msg);
     }

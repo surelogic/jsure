@@ -157,7 +157,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
     if (noThreadsStarted) {
       ResultDrop r = new ResultDrop(block);
       r.setConsistent();
-      r.addCheckedPromise(pd);
+      r.addChecked(pd);
       r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
     }
     return results;
@@ -219,7 +219,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
                */
               ResultDrop rd = new ResultDrop(node);
               rd.setInconsistent();
-              rd.addCheckedPromise(pd);
+              rd.addChecked(pd);
               rd.setMessage(Messages.PROHIBITED, DebugUnparser.toString(node));
               return new Result(new SimpleAnalysisResult(pd, node, Messages.PROHIBITED, DebugUnparser.toString(node)), false);
             }
@@ -260,7 +260,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       // get the promise drop
       StartsPromiseDrop callp = ThreadEffectsRules.getStartsSpec(declaration);
       ResultDrop rd = new ResultDrop(node);
-      rd.addCheckedPromise(pd);
+      rd.addChecked(pd);
       rd.addTrusted(callp);
       rd.setMessage(Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
       rd.setConsistent();
@@ -268,7 +268,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
     } else {
       // No annotation: called method could start anything
       ResultDrop rd = new ResultDrop(node);
-      rd.addCheckedPromise(pd);
+      rd.addChecked(pd);
       rd.setInconsistent();
       rd.setMessage(Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
       rd.addProposal(new ProposedPromiseDrop("Starts", "nothing", declaration, node, Origin.MODEL));

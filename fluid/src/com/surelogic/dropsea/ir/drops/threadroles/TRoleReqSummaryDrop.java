@@ -149,7 +149,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
         // reject one or the other.
         ResultDrop rd = TRoleMessages.createProblemDrop("Error: @colorConstraint and @transparent on same method (" + mthName
             + ").", "TODO: Fill Me In", node);
-        rd.addCheckedPromise(res);
+        rd.addChecked(res);
         rd.setInconsistent();
       }
 
@@ -398,7 +398,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     if ((resDrop == null) || (!resDrop.isValid())) {
       resDrop = TRoleMessages.createResultDrop("@ThreadRole " + getReqString() + " for " + methodName, "TODO: fill me in",
           getNode());
-      resDrop.addCheckedPromise(this);
+      resDrop.addChecked(this);
     }
 
     @SuppressWarnings("unchecked")

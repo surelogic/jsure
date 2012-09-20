@@ -123,7 +123,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						if (!inSameLayer) {							
 							rd3 = checkBinding(layer, b, bindT, n);
 							if (rd3 != null) {
-								rd3.addCheckedPromise(inLayer);
+								rd3.addChecked(inLayer);
 								problemWithInLayer = true;
 							}
 						}
@@ -160,7 +160,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	private ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
 		ResultDrop rd = new ResultDrop(type);
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
-		rd.addCheckedPromise(checked);
+		rd.addChecked(checked);
 		rd.setConsistent();
 		return rd;
 	}
@@ -194,7 +194,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				}
 				*/
 				if (!(d instanceof LayerPromiseDrop)) {
-					rd.addCheckedPromise(d);
+					rd.addChecked(d);
 				}
 				return rd;
 			}
@@ -238,7 +238,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
-				rd.addCheckedPromise(layer);				
+				rd.addChecked(layer);				
 				rd.setMessage(Messages.CYCLE, backedge); 
 				
 				final Map<String,TypeSetPromiseDrop> involved = new HashMap<String, TypeSetPromiseDrop>();
