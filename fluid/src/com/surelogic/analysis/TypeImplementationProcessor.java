@@ -41,14 +41,14 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
   }
 
   protected final ResultFolderDrop createResultFolder(final IRNode node) {
-    final ResultFolderDrop folder = new ResultFolderDrop(node);
+    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
     folder.addCheckedPromise(promiseDrop);
     return folder;
   }
 
   protected final ResultFolderDrop createSubFolder(
       final ResultFolderDrop parent, final IRNode node) {
-    final ResultFolderDrop folder = new ResultFolderDrop(node);
+    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
     parent.add(folder);
     return folder;
   }

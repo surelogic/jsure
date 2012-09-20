@@ -20,7 +20,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
    * Constructs a new suggestions pointing to the passed node.
    * 
    * @param node
-   *          referenced in the suggestion
+   *          referenced by the suggestion.
    * @return a suggestion.
    */
   public static AnalysisHintDrop newSuggestion(IRNode node) {
@@ -31,7 +31,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
    * Constructs a new warning pointing to the passed node.
    * 
    * @param node
-   *          referenced in the warning
+   *          referenced by the warning.
    * @return a warning.
    */
   public static AnalysisHintDrop newWarning(IRNode node) {
@@ -45,7 +45,6 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   private final HintType f_type;
 
-//  @Override
   @NonNull
   public HintType getHintType() {
     return f_type;
@@ -63,7 +62,6 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
-
     s.addAttribute(HINT_TYPE_ATTR, f_type.toString());
   }
 }

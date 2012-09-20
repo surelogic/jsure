@@ -316,7 +316,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
     
 
-    final ResultFolderDrop folder = new ResultFolderDrop(parameterizedType);
+    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
     folder.setMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText());
     folder.addCheckedPromise(boundsDrop);

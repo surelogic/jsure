@@ -14,6 +14,22 @@ import com.surelogic.NonNull;
  */
 public interface IResultFolderDrop extends IAnalysisResultDrop {
 
+  enum FolderLogic {
+
+    AND, OR
+
+  }
+
+  /**
+   * Gets if this folder applies conjunction ({@link FolderLogic#AND}) or
+   * disjunction ({@link FolderLogic#OR}) in the model-code consistency proof.
+   * 
+   * @return the type of logic used by this folder in the model-code consistency
+   *         proof.
+   */
+  @NonNull
+  FolderLogic getFolderLogic();
+
   /**
    * Gets all the analysis results directly within this folder. If sub-folders
    * exist, analysis results within the sub-folders are <b>not</b> returned.

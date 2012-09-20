@@ -18,8 +18,7 @@ public interface IProofDrop extends IDrop {
    * Returns if this element is able to be proved consistent (model/code
    * consistency) with regards to the whole-program.
    * 
-   * @return <code>true</code> if consistent, <code>false</code> if
-   *         inconsistent.
+   * @return {@code true} if consistent, {@code false} if not proved consistent.
    */
   boolean provedConsistent();
 
@@ -28,7 +27,7 @@ public interface IProofDrop extends IDrop {
    * vouching for or assuming something which may not be true, with regards to
    * the whole-program.
    * 
-   * @return<code>true</code> if red dot, <code>false</code> if no red dot.
+   * @return {@code true} if red dot, {@code false} if no red dot.
    */
   boolean proofUsesRedDot();
 
@@ -44,8 +43,8 @@ public interface IProofDrop extends IDrop {
    * Returns if this promise is from source code or from another location, such
    * as XML. The default value for a promise drop is <code>true</code>.
    * 
-   * @return <code>true</code> if the promise was created from an annotation in
-   *         source code, <code>false</code> otherwise
+   * @return {@code true} if the promise was created from an annotation in
+   *         source code, {@code false} otherwise
    */
   boolean isFromSrc();
 
