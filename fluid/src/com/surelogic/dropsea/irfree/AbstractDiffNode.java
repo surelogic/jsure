@@ -17,6 +17,14 @@ abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNode> {
 		return status;
 	}
 	
+	public boolean isOld() {
+		return status == Status.OLD;
+	}
+	
+	public boolean isNewer() {
+		return status == Status.NEW;
+	}
+	
 	@Override
 	public int compareTo(IDiffNode o) {
 	      int rv = getText().compareTo(o.getText());

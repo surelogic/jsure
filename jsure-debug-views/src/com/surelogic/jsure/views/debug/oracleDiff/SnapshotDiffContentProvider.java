@@ -16,6 +16,8 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.irfree.DiffNode;
+import com.surelogic.dropsea.irfree.IDiffNode;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.dropsea.irfree.SeaSummary.*;
@@ -126,6 +128,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	}
 
 	public Image getImage(Object element) {
+		if (element instanceof IDiffNode) {
+			IDiffNode e = (IDiffNode) element;
+			if (e.isNewer()) {
+				return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
+			} else if (e.isOld()) {
+				return SLImages.getImage(CommonImages.IMG_EDIT_DELETE); 
+			}
+		}
 		if (element instanceof Entity) {
 			Entity e = (Entity) element;
 			if (e.isNewer()) {

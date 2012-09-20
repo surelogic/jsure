@@ -8,4 +8,8 @@ public interface IDiffNode extends IViewable {
 	}
 	
 	Status getDiffStatus();
+
+	boolean isNewer();
+
+	boolean isOld();
 }
