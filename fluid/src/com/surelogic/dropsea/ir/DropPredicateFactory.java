@@ -71,7 +71,7 @@ public final class DropPredicateFactory {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
-            return d != null ? d.getIRDropSeaClass().getName().equals(dropClass.getName()) : false;
+            return d != null ? d.getIRDropSeaClass().equals(dropClass) : false;
           }
         };
         f_exactType.put(dropClass, result);
