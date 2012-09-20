@@ -36,7 +36,7 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
     return !f_checkedPromises.isEmpty();
   }
 
-  public Collection<? extends IPromiseDrop> getCheckedPromises() {
+  public Collection<? extends IPromiseDrop> getChecked() {
     return f_checkedPromises;
   }
 

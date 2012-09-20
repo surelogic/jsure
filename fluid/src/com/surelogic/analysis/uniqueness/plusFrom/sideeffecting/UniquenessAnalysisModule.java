@@ -114,7 +114,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     // Remove any control flow drops that aren't used for anything
     for (final ResultDrop cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);
-      if (cfDrop.getCheckedPromises().isEmpty()) {
+      if (cfDrop.getChecked().isEmpty()) {
         cfDrop.invalidate();
       }
     }

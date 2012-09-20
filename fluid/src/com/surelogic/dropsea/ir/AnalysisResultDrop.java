@@ -54,7 +54,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
-  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getCheckedPromises() {
+  public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecked() {
     synchronized (f_seaLock) {
       return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
     }
