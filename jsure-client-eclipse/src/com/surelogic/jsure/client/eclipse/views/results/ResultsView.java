@@ -31,6 +31,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -48,6 +50,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -71,6 +74,23 @@ import com.surelogic.jsure.core.scans.JSureScanInfo;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class ResultsView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
+
+  static class ColumnResizeListener extends ControlAdapter {
+
+    final String f_prefKey;
+
+    public ColumnResizeListener(String prefKey) {
+      f_prefKey = prefKey;
+    }
+
+    @Override
+    public void controlResized(ControlEvent e) {
+      if (e.widget instanceof TreeColumn) {
+        int width = ((TreeColumn) e.widget).getWidth();
+        EclipseUtility.setIntPreference(f_prefKey, width);
+      }
+    }
+  }
 
   private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
 
@@ -119,25 +139,26 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     tree.setHeaderVisible(true);
     tree.setLinesVisible(true);
 
-    TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
-    column1.setAlignment(SWT.LEFT);
-    column1.setWidth(300);
+    final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+    column1.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    column1.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
     TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
-    column2.setAlignment(SWT.LEFT);
     column2.setText("Project");
-    column2.setWidth(100);
+    column2.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    column2.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
     TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
-    column3.setAlignment(SWT.LEFT);
     column3.setText("Package");
-    column3.setWidth(100);
+    column3.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    column3.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
     TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
-    column4.setAlignment(SWT.LEFT);
     column4.setText("Type");
-    column4.setWidth(100);
+    column4.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    column4.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
     TreeColumn column5 = new TreeColumn(tree, SWT.RIGHT);
-  //  column5.setAlignment(SWT.LEFT);
+    // column5.setAlignment(SWT.LEFT);
     column5.setText("Line");
-    column5.setWidth(35);
+    column5.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+    column5.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
 
     treeViewer.setInput(getViewSite());
     makeActions_private();
