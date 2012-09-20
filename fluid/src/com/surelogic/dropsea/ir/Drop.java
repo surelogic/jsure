@@ -87,8 +87,8 @@ public abstract class Drop implements IDrop {
   }
 
   @NonNull
-  public String getTypeName() {
-    return getClass().getName();
+  public Class<?> getIRDropSeaClass() {
+    return getClass();
   }
 
   public boolean instanceOf(Class<?> type) {

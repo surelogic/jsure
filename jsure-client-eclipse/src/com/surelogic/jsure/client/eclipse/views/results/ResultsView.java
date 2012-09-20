@@ -555,7 +555,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
         final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
         final IDrop d = c.getDropInfo();
         if (d != null) {
-          f_actionShowUnderlyingDropType.setText("Type: " + d.getTypeName());
+          f_actionShowUnderlyingDropType.setText("Type: " + d.getIRDropSeaClass().getName());
         } else {
           f_actionShowUnderlyingDropType.setText("Type: n/a");
         }

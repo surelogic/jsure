@@ -247,7 +247,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   }
 
   private static String computeSimpleType(IDrop id) {
-    String type = id.getTypeName();
+    String type = id.getIRDropSeaClass().getName();
     int lastDot = type.lastIndexOf('.');
     if (lastDot > 0) {
       type = type.substring(lastDot + 1);

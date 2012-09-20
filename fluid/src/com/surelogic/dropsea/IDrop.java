@@ -21,13 +21,13 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 public interface IDrop {
 
   /**
-   * Gets the IR drop-sea type name, descended from {@link Drop}, even if this
-   * is the IR-free drop-sea used for saving and restoring.
+   * Gets the IR drop-sea type, descended from {@link Drop}, even if this is the
+   * IR-free drop-sea used for saving and restoring.
    * 
-   * @return the IR drop-sea type name, descended from {@link Drop}
+   * @return the IR drop-sea type, descended from {@link Drop}
    */
   @NonNull
-  String getTypeName();
+  Class<?> getIRDropSeaClass();
 
   /**
    * Checks if this drop, in the IR drop-sea, is an instance of the passed

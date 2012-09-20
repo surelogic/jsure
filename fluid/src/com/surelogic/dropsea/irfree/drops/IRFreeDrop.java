@@ -153,8 +153,8 @@ public class IRFreeDrop implements IDrop {
   }
 
   @NonNull
-  public String getTypeName() {
-    return f_irClass.getName();
+  public Class<?> getIRDropSeaClass() {
+    return f_irClass;
   }
 
   public final boolean instanceOf(Class<?> type) {

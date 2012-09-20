@@ -135,7 +135,7 @@ public class SeaSnapshotDiff<K> {
 		rv.setSeparator(new IDropSeparator<Pair<String,String>>() {
 			@Override
 			public Pair<String, String> makeKey(IDrop d) {
-			    final String typeName = d.getTypeName();
+			    final String typeName = d.getIRDropSeaClass().getName();
 			    final Class<?> type = DropTypeUtility.findType(typeName);
 			    if (type == null) {
 			    	return null;
