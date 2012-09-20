@@ -52,8 +52,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop implements IProposedPromiseDrop {
 
-
-
   public enum Origin {
     /**
      * This proposal was inferred from code with no model/annotation basis for

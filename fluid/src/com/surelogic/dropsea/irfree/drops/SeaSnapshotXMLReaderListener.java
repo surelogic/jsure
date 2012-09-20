@@ -8,6 +8,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISE
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
@@ -17,6 +18,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.OR_TRUSTED_PROOF_
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
@@ -97,7 +99,14 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       final IRFreeDrop drop = ((SeaEntity) e).getDrop();
       if (drop instanceof IRFreeProposedPromiseDrop) {
         final IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) drop;
-        ppd.addInfo(info);
+        String flavor = info.getAttribute(FLAVOR_ATTR);
+        if (FROM_INFO.equals(flavor)) {
+          ppd.setFromInfo(info);
+        } else if (TARGET_INFO.equals(flavor)) {
+          ppd.setTargetInfo(info);
+        } else {
+          throw new IllegalStateException(I18N.err(250, flavor, ppd));
+        }
       }
     }
   }

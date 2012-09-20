@@ -2,7 +2,6 @@ package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
@@ -17,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.IJavaDeclaration;
@@ -47,10 +48,15 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     Entity.internString("@RegionEffects(none)");
   }
 
-  private JavaDeclInfo f_fromInfo;
-  private JavaDeclInfo f_targetInfo;
-  private ISrcRef f_assumptionRef;
+  @Nullable
+  private JavaDeclInfo f_fromInfo = null;
+  @Nullable
+  private JavaDeclInfo f_targetInfo = null;
+  @Nullable
+  private ISrcRef f_assumptionRef = null;
+  @NonNull
   private final Map<String, String> f_annoAttributes = new HashMap<String, String>();
+  @NonNull
   private final Map<String, String> f_replacedAttributes = new HashMap<String, String>();
   private final String f_JavaAnnotation;
   private final String f_annotation;
@@ -59,7 +65,16 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   private final String f_replacedContents;
   private final String f_targetProjectName;
   private final String f_fromProjectName;
+  @NonNull
   private final Origin f_origin;
+
+  void setFromInfo(JavaDeclInfo value) {
+    f_fromInfo = value;
+  }
+
+  void setTargetInfo(JavaDeclInfo value) {
+    f_targetInfo = value;
+  }
 
   void setAssumptionRef(ISrcRef value) {
     f_assumptionRef = value;
@@ -153,19 +168,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public IJavaDeclaration getTargetInfo() {
     return f_targetInfo.makeDecl();
-  }
-
-  public void addInfo(JavaDeclInfo info) {
-    String flavor = info.getAttribute(FLAVOR_ATTR);
-    // System.out.println("addInfo " + flavor +
-    // " called on proposed promise drop " + this + " : " + info);
-    if (FROM_INFO.equals(flavor)) {
-      f_fromInfo = info;
-    } else if (TARGET_INFO.equals(flavor)) {
-      f_targetInfo = info;
-    } else {
-      throw new IllegalStateException("Unknown flavor of info: " + flavor);
-    }
   }
 
   public boolean isSameProposalAs(IProposedPromiseDrop other) {
