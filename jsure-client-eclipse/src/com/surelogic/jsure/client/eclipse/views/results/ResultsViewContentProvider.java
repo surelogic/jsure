@@ -21,11 +21,11 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.dropsea.IAnalysisHintDrop;
-import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -143,7 +143,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private void addDrops(ResultsViewContent mutableContentSet, Collection<? extends IDrop> dropsToAdd) {
     for (IDrop drop : dropsToAdd) {
-      mutableContentSet.addChild(encloseDrop(drop));
+      mutableContentSet.addChild(encloseDrop(drop, mutableContentSet));
     }
   }
 
@@ -199,45 +199,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       informationItem.setBaseImageName(CommonImages.IMG_INFO);
       mutableContentSet.addChild(informationItem);
     }
-
-    // int size = supportingInformation.size();
-    // if (size == 0) {
-    // // no supporting information, thus bail out
-    // return;
-    // } else if (size == 1) {
-    // ISupportingInformation si = supportingInformation.iterator().next();
-    // ResultsViewContent informationItem =
-    // makeContent("supporting information: " + si.getMessage(),
-    // si.getSrcRef());
-    // informationItem.setBaseImageName(CommonImages.IMG_INFO);
-    // mutableContentSet.addChild(informationItem);
-    // return;
-    // }
-    // // More than one thing
-    // ResultsViewContent siFolder = makeContent("supporting information:");
-    // siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
-    //
-    // for (Iterator<ISupportingInformation> i =
-    // supportingInformation.iterator(); i.hasNext();) {
-    // ISupportingInformation si = i.next();
-    // ResultsViewContent informationItem = makeContent(si.getMessage(),
-    // si.getSrcRef());
-    // informationItem.setBaseImageName(CommonImages.IMG_INFO);
-    // siFolder.addChild(informationItem);
-    // }
-    // // Improves the presentation in the view
-    // switch (siFolder.numChildren()) {
-    // case 0:
-    // return; // Don't add anything
-    // case 1:
-    // mutableContentSet.addChild((ResultsViewContent)
-    // siFolder.getChildren()[0]);
-    // mutableContentSet.addChild(siFolder);
-    // break;
-    // default:
-    // mutableContentSet.addChild(siFolder);
-    // break;
-    // }
   }
 
   /**
@@ -257,101 +218,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       mutableContentSet.addChild(proposalItem);
     }
-
-    // int size = proposals.size();
-    // if (size == 0) {
-    // // no proposed promises, thus bail out
-    // return;
-    // } else if (size == 1) {
-    // IProposedPromiseDrop pp = proposals.iterator().next();
-    // final ResultsViewContent proposalItem = makeContent("proposed promise: "
-    // + pp.getJavaAnnotation(), (IDrop) pp);
-    // proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
-    // mutableContentSet.addChild(proposalItem);
-    // return;
-    // }
-    // // More than one thing
-    // ResultsViewContent siFolder =
-    // makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
-    // siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
-    //
-    // for (IProposedPromiseDrop pp : proposals) {
-    // final ResultsViewContent proposalItem =
-    // makeContent(pp.getJavaAnnotation(), pp);
-    // proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
-    // siFolder.addChild(proposalItem);
-    // }
-    // // Improves the presentation in the view
-    // switch (siFolder.numChildren()) {
-    // case 0:
-    // return; // Don't add anything
-    // case 1:
-    // mutableContentSet.addChild((ResultsViewContent)
-    // siFolder.getChildren()[0]);
-    // mutableContentSet.addChild(siFolder);
-    // break;
-    // default:
-    // mutableContentSet.addChild(siFolder);
-    // break;
-    // }
-  }
-
-  /**
-   * Adds "and" trusts logic information about a result drop to the mutable set
-   * of viewer content items passed into this method.
-   * 
-   * @param mutableContentSet
-   *          A parent {@link ResultsViewContent} object to add children to
-   * @param result
-   *          the result to add "and" precondition logic about
-   */
-  private void add_and_Trusted(ResultsViewContent mutableContentSet, IResultDrop result) {
-    // Create a folder to contain the preconditions
-    Collection<IPromiseDrop> trustedPromises = new ArrayList<IPromiseDrop>();
-    Collection<IAnalysisResultDrop> trustedResults = new ArrayList<IAnalysisResultDrop>();
-    for (IProofDrop pd : result.getTrusted()) {
-      if (pd instanceof IPromiseDrop)
-        trustedPromises.add((IPromiseDrop) pd);
-      if (pd instanceof IAnalysisResultDrop)
-        trustedResults.add((IAnalysisResultDrop) pd);
-    }
-
-    // X Add promises directly
-    for (IProofDrop trustedDrop : trustedPromises) {
-      mutableContentSet.addChild(encloseDrop(trustedDrop));
-    }
-
-    // Add results and folders directly
-    for (IAnalysisResultDrop resultDrop : trustedResults) {
-      mutableContentSet.addChild(encloseDrop(resultDrop));
-    }
-
-    // /*
-    // * Add promises in a prerequisite assertion folder
-    // */
-    // int count = trustedPromises.size();
-    // // bail out if no preconditions exist
-    // if (count < 1)
-    // return;
-    // ResultsViewContent preconditionFolder = makeContent(count
-    // + (count > 1 ? " prerequisite assertions:" :
-    // " prerequisite assertion:"));
-    // int flags = 0; // assume no adornments
-    // flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-    // boolean elementsProvedConsistent = true; // assume true
-    //
-    // // add trusted proof drops to the folder
-    // for (IProofDrop trustedDrop : trustedPromises) {
-    // preconditionFolder.addChild(encloseDrop(trustedDrop));
-    // elementsProvedConsistent &= trustedDrop.provedConsistent();
-    // }
-    //
-    // // finish up the folder
-    // flags |= (elementsProvedConsistent ? CoE_Constants.CONSISTENT :
-    // CoE_Constants.INCONSISTENT);
-    // preconditionFolder.setImageFlags(flags);
-    // preconditionFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
-    // mutableContentSet.addChild(preconditionFolder);
   }
 
   /**
@@ -361,13 +227,16 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    * 
    * @param drop
    *          the drop to enclose
+   * @param parentOrNull
+   *          the future parent {@link ResultsViewContent} of the
+   *          {@link ResultsViewContent} under construction, or {@code null} if
+   *          none (a the root).
    * @return the content item the viewer can use
    */
-  private ResultsViewContent encloseDrop(IDrop drop) {
-    if (drop == null) {
-      LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
-      throw new IllegalArgumentException("ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
-    }
+  private ResultsViewContent encloseDrop(IDrop drop, ResultsViewContent parentOrNull) {
+    if (drop == null)
+      throw new IllegalArgumentException(I18N.err(44, "drop"));
+
     ResultsViewContent result = getFromContentCache(drop);
     if (result != null) {
       // in cache
@@ -375,17 +244,17 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     } else if (existsInCache(drop)) {
       return null;
     } else {
-      // create & add to cache
-      // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
-      result = makeContent(drop.getMessage(), drop);
-      putInContentCache(drop, result); // to avoid infinite recursion
 
       if (drop instanceof IPromiseDrop) {
-        final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
-
         /*
          * PROMISE DROP
          */
+        final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
+
+        // create & add to cache
+        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
+        result = makeContent(drop.getMessage(), drop);
+        putInContentCache(drop, result); // to avoid infinite recursion
 
         // image
         int flags = 0; // assume no adornments
@@ -401,26 +270,26 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         // children
         addSupportingInformation(result, promiseDrop);
-        addProposedPromises(result, promiseDrop);
-
-        final Set<IDrop> matching = new HashSet<IDrop>();
-        matching.addAll(promiseDrop.getDependentPromises());
-        matching.addAll(promiseDrop.getAnalysisHintsAbout());
-        addDrops(result, matching);
+        addDrops(result, promiseDrop.getDependentPromises());
         addDrops(result, promiseDrop.getCheckedBy());
+        addProposedPromises(result, promiseDrop);
+        addDrops(result, promiseDrop.getAnalysisHintsAbout());
 
       } else if (drop instanceof IResultDrop) {
-        final IResultDrop resultDrop = (IResultDrop) drop;
-
         /*
          * RESULT DROP
          */
+        final IResultDrop resultDrop = (IResultDrop) drop;
+
+        // create & add to cache
+        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
+        result = makeContent(drop.getMessage(), drop);
+        putInContentCache(drop, result); // to avoid infinite recursion
 
         // image
         int flags = 0; // assume no adornments
         if (resultDrop.hasTrusted()) {
-          // only show reddot and proof status if this results has
-          // preconditions
+          // only show reddot and proof status if this results has preconditions
           flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
           flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
         }
@@ -431,25 +300,32 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         // children
         addSupportingInformation(result, resultDrop);
+        addDrops(result, resultDrop.getTrusted());
         addProposedPromises(result, resultDrop);
-       // add_or_Trusted(result, resultDrop);
-        add_and_Trusted(result, resultDrop);
 
       } else if (drop instanceof IResultFolderDrop) {
-        final IResultFolderDrop folderDrop = (IResultFolderDrop) drop;
-
         /*
          * RESULT FOLDER DROP
          */
+        final IResultFolderDrop folderDrop = (IResultFolderDrop) drop;
+        if (folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.OR) {
+          // TODO
+        }
+
+        // create & add to cache
+        // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
+        result = makeContent(drop.getMessage(), drop);
+        putInContentCache(drop, result); // to avoid infinite recursion
 
         // image
         int flags = 0; // assume no adornments
         flags |= (folderDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
         flags |= (folderDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
         result.setImageFlags(flags);
-        result.setBaseImageName(folderDrop.getFolderLogic() == IResultFolderDrop.FolderLogic.AND ? CommonImages.IMG_FOLDER
+        result.setBaseImageName(folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.AND ? CommonImages.IMG_FOLDER
             : CommonImages.IMG_FOLDER_OR);
 
+        // children
         addDrops(result, folderDrop.getTrusted());
         addProposedPromises(result, folderDrop);
 
@@ -650,153 +526,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return root.getChildrenAsCollection();
   }
 
-  private void packageTypeFolderizeRecursive(ResultsViewContent node, boolean atRoot, Set<ResultsViewContent> existingFolderSet,
-      Set<ResultsViewContent> contentsOnPathToRoot) {
-    Set<ResultsViewContent> newChildren = new HashSet<ResultsViewContent>();
-    Set<ResultsViewContent> toBeFolderized = new HashSet<ResultsViewContent>();
-    Map<String, Map<String, ResultsViewContent>> packageToClassToFolder = new HashMap<String, Map<String, ResultsViewContent>>();
-
-    for (ResultsViewContent item : node.getChildrenAsCollection()) {
-      if (existingFolderSet.contains(item)) {
-        /*
-         * This is a previously created folder (went around the loop) so just
-         * add it to the resulting content set. Do not add it to the worklist to
-         * be categorized or an infinite loop will result.
-         */
-        newChildren.add(item);
-      } else {
-        toBeFolderized.add(item);
-
-        /*
-         * If the drop the content "item" references has a package and a type
-         * we'll generate folders for it.
-         */
-        final IDrop drop = item.getDropInfo();
-        boolean hasJavaContext = false;
-        if (drop != null && (drop instanceof IResultDrop || drop instanceof IAnalysisHintDrop)) {
-          boolean resultHasACategory = drop instanceof IResultDrop && drop.getCategory() != null;
-          if (resultHasACategory || drop instanceof IAnalysisHintDrop) {
-            ContentJavaContext context = new ContentJavaContext(item);
-            if (context.complete) {
-              hasJavaContext = true;
-              String packageKey = context.packageName;
-              String typeKey = context.typeName;
-              Map<String, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
-              if (typeToFolder == null) {
-                typeToFolder = new HashMap<String, ResultsViewContent>();
-                packageToClassToFolder.put(packageKey, typeToFolder);
-              }
-              ResultsViewContent folder = typeToFolder.get(typeKey);
-              if (folder == null) {
-                // create the class/type folder, save it in the map
-                folder = makeContent(typeKey);
-                folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE : CommonImages.IMG_CLASS);
-                typeToFolder.put(typeKey, folder);
-              }
-              folder.addChild(item);
-            }
-          }
-        }
-        /*
-         * If we couldn't figure out the package and class just add the drop
-         * back into the children.
-         */
-        if (!hasJavaContext) {
-          newChildren.add(item);
-        }
-      }
-    }
-
-    /*
-     * Create the package folders and add associated type folders into it.
-     */
-    for (Iterator<String> i = packageToClassToFolder.keySet().iterator(); i.hasNext();) {
-      String packageKey = i.next();
-      Map<?, ResultsViewContent> typeToFolder = packageToClassToFolder.get(packageKey);
-
-      ResultsViewContent packageFolder = makeContent(packageKey, typeToFolder.values());
-      existingFolderSet.add(packageFolder);
-
-      for (ResultsViewContent typeFolder : packageFolder.getChildrenAsCollection()) {
-        setConsistencyDecoratorForATypeFolder(typeFolder);
-      }
-      packageFolder.freezeChildrenCount();
-      packageFolder.setBaseImageName(CommonImages.IMG_PACKAGE);
-      setConsistencyDecoratorForAPackageFolder(packageFolder);
-
-      newChildren.add(packageFolder);
-    }
-
-    /*
-     * Replace the children of the node parameter with the new children created
-     * within this method
-     */
-    node.resetChildren(newChildren);
-
-    /*
-     * Categorize the content items we encountered for the first time
-     */
-    for (Iterator<ResultsViewContent> k = toBeFolderized.iterator(); k.hasNext();) {
-      ResultsViewContent item = k.next();
-      /*
-       * Guard against infinite recursion (drop-sea is a graph)
-       */
-      if (!contentsOnPathToRoot.contains(item)) {
-        // Changed to add and then remove the item from the set
-        contentsOnPathToRoot.add(item);
-        packageTypeFolderizeRecursive(item, false, existingFolderSet, contentsOnPathToRoot);
-        contentsOnPathToRoot.remove(item);
-      }
-    }
-  }
-
-  private void setConsistencyDecoratorForATypeFolder(ResultsViewContent c) {
-    boolean hasAResult = false;
-    boolean consistent = true;
-    boolean hasRedDot = false;
-    for (ResultsViewContent node : c.getChildrenAsCollection()) {
-      if (node.getDropInfo() instanceof IProofDrop) {
-        IProofDrop d = (IProofDrop) node.getDropInfo();
-        hasAResult = true;
-        consistent = consistent && d.provedConsistent();
-        hasRedDot = hasRedDot || d.proofUsesRedDot();
-      }
-    }
-    if (hasAResult) {
-      int flags = c.getImageFlags();
-
-      flags |= (hasRedDot ? CoE_Constants.REDDOT : 0);
-      flags |= (consistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-
-      c.setImageFlags(flags);
-    }
-  }
-
-  private void setConsistencyDecoratorForAPackageFolder(ResultsViewContent c) {
-    boolean hasAResult = false;
-    boolean consistent = true;
-    boolean hasRedDot = false;
-    for (ResultsViewContent node : c.getChildrenAsCollection()) {
-      int flags = node.getImageFlags();
-      boolean nConsistent = (flags & CoE_Constants.CONSISTENT) != 0;
-      boolean nInconsistent = (flags & CoE_Constants.INCONSISTENT) != 0;
-      boolean nHasRedDot = (flags & CoE_Constants.REDDOT) != 0;
-      if (nConsistent || nInconsistent) {
-        hasAResult = true;
-        consistent = consistent && nConsistent;
-        hasRedDot = hasRedDot || nHasRedDot;
-      }
-    }
-    if (hasAResult) {
-      int flags = c.getImageFlags();
-
-      flags |= (hasRedDot ? CoE_Constants.REDDOT : 0);
-      flags |= (consistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-
-      c.setImageFlags(flags);
-    }
-  }
-
   private void propagateWarningDecorators(Collection<ResultsViewContent> contentRoot) {
     // fake out the recursive function by pretending the root is a node
     ResultsViewContent root = makeContent("", contentRoot);
@@ -894,39 +623,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  static private class ContentJavaContext {
-
-    /**
-     * {@code true} if the entire Java context is well-defined, {@code false}
-     * otherwise.
-     */
-    public boolean complete = false;
-
-    String packageName = "(default)";
-
-    String typeName = "NONE";
-
-    private boolean typeIsAnInterface = false;
-
-    /**
-     * Tries to construct a full Java context, if this fails {@link #complete}
-     * will be <code>false</code>.
-     * 
-     * @param content
-     *          the viewer content item to obtain the Java context for
-     */
-    public ContentJavaContext(final ResultsViewContent content) {
-      final IDrop info = content.getDropInfo();
-      final ISrcRef ref = info.getSrcRef();
-      if (ref != null) {
-        packageName = ref.getPackage();
-        int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
-        typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator + 1);
-        complete = true;
-      }
-    }
-  }
-
   ResultsViewContentProvider buildModelOfDropSea_internal() {
     // show at the viewer root
     Collection<ResultsViewContent> root = new HashSet<ResultsViewContent>();
@@ -939,7 +635,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         if (pd.isFromSrc() || pd.derivedFromSrc()) {
           // System.out.println("Considering: "+pd.getMessage());
           if (showAtTopLevel(pd)) {
-            root.add(encloseDrop(pd));
+            root.add(encloseDrop(pd, null));
           } else {
             // System.out.println("Rejected: "+pd.getMessage());
           }
@@ -953,7 +649,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         infoFolder.setCount(infoDrops.size());
 
         for (IDrop id : infoDrops) {
-          infoFolder.addChild(encloseDrop(id));
+          infoFolder.addChild(encloseDrop(id, infoFolder));
         }
         infoFolder.setBaseImageName(CommonImages.IMG_INFO);
         infoFolder.f_isInfo = true;

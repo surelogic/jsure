@@ -23,7 +23,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   /**
    * Constructs a new <b>And</b> analysis result folder pointing to the passed
-   * node. Results placed in this folder are conjoined ({@link FolderLogic#AND})
+   * node. Results placed in this folder are conjoined ({@link LogicOperator#AND})
    * in the model-code consistency proof.
    * 
    * @param node
@@ -31,12 +31,12 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
    * @return a folder.
    */
   public static ResultFolderDrop newAndFolder(IRNode node) {
-    return new ResultFolderDrop(node, FolderLogic.AND);
+    return new ResultFolderDrop(node, LogicOperator.AND);
   }
 
   /**
    * Constructs a new <b>Or</b> analysis result folder pointing to the passed
-   * node. Results placed in this folder are disjoined ({@link FolderLogic#OR})
+   * node. Results placed in this folder are disjoined ({@link LogicOperator#OR})
    * in the model-code consistency proof.
    * 
    * @param node
@@ -44,22 +44,22 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
    * @return a warning.
    */
   public static ResultFolderDrop newOrFolder(IRNode node) {
-    return new ResultFolderDrop(node, FolderLogic.OR);
+    return new ResultFolderDrop(node, LogicOperator.OR);
   }
 
   @NonNull
-  private final FolderLogic f_operator;
+  private final LogicOperator f_operator;
 
   /**
    * Constructs a new analysis result folder.
    */
-  private ResultFolderDrop(IRNode node, FolderLogic operator) {
+  private ResultFolderDrop(IRNode node, LogicOperator operator) {
     super(node);
-    f_operator = operator == null ? FolderLogic.AND : operator;
+    f_operator = operator == null ? LogicOperator.AND : operator;
   }
 
   @NonNull
-  public FolderLogic getFolderLogic() {
+  public LogicOperator getLogicOperator() {
     return f_operator;
   }
 
@@ -78,7 +78,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @Override
   @RequiresLock("SeaLock")
   protected void proofTransfer() {
-    if (getFolderLogic() == FolderLogic.AND) {
+    if (getLogicOperator() == LogicOperator.AND) {
       /*
        * CONJUNCTION (AND)
        */
@@ -153,6 +153,6 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @MustInvokeOnOverride
   public void snapshotAttrs(Builder s) {
     super.snapshotAttrs(s);
-    s.addAttribute(FOLDER_LOGIC_OPERATOR, getFolderLogic().toString());
+    s.addAttribute(FOLDER_LOGIC_OPERATOR, getLogicOperator().toString());
   }
 }

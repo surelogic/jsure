@@ -7,16 +7,16 @@ import com.surelogic.dropsea.IResultFolderDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
 
-  private final FolderLogic f_operator;
+  private final LogicOperator f_operator;
 
   IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
     final String operatorString = e.getAttribute(AbstractXMLReader.FOLDER_LOGIC_OPERATOR);
-    FolderLogic operator = FolderLogic.AND;
+    LogicOperator operator = LogicOperator.AND;
     if (operatorString != null) {
       try {
-        operator = FolderLogic.valueOf(operatorString);
+        operator = LogicOperator.valueOf(operatorString);
       } catch (Exception ignore) {
         // ignore
       }
@@ -25,7 +25,7 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
   }
 
   @NonNull
-  public FolderLogic getFolderLogic() {
+  public LogicOperator getLogicOperator() {
     return f_operator;
   }
 }

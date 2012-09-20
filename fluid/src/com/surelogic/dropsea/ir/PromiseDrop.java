@@ -246,7 +246,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   public final Set<AnalysisResultDrop> getCheckedBy() {
     final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*
-     * check if any dependent result drop checks this drop ("trusts" doesn't
+     * Find the set of dependent results that check this drop ("trusts" doesn't
      * count)
      */
     synchronized (f_seaLock) {
