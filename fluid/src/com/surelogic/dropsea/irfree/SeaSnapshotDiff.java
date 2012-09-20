@@ -1,10 +1,5 @@
 package com.surelogic.dropsea.irfree;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
-
 import java.net.URI;
 import java.util.*;
 
@@ -135,8 +130,7 @@ public class SeaSnapshotDiff<K> {
 		rv.setSeparator(new IDropSeparator<Pair<String,String>>() {
 			@Override
 			public Pair<String, String> makeKey(IDrop d) {
-			    final String typeName = d.getIRDropSeaClass().getName();
-			    final Class<?> type = DropTypeUtility.findType(typeName);
+				final Class<?> type = d.getIRDropSeaClass();
 			    if (type == null) {
 			    	return null;
 			    }
@@ -154,13 +148,36 @@ public class SeaSnapshotDiff<K> {
 			    return Pair.getInstance(f, type.getName());
 			}
 		});
-		rv.setMatcher(new DropMatcher() {
+		rv.setMatcher(new DropMatcher("Exact  ", "Hashed ", "Hashed2", "Results") {
 			@Override
 			protected boolean match(int pass, IDrop n, IDrop o) {
-				// TODO Auto-generated method stub
-				return false;
+				switch (pass) {
+				case 0:
+					return matchExact(n, o);
+				case 1:
+					return matchHashed(n, o);
+				case 2:
+					return matchHashed2(n, o);
+				case 3:
+					return matchResults(n, o);
+				default:
+					return false;
+				}
 			}
-			
+			private boolean matchExact(IDrop n, IDrop o) {
+				return matchBasics(n, o) && getOffset(n) == getOffset(o);
+			}
+			private boolean matchHashed(IDrop n, IDrop o) {
+				return matchBasics(n, o) && 
+				       matchLong(n.getTreeHash(), o.getTreeHash()) && 
+				       matchLong(n.getContextHash(), o.getContextHash());
+			}
+			private boolean matchHashed2(IDrop n, IDrop o) {
+				return matchBasics(n, o) && matchLong(n.getTreeHash(), o.getTreeHash());				
+			}
+			private boolean matchResults(IDrop n, IDrop o) {
+				return (n instanceof IResultDrop) && matchLong(n.getTreeHash(), o.getTreeHash());
+			}
 		});
 		rv.build(old, newer);
 		return rv;

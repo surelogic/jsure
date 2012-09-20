@@ -169,8 +169,11 @@ public final class DiffCategory<K> implements IViewable {
 	        }
 
 	        private int offset(DiffNode d) {
-	          ISrcRef ref = d.drop.getSrcRef();
-	          return getOffset(ref);
+	          Long l = DropMatcher.getOffset(d.drop);
+	          if (l == null) {
+	        	  return -1;
+	          }
+	          return l.intValue();
 	        }
 	      });
 	      return l;
