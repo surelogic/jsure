@@ -3,6 +3,7 @@ package com.surelogic.dropsea.irfree.drops;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 
 import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.*;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
@@ -15,6 +16,12 @@ import com.surelogic.dropsea.irfree.DropTypeUtility;
  */
 @Deprecated
 public class DropFactory {
+	public static IDrop create(Entity drop, Entity ref) {
+		IRFreeDrop d = (IRFreeDrop) create(drop);
+		d.setSrcRef(IRFreeDrop.makeSrcRef(new SourceRef(ref)));
+		return d;
+	}
+	
 	// Modified from SeaEntity.makeEntity()
 	public static IDrop create(Entity entity) {
 		final String type = entity.getAttribute(TYPE_ATTR);

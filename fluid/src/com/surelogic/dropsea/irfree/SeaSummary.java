@@ -1040,7 +1040,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   static List<IDrop> convertToSnapshot(List<Entity> l) {
 	  List<IDrop> drops = new ArrayList<IDrop>(l.size());
 	  for(Entity e : l) {
-		  drops.add(DropFactory.create(e));
+		  drops.add(DropFactory.create(e, e));
 	  }
 	  return drops;
   }
