@@ -354,7 +354,14 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     ISeaDiff diff;
     if (true) {
     	List<IDrop> oracle = convertToSnapshot(oldDrops);
-    	diff = SeaSnapshotDiff.diff(f, oracle, drops);
+    	List<IDrop> newDrops = new ArrayList<IDrop>();
+    	for(IDrop d : drops) {
+    		d = checkIfReady(d);
+    		if (d != null) {
+    			newDrops.add(d);
+    		}
+    	}
+    	diff = SeaSnapshotDiff.diff(f, oracle, newDrops);
     } else {
     	final SeaSummary s = new SeaSummary(null);
     	final List<Entity> newDrops = new ArrayList<Entity>();
@@ -1040,7 +1047,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   static List<IDrop> convertToSnapshot(List<Entity> l) {
 	  List<IDrop> drops = new ArrayList<IDrop>(l.size());
 	  for(Entity e : l) {
-		  drops.add(DropFactory.create(e));
+		  IDrop d = DropFactory.create(e, e);
+		  if (d != null) {
+			  drops.add(d);
+		  }
 	  }
 	  return drops;
   }

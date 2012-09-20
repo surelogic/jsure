@@ -82,9 +82,12 @@ public abstract class DropMatcher {
 	}
 	
 	protected static boolean matchMessage(IDrop n, IDrop o) {		
-		Boolean result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical());
-		if (result != null) {
-			return result;
+		Boolean result;
+		if (!o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for summaries
+			result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical());
+			if (result != null) {
+				return result;
+			}
 		}
 		result = matchStrings(n.getMessage(), o.getMessage());
 		return result != null ? result : false;
