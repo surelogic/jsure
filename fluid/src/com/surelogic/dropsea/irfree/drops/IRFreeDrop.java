@@ -21,10 +21,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
@@ -69,6 +71,10 @@ public class IRFreeDrop implements IDrop {
   private final String f_message;
   @NonNull
   private final String f_messageCanonical;
+  @NonNull
+  private final Long f_treeHash;
+  @NonNull
+  private final Long f_contextHash;
 
   public void addProposal(IRFreeProposedPromiseDrop info) {
     f_proposedPromises.add(info);
@@ -94,14 +100,34 @@ public class IRFreeDrop implements IDrop {
       f_messageCanonical = messageCanonical;
     else
       f_messageCanonical = getClass().getSimpleName() + " (EMPTY)";
+
+    final String hash = e.getAttribute(HASH_ATTR);
+    Long treeHash = null;
+    if (hash != null) {
+      try {
+        treeHash = Long.parseLong(hash);
+      } catch (NumberFormatException nfe) {
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(249, hash, HASH_ATTR), nfe);
+      }
+    }
+    f_treeHash = treeHash != null ? treeHash : Long.valueOf(0);
+
+    final String chash = e.getAttribute(CONTEXT_ATTR);
+    Long contextHash = null;
+    if (chash != null) {
+      try {
+        contextHash = Long.parseLong(chash);
+      } catch (NumberFormatException nfe) {
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(249, chash, CONTEXT_ATTR), nfe);
+      }
+    }
+    f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
   }
 
   public void finishInit() {
-    if (f_entity.getSource() != null) {
-      f_srcRef = makeSrcRef(f_entity.getSource());
-    } else {
-      f_srcRef = null;
-    }
+    final SourceRef sr = f_entity.getSource();
+    f_srcRef = sr != null ? makeSrcRef(sr) : null;
+
     for (MoreInfo i : f_entity.getInfos()) {
       f_supportingInformation.add(makeSupportingInfo(i));
     }
@@ -147,19 +173,15 @@ public class IRFreeDrop implements IDrop {
   }
 
   public Long getTreeHash() {
-    String hash = getEntity().getAttribute(HASH_ATTR);
-    if (hash == null) {
-      return Long.valueOf(0);
-    }
-    return Long.parseLong(hash);
+    return f_treeHash;
   }
 
   public Long getContextHash() {
-    return Long.parseLong(getEntity().getAttribute(CONTEXT_ATTR));
+    return f_contextHash;
   }
 
   public String getXMLElementName() {
-    return f_entity.getEntityName();
+    return getEntity().getEntityName();
   }
 
   public void snapshotAttrs(XMLCreator.Builder s) {
