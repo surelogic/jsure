@@ -50,19 +50,19 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   private Map<String, String> f_annoAttributes = null;
   private Map<String, String> f_replacedAttributes = null;
 
-  public void setAssumptionRef(ISrcRef value) {
+  void setAssumptionRef(ISrcRef value) {
     f_assumptionRef = value;
   }
 
-  public void setAnnoAttributes(Map<String, String> value) {
+  void setAnnoAttributes(Map<String, String> value) {
     f_annoAttributes = value;
   }
 
-  public void setReplacedAttributes(Map<String, String> value) {
+  void setReplacedAttributes(Map<String, String> value) {
     f_replacedAttributes = value;
   }
 
-  public IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
+  IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
 

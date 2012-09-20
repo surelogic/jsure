@@ -22,7 +22,7 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   private final boolean f_derivedFromSrc;
   private final boolean f_isFromSrc;
 
-  public void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
+  void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
     f_analysisHints.add(hint);
   }
 
@@ -51,7 +51,7 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   }
 
   @NonNull
-  public Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout() {
+  public final Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout() {
     return f_analysisHints;
   }
 }

@@ -12,7 +12,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.WITHIN_DECL_ATTR;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.SOURCE_REF;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SOURCE_REF;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.io.File;

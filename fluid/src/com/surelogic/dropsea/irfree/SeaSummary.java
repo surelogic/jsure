@@ -47,7 +47,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.irfree.JSureSummaryXMLReader;
-import com.surelogic.dropsea.irfree.SeaSnapshotXMLReader;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entity;

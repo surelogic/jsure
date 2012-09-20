@@ -43,18 +43,12 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop implements IDrop {
 
-  static {
-    for (Category c : Category.getAll()) {
-      Entity.internString(c.getMessage());
-    }
-  }
-
   @NonNull
-  private final Entity f_entity; // TODO PERHAPS REMOVE IN FUTURE
+  private final Entity f_entity; // TODO REMOVE IN FUTURE
 
   @Deprecated
-  public @NonNull
-  Entity getEntity() {
+  @NonNull
+  public Entity getEntity() {
     return f_entity;
   }
 
@@ -85,25 +79,25 @@ public class IRFreeDrop implements IDrop {
   @NonNull
   private final Long f_contextHash;
 
-  public void addProposal(IRFreeProposedPromiseDrop info) {
+  void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
       f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
     }
     f_proposedPromises.add(info);
   }
 
-  public void addSupportingInformation(ISupportingInformation si) {
+  void addSupportingInformation(ISupportingInformation si) {
     if (f_supportingInformation == null) {
       f_supportingInformation = new ArrayList<ISupportingInformation>(1);
     }
     f_supportingInformation.add(si);
   }
 
-  public void setSrcRef(ISrcRef value) {
+  void setSrcRef(ISrcRef value) {
     f_srcRef = value;
   }
 
-  public IRFreeDrop(Entity e, Class<?> irClass) {
+  IRFreeDrop(Entity e, Class<?> irClass) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
     if (irClass == null)
@@ -210,7 +204,7 @@ public class IRFreeDrop implements IDrop {
     }
   }
 
-  public static ISupportingInformation makeSupportingInfo(final MoreInfo i) {
+  static ISupportingInformation makeSupportingInfo(final MoreInfo i) {
     return new ISupportingInformation() {
       final ISrcRef ref = makeSrcRef(i.source);
 
@@ -236,7 +230,7 @@ public class IRFreeDrop implements IDrop {
     };
   }
 
-  public static ISrcRef makeSrcRef(final SourceRef ref) {
+  static ISrcRef makeSrcRef(final SourceRef ref) {
     if (ref == null) {
       return null;
     }

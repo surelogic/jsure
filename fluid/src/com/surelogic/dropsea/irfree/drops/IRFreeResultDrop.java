@@ -30,15 +30,15 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   private final boolean f_isVouched;
   private final boolean f_isTimeout;
 
-  public void addTrusted_and(IRFreeProofDrop info) {
+  void addTrusted_and(IRFreeProofDrop info) {
     f_trusted.add(info);
   }
 
-  public void addTrusted_or(String label, IRFreeProofDrop info) {
+  void addTrusted_or(String label, IRFreeProofDrop info) {
     f_orTrusted.put(label, info);
   }
 
-  public IRFreeResultDrop(Entity e, Class<?> irClass) {
+  IRFreeResultDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
     f_isConsistent = "true".equals(e.getAttribute(CONSISTENT));

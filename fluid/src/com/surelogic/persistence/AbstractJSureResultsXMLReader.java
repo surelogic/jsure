@@ -9,7 +9,7 @@ import java.util.zip.ZipFile;
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.IIRProjects;
-import com.surelogic.dropsea.irfree.SeaSnapshotXMLReader;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.common.xml.NestedXMLReader;

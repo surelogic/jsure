@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.AND_TRUSTED_PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
@@ -19,9 +19,9 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.SUB_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_FOLDER;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROMISE;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.JAVA_DECL_INFO;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.PROPERTIES;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.SOURCE_REF;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SOURCE_REF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,16 +43,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisHintDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeAnalysisResultDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeModelingProblemDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreePromiseDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeProofDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeResultDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeResultFolderDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeScopedPromiseDrop;
+import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListener {
 
@@ -116,7 +107,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
    */
   private final ArrayList<Entity> entities = new ArrayList<Entity>();
 
-  List<IDrop> getDrops() {
+  public List<IDrop> getDrops() {
     final ArrayList<IDrop> result = new ArrayList<IDrop>();
     for (Entity se : entities) {
       if (se instanceof SeaEntity) {

@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.irfree.drops;
 
 import org.xml.sax.Attributes;
 
@@ -8,8 +8,16 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
+import com.surelogic.dropsea.ir.Category;
 
 public class SeaSnapshotXMLReader extends AbstractXMLReader {
+
+  static {
+    for (Category c : Category.getAll()) {
+      Entity.internString(c.getMessage());
+    }
+  }
+
   public static final String ROOT = "sea-snapshot";
 
   public static final String SOURCE_REF = "source-ref";

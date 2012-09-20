@@ -25,19 +25,19 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   private final boolean f_isIntendedToBeCheckedByAnalysis;
   private final boolean f_isVirtual;
 
-  public void addCheckedByResult(IRFreeAnalysisResultDrop info) {
+  void addCheckedByResult(IRFreeAnalysisResultDrop info) {
     f_checkedByResults.add(info);
   }
 
-  public void addDependentPromise(IRFreePromiseDrop p) {
+  void addDependentPromise(IRFreePromiseDrop p) {
     f_dependentPromises.add(p);
   }
 
-  public void addDeponentPromise(IRFreePromiseDrop p) {
+  void addDeponentPromise(IRFreePromiseDrop p) {
     f_deponentPromises.add(p);
   }
 
-  public IRFreePromiseDrop(Entity e, Class<?> irClass) {
+  IRFreePromiseDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
     /*
@@ -54,6 +54,7 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     f_isVirtual = "true".equals(e.getAttribute(VIRTUAL));
   }
 
+  @NonNull
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
     return f_checkedByResults;
   }

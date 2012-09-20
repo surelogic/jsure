@@ -9,11 +9,11 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
 
   private final HintType f_type;
 
-  public IRFreeAnalysisHintDrop(Entity e, Class<?> irClass) {
+  IRFreeAnalysisHintDrop(Entity e, Class<?> irClass) {
     this(e, irClass, null);
   }
 
-  public IRFreeAnalysisHintDrop(Entity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
+  IRFreeAnalysisHintDrop(Entity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
     super(e, irClass);
     if (forBackwardsCompatiblityOnly != null) {
       f_type = forBackwardsCompatiblityOnly;

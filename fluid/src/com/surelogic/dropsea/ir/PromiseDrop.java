@@ -243,12 +243,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
-  /**
-   * Returns a copy of the set of result drops which directly check this promise
-   * drop.
-   * 
-   * @return a non-null (possibly empty) set which check this promise drop
-   */
+  @NonNull
   public final Set<AnalysisResultDrop> getCheckedBy() {
     final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
     /*

@@ -7,12 +7,12 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.ID_ATTR;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.JAVA_DECL_INFO;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.PROPERTIES;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.ROOT;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.SUPPORTING_INFO;
-import static com.surelogic.dropsea.irfree.SeaSnapshotXMLReader.UID_ATTR;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ID_ATTR;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ROOT;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SUPPORTING_INFO;
+import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.UID_ATTR;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +29,8 @@ import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;

@@ -15,15 +15,15 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
   final List<IRFreeResultFolderDrop> subFolders = new ArrayList<IRFreeResultFolderDrop>(0);
   final List<IRFreeResultDrop> results = new ArrayList<IRFreeResultDrop>(0);
 
-  public void addSubFolder(IRFreeResultFolderDrop info) {
+  void addSubFolder(IRFreeResultFolderDrop info) {
     subFolders.add(info);
   }
 
-  public void addResult(IRFreeResultDrop info) {
+  void addResult(IRFreeResultDrop info) {
     results.add(info);
   }
 
-  public IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
+  IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
 

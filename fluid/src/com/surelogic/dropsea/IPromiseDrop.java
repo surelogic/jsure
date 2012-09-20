@@ -67,6 +67,7 @@ public interface IPromiseDrop extends IProofDrop {
    * 
    * @return a non-null (possibly empty) set which check this promise drop
    */
+  @NonNull
   Collection<? extends IAnalysisResultDrop> getCheckedBy();
 
   /**

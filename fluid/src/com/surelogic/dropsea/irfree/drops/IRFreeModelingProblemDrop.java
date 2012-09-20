@@ -5,7 +5,7 @@ import com.surelogic.dropsea.IModelingProblemDrop;
 
 public class IRFreeModelingProblemDrop extends IRFreeDrop implements IModelingProblemDrop {
 
-  public IRFreeModelingProblemDrop(Entity e, Class<?> irClass) {
+  IRFreeModelingProblemDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
 }
