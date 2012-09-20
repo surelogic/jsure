@@ -16,34 +16,42 @@ import com.surelogic.dropsea.IProofDrop;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 
-  private final List<IRFreeAnalysisHintDrop> analysisHints = new ArrayList<IRFreeAnalysisHintDrop>(0);
+  private final List<IRFreeAnalysisHintDrop> f_analysisHints = new ArrayList<IRFreeAnalysisHintDrop>(0);
+  private final boolean f_proofUsesRedDot;
+  private final boolean f_provedConsistent;
+  private final boolean f_derivedFromSrc;
+  private final boolean f_isFromSrc;
 
   public void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
-    analysisHints.add(hint);
+    f_analysisHints.add(hint);
   }
 
   IRFreeProofDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
+    f_proofUsesRedDot = "true".equals(e.getAttribute(USES_RED_DOT_ATTR));
+    f_provedConsistent = "true".equals(e.getAttribute(PROVED_ATTR));
+    f_derivedFromSrc = "true".equals(e.getAttribute(DERIVED_FROM_SRC_ATTR));
+    f_isFromSrc = "true".equals(e.getAttribute(FROM_SRC));
   }
 
   public final boolean proofUsesRedDot() {
-    return "true".equals(getEntity().getAttribute(USES_RED_DOT_ATTR));
+    return f_proofUsesRedDot;
   }
 
   public final boolean provedConsistent() {
-    return "true".equals(getEntity().getAttribute(PROVED_ATTR));
+    return f_provedConsistent;
   }
 
   public final boolean derivedFromSrc() {
-    return "true".equals(getEntity().getAttribute(DERIVED_FROM_SRC_ATTR));
+    return f_derivedFromSrc;
   }
 
   public final boolean isFromSrc() {
-    return "true".equals(getEntity().getAttribute(FROM_SRC));
+    return f_isFromSrc;
   }
 
   @NonNull
   public Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout() {
-    return analysisHints;
+    return f_analysisHints;
   }
 }

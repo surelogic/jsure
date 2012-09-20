@@ -17,20 +17,24 @@ import com.surelogic.dropsea.ir.Category;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
-  final List<IRFreePromiseDrop> dependentPromises = new ArrayList<IRFreePromiseDrop>(0);
-  final List<IRFreePromiseDrop> deponentPromises = new ArrayList<IRFreePromiseDrop>(0);
-  final List<IRFreeAnalysisResultDrop> checkedByResults = new ArrayList<IRFreeAnalysisResultDrop>(0);
+  private final List<IRFreePromiseDrop> f_dependentPromises = new ArrayList<IRFreePromiseDrop>(0);
+  private final List<IRFreePromiseDrop> f_deponentPromises = new ArrayList<IRFreePromiseDrop>(0);
+  private final List<IRFreeAnalysisResultDrop> f_checkedByResults = new ArrayList<IRFreeAnalysisResultDrop>(0);
+  private final boolean f_isAssumed;
+  private final boolean f_isCheckedByAnalysis;
+  private final boolean f_isIntendedToBeCheckedByAnalysis;
+  private final boolean f_isVirtual;
 
   public void addCheckedByResult(IRFreeAnalysisResultDrop info) {
-    checkedByResults.add(info);
+    f_checkedByResults.add(info);
   }
 
   public void addDependentPromise(IRFreePromiseDrop p) {
-    dependentPromises.add(p);
+    f_dependentPromises.add(p);
   }
 
   public void addDeponentPromise(IRFreePromiseDrop p) {
-    deponentPromises.add(p);
+    f_deponentPromises.add(p);
   }
 
   public IRFreePromiseDrop(Entity e, Class<?> irClass) {
@@ -43,35 +47,40 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
      */
     if (f_category == null)
       f_category = Category.getInstance(149);
+
+    f_isAssumed = "true".equals(e.getAttribute(ASSUMED));
+    f_isCheckedByAnalysis = "true".equals(e.getAttribute(CHECKED_BY_ANALYSIS));
+    f_isIntendedToBeCheckedByAnalysis = "true".equals(e.getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
+    f_isVirtual = "true".equals(e.getAttribute(VIRTUAL));
   }
 
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
-    return checkedByResults;
+    return f_checkedByResults;
   }
 
   @NonNull
   public Collection<? extends IPromiseDrop> getDependentPromises() {
-    return dependentPromises;
+    return f_dependentPromises;
   }
 
   @NonNull
   public Collection<? extends IPromiseDrop> getDeponentPromises() {
-    return deponentPromises;
+    return f_deponentPromises;
   }
 
   public boolean isAssumed() {
-    return "true".equals(getEntity().getAttribute(ASSUMED));
+    return f_isAssumed;
   }
 
   public boolean isCheckedByAnalysis() {
-    return "true".equals(getEntity().getAttribute(CHECKED_BY_ANALYSIS));
+    return f_isCheckedByAnalysis;
   }
 
   public boolean isIntendedToBeCheckedByAnalysis() {
-    return "true".equals(getEntity().getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
+    return f_isIntendedToBeCheckedByAnalysis;
   }
 
   public boolean isVirtual() {
-    return "true".equals(getEntity().getAttribute(VIRTUAL));
+    return f_isVirtual;
   }
 }

@@ -18,7 +18,7 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
     if (forBackwardsCompatiblityOnly != null) {
       f_type = forBackwardsCompatiblityOnly;
     } else {
-      final String levelString = getEntity().getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
+      final String levelString = e.getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
 
       HintType level = HintType.SUGGESTION;
       if (levelString != null) {
@@ -32,7 +32,6 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
     }
   }
 
-  // @Override
   @NonNull
   public HintType getHintType() {
     return f_type;

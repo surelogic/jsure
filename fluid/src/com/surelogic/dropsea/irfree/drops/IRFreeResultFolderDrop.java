@@ -1,7 +1,5 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,10 +33,6 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
 
   public Collection<? extends IResultFolderDrop> getSubFolders() {
     return subFolders;
-  }
-
-  public boolean isConsistent() {
-    return "true".equals(getEntity().getAttribute(CONSISTENT));
   }
 
   public Collection<? extends IAnalysisResultDrop> getContents() {
