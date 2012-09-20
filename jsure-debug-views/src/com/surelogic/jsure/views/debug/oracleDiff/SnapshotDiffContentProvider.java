@@ -13,14 +13,11 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.irfree.DiffNode;
-import com.surelogic.dropsea.irfree.IDiffNode;
-import com.surelogic.dropsea.irfree.ISeaDiff;
-import com.surelogic.dropsea.irfree.SeaSummary;
-import com.surelogic.dropsea.irfree.SeaSummary.*;
+import com.surelogic.dropsea.irfree.*;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -33,8 +30,18 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] nothingToDiff = new Object[1];
 	private static final Object[] nothingToShow = new Object[1];
 	static {
-		nothingToDiff[0] = new Category(null, "Nothing to diff");
-		nothingToShow[0] = new Category(null, "No differences");
+		nothingToDiff[0] = new AbstractDiffNode() {
+			@Override
+			public String getText() {
+				return "Nothing to diff";
+			}
+		};
+		nothingToShow[0] = new AbstractDiffNode() {
+			@Override
+			public String getText() {
+				return "No differences";
+			}
+		};
 	}
 	private ISeaDiff diff;
 
@@ -56,10 +63,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 						continue;
 					}
 					final File pFile = p.getLocation().toFile();
-					file = SeaSummary.findSummary(pFile.getAbsolutePath());
+					file = RegressionUtility.findOracle(pFile.getAbsolutePath());
 				}
 				if (file != null) {
-					diff = SeaSummary.diff(info, file, ModelingProblemFilterUtility.defaultFilter);
+					if (RegressionUtility.snapshotOracleFilter.accept(file.getParentFile(), file.getName())) {
+						diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, file, info);
+					} else {
+						diff = SeaSummary.diff(info, file, ModelingProblemFilterUtility.defaultFilter);
+					}
 					if (diff != null) {
 						return scan.getLabel();
 					}

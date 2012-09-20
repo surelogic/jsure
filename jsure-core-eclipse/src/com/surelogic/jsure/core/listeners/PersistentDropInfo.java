@@ -11,7 +11,7 @@ import java.util.Set;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.xml.Entity;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
@@ -23,7 +23,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public class PersistentDropInfo {
-  private static final String NAME = "snapshot" + SeaSnapshot.SUFFIX;
+  private static final String NAME = "snapshot" + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 
   private long timestamp = Long.MIN_VALUE;
   private List<IDrop> dropInfo = Collections.emptyList();
@@ -36,7 +36,7 @@ public class PersistentDropInfo {
       if (jsureData != null) {
         location = new File(jsureData, NAME);
       } else {
-        location = File.createTempFile("snapshot", SeaSnapshot.SUFFIX);
+        location = File.createTempFile("snapshot", RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
       }
       // System.out.println("Using location: "+location);
     } catch (IOException e) {

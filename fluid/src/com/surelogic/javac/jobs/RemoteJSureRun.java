@@ -10,6 +10,7 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -26,7 +27,7 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
-	public static final String RESULTS_XML  = "results"+SeaSnapshot.SUFFIX;
+	public static final String RESULTS_XML  = "results"+RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 	public static final String LOG_TXT = "remote"+LOG_SUFFIX;
 	public static final String SUMMARIES_ZIP = "summaries.zip";
 	

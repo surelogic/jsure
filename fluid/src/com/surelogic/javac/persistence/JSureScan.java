@@ -222,6 +222,10 @@ public class JSureScan implements Comparable<JSureScan> {
 		return f_scanDir;
 	}
 
+	public File getResultsFile() {
+		return new File(f_scanDir, RemoteJSureRun.RESULTS_XML);
+	}
+	
 	public String getDirName() {
 		return f_scanDir.getName();
 	}
