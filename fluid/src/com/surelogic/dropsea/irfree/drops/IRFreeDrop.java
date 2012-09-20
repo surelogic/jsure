@@ -58,7 +58,7 @@ public class IRFreeDrop implements IDrop {
   }
 
   @NonNull
-  private final Class<?> f_irClass;
+  private final Class<?> f_irDropSeaClass;
   @NonNull
   private final List<IRFreeProposedPromiseDrop> f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(0);
   @Nullable
@@ -85,7 +85,7 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "e"));
     if (irClass == null)
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
-    f_irClass = irClass;
+    f_irDropSeaClass = irClass;
     f_entity = e;
     f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
 
@@ -154,14 +154,14 @@ public class IRFreeDrop implements IDrop {
 
   @NonNull
   public Class<?> getIRDropSeaClass() {
-    return f_irClass;
+    return f_irDropSeaClass;
   }
 
   public final boolean instanceOf(Class<?> type) {
     if (type == null)
       return false;
 
-    return type.isAssignableFrom(f_irClass);
+    return type.isAssignableFrom(f_irDropSeaClass);
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
