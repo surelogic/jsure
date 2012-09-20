@@ -200,40 +200,45 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       informationItem.setBaseImageName(CommonImages.IMG_INFO);
       mutableContentSet.addChild(informationItem);
     }
-    
-//    int size = supportingInformation.size();
-//    if (size == 0) {
-//      // no supporting information, thus bail out
-//      return;
-//    } else if (size == 1) {
-//      ISupportingInformation si = supportingInformation.iterator().next();
-//      ResultsViewContent informationItem = makeContent("supporting information: " + si.getMessage(), si.getSrcRef());
-//      informationItem.setBaseImageName(CommonImages.IMG_INFO);
-//      mutableContentSet.addChild(informationItem);
-//      return;
-//    }
-//    // More than one thing
-//    ResultsViewContent siFolder = makeContent("supporting information:");
-//    siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
-//
-//    for (Iterator<ISupportingInformation> i = supportingInformation.iterator(); i.hasNext();) {
-//      ISupportingInformation si = i.next();
-//      ResultsViewContent informationItem = makeContent(si.getMessage(), si.getSrcRef());
-//      informationItem.setBaseImageName(CommonImages.IMG_INFO);
-//      siFolder.addChild(informationItem);
-//    }
-//    // Improves the presentation in the view
-//    switch (siFolder.numChildren()) {
-//    case 0:
-//      return; // Don't add anything
-//    case 1:
-//      mutableContentSet.addChild((ResultsViewContent) siFolder.getChildren()[0]);
-//      mutableContentSet.addChild(siFolder);
-//      break;
-//    default:
-//      mutableContentSet.addChild(siFolder);
-//      break;
-//    }
+
+    // int size = supportingInformation.size();
+    // if (size == 0) {
+    // // no supporting information, thus bail out
+    // return;
+    // } else if (size == 1) {
+    // ISupportingInformation si = supportingInformation.iterator().next();
+    // ResultsViewContent informationItem =
+    // makeContent("supporting information: " + si.getMessage(),
+    // si.getSrcRef());
+    // informationItem.setBaseImageName(CommonImages.IMG_INFO);
+    // mutableContentSet.addChild(informationItem);
+    // return;
+    // }
+    // // More than one thing
+    // ResultsViewContent siFolder = makeContent("supporting information:");
+    // siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
+    //
+    // for (Iterator<ISupportingInformation> i =
+    // supportingInformation.iterator(); i.hasNext();) {
+    // ISupportingInformation si = i.next();
+    // ResultsViewContent informationItem = makeContent(si.getMessage(),
+    // si.getSrcRef());
+    // informationItem.setBaseImageName(CommonImages.IMG_INFO);
+    // siFolder.addChild(informationItem);
+    // }
+    // // Improves the presentation in the view
+    // switch (siFolder.numChildren()) {
+    // case 0:
+    // return; // Don't add anything
+    // case 1:
+    // mutableContentSet.addChild((ResultsViewContent)
+    // siFolder.getChildren()[0]);
+    // mutableContentSet.addChild(siFolder);
+    // break;
+    // default:
+    // mutableContentSet.addChild(siFolder);
+    // break;
+    // }
   }
 
   /**
@@ -253,39 +258,43 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
       mutableContentSet.addChild(proposalItem);
     }
-    
-//    int size = proposals.size();
-//    if (size == 0) {
-//      // no proposed promises, thus bail out
-//      return;
-//    } else if (size == 1) {
-//      IProposedPromiseDrop pp = proposals.iterator().next();
-//      final ResultsViewContent proposalItem = makeContent("proposed promise: " + pp.getJavaAnnotation(), (IDrop) pp);
-//      proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
-//      mutableContentSet.addChild(proposalItem);
-//      return;
-//    }
-//    // More than one thing
-//    ResultsViewContent siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
-//    siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
-//
-//    for (IProposedPromiseDrop pp : proposals) {
-//      final ResultsViewContent proposalItem = makeContent(pp.getJavaAnnotation(), pp);
-//      proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
-//      siFolder.addChild(proposalItem);
-//    }
-//    // Improves the presentation in the view
-//    switch (siFolder.numChildren()) {
-//    case 0:
-//      return; // Don't add anything
-//    case 1:
-//      mutableContentSet.addChild((ResultsViewContent) siFolder.getChildren()[0]);
-//      mutableContentSet.addChild(siFolder);
-//      break;
-//    default:
-//      mutableContentSet.addChild(siFolder);
-//      break;
-//    }
+
+    // int size = proposals.size();
+    // if (size == 0) {
+    // // no proposed promises, thus bail out
+    // return;
+    // } else if (size == 1) {
+    // IProposedPromiseDrop pp = proposals.iterator().next();
+    // final ResultsViewContent proposalItem = makeContent("proposed promise: "
+    // + pp.getJavaAnnotation(), (IDrop) pp);
+    // proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
+    // mutableContentSet.addChild(proposalItem);
+    // return;
+    // }
+    // // More than one thing
+    // ResultsViewContent siFolder =
+    // makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
+    // siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
+    //
+    // for (IProposedPromiseDrop pp : proposals) {
+    // final ResultsViewContent proposalItem =
+    // makeContent(pp.getJavaAnnotation(), pp);
+    // proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
+    // siFolder.addChild(proposalItem);
+    // }
+    // // Improves the presentation in the view
+    // switch (siFolder.numChildren()) {
+    // case 0:
+    // return; // Don't add anything
+    // case 1:
+    // mutableContentSet.addChild((ResultsViewContent)
+    // siFolder.getChildren()[0]);
+    // mutableContentSet.addChild(siFolder);
+    // break;
+    // default:
+    // mutableContentSet.addChild(siFolder);
+    // break;
+    // }
   }
 
   /**
@@ -493,7 +502,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         add_and_Trusted(result, resultDrop);
 
       } else if (drop instanceof IResultFolderDrop) {
-        final IResultFolderDrop resultDrop = (IResultFolderDrop) drop;
+        final IResultFolderDrop folderDrop = (IResultFolderDrop) drop;
 
         /*
          * RESULT FOLDER DROP
@@ -501,13 +510,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
         // image
         int flags = 0; // assume no adornments
-        flags |= (resultDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-        flags |= (resultDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
+        flags |= (folderDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+        flags |= (folderDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
         result.setImageFlags(flags);
-        result.setBaseImageName(CommonImages.IMG_FOLDER);
+        result.setBaseImageName(folderDrop.getFolderLogic() == IResultFolderDrop.FolderLogic.AND ? CommonImages.IMG_FOLDER
+            : CommonImages.IMG_FOLDER_OR);
 
-        addDrops(result, resultDrop.getContents());
-        addProposedPromises(result, resultDrop);
+        addDrops(result, folderDrop.getContents());
+        addProposedPromises(result, folderDrop);
 
       } else if (drop instanceof IAnalysisHintDrop) {
         final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
