@@ -9,10 +9,8 @@ import com.surelogic.Singleton;
 import com.surelogic.common.i18n.I18N;
 
 /**
- * Defines a category which may be attached to
- * {@link com.surelogic.dropsea.ir.AnalysisHintDrop} and
- * {@link com.surelogic.dropsea.ir.ResultDrop}. Categories are intended to help
- * the user interface report results.
+ * Defines a category which may be attached to any drop. Categories are intended
+ * to help the user interface report results.
  * <p>
  * A noteworthy limitation of categories is that the user interface must set the
  * count with {@link #setCount(int)} before getting a formatted message
@@ -90,6 +88,7 @@ public final class Category {
    * @throws IllegalArgumentException
    *           if key is null.
    */
+  @Deprecated
   public static Category getPrefixCountInstance(final String key) {
     return getInstance(key, PrefixFormatter.INSTANCE);
   }
@@ -217,6 +216,8 @@ public final class Category {
   }
 
   /**
+   * Sets the count used by the formatter for the UI code.
+   * 
    * @param count
    *          the count of items to show in the formatted message
    * 

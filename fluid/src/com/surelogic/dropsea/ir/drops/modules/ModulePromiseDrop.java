@@ -34,9 +34,9 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
 
   private static final String DS_ERR_MODULE_WRAPPING_LOOP = "{0} participates in a module wrapping loop.";
 
-  private static final Category DSC_BAD_MODULE_PROMISE = Category.getPrefixCountInstance("Erroneous @module promises");
+  private static final Category DSC_BAD_MODULE_PROMISE = null; //Category.getPrefixCountInstance("Erroneous @module promises");
 
-  private static final Category DSC_OK_MODULE_PROMISE = Category.getPrefixCountInstance("@module promises");
+  private static final Category DSC_OK_MODULE_PROMISE = null; //Category.getPrefixCountInstance("@module promises");
 
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
 

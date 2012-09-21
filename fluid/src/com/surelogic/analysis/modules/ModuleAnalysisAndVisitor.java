@@ -77,17 +77,17 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   private static Drop resultDependUpon = null;
   
-  private static final Category DSC_BAD_CROSS_MODULE_REF =
-    Category.getPrefixCountInstance(ModuleMessages.getString("ModuleAnalysisAndVisitor.dsc.BadCrossModuleRefCat")); //$NON-NLS-1$
+  private static final Category DSC_BAD_CROSS_MODULE_REF = null;
+   // Category.getPrefixCountInstance(ModuleMessages.getString("ModuleAnalysisAndVisitor.dsc.BadCrossModuleRefCat")); //$NON-NLS-1$
   
-  private static final Category DSC_API_WISHES =
-    Category.getPrefixCountInstance("Non @vis entities with cross-module references");
+  private static final Category DSC_API_WISHES = null;
+   // Category.getPrefixCountInstance("Non @vis entities with cross-module references");
   
-  private static final Category DSC_API_WISHES_PROMOTION = 
-    Category.getPrefixCountInstance("Other modules desire @vis promotion");
+  private static final Category DSC_API_WISHES_PROMOTION =  null;
+   // Category.getPrefixCountInstance("Other modules desire @vis promotion");
   
-  private static final Category DSC_BAD_MODULE_PROMISE =
-    Category.getPrefixCountInstance("Erroneous @module promises");
+  private static final Category DSC_BAD_MODULE_PROMISE = null;
+  //  Category.getPrefixCountInstance("Erroneous @module promises");
   
   private static final String DS_BAD_CROSS_MODULE_REF = 
     ModuleMessages.getString("ModuleAnalysis.ds.BadCrossModuleRef"); //$NON-NLS-1$

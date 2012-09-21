@@ -97,9 +97,9 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         final IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) drop;
         String flavor = info.getAttribute(FLAVOR_ATTR);
         if (FROM_INFO.equals(flavor)) {
-          ppd.setFromInfo(info);
+          ppd.setFromInfo(info.makeDecl());
         } else if (TARGET_INFO.equals(flavor)) {
-          ppd.setTargetInfo(info);
+          ppd.setTargetInfo(info.makeDecl());
         } else {
           throw new IllegalStateException(I18N.err(250, flavor, ppd));
         }

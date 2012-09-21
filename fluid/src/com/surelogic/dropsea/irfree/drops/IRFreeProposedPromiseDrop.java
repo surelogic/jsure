@@ -21,7 +21,6 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.IJavaDeclaration;
-import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -49,15 +48,15 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   @Nullable
-  private JavaDeclInfo f_fromInfo = null;
+  private IJavaDeclaration f_fromInfo = null;
   @Nullable
-  private JavaDeclInfo f_targetInfo = null;
+  private IJavaDeclaration f_targetInfo = null;
   @Nullable
   private ISrcRef f_assumptionRef = null;
   @NonNull
-  private final Map<String, String> f_annoAttributes = new HashMap<String, String>();
+  private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
   @NonNull
-  private final Map<String, String> f_replacedAttributes = new HashMap<String, String>();
+  private final Map<String, String> f_replacedAttributes = new HashMap<String, String>(0);
   private final String f_JavaAnnotation;
   private final String f_annotation;
   private final String f_contents;
@@ -68,11 +67,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final Origin f_origin;
 
-  void setFromInfo(JavaDeclInfo value) {
+  void setFromInfo(IJavaDeclaration value) {
     f_fromInfo = value;
   }
 
-  void setTargetInfo(JavaDeclInfo value) {
+  void setTargetInfo(IJavaDeclaration value) {
     f_targetInfo = value;
   }
 
@@ -172,11 +171,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public IJavaDeclaration getFromInfo() {
-    return f_fromInfo.makeDecl();
+    return f_fromInfo;
   }
 
   public IJavaDeclaration getTargetInfo() {
-    return f_targetInfo.makeDecl();
+    return f_targetInfo;
   }
 
   public boolean isSameProposalAs(IProposedPromiseDrop other) {

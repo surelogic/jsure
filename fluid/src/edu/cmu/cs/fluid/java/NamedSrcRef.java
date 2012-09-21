@@ -15,7 +15,7 @@ public class NamedSrcRef extends AbstractSrcRef {
   }
 
   @Override
-  public String getEnclosingFile() {
+  public final String getEnclosingFile() {
     return file;
   }
 
@@ -23,20 +23,20 @@ public class NamedSrcRef extends AbstractSrcRef {
     return HashGenerator.UNKNOWN;
   }
 
-  public String getCUName() {
+  public final String getCUName() {
     return cunit;
   }
 
-  public String getPackage() {
+  public final String getPackage() {
     return pkg;
   }
 
-  public String getProject() {
+  public final String getProject() {
     return project;
   }
 
   @Override
-  public String getRelativePath() {
+  public final String getRelativePath() {
     return cunit;
   }
 }

@@ -6,35 +6,27 @@ import static com.surelogic.common.jsure.xml.CoE_Constants.REDDOT;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.tree.diff.Diff;
-import com.surelogic.tree.diff.IDiffNode;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewContent> {
-  /**
-   * Status for diffing
-   */
-  private Status f_status = Status.SAME;
+final class ResultsViewContent {
 
   private int f_numIssues = -1;
 
-  /**
-   * The drop referenced, or {@code null}.
-   */
+  @Nullable
   private final IDrop f_referencedDrop;
 
   /**
@@ -43,7 +35,7 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
    * 
    * @see #getChildren()
    */
-  private Collection<ResultsViewContent> f_children;
+  private final ArrayList<ResultsViewContent> f_children = new ArrayList<ResultsViewContent>();
 
   /**
    * The message to display in the viewer, meant to be accessed by
@@ -68,40 +60,82 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
    * The fAST node that this item references, or null, if the associated drop
    * defines the reference location.
    */
+  @Nullable
   private ISrcRef f_sourceRef = null;
 
-  /**
-   * <code>true</code> if this content is from an inference (or InfoDrop),
-   * <code>false</code> otherwise.
-   */
-  boolean f_isInfo = false;
+  ISrcRef getSrcRef() {
+    return f_sourceRef;
+  }
 
-  boolean f_isInfoDecorated = false;
+  private boolean f_isInfoDecorated = false;
 
-  /**
-   * <code>true</code> if this content is from an inference (or InfoDrop) that
-   * is a warning, <code>false</code> otherwise.
-   */
-  boolean f_isInfoWarning = false;
+  void setIsInfoDecroated(boolean value) {
+    f_isInfoDecorated = value;
+  }
 
-  boolean f_isInfoWarningDecorate = false;
-
-  boolean f_donePropagatingWarningDecorators = false;
+  boolean isInfoDecorated() {
+    return f_isInfoDecorated;
+  }
 
   /**
-   * <code>true</code> if this content is from an promise warning drop (or
-   * PromiseWarningDrop), <code>false</code> otherwise.
+   * Flags an information hint.
    */
-  boolean f_isPromiseWarning = false;
+  private boolean f_isInfo = false;
+
+  void setIsInfoHint(boolean value) {
+    f_isInfo = value;
+  }
+
+  boolean isInfoHint() {
+    return f_isInfo;
+  }
+
+  /**
+   * Flags a warning hint.
+   */
+  private boolean f_isInfoWarning = false;
+
+  void setIsWarningHint(boolean value) {
+    f_isInfoWarning = value;
+  }
+
+  boolean isWarningHint() {
+    return f_isInfoWarning;
+  }
+
+  private boolean f_isInfoWarningDecorate = false;
+
+  void setIsWarningDecorated(boolean value) {
+    f_isInfoWarningDecorate = value;
+  }
+
+  boolean isWarningDecorated() {
+    return f_isInfoWarningDecorate;
+  }
+
+  private boolean f_donePropagatingWarningDecorators = false;
+
+  void setDonePropagatingWarningDecorators(boolean value) {
+    f_donePropagatingWarningDecorators = value;
+  }
+
+  boolean donePropagatingWarningDecorators() {
+    return f_donePropagatingWarningDecorators;
+  }
 
   /**
    * A reference to the original node. Non-null only if it's a backedge
    */
   ResultsViewContent cloneOf = null;
 
+  private boolean isBackedge() {
+    return cloneOf != null;
+  }
+
   ResultsViewContent(String msg, Collection<ResultsViewContent> content, IDrop drop) {
     f_message = msg;
-    f_children = content;
+    if (content != null)
+      f_children.addAll(content);
     for (ResultsViewContent c : content) {
       c.setParent(this);
     }
@@ -110,23 +144,33 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
       f_sourceRef = drop.getSrcRef();
   }
 
-  ResultsViewContent(String msg, ISrcRef ref) {
-    f_message = msg;
-    f_children = Collections.emptyList();
-    f_referencedDrop = null;
-    f_sourceRef = ref;
+  public ResultsViewContent(ResultsViewContent copy) {
+    f_numIssues = copy.f_numIssues;
+    f_referencedDrop = copy.f_referencedDrop;
+    f_children.addAll(copy.f_children);
+    f_message = copy.f_message;
+    f_getMessage = copy.f_getMessage;
+    parent = copy.parent;
+    f_baseImageName = copy.f_baseImageName;
+    f_imageFlags = copy.f_imageFlags;
+    f_sourceRef = copy.f_sourceRef;
+    f_isInfoDecorated = copy.f_isInfoDecorated;
+    f_isInfo = copy.f_isInfo;
+    f_isInfoWarning = copy.f_isInfoWarning;
+    f_isInfoWarningDecorate = copy.f_isInfoWarningDecorate;
+    f_donePropagatingWarningDecorators = copy.f_donePropagatingWarningDecorators;
+
   }
 
   ResultsViewContent cloneAsLeaf() {
     ResultsViewContent clone = shallowCopy();
     if (clone != null) {
-      clone.f_status = Status.BACKEDGE;
       clone.cloneOf = this;
     }
     return clone;
   }
 
-  public void setCount(int count) {
+  void setCount(int count) {
     f_numIssues = count;
   }
 
@@ -165,10 +209,6 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
     return freezeCount();
   }
 
-  public ISrcRef getSrcRef() {
-    return f_sourceRef;
-  }
-
   public String getMessage() {
     if (f_getMessage != null) {
       return f_getMessage;
@@ -195,13 +235,13 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
       final boolean referencesAResultDrop = getDropInfo() instanceof IResultDrop;
       if (ref.getLineNumber() > 0) {
         if (referencesAResultDrop) {
-//          result += " at line " + ref.getLineNumber();
+          // result += " at line " + ref.getLineNumber();
         } else {
-//          result += " at " + name + " line " + ref.getLineNumber();
+          // result += " at " + name + " line " + ref.getLineNumber();
         }
       } else if (!name.equals("?")) {
         if (!referencesAResultDrop) {
-//          result += " at " + name;
+          // result += " at " + name;
         }
       }
     } else if (f_numIssues > 0) {
@@ -211,8 +251,8 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
         result += " (" + f_numIssues + (f_numIssues > 1 ? " issues)" : " issue)");
       }
     }
-    if (f_status != Status.SAME) {
-      result += " -- " + f_status;
+    if (isBackedge()) {
+      result += " -- BACKEDGE";
     }
     f_getMessage = result;
     return result;
@@ -290,57 +330,20 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
     if (c == null) {
       throw new IllegalArgumentException(I18N.err(44, "c"));
     }
-    f_children = c;
+    f_children.clear();
+    f_children.addAll(c);
     for (ResultsViewContent cc : c) {
       cc.setParent(this);
     }
   }
 
   public void addChild(ResultsViewContent child) {
-    if (f_children.size() == 0) {
-      f_children = new ArrayList<ResultsViewContent>(1);
-    }
     f_children.add(child);
     child.setParent(this);
   }
 
-  public int numChildren() {
-    return f_children.size();
-  }
-
-  public static Collection<ResultsViewContent> diffChildren(Collection<ResultsViewContent> last, Collection<ResultsViewContent> now) {
-    Collection<ResultsViewContent> diffs = Diff.diff(last, now, false);
-    for (ResultsViewContent c : diffs) {
-      c.recomputeCounts();
-    }
-    return diffs;
-  }
-
   public Collection<ResultsViewContent> getChildrenAsCollection() {
     return f_children;
-  }
-
-  public Collection<ResultsViewContent> setChildren(Collection<ResultsViewContent> c) {
-    try {
-      return f_children;
-    } finally {
-      f_children = c;
-      for (ResultsViewContent cc : c) {
-        cc.setParent(this);
-      }
-    }
-  }
-
-  public Status getStatus() {
-    return f_status;
-  }
-
-  public Status setStatus(Status s) {
-    try {
-      return f_status;
-    } finally {
-      f_status = s;
-    }
   }
 
   @Override
@@ -432,25 +435,18 @@ final class ResultsViewContent implements Cloneable, IDiffNode<ResultsViewConten
   public boolean isShallowMatch(ResultsViewContent n) {
     return this.f_baseImageName.equals(n.f_baseImageName) && this.f_imageFlags == n.f_imageFlags && this.f_isInfo == n.f_isInfo
         && this.f_isInfoDecorated == n.f_isInfoDecorated && this.f_isInfoWarning == n.f_isInfoWarning
-        && this.f_isInfoWarningDecorate == n.f_isInfoWarningDecorate && this.f_isPromiseWarning == n.f_isPromiseWarning;
+        && this.f_isInfoWarningDecorate == n.f_isInfoWarningDecorate;
   }
 
   public ResultsViewContent shallowCopy() {
-    ResultsViewContent clone;
-    try {
-      clone = (ResultsViewContent) clone();
-      clone.f_children = Collections.emptySet();
-      clone.f_getMessage = null; // Invalidate cache
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
-      return null;
-    }
+    ResultsViewContent clone = new ResultsViewContent(this);
+    clone.f_children.clear();
+    clone.f_getMessage = null; // Invalidate cache
+    return clone;
   }
 
   public ResultsViewContent deepCopy() {
     ResultsViewContent copy = shallowCopy();
-    copy.f_children = new ArrayList<ResultsViewContent>();
     for (ResultsViewContent c : f_children) {
       final ResultsViewContent copyC = c.deepCopy();
       copy.f_children.add(copyC);

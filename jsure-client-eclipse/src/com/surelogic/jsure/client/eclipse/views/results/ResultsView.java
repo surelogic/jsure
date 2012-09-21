@@ -379,8 +379,8 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
       if (bothContent) {
         final ResultsViewContent c1 = (ResultsViewContent) e1;
         final ResultsViewContent c2 = (ResultsViewContent) e2;
-        final boolean c1IsNonProof = c1.f_isInfo || c1.f_isPromiseWarning;
-        final boolean c2IsNonProof = c2.f_isInfo || c2.f_isPromiseWarning;
+        final boolean c1IsNonProof = c1.isInfoHint() || c1.isWarningHint();
+        final boolean c2IsNonProof = c2.isInfoHint() || c2.isWarningHint();
         // Separating proof drops from info/warning drops
         if (c1IsNonProof && !c2IsNonProof) {
           result = 1;

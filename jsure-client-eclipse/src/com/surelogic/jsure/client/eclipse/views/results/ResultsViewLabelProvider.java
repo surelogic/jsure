@@ -35,9 +35,9 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider {
       final ResultsViewContent c = (ResultsViewContent) obj;
       int flags = c.getImageFlags();
       if (m_showInferences) {
-        if (c.f_isInfoWarningDecorate) {
+        if (c.isWarningDecorated()) {
           flags |= CoE_Constants.INFO_WARNING;
-        } else if (c.f_isInfoDecorated) {
+        } else if (c.isInfoDecorated()) {
           if (!CommonImages.IMG_INFO.equals(c.getBaseImageName()))
             flags |= CoE_Constants.INFO;
         }

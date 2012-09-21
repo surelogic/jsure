@@ -38,16 +38,9 @@ import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop implements IDrop {
-
-  @NonNull
-  private final Entity f_entity; // TODO REMOVE IN FUTURE
-
   @Deprecated
-  @NonNull
-  public Entity getEntity() {
-    return f_entity;
-  }
-
+  private final String f_xmlElementName; // TODO remove when SeaSummary is removed
+  
   @NonNull
   private final Class<?> f_irDropSeaClass;
   /**
@@ -99,7 +92,7 @@ public class IRFreeDrop implements IDrop {
     if (irClass == null)
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
-    f_entity = e;
+    
     final String categoryString = e.getAttribute(CATEGORY_ATTR);
     if (categoryString != null)
       f_category = Category.getPrefixCountInstance(categoryString);
@@ -137,6 +130,8 @@ public class IRFreeDrop implements IDrop {
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
+    
+    f_xmlElementName = e.getEntityName();
   }
 
   @Nullable
@@ -193,21 +188,41 @@ public class IRFreeDrop implements IDrop {
     return f_contextHash;
   }
 
+  //TODO remove when SeaSummary is removed
   public String getXMLElementName() {
-    return getEntity().getEntityName();
+    return f_xmlElementName;
   }
 
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-      s.addAttribute(a.getKey(), a.getValue());
-    }
-  }
+//  public void snapshotAttrs(XMLCreator.Builder s) {
+//	  for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
+//		  s.addAttribute(a.getKey(), a.getValue());
+//	  }
+//  }
 
-  static ISrcRef makeSrcRef(final SourceRef ref) {
+  static int convert(String val) {
+	  if (val == null) {
+		  return 0;
+	  } else {
+		  return Integer.valueOf(val);
+	  }
+  }
+  
+  static ISrcRef makeSrcRef(SourceRef ref) {
     if (ref == null) {
       return null;
     }
     final int line = Integer.valueOf(ref.getLine());
+    final String pkg = ref.getAttribute(PKG_ATTR);
+    final String file = ref.getAttribute(FILE_ATTR);
+    final String path = ref.getAttribute(PATH_ATTR);
+    final String cuName = ref.getAttribute(CUNIT_ATTR);
+    final String javaId = ref.getAttribute(JAVA_ID_ATTR);
+    final String project = ref.getAttribute(PROJECT_ATTR);
+    final String hash = ref.getAttribute(HASH_ATTR);
+    final String uri = ref.getAttribute(URI_ATTR);
+    
+    final int offset = convert(ref.getAttribute(OFFSET_ATTR));
+    final int length = convert(ref.getAttribute(LENGTH_ATTR));
     return new AbstractSrcRef() {
 
       @Override
@@ -226,26 +241,25 @@ public class IRFreeDrop implements IDrop {
       }
 
       public String getJavaId() {
-        return ref.getAttribute(JAVA_ID_ATTR);
+        return javaId;
       }
 
       public String getCUName() {
-        return ref.getAttribute(CUNIT_ATTR);
+        return cuName;
       }
 
       @Override
       public String getEnclosingFile() {
-        return ref.getAttribute(FILE_ATTR);
+        return file;
       }
 
       @Override
       public String getRelativePath() {
-        return ref.getAttribute(PATH_ATTR);
+        return path;
       }
 
       @Override
       public URI getEnclosingURI() {
-        String uri = ref.getAttribute(URI_ATTR);
         if (uri != null) {
           try {
             return new URI(uri);
@@ -258,26 +272,15 @@ public class IRFreeDrop implements IDrop {
 
       @Override
       public int getOffset() {
-        String offset = ref.getAttribute(OFFSET_ATTR);
-        if (offset == null) {
-          return 0;
-        } else {
-          return Integer.valueOf(offset);
-        }
+        return offset;
       }
 
       @Override
       public int getLength() {
-        String offset = ref.getAttribute(LENGTH_ATTR);
-        if (offset == null) {
-          return 0;
-        } else {
-          return Integer.valueOf(offset);
-        }
+        return length;
       }
 
       public Long getHash() {
-        String hash = ref.getAttribute(HASH_ATTR);
         if (hash == null) {
           throw new UnsupportedOperationException();
         } else {
@@ -291,11 +294,11 @@ public class IRFreeDrop implements IDrop {
       }
 
       public String getPackage() {
-        return ref.getAttribute(PKG_ATTR);
+        return pkg;
       }
 
       public String getProject() {
-        return ref.getAttribute(PROJECT_ATTR);
+        return project;
       }
     };
   }
