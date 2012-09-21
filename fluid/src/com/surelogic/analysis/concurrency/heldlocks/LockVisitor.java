@@ -830,7 +830,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private AnalysisHintDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final AnalysisHintDrop info = AnalysisHintDrop.newSuggestion(context);
+		final AnalysisHintDrop info = AnalysisHintDrop.newInformation(context);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;

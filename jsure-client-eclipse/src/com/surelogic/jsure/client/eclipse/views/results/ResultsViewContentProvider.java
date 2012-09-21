@@ -420,10 +420,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (drop instanceof IAnalysisHintDrop) {
           IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.SUGGESTION)
-            infoDrops.add(infoDrop);
-          else
+          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING)
             warningDrops.add(infoDrop);
+          else
+            infoDrops.add(infoDrop);
         }
       }
       if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {
@@ -472,20 +472,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         contentsOnPathToRoot.remove(item);
       }
     }
-  }
-
-  /**
-   * Creates folders for the package and type a result is within.
-   * 
-   * @param contentRoot
-   *          root of a graph of {@link ResultsViewContent} nodes
-   */
-  private Collection<ResultsViewContent> packageTypeFolderize(Collection<ResultsViewContent> contentRoot) {
-    // fake out the recursive function by pretending the root is node
-    ResultsViewContent root = makeContent("", contentRoot);
-    // packageTypeFolderizeRecursive(root, true, new
-    // HashSet<ResultsViewContent>(), new HashSet<ResultsViewContent>());
-    return root.getChildrenAsCollection();
   }
 
   private void propagateWarningDecorators(Collection<ResultsViewContent> contentRoot) {
@@ -604,13 +590,23 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         }
       }
 
-      final Collection<IAnalysisHintDrop> infoDrops = scan.getAnalysisHintDrops();
-      if (!infoDrops.isEmpty()) {
+      final Collection<IAnalysisHintDrop> hintDrops = scan.getAnalysisHintDrops();
+      /*
+       * If the hint is uncategorized we don't show it in this section (it shows
+       * up under the drop it is attached to).
+       */
+      for (Iterator<IAnalysisHintDrop> iterator = hintDrops.iterator(); iterator.hasNext();) {
+        IAnalysisHintDrop hint = iterator.next();
+        if (hint.getCategory() == null)
+          iterator.remove();
+      }
+
+      if (!hintDrops.isEmpty()) {
         final String msg = "Suggestions and warnings";
         ResultsViewContent infoFolder = makeContent(msg);
-        infoFolder.setCount(infoDrops.size());
+        infoFolder.setCount(hintDrops.size());
 
-        for (IDrop id : infoDrops) {
+        for (IDrop id : hintDrops) {
           infoFolder.addChild(encloseDrop(id, infoFolder));
         }
         infoFolder.setBaseImageName(CommonImages.IMG_INFO);
@@ -620,7 +616,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     }
 
     root = categorize(root);
-    root = packageTypeFolderize(root);
     propagateWarningDecorators(root);
     breakBackEdges(root);
     m_root = root.toArray();

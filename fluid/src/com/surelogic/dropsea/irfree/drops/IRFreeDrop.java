@@ -31,9 +31,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
@@ -75,7 +73,7 @@ public class IRFreeDrop implements IDrop {
    * hints.
    */
   @Nullable
-  private List<IAnalysisHintDrop> f_analysisHints = null;
+  private List<IRFreeAnalysisHintDrop> f_analysisHints = null;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -88,9 +86,9 @@ public class IRFreeDrop implements IDrop {
     f_srcRef = value;
   }
 
-  void addAnalysisHint(IAnalysisHintDrop hint) {
+  void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
     if (f_analysisHints == null) {
-      f_analysisHints = new ArrayList<IAnalysisHintDrop>(1);
+      f_analysisHints = new ArrayList<IRFreeAnalysisHintDrop>(1);
     }
     f_analysisHints.add(hint);
   }
@@ -170,7 +168,7 @@ public class IRFreeDrop implements IDrop {
     return type.isAssignableFrom(f_irDropSeaClass);
   }
 
-  public Collection<? extends IProposedPromiseDrop> getProposals() {
+  public Collection<IRFreeProposedPromiseDrop> getProposals() {
     if (f_proposedPromises != null)
       return f_proposedPromises;
     else
@@ -178,7 +176,7 @@ public class IRFreeDrop implements IDrop {
   }
 
   @NonNull
-  public final Collection<IAnalysisHintDrop> getAnalysisHintsAbout() {
+  public final Collection<IRFreeAnalysisHintDrop> getAnalysisHintsAbout() {
     if (f_analysisHints != null)
       return f_analysisHints;
     else

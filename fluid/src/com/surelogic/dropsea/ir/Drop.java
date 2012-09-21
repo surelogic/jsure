@@ -30,7 +30,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
-import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -587,12 +586,12 @@ public abstract class Drop implements IDrop {
   }
 
   @NonNull
-  public final Set<IAnalysisHintDrop> getAnalysisHintsAbout() {
-    final Set<IAnalysisHintDrop> result = new HashSet<IAnalysisHintDrop>();
+  public final Set<AnalysisHintDrop> getAnalysisHintsAbout() {
+    final Set<AnalysisHintDrop> result = new HashSet<AnalysisHintDrop>();
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
-        if (d instanceof IAnalysisHintDrop)
-          result.add((IAnalysisHintDrop) d);
+        if (d instanceof AnalysisHintDrop)
+          result.add((AnalysisHintDrop) d);
       }
     }
     return result;
@@ -673,17 +672,15 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
-      if (c instanceof Drop)
-        s.snapshotDrop((Drop) c);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.snapshotDrop(c);
     }
   }
 
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
-      if (c instanceof Drop)
-        s.refDrop(db, HINT_ABOUT, (Drop) c);
+    for (Drop c : getAnalysisHintsAbout()) {
+      s.refDrop(db, HINT_ABOUT, c);
     }
   }
 
