@@ -19,11 +19,16 @@ import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SOURCE_REF;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
@@ -191,7 +196,22 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           drop.setSrcRef(IRFreeDrop.makeSrcRef(sr));
 
         for (MoreInfo i : e.getInfos()) {
-          drop.addSupportingInformation(IRFreeDrop.makeSupportingInfo(i));
+          if (drop instanceof IRFreeProofDrop) {
+            /*
+             * Add a hint node to replace the old-style supporting information.
+             */
+            IRFreeProofDrop pd = (IRFreeProofDrop) drop;
+            Map<String, String> a = new HashMap<String, String>();
+            a.put(AbstractXMLReader.MESSAGE_ATTR, i.message);
+            a.put(AbstractXMLReader.HINT_TYPE_ATTR, IAnalysisHintDrop.HintType.INFORMATION.toString());
+            Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
+            IRFreeAnalysisHintDrop hint = new IRFreeAnalysisHintDrop(hintE, AnalysisHintDrop.class);
+            if (i.source != null)
+              hint.setSrcRef(IRFreeDrop.makeSrcRef(i.source));
+            pd.addAnalysisHint(hint);
+          } else {
+            SLLogger.getLogger().log(Level.WARNING, "Had to skip non-proof drop " + drop + " supporting informaion: " + i.message);
+          }
         }
       }
     }

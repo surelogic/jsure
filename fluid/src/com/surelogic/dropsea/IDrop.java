@@ -82,13 +82,6 @@ public interface IDrop {
   ISrcRef getSrcRef();
 
   /**
-   * Gets the supporting information about this drop.
-   * 
-   * @return the set (possibly empty) of supporting information about this drop.
-   */
-  Collection<ISupportingInformation> getSupportingInformation();
-
-  /**
    * Gets the set of proposed promises for this drop.
    * 
    * @return the, possibly empty but non-null, set of proposed promises for this

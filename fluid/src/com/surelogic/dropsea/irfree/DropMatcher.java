@@ -103,14 +103,14 @@ public abstract class DropMatcher {
 	}
 
 	private static long computeSIHash(IDrop e) {
-		long rv = 0;
-		for (ISupportingInformation i : e.getSupportingInformation()) {
-			String msg = i.getMessage();
-			if (msg == null) {
-				continue;
-			}
-			rv += msg.hashCode();
-		}
+		long rv = 0;  // TODO
+//		for (ISupportingInformation i : e.getSupportingInformation()) {
+//			String msg = i.getMessage();
+//			if (msg == null) {
+//				continue;
+//			}
+//			rv += msg.hashCode();
+//		}
 		return rv;
 	}
 	

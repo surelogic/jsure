@@ -195,13 +195,13 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    *          the {@link IDrop}to add supporting information about
    */
   private void addSupportingInformation(ResultsViewContent mutableContentSet, IDrop about) {
-    Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
-    // Add directly
-    for (ISupportingInformation si : supportingInformation) {
-      ResultsViewContent informationItem = makeContent(si.getMessage(), si.getSrcRef());
-      informationItem.setBaseImageName(CommonImages.IMG_INFO);
-      mutableContentSet.addChild(informationItem);
-    }
+//    Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
+//    // Add directly
+//    for (ISupportingInformation si : supportingInformation) {
+//      ResultsViewContent informationItem = makeContent(si.getMessage(), si.getSrcRef());
+//      informationItem.setBaseImageName(CommonImages.IMG_INFO);
+//      mutableContentSet.addChild(informationItem);
+//    }
   }
 
   /**
@@ -298,6 +298,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addSupportingInformation(result, resultDrop);
         addDrops(result, resultDrop.getTrusted());
         addProposedPromises(result, resultDrop);
+        addDrops(result, resultDrop.getAnalysisHintsAbout());
 
       } else if (drop instanceof IResultFolderDrop) {
         /*
@@ -316,6 +317,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         // children
         addDrops(result, folderDrop.getTrusted());
         addProposedPromises(result, folderDrop);
+        addDrops(result, folderDrop.getAnalysisHintsAbout());
 
       } else if (drop instanceof IAnalysisHintDrop) {
         /*

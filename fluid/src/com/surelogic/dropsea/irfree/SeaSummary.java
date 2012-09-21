@@ -173,9 +173,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     final String name = id.getXMLElementName();
     final Builder b = this.b.nest(name);
     addAttributes(b, id);
-    for (ISupportingInformation si : id.getSupportingInformation()) {
-      outputSupportingInfo(b, si);
-    }
     b.end();
     return b;
   }

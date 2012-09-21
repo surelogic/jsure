@@ -13,7 +13,7 @@ public interface IAnalysisHintDrop extends IAnalysisOutputDrop {
 
   enum HintType {
 
-    SUGGESTION, WARNING
+    INFORMATION, SUGGESTION, WARNING
 
   }
 

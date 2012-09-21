@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -159,6 +160,16 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       r.setConsistent();
       r.addChecked(pd);
       r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
+      
+      r.addSupportingInformation(r.getNode(), "This is some info");
+      
+      AnalysisHintDrop hd = AnalysisHintDrop.newSuggestion(r.getNode());
+      hd.setMessage(12, "This is some info");
+      r.addDependent(hd);
+      
+      AnalysisHintDrop hdw = AnalysisHintDrop.newWarning(r.getNode());
+      hdw.setMessage(12, "Tis is a warning to do something");
+      r.addDependent(hdw);
     }
     return results;
   }
