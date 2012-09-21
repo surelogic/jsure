@@ -89,16 +89,6 @@ public class PersistentDropInfo {
     return false;
   }
 
-  public synchronized String findProjectsLabel() {
-    for (IDrop info : getDropsOfType(ProjectsDrop.class)) {
-      if (info instanceof IRFreeDrop) {
-        IRFreeDrop d = (IRFreeDrop) info;
-        return d.getEntity().getAttribute(AbstractXMLReader.PROJECTS);
-      }
-    }
-    return null;
-  }
-
   public synchronized boolean isEmpty() {
     return dropInfo.isEmpty();
   }
