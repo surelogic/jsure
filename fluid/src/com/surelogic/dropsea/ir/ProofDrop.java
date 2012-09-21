@@ -2,7 +2,6 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
@@ -21,7 +20,7 @@ import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
@@ -185,18 +184,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     }
   }
 
-  @NonNull
-  public final Set<AnalysisHintDrop> getAnalysisHintsAbout() {
-    final Set<AnalysisHintDrop> result = new HashSet<AnalysisHintDrop>();
-    synchronized (f_seaLock) {
-      for (Drop d : getDependentsReference()) {
-        if (d instanceof AnalysisHintDrop)
-          result.add((AnalysisHintDrop) d);
-      }
-    }
-    return result;
-  }
-
   /*
    * Consistency proof methods
    */
@@ -268,8 +255,9 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
     super.preprocessRefs(s);
-    for (Drop c : getAnalysisHintsAbout()) {
-      s.snapshotDrop(c);
+    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
+      if (c instanceof Drop)
+        s.snapshotDrop((Drop) c);
     }
   }
 
@@ -281,14 +269,5 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     s.addAttribute(PROVED_ATTR, provedConsistent());
     s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
     s.addAttribute(FROM_SRC, isFromSrc());
-  }
-
-  @Override
-  @MustInvokeOnOverride
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
-    super.snapshotRefs(s, db);
-    for (Drop c : getAnalysisHintsAbout()) {
-      s.refDrop(db, HINT_ABOUT, c);
-    }
   }
 }

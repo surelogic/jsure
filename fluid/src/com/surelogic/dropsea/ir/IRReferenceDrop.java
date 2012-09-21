@@ -18,7 +18,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IAnalysisHintDrop.HintType;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
 
@@ -229,9 +228,6 @@ public abstract class IRReferenceDrop extends Drop {
     } catch (SlotUndefinedException e) {
       SLLogger.getLogger().log(Level.WARNING, "Undefined info for " + getMessage() + " on " + getNode(), e);
       throw e;
-    }
-    for (ISupportingInformation si : getSupportingInformation()) {
-      s.addSupportingInfo(db, si);
     }
     for (ProposedPromiseDrop pd : getProposals()) {
       s.refDrop(db, PROPOSED_PROMISE, pd);

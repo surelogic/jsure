@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 
@@ -29,9 +30,9 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -585,6 +586,18 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @NonNull
+  public final Set<IAnalysisHintDrop> getAnalysisHintsAbout() {
+    final Set<IAnalysisHintDrop> result = new HashSet<IAnalysisHintDrop>();
+    synchronized (f_seaLock) {
+      for (Drop d : getDependentsReference()) {
+        if (d instanceof IAnalysisHintDrop)
+          result.add((IAnalysisHintDrop) d);
+      }
+    }
+    return result;
+  }
+
   /**
    * Notes if the drop has been invalidated by a call to {@link #invalidate()}.
    */
@@ -660,12 +673,18 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    // by default do nothing
+    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
+      if (c instanceof Drop)
+        s.snapshotDrop((Drop) c);
+    }
   }
 
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    // by default do nothing
+    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
+      if (c instanceof Drop)
+        s.refDrop(db, HINT_ABOUT, (Drop) c);
+    }
   }
 
   /****************************************************************/
@@ -683,10 +702,6 @@ public abstract class Drop implements IDrop {
   }
 
   public Collection<? extends IProposedPromiseDrop> getProposals() {
-    return Collections.emptyList();
-  }
-
-  public Collection<ISupportingInformation> getSupportingInformation() {
     return Collections.emptyList();
   }
 

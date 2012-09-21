@@ -90,6 +90,14 @@ public interface IDrop {
   Collection<? extends IProposedPromiseDrop> getProposals();
 
   /**
+   * Returns the set of analysis hints about this proof drop.
+   * 
+   * @return the set of analysis hints about this proof drop.
+   */
+  @NonNull
+  Collection<IAnalysisHintDrop> getAnalysisHintsAbout();
+
+  /**
    * Computes a hash of the subtree from the fAST node that this drop is related
    * to the fAST branches.
    * 

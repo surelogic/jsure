@@ -22,13 +22,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
@@ -196,22 +194,18 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           drop.setSrcRef(IRFreeDrop.makeSrcRef(sr));
 
         for (MoreInfo i : e.getInfos()) {
-          if (drop instanceof IRFreeProofDrop) {
-            /*
-             * Add a hint node to replace the old-style supporting information.
-             */
-            IRFreeProofDrop pd = (IRFreeProofDrop) drop;
-            Map<String, String> a = new HashMap<String, String>();
-            a.put(AbstractXMLReader.MESSAGE_ATTR, i.message);
-            a.put(AbstractXMLReader.HINT_TYPE_ATTR, IAnalysisHintDrop.HintType.INFORMATION.toString());
-            Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
-            IRFreeAnalysisHintDrop hint = new IRFreeAnalysisHintDrop(hintE, AnalysisHintDrop.class);
-            if (i.source != null)
-              hint.setSrcRef(IRFreeDrop.makeSrcRef(i.source));
-            pd.addAnalysisHint(hint);
-          } else {
-            SLLogger.getLogger().log(Level.WARNING, "Had to skip non-proof drop " + drop + " supporting informaion: " + i.message);
-          }
+          /*
+           * Add a hint node to replace the old-style supporting information.
+           */
+          IRFreeProofDrop pd = (IRFreeProofDrop) drop;
+          Map<String, String> a = new HashMap<String, String>();
+          a.put(AbstractXMLReader.MESSAGE_ATTR, i.message);
+          a.put(AbstractXMLReader.HINT_TYPE_ATTR, IAnalysisHintDrop.HintType.INFORMATION.toString());
+          Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
+          IRFreeAnalysisHintDrop hint = new IRFreeAnalysisHintDrop(hintE, AnalysisHintDrop.class);
+          if (i.source != null)
+            hint.setSrcRef(IRFreeDrop.makeSrcRef(i.source));
+          pd.addAnalysisHint(hint);
         }
       }
     }
@@ -254,31 +248,22 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         }
       }
 
-      /*
-       * PROOF DROP
-       */
-      if (fromE instanceof IRFreeProofDrop) {
-        final IRFreeProofDrop fromPD = (IRFreeProofDrop) fromE;
-        if (toE instanceof IRFreeAnalysisHintDrop) {
-          final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
-          if (HINT_ABOUT.equals(refType)) {
-            fromPD.addAnalysisHint(toAHD);
-            return;
-          }
+      if (toE instanceof IRFreeAnalysisHintDrop) {
+        final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
+        if (HINT_ABOUT.equals(refType)) {
+          fromE.addAnalysisHint(toAHD);
+          return;
         }
       }
       /*
-       * Backwards compatibility with old scans to add analysis hints to promise
-       * drops using only deponent links.
+       * Backwards compatibility with old scans to add analysis hints to drops
+       * using only deponent links.
        */
       if (DEPONENT.equals(refType)) {
         if (fromE instanceof IRFreeAnalysisHintDrop) {
           final IRFreeAnalysisHintDrop fromAHD = (IRFreeAnalysisHintDrop) fromE;
-          if (toE instanceof IRFreeProofDrop) {
-            final IRFreeProofDrop toPD = (IRFreeProofDrop) toE;
-            toPD.addAnalysisHint(fromAHD);
-            return;
-          }
+          toE.addAnalysisHint(fromAHD);
+          return;
         }
       }
 

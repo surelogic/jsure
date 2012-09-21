@@ -31,6 +31,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.Category;
@@ -69,6 +70,12 @@ public class IRFreeDrop implements IDrop {
   private final Long f_treeHash;
   @NonNull
   private final Long f_contextHash;
+  /**
+   * This collection is {@code null} until some exist&mdash;most drops have no
+   * hints.
+   */
+  @Nullable
+  private List<IAnalysisHintDrop> f_analysisHints = null;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -79,6 +86,13 @@ public class IRFreeDrop implements IDrop {
 
   void setSrcRef(ISrcRef value) {
     f_srcRef = value;
+  }
+
+  void addAnalysisHint(IAnalysisHintDrop hint) {
+    if (f_analysisHints == null) {
+      f_analysisHints = new ArrayList<IAnalysisHintDrop>(1);
+    }
+    f_analysisHints.add(hint);
   }
 
   IRFreeDrop(Entity e, Class<?> irClass) {
@@ -159,6 +173,14 @@ public class IRFreeDrop implements IDrop {
   public Collection<? extends IProposedPromiseDrop> getProposals() {
     if (f_proposedPromises != null)
       return f_proposedPromises;
+    else
+      return Collections.emptyList();
+  }
+
+  @NonNull
+  public final Collection<IAnalysisHintDrop> getAnalysisHintsAbout() {
+    if (f_analysisHints != null)
+      return f_analysisHints;
     else
       return Collections.emptyList();
   }
