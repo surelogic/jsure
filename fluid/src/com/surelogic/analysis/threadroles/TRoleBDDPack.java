@@ -106,9 +106,9 @@ public class TRoleBDDPack {
   public static void registerCanonicalImage(final String image, JBDD forBDD) {
     final String savedImage = printMap.get(forBDD);
     if (savedImage == null) {
-      printMap.put(forBDD, image.intern());
+      printMap.put(forBDD, image);
     } else if (image.length() < savedImage.length()) {
-      printMap.put(forBDD, image.intern());
+      printMap.put(forBDD, image);
     }
   }
   

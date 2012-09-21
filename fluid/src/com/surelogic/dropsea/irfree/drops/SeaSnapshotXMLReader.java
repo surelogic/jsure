@@ -8,15 +8,8 @@ import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
-import com.surelogic.dropsea.ir.Category;
 
 public class SeaSnapshotXMLReader extends AbstractXMLReader {
-
-  static {
-    for (Category c : Category.getAll()) {
-      Entity.internString(c.getMessage());
-    }
-  }
 
   public static final String ROOT = "sea-snapshot";
 

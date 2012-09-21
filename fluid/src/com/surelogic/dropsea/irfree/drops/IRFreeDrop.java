@@ -100,7 +100,9 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
     f_entity = e;
-    f_category = Category.getInstance(e.getAttribute(CATEGORY_ATTR));
+    final String categoryString = e.getAttribute(CATEGORY_ATTR);
+    if (categoryString != null)
+      f_category = Category.getPrefixCountInstance(categoryString);
 
     final String message = e.getAttribute(MESSAGE_ATTR);
     if (message != null)

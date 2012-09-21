@@ -94,13 +94,12 @@ public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, 
     if (!simpleNameOnly) {
      result = globalNameToDrop.get(key);
       if (result == null) {
-        key = key.intern();
         result = new TRoleNameModel(key, null);
         globalNameToDrop.put(key, result);
       }
     }
     
-    key = simpleName.intern();
+    key = simpleName;
     Map<String, TRoleNameModel> simpleMap = simpleNameToLocalDrop.get(canonCU);
     if (simpleMap == null) {
       simpleMap = new HashMap<String, TRoleNameModel>(1);

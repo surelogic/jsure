@@ -79,7 +79,7 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 	private Point fSize;
 
 	/**
-	 * ImageDescriptor:fBaseImage -> (MAP String.intern():fFlags -> Image)
+	 * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
 	 */
 	private static final Map<ImageDescriptor, Map<String, Image>> imageCache = new HashMap<ImageDescriptor, Map<String, Image>>();
 

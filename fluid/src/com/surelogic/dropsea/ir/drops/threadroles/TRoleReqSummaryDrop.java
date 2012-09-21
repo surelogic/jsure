@@ -90,7 +90,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     private final String kind;
 
     private Status(String stat) {
-      kind = stat.intern();
+      kind = stat;
     }
 
     public static final Status USER = new Status("user-written");

@@ -46,13 +46,13 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
   String refdModule;
   
   private static final Category DSC_BAD_VISIBILITY_DECL = 
-    Category.getInstance("Erroneous visibility declarations");
+    Category.getPrefixCountInstance("Erroneous visibility declarations");
   
   private static final Category DSC_GOOD_VISIBILITY_DECL = 
-    Category.getInstance("Valid visibility declarations");
+    Category.getPrefixCountInstance("Valid visibility declarations");
   
   private static final Category DSC_WARN_VISIBILITY_DECL = 
-    Category.getInstance("Visibility declaration warnings");
+    Category.getPrefixCountInstance("Visibility declaration warnings");
   
   private static final String DS_ERROR_VIS_NO_SUCH_MODULE =
     "Named module \"{0}\" in \"{1}\" does not exist";

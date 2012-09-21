@@ -34,9 +34,9 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
 
   private static final String DS_ERR_MODULE_WRAPPING_LOOP = "{0} participates in a module wrapping loop.";
 
-  private static final Category DSC_BAD_MODULE_PROMISE = Category.getInstance("Erroneous @module promises");
+  private static final Category DSC_BAD_MODULE_PROMISE = Category.getPrefixCountInstance("Erroneous @module promises");
 
-  private static final Category DSC_OK_MODULE_PROMISE = Category.getInstance("@module promises");
+  private static final Category DSC_OK_MODULE_PROMISE = Category.getPrefixCountInstance("@module promises");
 
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
 
@@ -64,7 +64,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     super(mcn);
     declaredModules = new HashSet<ModuleModel>(2);
     claimsToWrap = new HashSet<String>(0);
-    modName = name.intern();
+    modName = name;
     setCategory(JavaGlobals.MODULE_CAT);
   }
 
@@ -95,7 +95,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     StringBuilder sb = new StringBuilder();
     Collection<String> ctw = resAsMPD.claimsToWrap;
     for (String aModName : mcn.getModWrapper().getWrappedModuleNames()) {
-      ctw.add(aModName.intern());
+      ctw.add(aModName);
       sb.append(aModName);
     }
 

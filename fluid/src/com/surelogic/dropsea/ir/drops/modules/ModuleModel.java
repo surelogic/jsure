@@ -89,7 +89,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
         "Bad module enclosure: {0} should not contain {1}";
   
     DSC_BAD_MODULE_PROMISE =
-        Category.getInstance("Erroneous @module promises");
+        Category.getPrefixCountInstance("Erroneous @module promises");
     
     fakingVisFlag = new QuickProperties.Flag(LOG, "fluid.fakingvis", "FakingVis");
     fakingVis = fakingVisIsOn();
