@@ -243,7 +243,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				
 				final Map<String,TypeSetPromiseDrop> involved = new HashMap<String, TypeSetPromiseDrop>();
 				for(IRNode type : layers.get(backedge)) {
-					rd.addSupportingInformation(type, Messages.TYPE_INVOLVED, JavaNames.getFullTypeName(type));
+					rd.addInformationHint(type, Messages.TYPE_INVOLVED, JavaNames.getFullTypeName(type));
 					for(Map.Entry<String,TypeSetPromiseDrop> e : getAnalysis().getTypesets()) {
 						if (e.getValue().check(type)) {
 							involved.put(e.getKey(), e.getValue());
@@ -251,7 +251,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					}
 				}
 				for(Map.Entry<String,TypeSetPromiseDrop> e : involved.entrySet()) {
-					rd.addSupportingInformation(e.getValue().getNode(), Messages.TYPESET_INVOLVED, e.getKey());
+					rd.addInformationHint(e.getValue().getNode(), Messages.TYPESET_INVOLVED, e.getKey());
 				}
 			}
 		};

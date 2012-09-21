@@ -49,7 +49,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
     return new AnalysisHintDrop(node, HintType.WARNING);
   }
 
-  private AnalysisHintDrop(IRNode node, HintType level) {
+  AnalysisHintDrop(IRNode node, HintType level) {
     super(node);
     f_type = level == null ? HintType.SUGGESTION : level;
   }

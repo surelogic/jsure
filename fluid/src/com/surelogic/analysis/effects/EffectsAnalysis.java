@@ -507,7 +507,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       /* Original expression is a field ref or a QualifiedReceiverDeclaration.
        * if it's an IFQR, then the destination of the aggregation is "this"
        */
-      resultDrop.addSupportingInformation(
+      resultDrop.addInformationHint(
           e.getLink(), Messages.AGGREGATION_EVIDENCE,
           e.getOriginalRegion().getName(),
           DebugUnparser.toString(originalExpression),
@@ -521,14 +521,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     @Override
     public void visitAnonClassEvidence(final AnonClassEvidence e) {
       final Effect originalEffect = e.getOriginalEffect();
-      resultDrop.addSupportingInformation(
+      resultDrop.addInformationHint(
           e.getLink(), Messages.ACE_EVIDENCE, originalEffect);
       accept(originalEffect.getTargetEvidence());
     }
     
     @Override
     public void visitBCAEvidence(final BCAEvidence e) {
-      resultDrop.addSupportingInformation(
+      resultDrop.addInformationHint(
           e.getLink(), Messages.BCA_EVIDENCE,
           DebugUnparser.toString(e.getUseExpression()), 
           DebugUnparser.toString(e.getSourceExpression()));
@@ -548,17 +548,17 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     public void visitEmptyEvidence(final EmptyEvidence e) {
 	    final Reason reason = e.getReason();
 	    if (reason == Reason.FINAL_FIELD) {
-	      resultDrop.addSupportingInformation(e.getLink(), reason.getMessage(),
+	      resultDrop.addInformationHint(e.getLink(), reason.getMessage(),
 	          VariableDeclarator.getId(e.getLink()));
 	    } else {
-	      resultDrop.addSupportingInformation(e.getLink(), reason.getMessage());
+	      resultDrop.addInformationHint(e.getLink(), reason.getMessage());
 	    }
 	    accept(e.getMoreEvidence());
 	  }
     
 	  @Override
 	  public void visitIteratorEvidence(final IteratorEvidence e) {
-	    resultDrop.addSupportingInformation(
+	    resultDrop.addInformationHint(
 	        e.getLink(), Messages.ITERATOR_EFFECTS_CONVERSION);
 	    accept(e.getMoreEvidence());
 	  }
@@ -584,7 +584,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
           throw new IllegalStateException("Formal parameter is not a ParameterDeclaration or a Receiver");
         }
         final String actualString = DebugUnparser.toString(e.getActual());
-        resultDrop.addSupportingInformation(
+        resultDrop.addInformationHint(
             e.getLink(), Messages.PARAMETER_EVIDENCE,
             formalString, actualString);
       }
@@ -601,7 +601,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
             QualifiedReceiverDeclaration.getType(
                 binder, e.getQualifiedReceiver())) + " .this";
         final String tString = JavaNames.getQualifiedTypeName(e.getType());
-        resultDrop.addSupportingInformation(
+        resultDrop.addInformationHint(
             e.getLink(), Messages.QRCVR_CONVERSION_EVIDENCE,
             qString, tString);
       }
@@ -610,7 +610,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     @Override
     public void visitUnknownReferenceConversionEvidence(
         final UnknownReferenceConversionEvidence e) {
-      resultDrop.addSupportingInformation(
+      resultDrop.addInformationHint(
           e.getUnknownRef(), Messages.UNKNOWN_REF_CONVERSION_EVIDENCE,
           DebugUnparser.toString(e.getUnknownRef()), 
           JavaNames.getQualifiedTypeName(e.getType()));

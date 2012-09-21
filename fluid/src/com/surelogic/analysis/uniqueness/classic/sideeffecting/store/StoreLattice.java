@@ -1582,7 +1582,7 @@ extends TripleLattice<Element<Integer>,
               if (undefinedAt != null) {
                 for (final IRNode where : undefinedAt) {
                   if (where != srcOp) {
-                    resultDrop.addSupportingInformation(
+                    resultDrop.addInformationHint(
                         where, Messages.BY_UNIQUE_PARAMETER,
                         DebugUnparser.toString(where));
                   }
@@ -1592,7 +1592,7 @@ extends TripleLattice<Element<Integer>,
               if (buriedAt != null) {
                 for (final IRNode where : buriedAt) {
                   if (where != srcOp) {
-                    resultDrop.addSupportingInformation(
+                    resultDrop.addInformationHint(
                         where, Messages.BY_UNIQUE_LOAD,
                         FieldRef.getId(where));
                   }
@@ -1607,7 +1607,7 @@ extends TripleLattice<Element<Integer>,
                       if (triple.third() != null) {
                         resultDrop.addTrusted(triple.third());
                       }
-                      resultDrop.addSupportingInformation(
+                      resultDrop.addInformationHint(
                           triple.second(), Messages.BY_SIDE_EFFECT,
                           VariableDeclarator.getId(field),
                           DebugUnparser.toString(triple.second()));
@@ -1691,13 +1691,13 @@ extends TripleLattice<Element<Integer>,
             analysis, isAbrupt, uniquePromise, readAt, false, msg);
         if (compromises != null) {
           for (final IRNode compromisedAt : compromises) {
-            r.addSupportingInformation(compromisedAt, Messages.COMPROMISED_BY,
+            r.addInformationHint(compromisedAt, Messages.COMPROMISED_BY,
                 DebugUnparser.toString(compromisedAt));
           }
         }
         if (undefines != null) {
           for (final IRNode undefinedAt : undefines) {
-            r.addSupportingInformation(undefinedAt, Messages.UNDEFINED_BY,
+            r.addInformationHint(undefinedAt, Messages.UNDEFINED_BY,
                 DebugUnparser.toString(undefinedAt));
           }
         }
@@ -1725,7 +1725,7 @@ extends TripleLattice<Element<Integer>,
               UniquenessUtils.getUnique(e.getKey()).getDrop(), read.srcOp,              
               false, Messages.READ_OF_BURIED);
           for (final IRNode buriedAt : e.getValue()) {
-            r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
+            r.addInformationHint(buriedAt, Messages.BURIED_BY, 
                 DebugUnparser.toString(buriedAt));
           }
         }
@@ -1737,7 +1737,7 @@ extends TripleLattice<Element<Integer>,
         final ResultDrop r = createResultDrop(analysis, read.isAbrupt,
             controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
         for (final IRNode setOp : z) {
-          r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
+          r.addInformationHint(setOp, Messages.ASSIGNED_UNDEFINED_BY,
               VariableUseExpression.prototype.includes(read.srcOp) ?
                   VariableUseExpression.getId(read.srcOp) : "*UNKNOWN*",
               DebugUnparser.toString(setOp));

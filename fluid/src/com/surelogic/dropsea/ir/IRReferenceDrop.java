@@ -16,6 +16,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IAnalysisHintDrop.HintType;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
@@ -80,20 +82,43 @@ public abstract class IRReferenceDrop extends Drop {
   public final IRNode getNode() {
     return f_node;
   }
-  
 
-  public final void addSupportingInformation(IRNode link, int num, Object... args) {
+  public final void addInformationHint(IRNode link, int num, Object... args) {
+    addHint(HintType.INFORMATION, link, num, args);
+  }
+
+  public final void addInformationHint(IRNode link, String msg) {
+    addHint(HintType.INFORMATION, link, msg);
+  }
+
+  public final void addSuggestionHint(IRNode link, int num, Object... args) {
+    addHint(HintType.SUGGESTION, link, num, args);
+  }
+
+  public final void addSuggestionHint(IRNode link, String msg) {
+    addHint(HintType.SUGGESTION, link, msg);
+  }
+
+  public final void addWarningHint(IRNode link, int num, Object... args) {
+    addHint(HintType.WARNING, link, num, args);
+  }
+
+  public final void addWarningHint(IRNode link, String msg) {
+    addHint(HintType.WARNING, link, msg);
+  }
+
+  private void addHint(IAnalysisHintDrop.HintType hintType, IRNode link, int num, Object... args) {
     if (link == null)
       link = getNode();
-    final AnalysisHintDrop info = AnalysisHintDrop.newInformation(link);
+    final AnalysisHintDrop info = new AnalysisHintDrop(link, hintType);
     info.setMessage(num, args);
     addDependent(info);
   }
-  
-  public final void addSupportingInformation(IRNode link, String msg) {
+
+  private void addHint(IAnalysisHintDrop.HintType hintType, IRNode link, String msg) {
     if (link == null)
       link = getNode();
-    final AnalysisHintDrop info = AnalysisHintDrop.newInformation(link);
+    final AnalysisHintDrop info = new AnalysisHintDrop(link, hintType);
     info.setMessage(msg);
     addDependent(info);
   }

@@ -18,7 +18,7 @@ public final class VouchProcessorConsistencyProofHook extends AbstractSeaConsist
         if (vouch != null) {
           rd.setVouched();
           rd.addTrusted(vouch);
-          vouch.addSupportingInformation(rd.getNode(), 21, rd.getMessage());
+          vouch.addInformationHint(rd.getNode(), 21, rd.getMessage());
         }
       }
     }
