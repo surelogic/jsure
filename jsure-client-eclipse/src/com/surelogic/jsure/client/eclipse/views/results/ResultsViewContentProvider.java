@@ -35,14 +35,12 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
 import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 final class ResultsViewContentProvider implements ITreeContentProvider {
@@ -162,10 +160,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
     return new ResultsViewContent(msg, Collections.<ResultsViewContent> emptyList(), drop);
   }
 
-  private ResultsViewContent makeContent(String msg, ISrcRef ref) {
-    return new ResultsViewContent(msg, ref);
-  }
-
   ResultsViewContentProvider buildModelOfDropSea(final TreeViewer treeViewer, File f_viewStatePersistenceFile, PageBook f_viewerbook) {
     final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
     try {
@@ -183,25 +177,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         }
       });
     }
-  }
-
-  /**
-   * Adds referenced supporting information about a drop to the mutable set of
-   * viewer content items passed into this method.
-   * 
-   * @param mutableContentSet
-   *          set of all {@link ResultsViewContent} items
-   * @param about
-   *          the {@link IDrop}to add supporting information about
-   */
-  private void addSupportingInformation(ResultsViewContent mutableContentSet, IDrop about) {
-//    Collection<ISupportingInformation> supportingInformation = about.getSupportingInformation();
-//    // Add directly
-//    for (ISupportingInformation si : supportingInformation) {
-//      ResultsViewContent informationItem = makeContent(si.getMessage(), si.getSrcRef());
-//      informationItem.setBaseImageName(CommonImages.IMG_INFO);
-//      mutableContentSet.addChild(informationItem);
-//    }
   }
 
   /**
@@ -270,11 +245,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         result.setBaseImageName(CommonImages.IMG_ANNOTATION);
 
         // children
-        addSupportingInformation(result, promiseDrop);
+        addDrops(result, promiseDrop.getAnalysisHintsAbout());
         addDrops(result, promiseDrop.getDependentPromises());
         addDrops(result, promiseDrop.getCheckedBy());
         addProposedPromises(result, promiseDrop);
-        addDrops(result, promiseDrop.getAnalysisHintsAbout());
 
       } else if (drop instanceof IResultDrop) {
         /*
@@ -295,10 +269,9 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
                 : CommonImages.IMG_RED_X);
 
         // children
-        addSupportingInformation(result, resultDrop);
+        addDrops(result, resultDrop.getAnalysisHintsAbout());
         addDrops(result, resultDrop.getTrusted());
         addProposedPromises(result, resultDrop);
-        addDrops(result, resultDrop.getAnalysisHintsAbout());
 
       } else if (drop instanceof IResultFolderDrop) {
         /*
@@ -321,20 +294,20 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
       } else if (drop instanceof IAnalysisHintDrop) {
         /*
-         * INFO DROP
+         * ANALYSIS HINT DROP
          */
-        final IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
+        final IAnalysisHintDrop hintDrop = (IAnalysisHintDrop) drop;
 
         // image
-        result.setBaseImageName(infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
+        result.setBaseImageName(hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
             : CommonImages.IMG_INFO);
 
         // children
-        addSupportingInformation(result, infoDrop);
-        addProposedPromises(result, infoDrop);
+        addDrops(result, hintDrop.getAnalysisHintsAbout());
+        addProposedPromises(result, hintDrop);
 
         result.f_isInfo = true;
-        result.f_isInfoWarning = infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
+        result.f_isInfoWarning = hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
       } else {
         LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
       }

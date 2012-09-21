@@ -160,14 +160,9 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       r.setConsistent();
       r.addChecked(pd);
       r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
-      
-      AnalysisHintDrop hd = AnalysisHintDrop.newSuggestion(r.getNode());
-      hd.setMessage("This is some info");
-      r.addDependent(hd);
-      
-      AnalysisHintDrop hdw = AnalysisHintDrop.newWarning(r.getNode());
-      hdw.setMessage("Tis is a warning to do something");
-      hd.addDependent(hdw);
+
+      AnalysisHintDrop hd = r.addInformationHint(null, "This is some info");
+      hd.addWarningHint(null, "Tis is a warning to do something");
     }
     return results;
   }
