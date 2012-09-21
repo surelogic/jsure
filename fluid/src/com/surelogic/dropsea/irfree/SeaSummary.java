@@ -81,47 +81,47 @@ public class SeaSummary extends AbstractSeaXmlCreator {
   }
 
   public static void summarize(String project, final Sea sea, File location) throws IOException {
-    SeaSummary s = new SeaSummary(location);
-    s.summarize(project, sea.getDrops());
+    //SeaSummary s = new SeaSummary(location);
+    //s.summarize(project, sea.getDrops());
   }
 
   public static void summarize(String project, Collection<? extends IDrop> drops, File location) throws IOException {
-    SeaSummary s = new SeaSummary(location);
-    s.summarize(project, drops);
+    //SeaSummary s = new SeaSummary(location);
+    //s.summarize(project, drops);
   }
 
-  private void summarize(String project, Collection<? extends IDrop> drops) {
-    Date now = new Date(System.currentTimeMillis());
-    b.start(ROOT);
-    b.addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
-    b.addAttribute(PROJECT_ATTR, project);
+//  private void summarize(String project, Collection<? extends IDrop> drops) {
+//    Date now = new Date(System.currentTimeMillis());
+//    b.start(ROOT);
+//    b.addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
+//    b.addAttribute(PROJECT_ATTR, project);
+//
+//    outputDropCounts(drops);
+//
+//    for (IDrop d : drops) {
+//      final IDrop id = checkIfReady(d);
+//      if (id != null) {
+//        summarizeDrop(id);
+//      }
+//    }
+//    b.end();
+//    close();
+//  }
 
-    outputDropCounts(drops);
-
-    for (IDrop d : drops) {
-      final IDrop id = checkIfReady(d);
-      if (id != null) {
-        summarizeDrop(id);
-      }
-    }
-    b.end();
-    close();
-  }
-
-  private void outputDropCounts(Collection<? extends IDrop> drops) {
-    final Map<String, Integer> counts = new HashMap<String, Integer>();
-    for (IDrop d : drops) {
-      final IDrop id = checkIfReady(d);
-      if (id != null) {
-        incr(counts, computeSimpleType(id));
-      }
-    }
-    for (Map.Entry<String, Integer> e : counts.entrySet()) {
-      Builder cb = b.nest(COUNT);
-      cb.addAttribute(e.getKey(), e.getValue().toString());
-      cb.end();
-    }
-  }
+//  private void outputDropCounts(Collection<? extends IDrop> drops) {
+//    final Map<String, Integer> counts = new HashMap<String, Integer>();
+//    for (IDrop d : drops) {
+//      final IDrop id = checkIfReady(d);
+//      if (id != null) {
+//        incr(counts, computeSimpleType(id));
+//      }
+//    }
+//    for (Map.Entry<String, Integer> e : counts.entrySet()) {
+//      Builder cb = b.nest(COUNT);
+//      cb.addAttribute(e.getKey(), e.getValue().toString());
+//      cb.end();
+//    }
+//  }
 
   private static <T> void incr(Map<T, Integer> counts, T key) {
     Integer i = counts.get(key);
@@ -168,59 +168,59 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return null;
   }
 
-  private Builder summarizeDrop(IDrop id) {
-    final String name = id.getXMLElementName();
-    final Builder b = this.b.nest(name);
-    addAttributes(b, id);
-    b.end();
-    return b;
-  }
+//  private Builder summarizeDrop(IDrop id) {
+//    final String name = id.getXMLElementName();
+//    final Builder b = this.b.nest(name);
+//    addAttributes(b, id);
+//    b.end();
+//    return b;
+//  }
+//
+//  // Note: not using addAttribute(), so we can't convert a Snapshot into a
+//  // Summary properly?
+//  private void outputSupportingInfo(Builder outer, ISupportingInformation si) {
+//    final Builder b = outer.nest(SeaSnapshotXMLReader.SUPPORTING_INFO);
+//    b.addAttribute(MESSAGE_ATTR, si.getMessage());
+//    if (si.getSrcRef() != null) {
+//      addLocation(b, si.getSrcRef());
+//    }
+//    b.end();
+//  }
 
-  // Note: not using addAttribute(), so we can't convert a Snapshot into a
-  // Summary properly?
-  private void outputSupportingInfo(Builder outer, ISupportingInformation si) {
-    final Builder b = outer.nest(SeaSnapshotXMLReader.SUPPORTING_INFO);
-    b.addAttribute(MESSAGE_ATTR, si.getMessage());
-    if (si.getSrcRef() != null) {
-      addLocation(b, si.getSrcRef());
-    }
-    b.end();
-  }
+//  private static String computeSimpleType(IDrop id) {
+//    String type = id.getIRDropSeaClass().getName();
+//    int lastDot = type.lastIndexOf('.');
+//    if (lastDot > 0) {
+//      type = type.substring(lastDot + 1);
+//    }
+//    return type;
+//  }
 
-  private static String computeSimpleType(IDrop id) {
-    String type = id.getIRDropSeaClass().getName();
-    int lastDot = type.lastIndexOf('.');
-    if (lastDot > 0) {
-      type = type.substring(lastDot + 1);
-    }
-    return type;
-  }
-
-  private void addAttributes(Builder b, IDrop id) {
-    String type = computeSimpleType(id);
-    if (type.endsWith("Info")) {
-      System.out.println("Bad drop type: " + type);
-    }
-    /*
-     * if (type.contains("Proposed")) { System.out.println("Found "+type); }
-     */
-    b.addAttribute(TYPE_ATTR, type);
-    // addAttribute(MESSAGE_ATTR, id.getMessage());
-
-    ISrcRef ref = id.getSrcRef();
-    addLocation(b, ref);
-    // addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-    b.addAttribute(HASH_ATTR, id.getTreeHash());
-    b.addAttribute(CONTEXT_ATTR, id.getContextHash());
-
-    // addAttribute("unparse", unparser.unparseString(id.getNode()));
-    // Omitting supporting info
-    /*
-     * if (id.getMessage().contains("copyStat")) { computeHash(id.getNode(),
-     * true); }
-     */
-    id.snapshotAttrs(b);
-  }
+//  private void addAttributes(Builder b, IDrop id) {
+//    String type = computeSimpleType(id);
+//    if (type.endsWith("Info")) {
+//      System.out.println("Bad drop type: " + type);
+//    }
+//    /*
+//     * if (type.contains("Proposed")) { System.out.println("Found "+type); }
+//     */
+//    b.addAttribute(TYPE_ATTR, type);
+//    // addAttribute(MESSAGE_ATTR, id.getMessage());
+//
+//    ISrcRef ref = id.getSrcRef();
+//    addLocation(b, ref);
+//    // addAttribute(OFFSET_ATTR, (long) ref.getOffset());
+//    b.addAttribute(HASH_ATTR, id.getTreeHash());
+//    b.addAttribute(CONTEXT_ATTR, id.getContextHash());
+//
+//    // addAttribute("unparse", unparser.unparseString(id.getNode()));
+//    // Omitting supporting info
+//    /*
+//     * if (id.getMessage().contains("copyStat")) { computeHash(id.getNode(),
+//     * true); }
+//     */
+//    id.snapshotAttrs(b);
+//  }
 
   public static long computeHash(IRNode node) {
     return computeHash(node, false);
@@ -287,7 +287,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
     final List<Entity> oldDrops = filter(f, l);
     ISeaDiff diff;
-    if (true) {
     	List<IDrop> oracle = convertToSnapshot(oldDrops);
     	List<IDrop> newDrops = new ArrayList<IDrop>();
     	for(IDrop d : drops) {
@@ -297,34 +296,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     		}
     	}
     	diff = SeaSnapshotDiff.diff(f, oracle, newDrops);
-    } else {
-    	final SeaSummary s = new SeaSummary(null);
-    	final List<Entity> newDrops = new ArrayList<Entity>();
-    	for (IDrop d : drops) {
-    		IDrop id = checkIfReady(d);
-    		if (id != null && f.showResource(id)) {
-    			Builder b = s.summarizeDrop(id);
-    			/*
-    			 * if (id.getClass().equals(PromisePromiseDrop.class) &&
-    			 * id.getMessage().contains("InRegion(TotalRegion)")) {
-    			 * System.out.println("Found scoped promise: "+id.getMessage()); }
-    			 */
-    			/*
-    			 * if (id.getMessage().contains(
-    			 * "ProposedPromiseDrop @RegionEffects(reads java.lang.Object:All)")) {
-    			 * System.out.println("Found proposal"); }
-    			 */
-    			Entity e = b.build();
-    			newDrops.add(e);
-    		} else {
-    			// System.out.println("Ignoring "+d.getMessage());
-    		}
-    	}
-    	// Collections.sort(newDrops, EntityComparator.prototype);
-    	Diff d = new Diff(oldDrops, newDrops);
-    	d.diff();
-    	diff = d;
-    }
+
     return diff;
   }
 

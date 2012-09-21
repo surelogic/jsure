@@ -120,17 +120,4 @@ public interface IDrop {
    */
   @Deprecated
   String getXMLElementName();
-
-  /**
-   * Places the needed attributes for persistence of this drop on the passed XML
-   * output builder.
-   * <p>
-   * This is used to persist the IR drop-sea so that it can be loaded into the
-   * IR-free drop-sea.
-   * 
-   * @param s
-   *          an XML builder.
-   */
-  @Deprecated
-  void snapshotAttrs(XMLCreator.Builder s);
 }

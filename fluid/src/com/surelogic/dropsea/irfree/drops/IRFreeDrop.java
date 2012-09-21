@@ -38,16 +38,9 @@ import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop implements IDrop {
-
-  @NonNull
-  private final Entity f_entity; // TODO REMOVE IN FUTURE
-
   @Deprecated
-  @NonNull
-  public Entity getEntity() {
-    return f_entity;
-  }
-
+  private final String f_xmlElementName; // TODO remove when SeaSummary is removed
+  
   @NonNull
   private final Class<?> f_irDropSeaClass;
   /**
@@ -99,7 +92,7 @@ public class IRFreeDrop implements IDrop {
     if (irClass == null)
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
-    f_entity = e;
+    
     final String categoryString = e.getAttribute(CATEGORY_ATTR);
     if (categoryString != null)
       f_category = Category.getPrefixCountInstance(categoryString);
@@ -137,6 +130,8 @@ public class IRFreeDrop implements IDrop {
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
+    
+    f_xmlElementName = e.getEntityName();
   }
 
   @Nullable
@@ -193,16 +188,17 @@ public class IRFreeDrop implements IDrop {
     return f_contextHash;
   }
 
+  //TODO remove when SeaSummary is removed
   public String getXMLElementName() {
-    return getEntity().getEntityName();
+    return f_xmlElementName;
   }
 
-  public void snapshotAttrs(XMLCreator.Builder s) {
-    for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-      s.addAttribute(a.getKey(), a.getValue());
-    }
-  }
-
+//  public void snapshotAttrs(XMLCreator.Builder s) {
+//	  for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
+//		  s.addAttribute(a.getKey(), a.getValue());
+//	  }
+//  }
+  
   static ISrcRef makeSrcRef(final SourceRef ref) {
     if (ref == null) {
       return null;
