@@ -306,8 +306,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addDrops(result, hintDrop.getAnalysisHintsAbout());
         addProposedPromises(result, hintDrop);
 
-        result.f_isInfo = true;
-        result.f_isInfoWarning = hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING;
+        result.setIsInfoHint(true);
+        result.setIsWarningHint(hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING);
       } else {
         LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
       }
@@ -428,10 +428,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
       }
       if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {
         categoryFolder.setBaseImageName(!warningDrops.isEmpty() ? CommonImages.IMG_WARNING : CommonImages.IMG_INFO);
-        categoryFolder.f_isInfo = true;
-      } else if (proofDrops.isEmpty() && infoDrops.isEmpty()) {
-        categoryFolder.setBaseImageName(CommonImages.IMG_WARNING);
-        categoryFolder.f_isPromiseWarning = true;
+        categoryFolder.setIsInfoHint(true);
       } else {
         // set proof bits properly
         int flags = 0; // assume no adornments
@@ -487,8 +484,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    * instead of passing InfoWarning Changed to track all nodes already visited
    */
   private void nodeNeedsWarningDecorator(ResultsViewContent node, Set<ResultsViewContent> onPath) {
-    node.f_isInfoDecorated = node.f_isInfo;
-    node.f_isInfoWarningDecorate = node.f_isInfoWarning;
+    node.setIsInfoDecroated(node.isInfoHint());
+    node.setIsWarningDecorated(node.isWarningHint());
 
     onPath.add(node);
     /*
@@ -500,14 +497,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
        * Guard against infinite recursion (drop-sea is a graph)
        */
       if (!onPath.contains(item)) {
-        if (!item.f_donePropagatingWarningDecorators) {
+        if (!item.donePropagatingWarningDecorators()) {
           nodeNeedsWarningDecorator(item, onPath);
         }
-        node.f_isInfoDecorated |= item.f_isInfoDecorated;
-        node.f_isInfoWarningDecorate |= item.f_isInfoWarningDecorate;
+        node.setIsInfoDecroated(node.isInfoDecorated() | item.isInfoDecorated());
+        node.setIsWarningDecorated(node.isWarningDecorated() | item.isWarningDecorated());
       }
     }
-    node.f_donePropagatingWarningDecorators = true;
+    node.setDonePropagatingWarningDecorators(true);
     onPath.remove(node);
   }
 
@@ -610,7 +607,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
           infoFolder.addChild(encloseDrop(id, infoFolder));
         }
         infoFolder.setBaseImageName(CommonImages.IMG_INFO);
-        infoFolder.f_isInfo = true;
+        infoFolder.setIsInfoHint(true);
         root.add(infoFolder);
       }
     }

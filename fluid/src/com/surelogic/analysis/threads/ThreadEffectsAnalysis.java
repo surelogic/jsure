@@ -11,6 +11,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
@@ -159,6 +160,21 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       r.setConsistent();
       r.addChecked(pd);
       r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
+
+//      ResultFolderDrop f = ResultFolderDrop.newAndFolder(r.getNode());
+//      f.setMessage("A FOLDER OF RESULTS");
+//
+//      ResultDrop r1 = new ResultDrop(block);
+//      r1.setMessage("R1");
+//      r1.addTrusted(pd);
+//
+//      ResultDrop r2 = new ResultDrop(block);
+//      r2.setMessage("R1");
+//      r2.addTrusted(pd);
+//
+//      r.addTrusted(f);
+//      f.addTrusted(r1);
+//      f.addTrusted(r2);
     }
     return results;
   }
