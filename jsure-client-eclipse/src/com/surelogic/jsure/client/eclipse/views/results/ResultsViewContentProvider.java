@@ -420,10 +420,10 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
           proofDrops.add((IProofDrop) item.getDropInfo());
         } else if (drop instanceof IAnalysisHintDrop) {
           IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.SUGGESTION)
-            infoDrops.add(infoDrop);
-          else
+          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING)
             warningDrops.add(infoDrop);
+          else
+            infoDrops.add(infoDrop);
         }
       }
       if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {
