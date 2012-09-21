@@ -198,12 +198,31 @@ public class IRFreeDrop implements IDrop {
 //		  s.addAttribute(a.getKey(), a.getValue());
 //	  }
 //  }
+
+  static int convert(String val) {
+	  if (val == null) {
+		  return 0;
+	  } else {
+		  return Integer.valueOf(val);
+	  }
+  }
   
-  static ISrcRef makeSrcRef(final SourceRef ref) {
+  static ISrcRef makeSrcRef(SourceRef ref) {
     if (ref == null) {
       return null;
     }
     final int line = Integer.valueOf(ref.getLine());
+    final String pkg = ref.getAttribute(PKG_ATTR);
+    final String file = ref.getAttribute(FILE_ATTR);
+    final String path = ref.getAttribute(PATH_ATTR);
+    final String cuName = ref.getAttribute(CUNIT_ATTR);
+    final String javaId = ref.getAttribute(JAVA_ID_ATTR);
+    final String project = ref.getAttribute(PROJECT_ATTR);
+    final String hash = ref.getAttribute(HASH_ATTR);
+    final String uri = ref.getAttribute(URI_ATTR);
+    
+    final int offset = convert(ref.getAttribute(OFFSET_ATTR));
+    final int length = convert(ref.getAttribute(LENGTH_ATTR));
     return new AbstractSrcRef() {
 
       @Override
@@ -222,26 +241,25 @@ public class IRFreeDrop implements IDrop {
       }
 
       public String getJavaId() {
-        return ref.getAttribute(JAVA_ID_ATTR);
+        return javaId;
       }
 
       public String getCUName() {
-        return ref.getAttribute(CUNIT_ATTR);
+        return cuName;
       }
 
       @Override
       public String getEnclosingFile() {
-        return ref.getAttribute(FILE_ATTR);
+        return file;
       }
 
       @Override
       public String getRelativePath() {
-        return ref.getAttribute(PATH_ATTR);
+        return path;
       }
 
       @Override
       public URI getEnclosingURI() {
-        String uri = ref.getAttribute(URI_ATTR);
         if (uri != null) {
           try {
             return new URI(uri);
@@ -254,26 +272,15 @@ public class IRFreeDrop implements IDrop {
 
       @Override
       public int getOffset() {
-        String offset = ref.getAttribute(OFFSET_ATTR);
-        if (offset == null) {
-          return 0;
-        } else {
-          return Integer.valueOf(offset);
-        }
+        return offset;
       }
 
       @Override
       public int getLength() {
-        String offset = ref.getAttribute(LENGTH_ATTR);
-        if (offset == null) {
-          return 0;
-        } else {
-          return Integer.valueOf(offset);
-        }
+        return length;
       }
 
       public Long getHash() {
-        String hash = ref.getAttribute(HASH_ATTR);
         if (hash == null) {
           throw new UnsupportedOperationException();
         } else {
@@ -287,11 +294,11 @@ public class IRFreeDrop implements IDrop {
       }
 
       public String getPackage() {
-        return ref.getAttribute(PKG_ATTR);
+        return pkg;
       }
 
       public String getProject() {
-        return ref.getAttribute(PROJECT_ATTR);
+        return project;
       }
     };
   }
