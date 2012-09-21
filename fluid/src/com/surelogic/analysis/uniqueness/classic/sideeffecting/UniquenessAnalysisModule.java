@@ -22,7 +22,6 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -186,11 +185,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        final AnalysisHintDrop info = AnalysisHintDrop.newWarning(mr.mdecl);
-        info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
+        sl.getCFDrop().addWarningHint(mr.mdecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
+            Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
-        info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
-        sl.getCFDrop().addDependent(info);
       }
 	  } catch (final FlowAnalysis.AnalysisGaveUp e) { // Analysis self-aborted
       final long endTime = System.nanoTime();

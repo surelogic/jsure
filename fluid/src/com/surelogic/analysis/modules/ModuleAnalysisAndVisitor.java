@@ -825,9 +825,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       final IRNode link, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    AnalysisHintDrop info = AnalysisHintDrop.newInformation(link);
-    info.setMessage(msg);
-    drop.addDependent(info);
+    drop.addInformationHint(link, msg);
   }
  
 
@@ -941,9 +939,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         AnalysisHintDrop rd = makeWarningDrop(warnCat, javaThing,
                                       DS_API_WISH_CALLERS, 
                                       refStr, javaThingName, modName);
-        AnalysisHintDrop info = AnalysisHintDrop.newInformation(rd.getNode());
-        info.setMessage(infoStr);
-        rd.addDependent(info);
+        rd.addInformationHint(rd.getNode(), infoStr);
       }
       // restore fakingVis to its old value so that we will get useful
       // colorErrors as chosen by the user.

@@ -84,41 +84,69 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   public final void addInformationHint(IRNode link, int num, Object... args) {
-    addHint(HintType.INFORMATION, link, num, args);
+    addHint(HintType.INFORMATION, null, link, num, args);
+  }
+
+  public final void addInformationHint(IRNode link, Category category, int num, Object... args) {
+    addHint(HintType.INFORMATION, category, link, num, args);
   }
 
   public final void addInformationHint(IRNode link, String msg) {
-    addHint(HintType.INFORMATION, link, msg);
+    addHint(HintType.INFORMATION, null, link, msg);
+  }
+
+  public final void addInformationHint(IRNode link, Category category, String msg) {
+    addHint(HintType.INFORMATION, category, link, msg);
   }
 
   public final void addSuggestionHint(IRNode link, int num, Object... args) {
-    addHint(HintType.SUGGESTION, link, num, args);
+    addHint(HintType.SUGGESTION, null, link, num, args);
+  }
+
+  public final void addSuggestionHint(IRNode link, Category category, int num, Object... args) {
+    addHint(HintType.SUGGESTION, category, link, num, args);
   }
 
   public final void addSuggestionHint(IRNode link, String msg) {
-    addHint(HintType.SUGGESTION, link, msg);
+    addHint(HintType.SUGGESTION, null, link, msg);
+  }
+
+  public final void addSuggestionHint(IRNode link, Category category, String msg) {
+    addHint(HintType.SUGGESTION, category, link, msg);
   }
 
   public final void addWarningHint(IRNode link, int num, Object... args) {
-    addHint(HintType.WARNING, link, num, args);
+    addHint(HintType.WARNING, null, link, num, args);
+  }
+
+  public final void addWarningHint(IRNode link, Category category, int num, Object... args) {
+    addHint(HintType.WARNING, category, link, num, args);
   }
 
   public final void addWarningHint(IRNode link, String msg) {
-    addHint(HintType.WARNING, link, msg);
+    addHint(HintType.WARNING, null, link, msg);
   }
 
-  private void addHint(IAnalysisHintDrop.HintType hintType, IRNode link, int num, Object... args) {
+  public final void addWarningHint(IRNode link, Category category, String msg) {
+    addHint(HintType.WARNING, category, link, msg);
+  }
+
+  private void addHint(IAnalysisHintDrop.HintType hintType, Category category, IRNode link, int num, Object... args) {
     if (link == null)
       link = getNode();
     final AnalysisHintDrop info = new AnalysisHintDrop(link, hintType);
+    if (category != null)
+      info.setCategory(category);
     info.setMessage(num, args);
     addDependent(info);
   }
 
-  private void addHint(IAnalysisHintDrop.HintType hintType, IRNode link, String msg) {
+  private void addHint(IAnalysisHintDrop.HintType hintType, Category category, IRNode link, String msg) {
     if (link == null)
       link = getNode();
     final AnalysisHintDrop info = new AnalysisHintDrop(link, hintType);
+    if (category != null)
+      info.setCategory(category);
     info.setMessage(msg);
     addDependent(info);
   }
