@@ -32,7 +32,10 @@ import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.MarkedIRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNames;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
@@ -157,5 +160,37 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener();
     new SeaSnapshotXMLReader(l).read(location);
     return l.getDrops();
+  }
+  
+  public static long computeHash(IRNode node) {
+	  return computeHash(node, false);
+  }
+
+  public static long computeHash(IRNode node, boolean debug) {
+	  if (node instanceof MarkedIRNode) {
+		  return 0; // Not an AST node
+	  }
+	  final String unparse = DebugUnparser.unparseCode(node);
+	  if (debug) {
+		  System.out.println("Unparse: " + unparse);
+	  }
+	  return unparse.hashCode();
+  }
+
+  public static long computeContext(IRNode node, boolean debug) {
+	  if (node instanceof MarkedIRNode) {
+		  return 0; // Not an AST node
+	  }
+	  final String context = JavaNames.computeContextId(node);
+	  if (context != null) {
+		  if (debug) {
+			  System.out.println("Context: " + context);
+		  }
+		  /*
+		   * if (unparse.contains("@") { System.out.println("Found promise"); }
+		   */
+		  return context.hashCode();
+	  }
+	  return 0;
   }
 }

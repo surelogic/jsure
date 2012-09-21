@@ -14,7 +14,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.irfree.SeaSummary;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -95,7 +95,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
     for (IRNode n : JJNode.tree.topDown(d.getCompilationUnitIRNode())) {
       ISrcRef ref = JavaNode.getSrcRef(n);
       if (ref != null && ref.getOffset() == offset) {
-        final long nHash = SeaSummary.computeHash(n);
+        final long nHash = SeaSnapshot.computeHash(n);
         if (hash == nHash) {
           return n;
         }

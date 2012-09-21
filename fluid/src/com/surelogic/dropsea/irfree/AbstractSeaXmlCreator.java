@@ -45,7 +45,7 @@ public class AbstractSeaXmlCreator extends XMLCreator {
   Long getHash(IRNode n) {
     Long hash = hashes.get(n);
     if (hash == null) {
-      hash = SeaSummary.computeHash(n);
+      hash = SeaSnapshot.computeHash(n);
       hashes.put(n, hash);
     }
     return hash;

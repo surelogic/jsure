@@ -222,38 +222,6 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 //    id.snapshotAttrs(b);
 //  }
 
-  public static long computeHash(IRNode node) {
-    return computeHash(node, false);
-  }
-
-  public static long computeHash(IRNode node, boolean debug) {
-    if (node instanceof MarkedIRNode) {
-      return 0; // Not an AST node
-    }
-    final String unparse = DebugUnparser.unparseCode(node);
-    if (debug) {
-      System.out.println("Unparse: " + unparse);
-    }
-    return unparse.hashCode();
-  }
-
-  public static long computeContext(IRNode node, boolean debug) {
-    if (node instanceof MarkedIRNode) {
-      return 0; // Not an AST node
-    }
-    final String context = JavaNames.computeContextId(node);
-    if (context != null) {
-      if (debug) {
-        System.out.println("Context: " + context);
-      }
-      /*
-       * if (unparse.contains("@") { System.out.println("Found promise"); }
-       */
-      return context.hashCode();
-    }
-    return 0;
-  }
-
   private static Listener read(File location) throws Exception {
     // Load up current contents
     final Listener l = new Listener();
@@ -261,14 +229,37 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     return l;
   }
 
-  public static Diff diff(IDropFilter f, File location1, File location2) throws Exception {
+  public static ISeaDiff diff(IDropFilter f, File location1, File location2) throws Exception {
+	/*
     final Listener l1 = read(location1);
     final Listener l2 = read(location2);
     Diff d = new Diff(filter(f, l1), filter(f, l2));
     d.diff();
     return d;
+    */
+    List<IDrop> oracle = loadAndConvert(f, location1);
+    List<IDrop> update = loadAndConvert(f, location2);
+    return SeaSnapshotDiff.diff(f, oracle, update);
   }
 
+  public static List<IDrop> loadAndConvert(IDropFilter f, File location) throws Exception {
+	  try {
+		  final Listener l = read(location);
+		  final List<Entity> oldDrops = filter(f, l);
+		  return convertToSnapshot(oldDrops);
+	  } catch(Exception e) {
+		  List<IDrop> drops = SeaSnapshot.loadSnapshot(location);
+		  List<IDrop> newDrops = new ArrayList<IDrop>();
+		  for(IDrop d : drops) {
+			  d = checkIfReady(d);
+			  if (d != null) {
+				  newDrops.add(d);
+			  }
+		  }
+		  return newDrops;
+	  }
+  }
+  
   private static List<Entity> filter(IDropFilter f, Listener l) {
     final List<Entity> drops = new ArrayList<Entity>();
     // Collections.sort(oldDrops, EntityComparator.prototype);

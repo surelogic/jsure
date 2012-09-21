@@ -19,7 +19,6 @@ import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IAnalysisHintDrop.HintType;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.SeaSummary;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
@@ -185,12 +184,12 @@ public abstract class IRReferenceDrop extends Drop {
 
   @Override
   public final Long getTreeHash() {
-    return SeaSummary.computeHash(getNode(), false);
+    return SeaSnapshot.computeHash(getNode(), false);
   }
 
   @Override
   public final Long getContextHash() {
-    return SeaSummary.computeContext(getNode(), false);
+    return SeaSnapshot.computeContext(getNode(), false);
   }
 
   /*
