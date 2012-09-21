@@ -49,9 +49,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   @Nullable
-  private JavaDeclInfo f_fromInfo = null;
+  private IJavaDeclaration f_fromInfo = null;
   @Nullable
-  private JavaDeclInfo f_targetInfo = null;
+  private IJavaDeclaration f_targetInfo = null;
   @Nullable
   private ISrcRef f_assumptionRef = null;
   @NonNull
@@ -68,11 +68,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final Origin f_origin;
 
-  void setFromInfo(JavaDeclInfo value) {
+  void setFromInfo(IJavaDeclaration value) {
     f_fromInfo = value;
   }
 
-  void setTargetInfo(JavaDeclInfo value) {
+  void setTargetInfo(IJavaDeclaration value) {
     f_targetInfo = value;
   }
 
@@ -172,11 +172,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   public IJavaDeclaration getFromInfo() {
-    return f_fromInfo.makeDecl();
+    return f_fromInfo;
   }
 
   public IJavaDeclaration getTargetInfo() {
-    return f_targetInfo.makeDecl();
+    return f_targetInfo;
   }
 
   public boolean isSameProposalAs(IProposedPromiseDrop other) {
