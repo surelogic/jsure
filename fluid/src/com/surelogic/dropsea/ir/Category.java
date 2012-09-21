@@ -88,6 +88,7 @@ public final class Category {
    * @throws IllegalArgumentException
    *           if key is null.
    */
+  @Deprecated
   public static Category getPrefixCountInstance(final String key) {
     return getInstance(key, PrefixFormatter.INSTANCE);
   }
@@ -215,14 +216,16 @@ public final class Category {
   }
 
   /**
+   * Sets the count used by the formatter for the UI code.
+   * 
    * @param count
    *          the count of items to show in the formatted message
    * 
    * @see #getFormattedMessage()
    */
-//  public final void setCount(int count) {
-//    this.count = count;
-//  }
+  public final void setCount(int count) {
+    this.count = count;
+  }
 
   public final String getKey() {
     return f_key;

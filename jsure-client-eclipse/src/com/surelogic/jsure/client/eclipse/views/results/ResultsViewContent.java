@@ -22,7 +22,7 @@ import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-final class ResultsViewContent implements Cloneable {
+final class ResultsViewContent {
 
   private int f_numIssues = -1;
 
@@ -142,6 +142,24 @@ final class ResultsViewContent implements Cloneable {
     f_referencedDrop = drop;
     if (drop != null)
       f_sourceRef = drop.getSrcRef();
+  }
+
+  public ResultsViewContent(ResultsViewContent copy) {
+    f_numIssues = copy.f_numIssues;
+    f_referencedDrop = copy.f_referencedDrop;
+    f_children.addAll(copy.f_children);
+    f_message = copy.f_message;
+    f_getMessage = copy.f_getMessage;
+    parent = copy.parent;
+    f_baseImageName = copy.f_baseImageName;
+    f_imageFlags = copy.f_imageFlags;
+    f_sourceRef = copy.f_sourceRef;
+    f_isInfoDecorated = copy.f_isInfoDecorated;
+    f_isInfo = copy.f_isInfo;
+    f_isInfoWarning = copy.f_isInfoWarning;
+    f_isInfoWarningDecorate = copy.f_isInfoWarningDecorate;
+    f_donePropagatingWarningDecorators = copy.f_donePropagatingWarningDecorators;
+
   }
 
   ResultsViewContent cloneAsLeaf() {
@@ -421,15 +439,10 @@ final class ResultsViewContent implements Cloneable {
   }
 
   public ResultsViewContent shallowCopy() {
-    ResultsViewContent clone;
-    try {
-      clone = (ResultsViewContent) clone();
-      clone.f_getMessage = null; // Invalidate cache
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
-      return null;
-    }
+    ResultsViewContent clone = new ResultsViewContent(this);
+    clone.f_children.clear();
+    clone.f_getMessage = null; // Invalidate cache
+    return clone;
   }
 
   public ResultsViewContent deepCopy() {
