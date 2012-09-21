@@ -75,7 +75,7 @@ public class TRoleMessages {
 	}
 
 	public static AnalysisHintDrop createInfoDrop(String msg, IRNode loc) {
-		AnalysisHintDrop id = AnalysisHintDrop.newSuggestion(loc);
+		AnalysisHintDrop id = AnalysisHintDrop.newInformation(loc);
 		// rd.addCheckedPromise(pd);
 		//id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);

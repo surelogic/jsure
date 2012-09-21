@@ -20,7 +20,7 @@ public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysi
     } else {
       final String levelString = e.getAttribute(AbstractXMLReader.HINT_TYPE_ATTR);
 
-      HintType level = HintType.SUGGESTION;
+      HintType level = HintType.INFORMATION;
       if (levelString != null) {
         try {
           level = HintType.valueOf(levelString);

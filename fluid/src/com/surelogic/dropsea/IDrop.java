@@ -95,7 +95,7 @@ public interface IDrop {
    * @return the set of analysis hints about this proof drop.
    */
   @NonNull
-  Collection<IAnalysisHintDrop> getAnalysisHintsAbout();
+  Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout();
 
   /**
    * Computes a hash of the subtree from the fAST node that this drop is related

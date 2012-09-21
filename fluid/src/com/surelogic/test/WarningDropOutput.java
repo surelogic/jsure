@@ -25,7 +25,7 @@ public class WarningDropOutput extends AbstractTestOutput {
   }
   
   private IRReferenceDrop newDrop(ITest o, String msg, boolean success) {
-    IRReferenceDrop drop = success ? AnalysisHintDrop.newSuggestion(o.getNode()) : new ModelingProblemDrop(o.getNode());
+    IRReferenceDrop drop = success ? AnalysisHintDrop.newInformation(o.getNode()) : new ModelingProblemDrop(o.getNode());
     drop.setMessage(msg);
     if (category != null) {
       drop.setCategory(null);

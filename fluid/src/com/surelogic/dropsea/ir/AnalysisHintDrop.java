@@ -28,17 +28,6 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
   }
 
   /**
-   * Constructs a new suggestion drop pointing to the passed node.
-   * 
-   * @param node
-   *          referenced by the suggestion.
-   * @return a suggestion drop.
-   */
-  public static AnalysisHintDrop newSuggestion(IRNode node) {
-    return new AnalysisHintDrop(node, HintType.SUGGESTION);
-  }
-
-  /**
    * Constructs a new warning drop pointing to the passed node.
    * 
    * @param node
@@ -51,7 +40,7 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
 
   AnalysisHintDrop(IRNode node, HintType level) {
     super(node);
-    f_type = level == null ? HintType.SUGGESTION : level;
+    f_type = level == null ? HintType.INFORMATION : level;
   }
 
   private final HintType f_type;

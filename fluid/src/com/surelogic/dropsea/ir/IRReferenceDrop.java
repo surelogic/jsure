@@ -98,22 +98,6 @@ public abstract class IRReferenceDrop extends Drop {
     return addHint(HintType.INFORMATION, category, link, msg);
   }
 
-  public final AnalysisHintDrop addSuggestionHint(IRNode link, int num, Object... args) {
-    return addHint(HintType.SUGGESTION, null, link, num, args);
-  }
-
-  public final AnalysisHintDrop addSuggestionHint(IRNode link, Category category, int num, Object... args) {
-    return addHint(HintType.SUGGESTION, category, link, num, args);
-  }
-
-  public final AnalysisHintDrop addSuggestionHint(IRNode link, String msg) {
-    return addHint(HintType.SUGGESTION, null, link, msg);
-  }
-
-  public final AnalysisHintDrop addSuggestionHint(IRNode link, Category category, String msg) {
-    return addHint(HintType.SUGGESTION, category, link, msg);
-  }
-
   public final AnalysisHintDrop addWarningHint(IRNode link, int num, Object... args) {
     return addHint(HintType.WARNING, null, link, num, args);
   }
