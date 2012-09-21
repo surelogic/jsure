@@ -80,92 +80,22 @@ public abstract class IRReferenceDrop extends Drop {
   public final IRNode getNode() {
     return f_node;
   }
+  
 
-  /**
-   * A set of supporting information about this drop, all elements are of type
-   * {@link com.surelogic.dropsea.ISupportingInformation}
-   */
-  @InRegion("DropState")
-  @UniqueInRegion("DropState")
-  private List<ISupportingInformation> f_supportingInformation = null;
-
-  /**
-   * 
-   * Reports a string of supporting information about this drop constructed from
-   * a lookup using {@link I18N#res(int, Object...)} from
-   * <tt>SureLogicResults.properties</tt> in the
-   * <tt>com.surelogic.common.i18n</tt> package. This can be used to add any
-   * curio about the drop.
-   * 
-   * @param link
-   *          an fAST node, can be <code>null</code>, to reference
-   * @param num
-   *          the message number for the call to
-   *          {@link I18N#res(int, Object...)}
-   * @param args
-   *          arguments for the call to {@link I18N#res(int, Object...)}
-   */
   public final void addSupportingInformation(IRNode link, int num, Object... args) {
-    if (num >= 0) {
-      synchronized (f_seaLock) {
-        if (f_supportingInformation == null) {
-          f_supportingInformation = new ArrayList<ISupportingInformation>(1);
-        }
-        for (ISupportingInformation si : f_supportingInformation) {
-          if (si.sameAs(link, num, args)) {
-            LOG.fine("Duplicate supporting information");
-            return;
-          }
-        }
-        final ISupportingInformation info = new SupportingInformationViaAnalysisResultMessage(link, num, args);
-        f_supportingInformation.add(info);
-      }
-    }
+    if (link == null)
+      link = getNode();
+    final AnalysisHintDrop info = AnalysisHintDrop.newInformation(link);
+    info.setMessage(num, args);
+    addDependent(info);
   }
-
-  /**
-   * Reports a string of supporting information about this drop. This can be
-   * used to add any curio about the drop.
-   * 
-   * @param link
-   *          an fAST node, can be <code>null</code>, to reference
-   * @param message
-   *          a text message for the user interface
-   */
-  public final void addSupportingInformation(IRNode link, String message) {
-    if (message != null) {
-      synchronized (f_seaLock) {
-        if (f_supportingInformation == null) {
-          f_supportingInformation = new ArrayList<ISupportingInformation>(1);
-        }
-        for (ISupportingInformation si : f_supportingInformation) {
-          if (si.sameAs(link, message)) {
-            LOG.fine("Duplicate supporting information");
-            return;
-          }
-        }
-        SupportingInformationViaString info = new SupportingInformationViaString();
-        info.location = link;
-        info.message = message;
-        f_supportingInformation.add(info);
-      }
-    }
-  }
-
-  /**
-   * Gets the supporting information about this drop. The returned list may not
-   * be modified.
-   * 
-   * @return the list of supporting information about this drop. The returned
-   *         list may not be modified.
-   */
-  public final List<ISupportingInformation> getSupportingInformation() {
-    synchronized (f_seaLock) {
-      if (f_supportingInformation == null)
-        return Collections.emptyList();
-      else
-        return Collections.unmodifiableList(f_supportingInformation);
-    }
+  
+  public final void addSupportingInformation(IRNode link, String msg) {
+    if (link == null)
+      link = getNode();
+    final AnalysisHintDrop info = AnalysisHintDrop.newInformation(link);
+    info.setMessage(msg);
+    addDependent(info);
   }
 
   /**

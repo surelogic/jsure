@@ -82,7 +82,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
 
   protected static <T extends VisibilityDrop<? extends ModuleAnnotationNode>> T buildVisDrop(T res) {
     // VisibilityDrop res = new VisibilityDrop(locInIR, modIR);
-    res.setMessage(12, res.toString());
+    res.setMessage(res.toString());
     synchronized (VisibilityDrop.class) {
       allVisDrops.add(res);
 //      newVisDrops.add(res);

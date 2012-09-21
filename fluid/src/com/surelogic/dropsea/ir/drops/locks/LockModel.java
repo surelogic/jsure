@@ -77,7 +77,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
       ResultDrop rd = new ResultDrop(decl.getPromisedFor());
       rd.addChecked(result);
       rd.setConsistent();
-      rd.setMessage(12, msg);
+      rd.setMessage(msg);
     }
     return result;
   }

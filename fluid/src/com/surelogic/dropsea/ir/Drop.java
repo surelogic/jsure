@@ -162,6 +162,13 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  public final void setMessage(String msg) {
+    synchronized (f_seaLock) {
+      JavaSourceReference srcRef = createSourceRef(); // may be null
+      f_message = AnalysisResultMessage.getInstance(srcRef, 12, msg);
+    }
+  }
+
   /**
    * Used by {@link ProofDrop} to set the message based upon the verification
    * judgment.

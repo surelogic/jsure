@@ -72,7 +72,7 @@ implements IThreadRoleDrop {
       error.addChecked(this);
       error.setInconsistent();
 
-      error.setMessage(12,"no binding found for \"" + importedUnit + '"');
+      error.setMessage("no binding found for \"" + importedUnit + '"');
       //error.setNodeAndCompilationUnitDependency(this.getNode());
       error.setCategory(JavaGlobals.THREAD_ROLES_CAT);
     } else {

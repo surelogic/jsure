@@ -46,7 +46,7 @@ public class TRoleMessages {
 		rd.setConsistent();
 		// rd.addCheckedPromise(pd);
 		//rd.setNodeAndCompilationUnitDependency(loc);
-		rd.setMessage(12, msg);
+		rd.setMessage(msg);
 		rd.setCategory(assuranceCategory);
 
 		if (loc != null) {
@@ -62,7 +62,7 @@ public class TRoleMessages {
 		AnalysisHintDrop wd = AnalysisHintDrop.newWarning(loc);
 		// rd.addCheckedPromise(pd);
 	//	wd.setNodeAndCompilationUnitDependency(loc);
-		wd.setMessage(12, msg);
+		wd.setMessage(msg);
 		wd.setCategory(warningCategory);
 
 		if (loc != null) {
@@ -78,7 +78,7 @@ public class TRoleMessages {
 		AnalysisHintDrop id = AnalysisHintDrop.newSuggestion(loc);
 		// rd.addCheckedPromise(pd);
 		//id.setNodeAndCompilationUnitDependency(loc);
-		id.setMessage(12, msg);
+		id.setMessage(msg);
 		id.setCategory(infoCategory);
 
 		if (loc != null) {
@@ -105,7 +105,7 @@ public class TRoleMessages {
 				}
 			}
 		}
-		rd.setMessage(12, msg);
+		rd.setMessage(msg);
 		rd.setCategory(problemCategory);
 
 		return rd;
