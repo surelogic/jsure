@@ -161,14 +161,14 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
         // the nodeToDrop mapping for us.
 
         if (res.reqsAreRelevant) {
-          res.setMessage(12,emptyRelevantMsg + mthName);
+          res.setMessage(emptyRelevantMsg + mthName);
           res.setVirtual(true);
           res.setWhichStat(Status.INFERRED);
           if (LOG.isLoggable(Level.FINER)) {
             LOG.finer(msg + ": empty.");
           }
         } else {
-          res.setMessage(12,emptyNotRelevantMsg + mthName);
+          res.setMessage(emptyNotRelevantMsg + mthName);
           res.setWhichStat(Status.USER);
           if (LOG.isLoggable(Level.FINER)) {
             LOG.finer(msg + ": transparent");
@@ -207,7 +207,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
         // res.localSimpleExpr = res.simpleExpr.copy();
         // String msg1;
 
-        res.setMessage(12,"@colorConstraint " + res.fullExpr + " for " + mthName);
+        res.setMessage("@colorConstraint " + res.fullExpr + " for " + mthName);
 
       }
       if (LOG.isLoggable(Level.FINER)) {

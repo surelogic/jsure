@@ -29,15 +29,13 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -64,12 +62,6 @@ public class IRFreeDrop implements IDrop {
   protected Category f_category = null;
   @Nullable
   private ISrcRef f_srcRef = null;
-  /**
-   * This collection is {@code null} until some exist&mdash;most drops have no
-   * supporting information.
-   */
-  @Nullable
-  private List<ISupportingInformation> f_supportingInformation = null;
   @NonNull
   private final String f_message;
   @NonNull
@@ -78,6 +70,12 @@ public class IRFreeDrop implements IDrop {
   private final Long f_treeHash;
   @NonNull
   private final Long f_contextHash;
+  /**
+   * This collection is {@code null} until some exist&mdash;most drops have no
+   * hints.
+   */
+  @Nullable
+  private List<IAnalysisHintDrop> f_analysisHints = null;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -86,15 +84,15 @@ public class IRFreeDrop implements IDrop {
     f_proposedPromises.add(info);
   }
 
-  void addSupportingInformation(ISupportingInformation si) {
-    if (f_supportingInformation == null) {
-      f_supportingInformation = new ArrayList<ISupportingInformation>(1);
-    }
-    f_supportingInformation.add(si);
-  }
-
   void setSrcRef(ISrcRef value) {
     f_srcRef = value;
+  }
+
+  void addAnalysisHint(IAnalysisHintDrop hint) {
+    if (f_analysisHints == null) {
+      f_analysisHints = new ArrayList<IAnalysisHintDrop>(1);
+    }
+    f_analysisHints.add(hint);
   }
 
   IRFreeDrop(Entity e, Class<?> irClass) {
@@ -179,9 +177,10 @@ public class IRFreeDrop implements IDrop {
       return Collections.emptyList();
   }
 
-  public Collection<ISupportingInformation> getSupportingInformation() {
-    if (f_supportingInformation != null)
-      return f_supportingInformation;
+  @NonNull
+  public final Collection<IAnalysisHintDrop> getAnalysisHintsAbout() {
+    if (f_analysisHints != null)
+      return f_analysisHints;
     else
       return Collections.emptyList();
   }
@@ -202,32 +201,6 @@ public class IRFreeDrop implements IDrop {
     for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
       s.addAttribute(a.getKey(), a.getValue());
     }
-  }
-
-  static ISupportingInformation makeSupportingInfo(final MoreInfo i) {
-    return new ISupportingInformation() {
-      final ISrcRef ref = makeSrcRef(i.source);
-
-      public IRNode getLocation() {
-        return null;
-      }
-
-      public String getMessage() {
-        return i.message;
-      }
-
-      public ISrcRef getSrcRef() {
-        return ref;
-      }
-
-      public boolean sameAs(IRNode link, int num, Object[] args) {
-        throw new UnsupportedOperationException();
-      }
-
-      public boolean sameAs(IRNode link, String message) {
-        throw new UnsupportedOperationException();
-      }
-    };
   }
 
   static ISrcRef makeSrcRef(final SourceRef ref) {

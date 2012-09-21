@@ -458,13 +458,13 @@ public final class RealSideEffects implements ISideEffects {
             isAbrupt, fieldPromise, cf.srcOp, false, msg, cf.fieldState.getAnnotation());
         if (compromises != null) {
           for (final CompromisingSite compromisedAt : compromises) {
-            r.addSupportingInformation(
+            r.addInformationHint(
                 compromisedAt.srcOp, compromisedAt.msg, compromisedAt.varargs);
           }
         }
         if (undefines != null) {
           for (final IRNode undefinedAt : undefines) {
-            r.addSupportingInformation(undefinedAt, Messages.UNDEFINED_BY,
+            r.addInformationHint(undefinedAt, Messages.UNDEFINED_BY,
                 DebugUnparser.toString(undefinedAt));
           }
         }
@@ -496,7 +496,7 @@ public final class RealSideEffects implements ISideEffects {
               UniquenessUtils.getFieldUniqueOrBorrowed(e.getKey()), read.srcOp,              
               false, read.getMessage(), read.getVarArgs());
           for (final IRNode buriedAt : e.getValue()) {
-            r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
+            r.addInformationHint(buriedAt, Messages.BURIED_BY, 
                 DebugUnparser.toString(buriedAt));
           }
         }
@@ -509,7 +509,7 @@ public final class RealSideEffects implements ISideEffects {
             read.isAbrupt, controlFlowDrop, read.srcOp, false,
             Messages.READ_OF_UNDEFINED_VAR);
         for (final UndefinedFrom uf : y) {
-          r.addSupportingInformation(uf.srcOp, uf.message);
+          r.addInformationHint(uf.srcOp, uf.message);
         }
       }
       
@@ -519,7 +519,7 @@ public final class RealSideEffects implements ISideEffects {
         final ResultDrop r = createResultDrop(read.isAbrupt,
             controlFlowDrop, read.srcOp, false, Messages.READ_OF_BURIED);
         for (final IRNode setOp : z) {
-          r.addSupportingInformation(setOp, Messages.ASSIGNED_UNDEFINED_BY,
+          r.addInformationHint(setOp, Messages.ASSIGNED_UNDEFINED_BY,
               VariableUseExpression.prototype.includes(read.srcOp) ?
                   VariableUseExpression.getId(read.srcOp) : "*UNKNOWN*",
               DebugUnparser.toString(setOp));

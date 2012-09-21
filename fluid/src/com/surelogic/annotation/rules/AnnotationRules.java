@@ -357,7 +357,7 @@ public abstract class AnnotationRules {
 				int offset) {
 			// System.out.println("SCRUBBER: "+txt);
 			ModelingProblemDrop d = new ModelingProblemDrop(n, offset);
-			d.setMessage(12, txt);
+			d.setMessage(txt);
 			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
 			return d;
 		}

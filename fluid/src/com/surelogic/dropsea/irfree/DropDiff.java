@@ -44,15 +44,16 @@ public class DropDiff extends DiffNode implements IViewable {
 	}
 
 	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
-		if (o.drop.getSupportingInformation().isEmpty()) {
-			if (n.drop.getSupportingInformation().isEmpty()) {
-				return null;
-			}
-			if (allowMissingSupportingInfos) {
-				// System.out.println("Temporarily ignoring missing details in old oracles");
-				return null;
-			}
-		}
+	  // TODO
+//		if (o.drop.getSupportingInformation().isEmpty()) {
+//			if (n.drop.getSupportingInformation().isEmpty()) {
+//				return null;
+//			}
+//			if (allowMissingSupportingInfos) {
+//				// System.out.println("Temporarily ignoring missing details in old oracles");
+//				return null;
+//			}
+//		}
 		final Map<String, DiffInfo> oldDetails = extractDetails(o.drop);
 		final Map<String, DiffInfo> newDetails = extractDetails(n.drop);
 		final List<String> temp = new ArrayList<String>();
@@ -90,19 +91,20 @@ public class DropDiff extends DiffNode implements IViewable {
 	
 	// Assume that we only have supporting info
 	public static Map<String, DiffInfo> extractDetails(IDrop e) {
-		if (e.getSupportingInformation().isEmpty()) {
-			return Collections.emptyMap();
-		}
-		final Map<String, DiffInfo> rv = new TreeMap<String, DiffInfo>();
-		for (ISupportingInformation i : e.getSupportingInformation()) {
-			String msg = i.getMessage();
-			if (msg != null) {
-				rv.put(msg, new DiffInfo(i));
-			} else {
-				System.out.println("No message for " + i);
-			}
-		}
-		return rv;
+	  return Collections.emptyMap();  // TODO
+//		if (e.getSupportingInformation().isEmpty()) {
+//			return Collections.emptyMap();
+//		}
+//		final Map<String, DiffInfo> rv = new TreeMap<String, DiffInfo>();
+//		for (ISupportingInformation i : e.getSupportingInformation()) {
+//			String msg = i.getMessage();
+//			if (msg != null) {
+//				rv.put(msg, new DiffInfo(i));
+//			} else {
+//				System.out.println("No message for " + i);
+//			}
+//		}
+//		return rv;
 	}
 	
 	private static Collection<String> sort(Collection<String> s, List<String> temp) {

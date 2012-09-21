@@ -12,19 +12,19 @@ import com.surelogic.NonNull;
  */
 public interface IResultFolderDrop extends IAnalysisResultDrop {
 
-  enum FolderLogic {
+  enum LogicOperator {
 
     AND, OR
 
   }
 
   /**
-   * Gets if this folder applies conjunction ({@link FolderLogic#AND}) or
-   * disjunction ({@link FolderLogic#OR}) in the model-code consistency proof.
+   * Gets if this folder applies conjunction ({@link LogicOperator#AND}) or
+   * disjunction ({@link LogicOperator#OR}) in the model-code consistency proof.
    * 
    * @return the type of logic used by this folder in the model-code consistency
    *         proof.
    */
   @NonNull
-  FolderLogic getFolderLogic();
+  LogicOperator getLogicOperator();
 }

@@ -128,7 +128,7 @@ final class LockExpressions {
        */
      ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
      result.addTrusted(f);
-     f.setMessage(12, "OR FOLDER (needs a better message)");
+     f.setMessage("OR FOLDER (needs a better message)");
       if (isUniqueReturn) {
        // result.addTrusted_or(Messages.UNIQUE_RETURN, uDrop);
         f.addTrusted(uDrop);
@@ -140,7 +140,7 @@ final class LockExpressions {
       if (isEffects) {
         // Note: "by effects" has to be the same string to "and" the "or"
         ResultFolderDrop ef = ResultFolderDrop.newAndFolder(result.getNode());
-        ef.setMessage(12, Messages.DECLARED_EFFECTS);
+        ef.setMessage(Messages.DECLARED_EFFECTS);
         ef.addTrusted(eDrop);
         ef.addTrusted(teDrop);
 //        result.addTrusted_or(Messages.DECLARED_EFFECTS, eDrop);

@@ -5,26 +5,15 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import com.surelogic.NonNull;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 
-  private final List<IRFreeAnalysisHintDrop> f_analysisHints = new ArrayList<IRFreeAnalysisHintDrop>(0);
   private final boolean f_proofUsesRedDot;
   private final boolean f_provedConsistent;
   private final boolean f_derivedFromSrc;
   private final boolean f_isFromSrc;
-
-  void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
-    f_analysisHints.add(hint);
-  }
 
   IRFreeProofDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
@@ -48,10 +37,5 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 
   public final boolean isFromSrc() {
     return f_isFromSrc;
-  }
-
-  @NonNull
-  public final Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout() {
-    return f_analysisHints;
   }
 }

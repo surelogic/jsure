@@ -17,28 +17,39 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysisHintDrop {
 
   /**
-   * Constructs a new suggestions pointing to the passed node.
+   * Constructs a new information drop pointing to the passed node.
+   * 
+   * @param node
+   *          referenced by the information.
+   * @return an information drop.
+   */
+  public static AnalysisHintDrop newInformation(IRNode node) {
+    return new AnalysisHintDrop(node, HintType.INFORMATION);
+  }
+
+  /**
+   * Constructs a new suggestion drop pointing to the passed node.
    * 
    * @param node
    *          referenced by the suggestion.
-   * @return a suggestion.
+   * @return a suggestion drop.
    */
   public static AnalysisHintDrop newSuggestion(IRNode node) {
     return new AnalysisHintDrop(node, HintType.SUGGESTION);
   }
 
   /**
-   * Constructs a new warning pointing to the passed node.
+   * Constructs a new warning drop pointing to the passed node.
    * 
    * @param node
    *          referenced by the warning.
-   * @return a warning.
+   * @return a warning drop.
    */
   public static AnalysisHintDrop newWarning(IRNode node) {
     return new AnalysisHintDrop(node, HintType.WARNING);
   }
 
-  private AnalysisHintDrop(IRNode node, HintType level) {
+  AnalysisHintDrop(IRNode node, HintType level) {
     super(node);
     f_type = level == null ? HintType.SUGGESTION : level;
   }

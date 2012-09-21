@@ -285,7 +285,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		if (isInvalid(insideDecl, node)) {
 		  final ResultDrop cfDrop = pr.controlFlow;
 		  cfDrop.setInconsistent();
-		  cfDrop.addSupportingInformation(node, getErrorMessage(insideDecl, node));
+		  cfDrop.addInformationHint(node, getErrorMessage(insideDecl, node));
 		}
 	}
 
@@ -307,7 +307,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			} else {
 				for (ResultDrop callDrop : callDrops) {
 					callDrop.setInconsistent();
-          callDrop.addSupportingInformation(node, getErrorMessage(insideDecl, node));
+          callDrop.addInformationHint(node, getErrorMessage(insideDecl, node));
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
 					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
@@ -791,7 +791,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					// Add depended on method calls
 					for (Map.Entry<ResultDrop, UniquePromiseDrop> entry : pr.calledUniqueReturns.entrySet()) {
 					  final IRNode methodCall = entry.getKey().getNode();
-					  callToCheck.addSupportingInformation(methodCall,
+					  callToCheck.addInformationHint(methodCall,
 							  Messages.UNIQUE_RETURN_VALUE,
 					          DebugUnparser.toString(methodCall));
 					  callToCheck.addTrusted(entry.getValue());
@@ -800,14 +800,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           // Add depended on contructors with borrowed("this") or unique("return")
           for (Map.Entry<ResultDrop, BorrowedPromiseDrop> entry : pr.calledBorrowedConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
-            callToCheck.addSupportingInformation(constructorCall,
+            callToCheck.addInformationHint(constructorCall,
             		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
             callToCheck.addTrusted(entry.getValue());
           }
           for (Map.Entry<ResultDrop, UniquePromiseDrop> entry : pr.calledUniqueConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
-            callToCheck.addSupportingInformation(constructorCall,
+            callToCheck.addInformationHint(constructorCall,
             		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
             callToCheck.addTrusted(entry.getValue());

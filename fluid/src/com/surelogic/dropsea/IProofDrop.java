@@ -1,10 +1,6 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.dropsea;
 
-import java.util.Collection;
-
-import com.surelogic.NonNull;
-
 /**
  * The interface for all drops involved with the JSure mode-code consistency
  * proof within the sea, intended to allow multiple implementations.
@@ -47,12 +43,4 @@ public interface IProofDrop extends IDrop {
    *         source code, {@code false} otherwise
    */
   boolean isFromSrc();
-
-  /**
-   * Returns the set of analysis hints about this proof drop.
-   * 
-   * @return the set of analysis hints about this proof drop.
-   */
-  @NonNull
-  Collection<? extends IAnalysisHintDrop> getAnalysisHintsAbout();
 }

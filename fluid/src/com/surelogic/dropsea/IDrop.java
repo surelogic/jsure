@@ -82,19 +82,20 @@ public interface IDrop {
   ISrcRef getSrcRef();
 
   /**
-   * Gets the supporting information about this drop.
-   * 
-   * @return the set (possibly empty) of supporting information about this drop.
-   */
-  Collection<ISupportingInformation> getSupportingInformation();
-
-  /**
    * Gets the set of proposed promises for this drop.
    * 
    * @return the, possibly empty but non-null, set of proposed promises for this
    *         drop.
    */
   Collection<? extends IProposedPromiseDrop> getProposals();
+
+  /**
+   * Returns the set of analysis hints about this proof drop.
+   * 
+   * @return the set of analysis hints about this proof drop.
+   */
+  @NonNull
+  Collection<IAnalysisHintDrop> getAnalysisHintsAbout();
 
   /**
    * Computes a hash of the subtree from the fAST node that this drop is related

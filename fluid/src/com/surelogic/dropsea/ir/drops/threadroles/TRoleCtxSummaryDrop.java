@@ -118,7 +118,7 @@ public class TRoleCtxSummaryDrop extends IRReferenceDrop implements IThreadRoleD
     // that come either from one or more callers, or from grants or revokes. In
     // any of these cases, the context summary is a derived item.
     // res.setVirtual(true);
-    res.setMessage(12,msg);
+    res.setMessage(msg);
     return res;
   }
 

@@ -77,7 +77,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     cache = new HashMap<String, ModuleModel>();
     childrenOfWorld = new HashSet<ModuleModel>();
     theWorldDrop = new ModuleModel();
-    theWorldDrop.setMessage(12, "The world");
+    theWorldDrop.setMessage("The world");
      moduleInformationIsConsistent = true;
     
     DS_BAD_EXPORT_INFO = 
@@ -193,7 +193,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     ModuleModel d = query(name);
     if (d == null) {
       d = new ModuleModel(name);
-      d.setMessage(12, "Module " + name);
+      d.setMessage("Module " + name);
       d.setParents();
       dependOn.addDependent(d);
     }
@@ -214,7 +214,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
         }
         d.enclosedModuleModels.add(mm);
       }
-      d.setMessage(12, "Module " + d.name + " contains " + d.enclosedModuleNames);
+      d.setMessage("Module " + d.name + " contains " + d.enclosedModuleNames);
     }
     return d;
   }
@@ -360,7 +360,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
                                                      DS_BAD_EXPORT, 
                                                      ed.toString(), 
                                                      ModuleAnalysisAndVisitor.javaName(where));
-           rd.addSupportingInformation(null, DS_BAD_EXPORT_INFO);
+           rd.addInformationHint(null, DS_BAD_EXPORT_INFO);
          }
       }
     }

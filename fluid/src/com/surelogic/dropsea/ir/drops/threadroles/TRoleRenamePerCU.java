@@ -196,7 +196,7 @@ public class TRoleRenamePerCU extends IRReferenceDrop implements IThreadRoleDrop
     if (res == null) {
       res = new TRoleRenamePerCU(cu);
       setPerCU(cu, res);
-      res.setMessage(12,"Another colorRenamePerCU...");
+      res.setMessage("Another colorRenamePerCU...");
     }
    
     return res;

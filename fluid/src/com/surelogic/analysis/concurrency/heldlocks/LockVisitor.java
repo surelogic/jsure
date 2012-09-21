@@ -862,7 +862,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	private void addSupportingInformation(final IRReferenceDrop drop,
 			final IRNode link, final int msgTemplate, final Object... msgArgs) {
-		drop.addSupportingInformation(link, msgTemplate, msgArgs);
+		drop.addInformationHint(link, msgTemplate, msgArgs);
 	}
 
 	/**
