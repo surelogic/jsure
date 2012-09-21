@@ -656,8 +656,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			try {
 				final String path = computePrefix();
 				final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-				SeaSummary.summarize("workspace", info.getDropInfo(), location);
-				
+				if (RegressionUtility.useSnapshotOracles) {
+					FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+				} else {
+					SeaSummary.summarize("workspace", info.getDropInfo(), location);
+				}
 				printToScript(ScriptCommands.COMPARE_RESULTS + " workspace "
 						+ path + '/' + name + " " + path + "/../" + prefix
 						+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
