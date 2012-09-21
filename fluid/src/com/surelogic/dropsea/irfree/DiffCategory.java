@@ -90,15 +90,6 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 		for(int i=0; i<m.numPasses(); i++) {
 			title = match(title, out, m, i);
 		}
-		/*
-		title = match(title, out, EXACT, "Exact  ");
-		title = match(title, out, HASHED, "Hashed ");
-		title = match(title, out, HASHED2, "Hashed2");
-		// title = match(title, out, SAME_LINE, "Line   ");
-		if (name.endsWith(".ResultDrop")) {
-			title = match(title, out, RESULT, "Results");
-		}
-		*/
 		if (isEmpty()) {
 			return;
 		}

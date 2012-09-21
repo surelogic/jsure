@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.surelogic.common.refactor.JavaDeclInfo;
-import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Drop;

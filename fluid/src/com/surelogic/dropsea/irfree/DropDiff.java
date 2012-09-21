@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.surelogic.common.IViewable;
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 
 public class DropDiff extends DiffNode implements IViewable {
 	static boolean allowMissingSupportingInfos = true;
@@ -44,22 +44,21 @@ public class DropDiff extends DiffNode implements IViewable {
 	}
 
 	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
-	  // TODO
-//		if (o.drop.getSupportingInformation().isEmpty()) {
-//			if (n.drop.getSupportingInformation().isEmpty()) {
-//				return null;
-//			}
-//			if (allowMissingSupportingInfos) {
-//				// System.out.println("Temporarily ignoring missing details in old oracles");
-//				return null;
-//			}
-//		}
-		final Map<String, DiffInfo> oldDetails = extractDetails(o.drop);
-		final Map<String, DiffInfo> newDetails = extractDetails(n.drop);
+		if (o.drop.getAnalysisHintsAbout().isEmpty()) {
+			if (n.drop.getAnalysisHintsAbout().isEmpty()) {
+				return null;
+			}
+			if (allowMissingSupportingInfos) {
+				// System.out.println("Temporarily ignoring missing details in old oracles");
+				return null;
+			}
+		}
+		final Map<String, DiffNode> oldDetails = extractDetails(o.drop);
+		final Map<String, DiffNode> newDetails = extractDetails(n.drop);
 		final List<String> temp = new ArrayList<String>();
 		// Remove matching ones
 		for (String ns : newDetails.keySet()) {
-			DiffInfo oe = oldDetails.remove(ns);
+			DiffNode oe = oldDetails.remove(ns);
 			if (oe != null) {
 				temp.add(ns);
 			}
@@ -74,15 +73,15 @@ public class DropDiff extends DiffNode implements IViewable {
 		out.println("\tDiffs in details for " + n.drop.getMessage());
 		for (String old : sort(oldDetails.keySet(), temp)) {
 			out.println("\t\tOld    : " + old);
-			DiffInfo e = oldDetails.get(old);
+			DiffNode e = oldDetails.get(old);
 			e.setAsOld();
 		}
 		for (String newMsg : sort(newDetails.keySet(), temp)) {
 			out.println("\t\tNewer  : " + newMsg);
-			DiffInfo e = newDetails.get(newMsg);
+			DiffNode e = newDetails.get(newMsg);
 			e.setAsNewer();
 		}
-		List<DiffInfo> remaining = new ArrayList<DiffInfo>(oldDetails.size() + newDetails.size());
+		List<DiffNode> remaining = new ArrayList<DiffNode>(oldDetails.size() + newDetails.size());
 		remaining.addAll(oldDetails.values());
 		remaining.addAll(newDetails.values());
 		Collections.sort(remaining);
@@ -90,21 +89,20 @@ public class DropDiff extends DiffNode implements IViewable {
 	}
 	
 	// Assume that we only have supporting info
-	public static Map<String, DiffInfo> extractDetails(IDrop e) {
-	  return Collections.emptyMap();  // TODO
-//		if (e.getSupportingInformation().isEmpty()) {
-//			return Collections.emptyMap();
-//		}
-//		final Map<String, DiffInfo> rv = new TreeMap<String, DiffInfo>();
-//		for (ISupportingInformation i : e.getSupportingInformation()) {
-//			String msg = i.getMessage();
-//			if (msg != null) {
-//				rv.put(msg, new DiffInfo(i));
-//			} else {
-//				System.out.println("No message for " + i);
-//			}
-//		}
-//		return rv;
+	public static Map<String, DiffNode> extractDetails(IDrop e) {
+		if (e.getAnalysisHintsAbout().isEmpty()) {
+			return Collections.emptyMap();
+		}
+		final Map<String, DiffNode> rv = new TreeMap<String, DiffNode>();
+		for (IAnalysisHintDrop i : e.getAnalysisHintsAbout()) {
+			String msg = i.getHintType()+" : "+i.getMessage();
+			if (msg != null) {
+				rv.put(msg, new DiffNode(i));
+			} else {
+				System.out.println("No message for " + i);
+			}
+		}
+		return rv;
 	}
 	
 	private static Collection<String> sort(Collection<String> s, List<String> temp) {
@@ -116,8 +114,8 @@ public class DropDiff extends DiffNode implements IViewable {
 
 	public void write(PrintWriter w) {
 		w.println("\tDiffs in details for " + drop.getMessage());
-		final Map<String, DiffInfo> oldDetails = extractDetails(old);
-		final Map<String, DiffInfo> newDetails = extractDetails(drop);
+		final Map<String, DiffNode> oldDetails = extractDetails(old);
+		final Map<String, DiffNode> newDetails = extractDetails(drop);
 		final List<String> temp = new ArrayList<String>();
 		for (String old : sort(oldDetails.keySet(), temp)) {
 			w.println("\t\tOld    : " + old);

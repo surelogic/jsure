@@ -1,8 +1,8 @@
 package com.surelogic.dropsea.irfree;
 
+import com.surelogic.dropsea.IAnalysisHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -39,8 +39,8 @@ public abstract class DropMatcher {
 	protected abstract boolean match(int pass, IDrop n, IDrop o);
 
 	protected static boolean matchBasics(IDrop n, IDrop o) {
-		return matchCategory(n, o) && matchMessage(n, o) && matchProvedConsistent(n, o)
-		&& matchSupportingInfo(n, o);
+		return matchCategory(n, o) && matchMessage(n, o) && matchProvedConsistent(n, o);
+		//&& matchSupportingInfo(n, o);
 	}
 	
 	protected static boolean matchCategory(IDrop n, IDrop o) {
@@ -99,18 +99,22 @@ public abstract class DropMatcher {
 			return true;
 		}
 		final long nh = computeSIHash(n);
+		if (nh != oh) {
+			System.out.println("Diff in infos");
+		}
 		return nh == oh;
 	}
 
 	private static long computeSIHash(IDrop e) {
-		long rv = 0;  // TODO
-//		for (ISupportingInformation i : e.getSupportingInformation()) {
-//			String msg = i.getMessage();
-//			if (msg == null) {
-//				continue;
-//			}
-//			rv += msg.hashCode();
-//		}
+		long rv = 0;  
+		for (IAnalysisHintDrop i : e.getAnalysisHintsAbout()) {
+			String msg = i.getMessage();
+			if (msg == null) {
+				continue;
+			}
+			rv += msg.hashCode();
+			rv += i.getHintType().hashCode();
+		}
 		return rv;
 	}
 	
