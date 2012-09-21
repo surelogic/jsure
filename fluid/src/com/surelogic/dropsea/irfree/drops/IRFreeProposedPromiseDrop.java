@@ -105,7 +105,16 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     Origin result = Origin.MODEL; // default
     if (origin != null) {
       try {
-        result = Origin.valueOf(origin);
+    	  // FIX
+    	  if ("PROMISE".equals(origin)) {
+    		  result = Origin.MODEL;
+    	  }
+    	  else if ("INFERENCE".equals(origin)) {
+    		  result = Origin.CODE;
+    	  }
+    	  else {
+    		  result = Origin.valueOf(origin);
+    	  }
       } catch (Exception e1) {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(249, origin, ORIGIN), e1);
       }
