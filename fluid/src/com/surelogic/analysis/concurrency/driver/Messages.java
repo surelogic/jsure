@@ -109,28 +109,28 @@ public final class Messages extends AbstractMessages {
   
   
   
-  // For ThreadSafe assurance
-  public static final int THREAD_SAFE_SUPERTYPE = 400;
-  public static final int TRIVIALLY_THREADSAFE = 401;
-  public static final int VOUCHED_THREADSAFE = 402;
-  public static final int VOUCHED_THREADSAFE_WITH_REASON = 403;
-  public static final int FOLDER_IS_THREADSAFE = 404;
-  public static final int FOLDER_IS_NOT_THREADSAFE = 405;
-  public static final int THREADSAFE_FINAL = 406;
-  public static final int THEADSAFE_VOLATILE = 407;
-  public static final int LOCK_PROTECTED = 408;
-  public static final int UNPROTECTED_FIELD = 409;
-  public static final int THREADSAFE_PRIMITIVE = 410;
-  public static final int THREADSAFE_THREADSAFE = 411;
-  public static final int THREADSAFE_IMPL = 412;
-  public static final int THREADSAFE_CONTAINABLE = 413;
-  public static final int THREADSAFE_AGGREGATED = 414;
-  public static final int THREADSAFE_UNIQUE = 415;
-  public static final int FOLDER_AGGREGATION_IS_PROTECTED = 416;
-  public static final int FOLDER_AGGREGATION_IS_NOT_PROTECTED = 417;
-  public static final int DEST_REGION_PROTECTED = 418;
-  public static final int DEST_REGION_UNPROTECTED = 419;
-  public static final int UNPROTECTED_REFERENCE = 420;
+//  // For ThreadSafe assurance
+//  public static final int THREAD_SAFE_SUPERTYPE = 400;
+//  public static final int TRIVIALLY_THREADSAFE = 401;
+//  public static final int VOUCHED_THREADSAFE = 402;
+//  public static final int VOUCHED_THREADSAFE_WITH_REASON = 403;
+//  public static final int FOLDER_IS_THREADSAFE = 404;
+//  public static final int FOLDER_IS_NOT_THREADSAFE = 405;
+//  public static final int THREADSAFE_FINAL = 406;
+//  public static final int THEADSAFE_VOLATILE = 407;
+//  public static final int LOCK_PROTECTED = 408;
+//  public static final int UNPROTECTED_FIELD = 409;
+//  public static final int THREADSAFE_PRIMITIVE = 410;
+//  public static final int THREADSAFE_THREADSAFE = 411;
+//  public static final int THREADSAFE_IMPL = 412;
+//  public static final int THREADSAFE_CONTAINABLE = 413;
+//  public static final int THREADSAFE_AGGREGATED = 414;
+//  public static final int THREADSAFE_UNIQUE = 415;
+//  public static final int FOLDER_AGGREGATION_IS_PROTECTED = 416;
+//  public static final int FOLDER_AGGREGATION_IS_NOT_PROTECTED = 417;
+//  public static final int DEST_REGION_PROTECTED = 418;
+//  public static final int DEST_REGION_UNPROTECTED = 419;
+//  public static final int UNPROTECTED_REFERENCE = 420;
   
   
   

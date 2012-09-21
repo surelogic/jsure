@@ -17,7 +17,7 @@ public class DiffNode extends AbstractDiffNode {
 		drop = d;
 	}
 
-	@Override
+//	@Override
 	public String getText() {
 		return drop.getMessage();
 	}

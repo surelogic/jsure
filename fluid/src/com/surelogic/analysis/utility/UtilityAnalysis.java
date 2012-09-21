@@ -181,7 +181,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       public Void visitNewExpression(final IRNode newExpr) {
         final IRNode clazz = binder.getBinding(NewExpression.getType(newExpr));
         if (clazz.equals(typeDecl)) {
-          createResult(newExpr, false, Messages.INSTANCE_CREATED);
+          createRootResult(false, newExpr, Messages.INSTANCE_CREATED);
         }
         doAcceptForChildren(newExpr);
         return null;
@@ -191,7 +191,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       public Void visitNestedClassDeclaration(final IRNode nestedClass) {
         final IRNode extendz = binder.getBinding(NestedClassDeclaration.getExtension(nestedClass));
         if (extendz.equals(typeDecl)) {
-          createResult(nestedClass, false, Messages.SUBCLASSED);
+          createRootResult(false, nestedClass, Messages.SUBCLASSED);
         }
         doAcceptForChildren(nestedClass);
         return null;
@@ -201,7 +201,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       public Void visitAnonClassExpression(final IRNode anonClass) {
         final IRNode extendz = binder.getBinding(AnonClassExpression.getType(anonClass));
         if (extendz.equals(typeDecl)) {
-          createResult(anonClass, false, Messages.INSTANCE_CREATED);
+          createRootResult(false, anonClass, Messages.INSTANCE_CREATED);
         }
         doAcceptForChildren(anonClass);
         return null;
@@ -237,11 +237,9 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       }
       
       // Class must be public
-      if ((ClassDeclaration.getMods(typeDecl) & JavaNode.PUBLIC) != 0) {
-        createResult(typeDecl, true, Messages.CLASS_IS_PUBLIC);
-      } else {
-        createResult(typeDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
-      }
+      final boolean isPublic = (ClassDeclaration.getMods(typeDecl) & JavaNode.PUBLIC) != 0;
+      createRootResult(typeDecl, isPublic,
+          Messages.CLASS_IS_PUBLIC, Messages.CLASS_IS_NOT_PUBLIC);
 
       constructorDecl = null;
       numConstructors = 0;
@@ -250,24 +248,15 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     @Override
     protected void processVariableDeclarator(
         final IRNode fieldDecl, final IRNode varDecl, final boolean isStatic) {
-      if (isStatic) {
-        createResult(varDecl, true, Messages.FIELD_IS_STATIC, 
-            VariableDeclarator.getId(varDecl));
-      } else {
-        createResult(varDecl, false, Messages.FIELD_IS_NOT_STATIC, 
-            VariableDeclarator.getId(varDecl));
-      }
+      createRootResult(varDecl, isStatic, Messages.FIELD_IS_STATIC,
+          Messages.FIELD_IS_NOT_STATIC, VariableDeclarator.getId(varDecl));
     }
     
     @Override
     protected void processMethodDeclaration(final IRNode mdecl) {
-      if (TypeUtil.isStatic(mdecl)) {
-        createResult(mdecl, true, Messages.METHOD_IS_STATIC,
-            JavaNames.genMethodConstructorName(mdecl));
-      } else {
-        createResult(mdecl, false, Messages.METHOD_IS_NOT_STATIC,
-            JavaNames.genMethodConstructorName(mdecl));
-      }
+      createRootResult(mdecl, TypeUtil.isStatic(mdecl),
+          Messages.METHOD_IS_STATIC, Messages.METHOD_IS_NOT_STATIC,
+          JavaNames.genMethodConstructorName(mdecl));
     }
     
     @Override
@@ -282,21 +271,21 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     @Override
     protected void postProcess() {
       if (numConstructors == 0) {
-        createResult(typeDecl, false, Messages.NO_CONSTRUCTOR);
+        createRootResult(false, typeDecl, Messages.NO_CONSTRUCTOR);
       } else if (numConstructors > 1) {
-        createResult(typeDecl, false, Messages.TOO_MANY_CONSTRUCTORS);
+        createRootResult(false, typeDecl, Messages.TOO_MANY_CONSTRUCTORS);
       } else {
         boolean good = true;
         if (Visibility.getVisibilityOf(constructorDecl) != Visibility.PRIVATE) {
-          createResult(constructorDecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE);
+          createRootResult(false, constructorDecl, Messages.CONSTRUCTOR_NOT_PRIVATE);
           good = false;
         }
         if (Parameters.getFormalIterator(ConstructorDeclaration.getParams(constructorDecl)).hasNext()) {
-          createResult(constructorDecl, false, Messages.CONSTRUCTOR_BAD_ARGS);
+          createRootResult(false, constructorDecl, Messages.CONSTRUCTOR_BAD_ARGS);
           good = false;
         }
         if (good) {
-          createResult(constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
+          createRootResult(true, constructorDecl, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
         }
         
         /* Constructor must be one of 
@@ -314,7 +303,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
          */
         final IRNode body = ConstructorDeclaration.getBody(constructorDecl);
         if (!MethodBody.prototype.includes(body)) {
-          createResult(constructorDecl, false, Messages.CONSTRUCTOR_COMPILED);
+          createRootResult(false, constructorDecl, Messages.CONSTRUCTOR_COMPILED);
         } else {
           final Iteratable<IRNode> stmts =
               BlockStatement.getStmtIterator(MethodBody.getBlock(body));
@@ -327,7 +316,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
             final IRNode stmt = stmts.next();
             if (stmts.hasNext()) {
               // Has more than 2 statements, definitely bad
-              createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
+              createRootResult(false, constructorDecl, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
             } else {
               boolean bad = true;
               // Check for a Throws statement
@@ -340,14 +329,11 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
                   }
                 }
               }
-              if (bad) {
-                createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
-              } else {
-                createResult(constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
-              }
+              createRootResult(constructorDecl, !bad,
+                  Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
             }
           } else {
-            createResult(constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
+            createRootResult(true, constructorDecl, Messages.CONSTRUCTOR_OKAY);
           }
         }
       }

@@ -43,8 +43,8 @@ public final class ContainableProcessor extends
 	  final ContainablePromiseDrop pDrop =
 		  LockRules.getContainableImplementation(tdecl);
 	  if (pDrop != null) {
-  		final ResultDrop result = createResult(
-  		    name, true, Messages.CONTAINABLE_SUPERTYPE,
+  		final ResultDrop result = createRootResult(
+  		    true, name, Messages.CONTAINABLE_SUPERTYPE,
   		    JavaNames.getQualifiedTypeName(tdecl));
   		result.addTrusted(pDrop);
 	  }
@@ -62,16 +62,16 @@ public final class ContainableProcessor extends
 		// Prefer unique return over borrowed receiver
 		final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
 		if (upd != null) {
-			final ResultDrop result = createResult(
-			    cdecl, true, Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
+			final ResultDrop result = createRootResult(
+			    true, cdecl, Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
 			result.addTrusted(upd);
 		} else if (bpd != null) {
-			final ResultDrop result = createResult(
-			    cdecl, true, Messages.CONSTRUCTOR_BORROWED_RECEVIER, id);
+			final ResultDrop result = createRootResult(
+			    true, cdecl, Messages.CONSTRUCTOR_BORROWED_RECEVIER, id);
 			result.addTrusted(bpd);
 		} else {
-			final ResultDrop result = createResult(
-			    cdecl, false, Messages.CONSTRUCTOR_BAD, id);
+			final ResultDrop result = createRootResult(
+			    false, cdecl, Messages.CONSTRUCTOR_BAD, id);
 			result.addProposal(new ProposedPromiseDrop(
 			    "Unique", "return", cdecl, cdecl, Origin.MODEL));
 		}
@@ -81,20 +81,17 @@ public final class ContainableProcessor extends
 	protected void processMethodDeclaration(final IRNode mdecl) {
 		// Must borrow the receiver if the method is not static
 		if (!TypeUtil.isStatic(mdecl)) {
-			final String id = JavaNames
-					.genSimpleMethodConstructorName(mdecl);
-			final IRNode rcvrDecl = JavaPromise
-					.getReceiverNodeOrNull(mdecl);
-			final BorrowedPromiseDrop bpd = UniquenessRules
-					.getBorrowed(rcvrDecl);
+			final String id = JavaNames.genSimpleMethodConstructorName(mdecl);
+			final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+			final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
 			if (bpd == null) {
-				final ResultDrop result = createResult(
-				    mdecl, false, Messages.METHOD_BAD, id);
+				final ResultDrop result = createRootResult(
+				    false, mdecl, Messages.METHOD_BAD, id);
 				result.addProposal(new ProposedPromiseDrop(
 				    "Borrowed",	"this", mdecl, mdecl, Origin.MODEL));
 			} else {
-				final ResultDrop result = createResult(
-				    mdecl, true, Messages.METHOD_BORROWED_RECEIVER, id);
+				final ResultDrop result = createRootResult(
+				    true, mdecl, Messages.METHOD_BORROWED_RECEIVER, id);
 				result.addTrusted(bpd);
 			}
 		}
@@ -107,18 +104,16 @@ public final class ContainableProcessor extends
 		final IJavaType type = binder.getJavaType(varDecl);
 		
 		if (type instanceof IJavaPrimitiveType) {
-			createResult(
-			    varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
+		  createRootResult(
+			    true, varDecl, Messages.FIELD_CONTAINED_PRIMITIVE, id);
 		} else {
 			final VouchFieldIsPromiseDrop vouchDrop = LockRules
 					.getVouchFieldIs(varDecl);
 			if (vouchDrop != null && vouchDrop.isContainable()) {
 				final String reason = vouchDrop.getReason();
-        final ResultDrop result =
-            (reason == VouchFieldIsNode.NO_REASON) ?
-            createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id) :
-            createResult(varDecl, true,
-                Messages.FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
+        final ResultDrop result = (reason == VouchFieldIsNode.NO_REASON)
+            ? createRootResult(true, varDecl, Messages.FIELD_CONTAINED_VOUCHED, id)
+            : createRootResult(true, varDecl, Messages.FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
 				result.addTrusted(vouchDrop);
 			} else {
 				final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);

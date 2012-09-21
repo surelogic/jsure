@@ -8,7 +8,6 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
-import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
 import com.surelogic.analysis.regions.IRegion;
@@ -40,6 +39,38 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class ThreadSafeProcessor extends TypeImplementationProcessor<ThreadSafePromiseDrop> {
+  private static final int THREAD_SAFE_SUPERTYPE = 400;
+  private static final int TRIVIALLY_THREADSAFE = 401;
+  private static final int VOUCHED_THREADSAFE = 402;
+  private static final int VOUCHED_THREADSAFE_WITH_REASON = 403;
+  private static final int FIELD_IS_THREADSAFE = 404;
+  private static final int FIELD_IS_NOT_THREADSAFE = 405;
+  private static final int FIELD_DECL_IS_SAFE = 406;
+  private static final int FIELD_DECL_IS_NOT_SAFE = 407;
+  private static final int FIELD_IS_FINAL = 408;
+  private static final int FIELD_IS_NOT_FINAL = 409;
+  private static final int FIELD_IS_VOLATILE = 410;
+  private static final int FIELD_IS_NOT_VOLATILE = 411;
+  private static final int FIELD_IS_PROTECTED = 412;
+  private static final int FIELD_IS_NOT_PROTECTED = 413;
+  private static final int OBJECT_IS_PROTECTED = 414;
+  private static final int OBJECT_IS_NOT_PROTECTED = 415;
+  private static final int TYPE_IS_PRIMITIVE = 416;
+  private static final int TYPE_IS_NOT_PRIMITIVE = 417;
+  private static final int TYPE_IS_THREADSAFE = 418;
+  private static final int TYPE_IS_NOT_THREADSAFE = 419;
+  private static final int THREADSAFE_IMPL = 420;
+  private static final int OBJECT_IS_CONTAINED = 421;
+  private static final int OBJECT_IS_NOT_CONTAINED = 422;
+  private static final int TYPE_IS_CONTAINABLE = 423;
+  private static final int TYPE_IS_NOT_CONTAINABLE = 424;
+  private static final int FIELD_IS_UNIQUE = 425;
+  private static final int FIELD_IS_NOT_UNIQUE = 426;
+  private static final int DEST_REGION_PROTECTED = 427;
+  private static final int DEST_REGION_UNPROTECTED = 428;
+  
+  
+  
   private final Set<RegionLockRecord> lockDeclarations;
   private boolean hasFields = false;
 
@@ -67,9 +98,8 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
     final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
         LockRules.getThreadSafeImplPromise(tdecl);
     if (pDrop != null) {
-      final ResultDrop result = createResult(name, true,
-          Messages.THREAD_SAFE_SUPERTYPE,
-          JavaNames.getQualifiedTypeName(tdecl));
+      final ResultDrop result = createRootResult(
+          true, name, THREAD_SAFE_SUPERTYPE, JavaNames.getQualifiedTypeName(tdecl));
       result.addTrusted(pDrop);
     }
   }
@@ -77,7 +107,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
   @Override
   protected void postProcess() {
     if (!hasFields) {
-      createResult(typeBody, true, Messages.TRIVIALLY_THREADSAFE);
+      createRootResult(true, typeBody, TRIVIALLY_THREADSAFE);
     }
   }
 
@@ -105,189 +135,151 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
     if (vouchDrop != null && (vouchDrop.isThreadSafe() || vouchDrop.isImmutable())) {
       final String reason = vouchDrop.getReason();
       final ResultDrop result = 
-          reason == VouchFieldIsNode.NO_REASON ? createResult(
-              varDecl, true, Messages.VOUCHED_THREADSAFE, id)
-              : createResult(varDecl, true,
-                  Messages.VOUCHED_THREADSAFE_WITH_REASON, id, reason);
+          reason == VouchFieldIsNode.NO_REASON
+            ? createRootResult(true, varDecl, VOUCHED_THREADSAFE, id)
+            : createRootResult(true, varDecl, VOUCHED_THREADSAFE_WITH_REASON, id, reason);
       result.addTrusted(vouchDrop);
     } else {
-      /* Create a Results Folder for the field.  We are going to AND together
-       * a bunch of results.  Keep track of the overall correctness though
-       * so we can set the correct message on the Result Folder.
+      /* Create an AND folder for the field: We conjoin two things:
+       * (1) That the field is protected, and (2) that the object referenced
+       * by the field is protected.
        */
-      final ResultFolderDrop folder = createResultFolder(varDecl);
+      final ResultFolderDrop folder = createRootAndFolder(
+          varDecl, FIELD_IS_THREADSAFE, FIELD_IS_NOT_THREADSAFE, id);
       
       /*
        * Part 1: Check if the field is volatile, final, or
        * lock-protected
        */
-      boolean passesPart1 = false;
+      final ResultFolderDrop part1Folder = createOrFolder(
+          folder, varDecl, FIELD_DECL_IS_SAFE, FIELD_DECL_IS_NOT_SAFE);
+      
       final boolean isFinal = TypeUtil.isFinal(varDecl);
-      if (isFinal) {
-        createResultInFolder(folder, fieldDecl, true, Messages.THREADSAFE_FINAL);
-        passesPart1 = true;
-      }
-      
+      createResult(part1Folder, fieldDecl, isFinal,
+          FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
+
       final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-      if (isVolatile) {
-        createResultInFolder(folder, fieldDecl, true, Messages.THEADSAFE_VOLATILE);
-        passesPart1 = true;
-      }
-      
+      createResult(part1Folder, fieldDecl, isVolatile,
+          FIELD_IS_VOLATILE, FIELD_IS_NOT_VOLATILE);
+
       final RegionLockRecord fieldLock =
           getLockForRegion(RegionModel.getInstance(varDecl));
       if (fieldLock != null) {
-        final ResultDrop result = createResultInFolder(
-            folder, varDecl, true, Messages.LOCK_PROTECTED, fieldLock.name);
+        final ResultDrop result = createResult(
+            true, part1Folder, varDecl, FIELD_IS_PROTECTED, fieldLock.name);
         result.addTrusted(fieldLock.lockDecl);
-        passesPart1 = true;
-      }
-      
-      if (!passesPart1) {
-        createResultInFolder(folder, varDecl, false, Messages.UNPROTECTED_FIELD);
+      } else {
+        createResult(false, part1Folder, varDecl, FIELD_IS_NOT_PROTECTED);
       }
       
       /*
        * Part2: Check that the field's type is thread safe or contained.
        */
-      boolean passesPart2 = false;
-      final IJavaType type = binder.getJavaType(varDecl);
-
-      // Test if the type of the field is primitive
-      final boolean isPrimitive = type instanceof IJavaPrimitiveType;
       final IRNode fieldTypeNode = FieldDeclaration.getType(fieldDecl);
-      if (isPrimitive) {
-        createResultInFolder(folder, fieldTypeNode,
-            true, Messages.THREADSAFE_PRIMITIVE, type.toSourceText());
-        passesPart2 = true;
-      } else { // REFERENCE TYPE
-        // Test if the type of the field is thread safe (or immutable)
-        final ThreadSafeAnnotationTester tsTester =
-            new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
-        final boolean isTS = tsTester.testType(type);
-        if (isTS) {
-          final ResultDrop result = createResultInFolder(
-              folder, fieldTypeNode, true,
-              Messages.THREADSAFE_THREADSAFE, type.toSourceText());
-          result.addTrusted(tsTester.getPromises());
-//          final ResultFolderDrop annoFolder = 
-//              ParameterizedTypeAnalysis.getFolderForTypeNode(fieldTypeNode);
-//          if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
-          passesPart2 = true;
-        } else {
-          /*
-           * If the type is not thread safe, we can check to see
-           * if the implementation assigned to the field is thread
-           * safe, but only if the field is final.
-           */
-          boolean stillBad = true;
-          if (isFinal) {
-            final IRNode init = VariableDeclarator.getInit(varDecl);
-            if (Initialization.prototype.includes(init)) {
-              final IRNode initExpr = Initialization.getValue(init);
-              if (NewExpression.prototype.includes(initExpr)) {
-                final IRNode declaredTypeOfNewExpr =
-                    ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration();
-                final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
-                    LockRules.getThreadSafeImplPromise(
-                        declaredTypeOfNewExpr);
-                if (implTypeTSDrop != null) {
-                  stillBad = false;
-                  passesPart2 = true;
-                  final ResultDrop result = createResultInFolder(
-                      folder, initExpr, true, Messages.THREADSAFE_IMPL); 
-                  result.addTrusted(implTypeTSDrop);
-//                  final IRNode xx = NewExpression.getType(initExpr);
-//                  final ResultFolderDrop annoFolder = 
-//                      ParameterizedTypeAnalysis.getFolderForTypeNode(xx);
-//                  if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
-                }
-              }
+      final ResultFolderDrop part2folder = createOrFolder(
+          folder, fieldTypeNode, OBJECT_IS_PROTECTED, OBJECT_IS_NOT_PROTECTED);
+      
+      // Test if the type is primitive
+      final IJavaType type = binder.getJavaType(varDecl);
+      final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+      createResult(part2folder, fieldTypeNode, isPrimitive, 
+          TYPE_IS_PRIMITIVE, TYPE_IS_NOT_PRIMITIVE, type.toSourceText());
+
+      // Test if the type of the field is thread safe (or immutable)
+      final ThreadSafeAnnotationTester tsTester =
+          new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+      final boolean isTS = tsTester.testType(type);
+      final ResultDrop tsResult = createResult(part2folder, fieldTypeNode, isTS,
+          TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
+      tsResult.addTrusted(tsTester.getPromises());
+
+      boolean proposeThreadSafe = !isTS;
+      if (!isTS && isFinal) {
+        /*
+         * If the type is not thread safe, we can check to see
+         * if the implementation assigned to the field is thread
+         * safe, but only if the field is final.
+         */
+        final IRNode init = VariableDeclarator.getInit(varDecl);
+        if (Initialization.prototype.includes(init)) {
+          final IRNode initExpr = Initialization.getValue(init);
+          if (NewExpression.prototype.includes(initExpr)) {
+            final IRNode declaredTypeOfNewExpr =
+                ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration();
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
+                LockRules.getThreadSafeImplPromise(declaredTypeOfNewExpr);
+            if (implTypeTSDrop != null) {
+              proposeThreadSafe = false;
+              final ResultDrop result =
+                  createResult(true, part2folder, initExpr, THREADSAFE_IMPL);
+              result.addTrusted(implTypeTSDrop);
+//              final IRNode xx = NewExpression.getType(initExpr);
+//              final ResultFolderDrop annoFolder = 
+//                  ParameterizedTypeAnalysis.getFolderForTypeNode(xx);
+//              if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
             }
           }
-          
-          if (stillBad) {
-            // only check containability if the type is not threadsafe 
-            final ContainableAnnotationTester cTester =
-                new ContainableAnnotationTester(
-                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
-            if (cTester.testType(type)) {
-              passesPart2 = true; // may be made false again, below, if the field is not aggregated
-              final ResultDrop result = createResultInFolder(
-                  folder, fieldTypeNode, true,
-                  Messages.THREADSAFE_CONTAINABLE, type.toSourceText());
-              result.addTrusted(cTester.getPromises());
-            } else { // NEITHER THREAD SAFE NOR CONTAINABLE
-              // Propose to make the type @ThreadSafe
-              for (final IRNode n : tsTester.getFailed()) {
-                folder.addProposal(new ProposedPromiseDrop(
-                    "ThreadSafe", null, n, varDecl, Origin.MODEL));
-              }
-              
-              // Propose to make the type @Containable
-              for (final IRNode n : tsTester.getFailed()) {
-                folder.addProposal(new ProposedPromiseDrop(
-                    "Containable", null, n, varDecl, Origin.MODEL));
-              }
-            }
-            
-            // check aggregation
-            final IUniquePromise uDrop = UniquenessUtils.getUnique(varDecl);
-            if (uDrop != null) {
-              final ResultDrop result = createResultInFolder(
-                  folder, varDecl, true, Messages.THREADSAFE_UNIQUE);
-              result.addTrusted(uDrop.getDrop());
-              passesPart2 &= true; // might still be made false if the aggregation isn't lock protected
-
-              // Check that the destination regions are lock protected
-              final ResultFolderDrop subFolder = createSubFolder(folder, varDecl);
-              final Map<IRegion, IRegion> aggMap =
-                  UniquenessUtils.constructRegionMapping(varDecl);
-              boolean protectedRegions = true;
-              for (final IRegion destRegion : aggMap.values()) {
-                final RegionLockRecord lock = getLockForRegion(destRegion);
-                if (lock != null) {
-                  final ResultDrop result2 = createResultInFolder(
-                      subFolder, varDecl, true,Messages.DEST_REGION_PROTECTED,
-                      destRegion.getName(), lock.name);
-                  result2.addTrusted(lock.lockDecl);
-                } else {
-                  protectedRegions = false;
-                  createResultInFolder(subFolder, varDecl, false,
-                      Messages.DEST_REGION_UNPROTECTED, destRegion.getName());
-                }
-              }
-
-              if (protectedRegions) {
-                subFolder.setMessage(Messages.FOLDER_AGGREGATION_IS_PROTECTED);
-              } else {
-                passesPart2 = false;
-                subFolder.setMessage(Messages.FOLDER_AGGREGATION_IS_NOT_PROTECTED);
-              }
-            } else {
-              // Need to do this because it may be been made temporarily true above
-              passesPart2 &= false;
-              folder.addProposal(new ProposedPromiseDrop(
-                  "Unique", null, varDecl, varDecl,  Origin.MODEL));
-            }
-          }
-        }        
-      }
-      
-      if (!passesPart2) { // && !hasAggregationSubFolder) {
-        createResultInFolder(folder, varDecl, false, Messages.UNPROTECTED_REFERENCE);
-      }
-      
-      if (passesPart1 && passesPart2) {
-        folder.setMessage(Messages.FOLDER_IS_THREADSAFE, id);
-      } else {
-        folder.setMessage(Messages.FOLDER_IS_NOT_THREADSAFE, id);
-        if (!isPrimitive) {
-          // Propose that the field be vouched threadsafe
-          folder.addProposal(new ProposedPromiseDrop(
-              "Vouch", "ThreadSafe", varDecl, varDecl, Origin.MODEL));
         }
       }
+      if (proposeThreadSafe) {
+        for (final IRNode n : tsTester.getFailed()) {
+          tsResult.addProposal(new ProposedPromiseDrop(
+              "ThreadSafe", null, n, varDecl, Origin.MODEL));
+        }
+      }
+        
+      final ResultFolderDrop containableFolder = createAndFolder(
+          part2folder, fieldDecl, OBJECT_IS_CONTAINED, OBJECT_IS_NOT_CONTAINED);
+      final ContainableAnnotationTester cTester =
+          new ContainableAnnotationTester(
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+      final boolean isContainable = cTester.testType(type);
+      final ResultDrop cResult = createResult(
+          containableFolder, fieldTypeNode, isContainable,
+          TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
+      cResult.addTrusted(cTester.getPromises());
+      if (!isContainable) {
+        for (final IRNode n : tsTester.getFailed()) {
+          cResult.addProposal(new ProposedPromiseDrop(
+              "Containable", null, n, varDecl, Origin.MODEL));
+        }
+      }
+            
+      // check aggregation
+      final IUniquePromise uDrop = UniquenessUtils.getUnique(varDecl);
+      if (uDrop == null) {
+        final ResultDrop uResult =
+            createResult(false, containableFolder, fieldDecl, FIELD_IS_NOT_UNIQUE);
+        uResult.addProposal(new ProposedPromiseDrop(
+            "Unique", null, varDecl, varDecl,  Origin.MODEL));
+      } else {
+        final ResultDrop uResult =
+            createResult(true, containableFolder, fieldDecl, FIELD_IS_UNIQUE);
+        uResult.addTrusted(uDrop.getDrop());
+
+        // Check that the destination regions are lock protected
+        final Map<IRegion, IRegion> aggMap =
+            UniquenessUtils.constructRegionMapping(varDecl);
+        for (final IRegion destRegion : aggMap.values()) {
+          final RegionLockRecord lock = getLockForRegion(destRegion);
+          if (lock != null) {
+            final ResultDrop aggResult = createResult(
+                true, containableFolder, varDecl, DEST_REGION_PROTECTED,
+                destRegion.getName(), lock.name);
+            aggResult.addTrusted(lock.lockDecl);
+          } else {
+            createResult(false, containableFolder, varDecl,
+                DEST_REGION_UNPROTECTED, destRegion.getName());
+          }
+        }
+      }
+
+      // Not sure where to put this now
+//      if (!isPrimitive) {
+//        // Propose that the field be vouched threadsafe
+//        folder.addProposal(new ProposedPromiseDrop(
+//            "Vouch", "ThreadSafe", varDecl, varDecl, Origin.MODEL));
+//      }
     }
   }
 }

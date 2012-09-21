@@ -9,7 +9,7 @@ extends Pair<T1,T2> implements Comparable<CPair<T1,T2>>{
 		super(o1, o2);
 	}
 
-	@Override
+//	@Override
 	public int compareTo(CPair<T1, T2> o) {
 		int rv = first().compareTo(o.first());
 		if (rv == 0) {

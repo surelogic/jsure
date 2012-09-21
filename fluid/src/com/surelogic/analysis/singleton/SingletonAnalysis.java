@@ -221,12 +221,12 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     @Override
     protected void postProcess() {
       if (numElements == 0) {
-        createResult(typeDecl, false, Messages.ENUM_NO_ELEMENTS);
+        createRootResult(false, typeDecl, Messages.ENUM_NO_ELEMENTS);
       } else if (numElements == 1) {
-        createResult(element, true, Messages.ENUM_ONE_ELEMENT,
+        createRootResult(true, element, Messages.ENUM_ONE_ELEMENT,
             EnumConstantDeclaration.getId(element));
       } else { // numElements > 1
-        createResult(typeDecl, false, Messages.ENUM_TOO_MANY_ELEMENTS);
+        createRootResult(false, typeDecl, Messages.ENUM_TOO_MANY_ELEMENTS);
       }
     }
   }
@@ -257,9 +257,9 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
            */
           if (JJNode.tree.getParentOrNull(
               JJNode.tree.getParentOrNull(newExpr)) == fieldDeclToCheck) {
-            createResult(newExpr, true, Messages.GOOD_CREATION);
+            createRootResult(true, newExpr, Messages.GOOD_CREATION);
           } else {
-            createResult(newExpr, false, Messages.EXTRA_CREATION);
+            createRootResult(false, newExpr, Messages.EXTRA_CREATION);
           }
         }
         doAcceptForChildren(newExpr);
@@ -318,23 +318,17 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     
     @Override
     protected void preProcess() {
-      if (JavaNode.getModifier(typeDecl, JavaNode.FINAL)) {
-        createResult(typeDecl, true, Messages.CLASS_IS_FINAL);
-      } else {
-        createResult(typeDecl, false, Messages.CLASS_NOT_FINAL);        
-      }
-      
+      final boolean isFinal = JavaNode.getModifier(typeDecl, JavaNode.FINAL);
+      createRootResult(typeDecl, isFinal, Messages.CLASS_IS_FINAL, Messages.CLASS_NOT_FINAL);
       isSerializable = implementsSerializable() != null;
     }
     
     @Override
     protected void processConstructorDeclaration(final IRNode cdecl) {
       final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
-      if (JavaNode.getModifier(cdecl, JavaNode.PRIVATE)) {
-        createResult(cdecl, true, Messages.CONSTRUCTOR_IS_PRIVATE, id);
-      } else {
-        createResult(cdecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE, id);
-      }
+      final boolean isPrivate = JavaNode.getModifier(cdecl, JavaNode.PRIVATE);
+      createRootResult(cdecl, isPrivate,
+          Messages.CONSTRUCTOR_IS_PRIVATE, Messages.CONSTRUCTOR_NOT_PRIVATE, id);
     }
     
     @Override
@@ -343,7 +337,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       final IRNode rtBound = binder.getBinding(MethodDeclaration.getReturnType(mdecl));
       
       if (!MethodBody.prototype.includes(body)) {
-        createResult(mdecl, false, Messages.CLASS_METHOD_COMPILED);
+        createRootResult(false, mdecl, Messages.CLASS_METHOD_COMPILED);
       } else { 
         // Are we the readResolve() method?
         if (!JavaNode.getModifier(mdecl, JavaNode.STATIC) &&
@@ -362,11 +356,11 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
               readResolveReturnExpr = expr;
             } else {
               // No return
-              createResult(body, false, Messages.BAD_READ_RESOLVE_BODY);
+              createRootResult(false, body, Messages.BAD_READ_RESOLVE_BODY);
             }
           } else {
             // > 1 statement
-            createResult(body, false, Messages.BAD_READ_RESOLVE_BODY);
+            createRootResult(false, body, Messages.BAD_READ_RESOLVE_BODY);
           }
         }
         
@@ -385,7 +379,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
                     // Returns a static field, but from what class?
                     if (typeDecl.equals(getGrandParent(fdecl))) {
                       numGetters += 1;
-                      createResult(mdecl, true, Messages.CLASS_FOUND_GETTER,
+                      createRootResult(true, mdecl, Messages.CLASS_FOUND_GETTER,
                           JavaNames.genSimpleMethodConstructorName(mdecl));
                     }
                   }
@@ -414,11 +408,9 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       }
       
       if (isSerializable && !isStatic) {
-        if (JavaNode.getModifier(fieldDecl, JavaNode.TRANSIENT)) {
-          createResult(varDecl, true, Messages.FIELD_IS_TRANSIENT);
-        } else {
-          createResult(varDecl, false, Messages.FIELD_NOT_TRANSIENT);
-        }
+        final boolean isTransient = JavaNode.getModifier(fieldDecl, JavaNode.TRANSIENT);
+        createRootResult(varDecl, isTransient,
+            Messages.FIELD_IS_TRANSIENT, Messages.FIELD_NOT_TRANSIENT);
       }
     }
     
@@ -440,22 +432,22 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       final IRNode singletonField;
       if (publicFieldPattern) {
         singletonField = publicStaticFinalField;
-        createResult(publicStaticFinalField, true,
+        createRootResult(true, publicStaticFinalField,
             Messages.CLASS_ONE_PUBLIC_FIELD, typeString,
             VariableDeclarator.getId(publicStaticFinalField));
       } else if (privateFieldPattern) {
         singletonField = privateStaticFinalField;
-        createResult(privateStaticFinalField, true,
+        createRootResult(true, privateStaticFinalField,
             Messages.CLASS_ONE_PRIVATE_FIELD, typeString,
             VariableDeclarator.getId(privateStaticFinalField));
       } else {
         singletonField = null;
         if (numPublicStaticFinalFields == 0 && numPrivateStaticFinalFields == 0) {
-          createResult(typeDecl, false, Messages.CLASS_NO_PUBLIC_FIELD, typeString);
-          createResult(typeDecl, false, Messages.CLASS_NO_PRIVATE_FIELD, typeString);
+          createRootResult(false, typeDecl, Messages.CLASS_NO_PUBLIC_FIELD, typeString);
+          createRootResult(false, typeDecl, Messages.CLASS_NO_PRIVATE_FIELD, typeString);
         }
         if (numFields > 1) {
-          createResult(typeDecl, false, Messages.CLASS_TOO_MANY, typeString);
+          createRootResult(false, typeDecl, Messages.CLASS_TOO_MANY, typeString);
         }
       }
       
@@ -464,28 +456,28 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
       
       // Check for getter methods
       if (privateFieldPattern && numGetters == 0) {
-        createResult(typeDecl, false, Messages.CLASS_NO_GETTER);
+        createRootResult(false, typeDecl, Messages.CLASS_NO_GETTER);
       }
       
       // Check the return value of the readResolve() method, if any
       if (isSerializable) {
         if (!hasReadResolve) {
-          createResult(typeDecl, false, Messages.NO_READ_RESOLVE);
+          createRootResult(false, typeDecl, Messages.NO_READ_RESOLVE);
         }
         if (readResolveReturnExpr != null) {
           if (FieldRef.prototype.includes(readResolveReturnExpr)) {
             final IRNode fdecl = binder.getBinding(readResolveReturnExpr);
             if (fdecl.equals(singletonField)) {
-              createResult(readResolveReturnExpr, true, Messages.READ_RESOLVE_GOOD,
+              createRootResult(true, readResolveReturnExpr, Messages.READ_RESOLVE_GOOD,
                   VariableDeclarator.getId(singletonField));
             } else {
               // Wrong field
-              createResult(readResolveReturnExpr, false, Messages.READ_RESOLVE_BAD,
+              createRootResult(false, readResolveReturnExpr, Messages.READ_RESOLVE_BAD,
                   VariableDeclarator.getId(singletonField));
             }
           } else {
             // Not a field value at all
-            createResult(readResolveReturnExpr, false, Messages.READ_RESOLVE_BAD,
+            createRootResult(false, readResolveReturnExpr, Messages.READ_RESOLVE_BAD,
                 VariableDeclarator.getId(singletonField));
           }
         }

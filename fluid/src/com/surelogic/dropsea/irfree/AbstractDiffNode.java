@@ -25,7 +25,7 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 		return status == Status.NEW;
 	}
 	
-	@Override
+//	@Override
 	public int compareTo(IDiffNode o) {
 	      int rv = getText().compareTo(o.getText());
 	      if (rv == 0) {
@@ -34,12 +34,12 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 	      return rv;
 	}
 	
-	@Override
+//	@Override
 	public boolean hasChildren() {
 		return false;
 	}
 	
-	@Override
+//	@Override
 	public Object[] getChildren() {
 		return AnalysisResultMessage.noArgs;
 	}

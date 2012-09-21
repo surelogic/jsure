@@ -183,7 +183,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		SeaSnapshotDiff<CPair<String,String>> rv = new SeaSnapshotDiff<CPair<String,String>>();
 		rv.setFilter(f);
 		rv.setSeparator(new IDropSeparator<CPair<String,String>>() {
-			@Override
+//			@Override
 			public CPair<String, String> makeKey(IDrop d) {
 				final Class<?> type = d.getIRDropSeaClass();
 			    if (type == null) {

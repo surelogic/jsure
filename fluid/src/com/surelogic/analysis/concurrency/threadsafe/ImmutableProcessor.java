@@ -41,8 +41,8 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
     final ImmutablePromiseDrop pDrop =
         LockRules.getImmutableImplementation(tdecl);
     if (pDrop != null) {
-      final ResultDrop result = createResult(name, true,
-          Messages.IMMUTABLE_SUPERTYPE,
+      final ResultDrop result = createRootResult(
+          true, name, Messages.IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrusted(pDrop);
     }
@@ -52,7 +52,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
     if (!hasFields) {
-      createResult(typeBody, true, Messages.TRIVIALLY_IMMUTABLE);
+      createRootResult(true, typeBody, Messages.TRIVIALLY_IMMUTABLE);
     }
   }
 
@@ -75,10 +75,10 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       final String reason = vouchDrop.getReason();
       final ResultDrop result; 
       if (reason == VouchFieldIsNode.NO_REASON) {
-        result = createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id);
+        result = createRootResult(true, varDecl, Messages.IMMUTABLE_VOUCHED, id);
       } else {
-        result = createResult(
-            varDecl, true, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
+        result = createRootResult(
+            true, varDecl, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
       }
       result.addTrusted(vouchDrop);
     } else {

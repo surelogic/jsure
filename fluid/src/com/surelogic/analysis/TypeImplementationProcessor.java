@@ -1,6 +1,7 @@
 package com.surelogic.analysis;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -40,12 +41,54 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     this(a, pd, td, VisitUtil.getClassBody(td));
   }
 
+  protected final ResultFolderDrop createRootAndFolder(
+      final IRNode node, final int trueMsg, final int falseMsg, 
+      final Object... args) {
+    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
+    folder.addChecked(promiseDrop);
+    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return folder;
+    
+  }
+
+  protected final ResultFolderDrop createRootOrFolder(
+      final IRNode node, final int trueMsg, final int falseMsg, 
+      final Object... args) {
+    final ResultFolderDrop folder = ResultFolderDrop.newOrFolder(node);
+    folder.addChecked(promiseDrop);
+    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return folder;
+    
+  }
+
+  protected final ResultFolderDrop createAndFolder(
+      final AnalysisResultDrop parent, final IRNode node,
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
+    parent.addTrusted(folder);
+    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return folder;
+    
+  }
+
+  protected final ResultFolderDrop createOrFolder(
+      final AnalysisResultDrop parent, final IRNode node,
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultFolderDrop folder = ResultFolderDrop.newOrFolder(node);
+    parent.addTrusted(folder);
+    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return folder;
+    
+  }
+
+  // OBSOLETE
   protected final ResultFolderDrop createResultFolder(final IRNode node) {
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
     folder.addChecked(promiseDrop);
     return folder;
   }
 
+  // OBSOLETE
   protected final ResultFolderDrop createSubFolder(
       final ResultFolderDrop parent, final IRNode node) {
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
@@ -53,13 +96,47 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     return folder;
   }
 
-  protected final ResultDrop createResult(final IRNode node,
-      final boolean isConsistent, final int msg, final Object... args) {
-    final ResultDrop result = createResultSimple(node, isConsistent, msg, args);
+  protected final ResultDrop createRootResult(
+      final boolean isConsistent, final IRNode node, 
+      final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
     result.addChecked(promiseDrop);
+    result.setConsistent(isConsistent);
+    result.setMessage(msg, args);
     return result;
   }
 
+  protected final ResultDrop createRootResult(
+      final IRNode node, final boolean isConsistent,  
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
+    result.addChecked(promiseDrop);
+    result.setConsistent(isConsistent);
+    result.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return result;
+  }
+
+  protected final ResultDrop createResult(
+      final AnalysisResultDrop parent, final IRNode node, final boolean isConsistent,
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
+    parent.addTrusted(result);
+    result.setConsistent(isConsistent);
+    result.setMessagesByJudgement(trueMsg, falseMsg, args);
+    return result;
+  }
+
+  protected final ResultDrop createResult(
+      final boolean isConsistent, final AnalysisResultDrop parent,
+      final IRNode node, final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
+    parent.addTrusted(result);
+    result.setConsistent(isConsistent);
+    result.setMessage(msg, args);
+    return result;
+  }
+
+  // OBSOLETE
   protected final ResultDrop createResultInFolder(
       final ResultFolderDrop folder, final IRNode node,
       final boolean isConsistent, final int msg, final Object... args) {
@@ -68,6 +145,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     return result;
   }
   
+  // OBSOLETE
   private final ResultDrop createResultSimple(final IRNode node,
       final boolean isConsistent, final int msg, final Object... args) {
     final ResultDrop result = new ResultDrop(node);
@@ -76,6 +154,8 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     return result;
   }
 
+  
+  
   public final void processType() {
     preProcess();
 
