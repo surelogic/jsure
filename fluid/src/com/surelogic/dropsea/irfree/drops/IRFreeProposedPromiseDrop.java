@@ -21,7 +21,6 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.IJavaDeclaration;
-import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -55,9 +54,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @Nullable
   private ISrcRef f_assumptionRef = null;
   @NonNull
-  private final Map<String, String> f_annoAttributes = new HashMap<String, String>();
+  private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
   @NonNull
-  private final Map<String, String> f_replacedAttributes = new HashMap<String, String>();
+  private final Map<String, String> f_replacedAttributes = new HashMap<String, String>(0);
   private final String f_JavaAnnotation;
   private final String f_annotation;
   private final String f_contents;
