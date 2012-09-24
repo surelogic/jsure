@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.proposals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +27,8 @@ import com.surelogic.common.refactor.TypeContext;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
+import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;

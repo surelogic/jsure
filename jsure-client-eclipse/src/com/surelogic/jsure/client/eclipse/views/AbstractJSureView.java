@@ -9,7 +9,6 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
-import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -65,7 +64,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 	}
 
 	public enum Decorator {
-		NONE(CoE_Constants.NONE), WARNING(CoE_Constants.INFO_WARNING), RED_DOT(
+		NONE(CoE_Constants.NONE), WARNING(CoE_Constants.HINT_WARNING), RED_DOT(
 				CoE_Constants.REDDOT);
 
 		final int flag;

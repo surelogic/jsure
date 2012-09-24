@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.proposals;
 
 import java.util.List;
 

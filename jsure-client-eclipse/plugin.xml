@@ -143,11 +143,18 @@
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
 		</view>
 
-		<view name="Verification Status" allowMultiple="false"
+		<view name="OLD Verification Status" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.results.ResultsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ResultsView">
+		</view>
+		
+		<view name="Verification Status" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
+			category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView"
+			id="com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView">
 		</view>
 
 		<view name="JSure Quick Search" allowMultiple="false"
@@ -170,22 +177,22 @@
 		<view name="Modeling Problems" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
 			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
-			id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
+			class="com.surelogic.jsure.client.eclipse.views.problems.ProblemsView"
+			id="com.surelogic.jsure.client.eclipse.views.problems.ProblemsView">
 		</view>
 
 		<view name="Proposed Annotations" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
 			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
-			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
+			class="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView"
+			id="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView">
 		</view>
 
 		<view name="Annotation Explorer" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_scan_explorer.gif"
 			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView"
-			id="com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView">
+			class="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView"
+			id="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView">
 		</view>
 	</extension>
 

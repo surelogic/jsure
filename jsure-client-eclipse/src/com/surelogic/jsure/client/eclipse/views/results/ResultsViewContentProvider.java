@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -21,7 +20,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.NonNull;
-import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
@@ -49,23 +47,14 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
   private static Object[] m_root = noObjects;
 
-  private static final Logger LOG = SLLogger.getLogger("ResultsViewContentProvider");
+  private boolean m_showHints = true;
 
-  private boolean m_showInferences = true;
-
-  /**
-   * @return Returns the showInferences.
-   */
-  boolean isShowInferences() {
-    return m_showInferences;
+  boolean showHints() {
+    return m_showHints;
   }
 
-  /**
-   * @param showInferences
-   *          The showInferences to set.
-   */
-  void setShowInferences(boolean showInferences) {
-    this.m_showInferences = showInferences;
+  void setShowHints(boolean value) {
+    this.m_showHints = value;
   }
 
   ResultsViewContentProvider() {
@@ -88,7 +77,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   }
 
   private Object[] getElementsInternal() {
-    return (isShowInferences() ? m_root : ResultsViewContent.filterNonInfo(m_root));
+    return (showHints() ? m_root : ResultsViewContent.filterNonInfo(m_root));
   }
 
   public Object getParent(Object child) {
@@ -103,7 +92,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
   private Object[] getChildrenInternal(Object parent) {
     if (parent instanceof ResultsViewContent) {
       ResultsViewContent item = (ResultsViewContent) parent;
-      return (isShowInferences() ? item.getChildren() : item.getNonInfoChildren());
+      return (showHints() ? item.getChildren() : item.getNonInfoChildren());
     }
     return noObjects;
   }
@@ -119,19 +108,6 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private final Map<IDrop, ResultsViewContent> m_contentCache = new HashMap<IDrop, ResultsViewContent>();
 
-  private ResultsViewContent putInContentCache(IDrop key, @NonNull ResultsViewContent value) {
-    if (key == null)
-      throw new IllegalArgumentException(I18N.err(44, " key"));
-    if (value == null)
-      throw new IllegalArgumentException(I18N.err(44, "value"));
-    return m_contentCache.put(key, value);
-  }
-
-  private @Nullable
-  ResultsViewContent getFromContentCache(IDrop key) {
-    return m_contentCache.get(key);
-  }
-
   /**
    * Encloses in {@link ResultsViewContent} items and adds each drop in
    * <code>dropsToAdd</code> to the mutable set of viewer content items passed
@@ -144,7 +120,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    */
   private void addDrops(ResultsViewContent mutableContentSet, Collection<? extends IDrop> dropsToAdd) {
     for (IDrop drop : dropsToAdd) {
-      mutableContentSet.addChild(encloseDrop(drop, mutableContentSet));
+      encloseDropAndAddUnderParent(drop, mutableContentSet, null);
     }
   }
 
@@ -209,24 +185,26 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
    *          the future parent {@link ResultsViewContent} of the
    *          {@link ResultsViewContent} under construction, or {@code null} if
    *          none (a the root).
-   * @return the content item the viewer can use
+   * @param mutableUnparentedNodes
+   *          the collection of {@link ResultsViewContent} instances that have
+   *          no parent.
+   * @return the content item the viewer can use.
    */
-  private ResultsViewContent encloseDrop(IDrop drop, ResultsViewContent parentOrNull) {
+  @NonNull
+  private void encloseDropAndAddUnderParent(IDrop drop, ResultsViewContent parentOrNull,
+      Collection<ResultsViewContent> mutableUnparentedNodes) {
     if (drop == null)
       throw new IllegalArgumentException(I18N.err(44, "drop"));
 
-    ResultsViewContent result = getFromContentCache(drop);
-    if (result != null) {
+    final ResultsViewContent result;
+    if (m_contentCache.containsKey(drop)) {
       // in cache
-      return result;
+      return;
     } else {
-
-      // create & add to cache
-      // MUST BE IMMEDIATE TO AVOID INFINITE RECURSION
-      result = makeContent(drop.getMessage(), drop);
-      putInContentCache(drop, result); // to avoid infinite recursion
-
       if (drop instanceof IPromiseDrop) {
+        result = makeContent(drop.getMessage(), drop);
+        m_contentCache.put(drop, result);
+
         /*
          * PROMISE DROP
          */
@@ -251,6 +229,8 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         addProposedPromises(result, promiseDrop);
 
       } else if (drop instanceof IResultDrop) {
+        result = makeContent(drop.getMessage(), drop);
+        m_contentCache.put(drop, result);
         /*
          * RESULT DROP
          */
@@ -278,21 +258,34 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
          * RESULT FOLDER DROP
          */
         final IResultFolderDrop folderDrop = (IResultFolderDrop) drop;
+        if (folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.OR && folderDrop.getTrusted().size() == 1
+            && parentOrNull != null) {
+          /*
+           * If we are dealing with an OR folder that only has one child we can
+           * elide showing this detail to the user (if we have a parent -- which
+           * we always should in this case).
+           */
+          result = parentOrNull;
+        } else {
+          result = makeContent(drop.getMessage(), drop);
+          m_contentCache.put(drop, result);
 
-        // image
-        int flags = 0; // assume no adornments
-        flags |= (folderDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
-        flags |= (folderDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
-        result.setImageFlags(flags);
-        result.setBaseImageName(folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.AND ? CommonImages.IMG_FOLDER
-            : CommonImages.IMG_FOLDER_OR);
+          // image
+          int flags = 0; // assume no adornments
+          flags |= (folderDrop.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
+          flags |= (folderDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT);
+          result.setImageFlags(flags);
+          result.setBaseImageName(folderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.AND ? CommonImages.IMG_FOLDER
+              : CommonImages.IMG_FOLDER_OR);
+        }
 
         // children
         addDrops(result, folderDrop.getTrusted());
         addProposedPromises(result, folderDrop);
         addDrops(result, folderDrop.getAnalysisHintsAbout());
-
       } else if (drop instanceof IAnalysisHintDrop) {
+        result = makeContent(drop.getMessage(), drop);
+        m_contentCache.put(drop, result);
         /*
          * ANALYSIS HINT DROP
          */
@@ -309,9 +302,23 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         result.setIsInfoHint(true);
         result.setIsWarningHint(hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING);
       } else {
-        LOG.log(Level.SEVERE, "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
+        SLLogger.getLogger().log(Level.SEVERE,
+            "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
+        return;
       }
-      return result;
+      /*
+       * Add under parent if we didn't elide an OR folder.
+       */
+      if (parentOrNull != null && parentOrNull != result) {
+        parentOrNull.addChild(result);
+      }
+      /*
+       * Add to root collection if we were not given a parent and the mutable
+       * collection is not null.
+       */
+      if (parentOrNull == null && mutableUnparentedNodes != null) {
+        mutableUnparentedNodes.add(result);
+      }
     }
   }
 
@@ -580,7 +587,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         if (pd.isFromSrc() || pd.derivedFromSrc()) {
           // System.out.println("Considering: "+pd.getMessage());
           if (showAtTopLevel(pd)) {
-            root.add(encloseDrop(pd, null));
+            encloseDropAndAddUnderParent(pd, null, root);
           } else {
             // System.out.println("Rejected: "+pd.getMessage());
           }
@@ -604,7 +611,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         infoFolder.setCount(hintDrops.size());
 
         for (IDrop id : hintDrops) {
-          infoFolder.addChild(encloseDrop(id, infoFolder));
+          encloseDropAndAddUnderParent(id, infoFolder, null);
         }
         infoFolder.setBaseImageName(CommonImages.IMG_INFO);
         infoFolder.setIsInfoHint(true);

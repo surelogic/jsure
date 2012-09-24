@@ -4,11 +4,11 @@ import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
+import com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView;
 import com.surelogic.jsure.client.eclipse.views.finder.FinderView;
-import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
-import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
+import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
+import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
 import com.surelogic.jsure.client.eclipse.views.results.ResultsView;
-import com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;

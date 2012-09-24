@@ -1,7 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import static com.surelogic.common.jsure.xml.CoE_Constants.INFO;
-import static com.surelogic.common.jsure.xml.CoE_Constants.INFO_WARNING;
+import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_INFO;
+import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_WARNING;
 import static com.surelogic.common.jsure.xml.CoE_Constants.REDDOT;
 
 import java.util.ArrayList;
@@ -280,10 +280,10 @@ final class ResultsViewContent {
   public int getFlags() {
     int flagInt = getImageFlags();
     if (f_isInfoWarningDecorate) {
-      flagInt |= INFO_WARNING;
+      flagInt |= HINT_WARNING;
     } else if (f_isInfoDecorated) {
       if (!CommonImages.IMG_INFO.equals(getBaseImageName()))
-        flagInt |= INFO;
+        flagInt |= HINT_INFO;
     }
     return flagInt;
   }

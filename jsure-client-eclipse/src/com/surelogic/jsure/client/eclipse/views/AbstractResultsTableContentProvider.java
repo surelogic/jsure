@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,10 +8,9 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 
 
-abstract class AbstractResultsTableContentProvider<T extends IDrop>
+public abstract class AbstractResultsTableContentProvider<T extends IDrop>
 		implements IResultsTableContentProvider {
 	private final List<T> f_contents = new ArrayList<T>();
 	private final String[] f_labels;
@@ -56,11 +55,11 @@ abstract class AbstractResultsTableContentProvider<T extends IDrop>
 		}
 	};
 
-	AbstractResultsTableContentProvider(String[] labels) {
+	public AbstractResultsTableContentProvider(String[] labels) {
 		f_labels = labels;
 	}
 
-	AbstractResultsTableContentProvider(String mainLabel) {
+	public AbstractResultsTableContentProvider(String mainLabel) {
 		this(new String[] { mainLabel, "Resource", "Line" });
 	}
 

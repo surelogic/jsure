@@ -66,6 +66,8 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
+import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -132,7 +134,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
     treeViewer.setContentProvider(f_contentProvider);
     treeViewer.setLabelProvider(f_labelProvider);
-    treeViewer.setSorter(createSorter());
+ //   treeViewer.setSorter(createSorter());
     ColumnViewerToolTipSupport.enableFor(treeViewer);
 
     final Tree tree = treeViewer.getTree();
@@ -199,16 +201,16 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     };
     job.schedule();
   }
-
+  
   private final ResultsViewContentProvider f_contentProvider = new ResultsViewContentProvider();
 
-  private final XResultsViewLabelProvider f_labelProvider = new XResultsViewLabelProvider();
+  private final ResultsViewLabelProvider f_labelProvider = new ResultsViewLabelProvider();
 
   private final Action f_actionShowInferences = new Action() {
     @Override
     public void run() {
-      final boolean toggle = !f_contentProvider.isShowInferences();
-      f_contentProvider.setShowInferences(toggle);
+      final boolean toggle = !f_contentProvider.showHints();
+      f_contentProvider.setShowHints(toggle);
       f_labelProvider.setShowInferences(toggle);
       setViewState();
       treeViewer.refresh();
@@ -491,9 +493,9 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
     setViewState();
   }
 
-  private ViewerSorter createSorter() {
-    return new ContentNameSorter();
-  }
+//  private ViewerSorter createSorter() {
+//    return new ContentNameSorter();
+//  }
 
   String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
@@ -610,7 +612,7 @@ public final class ResultsView extends ViewPart implements JSureDataDirHub.Curre
    * Ensure that any relevant view state is set, based on the internal state
    */
   private void setViewState() {
-    f_actionShowInferences.setChecked(f_contentProvider.isShowInferences());
+    f_actionShowInferences.setChecked(f_contentProvider.showHints());
     f_actionShowInferences.setText("Show Information/Warning Results");
     f_actionShowInferences.setToolTipText("Show information and warning analysis results");
   }

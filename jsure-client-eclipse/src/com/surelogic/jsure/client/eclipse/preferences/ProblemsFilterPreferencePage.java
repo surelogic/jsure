@@ -32,9 +32,9 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.dialogs.AddModelingProblemFilterDialog;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
-import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
-import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
-import com.surelogic.jsure.client.eclipse.views.results.ScanAnnotationExplorerView;
+import com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView;
+import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
+import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 
 public class ProblemsFilterPreferencePage extends PreferencePage implements

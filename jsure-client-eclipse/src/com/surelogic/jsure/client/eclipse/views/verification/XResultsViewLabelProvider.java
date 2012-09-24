@@ -1,13 +1,13 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.verification;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -25,42 +25,39 @@ public class XResultsViewLabelProvider implements ITableLabelProvider {
 
   public Image getColumnImage(Object element, int columnIndex) {
     switch (columnIndex) {
-    case 0:
-      if (element instanceof ResultsViewContent) {
-        final ResultsViewContent c = (ResultsViewContent) element;
-        int flags = c.getImageFlags();
-        if (m_showInferences) {
-          if (c.isWarningDecorated()) {
-            flags |= CoE_Constants.INFO_WARNING;
-          } else if (c.isInfoDecorated()) {
-            if (!CommonImages.IMG_INFO.equals(c.getBaseImageName()))
-              flags |= CoE_Constants.INFO;
-          }
-        }
-        ImageDescriptor id = SLImages.getImageDescriptor(c.getBaseImageName());
-        ResultsImageDescriptor rid = new ResultsImageDescriptor(id, flags, ResultsView.ICONSIZE);
-        return rid.getCachedImage();
+    case 0: {
+      final int flags;
+      final String imageName;
+      if (element instanceof IDrop) {
+        final IDrop drop = (IDrop) element;
+        flags = ResultsImageDescriptor.getFlagsFor(drop);
+        imageName = ResultsImageDescriptor.getImageNameFor(drop);
+      } else if (element instanceof ResultsViewCategoryContent) {
+        final ResultsViewCategoryContent content = (ResultsViewCategoryContent) element;
+        flags = content.getImageFlags();
+        imageName = content.getImageName();
+      } else {
+        return SLImages.getImage(CommonImages.IMG_UNKNOWN);
       }
-      return SLImages.getImage(CommonImages.IMG_UNKNOWN);
+      final ResultsImageDescriptor rid = new ResultsImageDescriptor(imageName, flags, VerificationStatusView.ICONSIZE);
+      return rid.getCachedImage();
+    }
     case 1: {
       if ("".equals(getColumnText(element, columnIndex)))
         return null;
-      ImageDescriptor id = SLImages.getImageDescriptor(CommonImages.IMG_PROJECT);
-      ResultsImageDescriptor rid = new ResultsImageDescriptor(id, 0, ResultsView.ICONSIZE);
+      final ResultsImageDescriptor rid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0, VerificationStatusView.ICONSIZE);
       return rid.getCachedImage();
     }
     case 2: {
       if ("".equals(getColumnText(element, columnIndex)))
         return null;
-      ImageDescriptor id = SLImages.getImageDescriptor(CommonImages.IMG_PACKAGE);
-      ResultsImageDescriptor rid = new ResultsImageDescriptor(id, 0, ResultsView.ICONSIZE);
+      final ResultsImageDescriptor rid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0, VerificationStatusView.ICONSIZE);
       return rid.getCachedImage();
     }
     case 3: {
       if ("".equals(getColumnText(element, columnIndex)))
         return null;
-      ImageDescriptor id = SLImages.getImageDescriptor(CommonImages.IMG_CLASS);
-      ResultsImageDescriptor rid = new ResultsImageDescriptor(id, 0, ResultsView.ICONSIZE);
+      ResultsImageDescriptor rid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0, VerificationStatusView.ICONSIZE);
       return rid.getCachedImage();
     }
     }
@@ -68,12 +65,12 @@ public class XResultsViewLabelProvider implements ITableLabelProvider {
   }
 
   public String getColumnText(Object element, int columnIndex) {
-    if (element instanceof ResultsViewContent) {
-      final ResultsViewContent c = (ResultsViewContent) element;
-      final ISrcRef sr = c.getSrcRef();
+    if (element instanceof IDrop) {
+      final IDrop drop = (IDrop) element;
+      final ISrcRef sr = drop.getSrcRef();
       switch (columnIndex) {
       case 0:
-        return c.getMessage();
+        return drop.getMessage();
       case 1:
         if (sr == null)
           return "";
@@ -99,6 +96,11 @@ public class XResultsViewLabelProvider implements ITableLabelProvider {
           else
             return Integer.toString(line);
         }
+      }
+    }
+    if (element instanceof ResultsViewCategoryContent) {
+      if (columnIndex == 0) {
+        return ((ResultsViewCategoryContent) element).getLabel();
       }
     }
     return "";

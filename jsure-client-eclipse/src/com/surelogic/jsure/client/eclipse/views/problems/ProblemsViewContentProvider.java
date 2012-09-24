@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.problems;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +9,8 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
+import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;

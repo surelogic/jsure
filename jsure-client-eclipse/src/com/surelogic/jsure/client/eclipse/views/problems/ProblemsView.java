@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.problems;
 
 import java.util.ArrayList;
 import java.util.List;

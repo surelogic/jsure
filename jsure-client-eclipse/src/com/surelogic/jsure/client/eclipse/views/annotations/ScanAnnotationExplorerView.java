@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views.annotations;
 
 import java.util.Arrays;
 import java.util.Collection;

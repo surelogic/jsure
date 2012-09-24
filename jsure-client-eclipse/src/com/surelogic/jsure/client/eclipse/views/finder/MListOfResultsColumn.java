@@ -32,8 +32,8 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
-import com.surelogic.jsure.client.eclipse.views.results.DropInfoUtility;
-import com.surelogic.jsure.client.eclipse.views.results.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
+import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 

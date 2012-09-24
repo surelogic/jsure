@@ -5,15 +5,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.persistence.AndAnalysisResult;
 import com.surelogic.persistence.IAnalysisResult;
@@ -38,8 +37,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ThreadEffectsAnalysis implements IBinderClient {
-
-  private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.ThreadEffects"); //$NON-NLS-1$
 
   private final IBinder binder;
 
@@ -70,7 +67,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       final ITypeEnvironment typeEnv = binder.getTypeEnvironment();
       javaLangThread = typeEnv.findNamedType("java.lang.Thread");
       if (javaLangThread == null) {
-        LOG.log(Level.SEVERE, "[ThreadEffects] failed to find java.lang.Thread in the IR");
+        SLLogger.getLogger().log(Level.SEVERE, "[ThreadEffects] failed to find java.lang.Thread in the IR");
       }
     }
     return javaLangThread;
@@ -161,8 +158,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       r.addChecked(pd);
       r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
 
-//      ResultFolderDrop f = ResultFolderDrop.newAndFolder(r.getNode());
-//      f.setMessage("A FOLDER OF RESULTS");
+//      ResultFolderDrop f = ResultFolderDrop.newOrFolder(r.getNode());
+//      f.setMessage("A FOLDER OF OR RESULTS");
 //
 //      ResultDrop r1 = new ResultDrop(block);
 //      r1.setMessage("R1");
@@ -170,7 +167,13 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 //
 //      ResultDrop r2 = new ResultDrop(block);
 //      r2.setMessage("R1");
-//      r2.addTrusted(pd);
+//      r2.setConsistent();
+//      
+//      ResultDrop r3 = new ResultDrop(block);
+//      r3.setMessage("R3");
+//      r3.setConsistent();
+//      
+//      r1.addTrusted(r3);
 //
 //      r.addTrusted(f);
 //      f.addTrusted(r1);
@@ -222,7 +225,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
           // bind and check the the method
           IRNode methodDec = getBinding(node);
           if (methodDec == null) {
-            LOG.log(Level.SEVERE, "[ThreadEffects] binding failed on start() method call"); //$NON-NLS-1$
+            SLLogger.getLogger().log(Level.SEVERE, "[ThreadEffects] binding failed on start() method call");
           } else {
             if (doesMethodSubsumeThreadStart(methodDec)) {
               System.out.println("Found start() for " + DebugUnparser.toString(node) + " -- " + node);
@@ -318,10 +321,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
             StartsPromiseDrop p = ThreadEffectsRules.getStartsSpec(node);
             if (p == null) {
               // DROP DOESN'T EXIST
-              LOG.log(Level.SEVERE, "ThreadEffects encountered a problem" //$NON-NLS-1$
-                  + " extracting the promise drop from the MethodDeclaration " //$NON-NLS-1$
-                  + DebugUnparser.toString(node) + " within compilation unit:\n" //$NON-NLS-1$
-                  + DebugUnparser.toString(compUnit));
+              SLLogger.getLogger().log(
+                  Level.SEVERE,
+                  "ThreadEffects encountered a problem" + " extracting the promise drop from the MethodDeclaration "
+                      + DebugUnparser.toString(node) + " within compilation unit:\n" + DebugUnparser.toString(compUnit));
             } else {
               // FIX just testing
               IDE.getInstance().getReporter().reportInfo(node, "@Starts nothing");
@@ -335,10 +338,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
             }
           }
         } catch (Exception e) {
-          LOG.log(Level.SEVERE, "ThreadEffects encountered a problem" //$NON-NLS-1$
-              + " examining the MethodDeclaration " //$NON-NLS-1$
-              + DebugUnparser.toString(node) + " within compilation unit:\n" //$NON-NLS-1$
-              + DebugUnparser.toString(compUnit) + "\n", e); //$NON-NLS-1$
+          SLLogger.getLogger().log(
+              Level.SEVERE,
+              "ThreadEffects encountered a problem" + " examining the MethodDeclaration " + DebugUnparser.toString(node)
+                  + " within compilation unit:\n" + DebugUnparser.toString(compUnit) + "\n", e);
         }
       } else if (ConstructorDeclaration.prototype.includes(op)) {
         try {
@@ -354,10 +357,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
             StartsPromiseDrop p = ThreadEffectsRules.getStartsSpec(node);
             if (p == null) {
               // DROP DOESN'T EXIST
-              LOG.log(Level.SEVERE, "ThreadEffects encountered a problem" //$NON-NLS-1$
-                  + " extracting the promise drop from the ConstructorDeclaration " //$NON-NLS-1$
-                  + DebugUnparser.toString(node) + " within compilation unit:\n" //$NON-NLS-1$
-                  + DebugUnparser.toString(compUnit));
+              SLLogger.getLogger().log(
+                  Level.SEVERE,
+                  "ThreadEffects encountered a problem" + " extracting the promise drop from the ConstructorDeclaration "
+                      + DebugUnparser.toString(node) + " within compilation unit:\n" + DebugUnparser.toString(compUnit));
             }
             List<IAnalysisResult> results2 = examineBlock(node, op, p, modelName);
             if (results == null) {
@@ -367,10 +370,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
             }
           }
         } catch (Exception e) {
-          LOG.log(Level.SEVERE, "ThreadEffects encountered a problem" //$NON-NLS-1$
-              + " examining the ConstructorDeclaration " //$NON-NLS-1$
-              + DebugUnparser.toString(node) + " within compilation unit:\n" //$NON-NLS-1$
-              + DebugUnparser.toString(compUnit) + "\n", e); //$NON-NLS-1$
+          SLLogger.getLogger().log(
+              Level.SEVERE,
+              "ThreadEffects encountered a problem" + " examining the ConstructorDeclaration " + DebugUnparser.toString(node)
+                  + " within compilation unit:\n" + DebugUnparser.toString(compUnit) + "\n", e);
         }
       }
     }

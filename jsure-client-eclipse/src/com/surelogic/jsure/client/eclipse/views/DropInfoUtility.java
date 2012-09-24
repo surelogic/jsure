@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.results;
+package com.surelogic.jsure.client.eclipse.views;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IWorkbenchPage;
@@ -8,6 +8,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.jsure.client.eclipse.views.results.ResultsView;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
