@@ -43,7 +43,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * whole-program.
    */
   @InRegion("DropState")
-  private boolean provedConsistent = false;
+  private boolean f_provedConsistent = false;
 
   /**
    * Returns if this element has been judged to be consistent by
@@ -54,13 +54,13 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    */
   public boolean provedConsistent() {
     synchronized (f_seaLock) {
-      return provedConsistent;
+      return f_provedConsistent;
     }
   }
 
   void setProvedConsistent(boolean value) {
     synchronized (f_seaLock) {
-      provedConsistent = value;
+      f_provedConsistent = value;
     }
   }
 
@@ -68,7 +68,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * Records whether this result depends on something from source code.
    */
   @InRegion("DropState")
-  private boolean derivedFromSrc = false;
+  private boolean f_derivedFromSrc = false;
 
   /**
    * Checks is this result depends upon something from source code.
@@ -78,13 +78,13 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    */
   public boolean derivedFromSrc() {
     synchronized (f_seaLock) {
-      return derivedFromSrc;
+      return f_derivedFromSrc;
     }
   }
 
   void setDerivedFromSrc(boolean value) {
     synchronized (f_seaLock) {
-      derivedFromSrc = value;
+      f_derivedFromSrc = value;
     }
   }
 
@@ -94,7 +94,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    * the whole-program.
    */
   @InRegion("DropState")
-  private boolean proofUsesRedDot = true;
+  private boolean f_proofUsesRedDot = true;
 
   /**
    * Returns if the proof of this element depends upon a "red dot," or a user
@@ -105,13 +105,13 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
    */
   public boolean proofUsesRedDot() {
     synchronized (f_seaLock) {
-      return proofUsesRedDot;
+      return f_proofUsesRedDot;
     }
   }
 
   void setProofUsesRedDot(boolean value) {
     synchronized (f_seaLock) {
-      proofUsesRedDot = value;
+      f_proofUsesRedDot = value;
     }
   }
 
