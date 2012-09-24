@@ -12,9 +12,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
-import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
-import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.ROOT;
-import static com.surelogic.dropsea.irfree.JSureSummaryXMLReader.TIME_ATTR;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,20 +48,14 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.DropFactory;
-import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.MarkedIRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**

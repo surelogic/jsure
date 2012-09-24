@@ -4,14 +4,12 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ID_ATTR;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ROOT;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SUPPORTING_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.UID_ATTR;
 
 import java.io.File;
@@ -23,7 +21,6 @@ import java.util.UUID;
 
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ISupportingInformation;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -123,13 +120,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
   public void addSrcRef(Builder outer, IRNode context, ISrcRef s, String flavor) {
     addSrcRef(outer, context, s, 2, flavor);
-  }
-
-  public void addSupportingInfo(Builder db, ISupportingInformation si) {
-    Builder sib = db.nest(SUPPORTING_INFO);
-    sib.addAttribute(MESSAGE, si.getMessage());
-    addSrcRef(sib, si.getLocation(), si.getSrcRef(), 3, null);
-    sib.end();
   }
 
   public void addJavaDeclInfo(Builder b, final String flavor, final JavaDeclInfo info) {
