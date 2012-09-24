@@ -12,6 +12,7 @@ import java.util.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.dropsea.*;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.CPair;
@@ -173,10 +174,49 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		return c;
 	}
 			
-	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, File old, Collection<? extends IDrop> newer) 
+	/**
+	 * @return true if the drop is derived from source
+	 */
+	private static boolean select(IDrop d) {
+		if (d instanceof IProofDrop) {
+			IProofDrop pd = (IProofDrop) d;
+			return pd.derivedFromSrc();
+		}
+		if (d.instanceOfIRDropSea(IRReferenceDrop.class)) {
+		      // Need a location to report
+		      ISrcRef ref = d.getSrcRef();
+		      if (ref == null) {
+		        if (!d.getMessage().contains("java.lang.Object")) {
+		          /*
+		           * if (d.getMessage().startsWith("ThreadRole")) {
+		           * System.out.println("Found ThreadRole"); }
+		           */
+		          System.out.println("No src ref for " + d.getMessage());
+		        } else {
+		          // System.currentTimeMillis();
+		        }
+		        return false;
+		      }
+		      return true;
+		}
+		return false;
+	}
+	
+	public static SeaSnapshotDiff<CPair<String,String>> diff(final IDropFilter f, File old, Collection<? extends IDrop> newer) 
 	throws Exception {
 		Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
-		return diff(f, oldResults, newer);
+		return diff(new IDropFilter() {
+			@Override
+			public boolean showResource(IDrop d) {
+				return select(d) && f.showResource(d);
+			}
+
+			@Override
+			public boolean showResource(String path) {
+				return f.showResource(path);
+			}
+			
+		}, oldResults, newer);
 	}
 	
 	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, Collection<IDrop> old, Collection<? extends IDrop> newer) {
