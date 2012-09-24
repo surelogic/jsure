@@ -122,29 +122,33 @@ final class LockExpressions {
       this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
     }
     
-    public void addSingleThreadedEvidence(final ResultDrop result) {
-      /*
-       * TODO Aaron needs to fix this up to look reasonable
-       */
-     ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
+    public void addSingleThreadedEvidence(
+        final ResultDrop result, final IRNode cdecl) {
+     final ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
      result.addTrusted(f);
-     f.setMessage("OR FOLDER (needs a better message)");
+     f.setMessagesByJudgement(Messages.CONSTRUCTOR_IS_THREADCONFINED,
+         Messages.CONSTRUCTOR_IS_NOT_THREADCONFINED);
       if (isUniqueReturn) {
-       // result.addTrusted_or(Messages.UNIQUE_RETURN, uDrop);
-        f.addTrusted(uDrop);
+        final ResultDrop r = new ResultDrop(cdecl);
+        r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+        r.setConsistent();
+        f.addTrusted(r);
+        r.addTrusted(uDrop);
       }
       if (isBorrowedThis) {
-      //  result.addTrusted_or(Messages.BORROWED_RECEIVER, bDrop);
-        f.addTrusted(bDrop);
+        final ResultDrop r = new ResultDrop(cdecl);
+        r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+        r.setConsistent();
+        f.addTrusted(r);
+        r.addTrusted(bDrop);
       }
       if (isEffects) {
-        // Note: "by effects" has to be the same string to "and" the "or"
-        ResultFolderDrop ef = ResultFolderDrop.newAndFolder(result.getNode());
-        ef.setMessage(Messages.DECLARED_EFFECTS);
-        ef.addTrusted(eDrop);
-        ef.addTrusted(teDrop);
-//        result.addTrusted_or(Messages.DECLARED_EFFECTS, eDrop);
-//        result.addTrusted_or(Messages.DECLARED_EFFECTS, teDrop);
+        final ResultDrop r = new ResultDrop(cdecl);
+        r.setMessage(Messages.STARTS_NO_THREADS_ETC);
+        r.setConsistent();
+        r.addTrusted(eDrop);
+        r.addTrusted(teDrop);
+        f.addTrusted(r);
       }
     }
   }

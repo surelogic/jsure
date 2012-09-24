@@ -1,6 +1,5 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.util.AbstractMessages;
@@ -32,15 +31,8 @@ public final class Messages extends AbstractMessages {
   public static final Category DSC_MATCHING_CALLS = Category.getInstance(216);
   public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(217);
   public static final Category DSC_FINAL_FIELDS = Category.getInstance(218);
-  
-  
-  
-  // Labels for the single-threaded result disjunction
-  public static final String BORROWED_RECEIVER = I18N.misc(200);
-  public static final String UNIQUE_RETURN = I18N.misc(201);
-  public static final String DECLARED_EFFECTS = I18N.misc(202);
 
-
+  
   
   // Drop-sea result messages
   public static final int LockAnalysis_ds_SynchronizedConstructorAssured = 200;
@@ -106,7 +98,10 @@ public final class Messages extends AbstractMessages {
   public static final int VOUCHED_FINAL_WITH_REASON = 260;
   public static final int FORMAL_PARAMETER_WRITTEN_TO = 261;
   public static final int SHOULD_BE_FINAL = 262;
-  
+  public static final int CONSTRUCTOR_IS_THREADCONFINED = 263;
+  public static final int CONSTRUCTOR_IS_NOT_THREADCONFINED = 264;
+  public static final int RECEIVER_IS_NOT_ALIASED = 265;
+  public static final int STARTS_NO_THREADS_ETC = 266;
   
   
 //  // For ThreadSafe assurance
