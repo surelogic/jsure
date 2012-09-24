@@ -4,7 +4,6 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
-import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
@@ -27,6 +26,24 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor<ImmutablePromiseDrop> {
+  private static final int IMMUTABLE_SUPERTYPE = 480;
+  private static final int TRIVIALLY_IMMUTABLE = 481;
+  private static final int VOUCHED_IMMUTABLE = 482;
+  private static final int VOUCHED_IMMUTABLE_WITH_REASON = 483;
+  private static final int FIELD_IS_IMMUTABLE = 484;
+  private static final int FIELD_IS_NOT_IMMUTABLE = 485;
+  private static final int FIELD_IS_FINAL = 486;
+  private static final int FIELD_IS_NOT_FINAL = 487;
+  private static final int OBJECT_IS_IMMUTABLE = 488;
+  private static final int OBJECT_IS_NOT_IMMUTABLE = 489;
+  private static final int TYPE_IS_PRIMITIVE = 490;
+  private static final int TYPE_IS_NOT_PRIMITIVE = 491;
+  private static final int TYPE_IS_IMMUTABLE = 492;
+  private static final int TYPE_IS_NOT_IMMUTABLE = 493;
+  private static final int IMMUTABLE_IMPL = 494;
+
+  
+  
   private boolean hasFields = false;
   
   public ImmutableProcessor(
@@ -42,7 +59,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         LockRules.getImmutableImplementation(tdecl);
     if (pDrop != null) {
       final ResultDrop result = createRootResult(
-          true, name, Messages.IMMUTABLE_SUPERTYPE,
+          true, name, IMMUTABLE_SUPERTYPE,
           JavaNames.getQualifiedTypeName(tdecl));
       result.addTrusted(pDrop);
     }
@@ -52,7 +69,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
     if (!hasFields) {
-      createRootResult(true, typeBody, Messages.TRIVIALLY_IMMUTABLE);
+      createRootResult(true, typeBody, TRIVIALLY_IMMUTABLE);
     }
   }
 
@@ -75,10 +92,10 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       final String reason = vouchDrop.getReason();
       final ResultDrop result; 
       if (reason == VouchFieldIsNode.NO_REASON) {
-        result = createRootResult(true, varDecl, Messages.IMMUTABLE_VOUCHED, id);
+        result = createRootResult(true, varDecl, VOUCHED_IMMUTABLE, id);
       } else {
         result = createRootResult(
-            true, varDecl, Messages.IMMUTABLE_VOUCHED_WITH_REASON, id, reason);
+            true, varDecl, VOUCHED_IMMUTABLE_WITH_REASON, id, reason);
       }
       result.addTrusted(vouchDrop);
     } else {
@@ -86,25 +103,21 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
        * (1) the field is final
        * (2) the field's type is immutable or primitive
        */
-      final ResultFolderDrop folder = createResultFolder(varDecl);
-      folder.setMessagesByJudgement(
-          Messages.FOLDER_IS_IMMUTABLE, Messages.FOLDER_IS_NOT_IMMUTABLE, id);
+      final ResultFolderDrop folder = createRootAndFolder(
+          varDecl, FIELD_IS_IMMUTABLE, FIELD_IS_NOT_IMMUTABLE, id);
       
       // (1) Check finality of the field
       final boolean isFinal = TypeUtil.isFinal(varDecl);
+      final ResultDrop fDrop = createResult(folder, fieldDecl,
+          isFinal, FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
       if (isFinal) {
-        final ResultDrop fDrop = createResultInFolder(
-            folder, fieldDecl, true, Messages.IMMUTABLE_FINAL);
-        
         // Get the @Vouch("final") annotation if there is one
         final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(varDecl);
         if (vouchFinal != null && vouchFinal.isFinal()) {
           fDrop.addTrusted(vouchFinal);
         }
       } else {
-        createResultInFolder(
-            folder, fieldDecl, false, Messages.IMMUTABLE_NOT_FINAL);
-        folder.addProposal(new ProposedPromiseDrop("Vouch",
+        fDrop.addProposal(new ProposedPromiseDrop("Vouch",
             "final", varDecl, varDecl, Origin.MODEL));
       }
 
@@ -115,61 +128,61 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
        *      whose implementation is @Immutable (GOOD)
        *   4. All other cases (BAD) 
        */
+      final ResultFolderDrop typeFolder = createOrFolder(
+          folder, varDecl, OBJECT_IS_IMMUTABLE, OBJECT_IS_NOT_IMMUTABLE);
       final IJavaType type = binder.getJavaType(varDecl);
-      if (type instanceof IJavaPrimitiveType) { // PRIMITIVELY TYPED
-        createResultInFolder(folder, FieldDeclaration.getType(fieldDecl), true,
-            Messages.IMMUTABLE_PRIMITIVE, type.toSourceText());
-      } else { // REFERENCE-TYPED
-        final ImmutableAnnotationTester tester = 
-            new ImmutableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true); 
-        final boolean isImmutable = tester.testType(type);
-        
-        if (isImmutable) { // IMMUTABLE REFERENCE TYPE
-          final ResultDrop iResult = createResultInFolder(
-              folder, FieldDeclaration.getType(fieldDecl), true,
-              Messages.FIELD_TYPE_IMMUTABLE, type.toSourceText());
-          iResult.addTrusted(tester.getPromises());
-        } else {
-          /*
-           * If the type is not immutable, we can check to see
-           * if the implementation assigned to the field is immutable,
-           * but only if the field is final.
-           */
-          boolean stillBad = true;
-          if (isFinal) {
-            final IRNode init = VariableDeclarator.getInit(varDecl);
-            if (Initialization.prototype.includes(init)) {
-              final IRNode initExpr = Initialization.getValue(init);
-              if (NewExpression.prototype.includes(initExpr)) {
-                final ImmutablePromiseDrop implTypeIDrop =
-                    LockRules.getImmutableImplementation(
-                        ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration());
-                if (implTypeIDrop != null) {
-                  // we have an instance of an immutable implementation
-                  stillBad = false;
-                  final ResultDrop iResult = createResultInFolder(
-                      folder, initExpr, true, Messages.IMMUTABLE_IMPL); 
-                  iResult.addTrusted(implTypeIDrop);
-                }
-              }
+      final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
+      
+      // primitive
+      final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+      createResult(typeFolder, typeDeclNode, isPrimitive,
+          TYPE_IS_PRIMITIVE, TYPE_IS_NOT_PRIMITIVE, type.toSourceText());
+      
+      // immutable
+      final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true); 
+      final boolean isImmutable = tester.testType(type);
+      final ResultDrop iResult = createResult(
+          typeFolder, typeDeclNode, isImmutable,
+          TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, type.toSourceText());  
+      iResult.addTrusted(tester.getPromises());
+      
+      boolean proposeImmutable = !isImmutable;
+      if (isFinal && !isImmutable) {
+        /*
+         * If the type is not immutable, we can check to see
+         * if the implementation assigned to the field is immutable,
+         * but only if the field is final.
+         */
+        final IRNode init = VariableDeclarator.getInit(varDecl);
+        if (Initialization.prototype.includes(init)) {
+          final IRNode initExpr = Initialization.getValue(init);
+          if (NewExpression.prototype.includes(initExpr)) {
+            final ImmutablePromiseDrop implTypeIDrop =
+                LockRules.getImmutableImplementation(
+                    ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration());
+            if (implTypeIDrop != null) {
+              // we have an instance of an immutable implementation
+              proposeImmutable = false;
+              final ResultDrop result = createResult(
+                  true, typeFolder, initExpr, IMMUTABLE_IMPL);
+              result.addTrusted(implTypeIDrop);
             }
-          }
-          
-          if (stillBad) {
-            final ResultDrop iResult = createResultInFolder(
-                folder, FieldDeclaration.getType(fieldDecl), false,
-                Messages.FIELD_TYPE_NOT_IMMUTABLE, type.toSourceText());
-            for (final IRNode typeDecl : tester.getTested()) {
-              iResult.addProposal(new ProposedPromiseDrop(
-                  "Immutable", null, typeDecl, varDecl,
-                  Origin.MODEL));
-            }
-            folder.addProposal(new ProposedPromiseDrop("Vouch",
-                "Immutable", varDecl, varDecl, Origin.MODEL));
           }
         }
       }
+      
+      if (proposeImmutable) {
+        for (final IRNode typeDecl : tester.getTested()) {
+          iResult.addProposal(new ProposedPromiseDrop(
+              "Immutable", null, typeDecl, varDecl,
+              Origin.MODEL));
+        }
+      }        
+ 
+      // Not sure where to put this now
+//      folder.addProposal(new ProposedPromiseDrop("Vouch",
+//          "Immutable", varDecl, varDecl, Origin.MODEL));
     }
   }
 }

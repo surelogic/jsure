@@ -13,7 +13,6 @@ import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
 import com.surelogic.analysis.type.constraints.ITypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
@@ -41,6 +40,12 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
 final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implements IBinderClient {
+  private static final int ANNOTATION_BOUNDS_FOLDER = 495;
+  private static final int ANNOTATION_BOUND_SATISFIED = 496;
+  private static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
+  
+  
+  
   private static final Map<IRNode, ResultFolderDrop> folders =
       new ConcurrentHashMap<IRNode, ResultFolderDrop>();
       
@@ -317,8 +322,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     
 
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
-    folder.setMessage(Messages.ANNOTATION_BOUNDS_FOLDER,
-        jTypeOfParameterizedType.toSourceText());
+    folder.setMessage(
+        ANNOTATION_BOUNDS_FOLDER, jTypeOfParameterizedType.toSourceText());
     folder.addChecked(boundsDrop);
     folders.put(parameterizedType, folder);
     
@@ -340,8 +345,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
       final ResultDrop result = new ResultDrop(parameterizedType);
       result.setMessagesByJudgement(
-          Messages.ANNOTATION_BOUND_SATISFIED,
-          Messages.ANNOTATION_BOUND_NOT_SATISFIED,
+          ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
           jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
       result.addTrusted(promises);

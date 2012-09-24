@@ -81,21 +81,6 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
     
   }
 
-  // OBSOLETE
-  protected final ResultFolderDrop createResultFolder(final IRNode node) {
-    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
-    folder.addChecked(promiseDrop);
-    return folder;
-  }
-
-  // OBSOLETE
-  protected final ResultFolderDrop createSubFolder(
-      final ResultFolderDrop parent, final IRNode node) {
-    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
-    parent.addTrusted(folder);
-    return folder;
-  }
-
   protected final ResultDrop createRootResult(
       final boolean isConsistent, final IRNode node, 
       final int msg, final Object... args) {
@@ -131,24 +116,6 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
       final IRNode node, final int msg, final Object... args) {
     final ResultDrop result = new ResultDrop(node);
     parent.addTrusted(result);
-    result.setConsistent(isConsistent);
-    result.setMessage(msg, args);
-    return result;
-  }
-
-  // OBSOLETE
-  protected final ResultDrop createResultInFolder(
-      final ResultFolderDrop folder, final IRNode node,
-      final boolean isConsistent, final int msg, final Object... args) {
-    final ResultDrop result = createResultSimple(node, isConsistent, msg, args);
-    folder.addTrusted(result);
-    return result;
-  }
-  
-  // OBSOLETE
-  private final ResultDrop createResultSimple(final IRNode node,
-      final boolean isConsistent, final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
     result.setConsistent(isConsistent);
     result.setMessage(msg, args);
     return result;

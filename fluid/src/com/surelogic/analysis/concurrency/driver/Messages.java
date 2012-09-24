@@ -1,6 +1,5 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.util.AbstractMessages;
@@ -32,15 +31,8 @@ public final class Messages extends AbstractMessages {
   public static final Category DSC_MATCHING_CALLS = Category.getInstance(216);
   public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(217);
   public static final Category DSC_FINAL_FIELDS = Category.getInstance(218);
-  
-  
-  
-  // Labels for the single-threaded result disjunction
-  public static final String BORROWED_RECEIVER = I18N.misc(200);
-  public static final String UNIQUE_RETURN = I18N.misc(201);
-  public static final String DECLARED_EFFECTS = I18N.misc(202);
 
-
+  
   
   // Drop-sea result messages
   public static final int LockAnalysis_ds_SynchronizedConstructorAssured = 200;
@@ -106,7 +98,10 @@ public final class Messages extends AbstractMessages {
   public static final int VOUCHED_FINAL_WITH_REASON = 260;
   public static final int FORMAL_PARAMETER_WRITTEN_TO = 261;
   public static final int SHOULD_BE_FINAL = 262;
-  
+  public static final int CONSTRUCTOR_IS_THREADCONFINED = 263;
+  public static final int CONSTRUCTOR_IS_NOT_THREADCONFINED = 264;
+  public static final int RECEIVER_IS_NOT_ALIASED = 265;
+  public static final int STARTS_NO_THREADS_ETC = 266;
   
   
 //  // For ThreadSafe assurance
@@ -134,43 +129,43 @@ public final class Messages extends AbstractMessages {
   
   
   
-  // For Containable assurance
-  public static final int CONSTRUCTOR_UNIQUE_RETURN = 450;
-  public static final int CONSTRUCTOR_BORROWED_RECEVIER = 451;
-  public static final int CONSTRUCTOR_BAD = 452;
-  public static final int METHOD_BORROWED_RECEIVER = 453;
-  public static final int METHOD_BAD = 454;
-  public static final int FIELD_CONTAINED_PRIMITIVE = 455;
-  public static final int FIELD_CONTAINED_OBJECT = 456;
-  public static final int FIELD_BAD = 457;
-  public static final int DECLARED_TYPE_NOT_CONTAINABLE = 458;
-  public static final int FIELD_NOT_UNIQUE = 459;
-  public static final int FIELD_NOT_AGGREGATED = 460;
-  public static final int FIELD_CONTAINED_VOUCHED = 461;
-  public static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 462;
-  public static final int DECLARED_TYPE_IS_CONTAINABLE = 463;
-  public static final int FIELD_IS_UNIQUE=464;
-  public static final int CONTAINABLE_SUPERTYPE=465;
+//  // For Containable assurance
+//  public static final int CONSTRUCTOR_UNIQUE_RETURN = 450;
+//  public static final int CONSTRUCTOR_BORROWED_RECEVIER = 451;
+//  public static final int CONSTRUCTOR_BAD = 452;
+//  public static final int METHOD_BORROWED_RECEIVER = 453;
+//  public static final int METHOD_BAD = 454;
+//  public static final int FIELD_CONTAINED_PRIMITIVE = 455;
+//  public static final int FIELD_CONTAINED_OBJECT = 456;
+//  public static final int FIELD_BAD = 457;
+//  public static final int DECLARED_TYPE_NOT_CONTAINABLE = 458;
+//  public static final int FIELD_NOT_UNIQUE = 459;
+//  public static final int FIELD_NOT_AGGREGATED = 460;
+//  public static final int FIELD_CONTAINED_VOUCHED = 461;
+//  public static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 462;
+//  public static final int DECLARED_TYPE_IS_CONTAINABLE = 463;
+//  public static final int FIELD_IS_UNIQUE=464;
+//  public static final int CONTAINABLE_SUPERTYPE=465;
   
   
   
-  // For Immutable assurance
-  public static final int IMMUTABLE_VOUCHED = 480;
-  public static final int IMMUTABLE_VOUCHED_WITH_REASON = 481;
-  public static final int FOLDER_IS_IMMUTABLE = 482;
-  public static final int FOLDER_IS_NOT_IMMUTABLE = 483;
-  public static final int IMMUTABLE_FINAL = 484;
-  public static final int IMMUTABLE_NOT_FINAL = 485;
-  public static final int IMMUTABLE_PRIMITIVE = 486;
-  public static final int FIELD_TYPE_IMMUTABLE = 487;
-  public static final int IMMUTABLE_IMPL = 488;
-  public static final int FIELD_TYPE_NOT_IMMUTABLE = 489;
-  public static final int TRIVIALLY_IMMUTABLE = 490;
-  public static final int IMMUTABLE_SUPERTYPE = 491;
+//  // For Immutable assurance
+//  public static final int IMMUTABLE_VOUCHED = 480;
+//  public static final int IMMUTABLE_VOUCHED_WITH_REASON = 481;
+//  public static final int FOLDER_IS_IMMUTABLE = 482;
+//  public static final int FOLDER_IS_NOT_IMMUTABLE = 483;
+//  public static final int IMMUTABLE_FINAL = 484;
+//  public static final int IMMUTABLE_NOT_FINAL = 485;
+//  public static final int IMMUTABLE_PRIMITIVE = 486;
+//  public static final int FIELD_TYPE_IMMUTABLE = 487;
+//  public static final int IMMUTABLE_IMPL = 488;
+//  public static final int FIELD_TYPE_NOT_IMMUTABLE = 489;
+//  public static final int TRIVIALLY_IMMUTABLE = 490;
+//  public static final int IMMUTABLE_SUPERTYPE = 491;
   
   
   
-  public static final int ANNOTATION_BOUNDS_FOLDER = 495;
-  public static final int ANNOTATION_BOUND_SATISFIED = 496;
-  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
+//  public static final int ANNOTATION_BOUNDS_FOLDER = 495;
+//  public static final int ANNOTATION_BOUND_SATISFIED = 496;
+//  public static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
 }
