@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -79,6 +78,7 @@ public interface IDrop {
    * @return the source reference of the fAST node this information references,
    *         can be <code>null</code>
    */
+  @Nullable
   ISrcRef getSrcRef();
 
   /**
@@ -87,6 +87,7 @@ public interface IDrop {
    * @return the, possibly empty but non-null, set of proposed promises for this
    *         drop.
    */
+  @NonNull
   Collection<? extends IProposedPromiseDrop> getProposals();
 
   /**

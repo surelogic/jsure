@@ -167,6 +167,7 @@ public abstract class IRReferenceDrop extends Drop {
    * @return the, possibly empty but non-null, set of proposed promises for this
    *         drop. The returned list may not be modified.
    */
+  @NonNull
   public final List<ProposedPromiseDrop> getProposals() {
     synchronized (f_seaLock) {
       if (f_proposals == null)

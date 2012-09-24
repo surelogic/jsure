@@ -694,10 +694,12 @@ public abstract class Drop implements IDrop {
       throw new UnsupportedOperationException();
   }
 
+  @Nullable
   public ISrcRef getSrcRef() {
     return null;
   }
 
+  @NonNull
   public Collection<? extends IProposedPromiseDrop> getProposals() {
     return Collections.emptyList();
   }

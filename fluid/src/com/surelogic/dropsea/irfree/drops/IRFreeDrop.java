@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
@@ -30,7 +29,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.Category;
 
@@ -39,8 +37,9 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class IRFreeDrop implements IDrop {
   @Deprecated
-  private final String f_xmlElementName; // TODO remove when SeaSummary is removed
-  
+  private final String f_xmlElementName; // TODO remove when SeaSummary is
+                                         // removed
+
   @NonNull
   private final Class<?> f_irDropSeaClass;
   /**
@@ -92,7 +91,7 @@ public class IRFreeDrop implements IDrop {
     if (irClass == null)
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
-    
+
     final String categoryString = e.getAttribute(CATEGORY_ATTR);
     if (categoryString != null)
       f_category = Category.getPrefixCountInstance(categoryString);
@@ -130,7 +129,7 @@ public class IRFreeDrop implements IDrop {
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
-    
+
     f_xmlElementName = e.getEntityName();
   }
 
@@ -165,6 +164,7 @@ public class IRFreeDrop implements IDrop {
     return type.isAssignableFrom(f_irDropSeaClass);
   }
 
+  @NonNull
   public Collection<IRFreeProposedPromiseDrop> getProposals() {
     if (f_proposedPromises != null)
       return f_proposedPromises;
@@ -188,25 +188,25 @@ public class IRFreeDrop implements IDrop {
     return f_contextHash;
   }
 
-  //TODO remove when SeaSummary is removed
+  // TODO remove when SeaSummary is removed
   public String getXMLElementName() {
     return f_xmlElementName;
   }
 
-//  public void snapshotAttrs(XMLCreator.Builder s) {
-//	  for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-//		  s.addAttribute(a.getKey(), a.getValue());
-//	  }
-//  }
+  // public void snapshotAttrs(XMLCreator.Builder s) {
+  // for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
+  // s.addAttribute(a.getKey(), a.getValue());
+  // }
+  // }
 
   static int convert(String val) {
-	  if (val == null) {
-		  return 0;
-	  } else {
-		  return Integer.valueOf(val);
-	  }
+    if (val == null) {
+      return 0;
+    } else {
+      return Integer.valueOf(val);
+    }
   }
-  
+
   static ISrcRef makeSrcRef(SourceRef ref) {
     if (ref == null) {
       return null;
@@ -220,7 +220,7 @@ public class IRFreeDrop implements IDrop {
     final String project = ref.getAttribute(PROJECT_ATTR);
     final String hash = ref.getAttribute(HASH_ATTR);
     final String uri = ref.getAttribute(URI_ATTR);
-    
+
     final int offset = convert(ref.getAttribute(OFFSET_ATTR));
     final int length = convert(ref.getAttribute(LENGTH_ATTR));
     return new AbstractSrcRef() {
