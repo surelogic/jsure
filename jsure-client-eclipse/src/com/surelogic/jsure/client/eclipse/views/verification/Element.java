@@ -2,11 +2,15 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 public abstract class Element {
+
+  static final Element[] EMPTY = new Element[0];
 
   @Nullable
   private final Element f_parent;
@@ -26,21 +30,56 @@ public abstract class Element {
     f_parent = parent;
   }
 
-  abstract Element[] getChildren();
+  private Element[] f_children = null;
 
-  abstract boolean hasChildren();
+  final Element[] getChildren() {
+    if (f_children == null) {
+      f_children = constructChildren();
+    }
+    return f_children;
+  }
 
+  final boolean hasChildren() {
+    return getChildren().length > 0;
+  }
+
+  /**
+   * Called once to construct the children of this element. If no children
+   * return {@link #EMPTY}&mdash;do not return {@code null}.
+   * 
+   * @return the non-{@code null} children of this element.
+   */
+  @NonNull
+  abstract Element[] constructChildren();
+
+  /**
+   * Gets the image
+   * 
+   * @return
+   */
   abstract String getLabel();
 
+  /**
+   * The desired image decoration flags from {@link CoE_Constants} or 0 for
+   * none.
+   * 
+   * @return desired image decoration flags from {@link CoE_Constants}.
+   */
   abstract int getImageFlags();
 
+  /**
+   * The desired image name from {@link CommonImages}.
+   * 
+   * @return the desired image name or {@code null} for no image.
+   */
+  @Nullable
   abstract String getImageName();
 
   final Image getImage() {
-    final int flags = getImageFlags();
     String name = getImageName();
     if (name == null)
-      name = CommonImages.IMG_UNKNOWN;
+      return null;
+    final int flags = getImageFlags();
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
 }
