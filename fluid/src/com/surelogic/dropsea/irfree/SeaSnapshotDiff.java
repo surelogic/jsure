@@ -70,7 +70,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		return true;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	private static final DiffCategory[] noCategories = new DiffCategory[0];
 	
 	@SuppressWarnings("unchecked")
@@ -206,12 +206,12 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	throws Exception {
 		Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
 		return diff(new IDropFilter() {
-			@Override
+//			@Override
 			public boolean showResource(IDrop d) {
 				return select(d) && f.showResource(d);
 			}
 
-			@Override
+//			@Override
 			public boolean showResource(String path) {
 				return f.showResource(path);
 			}

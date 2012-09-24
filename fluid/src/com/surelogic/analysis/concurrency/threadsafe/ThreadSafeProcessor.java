@@ -187,7 +187,8 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
 
       // Test if the type of the field is thread safe (or immutable)
       final ThreadSafeAnnotationTester tsTester =
-          new ThreadSafeAnnotationTester(binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+          new ThreadSafeAnnotationTester(
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
       final boolean isTS = tsTester.testType(type);
       final ResultDrop tsResult = createResult(part2folder, fieldTypeNode, isTS,
           TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
