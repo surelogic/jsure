@@ -14,7 +14,7 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 
 public class DropDiff extends DiffNode implements IViewable {
-	static boolean allowMissingSupportingInfos = true;
+	static boolean allowMissingSupportingInfos = false;
 	
 	final IDrop old;
 	final Object[] children;
@@ -123,5 +123,25 @@ public class DropDiff extends DiffNode implements IViewable {
 		for (String newMsg : sort(newDetails.keySet(), temp)) {
 			w.println("\t\tNewer  : " + newMsg);
 		}		
+	}
+
+	public static boolean isSame(IDrop n, IDrop o) {
+		if (n.getHints().isEmpty() && o.getHints().isEmpty()) {
+			return true;
+		}
+		if (n.getHints().size() != o.getHints().size()) {
+			return false;
+		}
+		final Map<String, DiffNode> oldDetails = extractDetails(o);
+		final Map<String, DiffNode> newDetails = extractDetails(n);
+		// Remove matching ones
+		for (String ns : newDetails.keySet()) {
+			DiffNode oe = oldDetails.remove(ns);
+			if (oe == null) {
+				// New not in the old
+				return false;
+			}
+		}
+		return oldDetails.isEmpty();
 	}
 }
