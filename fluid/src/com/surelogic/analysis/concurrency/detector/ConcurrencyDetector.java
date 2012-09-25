@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import com.surelogic.analysis.*;
 import com.surelogic.dropsea.ir.Category;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,Unused> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
-		AnalysisHintDrop id = AnalysisHintDrop.newInformation(loc);
+		HintDrop id = HintDrop.newInformation(loc);
 		id.setMessage(number, arg);
 		id.setCategory(c);
 	}

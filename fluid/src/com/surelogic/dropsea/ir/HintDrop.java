@@ -6,7 +6,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_TYPE_ATTR;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Drops for the analyses to use to give "hints" (suggestions and warnings) to
  * the user.
  */
-public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysisHintDrop {
+public final class HintDrop extends IRReferenceDrop implements IHintDrop {
 
   /**
    * Constructs a new information drop pointing to the passed node.
@@ -23,8 +23,8 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
    *          referenced by the information.
    * @return an information drop.
    */
-  public static AnalysisHintDrop newInformation(IRNode node) {
-    return new AnalysisHintDrop(node, HintType.INFORMATION);
+  public static HintDrop newInformation(IRNode node) {
+    return new HintDrop(node, HintType.INFORMATION);
   }
 
   /**
@@ -34,11 +34,11 @@ public final class AnalysisHintDrop extends IRReferenceDrop implements IAnalysis
    *          referenced by the warning.
    * @return a warning drop.
    */
-  public static AnalysisHintDrop newWarning(IRNode node) {
-    return new AnalysisHintDrop(node, HintType.WARNING);
+  public static HintDrop newWarning(IRNode node) {
+    return new HintDrop(node, HintType.WARNING);
   }
 
-  AnalysisHintDrop(IRNode node, HintType level) {
+  HintDrop(IRNode node, HintType level) {
     super(node);
     f_type = level == null ? HintType.INFORMATION : level;
   }

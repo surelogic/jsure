@@ -23,7 +23,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -798,11 +798,11 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
           "setResultDep found invalid or null resultDependUpon drop"); //$NON-NLS-1$
     }
   }
-  public static AnalysisHintDrop makeWarningDrop(
+  public static HintDrop makeWarningDrop(
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final AnalysisHintDrop info = AnalysisHintDrop.newWarning(context);
+    final HintDrop info = HintDrop.newWarning(context);
     setResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
@@ -936,7 +936,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
           infoStr = DS_API_WISH_INFO;
         }
         
-        AnalysisHintDrop rd = makeWarningDrop(warnCat, javaThing,
+        HintDrop rd = makeWarningDrop(warnCat, javaThing,
                                       DS_API_WISH_CALLERS, 
                                       refStr, javaThingName, modName);
         rd.addInformationHint(rd.getNode(), infoStr);

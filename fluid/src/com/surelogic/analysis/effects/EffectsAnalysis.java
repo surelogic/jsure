@@ -23,7 +23,7 @@ import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
 import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
@@ -334,7 +334,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
-	    final AnalysisHintDrop drop = AnalysisHintDrop.newInformation(src);
+	    final HintDrop drop = HintDrop.newInformation(src);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));

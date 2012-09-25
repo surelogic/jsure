@@ -3,17 +3,17 @@ package com.surelogic.dropsea.irfree.drops;
 import com.surelogic.NonNull;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 
-public final class IRFreeAnalysisHintDrop extends IRFreeDrop implements IAnalysisHintDrop {
+public final class IRFreeHintDrop extends IRFreeDrop implements IHintDrop {
 
   private final HintType f_type;
 
-  IRFreeAnalysisHintDrop(Entity e, Class<?> irClass) {
+  IRFreeHintDrop(Entity e, Class<?> irClass) {
     this(e, irClass, null);
   }
 
-  IRFreeAnalysisHintDrop(Entity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
+  IRFreeHintDrop(Entity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
     super(e, irClass);
     if (forBackwardsCompatiblityOnly != null) {
       f_type = forBackwardsCompatiblityOnly;

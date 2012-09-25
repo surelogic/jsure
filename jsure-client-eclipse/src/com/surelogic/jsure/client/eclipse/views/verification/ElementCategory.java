@@ -10,7 +10,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 
 public final class ElementCategory extends Element {
@@ -21,7 +21,7 @@ public final class ElementCategory extends Element {
     private final List<IProofDrop> f_proofDrops = new ArrayList<IProofDrop>();
     boolean f_provedConsistent = true;
     boolean f_proofUsesRedDot = false;
-    private final List<IAnalysisHintDrop> f_hintDrops = new ArrayList<IAnalysisHintDrop>();
+    private final List<IHintDrop> f_hintDrops = new ArrayList<IHintDrop>();
     boolean f_anyInfoHints = false;
     boolean f_anyWarningHints = false;
     private String f_label;
@@ -49,20 +49,20 @@ public final class ElementCategory extends Element {
         addProofDrop(drop);
     }
 
-    void addHintDrop(IAnalysisHintDrop hintDrop) {
+    void addHintDrop(IHintDrop hintDrop) {
       if (hintDrop == null)
         return;
-      if (hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING)
+      if (hintDrop.getHintType() == IHintDrop.HintType.WARNING)
         f_anyWarningHints = true;
       else
         f_anyInfoHints = true;
       f_hintDrops.add(hintDrop);
     }
 
-    void addHintDropAll(Collection<IAnalysisHintDrop> drops) {
+    void addHintDropAll(Collection<IHintDrop> drops) {
       if (drops == null)
         return;
-      for (IAnalysisHintDrop drop : drops)
+      for (IHintDrop drop : drops)
         addHintDrop(drop);
     }
 
@@ -106,7 +106,7 @@ public final class ElementCategory extends Element {
       for (IProofDrop pd : f_proofDrops) {
         children.add(ElementProofDrop.factory(result, pd));
       }
-      for (IAnalysisHintDrop hd : f_hintDrops) {
+      for (IHintDrop hd : f_hintDrops) {
         children.add(new ElementAnalysisHintDrop(result, hd));
       }
       Collections.sort(children);

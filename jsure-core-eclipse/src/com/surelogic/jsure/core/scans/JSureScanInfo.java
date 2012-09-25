@@ -14,7 +14,7 @@ import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -203,11 +203,11 @@ public class JSureScanInfo {
     return result;
   }
 
-  public ArrayList<IAnalysisHintDrop> getAnalysisHintDrops() {
-    final ArrayList<IAnalysisHintDrop> result = new ArrayList<IAnalysisHintDrop>();
+  public ArrayList<IHintDrop> getAnalysisHintDrops() {
+    final ArrayList<IHintDrop> result = new ArrayList<IHintDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
-      if (i instanceof IAnalysisHintDrop) {
-        final IAnalysisHintDrop ipd = (IAnalysisHintDrop) i;
+      if (i instanceof IHintDrop) {
+        final IHintDrop ipd = (IHintDrop) i;
         result.add(ipd);
       }
     }

@@ -65,7 +65,7 @@ public class IRFreeDrop implements IDrop {
    * hints.
    */
   @Nullable
-  private List<IRFreeAnalysisHintDrop> f_analysisHints = null;
+  private List<IRFreeHintDrop> f_analysisHints = null;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -78,9 +78,9 @@ public class IRFreeDrop implements IDrop {
     f_srcRef = value;
   }
 
-  void addAnalysisHint(IRFreeAnalysisHintDrop hint) {
+  void addHint(IRFreeHintDrop hint) {
     if (f_analysisHints == null) {
-      f_analysisHints = new ArrayList<IRFreeAnalysisHintDrop>(1);
+      f_analysisHints = new ArrayList<IRFreeHintDrop>(1);
     }
     f_analysisHints.add(hint);
   }
@@ -173,7 +173,7 @@ public class IRFreeDrop implements IDrop {
   }
 
   @NonNull
-  public final Collection<IRFreeAnalysisHintDrop> getAnalysisHintsAbout() {
+  public final Collection<IRFreeHintDrop> getHints() {
     if (f_analysisHints != null)
       return f_analysisHints;
     else

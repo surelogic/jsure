@@ -9,7 +9,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
@@ -67,7 +67,7 @@ public final class XResultsViewContentProvider implements ITreeContentProvider {
 
   private final List<IPromiseDrop> f_rootPromises = new ArrayList<IPromiseDrop>();
 
-  private final List<IAnalysisHintDrop> f_rootHints = new ArrayList<IAnalysisHintDrop>();
+  private final List<IHintDrop> f_rootHints = new ArrayList<IHintDrop>();
 
   public void buildModelOfDropSea_internal() {
 
@@ -87,7 +87,7 @@ public final class XResultsViewContentProvider implements ITreeContentProvider {
        * If the hint is uncategorized we don't show it in this section (it shows
        * up under the drop it is attached to).
        */
-      for (IAnalysisHintDrop hint : scan.getAnalysisHintDrops()) {
+      for (IHintDrop hint : scan.getAnalysisHintDrops()) {
         if (hint.getCategory() != null)
           f_rootHints.add(hint);
       }

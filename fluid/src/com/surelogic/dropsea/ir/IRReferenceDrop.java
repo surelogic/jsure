@@ -16,8 +16,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
-import com.surelogic.dropsea.IAnalysisHintDrop;
-import com.surelogic.dropsea.IAnalysisHintDrop.HintType;
+import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IHintDrop.HintType;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -81,42 +81,42 @@ public abstract class IRReferenceDrop extends Drop {
     return f_node;
   }
 
-  public final AnalysisHintDrop addInformationHint(IRNode link, int num, Object... args) {
+  public final HintDrop addInformationHint(IRNode link, int num, Object... args) {
     return addHint(HintType.INFORMATION, null, link, num, args);
   }
 
-  public final AnalysisHintDrop addInformationHint(IRNode link, Category category, int num, Object... args) {
+  public final HintDrop addInformationHint(IRNode link, Category category, int num, Object... args) {
     return addHint(HintType.INFORMATION, category, link, num, args);
   }
 
-  public final AnalysisHintDrop addInformationHint(IRNode link, String msg) {
+  public final HintDrop addInformationHint(IRNode link, String msg) {
     return addHint(HintType.INFORMATION, null, link, msg);
   }
 
-  public final AnalysisHintDrop addInformationHint(IRNode link, Category category, String msg) {
+  public final HintDrop addInformationHint(IRNode link, Category category, String msg) {
     return addHint(HintType.INFORMATION, category, link, msg);
   }
 
-  public final AnalysisHintDrop addWarningHint(IRNode link, int num, Object... args) {
+  public final HintDrop addWarningHint(IRNode link, int num, Object... args) {
     return addHint(HintType.WARNING, null, link, num, args);
   }
 
-  public final AnalysisHintDrop addWarningHint(IRNode link, Category category, int num, Object... args) {
+  public final HintDrop addWarningHint(IRNode link, Category category, int num, Object... args) {
     return addHint(HintType.WARNING, category, link, num, args);
   }
 
-  public final AnalysisHintDrop addWarningHint(IRNode link, String msg) {
+  public final HintDrop addWarningHint(IRNode link, String msg) {
     return addHint(HintType.WARNING, null, link, msg);
   }
 
-  public final AnalysisHintDrop addWarningHint(IRNode link, Category category, String msg) {
+  public final HintDrop addWarningHint(IRNode link, Category category, String msg) {
     return addHint(HintType.WARNING, category, link, msg);
   }
 
-  private AnalysisHintDrop addHint(IAnalysisHintDrop.HintType hintType, Category category, IRNode link, int num, Object... args) {
+  private HintDrop addHint(IHintDrop.HintType hintType, Category category, IRNode link, int num, Object... args) {
     if (link == null)
       link = getNode();
-    final AnalysisHintDrop hint = new AnalysisHintDrop(link, hintType);
+    final HintDrop hint = new HintDrop(link, hintType);
     if (category != null)
       hint.setCategory(category);
     hint.setMessage(num, args);
@@ -124,10 +124,10 @@ public abstract class IRReferenceDrop extends Drop {
     return hint;
   }
 
-  private AnalysisHintDrop addHint(IAnalysisHintDrop.HintType hintType, Category category, IRNode link, String msg) {
+  private HintDrop addHint(IHintDrop.HintType hintType, Category category, IRNode link, String msg) {
     if (link == null)
       link = getNode();
-    final AnalysisHintDrop hint = new AnalysisHintDrop(link, hintType);
+    final HintDrop hint = new HintDrop(link, hintType);
     if (category != null)
       hint.setCategory(category);
     hint.setMessage(msg);

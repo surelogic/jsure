@@ -4,7 +4,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.bca.BindingContextAnalysis.Query;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -84,7 +84,7 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
       final IJavaType type = getBinder().getJavaType(use);
       if (type instanceof IJavaReferenceType) {
         final ImmutableSet<IRNode> bindings = currentQuery().getResultFor(use);
-        final AnalysisHintDrop drop = AnalysisHintDrop.newInformation(use);
+        final HintDrop drop = HintDrop.newInformation(use);
         drop.setCategory(Messages.DSC_BCA);
         drop.setMessage(Messages.BINDS_TO,
             VariableUseExpression.getId(use),

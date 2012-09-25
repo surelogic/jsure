@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.surelogic.analysis.*;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -50,7 +50,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 		
 		private void reportLocalVariables(final IRNode mdecl) {
 			final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(mdecl);
-			final AnalysisHintDrop drop = AnalysisHintDrop.newInformation(mdecl);
+			final HintDrop drop = HintDrop.newInformation(mdecl);
 			drop.setCategory(Messages.DSC_LOCAL_VARIABLES);
 			drop.setMessage(Messages.LOCAL_VARS, 
 			    JavaNames.genQualifiedMethodConstructorName(mdecl), 

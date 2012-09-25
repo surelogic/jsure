@@ -4,22 +4,22 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 
 final class ElementAnalysisHintDrop extends ElementDrop {
 
-  protected ElementAnalysisHintDrop(Element parent, IAnalysisHintDrop hintDrop) {
+  protected ElementAnalysisHintDrop(Element parent, IHintDrop hintDrop) {
     super(parent);
     if (hintDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "hintDrop"));
     f_resultDrop = hintDrop;
   }
 
-  private final IAnalysisHintDrop f_resultDrop;
+  private final IHintDrop f_resultDrop;
 
   @Override
   @NonNull
-  IAnalysisHintDrop getDrop() {
+  IHintDrop getDrop() {
     return f_resultDrop;
   }
 
@@ -31,7 +31,7 @@ final class ElementAnalysisHintDrop extends ElementDrop {
   @Override
   @Nullable
   String getImageName() {
-    if (getDrop().getHintType() == IAnalysisHintDrop.HintType.WARNING)
+    if (getDrop().getHintType() == IHintDrop.HintType.WARNING)
       return CommonImages.IMG_WARNING;
     else
       return CommonImages.IMG_INFO;

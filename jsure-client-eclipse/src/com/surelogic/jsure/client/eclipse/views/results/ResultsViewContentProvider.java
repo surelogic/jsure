@@ -25,7 +25,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.TreeViewerUIState;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -223,7 +223,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         result.setBaseImageName(CommonImages.IMG_ANNOTATION);
 
         // children
-        addDrops(result, promiseDrop.getAnalysisHintsAbout());
+        addDrops(result, promiseDrop.getHints());
         addDrops(result, promiseDrop.getDependentPromises());
         addDrops(result, promiseDrop.getCheckedBy());
         addProposedPromises(result, promiseDrop);
@@ -249,7 +249,7 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
                 : CommonImages.IMG_RED_X);
 
         // children
-        addDrops(result, resultDrop.getAnalysisHintsAbout());
+        addDrops(result, resultDrop.getHints());
         addDrops(result, resultDrop.getTrusted());
         addProposedPromises(result, resultDrop);
 
@@ -282,25 +282,25 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         // children
         addDrops(result, folderDrop.getTrusted());
         addProposedPromises(result, folderDrop);
-        addDrops(result, folderDrop.getAnalysisHintsAbout());
-      } else if (drop instanceof IAnalysisHintDrop) {
+        addDrops(result, folderDrop.getHints());
+      } else if (drop instanceof IHintDrop) {
         result = makeContent(drop.getMessage(), drop);
         m_contentCache.put(drop, result);
         /*
          * ANALYSIS HINT DROP
          */
-        final IAnalysisHintDrop hintDrop = (IAnalysisHintDrop) drop;
+        final IHintDrop hintDrop = (IHintDrop) drop;
 
         // image
-        result.setBaseImageName(hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
+        result.setBaseImageName(hintDrop.getHintType() == IHintDrop.HintType.WARNING ? CommonImages.IMG_WARNING
             : CommonImages.IMG_INFO);
 
         // children
-        addDrops(result, hintDrop.getAnalysisHintsAbout());
+        addDrops(result, hintDrop.getHints());
         addProposedPromises(result, hintDrop);
 
         result.setIsInfoHint(true);
-        result.setIsWarningHint(hintDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING);
+        result.setIsWarningHint(hintDrop.getHintType() == IHintDrop.HintType.WARNING);
       } else {
         SLLogger.getLogger().log(Level.SEVERE,
             "ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type " + drop.getClass());
@@ -418,16 +418,16 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
 
       // image (try to show proof status if it makes sense)
       Set<IProofDrop> proofDrops = new HashSet<IProofDrop>();
-      Set<IAnalysisHintDrop> warningDrops = new HashSet<IAnalysisHintDrop>();
-      Set<IAnalysisHintDrop> infoDrops = new HashSet<IAnalysisHintDrop>();
+      Set<IHintDrop> warningDrops = new HashSet<IHintDrop>();
+      Set<IHintDrop> infoDrops = new HashSet<IHintDrop>();
 
       for (ResultsViewContent item : categoryFolder.getChildrenAsCollection()) {
         final IDrop drop = item.getDropInfo();
         if (drop instanceof IProofDrop) {
           proofDrops.add((IProofDrop) item.getDropInfo());
-        } else if (drop instanceof IAnalysisHintDrop) {
-          IAnalysisHintDrop infoDrop = (IAnalysisHintDrop) drop;
-          if (infoDrop.getHintType() == IAnalysisHintDrop.HintType.WARNING)
+        } else if (drop instanceof IHintDrop) {
+          IHintDrop infoDrop = (IHintDrop) drop;
+          if (infoDrop.getHintType() == IHintDrop.HintType.WARNING)
             warningDrops.add(infoDrop);
           else
             infoDrops.add(infoDrop);
@@ -594,13 +594,13 @@ final class ResultsViewContentProvider implements ITreeContentProvider {
         }
       }
 
-      final Collection<IAnalysisHintDrop> hintDrops = scan.getAnalysisHintDrops();
+      final Collection<IHintDrop> hintDrops = scan.getAnalysisHintDrops();
       /*
        * If the hint is uncategorized we don't show it in this section (it shows
        * up under the drop it is attached to).
        */
-      for (Iterator<IAnalysisHintDrop> iterator = hintDrops.iterator(); iterator.hasNext();) {
-        IAnalysisHintDrop hint = iterator.next();
+      for (Iterator<IHintDrop> iterator = hintDrops.iterator(); iterator.hasNext();) {
+        IHintDrop hint = iterator.next();
         if (hint.getCategory() == null)
           iterator.remove();
       }

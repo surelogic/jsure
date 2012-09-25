@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
 import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
@@ -239,7 +239,7 @@ final public class TRoleInherit {
       }
      
       if (wantWarning) {
-        AnalysisHintDrop wd = 
+        HintDrop wd = 
           TRoleMessages.createWarningDrop(warnMsg.toString(), here);
       }
 //            wd.addSupportingInformation(reqSumHere.getFullExpr().toString() +

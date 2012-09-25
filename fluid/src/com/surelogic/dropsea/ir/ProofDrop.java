@@ -20,7 +20,7 @@ import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
@@ -255,7 +255,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
     super.preprocessRefs(s);
-    for (IAnalysisHintDrop c : getAnalysisHintsAbout()) {
+    for (IHintDrop c : getHints()) {
       if (c instanceof Drop)
         s.snapshotDrop((Drop) c);
     }

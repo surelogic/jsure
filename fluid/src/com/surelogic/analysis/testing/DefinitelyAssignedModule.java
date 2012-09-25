@@ -8,7 +8,7 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.Query;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -62,7 +62,7 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
           currentQuery().getResultFor(ConstructorDeclaration.getBody(cdecl));
       
       for (final IRNode vd : notAssigned) {
-        final AnalysisHintDrop drop = AnalysisHintDrop.newInformation(cdecl);
+        final HintDrop drop = HintDrop.newInformation(cdecl);
         drop.setCategory(Messages.DSC_NON_NULL);
         drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(vd));
       }

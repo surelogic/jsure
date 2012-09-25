@@ -2,7 +2,7 @@ package com.surelogic.analysis.testing;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -63,7 +63,7 @@ public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderC
 		  for (int i = 0; i < numFormals - 1; i++) {
 		    for (int j = i + 1; j < numFormals; j++) {
 		      if (alias.mayAlias(exprs[i], exprs[j])) {
-		        final AnalysisHintDrop drop = AnalysisHintDrop.newInformation(decl);
+		        final HintDrop drop = HintDrop.newInformation(decl);
 		        drop.setCategory(Messages.DSC_TEST_ALIAS);
 		        drop.setMessage(Messages.ALIASED_PARAMETERS,
 		            ParameterDeclaration.getId(exprs[i]),

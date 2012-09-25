@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.surelogic.common.IViewable;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 
 public class DropDiff extends DiffNode implements IViewable {
@@ -44,8 +44,8 @@ public class DropDiff extends DiffNode implements IViewable {
 	}
 
 	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
-		if (o.drop.getAnalysisHintsAbout().isEmpty()) {
-			if (n.drop.getAnalysisHintsAbout().isEmpty()) {
+		if (o.drop.getHints().isEmpty()) {
+			if (n.drop.getHints().isEmpty()) {
 				return null;
 			}
 			if (allowMissingSupportingInfos) {
@@ -90,11 +90,11 @@ public class DropDiff extends DiffNode implements IViewable {
 	
 	// Assume that we only have supporting info
 	public static Map<String, DiffNode> extractDetails(IDrop e) {
-		if (e.getAnalysisHintsAbout().isEmpty()) {
+		if (e.getHints().isEmpty()) {
 			return Collections.emptyMap();
 		}
 		final Map<String, DiffNode> rv = new TreeMap<String, DiffNode>();
-		for (IAnalysisHintDrop i : e.getAnalysisHintsAbout()) {
+		for (IHintDrop i : e.getHints()) {
 			String msg = i.getHintType()+" : "+i.getMessage();
 			if (msg != null) {
 				rv.put(msg, new DiffNode(i));

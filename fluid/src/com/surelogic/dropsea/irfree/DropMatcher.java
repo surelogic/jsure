@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ir.Category;
@@ -107,7 +107,7 @@ public abstract class DropMatcher {
 
 	private static long computeSIHash(IDrop e) {
 		long rv = 0;  
-		for (IAnalysisHintDrop i : e.getAnalysisHintsAbout()) {
+		for (IHintDrop i : e.getHints()) {
 			String msg = i.getMessage();
 			if (msg == null) {
 				continue;

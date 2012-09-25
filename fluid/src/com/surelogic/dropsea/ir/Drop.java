@@ -586,12 +586,12 @@ public abstract class Drop implements IDrop {
   }
 
   @NonNull
-  public final Set<AnalysisHintDrop> getAnalysisHintsAbout() {
-    final Set<AnalysisHintDrop> result = new HashSet<AnalysisHintDrop>();
+  public final Set<HintDrop> getHints() {
+    final Set<HintDrop> result = new HashSet<HintDrop>();
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
-        if (d instanceof AnalysisHintDrop)
-          result.add((AnalysisHintDrop) d);
+        if (d instanceof HintDrop)
+          result.add((HintDrop) d);
       }
     }
     return result;
@@ -672,14 +672,14 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void preprocessRefs(SeaSnapshot s) {
-    for (Drop c : getAnalysisHintsAbout()) {
+    for (Drop c : getHints()) {
       s.snapshotDrop(c);
     }
   }
 
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
-    for (Drop c : getAnalysisHintsAbout()) {
+    for (Drop c : getHints()) {
       s.refDrop(db, HINT_ABOUT, c);
     }
   }

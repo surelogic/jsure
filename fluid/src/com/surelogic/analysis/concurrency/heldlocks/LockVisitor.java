@@ -49,7 +49,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -827,19 +827,19 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Drop management methods
 	// ----------------------------------------------------------------------
 
-	private AnalysisHintDrop makeInfoDrop(final Category category,
+	private HintDrop makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final AnalysisHintDrop info = AnalysisHintDrop.newInformation(context);
+		final HintDrop info = HintDrop.newInformation(context);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
 	}
 
-	private AnalysisHintDrop makeWarningDrop(final Category category,
+	private HintDrop makeWarningDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final AnalysisHintDrop info = AnalysisHintDrop.newWarning(context);
+		final HintDrop info = HintDrop.newWarning(context);
 		info.setMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
 		return info;
@@ -1246,7 +1246,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * regions. Really this needs to be an OR. The end user
 						 * should only be allowed to choose one of these.
 						 */
-						final AnalysisHintDrop info = makeWarningDrop(
+						final HintDrop info = makeWarningDrop(
 								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
@@ -1290,7 +1290,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * For the lock required for e'.f', attach a warning
 						 * that it is not protecting the field f.
 						 */
-						final AnalysisHintDrop info = makeWarningDrop(
+						final HintDrop info = makeWarningDrop(
 								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
@@ -1397,7 +1397,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (isFinalOrVolatile(actualRcvr)) {
 						if (mayBeAccessedByManyThreads(actualRcvr)) {
 							// final/volatile field in a lock protected class
-							final AnalysisHintDrop info = makeWarningDrop(
+							final HintDrop info = makeWarningDrop(
 									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
@@ -1420,7 +1420,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								.getLockForFieldRef(actualRcvr);
 						if (neededLock != null) {
 							// Lock protected field
-							final AnalysisHintDrop info = makeWarningDrop(
+							final HintDrop info = makeWarningDrop(
 									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
@@ -2322,7 +2322,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final Set<IRNode> unlocks = ctxtMustReleaseQuery
 							.getResultFor(expr); // mustRelease.getUnlocksFor(expr);
 					if (unlocks == null) { // POISONED!
-						final AnalysisHintDrop match = makeWarningDrop(
+						final HintDrop match = makeWarningDrop(
 								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedLockCall,
 								lockMethod.name);
@@ -2331,7 +2331,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						}
 					} else {
 						if (unlocks.isEmpty()) {
-							final AnalysisHintDrop match = makeWarningDrop(
+							final HintDrop match = makeWarningDrop(
 									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingUnlocks,
 									lockMethod.name);
@@ -2340,7 +2340,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 						} else {
 							for (final IRNode n : unlocks) {
-								final AnalysisHintDrop match = makeInfoDrop(
+								final HintDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS,
 										expr,
 										Messages.LockAnalysis_ds_MatchingUnlock,
@@ -2362,7 +2362,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					final Set<IRNode> locks = ctxtLocksForQuery
 							.getResultFor(expr); // mustHold.getLocksFor(expr);
 					if (locks == null) { // POISONED!
-						final AnalysisHintDrop match = makeWarningDrop(
+						final HintDrop match = makeWarningDrop(
 								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedUnlockCall);
 						for (final HeldLock lock : lockSet) {
@@ -2370,7 +2370,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						}
 					} else {
 						if (locks.isEmpty()) {
-							final AnalysisHintDrop match = makeWarningDrop(
+							final HintDrop match = makeWarningDrop(
 									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingLocks);
 							for (final HeldLock lock : lockSet) {
@@ -2378,7 +2378,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 						} else {
 							for (final IRNode n : locks) {
-								final AnalysisHintDrop match = makeInfoDrop(
+								final HintDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS, expr,
 										Messages.LockAnalysis_ds_MatchingLock,
 										MethodCall.getMethod(n), JavaNode
@@ -2522,7 +2522,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 */
 			if (syncLockIsIdentifiable && !syncLockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
-				final AnalysisHintDrop info = makeWarningDrop(
+				final HintDrop info = makeWarningDrop(
 						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);
@@ -2715,7 +2715,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						// redundant
 						if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock,
 								thisExprBinder, binder)) {
-							final AnalysisHintDrop info = makeWarningDrop(
+							final HintDrop info = makeWarningDrop(
 									Messages.DSC_REDUNDANT_SYNCHRONIZED,
 									syncBlock,
 									Messages.LockAnalysis_ds_RedundantSynchronized,
@@ -2766,7 +2766,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									for (final AbstractLockRecord lockRecord : sysLockModel
 											.getRegionAndPolicyLocksForLockImpl(
 													typeOfLockExpr, varDecl)) {
-										final AnalysisHintDrop warning = makeWarningDrop(
+										final HintDrop warning = makeWarningDrop(
 												Messages.DSC_MIXED_PARADIGM,
 												lockExpr,
 												Messages.LockAnalysis_ds_DeclaredJUCLockField,
@@ -2796,7 +2796,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							heldLockFactory, enclosingMethod, syncBlock,
 							heldLocks);
 
-					final AnalysisHintDrop warning = makeWarningDrop(
+					final HintDrop warning = makeWarningDrop(
 							Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
 							Messages.LockAnalysis_ds_NonfinalExpression,
 							DebugUnparser.toString(lockExpr));
@@ -2813,7 +2813,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// check to see if the synchronization was used for anything
 			if (lockIsIdentifiable && !lockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
-				final AnalysisHintDrop info = makeWarningDrop(
+				final HintDrop info = makeWarningDrop(
 						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, syncBlock,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);

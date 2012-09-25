@@ -32,9 +32,9 @@ import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -154,7 +154,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           entity.setDrop(new IRFreeScopedPromiseDrop(entity, thisType));
         } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
           entity.setDrop(new IRFreePromiseDrop(entity, thisType));
-        } else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {
+        } else if (HintDrop.class.isAssignableFrom(thisType)) {
           /*
            * The old scheme used WarningDrop as a subtype of InfoDrop. The new
            * scheme just has AnalysisHintDrop with an attribute, hint type. We
@@ -164,9 +164,9 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
            * if an old WarningDrop.
            */
           if (type.endsWith("WarningDrop"))
-            entity.setDrop(new IRFreeAnalysisHintDrop(entity, thisType, IAnalysisHintDrop.HintType.WARNING));
+            entity.setDrop(new IRFreeHintDrop(entity, thisType, IHintDrop.HintType.WARNING));
           else
-            entity.setDrop(new IRFreeAnalysisHintDrop(entity, thisType));
+            entity.setDrop(new IRFreeHintDrop(entity, thisType));
         } else if (ResultDrop.class.isAssignableFrom(thisType)) {
           entity.setDrop(new IRFreeResultDrop(entity, thisType));
         } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
@@ -200,12 +200,12 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           IRFreeProofDrop pd = (IRFreeProofDrop) drop;
           Map<String, String> a = new HashMap<String, String>();
           a.put(AbstractXMLReader.MESSAGE_ATTR, i.message);
-          a.put(AbstractXMLReader.HINT_TYPE_ATTR, IAnalysisHintDrop.HintType.INFORMATION.toString());
+          a.put(AbstractXMLReader.HINT_TYPE_ATTR, IHintDrop.HintType.INFORMATION.toString());
           Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
-          IRFreeAnalysisHintDrop hint = new IRFreeAnalysisHintDrop(hintE, AnalysisHintDrop.class);
+          IRFreeHintDrop hint = new IRFreeHintDrop(hintE, HintDrop.class);
           if (i.source != null)
             hint.setSrcRef(IRFreeDrop.makeSrcRef(i.source));
-          pd.addAnalysisHint(hint);
+          pd.addHint(hint);
         }
       }
     }
@@ -248,10 +248,10 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         }
       }
 
-      if (toE instanceof IRFreeAnalysisHintDrop) {
-        final IRFreeAnalysisHintDrop toAHD = (IRFreeAnalysisHintDrop) toE;
+      if (toE instanceof IRFreeHintDrop) {
+        final IRFreeHintDrop toAHD = (IRFreeHintDrop) toE;
         if (HINT_ABOUT.equals(refType)) {
-          fromE.addAnalysisHint(toAHD);
+          fromE.addHint(toAHD);
           return;
         }
       }
@@ -260,9 +260,9 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
        * using only deponent links.
        */
       if (DEPONENT.equals(refType)) {
-        if (fromE instanceof IRFreeAnalysisHintDrop) {
-          final IRFreeAnalysisHintDrop fromAHD = (IRFreeAnalysisHintDrop) fromE;
-          toE.addAnalysisHint(fromAHD);
+        if (fromE instanceof IRFreeHintDrop) {
+          final IRFreeHintDrop fromAHD = (IRFreeHintDrop) fromE;
+          toE.addHint(fromAHD);
           return;
         }
       }

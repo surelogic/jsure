@@ -8,11 +8,11 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Iterator;
 
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoledClassDrop;
 
@@ -58,8 +58,8 @@ public class TRoleMessages {
 		return rd;
 	}
 
-	public static AnalysisHintDrop createWarningDrop(String msg, IRNode loc) {
-		AnalysisHintDrop wd = AnalysisHintDrop.newWarning(loc);
+	public static HintDrop createWarningDrop(String msg, IRNode loc) {
+		HintDrop wd = HintDrop.newWarning(loc);
 		// rd.addCheckedPromise(pd);
 	//	wd.setNodeAndCompilationUnitDependency(loc);
 		wd.setMessage(msg);
@@ -74,8 +74,8 @@ public class TRoleMessages {
 		return wd;
 	}
 
-	public static AnalysisHintDrop createInfoDrop(String msg, IRNode loc) {
-		AnalysisHintDrop id = AnalysisHintDrop.newInformation(loc);
+	public static HintDrop createInfoDrop(String msg, IRNode loc) {
+		HintDrop id = HintDrop.newInformation(loc);
 		// rd.addCheckedPromise(pd);
 		//id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);
@@ -113,12 +113,12 @@ public class TRoleMessages {
 
 	public static void invalidateDrops() {
 		{
-			Iterator<AnalysisHintDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
-					.getDropsOfExactType(AnalysisHintDrop.class).iterator();
+			Iterator<HintDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
+					.getDropsOfExactType(HintDrop.class).iterator();
 
 			while (it.hasNext()) {
-				AnalysisHintDrop d = it.next();
-				if (d.getHintType() == IAnalysisHintDrop.HintType.WARNING && d.getCategory() == warningCategory) {
+				HintDrop d = it.next();
+				if (d.getHintType() == IHintDrop.HintType.WARNING && d.getCategory() == warningCategory) {
 					d.invalidate();
 				}
 			}

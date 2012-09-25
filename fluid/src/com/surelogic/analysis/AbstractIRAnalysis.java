@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -204,7 +204,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		final AnalysisHintDrop d = AnalysisHintDrop.newWarning(context);
+		final HintDrop d = HintDrop.newWarning(context);
 		d.setMessage(msg);
 	}
 }

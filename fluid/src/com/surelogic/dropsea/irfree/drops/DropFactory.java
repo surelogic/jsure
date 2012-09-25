@@ -34,7 +34,7 @@ public class DropFactory {
 					return new IRFreeScopedPromiseDrop(entity, thisType);
 				} else if (PromiseDrop.class.isAssignableFrom(thisType)) {
 					return new IRFreePromiseDrop(entity, thisType);
-				} else if (AnalysisHintDrop.class.isAssignableFrom(thisType)) {
+				} else if (HintDrop.class.isAssignableFrom(thisType)) {
 					/*
 					 * The old scheme used WarningDrop as a subtype of InfoDrop. The new
 					 * scheme just has AnalysisHintDrop with an attribute, hint type. We
@@ -44,9 +44,9 @@ public class DropFactory {
 					 * if an old WarningDrop.
 					 */
 					if (type.endsWith("WarningDrop"))
-						return new IRFreeAnalysisHintDrop(entity, thisType, IAnalysisHintDrop.HintType.WARNING);
+						return new IRFreeHintDrop(entity, thisType, IHintDrop.HintType.WARNING);
 					else
-						return new IRFreeAnalysisHintDrop(entity, thisType);
+						return new IRFreeHintDrop(entity, thisType);
 				} else if (ResultDrop.class.isAssignableFrom(thisType)) {
 					return new IRFreeResultDrop(entity, thisType);
 				} else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {

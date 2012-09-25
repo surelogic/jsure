@@ -27,7 +27,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
-import com.surelogic.dropsea.ir.AnalysisHintDrop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -497,10 +497,10 @@ public class TRoleSecondPass implements IBinderClient {
     }
   }
 
-  private AnalysisHintDrop makeWarningDrop(final Category category, final IRNode context, final Drop resultDependUpon,
+  private HintDrop makeWarningDrop(final Category category, final IRNode context, final Drop resultDependUpon,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final AnalysisHintDrop info = TRoleMessages.createWarningDrop(msg, context);
+    final HintDrop info = TRoleMessages.createWarningDrop(msg, context);
     setResultDep(info, resultDependUpon);
     info.setCategory(category);
     return info;
@@ -702,7 +702,7 @@ public class TRoleSecondPass implements IBinderClient {
 
         if (reqSumm.isEmpty()) {
           if (aCGD.isPotentiallyCallable()) {
-            AnalysisHintDrop wd = makeWarningDrop(null, reqSumm.getNode(), noInfoInferDependOn,
+            HintDrop wd = makeWarningDrop(null, reqSumm.getNode(), noInfoInferDependOn,
                 "ThreadRole model not inferrable for {0}", expandedMName); //$NON-NLS-1$
             // reqSumm.setMessage("Thread Color model not inferable for " +
             // mName);
@@ -753,7 +753,7 @@ public class TRoleSecondPass implements IBinderClient {
         // LOG.fine("Color is relevant for " + methodName + ".");
         // }
         String msg;
-        AnalysisHintDrop id;
+        HintDrop id;
         if (ctxSumm.isEmpty()) {
           msg = "Missing ThreadRole model for unreferenced visible method " //$NON-NLS-1$
               + expandedMName;
@@ -858,7 +858,7 @@ public class TRoleSecondPass implements IBinderClient {
           StringBuilder sb = new StringBuilder();
           sb.append(expandedMName);
           sb.append(" may be invoked from more than one thread."); //$NON-NLS-1$
-          AnalysisHintDrop id = TRoleMessages.createInfoDrop(sb.toString(), ctxSumm.getNode());
+          HintDrop id = TRoleMessages.createInfoDrop(sb.toString(), ctxSumm.getNode());
           id.setCategory(TRoleMessages.multiThreadedInfoCategory);
           sb.setLength(0);
           sb.append("Union of calling contexts is "); //$NON-NLS-1$

@@ -31,7 +31,7 @@ import org.eclipse.swt.graphics.Point;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.dropsea.IAnalysisHintDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -88,8 +88,8 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
       else
         return CommonImages.IMG_RED_X;
     }
-    if (drop instanceof IAnalysisHintDrop) {
-      if (((IAnalysisHintDrop) drop).getHintType() == IAnalysisHintDrop.HintType.INFORMATION)
+    if (drop instanceof IHintDrop) {
+      if (((IHintDrop) drop).getHintType() == IHintDrop.HintType.INFORMATION)
         return CommonImages.IMG_INFO;
       else
         return CommonImages.IMG_WARNING;
