@@ -263,25 +263,24 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  // private final Action f_actionLinkToOriginal = new Action() {
-  // @Override
-  // public void run() {
-  // final ISelection selection = treeViewer.getSelection();
-  // if (selection == null || selection == StructuredSelection.EMPTY) {
-  // treeViewer.collapseAll();
-  // } else {
-  // final Object obj = ((IStructuredSelection) selection).getFirstElement();
-  // if (obj instanceof ResultsViewContent) {
-  // final ResultsViewContent c = (ResultsViewContent) obj;
-  // if (c.cloneOf != null) {
-  //
-  // treeViewer.reveal(c.cloneOf);
-  // treeViewer.setSelection(new StructuredSelection(c.cloneOf), true);
-  // }
-  // }
-  // }
-  // }
-  // };
+  private final Action f_selectIdenticalAncestor = new Action() {
+    @Override
+    public void run() {
+      final ISelection selection = treeViewer.getSelection();
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        treeViewer.collapseAll();
+      } else {
+        final Object obj = ((IStructuredSelection) selection).getFirstElement();
+        if (obj instanceof ElementDrop) {
+          ElementDrop e = ((ElementDrop) obj).getAncestorWithSameDropOrNull();
+          if (e != null) {
+            treeViewer.reveal(e);
+            treeViewer.setSelection(new StructuredSelection(e), true);
+          }
+        }
+      }
+    }
+  };
 
   private final Action f_copy = new Action() {
     @Override
@@ -299,50 +298,16 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
     @Override
     protected List<IProposedPromiseDrop> getProposedDrops() {
-      /*
-       * There are two cases: (1) a single proposed promise drop in the tree is
-       * selected and (2) a container folder for multiple proposed promise drops
-       * is selected.
-       */
       final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
       if (selection == null || selection == StructuredSelection.EMPTY) {
         return Collections.emptyList();
       }
       final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
-      // for (final Object element : selection.toList()) {
-      // if (element instanceof ResultsViewContent) {
-      // final ResultsViewContent c = (ResultsViewContent) element;
-      // /*
-      // * Deal with the case where a single proposed promise drop is
-      // * selected.
-      // */
-      // if (c.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
-      // final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
-      // if (pp != null) {
-      // proposals.add(pp);
-      // }
-      // } else {
-      // /*
-      // * In the case that the user selected a container for multiple
-      // * proposed promise drops we want add them all.
-      // */
-      // if
-      // (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder")))
-      // {
-      // for (ResultsViewContent content : c.getChildrenAsCollection()) {
-      // if
-      // (content.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class))
-      // {
-      // final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
-      // if (pp != null) {
-      // proposals.add(pp);
-      // }
-      // }
-      // }
-      // }
-      // }
-      // }
-      // }
+      for (final Object element : selection.toList()) {
+        if (element instanceof ElementProposedPromiseDrop) {
+          proposals.add(((ElementProposedPromiseDrop) element).getDrop());
+        }
+      }
       return proposals;
     }
 
@@ -433,10 +398,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     setViewState();
   }
 
-  // private ViewerSorter createSorter() {
-  // return new ContentNameSorter();
-  // }
-
   private String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
@@ -460,35 +421,23 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   }
 
   private void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
-    // if (!s.isEmpty()) {
-    // final Object first = s.getFirstElement();
-    // if (first instanceof ResultsViewContent) {
-    // final ResultsViewContent c = (ResultsViewContent) first;
-    // final IDrop dropInfo = c.getDropInfo();
-    // if (dropInfo != null) {
-    // if (dropInfo.instanceOfIRDropSea(ProposedPromiseDrop.class)) {
-    // manager.add(f_addPromiseToCode);
-    // f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-    // manager.add(new Separator());
-    // } else {
-    // if
-    // (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder")))
-    // {
-    // manager.add(f_addPromiseToCode);
-    // f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-    // manager.add(new Separator());
-    // }
-    // }
-    // }
-    // }
-    // }
-    manager.add(f_actionExpand);
-    manager.add(f_actionCollapse);
     if (!s.isEmpty()) {
-      // final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
-      // if (c.cloneOf != null) {
-      // manager.add(f_actionLinkToOriginal);
-      // }
+      final Object first = s.getFirstElement();
+      if (first instanceof ElementProposedPromiseDrop) {
+        manager.add(f_addPromiseToCode);
+        manager.add(new Separator());
+      }
+    }
+    if (!s.isEmpty()) {
+      Object o = s.getFirstElement();
+      if (o instanceof ElementDrop) {
+        if (((ElementDrop) o).getAncestorWithSameDropOrNull() != null) {
+          manager.add(f_selectIdenticalAncestor);
+          manager.add(new Separator());
+        }
+      }
+      manager.add(f_actionExpand);
+      manager.add(f_actionCollapse);
       manager.add(new Separator());
       manager.add(f_copy);
     }
@@ -517,13 +466,16 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionCollapseAll.setToolTipText("Collapse All");
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    // f_actionLinkToOriginal.setText("Link to Original");
-    // f_actionLinkToOriginal.setToolTipText("Link to the node that this backedge would reference");
+    f_selectIdenticalAncestor.setText("Select Identical Ancestor");
+    f_selectIdenticalAncestor.setToolTipText("Select to the node that this element is identical to");
+    f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
 
     f_copy.setText("Copy");
     f_copy.setToolTipText("Copy the selected verification result to the clipboard");
 
+    f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
     f_addPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
+    f_addPromiseToCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
 
     f_showQuickRef.setText("Show Iconography Quick Reference Card");
     f_showQuickRef.setToolTipText("Show the iconography quick reference card");
