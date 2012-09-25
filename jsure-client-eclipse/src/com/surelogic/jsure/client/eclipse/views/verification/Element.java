@@ -8,7 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
-public abstract class Element {
+abstract class Element implements Comparable<Element>{
 
   static final Element[] EMPTY = new Element[0];
 

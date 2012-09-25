@@ -3,7 +3,7 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IDrop;
 
-public abstract class ElementDrop extends Element {
+abstract class ElementDrop extends Element {
 
   protected ElementDrop(Element parent) {
     super(parent);
@@ -12,14 +12,18 @@ public abstract class ElementDrop extends Element {
   @NonNull
   abstract IDrop getDrop();
 
-  ElementDrop getAncestorWithSameDropOrNull() {
-    Element e = this;
-    IDrop thisDrop = getDrop();
+  @Override
+  final String getLabel() {
+    return getDrop().getMessage();
+  }
 
+  final ElementDrop getAncestorWithSameDropOrNull() {
+    final IDrop thisDrop = getDrop();
+    Element e = this;
     while (true) {
       e = e.getParent();
       if (e == null)
-        break;
+        return null; // at root
       if (e instanceof ElementDrop) {
         final ElementDrop ed = (ElementDrop) e;
         final IDrop ancestorDrop = ed.getDrop();
@@ -27,6 +31,5 @@ public abstract class ElementDrop extends Element {
           return ed;
       }
     }
-    return null;
   }
 }
