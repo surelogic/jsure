@@ -66,7 +66,6 @@ import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
-import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
@@ -311,7 +310,7 @@ public class Util {
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
 
-    boolean success = process(projects, analyze) != null;
+    boolean success = process(projects, analyze);
     if (analyze && projects.getResultsFile() != null && projects.getResultsFile().exists() && Util.useResultsXML) {
       PromiseMatcher.load(projects.getResultsFile().getParentFile());
     }
@@ -332,13 +331,13 @@ public class Util {
     } else {
       System.out.println("Detected a conflict between projects");
     }
-    final ProjectsDrop pd = process(projects, analyze);
+    boolean result = process(projects, analyze);
     if (noConflict) {
       final Projects merged = projects.merge(oldProjects);
-      pd.setProjects(merged);
+      //pd.setProjects(merged);
       // System.out.println("Merged projects: "+merged.getLabel());
     }
-    return pd != null;
+    return result;
   }
 
   private static <T> IParallelArray<T> createArray(boolean singleThreaded, Class<T> cls, ForkJoinExecutor pool) {
@@ -352,7 +351,7 @@ public class Util {
     unique.addAll(temp);
   }
 
-  static ProjectsDrop process(Projects projects, boolean analyze) throws Exception {
+  static boolean process(Projects projects, boolean analyze) throws Exception {
     System.out.println("monitor = " + projects.getMonitor());
     clearCaches(projects);
     if (loadPartial) {
@@ -360,7 +359,6 @@ public class Util {
     }
 
     // IDE.getInstance().setDefaultClassPath(project); // TODO
-    final ProjectsDrop pd = ProjectsDrop.ensureDrop(projects);
 
     final int numThreads = IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
     final boolean singleThreaded = !wantToRunInParallel || SystemUtils.IS_JAVA_1_5 || numThreads < 2;
@@ -425,7 +423,7 @@ public class Util {
     checkProjects(projects);
 
     // cus now include reprocessed dependencies
-    createCUDrops(cus, pd, projects.getMonitor());
+    createCUDrops(cus, projects.getMonitor());
     if (addRequired) {
       clearCaches(projects);
     }
@@ -437,7 +435,7 @@ public class Util {
      */
     final long scrub = System.currentTimeMillis();
     if (projects.getMonitor().isCanceled()) {
-      return null;
+      return false;
     }
     // Needed by the scrubber
     computeSubtypeInfo(projects);
@@ -449,8 +447,8 @@ public class Util {
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
-      final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(pd, singleThreaded, pool);
-      final IParallelArray<SourceCUDrop> allCuds = findSourceCUDrops(null, singleThreaded, pool);
+      final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
+      final IParallelArray<SourceCUDrop> allCuds = cuds;//findSourceCUDrops(null, singleThreaded, pool);
 
       times = analyzeCUs(env, projects, analyses, cuds, allCuds, singleThreaded);
       env.done();
@@ -514,7 +512,7 @@ public class Util {
     // System.out.println("Binary rewrites : "+binaryRewrites);
     UnversionedJavaBinder.printStats();
     AbstractTypeEnvironment.printStats();
-    return pd;
+    return true;
   }
 
   private static void checkForDups(List<CodeInfo> cus) {
@@ -692,13 +690,11 @@ public class Util {
   /**
    * Gets every drop if pd is null
    */
-  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final ProjectsDrop pd, final boolean singleThreaded,
+  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded,
       final ForkJoinExecutor pool) {
     final IParallelArray<SourceCUDrop> cuds = createArray(singleThreaded, SourceCUDrop.class, pool);
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
-      if (pd == null || scud.getProject() == pd) {
-        cuds.asList().add(scud);
-      }
+    	cuds.asList().add(scud);      
     }
     return cuds;
   }
@@ -1282,7 +1278,7 @@ public class Util {
     return deps;
   }
 
-  private static void createCUDrops(IParallelArray<CodeInfo> cus, final ProjectsDrop projects, final SLProgressMonitor monitor) {
+  private static void createCUDrops(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     if (monitor.isCanceled()) {
       throw new CancellationException();
     }
@@ -1325,9 +1321,6 @@ public class Util {
               && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
             // Same IRNode, so keep this drop
             System.out.println("Keeping the old drop for " + outOfDate.getJavaOSFileName());
-            if (outOfDate instanceof SourceCUDrop) {
-              ((SourceCUDrop) outOfDate).setProject(projects);
-            }
             return;
           }
           // if (AbstractWholeIRAnalysis.debugDependencies) {
@@ -1353,7 +1346,7 @@ public class Util {
             // PackageDrop.createPackage(info.getFile().getPackage(),
             // info.getNode());
           } else {
-            new SourceCUDrop(info, projects);
+            new SourceCUDrop(info);
           }
         } else {
           new BinaryCUDrop(info);
