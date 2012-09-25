@@ -87,4 +87,8 @@ public abstract class WrappedSrcRef implements ISrcRef {
   public String getJavaId() {
     return f_wrapped.getJavaId();
   }
+  
+  public String getEnclosingJavaId() {
+	  return f_wrapped.getEnclosingJavaId();
+  }
 }
