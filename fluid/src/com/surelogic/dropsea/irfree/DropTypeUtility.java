@@ -9,6 +9,7 @@ import java.util.Map;
 import com.surelogic.Utility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
@@ -97,7 +98,8 @@ public final class DropTypeUtility {
    */
   private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", ModelingProblemDrop.class.getName() },
       { "InfoDrop", HintDrop.class.getName() }, { "WarningDrop", HintDrop.class.getName() },
-      { "AnalysisHintDrop", HintDrop.class.getName() } };
+      { "AnalysisHintDrop", HintDrop.class.getName() },
+      { "ProjectsDrop", Drop.class.getName() }};
 
   /**
    * A list of types that use to be in drop-sea and are in persisted scans, but
