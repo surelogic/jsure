@@ -8,7 +8,6 @@ import java.util.List;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -17,19 +16,26 @@ public final class ElementCategory extends Element {
 
   static final class Builder {
 
-    private final Element f_parent;
+    private Element f_parent;
     private final List<IProofDrop> f_proofDrops = new ArrayList<IProofDrop>();
     boolean f_provedConsistent = true;
     boolean f_proofUsesRedDot = false;
     private final List<IHintDrop> f_hintDrops = new ArrayList<IHintDrop>();
     boolean f_anyInfoHints = false;
     boolean f_anyWarningHints = false;
+    private final List<ElementCategory.Builder> f_categories = new ArrayList<ElementCategory.Builder>();
     private String f_label;
     private String f_imageName;
 
     Builder(Element parent) {
-      if (parent == null)
-        throw new IllegalArgumentException(I18N.err(44, "parent"));
+      f_parent = parent;
+    }
+
+    Builder() {
+      this(null);
+    }
+
+    void setParent(Element parent) {
       f_parent = parent;
     }
 
@@ -66,6 +72,12 @@ public final class ElementCategory extends Element {
         addHintDrop(drop);
     }
 
+    void addCategory(ElementCategory.Builder builder) {
+      if (builder == null)
+        return;
+      f_categories.add(builder);
+    }
+
     void setLabel(String value) {
       f_label = value;
     }
@@ -75,7 +87,7 @@ public final class ElementCategory extends Element {
     }
 
     boolean isValidToBuild() {
-      return !f_proofDrops.isEmpty() || !f_hintDrops.isEmpty();
+      return !f_proofDrops.isEmpty() || !f_hintDrops.isEmpty() || !f_categories.isEmpty();
     }
 
     ElementCategory build() {
@@ -84,7 +96,7 @@ public final class ElementCategory extends Element {
       if (f_imageName == null)
         f_imageName = CommonImages.IMG_FOLDER;
       if (!isValidToBuild())
-        throw new IllegalStateException("ElementCategory must contain at least one element");
+        throw new IllegalStateException("A category element must contain at least one element");
 
       /*
        * Determine necessary image flags
@@ -108,6 +120,10 @@ public final class ElementCategory extends Element {
       }
       for (IHintDrop hd : f_hintDrops) {
         children.add(new ElementHintDrop(result, hd));
+      }
+      for (ElementCategory.Builder builder : f_categories) {
+        builder.setParent(result);
+        children.add(builder.build());
       }
       Collections.sort(children);
       result.f_children = children.toArray(new Element[children.size()]);

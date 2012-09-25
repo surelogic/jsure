@@ -203,16 +203,16 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       job.schedule();
     }
     
-    private final XResultsViewContentProvider f_contentProvider = new XResultsViewContentProvider();
+    private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
 
-    private final XResultsViewLabelProvider f_labelProvider = new XResultsViewLabelProvider();
+    private final VerificationStatusViewLabelProvider f_labelProvider = new VerificationStatusViewLabelProvider();
 
     private final Action f_actionShowInferences = new Action() {
       @Override
       public void run() {
         final boolean toggle = !f_contentProvider.showHints();
         f_contentProvider.setShowHints(toggle);
-        f_labelProvider.setShowInferences(toggle);
+       // f_labelProvider.setShowInferences(toggle);
         setViewState();
         treeViewer.refresh();
       }

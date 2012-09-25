@@ -18,7 +18,7 @@ import com.surelogic.dropsea.ir.Category;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-public final class XResultsViewContentProvider implements ITreeContentProvider {
+public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 
   public void dispose() {
     // nothing to do
@@ -30,11 +30,11 @@ public final class XResultsViewContentProvider implements ITreeContentProvider {
 
   public Object[] getElements(Object inputElement) {
     System.out.println("getElements(" + inputElement);
-    List<Object> result = categorize(f_rootPromises);
+    List<Object> result = null; // categorize(f_rootPromises);
     if (!f_rootHints.isEmpty()) {
-      ResultsViewCategoryContent.Builder builder = new ResultsViewCategoryContent.Builder();
-      builder.setLabel("Suggestions and warnings");
-      builder.setImageName(CommonImages.IMG_INFO);
+    //  ResultsViewCategoryContent.Builder builder = new ResultsViewCategoryContent.Builder();
+   //   builder.setLabel("Suggestions and warnings");
+   //   builder.setImageName(CommonImages.IMG_INFO);
     //  builder.addAll(categorize(f_rootHints));
     }
     return result.toArray();
@@ -94,29 +94,29 @@ public final class XResultsViewContentProvider implements ITreeContentProvider {
     }
   }
 
-  private List<Object> categorize(List<? extends IDrop> drops) {
-    final List<Object> result = new ArrayList<Object>();
-    final Map<Category, ResultsViewCategoryContent.Builder> f_categoryToContent = new HashMap<Category, ResultsViewCategoryContent.Builder>();
-
-    for (final IDrop drop : drops) {
-      Category category = drop.getCategory();
-      if (category == null) {
-        result.add(drop);
-      } else {
-        ResultsViewCategoryContent.Builder builder = f_categoryToContent.get(category);
-        if (builder == null) {
-          builder = new ResultsViewCategoryContent.Builder();
-          f_categoryToContent.put(category, builder);
-          builder.setLabel(category.getMessage());
-        }
-        builder.add(drop);
-      }
-    }
-    for (ResultsViewCategoryContent.Builder builder : f_categoryToContent.values()) {
-      result.add(builder.build());
-    }
-    return result;
-  }
+//  private List<Object> categorize(List<? extends IDrop> drops) {
+//    final List<Object> result = new ArrayList<Object>();
+//    final Map<Category, ResultsViewCategoryContent.Builder> f_categoryToContent = new HashMap<Category, ResultsViewCategoryContent.Builder>();
+//
+//    for (final IDrop drop : drops) {
+//      Category category = drop.getCategory();
+//      if (category == null) {
+//        result.add(drop);
+//      } else {
+//        ResultsViewCategoryContent.Builder builder = f_categoryToContent.get(category);
+//        if (builder == null) {
+//          builder = new ResultsViewCategoryContent.Builder();
+//          f_categoryToContent.put(category, builder);
+//          builder.setLabel(category.getMessage());
+//        }
+//        builder.add(drop);
+//      }
+//    }
+//    for (ResultsViewCategoryContent.Builder builder : f_categoryToContent.values()) {
+//      result.add(builder.build());
+//    }
+//    return result;
+//  }
 
   /**
    * Determines if a particular promise should be shown at the root level of the

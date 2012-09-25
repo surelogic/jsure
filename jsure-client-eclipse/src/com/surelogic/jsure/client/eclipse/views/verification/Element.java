@@ -8,7 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
-abstract class Element implements Comparable<Element>{
+abstract class Element implements Comparable<Element> {
 
   static final Element[] EMPTY = new Element[0];
 
@@ -58,6 +58,30 @@ abstract class Element implements Comparable<Element>{
    * @return
    */
   abstract String getLabel();
+
+  String getProjectOrNull() {
+    return null;
+  }
+
+  String getPackageOrNull() {
+    return null;
+  }
+
+  String getTypeOrNull() {
+    return null;
+  }
+
+  int getLineNumber() {
+    return -1;
+  }
+
+  final String getLineNumberAsStringOrNull() {
+    final int line = getLineNumber();
+    if (line < 1)
+      return null;
+    else
+      return Integer.toString(line);
+  }
 
   /**
    * The desired image decoration flags from {@link CoE_Constants} or 0 for
