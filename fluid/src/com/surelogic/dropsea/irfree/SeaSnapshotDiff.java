@@ -243,33 +243,51 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 			    return new CPair<String,String>(f, type.getName());
 			}
 		});
-		rv.setMatcher(new DropMatcher("Exact  ", "Hashed ", "Hashed2", "Results") {
+		rv.setMatcher(new DropMatcher("Exact  ", "Core   ", "Hashed ", "Hashed2", "Results") {
+			@Override
+			protected boolean warnIfMatched(int pass) {				
+				return pass >= 4;
+			}
+			
 			@Override
 			protected boolean match(int pass, IDrop n, IDrop o) {
 				switch (pass) {
 				case 0:
 					return matchExact(n, o);
-				case 1:
-					return matchHashed(n, o);
-				case 2:
-					return matchHashed2(n, o);
+				case 1:				
+					return matchCore(n, o);
+				case 2:					
+					return matchHashedAndHints(n, o);
 				case 3:
+					return matchHashed(n, o);
+				case 4:
 					return matchResults(n, o);
 				default:
 					return false;
 				}
 			}
 			private boolean matchExact(IDrop n, IDrop o) {
-				return matchBasics(n, o) && getOffset(n) == getOffset(o);
+				return matchCore(n, o) && matchSupportingInfo(n, o);
 			}
+			
+			private boolean matchCore(IDrop n, IDrop o) {
+				return matchBasics(n, o) && matchLong(getOffset(n), getOffset(o));
+			}
+			
+			private boolean matchHashedAndHints(IDrop n, IDrop o) {
+				return matchHashed(n, o) && matchSupportingInfo(n, o);
+			}
+			
 			private boolean matchHashed(IDrop n, IDrop o) {
 				return matchBasics(n, o) && 
 				       matchLong(n.getTreeHash(), o.getTreeHash()) && 
 				       matchLong(n.getContextHash(), o.getContextHash());
 			}
+			/*
 			private boolean matchHashed2(IDrop n, IDrop o) {
 				return matchBasics(n, o) && matchLong(n.getTreeHash(), o.getTreeHash());				
 			}
+			*/
 			private boolean matchResults(IDrop n, IDrop o) {
 				return (n instanceof IResultDrop) && matchLong(n.getTreeHash(), o.getTreeHash());
 			}
