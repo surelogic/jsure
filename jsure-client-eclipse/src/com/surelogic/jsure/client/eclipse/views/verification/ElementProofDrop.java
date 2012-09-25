@@ -1,23 +1,9 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import com.surelogic.common.jsure.xml.CoE_Constants;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.IResultFolderDrop;
 
 abstract class ElementProofDrop extends ElementDrop {
-
-  static ElementProofDrop factory(Element parent, IProofDrop drop) {
-    if (drop instanceof IPromiseDrop)
-      return new ElementPromiseDrop(parent, (IPromiseDrop) drop);
-    else if (drop instanceof IResultDrop)
-      return new ElementResultDrop(parent, (IResultDrop) drop);
-    else if (drop instanceof IResultFolderDrop)
-      return new ElementResultFolderDrop(parent, (IResultFolderDrop) drop);
-    else
-      throw new IllegalStateException("Unknown IProofDrop: " + drop);
-  }
 
   protected ElementProofDrop(Element parent) {
     super(parent);

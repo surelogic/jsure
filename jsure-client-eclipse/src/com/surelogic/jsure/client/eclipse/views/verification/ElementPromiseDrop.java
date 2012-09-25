@@ -43,7 +43,8 @@ final class ElementPromiseDrop extends ElementProofDrop {
   @Override
   @NonNull
   Element[] constructChildren() {
-    return null;
+    // TODO
+    return EMPTY;
   }
 
   @Override

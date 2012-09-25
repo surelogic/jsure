@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
+import com.surelogic.NonNull;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 
 abstract class ElementAnalysisResultDrop extends ElementProofDrop {
@@ -10,4 +11,10 @@ abstract class ElementAnalysisResultDrop extends ElementProofDrop {
 
   @Override
   abstract IAnalysisResultDrop getDrop();
+
+  @Override
+  @NonNull
+  final Element[] constructChildren() {
+    return EMPTY;
+  }
 }

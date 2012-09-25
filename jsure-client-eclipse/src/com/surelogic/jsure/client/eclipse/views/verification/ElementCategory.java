@@ -3,16 +3,92 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.ir.Category;
 
-public final class ElementCategory extends Element {
+final class ElementCategory extends Element {
+
+  static final class Categorizer {
+
+    private Element f_parent;
+    private final List<IDrop> f_uncategorized = new ArrayList<IDrop>();
+    final Map<Category, ElementCategory.Builder> f_categoryToBuilder = new HashMap<Category, ElementCategory.Builder>();
+
+    Categorizer(Element parent) {
+      f_parent = parent;
+    }
+
+    Categorizer() {
+      this(null);
+    }
+
+    void setParent(Element parent) {
+      f_parent = parent;
+    }
+
+    void add(IDrop drop) {
+      if (drop == null)
+        return;
+
+      final Category category = drop.getCategory();
+      if (category == null) {
+        f_uncategorized.add(drop);
+      } else {
+        ElementCategory.Builder builder = f_categoryToBuilder.get(category);
+        if (builder == null) {
+          builder = new ElementCategory.Builder();
+          f_categoryToBuilder.put(category, builder);
+          builder.setLabel(category.getMessage());
+        }
+        builder.addDrop(drop);
+      }
+    }
+
+    boolean isEmpty() {
+      return f_uncategorized.isEmpty() && f_categoryToBuilder.isEmpty();
+    }
+
+    Collection<ElementCategory.Builder> getBuilders() {
+      return f_categoryToBuilder.values();
+    }
+
+    @NonNull
+    List<ElementDrop> getUncategorizedElements() {
+      final List<ElementDrop> result = new ArrayList<ElementDrop>();
+      for (IDrop drop : f_uncategorized) {
+        result.add(ElementDrop.factory(f_parent, drop));
+      }
+      return result;
+    }
+
+    @NonNull
+    List<ElementCategory> getCategorizedElements() {
+      final List<ElementCategory> result = new ArrayList<ElementCategory>();
+      for (ElementCategory.Builder builder : getBuilders()) {
+        builder.setParent(f_parent);
+        result.add(builder.build());
+      }
+      return result;
+    }
+
+    @NonNull
+    List<Element> getAllElements() {
+      final List<Element> result = new ArrayList<Element>(getUncategorizedElements());
+      result.addAll(getCategorizedElements());
+      return result;
+    }
+
+  }
 
   static final class Builder {
 
@@ -20,8 +96,7 @@ public final class ElementCategory extends Element {
     private final List<IProofDrop> f_proofDrops = new ArrayList<IProofDrop>();
     boolean f_provedConsistent = true;
     boolean f_proofUsesRedDot = false;
-    private final List<IHintDrop> f_hintDrops = new ArrayList<IHintDrop>();
-    boolean f_anyInfoHints = false;
+    private final List<IDrop> f_otherDrops = new ArrayList<IDrop>();
     boolean f_anyWarningHints = false;
     private final List<ElementCategory.Builder> f_categories = new ArrayList<ElementCategory.Builder>();
     private String f_label;
@@ -39,6 +114,22 @@ public final class ElementCategory extends Element {
       f_parent = parent;
     }
 
+    void addDrop(IDrop drop) {
+      if (drop == null)
+        return;
+
+      if (drop instanceof IProofDrop) {
+        addProofDrop((IProofDrop) drop);
+        return;
+      }
+
+      if (drop instanceof IHintDrop) {
+        if (((IHintDrop) drop).getHintType() == IHintDrop.HintType.WARNING)
+          f_anyWarningHints = true;
+      }
+      f_otherDrops.add(drop);
+    }
+
     void addProofDrop(IProofDrop proofDrop) {
       if (proofDrop == null)
         return;
@@ -48,34 +139,17 @@ public final class ElementCategory extends Element {
       f_proofDrops.add(proofDrop);
     }
 
-    void addProofDropAll(Collection<IProofDrop> drops) {
-      if (drops == null)
-        return;
-      for (IProofDrop drop : drops)
-        addProofDrop(drop);
-    }
-
-    void addHintDrop(IHintDrop hintDrop) {
-      if (hintDrop == null)
-        return;
-      if (hintDrop.getHintType() == IHintDrop.HintType.WARNING)
-        f_anyWarningHints = true;
-      else
-        f_anyInfoHints = true;
-      f_hintDrops.add(hintDrop);
-    }
-
-    void addHintDropAll(Collection<IHintDrop> drops) {
-      if (drops == null)
-        return;
-      for (IHintDrop drop : drops)
-        addHintDrop(drop);
-    }
-
     void addCategory(ElementCategory.Builder builder) {
       if (builder == null)
         return;
       f_categories.add(builder);
+    }
+
+    void addCategories(Collection<ElementCategory.Builder> builders) {
+      if (builders == null)
+        return;
+      for (ElementCategory.Builder builder : builders)
+        addCategory(builder);
     }
 
     void setLabel(String value) {
@@ -86,8 +160,8 @@ public final class ElementCategory extends Element {
       f_imageName = value;
     }
 
-    boolean isValidToBuild() {
-      return !f_proofDrops.isEmpty() || !f_hintDrops.isEmpty() || !f_categories.isEmpty();
+    boolean isEmpty() {
+      return f_proofDrops.isEmpty() && f_otherDrops.isEmpty() && f_categories.isEmpty();
     }
 
     ElementCategory build() {
@@ -95,7 +169,7 @@ public final class ElementCategory extends Element {
         f_label = "NO LABEL";
       if (f_imageName == null)
         f_imageName = CommonImages.IMG_FOLDER;
-      if (!isValidToBuild())
+      if (isEmpty())
         throw new IllegalStateException("A category element must contain at least one element");
 
       /*
@@ -107,19 +181,16 @@ public final class ElementCategory extends Element {
         if (f_proofUsesRedDot)
           flags |= CoE_Constants.REDDOT;
       }
-      if (f_anyInfoHints && !f_anyWarningHints) {
-        flags |= CoE_Constants.HINT_INFO;
-      }
       if (f_anyWarningHints) {
         flags |= CoE_Constants.HINT_WARNING;
       }
       ElementCategory result = new ElementCategory(f_parent, f_label, flags, f_imageName);
       List<Element> children = new ArrayList<Element>();
       for (IProofDrop pd : f_proofDrops) {
-        children.add(ElementProofDrop.factory(result, pd));
+        children.add(ElementDrop.factory(result, pd));
       }
-      for (IHintDrop hd : f_hintDrops) {
-        children.add(new ElementHintDrop(result, hd));
+      for (IDrop hd : f_otherDrops) {
+        children.add(ElementDrop.factory(result, hd));
       }
       for (ElementCategory.Builder builder : f_categories) {
         builder.setParent(result);

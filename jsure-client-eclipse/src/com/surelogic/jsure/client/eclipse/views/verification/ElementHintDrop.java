@@ -40,8 +40,8 @@ final class ElementHintDrop extends ElementDrop {
   @Override
   @NonNull
   Element[] constructChildren() {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO
+    return EMPTY;
   }
 
   @Override

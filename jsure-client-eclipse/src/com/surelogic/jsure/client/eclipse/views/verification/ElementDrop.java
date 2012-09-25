@@ -2,10 +2,30 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 abstract class ElementDrop extends Element {
+
+  static ElementDrop factory(Element parent, IDrop drop) {
+    if (drop instanceof IPromiseDrop)
+      return new ElementPromiseDrop(parent, (IPromiseDrop) drop);
+    else if (drop instanceof IResultDrop)
+      return new ElementResultDrop(parent, (IResultDrop) drop);
+    else if (drop instanceof IResultFolderDrop)
+      return new ElementResultFolderDrop(parent, (IResultFolderDrop) drop);
+    else if (drop instanceof IHintDrop)
+      return new ElementHintDrop(parent, (IHintDrop) drop);
+    else if (drop instanceof IProposedPromiseDrop)
+      return new ElementProposedPromiseDrop(parent, (IProposedPromiseDrop) drop);
+    else
+      throw new IllegalStateException("Unknown IDrop: " + drop);
+  }
 
   protected ElementDrop(Element parent) {
     super(parent);

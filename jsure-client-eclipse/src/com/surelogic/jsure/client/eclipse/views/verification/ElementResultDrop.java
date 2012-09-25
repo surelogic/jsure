@@ -5,7 +5,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultDrop;
 
-public class ElementResultDrop extends ElementAnalysisResultDrop {
+final class ElementResultDrop extends ElementAnalysisResultDrop {
 
   ElementResultDrop(Element parent, IResultDrop resultDrop) {
     super(parent);
@@ -36,13 +36,6 @@ public class ElementResultDrop extends ElementAnalysisResultDrop {
       return CommonImages.IMG_PLUS;
     else
       return CommonImages.IMG_RED_X;
-  }
-
-  @Override
-  @NonNull
-  Element[] constructChildren() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override

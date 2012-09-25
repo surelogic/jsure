@@ -39,13 +39,6 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
-  @NonNull
-  Element[] constructChildren() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public int compareTo(Element o) {
     // TODO Auto-generated method stub
     return 0;

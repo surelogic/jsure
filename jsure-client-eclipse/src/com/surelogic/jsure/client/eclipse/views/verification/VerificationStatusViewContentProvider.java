@@ -1,20 +1,16 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -30,29 +26,31 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   public Object[] getElements(Object inputElement) {
     System.out.println("getElements(" + inputElement);
-    List<Object> result = null; // categorize(f_rootPromises);
-    if (!f_rootHints.isEmpty()) {
-    //  ResultsViewCategoryContent.Builder builder = new ResultsViewCategoryContent.Builder();
-   //   builder.setLabel("Suggestions and warnings");
-   //   builder.setImageName(CommonImages.IMG_INFO);
-    //  builder.addAll(categorize(f_rootHints));
-    }
-    return result.toArray();
+    return f_root.toArray();
   }
 
   public Object[] getChildren(Object parentElement) {
     System.out.println("getChildren(" + parentElement);
-    return null;
+    if (parentElement instanceof Element)
+      return ((Element) parentElement).getChildren();
+    else
+      return Element.EMPTY;
   }
 
   public Object getParent(Object element) {
     System.out.println("getParent(" + element);
-    return null;
+    if (element instanceof Element)
+      return ((Element) element).getParent();
+    else
+      return null;
   }
 
   public boolean hasChildren(Object element) {
     System.out.println("hasChildren(" + element);
-    return false;
+    if (element instanceof Element)
+      return ((Element) element).hasChildren();
+    else
+      return false;
   }
 
   private boolean f_showHints = true;
@@ -65,21 +63,17 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     f_showHints = value;
   }
 
-  private final List<IPromiseDrop> f_rootPromises = new ArrayList<IPromiseDrop>();
-
-  private final List<IHintDrop> f_rootHints = new ArrayList<IHintDrop>();
+  private final List<Element> f_root = new ArrayList<Element>();
 
   public void buildModelOfDropSea_internal() {
-
+    f_root.clear();
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    f_rootPromises.clear();
-    f_rootHints.clear();
-
     if (scan != null) {
+      final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
       for (IPromiseDrop promise : scan.getPromiseDrops()) {
         if (promise.isFromSrc() || promise.derivedFromSrc()) {
           if (showAtTopLevel(promise)) {
-            f_rootPromises.add(promise);
+            pc.add(promise);
           }
         }
       }
@@ -87,36 +81,21 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
        * If the hint is uncategorized we don't show it in this section (it shows
        * up under the drop it is attached to).
        */
+      final ElementCategory.Categorizer hc = new ElementCategory.Categorizer();
       for (IHintDrop hint : scan.getAnalysisHintDrops()) {
         if (hint.getCategory() != null)
-          f_rootHints.add(hint);
+          hc.add(hint);
+      }
+      f_root.addAll(pc.getAllElements());
+      if (!hc.isEmpty()) {
+        final ElementCategory.Builder sw = new ElementCategory.Builder(null);
+        sw.setLabel("Suggestions and warnings");
+        sw.setImageName(CommonImages.IMG_INFO);
+        sw.addCategories(hc.getBuilders());
+        f_root.add(sw.build());
       }
     }
   }
-
-//  private List<Object> categorize(List<? extends IDrop> drops) {
-//    final List<Object> result = new ArrayList<Object>();
-//    final Map<Category, ResultsViewCategoryContent.Builder> f_categoryToContent = new HashMap<Category, ResultsViewCategoryContent.Builder>();
-//
-//    for (final IDrop drop : drops) {
-//      Category category = drop.getCategory();
-//      if (category == null) {
-//        result.add(drop);
-//      } else {
-//        ResultsViewCategoryContent.Builder builder = f_categoryToContent.get(category);
-//        if (builder == null) {
-//          builder = new ResultsViewCategoryContent.Builder();
-//          f_categoryToContent.put(category, builder);
-//          builder.setLabel(category.getMessage());
-//        }
-//        builder.add(drop);
-//      }
-//    }
-//    for (ResultsViewCategoryContent.Builder builder : f_categoryToContent.values()) {
-//      result.add(builder.build());
-//    }
-//    return result;
-//  }
 
   /**
    * Determines if a particular promise should be shown at the root level of the
