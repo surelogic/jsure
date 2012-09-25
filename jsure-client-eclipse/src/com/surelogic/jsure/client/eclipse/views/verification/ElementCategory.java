@@ -107,7 +107,7 @@ public final class ElementCategory extends Element {
         children.add(ElementProofDrop.factory(result, pd));
       }
       for (IHintDrop hd : f_hintDrops) {
-        children.add(new ElementAnalysisHintDrop(result, hd));
+        children.add(new ElementHintDrop(result, hd));
       }
       Collections.sort(children);
       result.f_children = children.toArray(new Element[children.size()]);
