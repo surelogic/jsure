@@ -96,7 +96,8 @@ public final class DropTypeUtility {
    * class name replaces
    */
   private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", ModelingProblemDrop.class.getName() },
-      { "InfoDrop", HintDrop.class.getName() }, { "WarningDrop", HintDrop.class.getName() } };
+      { "InfoDrop", HintDrop.class.getName() }, { "WarningDrop", HintDrop.class.getName() },
+      { "AnalysisHintDrop", HintDrop.class.getName() } };
 
   /**
    * A list of types that use to be in drop-sea and are in persisted scans, but
