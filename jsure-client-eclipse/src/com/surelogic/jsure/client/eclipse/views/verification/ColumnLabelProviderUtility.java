@@ -1,7 +1,9 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.NonNull;
 import com.surelogic.Utility;
@@ -13,6 +15,8 @@ public final class ColumnLabelProviderUtility {
 
   static ColumnLabelProvider TREE = new AbstractElementColumnLabelProvider() {
 
+    private Color f_duplicate;
+
     @Override
     Image getImageFromElement(@NonNull Element element) {
       return element.getImage();
@@ -20,7 +24,33 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     String getTextFromElement(@NonNull Element element) {
+      if (hasAncestorWithSameDrop(element)) {
+        return "\u2191  " + element.getLabel();
+      }
       return element.getLabel();
+    }
+
+    @Override
+    public Color getForeground(Object element) {
+      if (hasAncestorWithSameDrop(element)) {
+        if (f_duplicate == null) {
+          f_duplicate = new Color(Display.getCurrent(), 149, 125, 71);
+          Display.getCurrent().disposeExec(new Runnable() {
+            public void run() {
+              f_duplicate.dispose();
+            }
+          });
+        }
+        return f_duplicate;
+      }
+      return super.getForeground(element);
+    }
+
+    private boolean hasAncestorWithSameDrop(Object element) {
+      if (element instanceof ElementDrop)
+        if (((ElementDrop) element).getAncestorWithSameDropOrNull() != null)
+          return true;
+      return false;
     }
   };
 
