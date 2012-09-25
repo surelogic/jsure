@@ -6,9 +6,9 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IHintDrop;
 
-final class ElementAnalysisHintDrop extends ElementDrop {
+final class ElementHintDrop extends ElementDrop {
 
-  protected ElementAnalysisHintDrop(Element parent, IHintDrop hintDrop) {
+  protected ElementHintDrop(Element parent, IHintDrop hintDrop) {
     super(parent);
     if (hintDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "hintDrop"));
