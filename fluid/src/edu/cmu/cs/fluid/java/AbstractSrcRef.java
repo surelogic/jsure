@@ -47,4 +47,8 @@ public abstract class AbstractSrcRef implements ISrcRef {
   public String getJavaId() {
     return null;
   }
+  
+  public String getEnclosingJavaId() {
+	  return null;
+  }
 }

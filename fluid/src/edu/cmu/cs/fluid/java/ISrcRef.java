@@ -132,4 +132,6 @@ public interface ISrcRef {
    * @return the corresponding JavaIdentifier, if any
    */
   String getJavaId();
+  
+  String getEnclosingJavaId();
 }

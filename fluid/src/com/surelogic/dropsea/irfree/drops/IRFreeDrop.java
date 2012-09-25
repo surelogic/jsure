@@ -1,18 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.net.URI;
@@ -217,6 +205,7 @@ public class IRFreeDrop implements IDrop {
     final String path = ref.getAttribute(PATH_ATTR);
     final String cuName = ref.getAttribute(CUNIT_ATTR);
     final String javaId = ref.getAttribute(JAVA_ID_ATTR);
+    final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
     final String project = ref.getAttribute(PROJECT_ATTR);
     final String hash = ref.getAttribute(HASH_ATTR);
     final String uri = ref.getAttribute(URI_ATTR);
@@ -242,6 +231,10 @@ public class IRFreeDrop implements IDrop {
 
       public String getJavaId() {
         return javaId;
+      }
+      
+      public String getEnclosingJavaId() {
+          return enclosingId;
       }
 
       public String getCUName() {
