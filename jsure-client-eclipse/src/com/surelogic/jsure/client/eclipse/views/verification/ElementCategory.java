@@ -12,6 +12,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.Category;
@@ -33,7 +34,7 @@ final class ElementCategory extends Element {
         return;
 
       final Category category = drop.getCategory();
-      if (category == null || doNotCategorize(drop)) {
+      if (category == null || isPromiseDropNotAtRoot(drop)) {
         f_uncategorized.add(drop);
       } else {
         ElementCategory.Builder builder = f_categoryToBuilder.get(category);
@@ -53,8 +54,15 @@ final class ElementCategory extends Element {
         add(drop);
     }
 
-    private boolean doNotCategorize(IDrop drop) {
-      return f_parent != null && !(drop.instanceOfIRDropSea(UiPlaceInASubFolder.class));
+    private boolean isPromiseDropNotAtRoot(IDrop drop) {
+      /*
+       * Special logic to identify promises not at the tree root except if the
+       * drop type implements UiPlaceInASubFolder.
+       */
+      if (drop instanceof IPromiseDrop && f_parent != null) {
+        return !drop.instanceOfIRDropSea(UiPlaceInASubFolder.class);
+      } else
+        return false;
     }
 
     boolean isEmpty() {
@@ -176,8 +184,12 @@ final class ElementCategory extends Element {
     ElementCategory build() {
       if (f_label == null)
         f_label = "NO LABEL";
-      if (f_imageName == null)
-        f_imageName = CommonImages.IMG_FOLDER;
+      if (f_imageName == null) {
+        if (f_proofDrops.isEmpty())
+          f_imageName = CommonImages.IMG_INFO;
+        else
+          f_imageName = CommonImages.IMG_FOLDER;
+      }
       if (isEmpty())
         throw new IllegalStateException("A category element must contain at least one element");
 

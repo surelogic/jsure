@@ -23,7 +23,7 @@ abstract class ElementDrop extends Element {
     else if (drop instanceof IResultDrop)
       result.add(new ElementResultDrop(parent, (IResultDrop) drop));
     else if (drop instanceof IResultFolderDrop)
-      result.addAll(ElementResultFolderDrop.getInstanceOrElide(parent, (IResultFolderDrop) drop));
+      result.addAll(ElementResultFolderDrop.getInstanceOrElideFolder(parent, (IResultFolderDrop) drop));
     else if (drop instanceof IHintDrop)
       result.add(new ElementHintDrop(parent, (IHintDrop) drop));
     else if (drop instanceof IProposedPromiseDrop)

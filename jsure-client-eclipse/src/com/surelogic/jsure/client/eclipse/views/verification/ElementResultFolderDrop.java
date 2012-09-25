@@ -11,13 +11,18 @@ import com.surelogic.dropsea.IResultFolderDrop;
 
 final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
 
-  static Collection<Element> getInstanceOrElide(Element parent, IResultFolderDrop resultFolderDrop) {
+  static Collection<Element> getInstanceOrElideFolder(Element parent, IResultFolderDrop resultFolderDrop) {
     final List<Element> result = new ArrayList<Element>();
     if (resultFolderDrop != null)
       if (resultFolderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.OR && resultFolderDrop.getTrusted().size() == 1) {
         /*
-         * Only one OR choice so don't show the folder to the tool user
+         * Only one OR folder child so don't show the folder to the tool user.
          */
+        final ElementCategory.Categorizer c = new ElementCategory.Categorizer(parent);
+        c.addAll(resultFolderDrop.getProposals());
+        c.addAll(resultFolderDrop.getHints());
+        c.addAll(resultFolderDrop.getTrusted());
+        result.addAll(c.getAllElements());
       } else
         result.add(new ElementResultFolderDrop(parent, resultFolderDrop));
     return result;
