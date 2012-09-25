@@ -6,7 +6,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IPromiseDrop;
 
-final class ElementPromiseDrop extends ElementProofDrop implements ComparableJava {
+final class ElementPromiseDrop extends ElementProofDrop {
 
   ElementPromiseDrop(Element parent, IPromiseDrop promiseDrop) {
     super(parent);
@@ -43,7 +43,14 @@ final class ElementPromiseDrop extends ElementProofDrop implements ComparableJav
   @Override
   @NonNull
   Element[] constructChildren() {
-    // TODO
-    return EMPTY;
+    final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
+    c.addAll(getDrop().getProposals());
+    c.addAll(getDrop().getHints());
+    c.addAll(getDrop().getCheckedBy());
+    c.addAll(getDrop().getDependentPromises());
+    if (c.isEmpty())
+      return EMPTY;
+    else
+      return c.getAllElementsAsArray();
   }
 }

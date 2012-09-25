@@ -5,7 +5,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultDrop;
 
-final class ElementResultDrop extends ElementAnalysisResultDrop implements ComparableJava {
+final class ElementResultDrop extends ElementAnalysisResultDrop {
 
   ElementResultDrop(Element parent, IResultDrop resultDrop) {
     super(parent);

@@ -6,7 +6,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IHintDrop;
 
-final class ElementHintDrop extends ElementDrop implements ComparableJava {
+final class ElementHintDrop extends ElementDrop {
 
   protected ElementHintDrop(Element parent, IHintDrop hintDrop) {
     super(parent);
@@ -40,7 +40,12 @@ final class ElementHintDrop extends ElementDrop implements ComparableJava {
   @Override
   @NonNull
   Element[] constructChildren() {
-    // TODO
-    return EMPTY;
+    final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
+    c.addAll(getDrop().getProposals());
+    c.addAll(getDrop().getHints());
+    if (c.isEmpty())
+      return EMPTY;
+    else
+      return c.getAllElementsAsArray();
   }
 }

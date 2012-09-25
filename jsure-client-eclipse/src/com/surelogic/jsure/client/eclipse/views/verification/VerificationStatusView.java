@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -49,7 +48,6 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -61,8 +59,6 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -77,628 +73,641 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
+  static class ColumnResizeListener extends ControlAdapter {
 
-    static class ColumnResizeListener extends ControlAdapter {
+    final String f_prefKey;
 
-      final String f_prefKey;
+    public ColumnResizeListener(String prefKey) {
+      f_prefKey = prefKey;
+    }
 
-      public ColumnResizeListener(String prefKey) {
-        f_prefKey = prefKey;
+    @Override
+    public void controlResized(ControlEvent e) {
+      if (e.widget instanceof TreeColumn) {
+        int width = ((TreeColumn) e.widget).getWidth();
+        EclipseUtility.setIntPreference(f_prefKey, width);
       }
+    }
+  }
+
+  private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
+
+  final File f_viewStatePersistenceFile;
+
+  final public static Point ICONSIZE = new Point(22, 16);
+
+  /**
+   * leave {@code null} if the subclass doesn't want to use this capability.
+   */
+  private PageBook f_viewerbook = null;
+
+  private Label f_noResultsToShowLabel = null;
+  private TreeViewer treeViewer;
+
+  private Action doubleClickAction;
+
+  public VerificationStatusView() {
+    File viewState = null;
+    try {
+      final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
+      if (jsureData != null) {
+        viewState = new File(jsureData, VIEW_STATE + ".xml");
+      } else {
+        viewState = File.createTempFile(VIEW_STATE, ".xml");
+      }
+      // System.out.println("Using location: "+location);
+    } catch (IOException e) {
+      // Nothing to do
+    }
+    f_viewStatePersistenceFile = viewState;
+  }
+
+  @Override
+  public void createPartControl(Composite parent) {
+    f_viewerbook = new PageBook(parent, SWT.NONE);
+    f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
+    f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
+    treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+    treeViewer.setContentProvider(f_contentProvider);
+    treeViewer.setLabelProvider(f_labelProvider);
+    treeViewer.setSorter(new ViewerSorter() {
 
       @Override
-      public void controlResized(ControlEvent e) {
-        if (e.widget instanceof TreeColumn) {
-          int width = ((TreeColumn) e.widget).getWidth();
-          EclipseUtility.setIntPreference(f_prefKey, width);
+      public int compare(Viewer viewer, Object e1, Object e2) {
+        if (e1 instanceof Element && e2 instanceof Element) {
+          return Element.JAVA.compare((Element) e1, (Element) e2);
         }
+        return super.compare(viewer, e1, e2);
       }
+    });
+    ColumnViewerToolTipSupport.enableFor(treeViewer);
+
+    final Tree tree = treeViewer.getTree();
+    tree.setHeaderVisible(true);
+    tree.setLinesVisible(true);
+
+    final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+    column1.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    column1.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
+    column2.setText("Project");
+    column2.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    column2.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
+    column3.setText("Package");
+    column3.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    column3.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
+    column4.setText("Type");
+    column4.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    column4.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    TreeColumn column5 = new TreeColumn(tree, SWT.RIGHT);
+    column5.setText("Line");
+    column5.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+    column5.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+
+    treeViewer.setInput(getViewSite());
+    makeActions_private();
+    hookContextMenu();
+    hookDoubleClickAction();
+    contributeToActionBars();
+    // start empty until the initial build is done
+    setViewerVisibility(false);
+
+    finishCreatePartControl();
+
+    JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+  }
+
+  @Override
+  public void dispose() {
+    try {
+      JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+    } finally {
+      super.dispose();
     }
+  }
 
-    private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
-
-    final File f_viewStatePersistenceFile;
-
-    final public static Point ICONSIZE = new Point(22, 16);
-
-    /**
-     * leave {@code null} if the subclass doesn't want to use this capability.
-     */
-    private PageBook f_viewerbook = null;
-
-    private Label f_noResultsToShowLabel = null;
-    private TreeViewer treeViewer;
-
-    private Action doubleClickAction;
-
-    public VerificationStatusView() {
-      File viewState = null;
-      try {
-        final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
-        if (jsureData != null) {
-          viewState = new File(jsureData, VIEW_STATE + ".xml");
+  @Override
+  public void currentScanChanged(JSureScan scan) {
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        if (treeViewer != null) {
+          final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
+          finishCreatePartControl();
+          state.restoreViewState(treeViewer);
         } else {
-          viewState = File.createTempFile(VIEW_STATE, ".xml");
+          SLLogger.getLogger().log(Level.WARNING, "treeViewer is null when the current scan is being changed", new Exception());
         }
-        // System.out.println("Using location: "+location);
-      } catch (IOException e) {
-        // Nothing to do
+        return Status.OK_STATUS;
       }
-      f_viewStatePersistenceFile = viewState;
-    }
+    };
+    job.schedule();
+  }
 
+  private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+
+  private final VerificationStatusViewLabelProvider f_labelProvider = new VerificationStatusViewLabelProvider();
+
+  private final Action f_actionShowInferences = new Action() {
     @Override
-    public void createPartControl(Composite parent) {
-      f_viewerbook = new PageBook(parent, SWT.NONE);
-      f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
-      f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-      treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
-      treeViewer.setContentProvider(f_contentProvider);
-      treeViewer.setLabelProvider(f_labelProvider);
-   //   treeViewer.setSorter(createSorter());
-      ColumnViewerToolTipSupport.enableFor(treeViewer);
-
-      final Tree tree = treeViewer.getTree();
-      tree.setHeaderVisible(true);
-      tree.setLinesVisible(true);
-
-      final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
-      column1.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-      column1.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-      TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
-      column2.setText("Project");
-      column2.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-      column2.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-      TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
-      column3.setText("Package");
-      column3.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-      column3.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-      TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
-      column4.setText("Type");
-      column4.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-      column4.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-      TreeColumn column5 = new TreeColumn(tree, SWT.RIGHT);
-      // column5.setAlignment(SWT.LEFT);
-      column5.setText("Line");
-      column5.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
-      column5.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
-
-      treeViewer.setInput(getViewSite());
-      makeActions_private();
-      hookContextMenu();
-      hookDoubleClickAction();
-      contributeToActionBars();
-      // start empty until the initial build is done
-      setViewerVisibility(false);
-
-      finishCreatePartControl();
-
-      JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+    public void run() {
+      final boolean toggle = !f_contentProvider.showHints();
+      f_contentProvider.setShowHints(toggle);
+      // f_labelProvider.setShowInferences(toggle);
+      setViewState();
+      treeViewer.refresh();
     }
+  };
 
+  private final Action f_actionExpand = new Action() {
     @Override
-    public void dispose() {
-      try {
-        JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
-      } finally {
-        super.dispose();
-      }
-    }
-
-    @Override
-    public void currentScanChanged(JSureScan scan) {
-      final UIJob job = new SLUIJob() {
-        @Override
-        public IStatus runInUIThread(IProgressMonitor monitor) {
-          if (treeViewer != null) {
-            final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
-            finishCreatePartControl();
-            state.restoreViewState(treeViewer);
+    public void run() {
+      final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
+      if (selection == null || selection.isEmpty()) {
+        treeViewer.expandToLevel(50);
+      } else {
+        for (Object obj : selection.toList()) {
+          if (obj != null) {
+            treeViewer.expandToLevel(obj, 50);
           } else {
-            SLLogger.getLogger().log(Level.WARNING, "treeViewer is null when the current scan is being changed", new Exception());
+            treeViewer.expandToLevel(50);
           }
-          return Status.OK_STATUS;
         }
-      };
-      job.schedule();
+      }
     }
-    
-    private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+  };
 
-    private final VerificationStatusViewLabelProvider f_labelProvider = new VerificationStatusViewLabelProvider();
-
-    private final Action f_actionShowInferences = new Action() {
-      @Override
-      public void run() {
-        final boolean toggle = !f_contentProvider.showHints();
-        f_contentProvider.setShowHints(toggle);
-       // f_labelProvider.setShowInferences(toggle);
-        setViewState();
-        treeViewer.refresh();
-      }
-    };
-
-    private final Action f_actionExpand = new Action() {
-      @Override
-      public void run() {
-        final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-        if (selection == null || selection.isEmpty()) {
-          treeViewer.expandToLevel(50);
-        } else {
-          for (Object obj : selection.toList()) {
-            if (obj != null) {
-              treeViewer.expandToLevel(obj, 50);
-            } else {
-              treeViewer.expandToLevel(50);
-            }
-          }
-        }
-      }
-    };
-
-    private final Action f_actionCollapse = new Action() {
-      @Override
-      public void run() {
-        final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-        if (selection == null || selection.isEmpty()) {
-          treeViewer.expandToLevel(50);
-        } else {
-          for (Object obj : selection.toList()) {
-            if (obj != null) {
-              treeViewer.collapseToLevel(obj, 1);
-            } else {
-              treeViewer.collapseAll();
-            }
-          }
-        }
-      }
-    };
-
-//    private final Action f_actionLinkToOriginal = new Action() {
-//      @Override
-//      public void run() {
-//        final ISelection selection = treeViewer.getSelection();
-//        if (selection == null || selection == StructuredSelection.EMPTY) {
-//          treeViewer.collapseAll();
-//        } else {
-//          final Object obj = ((IStructuredSelection) selection).getFirstElement();
-//          if (obj instanceof ResultsViewContent) {
-//            final ResultsViewContent c = (ResultsViewContent) obj;
-//            if (c.cloneOf != null) {
-//
-//              treeViewer.reveal(c.cloneOf);
-//              treeViewer.setSelection(new StructuredSelection(c.cloneOf), true);
-//            }
-//          }
-//        }
-//      }
-//    };
-
-    private final Action f_copy = new Action() {
-      @Override
-      public void run() {
-        final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
-        try {
-          clipboard.setContents(new Object[] { getSelectedText() }, new Transfer[] { TextTransfer.getInstance() });
-        } finally {
-          clipboard.dispose();
-        }
-      }
-    };
-
-    private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
-
-      @Override
-      protected List<IProposedPromiseDrop> getProposedDrops() {
-        /*
-         * There are two cases: (1) a single proposed promise drop in the tree is
-         * selected and (2) a container folder for multiple proposed promise drops
-         * is selected.
-         */
-        final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-        if (selection == null || selection == StructuredSelection.EMPTY) {
-          return Collections.emptyList();
-        }
-        final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
-//        for (final Object element : selection.toList()) {
-//          if (element instanceof ResultsViewContent) {
-//            final ResultsViewContent c = (ResultsViewContent) element;
-//            /*
-//             * Deal with the case where a single proposed promise drop is
-//             * selected.
-//             */
-//            if (c.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
-//              final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
-//              if (pp != null) {
-//                proposals.add(pp);
-//              }
-//            } else {
-//              /*
-//               * In the case that the user selected a container for multiple
-//               * proposed promise drops we want add them all.
-//               */
-//              if (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
-//                for (ResultsViewContent content : c.getChildrenAsCollection()) {
-//                  if (content.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
-//                    final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
-//                    if (pp != null) {
-//                      proposals.add(pp);
-//                    }
-//                  }
-//                }
-//              }
-//            }
-//          }
-//        }
-        return proposals;
-      }
-
-      @Override
-      protected String getDialogTitle() {
-        return I18N.msg("jsure.eclipse.proposed.promise.edit");
-      }
-    };
-
-    private final Action f_actionCollapseAll = new Action() {
-      @Override
-      public void run() {
-        treeViewer.collapseAll();
-      }
-    };
-
-    private final Action f_showQuickRef = new Action() {
-      @Override
-      public void run() {
-        final Image quickRefImage = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF);
-        final Image icon = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
-        final ImageDialog dialog = new ImageDialog(EclipseUIUtility.getShell(), quickRefImage, icon, "Iconography Quick Reference");
-        dialog.open();
-      }
-    };
-
-    private final Action f_modelProblemsIndicator = new Action() {
-      @Override
-      public void run() {
-        /*
-         * When pressed open the JSure perspective
-         */
-        EclipseUIUtility.showView(ProblemsView.class.getName());
-      }
-    };
-
-    /**
-     * Toggles between the empty viewer page and the Fluid results
-     */
-    private void setViewerVisibility(boolean showResults) {
-      if (f_viewerbook.isDisposed())
-        return;
-      if (showResults) {
-        treeViewer.setInput(getViewSite());
-        f_viewerbook.showPage(treeViewer.getControl());
+  private final Action f_actionCollapse = new Action() {
+    @Override
+    public void run() {
+      final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
+      if (selection == null || selection.isEmpty()) {
+        treeViewer.expandToLevel(50);
       } else {
-        f_viewerbook.showPage(f_noResultsToShowLabel);
+        for (Object obj : selection.toList()) {
+          if (obj != null) {
+            treeViewer.collapseToLevel(obj, 1);
+          } else {
+            treeViewer.collapseAll();
+          }
+        }
       }
     }
+  };
 
-    private void hookContextMenu() {
-      MenuManager menuMgr = new MenuManager("#PopupMenu");
-      menuMgr.setRemoveAllWhenShown(true);
-      menuMgr.addMenuListener(new IMenuListener() {
-        public void menuAboutToShow(IMenuManager manager) {
-          IStructuredSelection s = (IStructuredSelection) treeViewer.getSelection();
-          VerificationStatusView.this.fillContextMenu_private(manager, s);
-        }
-      });
-      Menu menu = menuMgr.createContextMenu(treeViewer.getControl());
-      treeViewer.getControl().setMenu(menu);
-      getSite().registerContextMenu(menuMgr, treeViewer);
+  // private final Action f_actionLinkToOriginal = new Action() {
+  // @Override
+  // public void run() {
+  // final ISelection selection = treeViewer.getSelection();
+  // if (selection == null || selection == StructuredSelection.EMPTY) {
+  // treeViewer.collapseAll();
+  // } else {
+  // final Object obj = ((IStructuredSelection) selection).getFirstElement();
+  // if (obj instanceof ResultsViewContent) {
+  // final ResultsViewContent c = (ResultsViewContent) obj;
+  // if (c.cloneOf != null) {
+  //
+  // treeViewer.reveal(c.cloneOf);
+  // treeViewer.setSelection(new StructuredSelection(c.cloneOf), true);
+  // }
+  // }
+  // }
+  // }
+  // };
+
+  private final Action f_copy = new Action() {
+    @Override
+    public void run() {
+      final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
+      try {
+        clipboard.setContents(new Object[] { getSelectedText() }, new Transfer[] { TextTransfer.getInstance() });
+      } finally {
+        clipboard.dispose();
+      }
     }
+  };
 
-    private void contributeToActionBars() {
-      IActionBars bars = getViewSite().getActionBars();
-      fillLocalPullDown(bars.getMenuManager());
-      fillLocalToolBar(bars.getToolBarManager());
-    }
+  private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
 
-    private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
-      fillContextMenu(manager, s);
-      manager.add(new Separator());
-      // Other plug-ins can contribute there actions here
-      manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
-    }
-
-    private void makeActions_private() {
-      doubleClickAction = new Action() {
-        @Override
-        public void run() {
-          ISelection selection = treeViewer.getSelection();
-          handleDoubleClick((IStructuredSelection) selection);
-        }
-      };
-
-      makeActions();
-      setViewState();
-    }
-
-//    private ViewerSorter createSorter() {
-//      return new ContentNameSorter();
-//    }
-
-    String getSelectedText() {
+    @Override
+    protected List<IProposedPromiseDrop> getProposedDrops() {
+      /*
+       * There are two cases: (1) a single proposed promise drop in the tree is
+       * selected and (2) a container folder for multiple proposed promise drops
+       * is selected.
+       */
       final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-      final StringBuilder sb = new StringBuilder();
-      for (final Object elt : selection.toList()) {
-        if (sb.length() > 0) {
-          sb.append('\n');
-        }
-        sb.append(f_labelProvider.getColumnText(elt, 0));
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        return Collections.emptyList();
       }
-      return sb.toString();
+      final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
+      // for (final Object element : selection.toList()) {
+      // if (element instanceof ResultsViewContent) {
+      // final ResultsViewContent c = (ResultsViewContent) element;
+      // /*
+      // * Deal with the case where a single proposed promise drop is
+      // * selected.
+      // */
+      // if (c.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class)) {
+      // final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
+      // if (pp != null) {
+      // proposals.add(pp);
+      // }
+      // } else {
+      // /*
+      // * In the case that the user selected a container for multiple
+      // * proposed promise drops we want add them all.
+      // */
+      // if
+      // (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder")))
+      // {
+      // for (ResultsViewContent content : c.getChildrenAsCollection()) {
+      // if
+      // (content.getDropInfo().instanceOfIRDropSea(ProposedPromiseDrop.class))
+      // {
+      // final IProposedPromiseDrop pp = (IProposedPromiseDrop) c.getDropInfo();
+      // if (pp != null) {
+      // proposals.add(pp);
+      // }
+      // }
+      // }
+      // }
+      // }
+      // }
+      // }
+      return proposals;
     }
 
-    private void fillLocalPullDown(final IMenuManager manager) {
-      manager.add(f_actionCollapseAll);
-      manager.add(new Separator());
-      manager.add(f_showQuickRef);
-      manager.add(f_actionShowInferences);
-
-      final IActionBars bars = getViewSite().getActionBars();
-      bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
-    }
-
-    private void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
-//      if (!s.isEmpty()) {
-//        final Object first = s.getFirstElement();
-//        if (first instanceof ResultsViewContent) {
-//          final ResultsViewContent c = (ResultsViewContent) first;
-//          final IDrop dropInfo = c.getDropInfo();
-//          if (dropInfo != null) {
-//            if (dropInfo.instanceOfIRDropSea(ProposedPromiseDrop.class)) {
-//              manager.add(f_addPromiseToCode);
-//              f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-//              manager.add(new Separator());
-//            } else {
-//              if (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
-//                manager.add(f_addPromiseToCode);
-//                f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-//                manager.add(new Separator());
-//              }
-//            }
-//          }
-//        }
-//      }
-      manager.add(f_actionExpand);
-      manager.add(f_actionCollapse);
-//      if (!s.isEmpty()) {
-//        final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
-//        if (c.cloneOf != null) {
-//          manager.add(f_actionLinkToOriginal);
-//        }
-//        manager.add(new Separator());
-//        manager.add(f_copy);
-//      }
-    }
-
-    private void fillLocalToolBar(final IToolBarManager manager) {
-      manager.add(f_actionCollapseAll);
-      manager.add(new Separator());
-      manager.add(f_showQuickRef);
-      manager.add(f_actionShowInferences);
-      manager.add(f_modelProblemsIndicator);
-    }
-
-    private void makeActions() {
-      f_actionShowInferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
-
-      f_actionExpand.setText("Expand");
-      f_actionExpand.setToolTipText("Expand the current selection or all if none");
-      f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
-
-      f_actionCollapse.setText("Collapse");
-      f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
-      f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-
-      f_actionCollapseAll.setText("Collapse All");
-      f_actionCollapseAll.setToolTipText("Collapse All");
-      f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-
-//      f_actionLinkToOriginal.setText("Link to Original");
-//      f_actionLinkToOriginal.setToolTipText("Link to the node that this backedge would reference");
-
-      f_copy.setText("Copy");
-      f_copy.setToolTipText("Copy the selected verification result to the clipboard");
-
-      f_addPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
-
-      f_showQuickRef.setText("Show Iconography Quick Reference Card");
-      f_showQuickRef.setToolTipText("Show the iconography quick reference card");
-      f_showQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
-
-      f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
-      f_modelProblemsIndicator.setEnabled(false);
-
-      setViewState();
-    }
-
-    /**
-     * Ensure that any relevant view state is set, based on the internal state
-     */
-    private void setViewState() {
-      f_actionShowInferences.setChecked(f_contentProvider.showHints());
-      f_actionShowInferences.setText("Show Information/Warning Results");
-      f_actionShowInferences.setToolTipText("Show information and warning analysis results");
-    }
-
-    private void handleDoubleClick(final IStructuredSelection selection) {
-      final Object obj = selection.getFirstElement();
-//      if (obj instanceof ResultsViewContent) {
-//        // try to open an editor at the point this item references
-//        // in the code
-//        final ResultsViewContent c = (ResultsViewContent) obj;
-//        if (c.cloneOf != null) {
-//          f_actionLinkToOriginal.run();
-//          return;
-//        }
-//        final ISrcRef sr = c.getSrcRef();
-//        if (sr != null) {
-//          highlightLineInJavaEditor(sr);
-//        }
-//        // open up the tree one more level
-//        if (!treeViewer.getExpandedState(obj)) {
-//          treeViewer.expandToLevel(obj, 1);
-//        }
-//      }
-    }
-
-    /**
-     * Open and highlight a line within the Java editor, if possible. Otherwise,
-     * try to open as a text file
-     * 
-     * @param srcRef
-     *          the source reference to highlight
-     */
-    private void highlightLineInJavaEditor(ISrcRef srcRef) {
-      EditorUtil.highlightLineInJavaEditor(srcRef);
-    }
-
-    private void hookDoubleClickAction() {
-      treeViewer.addDoubleClickListener(new IDoubleClickListener() {
-        public void doubleClick(DoubleClickEvent event) {
-          doubleClickAction.run();
-        }
-      });
-    }
-
-    /**
-     * Passing the focus request to the viewer's control.
-     */
     @Override
-    public void setFocus() {
-      setViewState();
-      treeViewer.getControl().setFocus();
+    protected String getDialogTitle() {
+      return I18N.msg("jsure.eclipse.proposed.promise.edit");
     }
+  };
 
-    /*
-     * For use by view contribution actions in other plug-ins so that they can get
-     * a pointer to the TreeViewer
-     */
+  private final Action f_actionCollapseAll = new Action() {
     @Override
-    public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-      if (adapter == TreeViewer.class) {
-        return treeViewer;
-      } else {
-        return super.getAdapter(adapter);
+    public void run() {
+      treeViewer.collapseAll();
+    }
+  };
+
+  private final Action f_showQuickRef = new Action() {
+    @Override
+    public void run() {
+      final Image quickRefImage = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF);
+      final Image icon = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
+      final ImageDialog dialog = new ImageDialog(EclipseUIUtility.getShell(), quickRefImage, icon, "Iconography Quick Reference");
+      dialog.open();
+    }
+  };
+
+  private final Action f_modelProblemsIndicator = new Action() {
+    @Override
+    public void run() {
+      /*
+       * When pressed open the JSure perspective
+       */
+      EclipseUIUtility.showView(ProblemsView.class.getName());
+    }
+  };
+
+  /**
+   * Toggles between the empty viewer page and the Fluid results
+   */
+  private void setViewerVisibility(boolean showResults) {
+    if (f_viewerbook.isDisposed())
+      return;
+    if (showResults) {
+      treeViewer.setInput(getViewSite());
+      f_viewerbook.showPage(treeViewer.getControl());
+    } else {
+      f_viewerbook.showPage(f_noResultsToShowLabel);
+    }
+  }
+
+  private void hookContextMenu() {
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      public void menuAboutToShow(IMenuManager manager) {
+        IStructuredSelection s = (IStructuredSelection) treeViewer.getSelection();
+        VerificationStatusView.this.fillContextMenu_private(manager, s);
       }
-    }
+    });
+    Menu menu = menuMgr.createContextMenu(treeViewer.getControl());
+    treeViewer.getControl().setMenu(menu);
+    getSite().registerContextMenu(menuMgr, treeViewer);
+  }
 
-    public void showDrop(IDrop d) {
-      // Find the corresponding Content
-      Object c = findContent(d);
-      if (c == null) {
-        findContent(d);
-        return;
+  private void contributeToActionBars() {
+    IActionBars bars = getViewSite().getActionBars();
+    fillLocalPullDown(bars.getMenuManager());
+    fillLocalToolBar(bars.getToolBarManager());
+  }
+
+  private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
+    fillContextMenu(manager, s);
+    manager.add(new Separator());
+    // Other plug-ins can contribute there actions here
+    manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+  }
+
+  private void makeActions_private() {
+    doubleClickAction = new Action() {
+      @Override
+      public void run() {
+        ISelection selection = treeViewer.getSelection();
+        handleDoubleClick((IStructuredSelection) selection);
       }
-      treeViewer.reveal(c);
-      treeViewer.setSelection(new StructuredSelection(c), true);
+    };
+
+    makeActions();
+    setViewState();
+  }
+
+  // private ViewerSorter createSorter() {
+  // return new ContentNameSorter();
+  // }
+
+  String getSelectedText() {
+    final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+    final StringBuilder sb = new StringBuilder();
+    for (final Object elt : selection.toList()) {
+      if (sb.length() > 0) {
+        sb.append('\n');
+      }
+      sb.append(f_labelProvider.getColumnText(elt, 0));
     }
+    return sb.toString();
+  }
 
-    private Object findContent(IDrop d) {
-//      for (Object o : f_contentProvider.getElements(null)) {
-//        Object rv = findContent((ResultsViewContent) o, d);
-//        if (rv != null) {
-//          return rv;
-//        }
-//      }
-      return null;
+  private void fillLocalPullDown(final IMenuManager manager) {
+    manager.add(f_actionCollapseAll);
+    manager.add(new Separator());
+    manager.add(f_showQuickRef);
+    manager.add(f_actionShowInferences);
+
+    final IActionBars bars = getViewSite().getActionBars();
+    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
+  }
+
+  private void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
+    // if (!s.isEmpty()) {
+    // final Object first = s.getFirstElement();
+    // if (first instanceof ResultsViewContent) {
+    // final ResultsViewContent c = (ResultsViewContent) first;
+    // final IDrop dropInfo = c.getDropInfo();
+    // if (dropInfo != null) {
+    // if (dropInfo.instanceOfIRDropSea(ProposedPromiseDrop.class)) {
+    // manager.add(f_addPromiseToCode);
+    // f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
+    // manager.add(new Separator());
+    // } else {
+    // if
+    // (c.getMessage().equals(I18N.msg("jsure.eclipse.proposed.promise.content.folder")))
+    // {
+    // manager.add(f_addPromiseToCode);
+    // f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
+    // manager.add(new Separator());
+    // }
+    // }
+    // }
+    // }
+    // }
+    manager.add(f_actionExpand);
+    manager.add(f_actionCollapse);
+    // if (!s.isEmpty()) {
+    // final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
+    // if (c.cloneOf != null) {
+    // manager.add(f_actionLinkToOriginal);
+    // }
+    // manager.add(new Separator());
+    // manager.add(f_copy);
+    // }
+  }
+
+  private void fillLocalToolBar(final IToolBarManager manager) {
+    manager.add(f_actionCollapseAll);
+    manager.add(new Separator());
+    manager.add(f_showQuickRef);
+    manager.add(f_actionShowInferences);
+    manager.add(f_modelProblemsIndicator);
+  }
+
+  private void makeActions() {
+    f_actionShowInferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
+
+    f_actionExpand.setText("Expand");
+    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+    f_actionCollapse.setText("Collapse");
+    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+    f_actionCollapseAll.setText("Collapse All");
+    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+    // f_actionLinkToOriginal.setText("Link to Original");
+    // f_actionLinkToOriginal.setToolTipText("Link to the node that this backedge would reference");
+
+    f_copy.setText("Copy");
+    f_copy.setToolTipText("Copy the selected verification result to the clipboard");
+
+    f_addPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
+
+    f_showQuickRef.setText("Show Iconography Quick Reference Card");
+    f_showQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_showQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
+
+    f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
+    f_modelProblemsIndicator.setEnabled(false);
+
+    setViewState();
+  }
+
+  /**
+   * Ensure that any relevant view state is set, based on the internal state
+   */
+  private void setViewState() {
+    f_actionShowInferences.setChecked(f_contentProvider.showHints());
+    f_actionShowInferences.setText("Show Information/Warning Results");
+    f_actionShowInferences.setToolTipText("Show information and warning analysis results");
+  }
+
+  private void handleDoubleClick(final IStructuredSelection selection) {
+    final Object obj = selection.getFirstElement();
+    // if (obj instanceof ResultsViewContent) {
+    // // try to open an editor at the point this item references
+    // // in the code
+    // final ResultsViewContent c = (ResultsViewContent) obj;
+    // if (c.cloneOf != null) {
+    // f_actionLinkToOriginal.run();
+    // return;
+    // }
+    // final ISrcRef sr = c.getSrcRef();
+    // if (sr != null) {
+    // highlightLineInJavaEditor(sr);
+    // }
+    // // open up the tree one more level
+    // if (!treeViewer.getExpandedState(obj)) {
+    // treeViewer.expandToLevel(obj, 1);
+    // }
+    // }
+  }
+
+  /**
+   * Open and highlight a line within the Java editor, if possible. Otherwise,
+   * try to open as a text file
+   * 
+   * @param srcRef
+   *          the source reference to highlight
+   */
+  private void highlightLineInJavaEditor(ISrcRef srcRef) {
+    EditorUtil.highlightLineInJavaEditor(srcRef);
+  }
+
+  private void hookDoubleClickAction() {
+    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      public void doubleClick(DoubleClickEvent event) {
+        doubleClickAction.run();
+      }
+    });
+  }
+
+  /**
+   * Passing the focus request to the viewer's control.
+   */
+  @Override
+  public void setFocus() {
+    setViewState();
+    treeViewer.getControl().setFocus();
+  }
+
+  /*
+   * For use by view contribution actions in other plug-ins so that they can get
+   * a pointer to the TreeViewer
+   */
+  @Override
+  public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+    if (adapter == TreeViewer.class) {
+      return treeViewer;
+    } else {
+      return super.getAdapter(adapter);
     }
+  }
 
-//    private Object findContent(ResultsViewContent c, IDrop d) {
-//      if (c == null) {
-//        return null;
-//      }
-//      if (d == c.getDropInfo()) {
-//        return c;
-//      }
-//      for (Object o : f_contentProvider.getChildren(c)) {
-//        Object rv = findContent((ResultsViewContent) o, d);
-//        if (rv != null) {
-//          return rv;
-//        }
-//      }
-//      return null;
-//    }
+  public void showDrop(IDrop d) {
+    // Find the corresponding Content
+    Object c = findContent(d);
+    if (c == null) {
+      findContent(d);
+      return;
+    }
+    treeViewer.reveal(c);
+    treeViewer.setSelection(new StructuredSelection(c), true);
+  }
 
-    private void finishCreatePartControl() {
-      final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
-      if (scanInfo != null) {
-        final long start = System.currentTimeMillis();
-        f_contentProvider.buildModelOfDropSea_internal();
-        final int modelProblemCount = getModelProblemCount(scanInfo);
-        setModelProblemIndicatorState(modelProblemCount);
-        final long end = System.currentTimeMillis();
-        setViewerVisibility(true);
-        System.out.println("Loaded snapshot for " + this + ": " + (end - start) + " ms");
+  private Object findContent(IDrop d) {
+    // for (Object o : f_contentProvider.getElements(null)) {
+    // Object rv = findContent((ResultsViewContent) o, d);
+    // if (rv != null) {
+    // return rv;
+    // }
+    // }
+    return null;
+  }
 
-        // Running too early?
-        if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-          f_viewerbook.getDisplay().asyncExec(new Runnable() {
-            public void run() {
-              final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-              state.restoreViewState(treeViewer);
-            }
-          });
-        }
-      } else {
-        // Show no results
+  // private Object findContent(ResultsViewContent c, IDrop d) {
+  // if (c == null) {
+  // return null;
+  // }
+  // if (d == c.getDropInfo()) {
+  // return c;
+  // }
+  // for (Object o : f_contentProvider.getChildren(c)) {
+  // Object rv = findContent((ResultsViewContent) o, d);
+  // if (rv != null) {
+  // return rv;
+  // }
+  // }
+  // return null;
+  // }
+
+  private void finishCreatePartControl() {
+    final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
+    if (scanInfo != null) {
+      final long start = System.currentTimeMillis();
+      f_contentProvider.buildModelOfDropSea_internal();
+      final int modelProblemCount = getModelProblemCount(scanInfo);
+      setModelProblemIndicatorState(modelProblemCount);
+      final long end = System.currentTimeMillis();
+      setViewerVisibility(true);
+      System.out.println("Loaded snapshot for " + this + ": " + (end - start) + " ms");
+
+      // Running too early?
+      if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
         f_viewerbook.getDisplay().asyncExec(new Runnable() {
           public void run() {
-            setViewerVisibility(false);
+            final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+            state.restoreViewState(treeViewer);
           }
         });
       }
-    }
-
-    @Override
-    public void saveState(IMemento memento) {
-      try {
-        final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
-        state.saveToFile(f_viewStatePersistenceFile);
-      } catch (IOException e) {
-        SLLogger.getLogger().log(Level.WARNING,
-            "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
-      }
-    }
-
-    private void setModelProblemIndicatorState(int problemCount) {
-      final boolean problemsExist = problemCount > 0;
-      final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST : CommonImages.IMG_JSURE_MODEL_PROBLEMS;
-      f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));
-      f_modelProblemsIndicator.setEnabled(problemsExist);
-      final String tooltip;
-      final String suffix = " in this scan...press to show the Modeling Problems view";
-      if (problemCount < 1) {
-        tooltip = "No modeling problems";
-      } else if (problemCount == 1) {
-        tooltip = "1 modeling problem" + suffix;
-      } else {
-        tooltip = problemCount + " modeling problems" + suffix;
-      }
-      f_modelProblemsIndicator.setToolTipText(tooltip);
-
-    }
-
-    private int getModelProblemCount(final JSureScanInfo info) {
-      int result = 0;
-      if (info != null) {
-        for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
-          final String resource = DropInfoUtility.getResource(id);
-          /*
-           * We filter results based upon the resource.
-           */
-          if (ModelingProblemFilterUtility.showResource(resource))
-            result++;
+    } else {
+      // Show no results
+      f_viewerbook.getDisplay().asyncExec(new Runnable() {
+        public void run() {
+          setViewerVisibility(false);
         }
-      }
-      return result;
+      });
     }
+  }
+
+  @Override
+  public void saveState(IMemento memento) {
+    try {
+      final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
+      state.saveToFile(f_viewStatePersistenceFile);
+    } catch (IOException e) {
+      SLLogger.getLogger().log(Level.WARNING,
+          "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+    }
+  }
+
+  private void setModelProblemIndicatorState(int problemCount) {
+    final boolean problemsExist = problemCount > 0;
+    final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST : CommonImages.IMG_JSURE_MODEL_PROBLEMS;
+    f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));
+    f_modelProblemsIndicator.setEnabled(problemsExist);
+    final String tooltip;
+    final String suffix = " in this scan...press to show the Modeling Problems view";
+    if (problemCount < 1) {
+      tooltip = "No modeling problems";
+    } else if (problemCount == 1) {
+      tooltip = "1 modeling problem" + suffix;
+    } else {
+      tooltip = problemCount + " modeling problems" + suffix;
+    }
+    f_modelProblemsIndicator.setToolTipText(tooltip);
+
+  }
+
+  private int getModelProblemCount(final JSureScanInfo info) {
+    int result = 0;
+    if (info != null) {
+      for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
+        final String resource = DropInfoUtility.getResource(id);
+        /*
+         * We filter results based upon the resource.
+         */
+        if (ModelingProblemFilterUtility.showResource(resource))
+          result++;
+      }
+    }
+    return result;
+  }
 }

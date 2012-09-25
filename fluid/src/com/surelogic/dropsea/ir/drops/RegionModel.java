@@ -18,6 +18,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.UiShowAtTopLevel;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -45,7 +46,7 @@ import edu.cmu.cs.fluid.util.Pair;
  * 
  * @lock RegionModelLock is class protects nameToDrop
  */
-public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements IRegionBinding, IRegion {
+public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements IRegionBinding, IRegion, UiShowAtTopLevel {
 
   /*
    * Special region names

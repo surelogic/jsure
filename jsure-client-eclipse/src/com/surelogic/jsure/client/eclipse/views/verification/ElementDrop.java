@@ -1,5 +1,9 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -12,19 +16,19 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 abstract class ElementDrop extends Element {
 
-  static ElementDrop factory(Element parent, IDrop drop) {
+  static Collection<Element> factory(Element parent, IDrop drop) {
+    final List<Element> result = new ArrayList<Element>();
     if (drop instanceof IPromiseDrop)
-      return new ElementPromiseDrop(parent, (IPromiseDrop) drop);
+      result.add(new ElementPromiseDrop(parent, (IPromiseDrop) drop));
     else if (drop instanceof IResultDrop)
-      return new ElementResultDrop(parent, (IResultDrop) drop);
+      result.add(new ElementResultDrop(parent, (IResultDrop) drop));
     else if (drop instanceof IResultFolderDrop)
-      return new ElementResultFolderDrop(parent, (IResultFolderDrop) drop);
+      result.addAll(ElementResultFolderDrop.getInstanceOrElide(parent, (IResultFolderDrop) drop));
     else if (drop instanceof IHintDrop)
-      return new ElementHintDrop(parent, (IHintDrop) drop);
+      result.add(new ElementHintDrop(parent, (IHintDrop) drop));
     else if (drop instanceof IProposedPromiseDrop)
-      return new ElementProposedPromiseDrop(parent, (IProposedPromiseDrop) drop);
-    else
-      throw new IllegalStateException("Unknown IDrop: " + drop);
+      result.add(new ElementProposedPromiseDrop(parent, (IProposedPromiseDrop) drop));
+    return result;
   }
 
   protected ElementDrop(Element parent) {

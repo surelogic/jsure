@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,25 +13,18 @@ import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.UiPlaceInASubFolder;
 import com.surelogic.dropsea.ir.Category;
 
-final class ElementCategory extends Element implements ComparableFolder {
+final class ElementCategory extends Element {
 
   static final class Categorizer {
 
-    private Element f_parent;
+    private final Element f_parent;
     private final List<IDrop> f_uncategorized = new ArrayList<IDrop>();
     final Map<Category, ElementCategory.Builder> f_categoryToBuilder = new HashMap<Category, ElementCategory.Builder>();
 
     Categorizer(Element parent) {
-      f_parent = parent;
-    }
-
-    Categorizer() {
-      this(null);
-    }
-
-    void setParent(Element parent) {
       f_parent = parent;
     }
 
@@ -41,7 +33,7 @@ final class ElementCategory extends Element implements ComparableFolder {
         return;
 
       final Category category = drop.getCategory();
-      if (category == null) {
+      if (category == null || doNotCategorize(drop)) {
         f_uncategorized.add(drop);
       } else {
         ElementCategory.Builder builder = f_categoryToBuilder.get(category);
@@ -54,19 +46,31 @@ final class ElementCategory extends Element implements ComparableFolder {
       }
     }
 
+    void addAll(Collection<? extends IDrop> drops) {
+      if (drops == null)
+        return;
+      for (IDrop drop : drops)
+        add(drop);
+    }
+
+    private boolean doNotCategorize(IDrop drop) {
+      return f_parent != null && !(drop.instanceOfIRDropSea(UiPlaceInASubFolder.class));
+    }
+
     boolean isEmpty() {
       return f_uncategorized.isEmpty() && f_categoryToBuilder.isEmpty();
     }
 
     Collection<ElementCategory.Builder> getBuilders() {
+      // does not use f_parent
       return f_categoryToBuilder.values();
     }
 
     @NonNull
-    List<ElementDrop> getUncategorizedElements() {
-      final List<ElementDrop> result = new ArrayList<ElementDrop>();
+    List<Element> getUncategorizedElements() {
+      final List<Element> result = new ArrayList<Element>();
       for (IDrop drop : f_uncategorized) {
-        result.add(ElementDrop.factory(f_parent, drop));
+        result.addAll(ElementDrop.factory(f_parent, drop));
       }
       return result;
     }
@@ -88,6 +92,11 @@ final class ElementCategory extends Element implements ComparableFolder {
       return result;
     }
 
+    @NonNull
+    Element[] getAllElementsAsArray() {
+      final List<Element> result = getAllElements();
+      return result.toArray(new Element[result.size()]);
+    }
   }
 
   static final class Builder {
@@ -187,16 +196,15 @@ final class ElementCategory extends Element implements ComparableFolder {
       ElementCategory result = new ElementCategory(f_parent, f_label, flags, f_imageName);
       List<Element> children = new ArrayList<Element>();
       for (IProofDrop pd : f_proofDrops) {
-        children.add(ElementDrop.factory(result, pd));
+        children.addAll(ElementDrop.factory(result, pd));
       }
       for (IDrop hd : f_otherDrops) {
-        children.add(ElementDrop.factory(result, hd));
+        children.addAll(ElementDrop.factory(result, hd));
       }
       for (ElementCategory.Builder builder : f_categories) {
         builder.setParent(result);
         children.add(builder.build());
       }
-      Collections.sort(children);
       result.f_children = children.toArray(new Element[children.size()]);
       return result;
     }
