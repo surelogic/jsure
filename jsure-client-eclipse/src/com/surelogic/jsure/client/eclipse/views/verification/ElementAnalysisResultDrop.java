@@ -15,6 +15,13 @@ abstract class ElementAnalysisResultDrop extends ElementProofDrop {
   @Override
   @NonNull
   final Element[] constructChildren() {
-    return EMPTY;
+    final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
+    c.addAll(getDrop().getProposals());
+    c.addAll(getDrop().getHints());
+    c.addAll(getDrop().getTrusted());
+    if (c.isEmpty())
+      return EMPTY;
+    else
+      return c.getAllElementsAsArray();
   }
 }
