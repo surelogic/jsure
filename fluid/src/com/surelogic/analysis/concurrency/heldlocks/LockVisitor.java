@@ -1716,8 +1716,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					 * ctxtSingleThreadedData.isSingleThreaded must be true for
 					 * this to be the case.
 					 */
-					ctxtSingleThreadedData.addSingleThreadedEvidence(
-					    resultDrop, ctxtInsideConstructor);
+					ctxtSingleThreadedData.addSingleThreadedEvidence(resultDrop);
 				}
 				addTrustedLockDrop(ctxtTheHeldLocks, heldJUCLocks.heldLocks,
 						neededLock, resultDrop);

@@ -95,6 +95,8 @@ final class LockExpressions {
   
   
   public final static class SingleThreadedData {
+    public final IRNode cdecl;
+    
     public final boolean isBorrowedThis;
     public final BorrowedPromiseDrop bDrop;
 
@@ -107,11 +109,12 @@ final class LockExpressions {
     
     public final boolean isSingleThreaded;
     
-    public SingleThreadedData(
+    public SingleThreadedData(final IRNode cdecl,
         final boolean isBorrowedThis, final BorrowedPromiseDrop bDrop,
         final boolean isUniqueReturn, final UniquePromiseDrop uDrop,
         final boolean isEffects,
         final RegionEffectsPromiseDrop eDrop, final StartsPromiseDrop teDrop) {
+      this.cdecl = cdecl;
       this.isBorrowedThis = isBorrowedThis;
       this.bDrop = bDrop;
       this.isUniqueReturn = isUniqueReturn;
@@ -122,8 +125,7 @@ final class LockExpressions {
       this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
     }
     
-    public void addSingleThreadedEvidence(
-        final ResultDrop result, final IRNode cdecl) {
+    public void addSingleThreadedEvidence(final ResultDrop result) {
      final ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
      result.addTrusted(f);
      f.setMessagesByJudgement(Messages.CONSTRUCTOR_IS_THREADCONFINED,

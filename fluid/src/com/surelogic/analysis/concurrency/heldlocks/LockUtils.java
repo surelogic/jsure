@@ -1412,7 +1412,7 @@ public final class LockUtils {
         }
       }
     }
-    return new LockExpressions.SingleThreadedData(isBorrowedThis, bDrop,
+    return new LockExpressions.SingleThreadedData(cdecl, isBorrowedThis, bDrop,
         isUniqueReturn, uDrop, isEffectsWork, eDrop, teDrop);
   }
   
