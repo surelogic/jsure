@@ -48,7 +48,6 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.builder.AbstractJavaBuilder;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -266,7 +265,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 
 	private void handleFailure(String msg, Throwable t) {
 		// Clear before creating warning
-		ClearProjectListener.clearJSureState();
+		//ClearProjectListener.clearJSureState();
 
 //		PromiseWarningDrop d = new PromiseWarningDrop();
 //		if (t != null) {

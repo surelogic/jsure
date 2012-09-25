@@ -20,8 +20,6 @@ import org.eclipse.ui.part.ViewPart;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.Eclipse;
-import com.surelogic.jsure.core.listeners.ClearProjectListener;
-import com.surelogic.jsure.core.listeners.IClearProjectHelper;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsLabelProvider;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsTreeContentProvider;
@@ -52,19 +50,10 @@ public final class TestResultsView extends ViewPart {
     }
   };
   
-  private final IClearProjectHelper clearHelper = new IClearProjectHelper() {
-    public void clearResults(boolean clearAll) {
-      if (clearAll) {
-        reset();
-      }
-    }
-  };
-  
   public TestResultsView() {
     shouldReset = false;
     stringWriter = new StringWriter();
     printWriter = new PrintWriter(stringWriter);
-    ClearProjectListener.addHelper(clearHelper);
   }
 
   void reset() {
