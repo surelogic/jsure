@@ -118,7 +118,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 			for (DiffNode o : old) {
 				if (m.match(pass, n.drop, o.drop)) {
 					String label = m.getLabel(pass);
-					if (!"Exact  ".equals(label) && !"Hashed ".equals(label)) {
+					if (m.warnIfMatched(pass)) {
 						if (title != null) {
 							out.println(title);
 							title = null;

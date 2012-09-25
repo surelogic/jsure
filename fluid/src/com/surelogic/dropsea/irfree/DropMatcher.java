@@ -36,6 +36,8 @@ public abstract class DropMatcher {
 		return labels[pass];
 	}
 
+	protected abstract boolean warnIfMatched(int pass);
+	
 	protected abstract boolean match(int pass, IDrop n, IDrop o);
 
 	protected static boolean matchBasics(IDrop n, IDrop o) {
@@ -101,19 +103,21 @@ public abstract class DropMatcher {
 		final long nh = computeSIHash(n);
 		if (nh != oh) {
 			System.out.println("Diff in infos");
+			return false;
 		}
-		return nh == oh;
+		return DropDiff.isSame(n, o);
 	}
 
 	private static long computeSIHash(IDrop e) {
 		long rv = 0;  
 		for (IHintDrop i : e.getHints()) {
+			rv += i.getHintType().hashCode();
+			
 			String msg = i.getMessage();
 			if (msg == null) {
 				continue;
 			}
 			rv += msg.hashCode();
-			rv += i.getHintType().hashCode();
 		}
 		return rv;
 	}
