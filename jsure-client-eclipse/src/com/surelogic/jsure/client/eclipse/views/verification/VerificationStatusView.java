@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
@@ -37,7 +38,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
@@ -73,6 +73,10 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
+  /**
+   * Utility class used to persist column widths based upon the use's
+   * preference.
+   */
   static class ColumnResizeListener extends ControlAdapter {
 
     final String f_prefKey;
@@ -96,9 +100,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   final public static Point ICONSIZE = new Point(22, 16);
 
-  /**
-   * leave {@code null} if the subclass doesn't want to use this capability.
-   */
   private PageBook f_viewerbook = null;
 
   private Label f_noResultsToShowLabel = null;
@@ -129,7 +130,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
     treeViewer.setContentProvider(f_contentProvider);
-    treeViewer.setLabelProvider(f_labelProvider);
     treeViewer.setSorter(new ViewerSorter() {
 
       @Override
@@ -142,34 +142,42 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     });
     ColumnViewerToolTipSupport.enableFor(treeViewer);
 
-    final Tree tree = treeViewer.getTree();
-    tree.setHeaderVisible(true);
-    tree.setLinesVisible(true);
+    treeViewer.getTree().setHeaderVisible(true);
+    treeViewer.getTree().setLinesVisible(true);
 
-    final TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
-    column1.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-    column1.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-    TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
-    column2.setText("Project");
-    column2.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-    column2.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-    TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
-    column3.setText("Package");
-    column3.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-    column3.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-    TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
-    column4.setText("Type");
-    column4.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-    column4.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-    TreeColumn column5 = new TreeColumn(tree, SWT.RIGHT);
-    column5.setText("Line");
-    column5.setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
-    column5.addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+    final TreeViewerColumn column1 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
+    column1.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    column1.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    TreeViewerColumn column2 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    column2.setLabelProvider(ColumnLabelProviderUtility.PROJECT);
+    column2.getColumn().setText("Project");
+    column2.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    column2.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    TreeViewerColumn column3 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    column3.setLabelProvider(ColumnLabelProviderUtility.PACKAGE);
+    column3.getColumn().setText("Package");
+    column3.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    column3.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    TreeViewerColumn column4 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    column4.setLabelProvider(ColumnLabelProviderUtility.TYPE);
+    column4.getColumn().setText("Type");
+    column4.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    column4.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    TreeViewerColumn column5 = new TreeViewerColumn(treeViewer, SWT.RIGHT);
+    column5.setLabelProvider(ColumnLabelProviderUtility.LINE);
+    column5.getColumn().setText("Line");
+    column5.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+    column5.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
 
     treeViewer.setInput(getViewSite());
     makeActions_private();
     hookContextMenu();
-    hookDoubleClickAction();
+    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      public void doubleClick(DoubleClickEvent event) {
+        doubleClickAction.run();
+      }
+    });
     contributeToActionBars();
     // start empty until the initial build is done
     setViewerVisibility(false);
@@ -208,8 +216,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
 
-  private final VerificationStatusViewLabelProvider f_labelProvider = new VerificationStatusViewLabelProvider();
-
   private final Action f_actionShowInferences = new Action() {
     @Override
     public void run() {
@@ -226,13 +232,13 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     public void run() {
       final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
       if (selection == null || selection.isEmpty()) {
-        treeViewer.expandToLevel(50);
+        treeViewer.expandToLevel(10);
       } else {
         for (Object obj : selection.toList()) {
           if (obj != null) {
-            treeViewer.expandToLevel(obj, 50);
+            treeViewer.expandToLevel(obj, 10);
           } else {
-            treeViewer.expandToLevel(50);
+            treeViewer.expandToLevel(10);
           }
         }
       }
@@ -244,7 +250,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     public void run() {
       final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
       if (selection == null || selection.isEmpty()) {
-        treeViewer.expandToLevel(50);
+        treeViewer.collapseAll();
       } else {
         for (Object obj : selection.toList()) {
           if (obj != null) {
@@ -431,14 +437,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   // return new ContentNameSorter();
   // }
 
-  String getSelectedText() {
+  private String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {
       if (sb.length() > 0) {
         sb.append('\n');
       }
-      sb.append(f_labelProvider.getColumnText(elt, 0));
+      sb.append(ColumnLabelProviderUtility.TREE.getText(elt));
     }
     return sb.toString();
   }
@@ -478,14 +484,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // }
     manager.add(f_actionExpand);
     manager.add(f_actionCollapse);
-    // if (!s.isEmpty()) {
-    // final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
-    // if (c.cloneOf != null) {
-    // manager.add(f_actionLinkToOriginal);
-    // }
-    // manager.add(new Separator());
-    // manager.add(f_copy);
-    // }
+    if (!s.isEmpty()) {
+      // final ResultsViewContent c = (ResultsViewContent) s.getFirstElement();
+      // if (c.cloneOf != null) {
+      // manager.add(f_actionLinkToOriginal);
+      // }
+      manager.add(new Separator());
+      manager.add(f_copy);
+    }
   }
 
   private void fillLocalToolBar(final IToolBarManager manager) {
@@ -540,42 +546,19 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   private void handleDoubleClick(final IStructuredSelection selection) {
     final Object obj = selection.getFirstElement();
-    // if (obj instanceof ResultsViewContent) {
-    // // try to open an editor at the point this item references
-    // // in the code
-    // final ResultsViewContent c = (ResultsViewContent) obj;
-    // if (c.cloneOf != null) {
-    // f_actionLinkToOriginal.run();
-    // return;
-    // }
-    // final ISrcRef sr = c.getSrcRef();
-    // if (sr != null) {
-    // highlightLineInJavaEditor(sr);
-    // }
-    // // open up the tree one more level
-    // if (!treeViewer.getExpandedState(obj)) {
-    // treeViewer.expandToLevel(obj, 1);
-    // }
-    // }
-  }
-
-  /**
-   * Open and highlight a line within the Java editor, if possible. Otherwise,
-   * try to open as a text file
-   * 
-   * @param srcRef
-   *          the source reference to highlight
-   */
-  private void highlightLineInJavaEditor(ISrcRef srcRef) {
-    EditorUtil.highlightLineInJavaEditor(srcRef);
-  }
-
-  private void hookDoubleClickAction() {
-    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
-      public void doubleClick(DoubleClickEvent event) {
-        doubleClickAction.run();
+    if (obj instanceof ElementDrop) {
+      /*
+       * Try to open an editor at the point this item references in the code
+       */
+      final ISrcRef srcRef = ((ElementDrop) obj).getDrop().getSrcRef();
+      if (srcRef != null) {
+        EditorUtil.highlightLineInJavaEditor(srcRef);
       }
-    });
+    }
+    // open up the tree one more level
+    if (!treeViewer.getExpandedState(obj)) {
+      treeViewer.expandToLevel(obj, 1);
+    }
   }
 
   /**
