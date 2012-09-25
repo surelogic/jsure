@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -79,13 +78,12 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
        * If the hint is uncategorized we don't show it in this section (it shows
        * up under the drop it is attached to).
        */
-      final ElementCategory.Categorizer hc = new ElementCategory.Categorizer();
+      final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
       for (IHintDrop hint : scan.getAnalysisHintDrops()) {
         if (hint.getCategory() != null)
           hc.add(hint);
       }
       root.addAll(pc.getAllElements());
-      Collections.sort(root); // before we add hints
       if (!hc.isEmpty()) {
         final ElementCategory.Builder sw = new ElementCategory.Builder(null);
         sw.setLabel("Suggestions and warnings");

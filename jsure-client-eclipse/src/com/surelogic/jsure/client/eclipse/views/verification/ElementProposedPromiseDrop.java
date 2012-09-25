@@ -6,7 +6,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 
-final class ElementProposedPromiseDrop extends ElementDrop implements ComparableProposal {
+final class ElementProposedPromiseDrop extends ElementDrop {
 
   protected ElementProposedPromiseDrop(Element parent, IProposedPromiseDrop proposedPromiseDrop) {
     super(parent);
@@ -37,6 +37,12 @@ final class ElementProposedPromiseDrop extends ElementDrop implements Comparable
   @Override
   @NonNull
   Element[] constructChildren() {
-    return EMPTY;
+    final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
+    c.addAll(getDrop().getProposals());
+    c.addAll(getDrop().getHints());
+    if (c.isEmpty())
+      return EMPTY;
+    else
+      return c.getAllElementsAsArray();
   }
 }

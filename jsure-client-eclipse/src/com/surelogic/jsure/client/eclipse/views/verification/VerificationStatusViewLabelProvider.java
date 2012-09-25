@@ -24,13 +24,13 @@ public class VerificationStatusViewLabelProvider implements ITableLabelProvider 
       }
       break;
     case 1:
-      if (!"".equals(getColumnText(element, columnIndex)))
+      if (isNotEmptyOrNull(getColumnText(element, columnIndex)))
         return f_projectRid.getCachedImage();
     case 2:
-      if (!"".equals(getColumnText(element, columnIndex)))
+      if (isNotEmptyOrNull(getColumnText(element, columnIndex)))
         return f_packageRid.getCachedImage();
     case 3:
-      if (!"".equals(getColumnText(element, columnIndex)))
+      if (isNotEmptyOrNull(getColumnText(element, columnIndex)))
         return f_classRid.getCachedImage();
     }
     return null;
@@ -69,5 +69,13 @@ public class VerificationStatusViewLabelProvider implements ITableLabelProvider 
 
   public void removeListener(ILabelProviderListener listener) {
     // do nothing
+  }
+
+  private boolean isNotEmptyOrNull(String value) {
+    if (value == null)
+      return false;
+    if ("".equals(value))
+      return false;
+    return true;
   }
 }

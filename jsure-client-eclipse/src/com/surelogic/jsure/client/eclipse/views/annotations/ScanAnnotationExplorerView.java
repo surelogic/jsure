@@ -32,7 +32,10 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -175,6 +178,7 @@ public class ScanAnnotationExplorerView extends
 			}
 			final MultiMap<String, IDrop> pkgToDrop = new MultiHashMap<String, IDrop>();
 			for (IPromiseDrop d : info.getPromiseDrops()) {
+			//for (IDrop d : info.getDropInfo()) {
 				final ISrcRef sr = d.getSrcRef();
 				if (sr == null) {
 					continue;
@@ -323,14 +327,22 @@ public class ScanAnnotationExplorerView extends
 
 		public int compareTo(ITypeElement o) {
 			int rv = 0;
+			boolean isAnno = false;
 			if (this instanceof Anno) {
 				rv--;
+				isAnno = true;
 			}
 			if (o instanceof Anno) {
 				rv++;
+				isAnno = true;
+			}
+			if (isAnno && rv == 0) {
+				Anno a0 = (Anno) this;
+				Anno a2 = (Anno) o;
+				rv = a0.drop.getSrcRef().getOffset() - a2.drop.getSrcRef().getOffset();
 			}
 			if (rv == 0) {
-				return getLabel().compareTo(o.getLabel());
+				return getLabel().compareTo(o.getLabel());				
 			}
 			return rv;
 		}
@@ -347,8 +359,11 @@ public class ScanAnnotationExplorerView extends
 				final MultiMap<String, IDrop> idToDrop = new MultiHashMap<String, IDrop>();
 				String name = e.getKey();
 				for (IDrop d : e.getValue()) {
-					String label = JavaIdentifier.extractDecl(name, d
-							.getSrcRef().getJavaId());
+					String id = d.getSrcRef().getJavaId();
+					if (id == null) {
+						continue;
+					}
+					String label = JavaIdentifier.extractDecl(name, id);
 					idToDrop.put(label, d);
 				}
 				getChildren()[i] = new Type(this, name, idToDrop);
@@ -416,6 +431,7 @@ public class ScanAnnotationExplorerView extends
 				getChildren()[i] = new Anno(this, d);
 				i++;
 			}
+			Arrays.sort(getChildren());
 		}
 
 		@Override
@@ -434,7 +450,33 @@ public class ScanAnnotationExplorerView extends
 
 		@Override
 		public Image getImage() {
-			return SLImages.getImage(CommonImages.IMG_ANNOTATION);
+			if (drop instanceof IPromiseDrop) {
+				IPromiseDrop p = (IPromiseDrop) drop;
+				if (p.provedConsistent()) {
+					return SLImages.getImage(CommonImages.IMG_PROMISE_CONSISTENT);
+				}
+				return SLImages.getImage(CommonImages.IMG_PROMISE_INCONSISTENT);
+			}
+			else if (drop instanceof IResultDrop) {
+				IResultDrop r = (IResultDrop) drop;
+				if (r.provedConsistent()) {
+					return SLImages.getImage(CommonImages.IMG_PLUS);
+				}
+				return SLImages.getImage(CommonImages.IMG_RED_X);
+			}
+			else if (drop instanceof IHintDrop) {
+				IHintDrop h = (IHintDrop) drop;
+				switch (h.getHintType()) {
+				case INFORMATION:
+					return SLImages.getImage(CommonImages.IMG_INFO);
+				case WARNING:
+					return SLImages.getImage(CommonImages.IMG_WARNING);
+				}
+			}
+			else if (drop instanceof IProposedPromiseDrop) {
+				return SLImages.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
+			}
+			return null;
 		}
 
 		public JavaSourceReference getSourceRef() {
