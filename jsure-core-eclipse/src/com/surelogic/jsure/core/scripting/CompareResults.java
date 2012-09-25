@@ -7,8 +7,9 @@ import java.io.*;
 
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 
 /**
@@ -46,11 +47,11 @@ public class CompareResults extends AbstractCommand {
 		if (oracle == null) {
 			return false;
 		}
-		PersistentDropInfo.getInstance().load();
-		
+		//PersistentDropInfo.getInstance().load();
+		final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
 		
 		System.out.println("Using oracle: "+oracle);
-		final ISeaDiff diff = SeaSummary.diff(PersistentDropInfo.getInstance().getRawInfo(), 
+		final ISeaDiff diff = SeaSummary.diff(info.getDropInfo(),//PersistentDropInfo.getInstance().getRawInfo(), 
 				oracle, ModelingProblemFilterUtility.defaultFilter);
 
 		final File diffs = resolveFile(context, contents[3], true);	
