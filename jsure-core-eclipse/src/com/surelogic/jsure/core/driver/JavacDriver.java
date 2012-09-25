@@ -50,7 +50,6 @@ import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.PersistenceConstants;
-import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -1940,11 +1939,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		public SLStatus run(SLProgressMonitor monitor) {
 			lastMonitor = monitor;
 			projects.setMonitor(monitor);
-
+			/*
 			if (XUtil.testingWorkspace) {
 				System.out.println("Clearing state before running analysis");
 				ClearProjectListener.clearJSureState();
 			}
+			*/
 			System.out.println("Starting analysis for " + projects.getLabel());
 			final long start = System.currentTimeMillis();
 			try {
@@ -2008,7 +2008,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					}
 				} else {
 					if (clearBeforeAnalysis || oldProjects == null) {
-						ClearProjectListener.clearJSureState();
+						//ClearProjectListener.clearJSureState();
 
 						ok = Util.openFiles(projects, true);
 					} else {
