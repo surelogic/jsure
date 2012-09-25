@@ -6,7 +6,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 
-final class ElementProposedPromiseDrop extends ElementDrop {
+final class ElementProposedPromiseDrop extends ElementDrop implements ComparableProposal {
 
   protected ElementProposedPromiseDrop(Element parent, IProposedPromiseDrop proposedPromiseDrop) {
     super(parent);
@@ -38,11 +38,5 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   @NonNull
   Element[] constructChildren() {
     return EMPTY;
-  }
-
-  @Override
-  public int compareTo(Element o) {
-    // TODO Auto-generated method stub
-    return 0;
   }
 }

@@ -5,7 +5,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultFolderDrop;
 
-final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
+final class ElementResultFolderDrop extends ElementAnalysisResultDrop implements ComparableFolder {
 
   ElementResultFolderDrop(Element parent, IResultFolderDrop resultFolderDrop) {
     super(parent);
@@ -36,11 +36,5 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
       return CommonImages.IMG_FOLDER;
     else
       return CommonImages.IMG_FOLDER_OR;
-  }
-
-  @Override
-  public int compareTo(Element o) {
-    // TODO Auto-generated method stub
-    return 0;
   }
 }

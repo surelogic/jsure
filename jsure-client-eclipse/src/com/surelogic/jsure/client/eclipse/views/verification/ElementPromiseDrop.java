@@ -6,7 +6,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IPromiseDrop;
 
-final class ElementPromiseDrop extends ElementProofDrop {
+final class ElementPromiseDrop extends ElementProofDrop implements ComparableJava {
 
   ElementPromiseDrop(Element parent, IPromiseDrop promiseDrop) {
     super(parent);
@@ -45,10 +45,5 @@ final class ElementPromiseDrop extends ElementProofDrop {
   Element[] constructChildren() {
     // TODO
     return EMPTY;
-  }
-
-  @Override
-  public int compareTo(Element o) {
-    return 0;
   }
 }

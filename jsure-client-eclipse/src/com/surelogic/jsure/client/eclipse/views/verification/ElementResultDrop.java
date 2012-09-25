@@ -5,7 +5,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultDrop;
 
-final class ElementResultDrop extends ElementAnalysisResultDrop {
+final class ElementResultDrop extends ElementAnalysisResultDrop implements ComparableJava {
 
   ElementResultDrop(Element parent, IResultDrop resultDrop) {
     super(parent);
@@ -36,11 +36,5 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
       return CommonImages.IMG_PLUS;
     else
       return CommonImages.IMG_RED_X;
-  }
-
-  @Override
-  public int compareTo(Element o) {
-    // TODO Auto-generated method stub
-    return 0;
   }
 }

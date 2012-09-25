@@ -106,4 +106,59 @@ abstract class Element implements Comparable<Element> {
     final int flags = getImageFlags();
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
+
+  /**
+   * Elements compare in the following order from greatest to least:
+   * <ul>
+   * <li>{@link ComparableFolder} ({@link ElementCategory} and
+   * {@link ElementResultFolderDrop}) &mdash; by label.</li>
+   * <li>{@link ComparableJava} ({@link ElementHintDrop},
+   * {@link ElementResultDrop} and {@link ElementPromiseDrop}) &mdash; by
+   * project, package, type, line number, label.</li>
+   * <li>{@link ComparableProposal} ({@link ElementProposedPromiseDrop}) &mdash;
+   * by label.</li>
+   * </ul>
+   */
+  @Override
+  final public int compareTo(Element o) {
+    if (this instanceof ComparableFolder) {
+      if (o instanceof ComparableFolder) {
+        return this.getLabel().compareTo(o.getLabel());
+      } else
+        return 1; // this > o
+    } else if (this instanceof ComparableJava) {
+      if (o instanceof ComparableFolder)
+        return -1; // this < o
+      else if (o instanceof ComparableJava) {
+        int c = nullToEmpty(this.getProjectOrNull()).compareTo(nullToEmpty(o.getProjectOrNull()));
+        if (c != 0)
+          return c;
+        c = nullToEmpty(this.getPackageOrNull()).compareTo(nullToEmpty(o.getPackageOrNull()));
+        if (c != 0)
+          return c;
+        c = nullToEmpty(this.getTypeOrNull()).compareTo(nullToEmpty(o.getTypeOrNull()));
+        if (c != 0)
+          return c;
+        if (this.getLineNumber() != o.getLineNumber())
+          return this.getLineNumber() - o.getLineNumber();
+        if (c != 0)
+          return c;
+        return this.getLabel().compareTo(o.getLabel());
+      } else if (o instanceof ComparableProposal)
+        return 1; // this > o
+    } else if (this instanceof ComparableProposal) {
+      if (o instanceof ComparableProposal) {
+        return this.getLabel().compareTo(o.getLabel());
+      } else
+        return -1; // this < o
+    }
+    return 1;
+  }
+
+  private String nullToEmpty(String value) {
+    if (value == null)
+      return "";
+    else
+      return value;
+  }
 }

@@ -16,7 +16,7 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ir.Category;
 
-final class ElementCategory extends Element {
+final class ElementCategory extends Element implements ComparableFolder {
 
   static final class Categorizer {
 
@@ -234,11 +234,5 @@ final class ElementCategory extends Element {
   @Nullable
   String getImageName() {
     return f_imageName;
-  }
-
-  @Override
-  public int compareTo(Element o) {
-    // TODO Auto-generated method stub
-    return 0;
   }
 }

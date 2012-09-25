@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -25,12 +26,11 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   }
 
   public Object[] getElements(Object inputElement) {
-    System.out.println("getElements(" + inputElement);
-    return f_root.toArray();
+    final Element[] root = f_root;
+    return root != null ? root : Element.EMPTY;
   }
 
   public Object[] getChildren(Object parentElement) {
-    System.out.println("getChildren(" + parentElement);
     if (parentElement instanceof Element)
       return ((Element) parentElement).getChildren();
     else
@@ -38,7 +38,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   }
 
   public Object getParent(Object element) {
-    System.out.println("getParent(" + element);
     if (element instanceof Element)
       return ((Element) element).getParent();
     else
@@ -46,7 +45,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   }
 
   public boolean hasChildren(Object element) {
-    System.out.println("hasChildren(" + element);
     if (element instanceof Element)
       return ((Element) element).hasChildren();
     else
@@ -63,10 +61,10 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     f_showHints = value;
   }
 
-  private final List<Element> f_root = new ArrayList<Element>();
+  private Element[] f_root = null;
 
   public void buildModelOfDropSea_internal() {
-    f_root.clear();
+    final List<Element> root = new ArrayList<Element>();
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
@@ -86,14 +84,16 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         if (hint.getCategory() != null)
           hc.add(hint);
       }
-      f_root.addAll(pc.getAllElements());
+      root.addAll(pc.getAllElements());
+      Collections.sort(root); // before we add hints
       if (!hc.isEmpty()) {
         final ElementCategory.Builder sw = new ElementCategory.Builder(null);
         sw.setLabel("Suggestions and warnings");
         sw.setImageName(CommonImages.IMG_INFO);
         sw.addCategories(hc.getBuilders());
-        f_root.add(sw.build());
+        root.add(sw.build());
       }
+      f_root = root.toArray(new Element[root.size()]);
     }
   }
 
