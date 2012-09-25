@@ -257,9 +257,9 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 				case 1:				
 					return matchCore(n, o);
 				case 2:					
-					return matchHashed(n, o);
+					return matchHashedAndHints(n, o);
 				case 3:
-					return matchHashed2(n, o);
+					return matchHashed(n, o);
 				case 4:
 					return matchResults(n, o);
 				default:
@@ -271,7 +271,11 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 			}
 			
 			private boolean matchCore(IDrop n, IDrop o) {
-				return matchBasics(n, o) && getOffset(n).equals(getOffset(o));
+				return matchBasics(n, o) && matchLong(getOffset(n), getOffset(o));
+			}
+			
+			private boolean matchHashedAndHints(IDrop n, IDrop o) {
+				return matchHashed(n, o) && matchSupportingInfo(n, o);
 			}
 			
 			private boolean matchHashed(IDrop n, IDrop o) {
@@ -279,9 +283,11 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 				       matchLong(n.getTreeHash(), o.getTreeHash()) && 
 				       matchLong(n.getContextHash(), o.getContextHash());
 			}
+			/*
 			private boolean matchHashed2(IDrop n, IDrop o) {
 				return matchBasics(n, o) && matchLong(n.getTreeHash(), o.getTreeHash());				
 			}
+			*/
 			private boolean matchResults(IDrop n, IDrop o) {
 				return (n instanceof IResultDrop) && matchLong(n.getTreeHash(), o.getTreeHash());
 			}
