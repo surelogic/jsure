@@ -35,13 +35,12 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
-import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.DoubleChecker;
@@ -51,6 +50,7 @@ import com.surelogic.jsure.core.listeners.IAnalysisListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
 import com.surelogic.test.ITest;
@@ -517,12 +517,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				throw t;
 			}
 		}
+		/*
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
 		if (pd == null) {
 			throw new IllegalStateException("No results");
 		}
 		final Projects projs = (Projects) pd.getIIRProjects();
-		final File results = new File(projs.getRunDir(),
+		*/
+		JSureScan run = JSureDataDirHub.getInstance().getCurrentScan();
+		final File results = new File(run.getDir(),
 				RemoteJSureRun.RESULTS_XML);
 
 		// Export the results from this run

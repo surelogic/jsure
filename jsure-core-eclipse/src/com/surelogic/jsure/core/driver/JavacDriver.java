@@ -40,7 +40,6 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.drops.ProjectsDrop;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
@@ -1383,6 +1382,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 		synchronized (this) {
 			// Only if there's no build already
 			SLLogger.getLogger().fine("Starting to configure JSure build");
+			/*
 			ProjectsDrop pd = ProjectsDrop.getDrop();
 			if (pd != null) {
 				for (JavacProject jp : ((Projects) pd.getIIRProjects())) {
@@ -1390,6 +1390,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					jp.deactivate();
 				}
 			}
+			*/
 			if (XUtil.testing) {
 				configure.run(new NullSLProgressMonitor());
 			} else {
@@ -1412,7 +1413,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			final File dataDir = JSurePreferencesUtility
 					.getJSureDataDirectory();
 			final Projects oldProjects = useSeparateJVM ? null
-					: (Projects) ProjectsDrop.getProjects();
+					: null;//(Projects) ProjectsDrop.getProjects();
 			if (oldProjects != null) {
 				System.out.println("Old projects = " + oldProjects.getLabel());
 			}
@@ -1993,6 +1994,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						new File(runDir, JSureScan.INCOMPLETE_SCAN).delete();
 						new File(runDir, JSureScan.COMPLETE_SCAN).createNewFile();		
 						
+						/*
 						// Normally done by Javac, but needs to be repeated
 						// locally
 						if (oldProjects != null && noConflict) {
@@ -2002,6 +2004,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						} else {
 							ProjectsDrop.ensureDrop(projects);
 						}
+						*/
 					} else if (status != SLStatus.CANCEL_STATUS
 							&& status.getSeverity() == SLSeverity.ERROR) {
 						handleCrash(status);

@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.surelogic.InRegion;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.dropsea.ir.Sea;
@@ -29,19 +28,15 @@ public final class SourceCUDrop extends CUDrop {
    */
   private static ConcurrentHashMap<ICodeFile, SourceCUDrop> FILE_TO_INSTANCE;
 
-  public SourceCUDrop(CodeInfo info, ProjectsDrop p) {
+  public SourceCUDrop(CodeInfo info) {
     super(info, info.isAsSource());
     // System.out.println("Creating SourceCUDrop for "+info.getFileName());
-    f_projects = p;
 
     synchronized (Sea.getDefault().getSeaLock()) {
       // clear cached drops, since we're creating new ones
       FILE_TO_INSTANCE = null;
     }
   }
-
-  @InRegion("DropState")
-  private ProjectsDrop f_projects;
 
   /**
    * This is needed because we need to clean up some drops that we place in the
@@ -113,17 +108,5 @@ public final class SourceCUDrop extends CUDrop {
       FILE_TO_INSTANCE = null;
     }
     return result;
-  }
-
-  public void setProject(ProjectsDrop projects) {
-    synchronized (f_seaLock) {
-      f_projects = projects;
-    }
-  }
-
-  public ProjectsDrop getProject() {
-    synchronized (f_seaLock) {
-      return f_projects;
-    }
   }
 }
