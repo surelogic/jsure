@@ -50,7 +50,8 @@ final class ElementPromiseDrop extends ElementProofDrop {
     if (getAncestorWithSameDropOrNull() == null) {
       final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
       c.addAll(getDrop().getProposals());
-      c.addAll(getDrop().getHints());
+      if (f_showHints)
+        c.addAll(getDrop().getHints());
       c.addAll(getDrop().getCheckedBy());
       c.addAll(getDrop().getDependentPromises());
       if (c.isEmpty())

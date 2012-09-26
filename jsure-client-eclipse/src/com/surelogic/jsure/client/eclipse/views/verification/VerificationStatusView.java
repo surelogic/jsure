@@ -24,7 +24,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -103,6 +102,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private Label f_noResultsToShowLabel = null;
   private TreeViewer f_treeViewer;
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+  private boolean f_showHints;
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -119,12 +119,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         return Element.JAVA.compare((Element) e1, (Element) e2);
       }
       return super.compare(viewer, e1, e2);
-    }
-  };
-  private final ViewerFilter f_noHintsFilter = new ViewerFilter() {
-    @Override
-    public boolean select(Viewer viewer, Object parentElement, Object element) {
-      return !(element instanceof ElementHintDrop);
     }
   };
 
@@ -199,7 +193,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrLabel();
+    showScanOrLabel(f_showHints);
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -214,16 +208,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   }
 
   @Override
-  public void currentScanChanged(JSureScan scan) {
+  public void currentScanChanged(JSureScan doNotUseInThisMethod) {
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrLabel();
+          showScanOrLabel(f_showHints);
           state.restoreViewState(f_treeViewer);
-        } else {
-          SLLogger.getLogger().log(Level.WARNING, "treeViewer is null when the current scan is being changed", new Exception());
         }
         return Status.OK_STATUS;
       }
@@ -250,14 +242,12 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private final Action f_actionShowHints = new Action("", Action.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean toggle = !ColumnLabelProviderUtility.TREE.showHints();
-      ColumnLabelProviderUtility.TREE.setShowHints(toggle);
-      f_actionShowHints.setChecked(toggle);
-      if (toggle)
-        f_treeViewer.removeFilter(f_noHintsFilter);
-      else
-        f_treeViewer.addFilter(f_noHintsFilter);
-      f_treeViewer.refresh();
+      final boolean buttonChecked = f_actionShowHints.isChecked();
+      if (f_showHints != buttonChecked) {
+        f_showHints = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS, f_showHints);
+        currentScanChanged(null);
+      }
     }
   };
 
@@ -412,7 +402,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
     f_actionShowHints.setToolTipText("Show information and warning hints about the code");
-    f_actionShowHints.setChecked(ColumnLabelProviderUtility.TREE.showHints());
+    f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
+    f_actionShowHints.setChecked(f_showHints);
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
@@ -583,13 +574,13 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   // return null;
   // }
 
-  private void showScanOrLabel() {
-    final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scanInfo != null) {
+  private void showScanOrLabel(boolean showHints) {
+    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+    if (scan != null) {
       // show the scan results
       final long start = System.currentTimeMillis();
-      f_contentProvider.buildModelOfDropSea_internal();
-      final int modelProblemCount = getModelProblemCount(scanInfo);
+      f_contentProvider.changeContentsToCurrentScan(scan, showHints);
+      final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       final long end = System.currentTimeMillis();
       setViewerVisibility(true);

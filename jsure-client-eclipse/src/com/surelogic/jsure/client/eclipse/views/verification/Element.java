@@ -79,7 +79,21 @@ abstract class Element {
     }
   };
 
+  /**
+   * An empty array of {@link Element} objects. Should be returned by
+   * {@link #constructChildren()} if an element has none.
+   */
   static final Element[] EMPTY = new Element[0];
+
+  /**
+   * {@code true} if hints are to be shown by all elements, {@code false}
+   * otherwise.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by
+   * {@link VerificationStatusViewContentProvider} when it constructs a model of
+   * elements for a scan.
+   */
+  static boolean f_showHints;
 
   @Nullable
   private final Element f_parent;
@@ -242,6 +256,15 @@ abstract class Element {
         flags |= CoE_Constants.HINT_WARNING;
     }
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
+  }
+
+  /**
+   * Gets the decorated the image associated with this element.
+   * 
+   * @return an image.
+   */
+  final Image getImage() {
+    return getImage(f_showHints);
   }
 
   @Override

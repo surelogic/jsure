@@ -6,12 +6,12 @@ import java.util.List;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
@@ -52,18 +52,20 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   private Element[] f_root = null;
 
-  public void buildModelOfDropSea_internal() {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showHints) {
     final List<Element> root = new ArrayList<Element>();
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scan != null) {
-      final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
-      for (IPromiseDrop promise : scan.getPromiseDrops()) {
-        if (promise.isFromSrc() || promise.derivedFromSrc()) {
-          if (showAtTopLevel(promise)) {
-            pc.add(promise);
-          }
+    Element.f_showHints = showHints;
+    final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
+    for (IPromiseDrop promise : scan.getPromiseDrops()) {
+      if (promise.isFromSrc() || promise.derivedFromSrc()) {
+        if (showAtTopLevel(promise)) {
+          pc.add(promise);
         }
       }
+    }
+    root.addAll(pc.getAllElements());
+
+    if (showHints) {
       /*
        * If the hint is uncategorized we don't show it in this section (it shows
        * up under the drop it is attached to).
@@ -73,7 +75,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         if (hint.getCategory() != null)
           hc.add(hint);
       }
-      root.addAll(pc.getAllElements());
       if (!hc.isEmpty()) {
         final ElementCategory.Builder sw = new ElementCategory.Builder(null);
         sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
@@ -81,8 +82,8 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         sw.addCategories(hc.getBuilders());
         root.add(sw.build());
       }
-      f_root = root.toArray(new Element[root.size()]);
     }
+    f_root = root.toArray(new Element[root.size()]);
   }
 
   /**

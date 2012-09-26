@@ -39,7 +39,8 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   Element[] constructChildren() {
     final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
     c.addAll(getDrop().getProposals());
-    c.addAll(getDrop().getHints());
+    if (f_showHints)
+      c.addAll(getDrop().getHints());
     if (c.isEmpty())
       return EMPTY;
     else

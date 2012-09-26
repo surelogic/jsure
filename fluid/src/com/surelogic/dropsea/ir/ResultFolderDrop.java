@@ -101,28 +101,29 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       // Our lattice -- lower index is better
       // {consistency judgment, uses red dot, has warning hint}
       boolean[][] judgmentReddotWarningLattice = { { true, false, false }, { true, false, true }, { true, true, false },
-          { true, true, true }, { false, true, false }, { false, true, true }, { false, false, true }, { false, false, false }, };
-      int bestIndex = judgmentReddotWarningLattice.length - 1;
+          { true, true, true }, { false, true, false }, { false, true, true }, { false, false, false }, { false, false, true }, };
+
+      int indexOfBestChoice = judgmentReddotWarningLattice.length - 1;
 
       boolean overall_or_derivedFromSource = false;
 
-      for (ProofDrop result : getTrusted()) {
+      for (ProofDrop choice : getTrusted()) {
         for (int i = 0; i < judgmentReddotWarningLattice.length; i++) {
           final boolean[] lattice = judgmentReddotWarningLattice[i];
-          if (lattice[0] = result.provedConsistent() && lattice[1] == result.proofUsesRedDot()
-              && lattice[2] == result.derivedFromWarningHint()) {
-            if (i < bestIndex)
-              bestIndex = i;
+          if (lattice[0] == choice.provedConsistent() && lattice[1] == choice.proofUsesRedDot()
+              && lattice[2] == choice.derivedFromWarningHint()) {
+            if (i < indexOfBestChoice)
+              indexOfBestChoice = i;
           }
         }
 
         // if anything is derived from source we will be as well
-        overall_or_derivedFromSource |= result.derivedFromSrc();
+        overall_or_derivedFromSource |= choice.derivedFromSrc();
       }
 
-      setProvedConsistent(judgmentReddotWarningLattice[bestIndex][0]);
-      setProofUsesRedDot(judgmentReddotWarningLattice[bestIndex][1]);
-      setDerivedFromWarningHint(judgmentReddotWarningLattice[bestIndex][2]);
+      setProvedConsistent(judgmentReddotWarningLattice[indexOfBestChoice][0]);
+      setProofUsesRedDot(judgmentReddotWarningLattice[indexOfBestChoice][1]);
+      setDerivedFromWarningHint(judgmentReddotWarningLattice[indexOfBestChoice][2]);
       setDerivedFromSrc(derivedFromSrc() | overall_or_derivedFromSource);
     }
   }

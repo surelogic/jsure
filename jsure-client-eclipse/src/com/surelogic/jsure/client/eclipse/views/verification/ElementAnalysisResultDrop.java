@@ -17,7 +17,8 @@ abstract class ElementAnalysisResultDrop extends ElementProofDrop {
   final Element[] constructChildren() {
     final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
     c.addAll(getDrop().getProposals());
-    c.addAll(getDrop().getHints());
+    if (f_showHints)
+      c.addAll(getDrop().getHints());
     c.addAll(getDrop().getTrusted());
     if (c.isEmpty())
       return EMPTY;

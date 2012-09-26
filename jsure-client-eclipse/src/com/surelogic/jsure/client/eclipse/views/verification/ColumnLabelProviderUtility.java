@@ -13,25 +13,13 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  static VerificationStatusTreeColumnLabelProvider TREE = new VerificationStatusTreeColumnLabelProvider();
-
-  static class VerificationStatusTreeColumnLabelProvider extends AbstractElementColumnLabelProvider {
-
-    private boolean f_showHints = true;
-
-    public boolean showHints() {
-      return f_showHints;
-    }
-
-    public void setShowHints(boolean value) {
-      f_showHints = value;
-    }
+  static final ColumnLabelProvider TREE = new AbstractElementColumnLabelProvider() {
 
     private Color f_duplicate;
 
     @Override
     Image getImageFromElement(@NonNull Element element) {
-      return element.getImage(f_showHints);
+      return element.getImage();
     }
 
     @Override
@@ -66,7 +54,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static ColumnLabelProvider PROJECT = new AbstractElementColumnLabelProvider() {
+  static final ColumnLabelProvider PROJECT = new AbstractElementColumnLabelProvider() {
 
     private final ResultsImageDescriptor f_projectRid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0,
         VerificationStatusView.ICONSIZE);
@@ -85,7 +73,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static ColumnLabelProvider PACKAGE = new AbstractElementColumnLabelProvider() {
+  static final ColumnLabelProvider PACKAGE = new AbstractElementColumnLabelProvider() {
 
     private final ResultsImageDescriptor f_packageRid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0,
         VerificationStatusView.ICONSIZE);
@@ -104,7 +92,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static ColumnLabelProvider TYPE = new AbstractElementColumnLabelProvider() {
+  static final ColumnLabelProvider TYPE = new AbstractElementColumnLabelProvider() {
 
     private final ResultsImageDescriptor f_classRid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0,
         VerificationStatusView.ICONSIZE);
