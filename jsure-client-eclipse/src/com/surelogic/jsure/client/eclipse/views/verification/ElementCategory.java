@@ -11,7 +11,6 @@ import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
@@ -114,7 +113,6 @@ final class ElementCategory extends Element {
     boolean f_provedConsistent = true;
     boolean f_proofUsesRedDot = false;
     private final List<IDrop> f_otherDrops = new ArrayList<IDrop>();
-    boolean f_anyWarningHints = false;
     private final List<ElementCategory.Builder> f_categories = new ArrayList<ElementCategory.Builder>();
     private String f_label;
     private String f_imageName;
@@ -140,10 +138,6 @@ final class ElementCategory extends Element {
         return;
       }
 
-      if (drop instanceof IHintDrop) {
-        if (((IHintDrop) drop).getHintType() == IHintDrop.HintType.WARNING)
-          f_anyWarningHints = true;
-      }
       f_otherDrops.add(drop);
     }
 
@@ -201,9 +195,6 @@ final class ElementCategory extends Element {
         flags |= f_provedConsistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT;
         if (f_proofUsesRedDot)
           flags |= CoE_Constants.REDDOT;
-      }
-      if (f_anyWarningHints) {
-        flags |= CoE_Constants.HINT_WARNING;
       }
       ElementCategory result = new ElementCategory(f_parent, f_label, flags, f_imageName);
       List<Element> children = new ArrayList<Element>();

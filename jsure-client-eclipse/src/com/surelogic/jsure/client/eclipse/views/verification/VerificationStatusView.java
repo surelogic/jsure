@@ -19,9 +19,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -77,7 +75,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
    * Utility class used to persist column widths based upon the use's
    * preference.
    */
-  static class ColumnResizeListener extends ControlAdapter {
+  private static class ColumnResizeListener extends ControlAdapter {
 
     final String f_prefKey;
 
@@ -96,16 +94,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   private static final String VIEW_STATE = "VerificationStatusView_TreeViewerUIState";
 
-  final File f_viewStatePersistenceFile;
+  private final File f_viewStatePersistenceFile;
 
-  final public static Point ICONSIZE = new Point(22, 16);
+  public static final Point ICONSIZE = new Point(22, 16);
 
   private PageBook f_viewerbook = null;
-
   private Label f_noResultsToShowLabel = null;
-  private TreeViewer treeViewer;
-
-  private Action doubleClickAction;
+  private TreeViewer f_treeViewer;
+  private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
 
   public VerificationStatusView() {
     File viewState = null;
@@ -127,9 +123,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_viewerbook = new PageBook(parent, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-    treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
-    treeViewer.setContentProvider(f_contentProvider);
-    treeViewer.setSorter(new ViewerSorter() {
+    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+    f_treeViewer.setContentProvider(f_contentProvider);
+    f_treeViewer.setSorter(new ViewerSorter() {
 
       @Override
       public int compare(Viewer viewer, Object e1, Object e2) {
@@ -139,49 +135,46 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         return super.compare(viewer, e1, e2);
       }
     });
-    ColumnViewerToolTipSupport.enableFor(treeViewer);
+    ColumnViewerToolTipSupport.enableFor(f_treeViewer);
 
-    treeViewer.getTree().setHeaderVisible(true);
-    treeViewer.getTree().setLinesVisible(true);
+    f_treeViewer.getTree().setHeaderVisible(true);
+    f_treeViewer.getTree().setLinesVisible(true);
 
-    final TreeViewerColumn column1 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    final TreeViewerColumn column1 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
     column1.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
     column1.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-    TreeViewerColumn column2 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    TreeViewerColumn column2 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column2.setLabelProvider(ColumnLabelProviderUtility.PROJECT);
     column2.getColumn().setText("Project");
     column2.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
     column2.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-    TreeViewerColumn column3 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    TreeViewerColumn column3 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column3.setLabelProvider(ColumnLabelProviderUtility.PACKAGE);
     column3.getColumn().setText("Package");
     column3.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
     column3.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-    TreeViewerColumn column4 = new TreeViewerColumn(treeViewer, SWT.LEFT);
+    TreeViewerColumn column4 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column4.setLabelProvider(ColumnLabelProviderUtility.TYPE);
     column4.getColumn().setText("Type");
     column4.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
     column4.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-    TreeViewerColumn column5 = new TreeViewerColumn(treeViewer, SWT.RIGHT);
+    TreeViewerColumn column5 = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     column5.setLabelProvider(ColumnLabelProviderUtility.LINE);
     column5.getColumn().setText("Line");
     column5.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
     column5.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
 
-    treeViewer.setInput(getViewSite());
-    makeActions_private();
+    f_treeViewer.setInput(getViewSite());
+
+    makeActions();
     hookContextMenu();
-    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
-      public void doubleClick(DoubleClickEvent event) {
-        doubleClickAction.run();
-      }
-    });
     contributeToActionBars();
+
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    finishCreatePartControl();
+    showScanOrLabel();
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -200,10 +193,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        if (treeViewer != null) {
-          final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
-          finishCreatePartControl();
-          state.restoreViewState(treeViewer);
+        if (f_treeViewer != null) {
+          final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
+          showScanOrLabel();
+          state.restoreViewState(f_treeViewer);
         } else {
           SLLogger.getLogger().log(Level.WARNING, "treeViewer is null when the current scan is being changed", new Exception());
         }
@@ -213,33 +206,30 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     job.schedule();
   }
 
-  private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
-
-  private final Action f_actionShowInferences = new Action() {
+  private final Action f_actionShowHints = new Action() {
     @Override
     public void run() {
-      final boolean toggle = !f_contentProvider.showHints();
-      f_contentProvider.setShowHints(toggle);
-      // f_labelProvider.setShowInferences(toggle);
-      setViewState();
-      treeViewer.refresh();
+      final boolean toggle = !ColumnLabelProviderUtility.TREE.showHints();
+      ColumnLabelProviderUtility.TREE.setShowHints(toggle);
+      f_actionShowHints.setChecked(toggle);
+      f_treeViewer.refresh();
     }
   };
 
   private final Action f_actionExpand = new Action() {
     @Override
     public void run() {
-      final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-      if (selection == null || selection.isEmpty()) {
-        treeViewer.expandToLevel(10);
-      } else {
-        for (Object obj : selection.toList()) {
-          if (obj != null) {
-            treeViewer.expandToLevel(obj, 10);
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        for (Object element : s.toList()) {
+          if (element != null) {
+            f_treeViewer.expandToLevel(element, 5);
           } else {
-            treeViewer.expandToLevel(10);
+            f_treeViewer.expandToLevel(5);
           }
         }
+      } else {
+        f_treeViewer.expandToLevel(5);
       }
     }
   };
@@ -247,41 +237,46 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private final Action f_actionCollapse = new Action() {
     @Override
     public void run() {
-      final ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-      if (selection == null || selection.isEmpty()) {
-        treeViewer.collapseAll();
-      } else {
-        for (Object obj : selection.toList()) {
-          if (obj != null) {
-            treeViewer.collapseToLevel(obj, 1);
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        for (Object element : s.toList()) {
+          if (element != null) {
+            f_treeViewer.collapseToLevel(element, 1);
           } else {
-            treeViewer.collapseAll();
+            f_treeViewer.collapseAll();
           }
         }
+      } else {
+        f_treeViewer.collapseAll();
       }
+    }
+  };
+
+  private final Action f_actionCollapseAll = new Action() {
+    @Override
+    public void run() {
+      f_treeViewer.collapseAll();
     }
   };
 
   private final Action f_selectIdenticalAncestor = new Action() {
     @Override
     public void run() {
-      final ISelection selection = treeViewer.getSelection();
-      if (selection == null || selection == StructuredSelection.EMPTY) {
-        treeViewer.collapseAll();
-      } else {
-        final Object obj = ((IStructuredSelection) selection).getFirstElement();
-        if (obj instanceof ElementDrop) {
-          ElementDrop e = ((ElementDrop) obj).getAncestorWithSameDropOrNull();
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        final Object first = s.getFirstElement();
+        if (first instanceof ElementDrop) {
+          ElementDrop e = ((ElementDrop) first).getAncestorWithSameDropOrNull();
           if (e != null) {
-            treeViewer.reveal(e);
-            treeViewer.setSelection(new StructuredSelection(e), true);
+            f_treeViewer.reveal(e);
+            f_treeViewer.setSelection(new StructuredSelection(e), true);
           }
         }
       }
     }
   };
 
-  private final Action f_copy = new Action() {
+  private final Action f_actionCopy = new Action() {
     @Override
     public void run() {
       final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
@@ -293,21 +288,22 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
+  private final Action f_actionAddPromiseToCode = new ProposedPromisesRefactoringAction() {
 
     @Override
     protected List<IProposedPromiseDrop> getProposedDrops() {
-      final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-      if (selection == null || selection == StructuredSelection.EMPTY) {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
+        for (final Object element : s.toList()) {
+          if (element instanceof ElementProposedPromiseDrop) {
+            proposals.add(((ElementProposedPromiseDrop) element).getDrop());
+          }
+        }
+        return proposals;
+      } else {
         return Collections.emptyList();
       }
-      final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
-      for (final Object element : selection.toList()) {
-        if (element instanceof ElementProposedPromiseDrop) {
-          proposals.add(((ElementProposedPromiseDrop) element).getDrop());
-        }
-      }
-      return proposals;
     }
 
     @Override
@@ -316,14 +312,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionCollapseAll = new Action() {
-    @Override
-    public void run() {
-      treeViewer.collapseAll();
-    }
-  };
-
-  private final Action f_showQuickRef = new Action() {
+  private final Action f_actionShowQuickRef = new Action() {
     @Override
     public void run() {
       final Image quickRefImage = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF);
@@ -333,7 +322,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_modelProblemsIndicator = new Action() {
+  private final Action f_actionProblemsIndicator = new Action() {
     @Override
     public void run() {
       /*
@@ -343,115 +332,34 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  /**
-   * Toggles between the empty viewer page and the Fluid results
-   */
-  private void setViewerVisibility(boolean showResults) {
-    if (f_viewerbook.isDisposed())
-      return;
-    if (showResults) {
-      treeViewer.setInput(getViewSite());
-      f_viewerbook.showPage(treeViewer.getControl());
-    } else {
-      f_viewerbook.showPage(f_noResultsToShowLabel);
-    }
-  }
-
-  private void hookContextMenu() {
-    MenuManager menuMgr = new MenuManager("#PopupMenu");
-    menuMgr.setRemoveAllWhenShown(true);
-    menuMgr.addMenuListener(new IMenuListener() {
-      public void menuAboutToShow(IMenuManager manager) {
-        IStructuredSelection s = (IStructuredSelection) treeViewer.getSelection();
-        VerificationStatusView.this.fillContextMenu_private(manager, s);
-      }
-    });
-    Menu menu = menuMgr.createContextMenu(treeViewer.getControl());
-    treeViewer.getControl().setMenu(menu);
-    getSite().registerContextMenu(menuMgr, treeViewer);
-  }
-
-  private void contributeToActionBars() {
-    IActionBars bars = getViewSite().getActionBars();
-    fillLocalPullDown(bars.getMenuManager());
-    fillLocalToolBar(bars.getToolBarManager());
-  }
-
-  private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
-    fillContextMenu(manager, s);
-    manager.add(new Separator());
-    // Other plug-ins can contribute there actions here
-    manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
-  }
-
-  private void makeActions_private() {
-    doubleClickAction = new Action() {
-      @Override
-      public void run() {
-        ISelection selection = treeViewer.getSelection();
-        handleDoubleClick((IStructuredSelection) selection);
-      }
-    };
-
-    makeActions();
-    setViewState();
-  }
-
-  private String getSelectedText() {
-    final IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-    final StringBuilder sb = new StringBuilder();
-    for (final Object elt : selection.toList()) {
-      if (sb.length() > 0) {
-        sb.append('\n');
-      }
-      sb.append(ColumnLabelProviderUtility.TREE.getText(elt));
-    }
-    return sb.toString();
-  }
-
-  private void fillLocalPullDown(final IMenuManager manager) {
-    manager.add(f_actionCollapseAll);
-    manager.add(new Separator());
-    manager.add(f_showQuickRef);
-    manager.add(f_actionShowInferences);
-
-    final IActionBars bars = getViewSite().getActionBars();
-    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
-  }
-
-  private void fillContextMenu(final IMenuManager manager, final IStructuredSelection s) {
-    if (!s.isEmpty()) {
-      final Object first = s.getFirstElement();
-      if (first instanceof ElementProposedPromiseDrop) {
-        manager.add(f_addPromiseToCode);
-        manager.add(new Separator());
-      }
-    }
-    if (!s.isEmpty()) {
-      Object o = s.getFirstElement();
-      if (o instanceof ElementDrop) {
-        if (((ElementDrop) o).getAncestorWithSameDropOrNull() != null) {
-          manager.add(f_selectIdenticalAncestor);
-          manager.add(new Separator());
+  private void makeActions() {
+    f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      public void doubleClick(DoubleClickEvent event) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          final Object first = s.getFirstElement();
+          if (first instanceof ElementDrop) {
+            /*
+             * Try to open an editor at the point this item references in the
+             * code
+             */
+            final ISrcRef srcRef = ((ElementDrop) first).getDrop().getSrcRef();
+            if (srcRef != null) {
+              EditorUtil.highlightLineInJavaEditor(srcRef);
+            }
+          }
+          // open up the tree one more level
+          if (!f_treeViewer.getExpandedState(first)) {
+            f_treeViewer.expandToLevel(first, 1);
+          }
         }
       }
-      manager.add(f_actionExpand);
-      manager.add(f_actionCollapse);
-      manager.add(new Separator());
-      manager.add(f_copy);
-    }
-  }
+    });
 
-  private void fillLocalToolBar(final IToolBarManager manager) {
-    manager.add(f_actionCollapseAll);
-    manager.add(new Separator());
-    manager.add(f_showQuickRef);
-    manager.add(f_actionShowInferences);
-    manager.add(f_modelProblemsIndicator);
-  }
-
-  private void makeActions() {
-    f_actionShowInferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
+    f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
+    f_actionShowHints.setText("Show Information/Warning Hints");
+    f_actionShowHints.setToolTipText("Show information and warning hints about the code");
+    f_actionShowHints.setChecked(ColumnLabelProviderUtility.TREE.showHints());
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
@@ -469,47 +377,92 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_selectIdenticalAncestor.setToolTipText("Select to the node that this element is identical to");
     f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
 
-    f_copy.setText("Copy");
-    f_copy.setToolTipText("Copy the selected verification result to the clipboard");
+    f_actionCopy.setText("Copy");
+    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
 
-    f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-    f_addPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
-    f_addPromiseToCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
+    f_actionAddPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
+    f_actionAddPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
+    f_actionAddPromiseToCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
 
-    f_showQuickRef.setText("Show Iconography Quick Reference Card");
-    f_showQuickRef.setToolTipText("Show the iconography quick reference card");
-    f_showQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
+    f_actionShowQuickRef.setText("Show Iconography Quick Reference Card");
+    f_actionShowQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_actionShowQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
 
-    f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
-    f_modelProblemsIndicator.setEnabled(false);
+    f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
+    f_actionProblemsIndicator.setEnabled(false);
+  }
 
-    setViewState();
+  private void hookContextMenu() {
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      public void menuAboutToShow(final IMenuManager manager) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          final Object first = s.getFirstElement();
+          /*
+           * Proposed promise?
+           */
+          if (first instanceof ElementProposedPromiseDrop) {
+            manager.add(f_actionAddPromiseToCode);
+            manager.add(new Separator());
+          }
+          /*
+           * Link to identical ancestor?
+           */
+          if (first instanceof ElementDrop) {
+            if (((ElementDrop) first).getAncestorWithSameDropOrNull() != null) {
+              manager.add(f_selectIdenticalAncestor);
+              manager.add(new Separator());
+            }
+          }
+          manager.add(f_actionExpand);
+          manager.add(f_actionCollapse);
+          manager.add(new Separator());
+          manager.add(f_actionCopy);
+        }
+        manager.add(new Separator());
+        // Other plug-ins can contribute there actions here
+        manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(f_treeViewer.getControl());
+    f_treeViewer.getControl().setMenu(menu);
+    getSite().registerContextMenu(menuMgr, f_treeViewer);
+  }
+
+  private void contributeToActionBars() {
+    final IActionBars bars = getViewSite().getActionBars();
+
+    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_actionCopy);
+
+    final IMenuManager pulldown = bars.getMenuManager();
+    pulldown.add(f_actionCollapseAll);
+    pulldown.add(new Separator());
+    pulldown.add(f_actionShowQuickRef);
+    pulldown.add(f_actionShowHints);
+
+    final IToolBarManager toolbar = bars.getToolBarManager();
+    toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionShowQuickRef);
+    toolbar.add(f_actionShowHints);
+    toolbar.add(f_actionProblemsIndicator);
   }
 
   /**
-   * Ensure that any relevant view state is set, based on the internal state
+   * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
    */
-  private void setViewState() {
-    f_actionShowInferences.setChecked(f_contentProvider.showHints());
-    f_actionShowInferences.setText("Show Information/Warning Results");
-    f_actionShowInferences.setToolTipText("Show information and warning analysis results");
-  }
-
-  private void handleDoubleClick(final IStructuredSelection selection) {
-    final Object obj = selection.getFirstElement();
-    if (obj instanceof ElementDrop) {
-      /*
-       * Try to open an editor at the point this item references in the code
-       */
-      final ISrcRef srcRef = ((ElementDrop) obj).getDrop().getSrcRef();
-      if (srcRef != null) {
-        EditorUtil.highlightLineInJavaEditor(srcRef);
+  private String getSelectedText() {
+    final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
+    final StringBuilder sb = new StringBuilder();
+    for (final Object elt : selection.toList()) {
+      if (sb.length() > 0) {
+        sb.append('\n');
       }
+      sb.append(ColumnLabelProviderUtility.TREE.getText(elt));
     }
-    // open up the tree one more level
-    if (!treeViewer.getExpandedState(obj)) {
-      treeViewer.expandToLevel(obj, 1);
-    }
+    return sb.toString();
   }
 
   /**
@@ -517,8 +470,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
    */
   @Override
   public void setFocus() {
-    setViewState();
-    treeViewer.getControl().setFocus();
+    f_treeViewer.getControl().setFocus();
   }
 
   /*
@@ -528,7 +480,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   @Override
   public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
     if (adapter == TreeViewer.class) {
-      return treeViewer;
+      return f_treeViewer;
     } else {
       return super.getAdapter(adapter);
     }
@@ -541,8 +493,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       findContent(d);
       return;
     }
-    treeViewer.reveal(c);
-    treeViewer.setSelection(new StructuredSelection(c), true);
+    f_treeViewer.reveal(c);
+    f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
   private Object findContent(IDrop d) {
@@ -571,9 +523,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   // return null;
   // }
 
-  private void finishCreatePartControl() {
+  private void showScanOrLabel() {
     final JSureScanInfo scanInfo = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scanInfo != null) {
+      // show the scan results
       final long start = System.currentTimeMillis();
       f_contentProvider.buildModelOfDropSea_internal();
       final int modelProblemCount = getModelProblemCount(scanInfo);
@@ -587,7 +540,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         f_viewerbook.getDisplay().asyncExec(new Runnable() {
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-            state.restoreViewState(treeViewer);
+            state.restoreViewState(f_treeViewer);
           }
         });
       }
@@ -601,10 +554,24 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   }
 
+  /**
+   * Toggles between the empty viewer page and the Fluid results
+   */
+  private void setViewerVisibility(boolean showResults) {
+    if (f_viewerbook.isDisposed())
+      return;
+    if (showResults) {
+      f_treeViewer.setInput(getViewSite());
+      f_viewerbook.showPage(f_treeViewer.getControl());
+    } else {
+      f_viewerbook.showPage(f_noResultsToShowLabel);
+    }
+  }
+
   @Override
   public void saveState(IMemento memento) {
     try {
-      final TreeViewerUIState state = new TreeViewerUIState(treeViewer);
+      final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
       state.saveToFile(f_viewStatePersistenceFile);
     } catch (IOException e) {
       SLLogger.getLogger().log(Level.WARNING,
@@ -615,8 +582,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private void setModelProblemIndicatorState(int problemCount) {
     final boolean problemsExist = problemCount > 0;
     final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST : CommonImages.IMG_JSURE_MODEL_PROBLEMS;
-    f_modelProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));
-    f_modelProblemsIndicator.setEnabled(problemsExist);
+    f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));
+    f_actionProblemsIndicator.setEnabled(problemsExist);
     final String tooltip;
     final String suffix = " in this scan...press to show the Modeling Problems view";
     if (problemCount < 1) {
@@ -626,7 +593,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     } else {
       tooltip = problemCount + " modeling problems" + suffix;
     }
-    f_modelProblemsIndicator.setToolTipText(tooltip);
+    f_actionProblemsIndicator.setToolTipText(tooltip);
 
   }
 

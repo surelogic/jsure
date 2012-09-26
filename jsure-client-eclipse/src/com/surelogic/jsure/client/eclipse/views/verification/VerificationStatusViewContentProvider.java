@@ -50,16 +50,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
       return false;
   }
 
-  private boolean f_showHints = true;
-
-  public boolean showHints() {
-    return f_showHints;
-  }
-
-  public void setShowHints(boolean value) {
-    f_showHints = value;
-  }
-
   private Element[] f_root = null;
 
   public void buildModelOfDropSea_internal() {
