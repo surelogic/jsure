@@ -102,7 +102,7 @@ public abstract class DropMatcher {
 		}
 		final long nh = computeSIHash(n);
 		if (nh != oh) {
-			System.out.println("Diff in infos");
+			//System.out.println("Diff in infos");
 			return false;
 		}
 		return DropDiff.isSame(n, o);
