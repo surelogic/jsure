@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -102,6 +103,30 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private Label f_noResultsToShowLabel = null;
   private TreeViewer f_treeViewer;
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+  private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof Element && e2 instanceof Element) {
+        return Element.ALPHA.compare((Element) e1, (Element) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+  private final ViewerSorter f_javaSorter = new ViewerSorter() {
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof Element && e2 instanceof Element) {
+        return Element.JAVA.compare((Element) e1, (Element) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+  private final ViewerFilter f_noHintsFilter = new ViewerFilter() {
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+      return !(element instanceof ElementHintDrop);
+    }
+  };
 
   public VerificationStatusView() {
     File viewState = null;
@@ -206,12 +231,32 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     job.schedule();
   }
 
-  private final Action f_actionShowHints = new Action() {
+  private final Action f_actionAlphaSort = new Action("", Action.AS_RADIO_BUTTON) {
+    @Override
+    public void run() {
+      final boolean alphabetical = f_actionAlphaSort.isChecked();
+      setHowViewIsSorted(alphabetical);
+    }
+  };
+
+  private final Action f_actionJavaSort = new Action("", Action.AS_RADIO_BUTTON) {
+    @Override
+    public void run() {
+      final boolean java = f_actionJavaSort.isChecked();
+      setHowViewIsSorted(!java);
+    }
+  };
+
+  private final Action f_actionShowHints = new Action("", Action.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean toggle = !ColumnLabelProviderUtility.TREE.showHints();
       ColumnLabelProviderUtility.TREE.setShowHints(toggle);
       f_actionShowHints.setChecked(toggle);
+      if (toggle)
+        f_treeViewer.removeFilter(f_noHintsFilter);
+      else
+        f_treeViewer.addFilter(f_noHintsFilter);
       f_treeViewer.refresh();
     }
   };
@@ -356,6 +401,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       }
     });
 
+    f_actionAlphaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ALPHA_SORT));
+    f_actionAlphaSort.setText("Sort contents alphabetically");
+    f_actionAlphaSort.setToolTipText("Sort contents alphabetically");
+    f_actionJavaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_SORT));
+    f_actionJavaSort.setText("Sort contents by Java location");
+    f_actionJavaSort.setToolTipText("Sort contents by Java location");
+    setHowViewIsSorted(EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT));
+
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
     f_actionShowHints.setToolTipText("Show information and warning hints about the code");
@@ -439,11 +492,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final IMenuManager pulldown = bars.getMenuManager();
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
+    pulldown.add(f_actionJavaSort);
+    pulldown.add(f_actionAlphaSort);
+    pulldown.add(new Separator());
     pulldown.add(f_actionShowQuickRef);
     pulldown.add(f_actionShowHints);
+    pulldown.add(f_actionProblemsIndicator);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionJavaSort);
+    toolbar.add(f_actionAlphaSort);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowQuickRef);
     toolbar.add(f_actionShowHints);
@@ -552,6 +612,20 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         }
       });
     }
+  }
+
+  /**
+   * Sets how the view is sorted: alphabetical or by Java location.
+   * 
+   * @param alphabetical
+   *          {@code true} for alphabetical sorting of the view, {@code false}
+   *          for Java location sorting.
+   */
+  private void setHowViewIsSorted(boolean alphabetical) {
+    f_actionAlphaSort.setChecked(alphabetical);
+    f_actionJavaSort.setChecked(!alphabetical);
+    f_treeViewer.setSorter(alphabetical ? f_alphaSorter : f_javaSorter);
+    EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT, alphabetical);
   }
 
   /**

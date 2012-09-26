@@ -88,7 +88,7 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(PROPOSED_PROMISES_AS_TREE, true);
       EclipseUtility.setDefaultBooleanPreference(PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY, true);
-      
+
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL1_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL2_WIDTH, 100);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL3_WIDTH, 100);
@@ -120,6 +120,7 @@ public final class JSurePreferencesUtility {
   public static final String PROPOSED_PROMISES_AS_TREE = PREFIX + "proposed.promises.as.tree";
   public static final String PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.promises.show.abductive.only";
 
+  public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_COL1_WIDTH = PREFIX + "verification.status.col1.witdh";
   public static final String VSTATUS_COL2_WIDTH = PREFIX + "verification.status.col2.witdh";
   public static final String VSTATUS_COL3_WIDTH = PREFIX + "verification.status.col3.witdh";
