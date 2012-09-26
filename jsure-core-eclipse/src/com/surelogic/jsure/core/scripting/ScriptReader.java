@@ -311,7 +311,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 		  return false;
 	  } catch (Throwable e) {
 		  System.out.println("Got exception on line: "+line);
-		  e.printStackTrace();
+		  e.printStackTrace(System.out);
 		  command.succeeded();
 		  resultsOk = false;
 		  throw e;
