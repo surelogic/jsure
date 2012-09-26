@@ -110,10 +110,10 @@ public class RegionEffectsNode extends AASTRootNode {
 	}
 
 	 public final String unparseForPromise() {
-	    final StringBuilder sb = new StringBuilder();
       if (effects.isEmpty()) {
-        sb.append("none");
+    	return "none";
       } else { 
+  	    final StringBuilder sb = new StringBuilder();    	  
         boolean first = true;
         for(final EffectsSpecificationNode _n : effects) {
           if (first) {
@@ -123,9 +123,9 @@ public class RegionEffectsNode extends AASTRootNode {
           }
           sb.append(_n.unparseForPromise());
         }     
-      }     
 	    return sb.toString();
-	  }
+      }     
+	}
 
 	/**
 	 * Returns the list of {@link EffectsSpecificationNode}. This list should never
