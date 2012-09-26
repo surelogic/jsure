@@ -497,17 +497,17 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     pulldown.add(new Separator());
     pulldown.add(f_actionShowQuickRef);
     pulldown.add(f_actionShowHints);
-    pulldown.add(f_actionProblemsIndicator);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionProblemsIndicator);
     toolbar.add(new Separator());
     toolbar.add(f_actionJavaSort);
     toolbar.add(f_actionAlphaSort);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowQuickRef);
     toolbar.add(f_actionShowHints);
-    toolbar.add(f_actionProblemsIndicator);
   }
 
   /**

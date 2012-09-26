@@ -18,6 +18,8 @@ import com.surelogic.dropsea.ir.Category;
 
 final class ElementCategory extends Element {
 
+  public static final String SPECIAL_HINT_FOLDER_NAME = "Suggestions and warnings";
+
   static final class Categorizer {
 
     private final Element f_parent;

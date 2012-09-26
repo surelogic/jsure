@@ -76,7 +76,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
       root.addAll(pc.getAllElements());
       if (!hc.isEmpty()) {
         final ElementCategory.Builder sw = new ElementCategory.Builder(null);
-        sw.setLabel("Suggestions and warnings");
+        sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
         sw.setImageName(CommonImages.IMG_INFO);
         sw.addCategories(hc.getBuilders());
         root.add(sw.build());

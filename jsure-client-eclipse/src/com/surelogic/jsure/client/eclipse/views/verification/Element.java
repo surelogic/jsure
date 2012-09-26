@@ -41,6 +41,20 @@ abstract class Element {
       if (o2 == null)
         return 1;
 
+      // special logic to put hints folder at the bottom (only at viewer root)
+      if (o1.getParent() == null) {
+        if (o1 instanceof ElementCategory) {
+          if (ElementCategory.SPECIAL_HINT_FOLDER_NAME.equals(o1.getLabelToPersistViewerState()))
+            return 1;
+        }
+      }
+      if (o2.getParent() == null) {
+        if (o2 instanceof ElementCategory) {
+          if (ElementCategory.SPECIAL_HINT_FOLDER_NAME.equals(o2.getLabelToPersistViewerState()))
+            return -1;
+        }
+      }
+
       int c = nullToEmpty(o1.getProjectOrNull()).compareTo(nullToEmpty(o2.getProjectOrNull()));
       if (c != 0)
         return c;
