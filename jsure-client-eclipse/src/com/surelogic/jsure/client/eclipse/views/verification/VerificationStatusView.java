@@ -94,7 +94,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   }
 
-  private static final String VIEW_STATE = "ResultsView_TreeViewerUIState";
+  private static final String VIEW_STATE = "VerificationStatusView_TreeViewerUIState";
 
   final File f_viewStatePersistenceFile;
 
@@ -116,7 +116,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       } else {
         viewState = File.createTempFile(VIEW_STATE, ".xml");
       }
-      // System.out.println("Using location: "+location);
     } catch (IOException e) {
       // Nothing to do
     }

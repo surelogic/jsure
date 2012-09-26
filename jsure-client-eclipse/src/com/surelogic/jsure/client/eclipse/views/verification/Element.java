@@ -107,11 +107,24 @@ abstract class Element {
   abstract Element[] constructChildren();
 
   /**
-   * Gets the image
+   * Gets the text label which should appear in the tree portion of the viewer.
    * 
-   * @return
+   * @return a text label.
    */
   abstract String getLabel();
+
+  /**
+   * Gets a text label which, while similar to what is returned from
+   * {@link #getLabel()}, should avoid specific numbers in categories and other
+   * details. This label is used to persist the viewer state.
+   * 
+   * @return a text label
+   * @see #toString()
+   */
+  String getLabelToPersistViewerState() {
+    // TODO this should be fixed when categories actually work
+    return getLabel();
+  }
 
   String getProjectOrNull() {
     return null;
@@ -159,5 +172,10 @@ abstract class Element {
       return null;
     final int flags = getImageFlags();
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
+  }
+
+  @Override
+  public String toString() {
+    return getLabelToPersistViewerState();
   }
 }
