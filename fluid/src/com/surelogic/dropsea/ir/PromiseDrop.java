@@ -504,6 +504,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     // if no immediate result drops are an "X" then we are consistent
     setProvedConsistent(true); // assume true
     setDerivedFromSrc(isFromSrc());
+    setDerivedFromWarningHint(hasAnyWarningHints());
 
     Collection<AnalysisResultDrop> analysisResults = getCheckedBy();
     for (AnalysisResultDrop result : analysisResults) {
@@ -533,6 +534,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
         setProofUsesRedDot(true);
       // push along if derived from source code
       setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
+      // push along if derived from a warning hint
+      setDerivedFromWarningHint(derivedFromWarningHint() | result.derivedFromWarningHint());
     }
   }
 

@@ -31,6 +31,7 @@ import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
@@ -595,6 +596,17 @@ public abstract class Drop implements IDrop {
       }
     }
     return result;
+  }
+
+  public boolean hasAnyWarningHints() {
+    synchronized (f_seaLock) {
+      for (Drop d : getDependentsReference()) {
+        if (d instanceof HintDrop)
+          if (((HintDrop) d).getHintType() == IHintDrop.HintType.WARNING)
+            return true;
+      }
+    }
+    return false;
   }
 
   /**

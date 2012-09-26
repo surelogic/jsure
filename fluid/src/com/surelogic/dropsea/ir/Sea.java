@@ -499,12 +499,13 @@ public final class Sea {
           boolean oldProofIsConsistent = d.provedConsistent();
           boolean oldProofUsesRedDot = d.proofUsesRedDot();
           boolean oldDerivedFromSrc = d.derivedFromSrc();
+          boolean oldDerivedFromWarningHint = d.derivedFromWarningHint();
 
           // transfer from "lower" drops
           d.proofTransfer();
 
-          boolean changed = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot() && oldDerivedFromSrc == d
-              .derivedFromSrc());
+          boolean changed = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot()
+              && oldDerivedFromSrc == d.derivedFromSrc() && oldDerivedFromWarningHint == d.derivedFromWarningHint());
 
           if (changed) {
             // add "higher" drops to the worklist

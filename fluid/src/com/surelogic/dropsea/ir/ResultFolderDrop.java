@@ -23,8 +23,8 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   /**
    * Constructs a new <b>And</b> analysis result folder pointing to the passed
-   * node. Results placed in this folder are conjoined ({@link LogicOperator#AND})
-   * in the model-code consistency proof.
+   * node. Results placed in this folder are conjoined (
+   * {@link LogicOperator#AND}) in the model-code consistency proof.
    * 
    * @param node
    *          referenced by the folder.
@@ -36,8 +36,8 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   /**
    * Constructs a new <b>Or</b> analysis result folder pointing to the passed
-   * node. Results placed in this folder are disjoined ({@link LogicOperator#OR})
-   * in the model-code consistency proof.
+   * node. Results placed in this folder are disjoined ({@link LogicOperator#OR}
+   * ) in the model-code consistency proof.
    * 
    * @param node
    *          referenced in the warning
@@ -90,52 +90,39 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
           setProofUsesRedDot(true);
         // push along if derived from source code
         setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
+        // push along if derived from a warning hint
+        setDerivedFromWarningHint(derivedFromWarningHint() | result.derivedFromWarningHint());
       }
     } else {
       /*
        * DISJUNCTION (OR)
        */
-      boolean overall_or_Result = false;
-      boolean overall_or_UsesRedDot = false;
+
+      // Our lattice -- lower index is better
+      // {consistency judgment, uses red dot, has warning hint}
+      boolean[][] judgmentReddotWarningLattice = { { true, false, false }, { true, false, true }, { true, true, false },
+          { true, true, true }, { false, true, false }, { false, true, true }, { false, false, true }, { false, false, false }, };
+      int bestIndex = judgmentReddotWarningLattice.length - 1;
+
       boolean overall_or_derivedFromSource = false;
 
       for (ProofDrop result : getTrusted()) {
-        boolean choiceResult = result.provedConsistent();
-        boolean choiceUsesRedDot = result.proofUsesRedDot();
-        // if anything is derived from source we will be as well
-        overall_or_derivedFromSource |= result.derivedFromSrc();
-
-        // should we choose this choice? Our lattice is:
-        // o consistent
-        // o consistent/red dot
-        // o inconsistent/red dot
-        // o inconsistent
-        // so we want to pick the "highest" result
-        // ignore bottom of lattice, this was our default (set above)
-        if (choiceResult) {
-          if (!choiceUsesRedDot) {
-            // best possible outcome
-            overall_or_Result = choiceResult;
-            overall_or_UsesRedDot = choiceUsesRedDot;
-          } else {
-            if (!overall_or_Result) {
-              // take it, since so far we think we are inconsistent
-              overall_or_Result = choiceResult;
-              overall_or_UsesRedDot = choiceUsesRedDot;
-            }
-          }
-        } else {
-          if (!choiceUsesRedDot) {
-            if (!overall_or_Result) {
-              // take it, since so far we might be sure we are wrong
-              overall_or_Result = choiceResult;
-              overall_or_UsesRedDot = choiceUsesRedDot;
-            }
+        for (int i = 0; i < judgmentReddotWarningLattice.length; i++) {
+          final boolean[] lattice = judgmentReddotWarningLattice[i];
+          if (lattice[0] = result.provedConsistent() && lattice[1] == result.proofUsesRedDot()
+              && lattice[2] == result.derivedFromWarningHint()) {
+            if (i < bestIndex)
+              bestIndex = i;
           }
         }
+
+        // if anything is derived from source we will be as well
+        overall_or_derivedFromSource |= result.derivedFromSrc();
       }
-      setProvedConsistent(overall_or_Result);
-      setProofUsesRedDot(overall_or_UsesRedDot);
+
+      setProvedConsistent(judgmentReddotWarningLattice[bestIndex][0]);
+      setProofUsesRedDot(judgmentReddotWarningLattice[bestIndex][1]);
+      setDerivedFromWarningHint(judgmentReddotWarningLattice[bestIndex][2]);
       setDerivedFromSrc(derivedFromSrc() | overall_or_derivedFromSource);
     }
   }

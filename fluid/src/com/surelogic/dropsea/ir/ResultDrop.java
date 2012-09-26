@@ -138,8 +138,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
       // any red dot means this drop depends upon a red dot
       if (proofDrop.proofUsesRedDot())
         setProofUsesRedDot(true);
-      // if anything is derived from source we will be as well
+      // push along if derived from source code
       setDerivedFromSrc(derivedFromSrc() | proofDrop.derivedFromSrc());
+      // push along if derived from a warning hint
+      setDerivedFromWarningHint(derivedFromWarningHint() | proofDrop.derivedFromWarningHint());
     }
   }
 
