@@ -8,6 +8,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 abstract class Element {
@@ -159,6 +160,49 @@ abstract class Element {
   abstract int getImageFlags();
 
   /**
+   * Checks if this element has a descendant with a warning hint about it. This
+   * is used by the UI to show a label decorator, if the user desires it, path
+   * along the tree to the warning.
+   * 
+   * @return {@code true} if this element has a descendant with a warning hint
+   *         about it, {@code false} otherwise.
+   */
+  final boolean descendantHasWarningHint() {
+    return searchForWarningHelper(this);
+  }
+
+  /**
+   * Helper method to determine the answer for
+   * {@link #descendantHasWarningHint()} for any element.
+   * 
+   * @param e
+   *          any element.
+   * @return {@code true} if this element has a descendant with a warning hint
+   *         about it, {@code false} otherwise.
+   */
+  private final boolean searchForWarningHelper(Element e) {
+    if (e instanceof ElementHintDrop) {
+      if (((ElementHintDrop) e).getDrop().getHintType() == IHintDrop.HintType.WARNING)
+        return true;
+    } else if (e instanceof ElementProofDrop) {
+      /*
+       * Stop looking here because the proof drops provide a "deep" answer. We
+       * do not want to examine children in this case because this could cause
+       * more of the viewer model to be built out than we need.
+       */
+      if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
+        return true;
+      else
+        return false;
+    }
+    boolean result = false;
+    for (Element c : e.getChildren()) {
+      result |= searchForWarningHelper(c);
+    }
+    return result;
+  }
+
+  /**
    * The desired image name from {@link CommonImages}.
    * 
    * @return the desired image name or {@code null} for no image.
@@ -166,11 +210,23 @@ abstract class Element {
   @Nullable
   abstract String getImageName();
 
-  final Image getImage() {
+  /**
+   * Gets the image associated with this element.
+   * 
+   * @param withWarningDecoratorIfApplicable
+   *          if {@code true} then a warning decorator is added to the returned
+   *          image if {@link #descendantHasWarningHint()}.
+   * @return an image.
+   */
+  final Image getImage(boolean withWarningDecoratorIfApplicable) {
     String name = getImageName();
     if (name == null)
       return null;
-    final int flags = getImageFlags();
+    int flags = getImageFlags();
+    if (withWarningDecoratorIfApplicable) {
+      if (descendantHasWarningHint())
+        flags |= CoE_Constants.HINT_WARNING;
+    }
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
 

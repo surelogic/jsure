@@ -13,13 +13,25 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  static ColumnLabelProvider TREE = new AbstractElementColumnLabelProvider() {
+  static VerificationStatusTreeColumnLabelProvider TREE = new VerificationStatusTreeColumnLabelProvider();
+
+  static class VerificationStatusTreeColumnLabelProvider extends AbstractElementColumnLabelProvider {
+
+    private boolean f_showHints = true;
+
+    public boolean showHints() {
+      return f_showHints;
+    }
+
+    public void setShowHints(boolean value) {
+      f_showHints = value;
+    }
 
     private Color f_duplicate;
 
     @Override
     Image getImageFromElement(@NonNull Element element) {
-      return element.getImage();
+      return element.getImage(f_showHints);
     }
 
     @Override
