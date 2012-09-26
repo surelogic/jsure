@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_WARNING_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
@@ -70,12 +71,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @InRegion("DropState")
   private boolean f_derivedFromSrc = false;
 
-  /**
-   * Checks is this result depends upon something from source code.
-   * 
-   * @return {@code true} if this result depends on something from source code,
-   *         {@code false} otherwise.
-   */
   public boolean derivedFromSrc() {
     synchronized (f_seaLock) {
       return f_derivedFromSrc;
@@ -89,6 +84,25 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   }
 
   /**
+   * Records whether this result depends upon something with a warning hint
+   * about it.
+   */
+  @InRegion("DropState")
+  private boolean f_derivedFromWarningHint = false;
+
+  public boolean derivedFromWarningHint() {
+    synchronized (f_seaLock) {
+      return f_derivedFromWarningHint;
+    }
+  }
+
+  void setDerivedFromWarningHint(boolean value) {
+    synchronized (f_seaLock) {
+      f_derivedFromWarningHint = value;
+    }
+  }
+
+  /**
    * Records if the proof of this element depends upon a "red dot," or a user
    * vouching for or assuming something which may not be true, with regards to
    * the whole-program.
@@ -96,13 +110,6 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @InRegion("DropState")
   private boolean f_proofUsesRedDot = true;
 
-  /**
-   * Returns if the proof of this element depends upon a "red dot," or a user
-   * vouching for or assuming something which may not be true, with regards to
-   * the whole-program.
-   * 
-   * @return<code>true</code> if red dot, <code>false</code> if no red dot.
-   */
   public boolean proofUsesRedDot() {
     synchronized (f_seaLock) {
       return f_proofUsesRedDot;
@@ -268,6 +275,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());
     s.addAttribute(PROVED_ATTR, provedConsistent());
     s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
+    s.addAttribute(DERIVED_FROM_WARNING_ATTR, derivedFromWarningHint());
     s.addAttribute(FROM_SRC, isFromSrc());
   }
 }

@@ -36,6 +36,14 @@ public interface IProofDrop extends IDrop {
   boolean derivedFromSrc();
 
   /**
+   * Checks if this result depends upon something with a warning hint about it.
+   * 
+   * @return {@code true} if this result depends on something with a warning
+   *         hint about it, {@code false} otherwise.
+   */
+  boolean derivedFromWarningHint();
+
+  /**
    * Returns if this promise is from source code or from another location, such
    * as XML. The default value for a promise drop is <code>true</code>.
    * 
