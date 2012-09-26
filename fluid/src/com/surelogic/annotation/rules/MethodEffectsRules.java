@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
 
 public class MethodEffectsRules extends AnnotationRules {
-	public static final String EFFECTS = "Effects";
+	//public static final String EFFECTS = "Effects";
 	public static final String REGIONEFFECTS = "RegionEffects";
 	
 	private static final AnnotationRules instance = new MethodEffectsRules();
