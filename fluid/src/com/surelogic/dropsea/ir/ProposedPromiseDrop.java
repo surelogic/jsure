@@ -27,6 +27,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
@@ -126,7 +127,15 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
     f_origin = origin;
 
-    setMessage(10, annotation, contents == null ? "" : contents);
+    if (XUtil.useExperimental()) {
+    	if (contents == null) {
+    		setMessage(18, annotation);
+    	} else {
+    		setMessage(10, annotation, contents);
+    	}
+    } else {
+    	setMessage(10, annotation, contents == null ? "" : contents);
+    }
   }
 
   /**
