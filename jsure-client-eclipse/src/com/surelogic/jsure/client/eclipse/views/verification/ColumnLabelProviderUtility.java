@@ -1,7 +1,10 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
+import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
@@ -13,40 +16,35 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  static final ColumnLabelProvider TREE = new AbstractElementColumnLabelProvider() {
-
-    private Color f_duplicate;
+  static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
 
     @Override
-    Image getImageFromElement(@NonNull Element element) {
-      return element.getImage();
-    }
-
-    @Override
-    String getTextFromElement(@NonNull Element element) {
-      if (hasAncestorWithSameDrop(element)) {
-        return "\u2191  " + element.getLabel();
-      }
-      return element.getLabel();
-    }
-
-    @Override
-    public Color getForeground(Object element) {
-      if (hasAncestorWithSameDrop(element)) {
-        if (f_duplicate == null) {
-          f_duplicate = new Color(Display.getCurrent(), 149, 125, 71);
-          Display.getCurrent().disposeExec(new Runnable() {
-            public void run() {
-              f_duplicate.dispose();
-            }
-          });
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        Element element = (Element) cell.getElement();
+        final boolean duplicate = hasAncestorWithSameDrop(element);
+        final String label;
+        if (duplicate) {
+          label = "\u2191  " + element.getLabel();
+        } else {
+          label = element.getLabel();
         }
-        return f_duplicate;
-      }
-      return super.getForeground(element);
+        cell.setText(label);
+        cell.setImage(element.getImage());
+
+        if (element instanceof ElementPromiseDrop) {
+          int index = label.indexOf(" on ");
+          if (index != -1) {
+            StyleRange[] ranges = { new StyleRange(index, label.length() - index, Display.getDefault().getSystemColor(
+                SWT.COLOR_DARK_GRAY), null) };
+            cell.setStyleRanges(ranges);
+          }
+        }
+      } else
+        super.update(cell);
     }
 
-    private boolean hasAncestorWithSameDrop(Object element) {
+    private boolean hasAncestorWithSameDrop(Element element) {
       if (element instanceof ElementDrop)
         if (((ElementDrop) element).getAncestorWithSameDropOrNull() != null)
           return true;

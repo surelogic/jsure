@@ -508,10 +508,12 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {
-      if (sb.length() > 0) {
-        sb.append('\n');
+      if (elt instanceof Element) {
+        if (sb.length() > 0) {
+          sb.append('\n');
+        }
+        sb.append(((Element) elt).getLabel());
       }
-      sb.append(ColumnLabelProviderUtility.TREE.getText(elt));
     }
     return sb.toString();
   }
