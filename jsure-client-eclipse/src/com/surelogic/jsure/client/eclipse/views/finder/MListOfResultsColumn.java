@@ -136,7 +136,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     public void handleEvent(final Event event) {
       final IProofDrop info = getSelectedItem();
       if (info != null) {
-        DropInfoUtility.showDrop(info);
+        DropInfoUtility.attemptToShowAndSelectDropInVerificationStatusView(info);
       }
     }
   };

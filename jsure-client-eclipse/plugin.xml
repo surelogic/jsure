@@ -142,13 +142,6 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_drum.gif"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView">
 		</view>
-
-		<view name="OLD Verification Status" allowMultiple="false"
-			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
-			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.results.ResultsView"
-			id="com.surelogic.jsure.client.eclipse.views.results.ResultsView">
-		</view>
 		
 		<view name="Verification Status" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"

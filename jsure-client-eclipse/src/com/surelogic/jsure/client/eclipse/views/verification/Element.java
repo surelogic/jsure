@@ -239,14 +239,14 @@ abstract class Element {
   abstract String getImageName();
 
   /**
-   * Gets the image associated with this element.
+   * Gets the the decorated image associated with this element.
    * 
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
    * @return an image.
    */
-  final Image getImage(boolean withWarningDecoratorIfApplicable) {
+  private final Image getImageHelper(boolean withWarningDecoratorIfApplicable) {
     String name = getImageName();
     if (name == null)
       return null;
@@ -264,7 +264,7 @@ abstract class Element {
    * @return an image.
    */
   final Image getImage() {
-    return getImage(f_showHints);
+    return getImageHelper(f_showHints);
   }
 
   @Override

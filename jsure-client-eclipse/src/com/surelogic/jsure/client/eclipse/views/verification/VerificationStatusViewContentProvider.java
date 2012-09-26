@@ -1,13 +1,17 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
@@ -117,5 +121,43 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         return false;
     }
     return true;
+  }
+
+  /**
+   * Tries to find and return an {@link Element} instance that represents the
+   * passed drop.
+   * 
+   * @param drop
+   *          a drop.
+   * @return an element that represents the drop or {@code null} if none can be
+   *         found.
+   */
+  Element findElementForDropOrNull(final IDrop drop) {
+    if (drop == null)
+      return null;
+    final Element[] root = f_root;
+    if (root == null)
+      return null;
+    /*
+     * We do a breath-first search to look for the element because we do not
+     * want to build up a the element tree any more than it is unless we
+     * absolutely have too. Of course, if we got passed a drop that doesn't
+     * exist the code below will expand out the entire element model tree to its
+     * leaves.
+     */
+    final Queue<Element> queue = new LinkedList<Element>();
+    queue.addAll(Arrays.asList(root));
+    while (!queue.isEmpty()) {
+      final Element e = queue.poll();
+      if (e != null) {
+        // is e what we are looking for?
+        if (e instanceof ElementDrop) {
+          if (((ElementDrop) e).getDrop().equals(drop))
+            return e;
+        }
+        queue.addAll(Arrays.asList(e.getChildren()));
+      }
+    }
+    return null;
   }
 }

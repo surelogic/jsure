@@ -193,7 +193,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrLabel(f_showHints);
+    showScanOrEmptyLabel(f_showHints);
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -214,7 +214,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrLabel(f_showHints);
+          showScanOrEmptyLabel(f_showHints);
           state.restoreViewState(f_treeViewer);
         }
         return Status.OK_STATUS;
@@ -537,54 +537,34 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   }
 
-  public void showDrop(IDrop d) {
-    // Find the corresponding Content
-    Object c = findContent(d);
-    if (c == null) {
-      findContent(d);
+  /**
+   * Attempts to show and select the passed drop in the viewer. Does nothing if
+   * the drop is {@code null} or can't be found in the scan being displayed by
+   * this view.
+   * 
+   * @param drop
+   *          a drop.
+   */
+  public void attemptToShowAndSelectDropInViewer(final IDrop drop) {
+    if (f_contentProvider == null || drop == null)
       return;
-    }
+
+    Element c = f_contentProvider.findElementForDropOrNull(drop);
+    if (c == null)
+      return;
+
     f_treeViewer.reveal(c);
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
-  private Object findContent(IDrop d) {
-    // for (Object o : f_contentProvider.getElements(null)) {
-    // Object rv = findContent((ResultsViewContent) o, d);
-    // if (rv != null) {
-    // return rv;
-    // }
-    // }
-    return null;
-  }
-
-  // private Object findContent(ResultsViewContent c, IDrop d) {
-  // if (c == null) {
-  // return null;
-  // }
-  // if (d == c.getDropInfo()) {
-  // return c;
-  // }
-  // for (Object o : f_contentProvider.getChildren(c)) {
-  // Object rv = findContent((ResultsViewContent) o, d);
-  // if (rv != null) {
-  // return rv;
-  // }
-  // }
-  // return null;
-  // }
-
-  private void showScanOrLabel(boolean showHints) {
+  private void showScanOrEmptyLabel(boolean showHints) {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       // show the scan results
-      final long start = System.currentTimeMillis();
       f_contentProvider.changeContentsToCurrentScan(scan, showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
-      final long end = System.currentTimeMillis();
       setViewerVisibility(true);
-      System.out.println("Loaded snapshot for " + this + ": " + (end - start) + " ms");
 
       // Running too early?
       if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
