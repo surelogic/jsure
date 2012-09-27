@@ -40,7 +40,7 @@ public abstract class DropMatcher {
 	protected abstract boolean match(int pass, IDrop n, IDrop o);
 
 	protected static boolean matchBasics(IDrop n, IDrop o) {
-		return matchCategory(n, o) && matchMessage(n, o) && matchProvedConsistent(n, o);
+		return /*matchCategory(n, o) && */matchMessage(n, o) && matchProvedConsistent(n, o);
 		//&& matchSupportingInfo(n, o);
 	}
 	
