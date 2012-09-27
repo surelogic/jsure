@@ -136,7 +136,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	      ISrcRef ref = d.getSrcRef();
 	      if (ref != null) {
 	    	  String path = ref.getRelativePath();
-	    	  if (path == null || f.showResource(path)) {
+	    	  if (path == null || f.showResource(d)) {
 	    		  drops.add(d);
 	    	  }
 	      } else {
@@ -205,7 +205,12 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	public static SeaSnapshotDiff<CPair<String,String>> diff(final IDropFilter f, File old, Collection<? extends IDrop> newer) 
 	throws Exception {
 		Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
-		return diff(new IDropFilter() {
+		return diff(f, oldResults, newer);
+	}
+	
+	public static SeaSnapshotDiff<CPair<String,String>> diff(final IDropFilter f, Collection<IDrop> old, Collection<? extends IDrop> newer) {
+		SeaSnapshotDiff<CPair<String,String>> rv = new SeaSnapshotDiff<CPair<String,String>>();
+		rv.setFilter(new IDropFilter() {
 //			@Override
 			public boolean showResource(IDrop d) {
 				return select(d) && f.showResource(d);
@@ -216,12 +221,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 				return f.showResource(path);
 			}
 			
-		}, oldResults, newer);
-	}
-	
-	public static SeaSnapshotDiff<CPair<String,String>> diff(IDropFilter f, Collection<IDrop> old, Collection<? extends IDrop> newer) {
-		SeaSnapshotDiff<CPair<String,String>> rv = new SeaSnapshotDiff<CPair<String,String>>();
-		rv.setFilter(f);
+		});
 		rv.setSeparator(new IDropSeparator<CPair<String,String>>() {
 //			@Override
 			public CPair<String, String> makeKey(IDrop d) {

@@ -4,6 +4,7 @@ import com.surelogic.dropsea.IDrop;
 
 public interface IDropFilter {
     boolean showResource(IDrop d);
+    @Deprecated
     boolean showResource(String path);
     
     static final IDropFilter nullFilter = new IDropFilter() {
