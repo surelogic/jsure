@@ -358,7 +358,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 								gc.drawLine(event.x + p, event.y, event.x + p,
 										event.y + height);
 							}
-							String text = SLUtility.toCommaSepString(count);
+							String text = SLUtility.toStringHumanWithCommas(count);
 							Point size = gc.textExtent(text);
 							int offset = Math.max(0, (height - size.y) / 2);
 							int rightJ = GRAPH_WIDTH - 2 - size.x;
@@ -523,7 +523,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 		 * Fix total count at the top.
 		 */
 		final int total = f_filter.getResultCountTotal();
-		f_totalCount.setText(SLUtility.toCommaSepString(total)
+		f_totalCount.setText(SLUtility.toStringHumanWithCommas(total)
 				+ (total == 1 ? " Result" : " Results"));
 
 		/*
@@ -562,7 +562,7 @@ public final class MFilterSelectionColumn extends MColumn implements
 		if (f_porousCount != null && !f_porousCount.isDisposed()) {
 			if (f_reportContents.getItemCount() > 0) {
 				final String porousCountString = SLUtility
-						.toCommaSepString(porousCount);
+						.toStringHumanWithCommas(porousCount);
 				f_porousCount.setText(porousCountString);
 				String msg = (porousCount == 0 ? "No" : porousCountString)
 						+ (porousCount != 1 ? " results" : " result")
