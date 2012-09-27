@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
-import com.surelogic.common.i18n.AnalysisResultMessage;
+import com.surelogic.common.SLUtility;
 
 public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNode> {
 	Status status = null;
@@ -41,6 +41,6 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 	
 //	@Override
 	public Object[] getChildren() {
-		return AnalysisResultMessage.noArgs;
+		return SLUtility.EMPTY_OBJECT_ARRAY;
 	}
 }
