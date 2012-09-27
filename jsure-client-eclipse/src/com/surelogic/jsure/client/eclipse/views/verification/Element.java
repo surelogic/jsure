@@ -55,13 +55,13 @@ abstract class Element {
         }
       }
 
-      int c = nullToEmpty(o1.getProjectOrNull()).compareTo(nullToEmpty(o2.getProjectOrNull()));
+      int c = nullToEmpty(o1.getProjectNameOrNull()).compareTo(nullToEmpty(o2.getProjectNameOrNull()));
       if (c != 0)
         return c;
-      c = nullToEmpty(o1.getPackageOrNull()).compareTo(nullToEmpty(o2.getPackageOrNull()));
+      c = nullToEmpty(o1.getPackageNameOrNull()).compareTo(nullToEmpty(o2.getPackageNameOrNull()));
       if (c != 0)
         return c;
-      c = nullToEmpty(o1.getTypeOrNull()).compareTo(nullToEmpty(o2.getTypeOrNull()));
+      c = nullToEmpty(o1.getSimpleTypeNameOrNull()).compareTo(nullToEmpty(o2.getSimpleTypeNameOrNull()));
       if (c != 0)
         return c;
       if (o1.getLineNumber() != o2.getLineNumber())
@@ -155,15 +155,15 @@ abstract class Element {
     return getLabel();
   }
 
-  String getProjectOrNull() {
+  String getProjectNameOrNull() {
     return null;
   }
 
-  String getPackageOrNull() {
+  String getPackageNameOrNull() {
     return null;
   }
 
-  String getTypeOrNull() {
+  String getSimpleTypeNameOrNull() {
     return null;
   }
 

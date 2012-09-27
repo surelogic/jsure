@@ -44,7 +44,7 @@ abstract class ElementDrop extends Element {
   }
 
   @Override
-  String getProjectOrNull() {
+  String getProjectNameOrNull() {
     final ISrcRef sr = getDrop().getSrcRef();
     if (sr != null)
       return sr.getProject();
@@ -53,7 +53,7 @@ abstract class ElementDrop extends Element {
   }
 
   @Override
-  String getPackageOrNull() {
+  String getPackageNameOrNull() {
     final ISrcRef sr = getDrop().getSrcRef();
     if (sr != null)
       return sr.getPackage();
@@ -62,7 +62,7 @@ abstract class ElementDrop extends Element {
   }
 
   @Override
-  String getTypeOrNull() {
+  String getSimpleTypeNameOrNull() {
     final ISrcRef sr = getDrop().getSrcRef();
     if (sr != null)
       return sr.getCUName();

@@ -1,14 +1,12 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
-import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-import com.surelogic.NonNull;
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -21,7 +19,7 @@ public final class ColumnLabelProviderUtility {
     @Override
     public void update(ViewerCell cell) {
       if (cell.getElement() instanceof Element) {
-        Element element = (Element) cell.getElement();
+        final Element element = (Element) cell.getElement();
         final boolean duplicate = hasAncestorWithSameDrop(element);
         final String label;
         if (duplicate) {
@@ -52,77 +50,84 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static final ColumnLabelProvider PROJECT = new AbstractElementColumnLabelProvider() {
+  static abstract class VerificationStatusCellLabelProvider extends CellLabelProvider {
+    boolean isNotEmptyOrNull(String value) {
+      if (value == null)
+        return false;
+      if ("".equals(value))
+        return false;
+      return true;
+    }
+  }
+
+  static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_projectRid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0,
         VerificationStatusView.ICONSIZE);
 
     @Override
-    Image getImageFromElement(@NonNull Element element) {
-      if (isNotEmptyOrNull(getTextFromElement(element)))
-        return f_projectRid.getCachedImage();
-      else
-        return null;
-    }
-
-    @Override
-    String getTextFromElement(@NonNull Element element) {
-      return element.getProjectOrNull();
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String project = element.getProjectNameOrNull();
+        if (isNotEmptyOrNull(project)) {
+          cell.setText(project);
+          cell.setImage(f_projectRid.getCachedImage());
+        }
+      }
     }
   };
 
-  static final ColumnLabelProvider PACKAGE = new AbstractElementColumnLabelProvider() {
+  static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_packageRid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0,
         VerificationStatusView.ICONSIZE);
 
     @Override
-    Image getImageFromElement(@NonNull Element element) {
-      if (isNotEmptyOrNull(getTextFromElement(element)))
-        return f_packageRid.getCachedImage();
-      else
-        return null;
-    }
-
-    @Override
-    String getTextFromElement(@NonNull Element element) {
-      return element.getPackageOrNull();
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String pkg = element.getPackageNameOrNull();
+        if (isNotEmptyOrNull(pkg)) {
+          cell.setText(pkg);
+          cell.setImage(f_packageRid.getCachedImage());
+        }
+      }
     }
   };
 
-  static final ColumnLabelProvider TYPE = new AbstractElementColumnLabelProvider() {
+  static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_classRid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0,
         VerificationStatusView.ICONSIZE);
+    private final ResultsImageDescriptor f_interfaceRid = new ResultsImageDescriptor(CommonImages.IMG_INTERFACE, 0,
+        VerificationStatusView.ICONSIZE);
+    private final ResultsImageDescriptor f_enumRid = new ResultsImageDescriptor(CommonImages.IMG_ENUM, 0,
+        VerificationStatusView.ICONSIZE);
 
     @Override
-    Image getImageFromElement(@NonNull Element element) {
-      if (isNotEmptyOrNull(getTextFromElement(element)))
-        return f_classRid.getCachedImage();
-      else
-        return null;
-    }
-
-    @Override
-    String getTextFromElement(@NonNull Element element) {
-      return element.getTypeOrNull();
-    }
-  };
-
-  static ColumnLabelProvider LINE = new AbstractElementColumnLabelProvider() {
-
-    @Override
-    Image getImageFromElement(@NonNull Element element) {
-      return null;
-    }
-
-    @Override
-    String getTextFromElement(@NonNull Element element) {
-      return element.getLineNumberAsStringOrNull();
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String typeName = element.getSimpleTypeNameOrNull();
+        if (isNotEmptyOrNull(typeName)) {
+          cell.setText(typeName);
+          cell.setImage(f_classRid.getCachedImage());
+        }
+      }
     }
   };
 
-  private ColumnLabelProviderUtility() {
-    // no instances
-  }
+  static final CellLabelProvider LINE = new CellLabelProvider() {
+
+    @Override
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String line = element.getLineNumberAsStringOrNull();
+        if (line != null)
+          cell.setText(line);
+      }
+    }
+  };
 }
