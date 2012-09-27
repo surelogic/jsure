@@ -56,7 +56,7 @@ public class CompareResults extends AbstractCommand {
 		try {
 			diff = SeaSummary.diff(info.getDropInfo(),//PersistentDropInfo.getInstance().getRawInfo(), 
 					oracle, ModelingProblemFilterUtility.defaultFilter);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, oracle, info.getDropInfo());
 		}
 		final File diffs = resolveFile(context, contents[3], true);	
