@@ -3,8 +3,8 @@ package com.surelogic.jsure.client.eclipse.views.verification;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
@@ -15,6 +15,20 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 public final class ColumnLabelProviderUtility {
 
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
+
+    private Color f_onClauseColor;
+
+    private Color getOnClauseColor() {
+      if (f_onClauseColor == null) {
+        f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
+        Display.getCurrent().disposeExec(new Runnable() {
+          public void run() {
+            f_onClauseColor.dispose();
+          }
+        });
+      }
+      return f_onClauseColor;
+    }
 
     @Override
     public void update(ViewerCell cell) {
@@ -33,8 +47,7 @@ public final class ColumnLabelProviderUtility {
         if (element instanceof ElementPromiseDrop) {
           int index = label.indexOf(" on ");
           if (index != -1) {
-            StyleRange[] ranges = { new StyleRange(index, label.length() - index, Display.getDefault().getSystemColor(
-                SWT.COLOR_DARK_GRAY), null) };
+            StyleRange[] ranges = { new StyleRange(index, label.length() - index, getOnClauseColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
