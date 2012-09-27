@@ -5,6 +5,7 @@ import org.xml.sax.Attributes;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 
 public class JSureSummaryXMLReader extends AbstractXMLReader {
   public static final String ROOT = "sea-summary";
@@ -23,6 +24,9 @@ public class JSureSummaryXMLReader extends AbstractXMLReader {
         return "";
       }
       return attributes.getValue(TIME_ATTR);
+    }
+    else if (SeaSnapshotXMLReader.ROOT.equals(name)) {
+    	throw new IllegalStateException();
     }
     return null;
   }
