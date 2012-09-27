@@ -40,14 +40,17 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
 
 final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implements IBinderClient {
+  private static final int USE_CATEGORY = 495;
+  
   private static final int ANNOTATION_BOUNDS_FOLDER = 495;
   private static final int ANNOTATION_BOUND_SATISFIED = 496;
   private static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
+  private static final int USE = 498;
   
   
   
-  private static final Map<IRNode, ResultFolderDrop> folders =
-      new ConcurrentHashMap<IRNode, ResultFolderDrop>();
+  private static final Map<IJavaType, ResultFolderDrop> folders =
+      new ConcurrentHashMap<IJavaType, ResultFolderDrop>();
       
   private static final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
       new ConcurrentHashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
@@ -198,16 +201,28 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
      */
     doAcceptForChildren(pType);
 
-    /* Now analyze self */
+    // See if there are any bounds to check
     final IRNode baseTypeDecl =
         binder.getBinding(ParameterizedType.getBase(pType));
     final AnnotationBoundsPromiseDrop boundsDrop = 
         LockRules.getAnnotationBounds(baseTypeDecl);
     if (boundsDrop != null) {
-      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-          getBounds(baseTypeDecl, boundsDrop);
-      if (bounds != null) {
-        checkActualsAgainstBounds(boundsDrop, pType, bounds);
+      /* Get the IJavaType and see if we already have a result for this
+       * parameterization.  Should always get an IJavaDeclaredType.
+       */
+      final IJavaDeclaredType jTypeOfParameterizedType =
+          (IJavaDeclaredType) binder.getJavaType(pType);
+      ResultFolderDrop folder = folders.get(jTypeOfParameterizedType);
+      if (folder == null) {
+        final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
+            getBounds(baseTypeDecl, boundsDrop);
+        if (bounds != null) {
+          folder = checkActualsAgainstBounds(boundsDrop, pType, jTypeOfParameterizedType, bounds);
+        }
+      }
+      // be safe
+      if (folder != null) {
+        folder.addInformationHintWithCategory(pType, USE_CATEGORY, USE);
       }
     }
     return null;
@@ -311,22 +326,19 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   }
   
 
-  private void checkActualsAgainstBounds(
+  private ResultFolderDrop checkActualsAgainstBounds(
       final AnnotationBoundsPromiseDrop boundsDrop,
       final IRNode parameterizedType,
+      final IJavaDeclaredType jTypeOfParameterizedType,
       final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {    
-    // Should be true: if not, why not?
-    final IJavaDeclaredType jTypeOfParameterizedType =
-        (IJavaDeclaredType) binder.getJavaType(parameterizedType);
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
     
-
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
     folder.setMessage(
         ANNOTATION_BOUNDS_FOLDER, jTypeOfParameterizedType.toSourceText());
+    folders.put(jTypeOfParameterizedType, folder);
     folder.addChecked(boundsDrop);
-    folders.put(parameterizedType, folder);
-    
+
     for (int i = 0; i < boundsList.size(); i++) {
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
@@ -351,5 +363,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       result.addTrusted(promises);
       folder.addTrusted(result);
     }
+    return folder;
   }
 }
