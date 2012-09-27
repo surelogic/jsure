@@ -9,6 +9,7 @@ import java.util.Map;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -234,6 +235,11 @@ final class ElementCategory extends Element {
 
   @Override
   String getLabel() {
+    return I18N.toStringForUIFolderLabel(f_label, getChildren().length);
+  }
+
+  @Override
+  String getLabelToPersistViewerState() {
     return f_label;
   }
 

@@ -44,6 +44,11 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  String getLabel() {
+    return I18N.toStringForUIFolderLabel(super.getLabel(), getChildren().length);
+  }
+
+  @Override
   int getImageFlags() {
     if (hasChildren())
       return super.getImageFlags();

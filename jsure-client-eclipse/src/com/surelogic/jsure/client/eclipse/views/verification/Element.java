@@ -25,7 +25,7 @@ abstract class Element {
       if (o2 == null)
         return 1;
 
-      return o1.getLabel().compareTo(o2.getLabel());
+      return o1.getLabelToPersistViewerState().compareTo(o2.getLabelToPersistViewerState());
     }
   };
 
@@ -68,7 +68,7 @@ abstract class Element {
         return o1.getLineNumber() - o2.getLineNumber();
       if (c != 0)
         return c;
-      return o1.getLabel().compareTo(o2.getLabel());
+      return o1.getLabelToPersistViewerState().compareTo(o2.getLabelToPersistViewerState());
     }
 
     private String nullToEmpty(String value) {
@@ -146,12 +146,14 @@ abstract class Element {
    * Gets a text label which, while similar to what is returned from
    * {@link #getLabel()}, should avoid specific numbers in categories and other
    * details. This label is used to persist the viewer state.
+   * <p>
+   * This method returns the same result as {@link #getLabel()} except for
+   * folders and categories.
    * 
    * @return a text label
    * @see #toString()
    */
   String getLabelToPersistViewerState() {
-    // TODO this should be fixed when categories actually work
     return getLabel();
   }
 

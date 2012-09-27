@@ -39,7 +39,12 @@ abstract class ElementDrop extends Element {
   abstract IDrop getDrop();
 
   @Override
-  final String getLabel() {
+  String getLabel() {
+    return getDrop().getMessage();
+  }
+
+  @Override
+  String getLabelToPersistViewerState() {
     return getDrop().getMessage();
   }
 
