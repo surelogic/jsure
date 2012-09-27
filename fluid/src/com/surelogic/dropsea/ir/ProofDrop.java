@@ -19,7 +19,6 @@ import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -164,8 +163,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       return;
     }
     synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef();
-      f_messageConsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
+      f_messageConsistent = AnalysisResultMessage.getInstance(number, args);
     }
   }
 
@@ -179,8 +177,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       return;
     }
     synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef();
-      f_messageInconsistent = AnalysisResultMessage.getInstance(srcRef, number, args);
+      f_messageInconsistent = AnalysisResultMessage.getInstance(number, args);
     }
   }
 

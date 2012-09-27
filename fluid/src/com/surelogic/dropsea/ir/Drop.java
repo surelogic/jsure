@@ -158,15 +158,13 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef(); // may be null
-      f_message = AnalysisResultMessage.getInstance(srcRef, number, args);
+      f_message = AnalysisResultMessage.getInstance(number, args);
     }
   }
 
   public final void setMessage(String msg) {
     synchronized (f_seaLock) {
-      JavaSourceReference srcRef = createSourceRef(); // may be null
-      f_message = AnalysisResultMessage.getInstance(srcRef, 12, msg);
+      f_message = AnalysisResultMessage.getInstance(12, msg);
     }
   }
 
