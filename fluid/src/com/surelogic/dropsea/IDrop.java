@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 
@@ -64,8 +65,12 @@ public interface IDrop {
 
   /**
    * Gets this drop's categorizing string, or {@code null} if none.
+   * <p>
+   * It is intended that {@link I18N#toStringForUIFolderLabel(String, int)} is
+   * called prior to display on the string returned from this method.
    * 
    * @return a categorizing string, or {@code null} if none.
+   * @see I18N#toStringForUIFolderLabel(String, int)
    */
   @Nullable
   String getCategorizingString();

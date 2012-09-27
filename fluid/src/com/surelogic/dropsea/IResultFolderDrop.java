@@ -1,6 +1,7 @@
 package com.surelogic.dropsea;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.i18n.I18N;
 
 /**
  * The interface for folders that contain consistent/inconsistent judgment drops
@@ -9,6 +10,12 @@ import com.surelogic.NonNull;
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
+ * <p>
+ * It is intended that messages for folder drops, what is returned from
+ * {@link #getMessage()}, may assume that
+ * {@link I18N#toStringForUIFolderLabel(String, int)} is called prior to their
+ * display. This allows the same special processing of messages that occurs on
+ * categories to occur on these folders.
  */
 public interface IResultFolderDrop extends IAnalysisResultDrop {
 
