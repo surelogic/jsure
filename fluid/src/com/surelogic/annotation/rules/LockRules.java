@@ -136,7 +136,7 @@ public class LockRules extends AnnotationRules {
   private static final String JAVA_LANG_ENUM = "java.lang.Enum";
 
   public static final String LOCK = "RegionLock";
-	private static final String IS_LOCK = "IsLock";
+//	private static final String IS_LOCK = "IsLock";
 	private static final String REQUIRES_LOCK = "RequiresLock";
 	private static final String RETURNS_LOCK = "ReturnsLock";
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
@@ -1084,7 +1084,7 @@ public class LockRules extends AnnotationRules {
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setMessage(Messages.LockAnnotation_lockModel,
-            model.getQualifiedName(), field, region,
+            model.getSimpleName(), field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
         // Add the protected region
         model.addDependent(regionBinding.getModel());        
@@ -1126,7 +1126,7 @@ public class LockRules extends AnnotationRules {
       if (declIsGood) {
     	final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setMessage(Messages.LockAnnotation_policyLockModel,
-            model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
+            model.getSimpleName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);

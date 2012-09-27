@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -223,7 +224,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     job.schedule();
   }
 
-  private final Action f_actionAlphaSort = new Action("", Action.AS_RADIO_BUTTON) {
+  private final Action f_actionAlphaSort = new Action("", IAction.AS_RADIO_BUTTON) {
     @Override
     public void run() {
       final boolean alphabetical = f_actionAlphaSort.isChecked();
@@ -231,7 +232,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionJavaSort = new Action("", Action.AS_RADIO_BUTTON) {
+  private final Action f_actionJavaSort = new Action("", IAction.AS_RADIO_BUTTON) {
     @Override
     public void run() {
       final boolean java = f_actionJavaSort.isChecked();
@@ -239,7 +240,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionShowHints = new Action("", Action.AS_CHECK_BOX) {
+  private final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowHints.isChecked();
