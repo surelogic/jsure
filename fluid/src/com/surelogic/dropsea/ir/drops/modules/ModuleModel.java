@@ -7,7 +7,6 @@ import com.surelogic.aast.promise.ModuleWrapperNode;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
@@ -70,7 +69,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
   
   private static final String DS_BAD_MODULE_ENCLOSURE ; 
   
-  private static final Category DSC_BAD_MODULE_PROMISE ;
+  private static final String DSC_BAD_MODULE_PROMISE ;
   
   static {
     LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
@@ -118,7 +117,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     synchronized(ModuleModel.class) {
       cache.put(name, this);
     }
-    setCategory(JavaGlobals.MODULE_CAT);
+    setCategorizingString(JavaGlobals.MODULE_CAT);
     dependOn.addDependent(this);
   }
   
@@ -150,7 +149,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     synchronized(ModuleModel.class) {
       cache.put(name, this);
     }
-    setCategory(JavaGlobals.MODULE_CAT);
+    setCategorizingString(JavaGlobals.MODULE_CAT);
     dependOn.addDependent(this);
   }
 
@@ -163,7 +162,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
 	name = "The World";
     enclosedModuleNames = null;
     enclosedModuleModels = null;
-    setCategory(JavaGlobals.MODULE_CAT);
+    setCategorizingString(JavaGlobals.MODULE_CAT);
     setMessage(12, "(Module \"The World\")");
   }
 

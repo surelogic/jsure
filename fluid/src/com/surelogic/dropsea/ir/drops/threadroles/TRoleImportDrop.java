@@ -50,7 +50,7 @@ implements IThreadRoleDrop {
     importedUnit = null;
    // setNodeAndCompilationUnitDependency(n.getPromisedFor());
     setMessage(12,"@ThreadRoleImport " + getAAST().getId() + " (incomplete)");
-    setCategory(JavaGlobals.THREAD_ROLES_CAT);
+    setCategorizingString(JavaGlobals.THREAD_ROLES_CAT);
   }
 
   public void computeImports() {
@@ -74,7 +74,7 @@ implements IThreadRoleDrop {
 
       error.setMessage("no binding found for \"" + importedUnit + '"');
       //error.setNodeAndCompilationUnitDependency(this.getNode());
-      error.setCategory(JavaGlobals.THREAD_ROLES_CAT);
+      error.setCategorizingString(JavaGlobals.THREAD_ROLES_CAT);
     } else {
       // 
 //      this.dependUponCompilationUnitOf(boundImportedUnit);

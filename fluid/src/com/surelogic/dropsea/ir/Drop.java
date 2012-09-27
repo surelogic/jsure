@@ -181,21 +181,27 @@ public abstract class Drop implements IDrop {
   }
 
   @Nullable
-  public final Category getCategory() {
+  public String getCategorizingString() {
     synchronized (f_seaLock) {
-      return f_category;
+      return f_categorizingString;
     }
   }
 
-  /**
-   * Sets the user interface reporting category for this drop.
-   * 
-   * @param category
-   *          a category to set, or {@code null} to clear the category.
-   */
-  public final void setCategory(Category category) {
+  public final void setCategorizingString(int number, Object... args) {
     synchronized (f_seaLock) {
-      f_category = category;
+      f_categorizingString = I18N.cat(number, args);
+    }
+  }
+
+  public final void setCategorizingString(int number) {
+    synchronized (f_seaLock) {
+      f_categorizingString = I18N.cat(number);
+    }
+  }
+
+  public final void setCategorizingString(String value) {
+    synchronized (f_seaLock) {
+      f_categorizingString = value;
     }
   }
 
@@ -623,13 +629,13 @@ public abstract class Drop implements IDrop {
   private AnalysisResultMessage f_message;
 
   /**
-   * A user interface reporting category for this drop.
-   * 
-   * @see Category
+   * A categorizing string for this drop, usually used by the UI.
+   * <p>
+   * May be {@code null}.
    */
   @InRegion("DropState")
   @Nullable
-  private Category f_category = null;
+  private String f_categorizingString = null;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -675,9 +681,9 @@ public abstract class Drop implements IDrop {
     if (f_message != null)
       s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_message.getResultStringCanonical()));
 
-    final Category cat = getCategory();
+    final String cat = getCategorizingString();
     if (cat != null)
-      s.addAttribute(CATEGORY_ATTR, cat.getKey());
+      s.addAttribute(CATEGORY_ATTR, cat);
   }
 
   @MustInvokeOnOverride

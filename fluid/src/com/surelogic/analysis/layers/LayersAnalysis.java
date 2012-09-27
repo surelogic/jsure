@@ -159,7 +159,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 	private ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
 		ResultDrop rd = new ResultDrop(type);
-		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
+		rd.setCategorizingString(Messages.DSC_LAYERS_ISSUES);
 		rd.addChecked(checked);
 		rd.setConsistent();
 		return rd;
@@ -167,7 +167,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 	private ResultDrop createFailureDrop(IRNode type) {
 		ResultDrop rd = new ResultDrop(type);
-		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
+		rd.setCategorizingString(Messages.DSC_LAYERS_ISSUES);
 		rd.setInconsistent();
 		return rd;
 	}

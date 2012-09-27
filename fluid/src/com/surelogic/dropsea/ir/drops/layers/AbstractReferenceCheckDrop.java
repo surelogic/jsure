@@ -11,7 +11,7 @@ public abstract class AbstractReferenceCheckDrop<A extends AbstractLayerMatchRoo
 implements IReferenceCheckDrop {
 	AbstractReferenceCheckDrop(A ast) {
 		super(ast);
-		setCategory(Messages.DSC_LAYERS_ISSUES);
+		setCategorizingString(Messages.DSC_LAYERS_ISSUES);
 		setMessage(12, getAAST().toString());
 	}
 	

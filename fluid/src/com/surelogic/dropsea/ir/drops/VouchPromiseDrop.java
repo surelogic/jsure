@@ -11,7 +11,7 @@ public class VouchPromiseDrop extends PromiseDrop<VouchSpecificationNode> {
 
   public VouchPromiseDrop(VouchSpecificationNode a) {
     super(a);
-    setCategory(JavaGlobals.VOUCH_CAT);
+    setCategorizingString(JavaGlobals.VOUCH_CAT);
     setMessage(16, getAAST());
   }
 }

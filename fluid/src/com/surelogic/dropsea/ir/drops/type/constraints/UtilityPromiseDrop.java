@@ -11,7 +11,7 @@ public class UtilityPromiseDrop extends BooleanPromiseDrop<UtilityNode> {
 
   public UtilityPromiseDrop(UtilityNode a) {
     super(a);
-    setCategory(JavaGlobals.UTILITY_CAT);
+    setCategorizingString(JavaGlobals.UTILITY_CAT);
     String name = JavaNames.getTypeName(getNode());
     setMessage(Messages.UtilityDrop, name);
   }

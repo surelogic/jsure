@@ -9,7 +9,6 @@ package com.surelogic.analysis.threadroles;
 import java.util.Iterator;
 
 import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -25,130 +24,119 @@ import edu.cmu.cs.fluid.ir.IRNode;
  *         Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class TRoleMessages {
-	public static final Category assuranceCategory = Category
-			.getResultInstance("Thread role assurances");
+  public static final String assuranceCategory = "Thread role assurances";
 
-	public static final Category warningCategory = Category
-			.getResultInstance("Thread role warnings");
+  public static final String warningCategory = "Thread role warnings";
 
-	public static final Category problemCategory = Category
-			.getResultInstance("Thread role problems");
+  public static final String problemCategory = "Thread role problems";
 
-	public static final Category infoCategory = Category
-			.getResultInstance("Thread role inferences");
+  public static final String infoCategory = "Thread role inferences";
 
-	public static final Category multiThreadedInfoCategory = Category
-			.getResultInstance("Possibly Multi-threaded methods");
+  public static final String multiThreadedInfoCategory = "Possibly Multi-threaded methods";
 
-	public static ResultDrop createResultDrop(String msg,
-			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
-		rd.setConsistent();
-		// rd.addCheckedPromise(pd);
-		//rd.setNodeAndCompilationUnitDependency(loc);
-		rd.setMessage(msg);
-		rd.setCategory(assuranceCategory);
+  public static ResultDrop createResultDrop(String msg, String resultDropKind, IRNode loc) {
+    ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
+    rd.setConsistent();
+    // rd.addCheckedPromise(pd);
+    // rd.setNodeAndCompilationUnitDependency(loc);
+    rd.setMessage(msg);
+    rd.setCategorizingString(assuranceCategory);
 
-		if (loc != null) {
-			Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
-			if (d != null) {
-				d.addDependent(rd);
-			}
-		}
-		return rd;
-	}
+    if (loc != null) {
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
+      if (d != null) {
+        d.addDependent(rd);
+      }
+    }
+    return rd;
+  }
 
-	public static HintDrop createWarningDrop(String msg, IRNode loc) {
-		HintDrop wd = HintDrop.newWarning(loc);
-		// rd.addCheckedPromise(pd);
-	//	wd.setNodeAndCompilationUnitDependency(loc);
-		wd.setMessage(msg);
-		wd.setCategory(warningCategory);
+  public static HintDrop createWarningDrop(String msg, IRNode loc) {
+    HintDrop wd = HintDrop.newWarning(loc);
+    // rd.addCheckedPromise(pd);
+    // wd.setNodeAndCompilationUnitDependency(loc);
+    wd.setMessage(msg);
+    wd.setCategorizingString(warningCategory);
 
-		if (loc != null) {
-			Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
-			if (d != null) {
-				d.addDependent(wd);
-			}
-		}
-		return wd;
-	}
+    if (loc != null) {
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
+      if (d != null) {
+        d.addDependent(wd);
+      }
+    }
+    return wd;
+  }
 
-	public static HintDrop createInfoDrop(String msg, IRNode loc) {
-		HintDrop id = HintDrop.newInformation(loc);
-		// rd.addCheckedPromise(pd);
-		//id.setNodeAndCompilationUnitDependency(loc);
-		id.setMessage(msg);
-		id.setCategory(infoCategory);
+  public static HintDrop createInfoDrop(String msg, IRNode loc) {
+    HintDrop id = HintDrop.newInformation(loc);
+    // rd.addCheckedPromise(pd);
+    // id.setNodeAndCompilationUnitDependency(loc);
+    id.setMessage(msg);
+    id.setCategorizingString(infoCategory);
 
-		if (loc != null) {
-			Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
-			if (d != null) {
-				d.addDependent(id);
-			}
-		}
+    if (loc != null) {
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
+      if (d != null) {
+        d.addDependent(id);
+      }
+    }
 
-		return id;
-	}
+    return id;
+  }
 
-	public static ResultDrop createProblemDrop(String msg,
-			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
-		rd.setInconsistent();
-		// rd.addCheckedPromise(pd);
-		if (loc != null) {
-			//rd.setNodeAndCompilationUnitDependency(loc);
-			if (loc != null) {
-				Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
-				if (d != null) {
-					d.addDependent(rd);
-				}
-			}
-		}
-		rd.setMessage(msg);
-		rd.setCategory(problemCategory);
+  public static ResultDrop createProblemDrop(String msg, String resultDropKind, IRNode loc) {
+    ResultDrop rd = new ResultDrop(loc); // TODO FIX TOP LEVEL
+    rd.setInconsistent();
+    // rd.addCheckedPromise(pd);
+    if (loc != null) {
+      // rd.setNodeAndCompilationUnitDependency(loc);
+      if (loc != null) {
+        Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
+        if (d != null) {
+          d.addDependent(rd);
+        }
+      }
+    }
+    rd.setMessage(msg);
+    rd.setCategorizingString(problemCategory);
 
-		return rd;
-	}
+    return rd;
+  }
 
-	public static void invalidateDrops() {
-		{
-			Iterator<HintDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
-					.getDropsOfExactType(HintDrop.class).iterator();
+  public static void invalidateDrops() {
+    {
+      Iterator<HintDrop> it = com.surelogic.dropsea.ir.Sea.getDefault().getDropsOfExactType(HintDrop.class).iterator();
 
-			while (it.hasNext()) {
-				HintDrop d = it.next();
-				if (d.getHintType() == IHintDrop.HintType.WARNING && d.getCategory() == warningCategory) {
-					d.invalidate();
-				}
-			}
-		}
-		{
-			Iterator<ResultDrop> it = com.surelogic.dropsea.ir.Sea.getDefault()
-					.getDropsOfExactType(ResultDrop.class).iterator();
+      while (it.hasNext()) {
+        HintDrop d = it.next();
+        if (d.getHintType() == IHintDrop.HintType.WARNING && warningCategory.equals(d.getCategorizingString())) {
+          d.invalidate();
+        }
+      }
+    }
+    {
+      Iterator<ResultDrop> it = com.surelogic.dropsea.ir.Sea.getDefault().getDropsOfExactType(ResultDrop.class).iterator();
 
-			while (it.hasNext()) {
-				ResultDrop d = (ResultDrop) it.next();
-				if (d.getCategory() == problemCategory) {
-					d.invalidate();
-				}
-			}
-		}
-	}
+      while (it.hasNext()) {
+        ResultDrop d = (ResultDrop) it.next();
+        if (problemCategory.equals(d.getCategorizingString())) {
+          d.invalidate();
+        }
+      }
+    }
+  }
 
-	public static IRReferenceDrop createOutputDrop(Category desiredCategory,
-			String msg, IRNode loc) {
-		if (desiredCategory == assuranceCategory) {
-			return createResultDrop(msg, "TODO: fill me in", loc);
-		} else if (desiredCategory.equals(infoCategory)) {
-			return createInfoDrop(msg, loc);
-		} else if (desiredCategory.equals(warningCategory)) {
-			return createWarningDrop(msg, loc);
-		} else if (desiredCategory.equals(problemCategory)) {
-			return createProblemDrop(msg, "TODO: Fill Me In", loc);
-		} else {
-			return null;
-		}
-
-	}
+  public static IRReferenceDrop createOutputDrop(String desiredCategory, String msg, IRNode loc) {
+    if (desiredCategory == assuranceCategory) {
+      return createResultDrop(msg, "TODO: fill me in", loc);
+    } else if (desiredCategory.equals(infoCategory)) {
+      return createInfoDrop(msg, loc);
+    } else if (desiredCategory.equals(warningCategory)) {
+      return createWarningDrop(msg, loc);
+    } else if (desiredCategory.equals(problemCategory)) {
+      return createProblemDrop(msg, "TODO: Fill Me In", loc);
+    } else {
+      return null;
+    }
+  }
 }

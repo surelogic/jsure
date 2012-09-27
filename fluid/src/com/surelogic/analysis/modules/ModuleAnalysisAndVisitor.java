@@ -20,7 +20,6 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -77,16 +76,16 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   private static Drop resultDependUpon = null;
   
-  private static final Category DSC_BAD_CROSS_MODULE_REF = null;
+  private static final int DSC_BAD_CROSS_MODULE_REF = -1;
    // Category.getPrefixCountInstance(ModuleMessages.getString("ModuleAnalysisAndVisitor.dsc.BadCrossModuleRefCat")); //$NON-NLS-1$
   
-  private static final Category DSC_API_WISHES = null;
+  private static final int DSC_API_WISHES = -1;
    // Category.getPrefixCountInstance("Non @vis entities with cross-module references");
   
-  private static final Category DSC_API_WISHES_PROMOTION =  null;
+  private static final int DSC_API_WISHES_PROMOTION =  -1;
    // Category.getPrefixCountInstance("Other modules desire @vis promotion");
   
-  private static final Category DSC_BAD_MODULE_PROMISE = null;
+  private static final int DSC_BAD_MODULE_PROMISE = -1;
   //  Category.getPrefixCountInstance("Erroneous @module promises");
   
   private static final String DS_BAD_CROSS_MODULE_REF = 
@@ -158,7 +157,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
           ResultDrop rd = makeResultDrop(where, currMod, false, 
                                          DS_BAD_CROSS_MODULE_REF,
                                          DebugUnparser.toString(where));
-          rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
+          rd.setCategorizingString(DSC_BAD_CROSS_MODULE_REF);
 //          ModuleModel.setModuleInformationIsConsistent(false);
           // this is an error, but the module STRUCTURE is OK.
           
@@ -179,7 +178,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
               ResultDrop rd = makeResultDrop(node, modPromise, false,
                                              DS_MODULE_ERR_NONLEAF_WITH_CODE,
                                              currMod.name);
-              rd.setCategory(DSC_BAD_MODULE_PROMISE);
+              rd.setCategorizingString(DSC_BAD_MODULE_PROMISE);
               ModuleModel.setModuleInformationIsConsistent(false);
               modPromise.setBadPlacement(true);
             }
@@ -363,7 +362,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         ResultDrop rd = makeResultDrop(node, currMod, false, 
                                        DS_BAD_CROSS_MODULE_REF,
                                        TypeRef.getId(node));
-        rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
+        rd.setCategorizingString(DSC_BAD_CROSS_MODULE_REF);
         
         ModuleModel.updateWishIWere(typ, currMod);
       }
@@ -799,13 +798,24 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     }
   }
   public static HintDrop makeWarningDrop(
-      final Category category, final IRNode context,
+      final int category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final HintDrop info = HintDrop.newWarning(context);
     setResultDep(info, context);
     info.setMessage(msg);
-    info.setCategory(category);
+    info.setCategorizingString(category);
+    return info;
+  }
+  
+  public static HintDrop makeWarningDrop(
+      final String category, final IRNode context,
+      final String msgTemplate, final Object... msgArgs) {
+    final String msg = MessageFormat.format(msgTemplate, msgArgs);
+    final HintDrop info = HintDrop.newWarning(context);
+    setResultDep(info, context);
+    info.setMessage(msg);
+    info.setCategorizingString(category);
     return info;
   }
   
@@ -926,7 +936,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         final String javaThingName = javaName(javaThing);
         final String refStr = getRefStr(javaThing);
         
-        final Category warnCat;
+        final int warnCat;
         final String infoStr;
         if (ModuleModel.isAPIinParentModule(javaThing)) {
           warnCat = DSC_API_WISHES_PROMOTION;

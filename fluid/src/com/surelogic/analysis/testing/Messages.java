@@ -1,17 +1,15 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.dropsea.ir.Category;
-
 final class Messages {
   private Messages() {
     // private constructor to prevent instantiation
   }
 
-  public static final Category DSC_BCA = Category.getInstance(500);
-  public static final Category DSC_COLLECT_METHOD_CALLS = Category.getInstance(510);
-  public static final Category DSC_LOCAL_VARIABLES = Category.getInstance(520);
-  public static final Category DSC_NON_NULL = Category.getInstance(530);
-  public static final Category DSC_TEST_ALIAS = Category.getInstance(540);
+  public static final int DSC_BCA = 500;
+  public static final int DSC_COLLECT_METHOD_CALLS = 510;
+  public static final int DSC_LOCAL_VARIABLES = 520;
+  public static final int DSC_NON_NULL = 530;
+  public static final int DSC_TEST_ALIAS = 540;
 
   public static final int BINDS_TO = 500;
 

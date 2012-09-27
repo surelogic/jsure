@@ -95,7 +95,7 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
         final Set<IRNode> nonNull = currentQuery().getResultFor(use);
         final IRNode varDecl = getBinder().getBinding(use);
         final HintDrop drop = HintDrop.newInformation(use);
-        drop.setCategory(Messages.DSC_NON_NULL);
+        drop.setCategorizingString(Messages.DSC_NON_NULL);
         final String varName = VariableUseExpression.getId(use);
         if (nonNull.contains(varDecl)) {
           drop.setMessage(Messages.NOT_NULL, varName);

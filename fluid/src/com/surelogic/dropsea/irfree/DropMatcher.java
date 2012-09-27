@@ -3,7 +3,6 @@ package com.surelogic.dropsea.irfree;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -46,8 +45,8 @@ public abstract class DropMatcher {
 	}
 	
 	protected static boolean matchCategory(IDrop n, IDrop o) {
-		Category nCat = n.getCategory();
-		Category oCat = o.getCategory();
+		String nCat = n.getCategorizingString();
+		String oCat = o.getCategorizingString();
 		if (nCat != null && oCat != null) {
 			return nCat.equals(oCat);
 		}

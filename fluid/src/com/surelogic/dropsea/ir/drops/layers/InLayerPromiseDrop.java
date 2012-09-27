@@ -9,7 +9,7 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {
 		super(a);
-		setCategory(Messages.DSC_LAYERS_ISSUES);
+		setCategorizingString(Messages.DSC_LAYERS_ISSUES);
 		setMessage(12, getAAST().toString());
 	}
 }

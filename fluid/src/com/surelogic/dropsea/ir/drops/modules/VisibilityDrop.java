@@ -20,7 +20,6 @@ import com.surelogic.aast.promise.ModuleAnnotationNode;
 import com.surelogic.aast.promise.VisClauseNode;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -45,14 +44,11 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
 
   String refdModule;
   
-  private static final Category DSC_BAD_VISIBILITY_DECL = null;
-   // Category.getPrefixCountInstance("Erroneous visibility declarations");
+  private static final String DSC_BAD_VISIBILITY_DECL = "Erroneous visibility declarations";
   
-  private static final Category DSC_GOOD_VISIBILITY_DECL = null;
-   // Category.getPrefixCountInstance("Valid visibility declarations");
+  private static final String DSC_GOOD_VISIBILITY_DECL = "Valid visibility declarations";
   
-  private static final Category DSC_WARN_VISIBILITY_DECL = null;
-  //  Category.getPrefixCountInstance("Visibility declaration warnings");
+  private static final String DSC_WARN_VISIBILITY_DECL = "Visibility declaration warnings";
   
   private static final String DS_ERROR_VIS_NO_SUCH_MODULE =
     "Named module \"{0}\" in \"{1}\" does not exist";
@@ -77,7 +73,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
       refdModule = ((ExportNode) a).getToModuleName();
     }
    // setNodeAndCompilationUnitDependency(a.getPromisedFor());
-    setCategory(JavaGlobals.MODULE_CAT);
+    setCategorizingString(JavaGlobals.MODULE_CAT);
   }
 
   protected static <T extends VisibilityDrop<? extends ModuleAnnotationNode>> T buildVisDrop(T res) {
@@ -198,7 +194,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
             ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false, 
                                                     DS_ERROR_VIS_NO_SUCH_MODULE,
                                                     reqModName, vd.toString());
-          rd.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
+          rd.setCategorizingString(JavaGlobals.PROMISE_PARSER_PROBLEM);
           
         } else if (refdMod.moduleIsTheWorld()) {
           final ModuleModel enclosingLeafMod = ModuleModel.getModuleDrop(where);
@@ -217,7 +213,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
               ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false,
                                                       DS_ERROR_VIS_WORLD_FROM_MOD,
                                                       vd.toString());
-            rd.setCategory(DSC_BAD_VISIBILITY_DECL);
+            rd.setCategorizingString(DSC_BAD_VISIBILITY_DECL);
             
           }
         } else {
@@ -239,7 +235,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
                                                       DS_OK_VIS,
                                                       vd.getMessage());
             
-            rd.setCategory(DSC_GOOD_VISIBILITY_DECL);
+            rd.setCategorizingString(DSC_GOOD_VISIBILITY_DECL);
           } else {
             ResultDrop rd =
               ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false, 
@@ -247,7 +243,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
                                                       vd.getMessage(),
                                                       refdMod, baseMod);
             
-            rd.setCategory(DSC_BAD_VISIBILITY_DECL);
+            rd.setCategorizingString(DSC_BAD_VISIBILITY_DECL);
           }
         }
       }

@@ -24,7 +24,7 @@ public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
    */
   public ReturnsLockPromiseDrop(ReturnsLockNode node) {
     super(node);
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
     IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAAST().getPromisedFor());
     setMessage(Messages.LockAnnotation_returnsLockDrop, getAAST().getLock(), JavaNames.genMethodConstructorName(mdecl));
   }

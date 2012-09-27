@@ -76,7 +76,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
        */
       final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
       for (IHintDrop hint : scan.getAnalysisHintDrops()) {
-        if (hint.getCategory() != null)
+        if (hint.getCategorizingString() != null)
           hc.add(hint);
       }
       if (!hc.isEmpty()) {

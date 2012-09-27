@@ -118,7 +118,7 @@ implements IThreadRoleDrop{
     res.myPerCU.addRename(res);
     res.myPerCU.chainsChecked = false;
     res.setMessage("ThreadRoleRename " +res.simpleName+ " for " +res.rawExpr);
-    res.setCategory(TRoleMessages.assuranceCategory);
+    res.setCategorizingString(TRoleMessages.assuranceCategory);
     return res;
   }
 

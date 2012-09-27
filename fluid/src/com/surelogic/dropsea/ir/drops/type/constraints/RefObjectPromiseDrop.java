@@ -11,7 +11,7 @@ public final class RefObjectPromiseDrop extends BooleanPromiseDrop<RefObjectNode
 
   public RefObjectPromiseDrop(RefObjectNode a) {
     super(a);
-    setCategory(Messages.DSC_LAYERS_ISSUES);
+    setCategorizingString(Messages.DSC_LAYERS_ISSUES);
     setMessage(20, EqualityRules.REF_OBJECT, JavaNames.getFullName(getNode()));
   }
 }

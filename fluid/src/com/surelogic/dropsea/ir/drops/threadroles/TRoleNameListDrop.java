@@ -70,7 +70,7 @@ implements IThreadRoleDrop {
     if (e == null || e.processingXML()) {
       setFromSrc(false);
     }
-    setCategory(TRoleMessages.assuranceCategory);
+    setCategorizingString(TRoleMessages.assuranceCategory);
   //  setNodeAndCompilationUnitDependency(locInIR);
     makeTRoleNameModelDeps(locInIR, addQual);
   }

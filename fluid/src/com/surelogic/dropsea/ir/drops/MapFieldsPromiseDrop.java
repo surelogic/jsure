@@ -15,7 +15,7 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
 
   public MapFieldsPromiseDrop(FieldMappingsNode a) {
     super(a);
-    setCategory(JavaGlobals.REGION_CAT);
+    setCategorizingString(JavaGlobals.REGION_CAT);
     StringBuffer fieldNames = new StringBuffer();
     boolean first = true;
     for (RegionSpecificationNode reg : getAAST().getFieldsList()) {

@@ -1,7 +1,6 @@
 package com.surelogic.analysis.uniqueness.classic.sideeffecting;
 
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.dropsea.ir.Category;
 
 
 public final class Messages {
@@ -9,10 +8,10 @@ public final class Messages {
     // private constructor to prevent instantiation
   }
 
-  public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance(300);
-  public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance(301);
-  public static final Category DSC_UNIQUENESS_TIMEOUT = Category.getInstance(302);
-  public static final Category DSC_UNIQUENESS_LONG_RUNNING = Category.getInstance(303);
+  public static final int DSC_UNIQUE_PARAMS_SATISFIED = 300;
+  public static final int DSC_UNIQUE_PARAMS_UNSATISFIED = 301;
+  public static final int DSC_UNIQUENESS_TIMEOUT = 302;
+  public static final int DSC_UNIQUENESS_LONG_RUNNING = 303;
 
   public static final String NORMAL_EXIT = I18N.misc(320);
   public static final String ABRUPT_EXIT = I18N.misc(321);

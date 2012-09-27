@@ -1,13 +1,11 @@
 package com.surelogic.analysis.effects;
 
-import com.surelogic.dropsea.ir.Category;
-
 public final class Messages {
   private Messages() {
     // private constructor to prevent instantiation
   }
 
-  public static final Category DSC_EFFECTS_IN_CLASS_INIT = Category.getInstance(150);
+  public static final int DSC_EFFECTS_IN_CLASS_INIT = 150;
 
   public static final int UNACCOUNTED_FOR = 150;
   public static final int CHECKED_BY = 151;

@@ -82,54 +82,54 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   public final HintDrop addInformationHint(IRNode link, int num, Object... args) {
-    return addHint(HintType.INFORMATION, null, link, num, args);
+    return addHint(HintType.INFORMATION, -1, link, num, args);
   }
 
-  public final HintDrop addInformationHint(IRNode link, Category category, int num, Object... args) {
-    return addHint(HintType.INFORMATION, category, link, num, args);
+  public final HintDrop addInformationHintWithCategory(IRNode link, int catNum, int num, Object... args) {
+    return addHint(HintType.INFORMATION, catNum, link, num, args);
   }
 
   public final HintDrop addInformationHint(IRNode link, String msg) {
-    return addHint(HintType.INFORMATION, null, link, msg);
+    return addHint(HintType.INFORMATION, -1, link, msg);
   }
 
-  public final HintDrop addInformationHint(IRNode link, Category category, String msg) {
-    return addHint(HintType.INFORMATION, category, link, msg);
+  public final HintDrop addInformationHintWithCategory(IRNode link, int catNum, String msg) {
+    return addHint(HintType.INFORMATION, catNum, link, msg);
   }
 
   public final HintDrop addWarningHint(IRNode link, int num, Object... args) {
-    return addHint(HintType.WARNING, null, link, num, args);
+    return addHint(HintType.WARNING, -1, link, num, args);
   }
 
-  public final HintDrop addWarningHint(IRNode link, Category category, int num, Object... args) {
-    return addHint(HintType.WARNING, category, link, num, args);
+  public final HintDrop addWarningHintWithCategory(IRNode link, int catNum, int num, Object... args) {
+    return addHint(HintType.WARNING, catNum, link, num, args);
   }
 
   public final HintDrop addWarningHint(IRNode link, String msg) {
-    return addHint(HintType.WARNING, null, link, msg);
+    return addHint(HintType.WARNING, -1, link, msg);
   }
 
-  public final HintDrop addWarningHint(IRNode link, Category category, String msg) {
-    return addHint(HintType.WARNING, category, link, msg);
+  public final HintDrop addWarningHintWithCategory(IRNode link, int catNum, String msg) {
+    return addHint(HintType.WARNING, catNum, link, msg);
   }
 
-  private HintDrop addHint(IHintDrop.HintType hintType, Category category, IRNode link, int num, Object... args) {
+  private HintDrop addHint(IHintDrop.HintType hintType, int catNum, IRNode link, int num, Object... args) {
     if (link == null)
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
-    if (category != null)
-      hint.setCategory(category);
+    if (catNum > 0)
+      hint.setCategorizingString(catNum);
     hint.setMessage(num, args);
     addDependent(hint);
     return hint;
   }
 
-  private HintDrop addHint(IHintDrop.HintType hintType, Category category, IRNode link, String msg) {
+  private HintDrop addHint(IHintDrop.HintType hintType, int catNum, IRNode link, String msg) {
     if (link == null)
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
-    if (category != null)
-      hint.setCategory(category);
+    if (catNum > 0)
+      hint.setCategorizingString(catNum);
     hint.setMessage(msg);
     addDependent(hint);
     return hint;

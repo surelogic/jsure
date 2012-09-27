@@ -1,7 +1,6 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
@@ -576,9 +575,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     super.snapshotAttrs(s);
-    final Category cat = getCategory();
-    if (cat != null)
-      s.addAttribute(CATEGORY_ATTR, cat.getKey());
     s.addAttribute(ASSUMED, isAssumed());
     s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());
     s.addAttribute(VIRTUAL, isVirtual());

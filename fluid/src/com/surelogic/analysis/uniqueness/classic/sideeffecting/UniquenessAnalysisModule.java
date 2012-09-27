@@ -185,7 +185,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        sl.getCFDrop().addWarningHint(mr.mdecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
+        sl.getCFDrop().addWarningHintWithCategory(mr.mdecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
             Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
       }
@@ -203,7 +203,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        */
       final ResultDrop timeOutResult = new ResultDrop(mr.mdecl);
       timeOutResult.setTimeout();
-      timeOutResult.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
+      timeOutResult.setCategorizingString(Messages.DSC_UNIQUENESS_TIMEOUT);
       timeOutResult.setMessage(Messages.TIMEOUT,
           e.timeOut / NANO_SECONDS_PER_SECOND,
           methodName, duration / NANO_SECONDS_PER_SECOND);

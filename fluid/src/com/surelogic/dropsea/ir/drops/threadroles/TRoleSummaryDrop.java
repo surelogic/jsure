@@ -22,7 +22,7 @@ implements IThreadRoleDrop {
    public TRoleSummaryDrop(String msg) {
 	 super(null);
 	 setMessage(12,msg);
-     setCategory(TRoleMessages.assuranceCategory);
+	 setCategorizingString(TRoleMessages.assuranceCategory);
    }
    
    public void setCount(int count) {

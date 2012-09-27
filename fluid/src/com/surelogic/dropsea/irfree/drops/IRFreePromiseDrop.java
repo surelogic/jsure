@@ -13,7 +13,6 @@ import com.surelogic.NonNull;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
-import com.surelogic.dropsea.ir.Category;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
@@ -39,15 +38,6 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
   IRFreePromiseDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
-
-    /*
-     * The viewer expects promises to be in a category so we use an
-     * "unparented drops" category for any promise that didn't load one from the
-     * XML snapshot. This is updating a field in IRFreeDrop.
-     */
-    if (f_category == null)
-      f_category = Category.getInstance(149);
-
     f_isAssumed = "true".equals(e.getAttribute(ASSUMED));
     f_isCheckedByAnalysis = "true".equals(e.getAttribute(CHECKED_BY_ANALYSIS));
     f_isIntendedToBeCheckedByAnalysis = "true".equals(e.getAttribute(TO_BE_CHECKED_BY_ANALYSIS));

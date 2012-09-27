@@ -358,7 +358,7 @@ public abstract class AnnotationRules {
 			// System.out.println("SCRUBBER: "+txt);
 			ModelingProblemDrop d = new ModelingProblemDrop(n, offset);
 			d.setMessage(txt);
-			d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
+			d.setCategorizingString(JavaGlobals.PROMISE_SCRUBBER);
 			return d;
 		}
 

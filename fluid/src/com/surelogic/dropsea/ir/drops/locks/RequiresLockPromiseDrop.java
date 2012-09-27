@@ -15,6 +15,6 @@ public final class RequiresLockPromiseDrop extends AbstractLockListPromiseDrop<R
 
   public RequiresLockPromiseDrop(RequiresLockNode n) {
     super(n);
-    setCategory(JavaGlobals.LOCK_REQUIRESLOCK_CAT);
+    setCategorizingString(JavaGlobals.LOCK_REQUIRESLOCK_CAT);
   }
 }

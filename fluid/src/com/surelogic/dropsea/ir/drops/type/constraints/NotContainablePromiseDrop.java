@@ -17,7 +17,7 @@ public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotConta
 
   public NotContainablePromiseDrop(NotContainableNode a) {
     super(a);
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = JavaNames.getTypeName(getNode());
     setMessage(Messages.LockAnnotation_notContainableDrop, name);
   }

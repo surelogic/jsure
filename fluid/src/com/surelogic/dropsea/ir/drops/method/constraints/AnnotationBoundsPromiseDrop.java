@@ -14,7 +14,7 @@ public final class AnnotationBoundsPromiseDrop extends BooleanPromiseDrop<Annota
 
   public AnnotationBoundsPromiseDrop(AnnotationBoundsNode a) {
     super(a);
-    setCategory(JavaGlobals.ANNO_BOUNDS_CAT);
+    setCategorizingString(JavaGlobals.ANNO_BOUNDS_CAT);
     final AnnotationBoundsNode ast = getAAST();
     final String[] attrs = new String[] { getNameList("containable", ast.getContainable()),
         getNameList("immutable", ast.getImmutable()), getNameList("referenceObject", ast.getReference()),

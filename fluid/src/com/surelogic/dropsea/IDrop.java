@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 
@@ -64,13 +63,12 @@ public interface IDrop {
   String getMessageCanonical();
 
   /**
-   * Gets the user interface reporting category for this drop, or {@code null}
-   * if none has been defined.
+   * Gets this drop's categorizing string, or {@code null} if none.
    * 
-   * @return a category, or {@code null} if none is set.
+   * @return a categorizing string, or {@code null} if none.
    */
   @Nullable
-  Category getCategory();
+  String getCategorizingString();
 
   /**
    * Gets the source reference of this drop.

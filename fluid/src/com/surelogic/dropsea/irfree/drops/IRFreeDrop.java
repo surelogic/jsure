@@ -1,6 +1,19 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.WITHIN_DECL_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.net.URI;
@@ -18,7 +31,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -37,7 +49,7 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private List<IRFreeProposedPromiseDrop> f_proposedPromises = null;
   @Nullable
-  protected Category f_category = null;
+  private String f_categorizingString = null;
   @Nullable
   private ISrcRef f_srcRef = null;
   @NonNull
@@ -80,9 +92,7 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
 
-    final String categoryString = e.getAttribute(CATEGORY_ATTR);
-    if (categoryString != null)
-      f_category = Category.getPrefixCountInstance(categoryString);
+    f_categorizingString = e.getAttribute(CATEGORY_ATTR);
 
     final String message = e.getAttribute(MESSAGE_ATTR);
     if (message != null)
@@ -122,8 +132,8 @@ public class IRFreeDrop implements IDrop {
   }
 
   @Nullable
-  public Category getCategory() {
-    return f_category;
+  public String getCategorizingString() {
+    return f_categorizingString;
   }
 
   @NonNull
@@ -232,9 +242,9 @@ public class IRFreeDrop implements IDrop {
       public String getJavaId() {
         return javaId;
       }
-      
+
       public String getEnclosingJavaId() {
-          return enclosingId;
+        return enclosingId;
       }
 
       public String getCUName() {

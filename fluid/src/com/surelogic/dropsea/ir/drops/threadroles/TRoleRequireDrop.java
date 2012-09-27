@@ -99,7 +99,7 @@ implements IThreadRoleDrop {
     } else { 
       setFromSrc(true);
     }
-    this.setCategory(TRoleMessages.assuranceCategory);
+    this.setCategorizingString(TRoleMessages.assuranceCategory);
    // setNodeAndCompilationUnitDependency(locInIR);
     // build the dependency on the TCNDeclDrop placeholders for all the names in
     // this expression.
@@ -113,7 +113,7 @@ implements IThreadRoleDrop {
     rawExpr = exp;
     setMessage(12,kind + ' ' + rawExpr);
     setFromSrc(false);
-    this.setCategory(TRoleMessages.assuranceCategory);
+    this.setCategorizingString(TRoleMessages.assuranceCategory);
  //   setNodeAndCompilationUnitDependency(locInIR);
 
     final Set<String> referencedNames = new HashSet<String>(2);

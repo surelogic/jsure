@@ -5,7 +5,6 @@ package edu.cmu.cs.fluid.java;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.Category;
 
 import edu.cmu.cs.fluid.control.ControlFlowGraph;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -44,27 +43,27 @@ public interface JavaGlobals {
   static final Logger XFORM = SLLogger.getLogger("JAVA.xform");
 
   // drop-sea categories
-  static final Category REGION_CAT = Category.getInstance(100);
-  static final Category LOCK_ASSURANCE_CAT = Category.getInstance(101);
-  static final Category LOCK_REQUIRESLOCK_CAT = Category.getInstance(102);
-  static final Category UNIQUENESS_CAT = Category.getInstance(103);
-  static final Category EFFECTS_CAT = Category.getInstance(104);
-  static final Category NULL_CAT = Category.getInstance(105);
-  static final Category THREAD_EFFECTS_CAT = Category.getInstance(106);
-  static final Category THREAD_ROLES_CAT = Category.getInstance(107);
-  static final Category THREAD_ROLE_REPORT_REGION_CAT = Category.getInstance(108);
-  static final Category THREAD_ROLE_CONSTRAINED_REGION_CAT = Category.getInstance(109);
-  static final Category USES_CAT = Category.getInstance(110);
-  static final Category PROMISE_CAT = Category.getInstance(111);
-  static final Category VOUCH_CAT = Category.getInstance(112);
-  static final Category ASSUME_CAT = Category.getInstance(113);
-  static final Category PROMISE_SCRUBBER = Category.getInstance(114);
-  static final Category PROMISE_PARSER_PROBLEM = PROMISE_SCRUBBER;
-  static final Category PROMISE_PARSER_WARNING = Category.getInstance(115);
-  static final Category CONVERT_TO_IR = Category.getInstance(116);
-  static final Category UNCATEGORIZED = Category.getInstance(117);
-  static final Category MODULE_CAT = Category.getInstance(118);
-  static final Category UTILITY_CAT = Category.getInstance(119);
-  static final Category SINGLETON_CAT = Category.getInstance(120);
-  static final Category ANNO_BOUNDS_CAT = Category.getInstance(121);
+  static final int REGION_CAT = 100;
+  static final int LOCK_ASSURANCE_CAT = 101;
+  static final int LOCK_REQUIRESLOCK_CAT = 102;
+  static final int UNIQUENESS_CAT = 103;
+  static final int EFFECTS_CAT = 104;
+  static final int NULL_CAT = 105;
+  static final int THREAD_EFFECTS_CAT = 106;
+  static final int THREAD_ROLES_CAT = 107;
+  static final int THREAD_ROLE_REPORT_REGION_CAT = 108;
+  static final int THREAD_ROLE_CONSTRAINED_REGION_CAT = 109;
+  static final int USES_CAT = 110;
+  static final int PROMISE_CAT = 111;
+  static final int VOUCH_CAT = 112;
+  static final int ASSUME_CAT = 113;
+  static final int PROMISE_SCRUBBER = 114;
+  static final int PROMISE_PARSER_PROBLEM = PROMISE_SCRUBBER;
+  static final int PROMISE_PARSER_WARNING = 115;
+  static final int CONVERT_TO_IR = 116;
+  static final int UNCATEGORIZED = 117;
+  static final int MODULE_CAT = 118;
+  static final int UTILITY_CAT = 119;
+  static final int SINGLETON_CAT = 120;
+  static final int ANNO_BOUNDS_CAT = 121;
 }

@@ -14,7 +14,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
-import com.surelogic.dropsea.ir.Category;
 
 final class ElementCategory extends Element {
 
@@ -24,7 +23,7 @@ final class ElementCategory extends Element {
 
     private final Element f_parent;
     private final List<IDrop> f_uncategorized = new ArrayList<IDrop>();
-    final Map<Category, ElementCategory.Builder> f_categoryToBuilder = new HashMap<Category, ElementCategory.Builder>();
+    final Map<String, ElementCategory.Builder> f_categorizingStringToBuilder = new HashMap<String, ElementCategory.Builder>();
 
     Categorizer(Element parent) {
       f_parent = parent;
@@ -34,15 +33,15 @@ final class ElementCategory extends Element {
       if (drop == null)
         return;
 
-      final Category category = drop.getCategory();
-      if (category == null || isPromiseDropNotAtRoot(drop)) {
+      final String categorizingString = drop.getCategorizingString();
+      if (categorizingString == null || isPromiseDropNotAtRoot(drop)) {
         f_uncategorized.add(drop);
       } else {
-        ElementCategory.Builder builder = f_categoryToBuilder.get(category);
+        ElementCategory.Builder builder = f_categorizingStringToBuilder.get(categorizingString);
         if (builder == null) {
           builder = new ElementCategory.Builder();
-          f_categoryToBuilder.put(category, builder);
-          builder.setLabel(category.getMessage());
+          f_categorizingStringToBuilder.put(categorizingString, builder);
+          builder.setLabel(categorizingString);
         }
         builder.addDrop(drop);
       }
@@ -67,12 +66,12 @@ final class ElementCategory extends Element {
     }
 
     boolean isEmpty() {
-      return f_uncategorized.isEmpty() && f_categoryToBuilder.isEmpty();
+      return f_uncategorized.isEmpty() && f_categorizingStringToBuilder.isEmpty();
     }
 
     Collection<ElementCategory.Builder> getBuilders() {
       // does not use f_parent
-      return f_categoryToBuilder.values();
+      return f_categorizingStringToBuilder.values();
     }
 
     @NonNull

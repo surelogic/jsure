@@ -46,7 +46,6 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -827,21 +826,21 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Drop management methods
 	// ----------------------------------------------------------------------
 
-	private HintDrop makeInfoDrop(final Category category,
+	private HintDrop makeInfoDrop(final int category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final HintDrop info = HintDrop.newInformation(context);
 		info.setMessage(msgTemplate, msgArgs);
-		info.setCategory(category);
+		info.setCategorizingString(category);
 		return info;
 	}
 
-	private HintDrop makeWarningDrop(final Category category,
+	private HintDrop makeWarningDrop(final int category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final HintDrop info = HintDrop.newWarning(context);
 		info.setMessage(msgTemplate, msgArgs);
-		info.setCategory(category);
+		info.setCategorizingString(category);
 		return info;
 	}
 
@@ -1471,7 +1470,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			@Override
 			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
-					final Category badCategory, final Category goodCategory,
+					final int badCategory, final int goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
@@ -1479,7 +1478,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, false, badMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
-				result.setCategory(badCategory);
+				result.setCategorizingString(badCategory);
 				return result;
 			}
 		},
@@ -1488,7 +1487,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			@Override
 			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
-					final Category badCategory, final Category goodCategory,
+					final int badCategory, final int goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
@@ -1496,7 +1495,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, goodMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
-				result.setCategory(goodCategory);
+				result.setCategorizingString(goodCategory);
 				return result;
 			}
 		},
@@ -1505,7 +1504,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			@Override
 			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
-					final Category badCategory, final Category goodCategory,
+					final int badCategory, final int goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
@@ -1513,7 +1512,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, classInitMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
-				result.setCategory(goodCategory);
+				result.setCategorizingString(goodCategory);
 				return result;
 			}
 		},
@@ -1522,7 +1521,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			@Override
 			public ResultDrop getResult(final LockVisitor lv,
 					final PromiseDrop<? extends IAASTRootNode> promise,
-					final Category badCategory, final Category goodCategory,
+					final int badCategory, final int goodCategory,
 					final int badMsg, final int goodMsg,
 					final int classInitMsg, final int threadConfinedMsg,
 					final NeededLock lock, final IRNode useSite,
@@ -1530,14 +1529,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final ResultDrop result = lv.makeResultDrop(useSite,
 						promise, true, threadConfinedMsg, lock,
 						DebugUnparser.toString(useSite), altLock);
-				result.setCategory(goodCategory);
+				result.setCategorizingString(goodCategory);
 				return result;
 			}
 		};
 
 		public abstract ResultDrop getResult(LockVisitor lv,
 				PromiseDrop<? extends IAASTRootNode> promise,
-				Category badCategory, Category goodCategory, int badMsg,
+				int badCategory, int goodCategory, int badMsg,
 				int goodMsg, int classInitMsg, int threadConfinedMsg,
 				NeededLock lock, IRNode useSite, NeededLock altLock);
 
@@ -1607,7 +1606,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		public final void assureNeededLocks(final Set<NeededLock> neededLocks,
 				final MustHoldAnalysis.HeldLocks heldJUCLocks,
-				final Category goodCategory, final Category badCategory,
+				final int goodCategory, final int badCategory,
 				final int goodMsg, final int goodAltMsg,
 				final int classInitMsg, final int classInitAltMsg,
 				final int threadConfinedMsg, final int threadConfinedAltMsg,
@@ -1654,7 +1653,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							resultDrop = makeResultDrop(useSite, promise,
 									false, unresolvableMsg, neededLock,
 									DebugUnparser.toString(useSite));
-							resultDrop.setCategory(badCategory);
+							resultDrop.setCategorizingString(badCategory);
 						}
 					} else {
 						// No alternative, so normal lock is not held error
@@ -1782,7 +1781,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final ResultDrop result = makeResultDrop(call, rlDrop,
 					false, Messages.LockAnalysis_ds_PreconditionNotResolvable,
 					lockSpec.toString(), DebugUnparser.toString(call));
-			result.setCategory(Messages.DSC_PRECONDITIONS_NOT_ASSURED);
+			result.setCategorizingString(Messages.DSC_PRECONDITIONS_NOT_ASSURED);
 		}
 
 		/*
@@ -2638,7 +2637,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtReturnsLockDrop, true,
 							Messages.LockAnalysis_ds_ReturnAssured,
 							ctxtReturnedLock);
-					result.setCategory(Messages.DSC_RETURN_ASSURED);
+					result.setCategorizingString(Messages.DSC_RETURN_ASSURED);
 				} else {
 					LOG.log(Level.SEVERE,
 							"null returnLock drop in checkReturnsLock");
@@ -2649,7 +2648,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtReturnsLockDrop, false,
 							Messages.LockAnalysis_ds_ReturnNotAssured,
 							ctxtReturnedLock);
-					result.setCategory(Messages.DSC_RETURN_NOT_ASSURED);
+					result.setCategorizingString(Messages.DSC_RETURN_NOT_ASSURED);
 				} else {
 					LOG.log(Level.SEVERE,
 							"null returnLock drop in checkReturnsLock");

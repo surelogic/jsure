@@ -13,7 +13,7 @@ public final class RawPromiseDrop extends BooleanPromiseDrop<RawNode> {
 
   public RawPromiseDrop(RawNode a) {
     super(a);
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
     setMessage(20, getAAST(), DebugUnparser.toString(getNode()));
   }
 }

@@ -29,7 +29,7 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
 
   public UniquePromiseDrop(UniqueNode n) {
     super(n);
-    setCategory(JavaGlobals.UNIQUENESS_CAT);
+    setCategorizingString(JavaGlobals.UNIQUENESS_CAT);
     isUniqueReturn = false;
 
     final IRNode node = getNode();

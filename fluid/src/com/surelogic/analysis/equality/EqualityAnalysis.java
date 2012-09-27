@@ -56,7 +56,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	
 	private ResultDrop createFailureDrop(IRNode n) {
 		ResultDrop rd = new ResultDrop(n);
-		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
+		rd.setCategorizingString(Messages.DSC_LAYERS_ISSUES);
 		rd.setInconsistent();
 		return rd;
 	}

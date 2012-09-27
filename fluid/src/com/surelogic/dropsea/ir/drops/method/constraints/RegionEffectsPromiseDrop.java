@@ -15,7 +15,7 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
 
   public RegionEffectsPromiseDrop(RegionEffectsNode s) {
     super(s);
-    setCategory(JavaGlobals.EFFECTS_CAT);
+    setCategorizingString(JavaGlobals.EFFECTS_CAT);
 
     final IRNode declNode = getNode();
     final String target = JavaNames.genMethodConstructorName(declNode);

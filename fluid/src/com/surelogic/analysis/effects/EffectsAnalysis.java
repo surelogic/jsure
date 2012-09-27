@@ -335,7 +335,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  for (final Effect e : masked) {
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
 	    final HintDrop drop = HintDrop.newInformation(src);
-      drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
+      drop.setCategorizingString(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
 	  }

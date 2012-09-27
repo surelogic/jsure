@@ -14,6 +14,6 @@ public final class ProhibitsLockPromiseDrop extends AbstractLockListPromiseDrop<
 
   public ProhibitsLockPromiseDrop(ProhibitsLockNode n) {
     super(n);
-    setCategory(JavaGlobals.LOCK_REQUIRESLOCK_CAT);
+    setCategorizingString(JavaGlobals.LOCK_REQUIRESLOCK_CAT);
   }
 }

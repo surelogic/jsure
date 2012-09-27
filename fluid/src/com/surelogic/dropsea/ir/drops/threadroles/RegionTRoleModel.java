@@ -38,7 +38,7 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     protoIR = rdsIR;
     setMessage(12,"regionTRoles " + forRegion.getMessage());
     userDeponents = new HashSet<PromiseDrop<? extends IAASTRootNode>>(1);
-    setCategory(TRoleMessages.assuranceCategory);
+    setCategorizingString(TRoleMessages.assuranceCategory);
   }
 
   /**
@@ -55,11 +55,11 @@ public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
     if (rtrm == null) {
       rtrm = new RegionTRoleModel(forRegion, rdsIR);
       //forRegion.setColorInfo(rtrm);
-      forRegion.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
+      forRegion.setCategorizingString(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
       allRegTRoleMods.add(rtrm);
     }
 
-    rtrm.setCategory(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
+    rtrm.setCategorizingString(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
     return rtrm;
   }
 

@@ -1,7 +1,5 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import com.surelogic.dropsea.ir.Category;
-
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
 public final class Messages extends AbstractMessages {
@@ -12,25 +10,25 @@ public final class Messages extends AbstractMessages {
   }
   
   // Drop-sea category messages
-  public static final Category DSC_LOCK_VIZ = Category.getInstance(200);
-  public static final Category DSC_AGGREGATION_NEEDED = Category.getInstance(201);
-  public static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(202);
-  public static final Category DSC_FIELD_ACCESS_ASSURED = Category.getInstance(203);
-  public static final Category DSC_PRECONDITIONS_ASSURED = Category.getInstance(204);
-  public static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category.getInstance(205);
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(206);
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category.getInstance(207);
-  public static final Category DSC_RETURN_ASSURED = Category.getInstance(208);
-  public static final Category DSC_RETURN_NOT_ASSURED = Category.getInstance(209);
-  public static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category.getInstance(210);
-  public static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category.getInstance(211);
-  public static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category.getInstance(212);
-  public static final Category DSC_REDUNDANT_SYNCHRONIZED = Category.getInstance(213);
-  public static final Category DSC_MIXED_PARADIGM = Category.getInstance(214);
-  public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance(215);
-  public static final Category DSC_MATCHING_CALLS = Category.getInstance(216);
-  public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(217);
-  public static final Category DSC_FINAL_FIELDS = Category.getInstance(218);
+  public static final int DSC_LOCK_VIZ = 200;
+  public static final int DSC_AGGREGATION_NEEDED = 201;
+  public static final int DSC_FIELD_ACCESS_NOT_ASSURED = 202;
+  public static final int DSC_FIELD_ACCESS_ASSURED = 203;
+  public static final int DSC_PRECONDITIONS_ASSURED = 204;
+  public static final int DSC_PRECONDITIONS_NOT_ASSURED = 205;
+  public static final int DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = 206;
+  public static final int DSC_INDIRECT_FIELD_ACCESS_ASSURED = 207;
+  public static final int DSC_RETURN_ASSURED = 208;
+  public static final int DSC_RETURN_NOT_ASSURED = 209;
+  public static final int DSC_UNIDENTIFIABLE_LOCK_WARNING = 210;
+  public static final int DSC_SYNCHRONIZED_UNUSED_WARNING = 211;
+  public static final int DSC_NONFINAL_EXPRESSION_WARNING = 212;
+  public static final int DSC_REDUNDANT_SYNCHRONIZED = 213;
+  public static final int DSC_MIXED_PARADIGM = 214;
+  public static final int DSC_NOT_A_LOCK_METHOD = 215;
+  public static final int DSC_MATCHING_CALLS = 216;
+  public static final int DSC_UNSUPPORTED_MODEL = 217;
+  public static final int DSC_FINAL_FIELDS = 218;
 
   
   

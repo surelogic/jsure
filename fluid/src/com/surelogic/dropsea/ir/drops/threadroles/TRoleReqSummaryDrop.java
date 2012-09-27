@@ -266,7 +266,7 @@ public class TRoleReqSummaryDrop extends PromiseDrop implements IThreadRoleDrop 
     assert (ThreadRoleRules.getReqSummDrop(node) == null);
     ThreadRoleRules.setReqSummDrop(node, this);
 
-    setCategory(TRoleMessages.assuranceCategory);
+    setCategorizingString(TRoleMessages.assuranceCategory);
     userDeponents.add(this);
     userDepsContainsThis = true;
   }

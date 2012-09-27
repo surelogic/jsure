@@ -13,7 +13,6 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.ir.Category;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -34,9 +33,9 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
 
   private static final String DS_ERR_MODULE_WRAPPING_LOOP = "{0} participates in a module wrapping loop.";
 
-  private static final Category DSC_BAD_MODULE_PROMISE = null; //Category.getPrefixCountInstance("Erroneous @module promises");
+  private static final String DSC_BAD_MODULE_PROMISE = "Erroneous @module promises";
 
-  private static final Category DSC_OK_MODULE_PROMISE = null; //Category.getPrefixCountInstance("@module promises");
+  private static final String DSC_OK_MODULE_PROMISE = "@module promises";
 
   protected static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");
 
@@ -65,7 +64,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     declaredModules = new HashSet<ModuleModel>(2);
     claimsToWrap = new HashSet<String>(0);
     modName = name;
-    setCategory(JavaGlobals.MODULE_CAT);
+    setCategorizingString(JavaGlobals.MODULE_CAT);
   }
 
   public static ModuleWrapperPromiseDrop buildModuleWrapperDrop(ModuleChoiceNode mcn) {

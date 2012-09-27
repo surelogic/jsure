@@ -19,7 +19,7 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
 
   public ContainablePromiseDrop(ContainableNode a) {
     super(a);
-    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();
