@@ -16,7 +16,7 @@
 
   <extension point="org.eclipse.ui.viewActions">
     <viewContribution id="com.surelogic.jsure.views.debug.viewContributions.ResultsView"
-      targetID="com.surelogic.jsure.client.eclipse.views.results.ResultsView">
+      targetID="com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView">
       <action id="com.surelogic.jsure.views.debug.resultsView.exportToSnapshot"
         label="Export Oracle File"
         tooltip="Export results to a date-stamped oracle file in root of project"
