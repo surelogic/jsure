@@ -45,8 +45,8 @@ public abstract class DropMatcher {
 	}
 	
 	protected static boolean matchCategory(IDrop n, IDrop o) {
-		String nCat = n.getCategorizingString();
-		String oCat = o.getCategorizingString();
+		String nCat = n.getCategorizingMessage();
+		String oCat = o.getCategorizingMessage();
 		if (nCat != null && oCat != null) {
 			return nCat.equals(oCat);
 		}

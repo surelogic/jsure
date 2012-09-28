@@ -73,7 +73,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
       refdModule = ((ExportNode) a).getToModuleName();
     }
    // setNodeAndCompilationUnitDependency(a.getPromisedFor());
-    setCategorizingString(JavaGlobals.MODULE_CAT);
+    setCategorizingMessage(JavaGlobals.MODULE_CAT);
   }
 
   protected static <T extends VisibilityDrop<? extends ModuleAnnotationNode>> T buildVisDrop(T res) {
@@ -194,7 +194,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
             ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false, 
                                                     DS_ERROR_VIS_NO_SUCH_MODULE,
                                                     reqModName, vd.toString());
-          rd.setCategorizingString(JavaGlobals.PROMISE_PARSER_PROBLEM);
+          rd.setCategorizingMessage(JavaGlobals.PROMISE_PARSER_PROBLEM);
           
         } else if (refdMod.moduleIsTheWorld()) {
           final ModuleModel enclosingLeafMod = ModuleModel.getModuleDrop(where);
@@ -213,7 +213,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
               ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false,
                                                       DS_ERROR_VIS_WORLD_FROM_MOD,
                                                       vd.toString());
-            rd.setCategorizingString(DSC_BAD_VISIBILITY_DECL);
+            rd.setCategorizingMessage(DSC_BAD_VISIBILITY_DECL);
             
           }
         } else {
@@ -235,7 +235,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
                                                       DS_OK_VIS,
                                                       vd.getMessage());
             
-            rd.setCategorizingString(DSC_GOOD_VISIBILITY_DECL);
+            rd.setCategorizingMessage(DSC_GOOD_VISIBILITY_DECL);
           } else {
             ResultDrop rd =
               ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false, 
@@ -243,7 +243,7 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
                                                       vd.getMessage(),
                                                       refdMod, baseMod);
             
-            rd.setCategorizingString(DSC_BAD_VISIBILITY_DECL);
+            rd.setCategorizingMessage(DSC_BAD_VISIBILITY_DECL);
           }
         }
       }

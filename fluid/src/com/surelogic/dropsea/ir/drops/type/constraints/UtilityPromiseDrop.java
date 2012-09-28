@@ -12,7 +12,7 @@ public class UtilityPromiseDrop extends BooleanPromiseDrop<UtilityNode> {
 
   public UtilityPromiseDrop(UtilityNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.UTILITY_CAT);
+    setCategorizingMessage(JavaGlobals.UTILITY_CAT);
     final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     setMessage(Messages.UtilityDrop, name);
   }

@@ -11,7 +11,7 @@ public final class AssumePromiseDrop extends ScopedPromiseDrop {
 
   public AssumePromiseDrop(AssumeScopedPromiseNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.PROMISE_CAT);
+    setCategorizingMessage(JavaGlobals.PROMISE_CAT);
     setMessage(13, getAAST());
   }
 }

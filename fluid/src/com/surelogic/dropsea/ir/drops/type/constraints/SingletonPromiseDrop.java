@@ -11,7 +11,7 @@ public class SingletonPromiseDrop extends BooleanPromiseDrop<SingletonNode> {
 
   public SingletonPromiseDrop(SingletonNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.SINGLETON_CAT);
+    setCategorizingMessage(JavaGlobals.SINGLETON_CAT);
     final String name = JavaNames.getTypeName(getNode());
     setMessage(Messages.SingletonDrop, name);
   }

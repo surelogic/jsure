@@ -116,7 +116,7 @@ public abstract class IRReferenceDrop extends Drop {
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
     if (catNum > 0)
-      hint.setCategorizingString(catNum);
+      hint.setCategorizingMessage(catNum);
     hint.setMessage(num, args);
     addDependent(hint);
     return hint;
@@ -127,7 +127,7 @@ public abstract class IRReferenceDrop extends Drop {
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
     if (catNum > 0)
-      hint.setCategorizingString(catNum);
+      hint.setCategorizingMessage(catNum);
     hint.setMessage(msg);
     addDependent(hint);
     return hint;

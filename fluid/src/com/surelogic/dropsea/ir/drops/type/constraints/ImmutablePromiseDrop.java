@@ -20,7 +20,7 @@ public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<Immut
 
   public ImmutablePromiseDrop(ImmutableNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();

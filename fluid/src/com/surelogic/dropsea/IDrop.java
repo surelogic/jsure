@@ -81,7 +81,7 @@ public interface IDrop {
   String getMessageCanonical();
 
   /**
-   * Gets this drop's categorizing string, or {@code null} if none.
+   * Gets this drop's categorizing message, or {@code null} if none.
    * <p>
    * It is intended that {@link I18N#toStringForUIFolderLabel(String, int)} is
    * called prior to display on the string returned from this method.
@@ -90,7 +90,7 @@ public interface IDrop {
    * @see I18N#toStringForUIFolderLabel(String, int)
    */
   @Nullable
-  String getCategorizingString();
+  String getCategorizingMessage();
 
   /**
    * Gets the source reference of this drop.

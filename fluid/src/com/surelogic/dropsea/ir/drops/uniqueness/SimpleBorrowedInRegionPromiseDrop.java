@@ -25,7 +25,7 @@ public final class SimpleBorrowedInRegionPromiseDrop extends PromiseDrop<SimpleB
 
   public SimpleBorrowedInRegionPromiseDrop(SimpleBorrowedInRegionNode n) {
     super(n);
-    setCategorizingString(JavaGlobals.REGION_CAT);
+    setCategorizingMessage(JavaGlobals.REGION_CAT);
     final String name = JavaNames.getFieldDecl(getNode());
     final String regionName = getAAST().getSpec().unparse(false);
     setMessage(Messages.RegionAnnotation_borrowedInRegionDrop, regionName, name);

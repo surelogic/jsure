@@ -18,7 +18,7 @@ public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
 
   public MutablePromiseDrop(MutableNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     setMessage(Messages.LockAnnotation_mutableDrop, name);
   }

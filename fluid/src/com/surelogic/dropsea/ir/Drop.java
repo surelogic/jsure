@@ -217,7 +217,7 @@ public abstract class Drop implements IDrop {
   }
 
   /**
-   * This method sets the categorizing string for this drop. These strings are
+   * This method sets the categorizing message for this drop. These strings are
    * only used by the UI to improve how results are presented to the user.
    * Calling this method is similar to calling
    * 
@@ -229,7 +229,7 @@ public abstract class Drop implements IDrop {
    * <tt>SureLogicResults.properties</tt> file in the
    * <tt>com.surelogic.common.i18n</tt> package.
    * <p>
-   * The <tt>number</tt> for the categorizing string in the
+   * The <tt>number</tt> for the categorizing message in the
    * <tt>SureLogicResults.properties</tt> file is <i>category.nnnnn</i>. For
    * example, if <tt>number == 2001</tt> would result in the string
    * <tt>"### java.lang.Runnable subtype instance {{{created|||creations}}} - not{{{ a|||}}} Thread{{{|||s}}}"</tt>
@@ -242,7 +242,7 @@ public abstract class Drop implements IDrop {
    * is contained in the <tt>SureLogicResults.properties</tt> file. If the key
    * is not defined in the file an exception is thrown.
    * <p>
-   * Special processing is applied to all categorizing strings prior to their
+   * Special processing is applied to all categorizing messages prior to their
    * display in the UI as described in
    * {@link I18N#toStringForUIFolderLabel(String, int)}. This special processing
    * allows the string to react to the number of items, <i>c</i>, contained in
@@ -267,36 +267,36 @@ public abstract class Drop implements IDrop {
    * @see I18N#cat(int, Object...)
    * @see I18N#toStringForUIFolderLabel(String, int)
    */
-  public final void setCategorizingString(int number, Object... args) {
+  public final void setCategorizingMessage(int number, Object... args) {
     if (number < 1) {
       LOG.warning(I18N.err(251, number));
       return;
     }
     synchronized (f_seaLock) {
-      f_categorizingString = args.length == 0 ? I18N.cat(number) : I18N.cat(number, args);
+      f_categorizingMessage = args.length == 0 ? I18N.cat(number) : I18N.cat(number, args);
     }
   }
 
   /**
-   * This method sets the categorizing string for this drop. These strings are
+   * This method sets the categorizing message for this drop. These strings are
    * only used by the UI to improve how results are presented to the user.
    * <p>
-   * Whenever possible {@link #setCategorizingString(int, Object...)} should be
+   * Whenever possible {@link #setCategorizingMessage(int, Object...)} should be
    * used instead of this method.
    * 
    * @param value
    *          a categorizing string.
    */
-  public final void setCategorizingString(String value) {
+  public final void setCategorizingMessage(String value) {
     synchronized (f_seaLock) {
-      f_categorizingString = value;
+      f_categorizingMessage = value;
     }
   }
 
   @Nullable
-  public String getCategorizingString() {
+  public String getCategorizingMessage() {
     synchronized (f_seaLock) {
-      return f_categorizingString;
+      return f_categorizingMessage;
     }
   }
 
@@ -705,11 +705,11 @@ public abstract class Drop implements IDrop {
   private String f_messageCanonical;
 
   /**
-   * A categorizing string for this drop, usually used by the UI.
+   * A categorizing message for this drop, usually used by the UI.
    */
   @InRegion("DropState")
   @Nullable
-  private String f_categorizingString = null;
+  private String f_categorizingMessage = null;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -754,7 +754,7 @@ public abstract class Drop implements IDrop {
     s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
     s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(getMessageCanonical()));
 
-    final String cat = getCategorizingString();
+    final String cat = getCategorizingMessage();
     if (cat != null)
       s.addAttribute(CATEGORY_ATTR, cat);
   }

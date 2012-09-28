@@ -19,7 +19,7 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
     ValidatedDropCallback<ThreadSafePromiseDrop> {
   public ThreadSafePromiseDrop(ThreadSafeNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
     final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();

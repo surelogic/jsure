@@ -1106,7 +1106,7 @@ public class LockRules extends AnnotationRules {
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
           final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
           wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setCategorizingString(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
+          wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
                 
@@ -1148,7 +1148,7 @@ public class LockRules extends AnnotationRules {
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
           final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
           wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setCategorizingString(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
+          wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
 
@@ -2504,7 +2504,7 @@ public class LockRules extends AnnotationRules {
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
         final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
         wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
-        wd.setCategorizingString(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);
+        wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);
         model.addDependent(wd);
       }
     }

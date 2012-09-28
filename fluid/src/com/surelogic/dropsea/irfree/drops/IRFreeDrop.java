@@ -49,7 +49,7 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private List<IRFreeProposedPromiseDrop> f_proposedPromises = null;
   @Nullable
-  private String f_categorizingString = null;
+  private String f_categorizingMessage = null;
   @Nullable
   private ISrcRef f_srcRef = null;
   @NonNull
@@ -92,7 +92,7 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
 
-    f_categorizingString = e.getAttribute(CATEGORY_ATTR);
+    f_categorizingMessage = e.getAttribute(CATEGORY_ATTR);
 
     final String message = e.getAttribute(MESSAGE_ATTR);
     if (message != null)
@@ -132,8 +132,8 @@ public class IRFreeDrop implements IDrop {
   }
 
   @Nullable
-  public String getCategorizingString() {
-    return f_categorizingString;
+  public String getCategorizingMessage() {
+    return f_categorizingMessage;
   }
 
   @NonNull
