@@ -519,6 +519,30 @@ public final class JavaNames {
 		}
 		return getFullTypeName(type) + '.' + getFieldDecl(node);
 	}
+	
+	public static String getRelativeName(final IRNode node) {
+		if (node == null) {
+			return "Null";
+		}
+		if (node.identity() == IRNode.destroyedNode) {
+			return "Destroyed";
+		}
+		final Operator op = JJNode.tree.getOperator(node);
+		if (SomeFunctionDeclaration.prototype.includes(op)) {
+			return genRelativeFunctionName(node);
+		}
+		if (op instanceof TypeDeclInterface) {
+			return getRelativeTypeName(node);
+		}
+		if (NamedPackageDeclaration.prototype.includes(op)) {
+			return NamedPackageDeclaration.getId(node);
+		}
+		final IRNode type = VisitUtil.getEnclosingType(node);
+		if (type == null) {
+			return getFieldDecl(node);
+		}
+		return getRelativeTypeName(type) + '.' + getFieldDecl(node);
+	}
 
 	public static String unparseType(final IRNode type) {
 		if (TypeRef.prototype.includes(type)) {
