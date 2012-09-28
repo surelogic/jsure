@@ -12,7 +12,7 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
 
   public VouchFieldIsPromiseDrop(final VouchFieldIsNode n) {
     super(n);
-    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.VOUCH_CAT);
     final String name = JavaNames.getFieldDecl(getNode());
     setMessage(Messages.LockAnnotation_vouchFieldIsDrop, getAAST().getKind(), name);
   }
