@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -55,13 +56,13 @@ abstract class Element {
         }
       }
 
-      int c = nullToEmpty(o1.getProjectNameOrNull()).compareTo(nullToEmpty(o2.getProjectNameOrNull()));
+      int c = SLUtility.nullToEmpty(o1.getProjectNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getProjectNameOrNull()));
       if (c != 0)
         return c;
-      c = nullToEmpty(o1.getPackageNameOrNull()).compareTo(nullToEmpty(o2.getPackageNameOrNull()));
+      c = SLUtility.nullToEmpty(o1.getPackageNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getPackageNameOrNull()));
       if (c != 0)
         return c;
-      c = nullToEmpty(o1.getSimpleTypeNameOrNull()).compareTo(nullToEmpty(o2.getSimpleTypeNameOrNull()));
+      c = SLUtility.nullToEmpty(o1.getSimpleTypeNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getSimpleTypeNameOrNull()));
       if (c != 0)
         return c;
       if (o1.getLineNumber() != o2.getLineNumber())
@@ -69,13 +70,6 @@ abstract class Element {
       if (c != 0)
         return c;
       return o1.getLabelToPersistViewerState().compareTo(o2.getLabelToPersistViewerState());
-    }
-
-    private String nullToEmpty(String value) {
-      if (value == null)
-        return "";
-      else
-        return value;
     }
   };
 

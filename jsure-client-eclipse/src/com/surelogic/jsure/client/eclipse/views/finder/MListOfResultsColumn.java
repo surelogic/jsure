@@ -17,12 +17,14 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -32,8 +34,8 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
-import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
@@ -136,7 +138,10 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     public void handleEvent(final Event event) {
       final IProofDrop info = getSelectedItem();
       if (info != null) {
-        DropInfoUtility.attemptToShowAndSelectDropInVerificationStatusView(info);
+        final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(
+            VerificationStatusView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+        if (view != null)
+          view.attemptToShowAndSelectDropInViewer(info);
       }
     }
   };
