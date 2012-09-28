@@ -69,6 +69,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -1084,7 +1085,8 @@ public class LockRules extends AnnotationRules {
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setMessage(Messages.LockAnnotation_lockModel,
-            model.getSimpleName(), field, region,
+            XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
+            field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
         // Add the protected region
         model.addDependent(regionBinding.getModel());        
@@ -1126,7 +1128,8 @@ public class LockRules extends AnnotationRules {
       if (declIsGood) {
     	final LockModel model = LockModel.create(lockDecl, qualifiedName); 
         model.setMessage(Messages.LockAnnotation_policyLockModel,
-            model.getSimpleName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
+        	XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
+            lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);
