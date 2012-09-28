@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.type.constraints;
 
 import com.surelogic.aast.promise.ThreadSafeNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -19,7 +20,7 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
   public ThreadSafePromiseDrop(ThreadSafeNode a) {
     super(a);
     setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
-    final String name = JavaNames.getTypeName(getNode());
+    final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
