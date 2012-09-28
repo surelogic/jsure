@@ -9,4 +9,8 @@ public abstract class ModuleAnnotationNode extends AASTRootNode {
   public ModuleAnnotationNode(int offset) {
     super(offset);
   }
+  
+  public final String unparseForPromise() {
+	  throw new UnsupportedOperationException();
+  }
 }

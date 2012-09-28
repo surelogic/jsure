@@ -7,7 +7,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class RegionMappingNode extends RegionDeclarationNode { 
+public class RegionMappingNode extends AASTNode { 
   // Fields
   private final RegionNameNode from;
   private final RegionSpecificationNode to;
@@ -32,7 +32,7 @@ public class RegionMappingNode extends RegionDeclarationNode {
   public RegionMappingNode(int offset,
                            RegionNameNode from,
                            RegionSpecificationNode to) {
-    super(offset, null);
+    super(offset);
     if (from == null) { throw new IllegalArgumentException("from is null"); }
     ((AASTNode) from).setParent(this);
     this.from = from;

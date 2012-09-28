@@ -45,25 +45,31 @@ public class ScopedPromiseNode extends TargetedAnnotationNode
     this.targets = targets;
   }
 
-  @Override
-  public String unparse(boolean debug, int indent) {
+  protected String unparse(boolean debug, int indent, String name) {
     StringBuilder sb = new StringBuilder();
     if (debug) { 
       indent(sb, indent); 
-      sb.append("ScopedPromise\n");
+      sb.append(name).append("\n");
       indent(sb, indent+2);
       sb.append("promise=").append(getPromise());
       sb.append("\n");
       sb.append(getTargets().unparse(debug, indent+2));
     } else {
+      sb.append(name).append("(\"");
       sb.append('@').append(getPromise());
       if (!(getTargets() instanceof AnyTargetNode)) {
           sb.append(" for ").append(getTargets());
       }
+      sb.append("\")");
     }
     return sb.toString();
   }
 
+  @Override
+  public String unparse(boolean debug, int indent) {
+	  return unparse(debug, indent, "Promise");
+  }
+  
   /**
    * @return A non-null String
    */

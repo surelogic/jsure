@@ -111,9 +111,9 @@ public class RegionEffectsNode extends AASTRootNode {
 
 	 public final String unparseForPromise() {
       if (effects.isEmpty()) {
-    	return "none";
+    	return "RegionEffects(\"none\")";
       } else { 
-  	    final StringBuilder sb = new StringBuilder();    	  
+  	    final StringBuilder sb = new StringBuilder("RegionEffects(\"");    	  
         boolean first = true;
         for(final EffectsSpecificationNode _n : effects) {
           if (first) {
@@ -123,6 +123,7 @@ public class RegionEffectsNode extends AASTRootNode {
           }
           sb.append(_n.unparseForPromise());
         }     
+        sb.append("\")");
 	    return sb.toString();
       }     
 	}

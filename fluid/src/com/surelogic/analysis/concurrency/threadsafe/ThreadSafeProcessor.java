@@ -8,6 +8,7 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
+import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
 import com.surelogic.analysis.regions.IRegion;
@@ -28,7 +29,6 @@ import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -188,11 +188,12 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
       // Test if the type of the field is thread safe (or immutable)
       final ThreadSafeAnnotationTester tsTester =
           new ThreadSafeAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+              ParameterizedTypeAnalysis.getFolders(), true, false);
       final boolean isTS = tsTester.testType(type);
       final ResultDrop tsResult = createResult(part2folder, fieldTypeNode, isTS,
           TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
-      tsResult.addTrusted(tsTester.getPromises());
+      tsResult.addTrusted(tsTester.getTrusts());
 
       boolean proposeThreadSafe = !isTS;
       if (!isTS && isFinal) {
@@ -205,19 +206,15 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         if (Initialization.prototype.includes(init)) {
           final IRNode initExpr = Initialization.getValue(init);
           if (NewExpression.prototype.includes(initExpr)) {
-            final IRNode declaredTypeOfNewExpr =
-                ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration();
-            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> implTypeTSDrop =
-                LockRules.getThreadSafeImplPromise(declaredTypeOfNewExpr);
-            if (implTypeTSDrop != null) {
+            final ThreadSafeAnnotationTester tsTester2 =
+                new ThreadSafeAnnotationTester(
+                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+                    ParameterizedTypeAnalysis.getFolders(), true, true);
+            if (tsTester2.testType(binder.getJavaType(initExpr))) {
               proposeThreadSafe = false;
               final ResultDrop result =
                   createResult(true, part2folder, initExpr, THREADSAFE_IMPL);
-              result.addTrusted(implTypeTSDrop);
-//              final IRNode xx = NewExpression.getType(initExpr);
-//              final ResultFolderDrop annoFolder = 
-//                  ParameterizedTypeAnalysis.getFolderForTypeNode(xx);
-//              if (annoFolder != null) result.addTrustedResultFolder(annoFolder);
+              result.addTrusted(tsTester2.getTrusts());
             }
           }
         }
@@ -233,12 +230,13 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
           part2folder, fieldDecl, OBJECT_IS_CONTAINED, OBJECT_IS_NOT_CONTAINED);
       final ContainableAnnotationTester cTester =
           new ContainableAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+              ParameterizedTypeAnalysis.getFolders(), true, false);
       final boolean isContainable = cTester.testType(type);
       final ResultDrop cResult = createResult(
           containableFolder, fieldTypeNode, isContainable,
           TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
-      cResult.addTrusted(cTester.getPromises());
+      cResult.addTrusted(cTester.getTrusts());
       if (!isContainable) {
         for (final IRNode n : tsTester.getFailed()) {
           cResult.addProposal(new ProposedPromiseDrop(

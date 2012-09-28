@@ -42,7 +42,9 @@ public class VouchSpecificationNode extends TargetedAnnotationNode
       indent(sb, indent+2);
       sb.append("reason=").append(getReason());
     } else {
+      sb.append("Vouch(");
       sb.append('\"').append(getReason()).append('\"');
+      sb.append(')');
     }
     return sb.toString();
   }

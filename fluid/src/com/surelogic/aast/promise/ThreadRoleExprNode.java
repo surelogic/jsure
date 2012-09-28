@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ThreadRoleExprNode extends AASTRootNode { 
   private final ThreadRoleExprElem theExpr;
@@ -31,6 +30,10 @@ public class ThreadRoleExprNode extends AASTRootNode {
     theExpr = elem;
   }
 
+  public final String unparseForPromise() {
+	  throw new UnsupportedOperationException();
+  }
+  
   @Override
   public String unparse(boolean debug, int indent) {
     if (debug) { 

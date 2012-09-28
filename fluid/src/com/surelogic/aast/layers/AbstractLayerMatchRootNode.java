@@ -32,6 +32,10 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
 	  return target;
   }
 
+  public final String unparseForPromise() {
+	  return unparse(false);
+  }
+  
   protected String unparse(boolean debug, int indent, String name) {
 	  StringBuilder sb = new StringBuilder();
 	  if (debug) {
@@ -41,7 +45,7 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
 		  sb.append("name=").append(target.unparse(debug, indent));
 		  sb.append("\n");
 	  } else {
-		  sb.append(name).append(' ').append(target.unparse(debug, indent));
+		  sb.append(name).append("(\"").append(target.unparse(debug, indent)).append("\")");
 	  }
 	  return sb.toString();
   }

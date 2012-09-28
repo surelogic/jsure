@@ -7,10 +7,12 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -88,15 +90,19 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			return null;
 		}
 		
-		void checkIfValueObject(IRNode e) {
+		@SuppressWarnings("unchecked")
+    void checkIfValueObject(IRNode e) {
 			IJavaType t = b.getJavaType(e);
 			final ValueObjectAnnotationTester tester = 
-			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE, false);
+			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE,
+              ParameterizedTypeAnalysis.getFolders(), false);
 			
 			if (tester.testType(t)) {
 				ResultDrop d = createFailureDrop(e);
-				for (final PromiseDrop<? extends IAASTRootNode> p : tester.getPromises()) {
-				  d.addChecked(p);
+				for (final ProofDrop p : tester.getTrusts()) {
+				  if (p instanceof PromiseDrop) {
+				    d.addChecked((PromiseDrop<? extends IAASTRootNode>) p);
+				  }
 				}
 				d.setMessage(758, DebugUnparser.toString(e));
 			}

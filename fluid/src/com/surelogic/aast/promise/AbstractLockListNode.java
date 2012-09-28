@@ -55,7 +55,7 @@ public abstract class AbstractLockListNode extends AASTRootNode {
 				sb.append('\n');
 			}
 		} else {
-			sb.append(name).append(' ');
+			sb.append(name).append("(\"");
 			boolean first = true;
 			for(LockSpecificationNode lock : locks) {
 				if (first) {
@@ -65,7 +65,12 @@ public abstract class AbstractLockListNode extends AASTRootNode {
 				}
 				sb.append(lock.unparse(false));
 			}
+			sb.append("\")");
 		}
 		return sb.toString();
+	}
+	
+	public String unparseForPromise() {
+		return unparse(false);
 	}
 }

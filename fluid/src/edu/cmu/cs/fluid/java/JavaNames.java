@@ -190,9 +190,9 @@ public final class JavaNames {
 	 *            an IRNode which should be a Parameters op
 	 * @return something like "()" or "(int, Object)"
 	 */
-	public static String genArgList(final IRNode args) {
+	private static String genArgList(final IRNode args, boolean useFullTypes) {
 		int paramCount = 0;
-		String result = "(";
+		StringBuilder result = new StringBuilder("(");
 		final Operator op = getOperator(args);
 		if (Parameters.prototype.includes(op)) {
 			final Iterator<IRNode> e = Parameters.getFormalIterator(args);
@@ -200,12 +200,23 @@ public final class JavaNames {
 				final IRNode param = e.next();
 				final Operator paramOp = getOperator(param);
 				if (ParameterDeclaration.prototype.includes(paramOp)) {
-					result += (paramCount++ > 0 ? "," : "")
-							+ getTypeName(ParameterDeclaration.getType(param));
+					if (paramCount > 0) {
+						result.append(',');
+					}
+					paramCount++;
+					
+					final String pType = getTypeName(ParameterDeclaration.getType(param));
+					final int lastDot = pType.lastIndexOf('.');
+					if (lastDot < 0) {
+						result.append(pType);
+					} else {
+						result.append(pType.substring(lastDot+1));
+					}
 				}
 			}
 		}
-		return result + ")";
+		result.append(')');
+		return result.toString();
 	}
 
 	/**
@@ -217,7 +228,7 @@ public final class JavaNames {
 	 */
 	public static String genSimpleMethodConstructorName(final IRNode node) {
     final StringBuilder sb = new StringBuilder();
-    addTargetName(sb, node, true);
+    addTargetName(sb, node, false);
     return sb.toString();
 	}
 	
@@ -253,7 +264,7 @@ public final class JavaNames {
 	}
 
 	private static void addTargetName(final StringBuilder sb,
-			final IRNode node, final boolean includeArgs) {
+			final IRNode node, final boolean useFullParamTypes) {
 		String targetName = "(none)";
 		final Operator op = getOperator(node);
 		final IRNode args;
@@ -269,8 +280,8 @@ public final class JavaNames {
 		}
 		sb.append(targetName);
 
-		if (includeArgs) {
-			sb.append(genArgList(args));
+		if (true) {
+			sb.append(genArgList(args, useFullParamTypes));
 		} else {
 			sb.append("()");
 		}

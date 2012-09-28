@@ -12,5 +12,9 @@ public abstract class ThreadRoleAnnotationNode extends AASTRootNode {
   public ThreadRoleAnnotationNode(int offset) {
     super(offset);
   }
+  
+  public final String unparseForPromise() {
+	  throw new UnsupportedOperationException();
+  }
 }
 

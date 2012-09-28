@@ -38,12 +38,7 @@ public class IsLockNode extends AbstractSingleLockNode {
 	 */
 	@Override
 	public String unparse(boolean debug, int indent) {
-		StringBuilder sb = new StringBuilder();
-		indent(sb, indent);
-		sb.append("IsLockNode\n");
-		indent(sb, indent+2);
-		sb.append(getLock().unparse(debug, indent+2));
-		return sb.toString();
+		return unparse(debug, indent, "IsLock");
 	}
 	
   @Override

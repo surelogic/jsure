@@ -10,32 +10,33 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
-import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
+import edu.cmu.cs.fluid.java.ISrcRef;
 
-final class ProblemsViewContentProvider extends AbstractResultsTableContentProvider<IDrop> {
+final class ProblemsViewContentProvider extends AbstractResultsTableContentProvider<IModelingProblemDrop> {
 
   ProblemsViewContentProvider() {
     super("Description");
   }
 
-  protected final String getAndSortResults(List<IDrop> contents) {
+  protected final String getAndSortResults(List<IModelingProblemDrop> mutableContents) {
     final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (info == null) {
       return null;
     }
-    for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
-      final String resource = DropInfoUtility.getResource(id);
+    for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
+      final ISrcRef ref = problem.getSrcRef();
+      final String resource = ref == null ? "" : ref.getRelativePath();
       /*
        * We filter results based upon the resource.
        */
       if (ModelingProblemFilterUtility.showResource(resource))
-        contents.add(id);
+        mutableContents.add(problem);
     }
-    Collections.sort(contents, sortByLocation);
+    Collections.sort(mutableContents, sortByLocation);
     return info.getLabel();
   }
 

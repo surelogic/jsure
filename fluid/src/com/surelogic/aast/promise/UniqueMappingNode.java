@@ -50,15 +50,20 @@ public class UniqueMappingNode extends AASTRootNode
     		sb.append("allowRead=true");
     	}
     } else {
-    	sb.append("UniqueInRegion ");
-    	sb.append(spec.unparse(debug, indent+2));
+    	sb.append("UniqueInRegion(\"");
+    	sb.append(spec.unparse(debug, indent+2)).append('"');
     	if (allowRead) {
     		sb.append(", allowRead=true");
     	}
+    	sb.append(')');
     }
     return sb.toString();
   }
 
+  public String unparseForPromise() {
+	  return unparse(false);
+  }
+  
   /**
    * @return A non-null node
    */

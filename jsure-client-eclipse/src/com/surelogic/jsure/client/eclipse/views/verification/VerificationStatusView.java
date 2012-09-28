@@ -61,7 +61,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
@@ -648,8 +647,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private int getModelProblemCount(final JSureScanInfo info) {
     int result = 0;
     if (info != null) {
-      for (IModelingProblemDrop id : info.getModelingProblemDrops()) {
-        final String resource = DropInfoUtility.getResource(id);
+      for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
+        final ISrcRef ref = problem.getSrcRef();
+        final String resource = ref == null ? "" : ref.getRelativePath();
         /*
          * We filter results based upon the resource.
          */

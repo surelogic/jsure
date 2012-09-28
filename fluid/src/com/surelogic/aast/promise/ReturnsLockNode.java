@@ -45,17 +45,7 @@ public class ReturnsLockNode extends AbstractSingleLockNode {
 	 */
 	@Override
 	public String unparse(boolean debug, int indent) {
-		StringBuilder sb = new StringBuilder();
-		if (debug) {
-			indent(sb, indent);
-			sb.append("ReturnsLockNode\n");
-			indent(sb, indent+2);
-			sb.append(getLock().unparse(debug, indent+2));
-		} else {
-			sb.append("ReturnsLock ");
-			sb.append(getLock().unparse(debug, indent));
-		}
-		return sb.toString();
+		return unparse(debug, indent, "ReturnsLock");
 	}
 	
   @Override

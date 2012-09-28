@@ -158,7 +158,13 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
+      String oldMessage = f_message;    	
       f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+      if (oldMessage != null && !(oldMessage.startsWith("Borrowed on") || oldMessage.startsWith("Unique on"))) {
+    	  String newMessage = f_message;
+    	  System.out.println("Changing the message from "+oldMessage);
+    	  System.out.println("\t to "+newMessage);    	  
+      }
       f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
   }

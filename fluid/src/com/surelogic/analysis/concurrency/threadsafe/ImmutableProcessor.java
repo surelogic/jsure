@@ -4,6 +4,7 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
+import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
@@ -16,7 +17,6 @@ import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -140,12 +140,13 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
       
       // immutable
       final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true); 
+              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+              ParameterizedTypeAnalysis.getFolders(), true, false); 
       final boolean isImmutable = tester.testType(type);
       final ResultDrop iResult = createResult(
           typeFolder, typeDeclNode, isImmutable,
           TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, type.toSourceText());  
-      iResult.addTrusted(tester.getPromises());
+      iResult.addTrusted(tester.getTrusts());
       
       boolean proposeImmutable = !isImmutable;
       if (isFinal && !isImmutable) {
@@ -158,15 +159,16 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
         if (Initialization.prototype.includes(init)) {
           final IRNode initExpr = Initialization.getValue(init);
           if (NewExpression.prototype.includes(initExpr)) {
-            final ImmutablePromiseDrop implTypeIDrop =
-                LockRules.getImmutableImplementation(
-                    ((IJavaDeclaredType) binder.getJavaType(initExpr)).getDeclaration());
-            if (implTypeIDrop != null) {
+            final ImmutableAnnotationTester tester2 =
+                new ImmutableAnnotationTester(
+                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+                    ParameterizedTypeAnalysis.getFolders(), true, true); 
+            if (tester2.testType(binder.getJavaType(initExpr))) {
               // we have an instance of an immutable implementation
               proposeImmutable = false;
               final ResultDrop result = createResult(
                   true, typeFolder, initExpr, IMMUTABLE_IMPL);
-              result.addTrusted(implTypeIDrop);
+              result.addTrusted(tester2.getTrusts());
             }
           }
         }

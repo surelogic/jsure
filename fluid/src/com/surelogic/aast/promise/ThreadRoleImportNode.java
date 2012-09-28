@@ -41,6 +41,10 @@ public class ThreadRoleImportNode extends AASTRootNode implements
 		this.id = id;
 	}
 
+	public final String unparseForPromise() {
+		throw new UnsupportedOperationException();
+	}
+	
 	@Override
 	public String unparse(boolean debug, int indent) {
 		StringBuilder sb = new StringBuilder();

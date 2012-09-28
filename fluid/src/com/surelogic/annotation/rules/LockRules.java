@@ -1084,10 +1084,12 @@ public class LockRules extends AnnotationRules {
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.create(lockDecl, qualifiedName); 
+        if (!XUtil.useExperimental()) {
         model.setMessage(Messages.LockAnnotation_lockModel,
             XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
             field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
+        }
         // Add the protected region
         model.addDependent(regionBinding.getModel());        
         // Get the AssumeFinal promise, if any

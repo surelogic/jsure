@@ -50,12 +50,13 @@ public class LockDeclarationNode extends AbstractLockDeclarationNode {
 			sb.append(getField().unparse(debug, indent + 2));
 			sb.append(getRegion().unparse(debug, indent + 2));
 		} else {
-			sb.append("Lock ");
+			sb.append("RegionLock(\"");
 			sb.append(getId());
 			sb.append(" is ");
 			sb.append(getField().toString());
 			sb.append(" protects ");
 			sb.append(getRegion().toString());
+			sb.append("\")");
 		}
 		return sb.toString();
 	}

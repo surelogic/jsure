@@ -27,7 +27,7 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     if (isVerify) {
       if (!isImplementationOnly) { // default case
         setMessage(Messages.LockAnnotation_containableDrop, name);
-      } else {
+      } else if (!XUtil.useExperimental()) {
         setMessage(Messages.LockAnnotation_containable_implOnly, name);
       }
     } else {

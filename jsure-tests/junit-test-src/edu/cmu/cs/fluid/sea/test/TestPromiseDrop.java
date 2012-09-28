@@ -39,6 +39,12 @@ public class TestPromiseDrop extends TestCase {
       return null;
     }
 
+	@Override
+	public String unparseForPromise() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
   };
   
   static {

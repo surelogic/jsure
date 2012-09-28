@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.method.constraints;
 
 import com.surelogic.aast.promise.StartsSpecificationNode;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -18,7 +19,9 @@ public final class StartsPromiseDrop extends PromiseDrop<StartsSpecificationNode
   public StartsPromiseDrop(StartsSpecificationNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.THREAD_EFFECTS_CAT);
-    setMessage(Messages.StartsAnnotation_startNothingDrop, JavaNames.genMethodConstructorName(getNode()));
+    if (!XUtil.useExperimental()) {
+    	setMessage(Messages.StartsAnnotation_startNothingDrop, JavaNames.genMethodConstructorName(getNode()));
+    }
   }
 
   public boolean startsNothing() {

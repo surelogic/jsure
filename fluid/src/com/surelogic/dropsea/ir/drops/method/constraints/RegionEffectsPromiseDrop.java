@@ -21,8 +21,8 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
     final List<EffectsSpecificationNode> effects = getAAST().getEffectsList();
 
     if (XUtil.useExperimental()) {
-        final String target = JavaNames.genRelativeFunctionName(declNode);
-    	setMessage(138, getAAST().unparseForPromise(), target);
+        //final String target = JavaNames.genRelativeFunctionName(declNode);
+    	//setMessage(138, getAAST().unparseForPromise(), target);
     } else {
         final String target = JavaNames.genMethodConstructorName(declNode);
     	if (effects.size() > 0) {

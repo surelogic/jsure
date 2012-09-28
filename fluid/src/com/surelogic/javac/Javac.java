@@ -56,8 +56,10 @@ public class Javac extends IDE {
 		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
 		 * equality analyses, depend on the results of annotation bounds checking.
 		 */
-		final AnalysisInfo annoBoundsChecking = init(ParameterizedTypeAnalysis.class,
-		    "com.surelogic.jsure.client.eclipse.ParameterizedType", true, "Annotation Bounds");
+		final AnalysisInfo annoBoundsChecking = 
+		    init(ParameterizedTypeAnalysis.class,
+		        "com.surelogic.jsure.client.eclipse.ParameterizedType",
+		        true, "Annotation Bounds");
     init(LockAnalysis.class,
         "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
         annoBoundsChecking);

@@ -34,11 +34,15 @@ public class StartsSpecificationNode extends AASTRootNode
       indent(sb, indent); 
       sb.append("StartsSpecification\n");
     } else {
-      return "Starts nothing";
+      return "Starts(\"nothing\")";
     }
     return sb.toString();
   }
 
+  public final String unparseForPromise() {
+	 return unparse(false);
+  }
+  
   @Override
   public <T> T accept(INodeVisitor<T> visitor) {
    

@@ -4,6 +4,7 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.TypeImplementationProcessor;
+import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
@@ -25,6 +26,8 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
@@ -43,9 +46,11 @@ public final class ContainableProcessor extends
   private static final int FIELD_BAD = 460;
   private static final int FIELD_IS_UNIQUE = 461;
   private static final int FIELD_IS_NOT_UNIQUE = 462;
-  private static final int TYPE_IS_CONTAINABLE = 463;
-  private static final int TYPE_IS_NOT_CONTAINABLE = 464;
-  
+  private static final int OBJECT_IS_CONTAINABLE = 463;
+  private static final int OBJECT_IS_NOT_CONTAINABLE = 464;
+  private static final int TYPE_IS_CONTAINABLE = 465;
+  private static final int TYPE_IS_NOT_CONTAINABLE = 466;
+  private static final int CONTAINABLE_IMPL = 467;
   
   
   public ContainableProcessor(
@@ -151,16 +156,47 @@ public final class ContainableProcessor extends
               "Unique", null, varDecl, varDecl, Origin.MODEL));
 				}
 
+	      final ResultFolderDrop typeFolder = createOrFolder(
+	          folder, varDecl, OBJECT_IS_CONTAINABLE, OBJECT_IS_NOT_CONTAINABLE);
+
 				final ContainableAnnotationTester tester =
   				  new ContainableAnnotationTester(
-  				      binder, AnnotationBoundsTypeFormalEnv.INSTANCE, true);
+  				      binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+  				      ParameterizedTypeAnalysis.getFolders(), true, false);
 				final boolean isContainable = tester.testType(type);
         final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
-				final ResultDrop cResult = createResult(folder, typeDeclNode,
+				final ResultDrop cResult = createResult(typeFolder, typeDeclNode,
 				    isContainable, TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE,
 				    type.toSourceText());
-				cResult.addTrusted(tester.getPromises());
-				if (!isContainable) {
+				cResult.addTrusted(tester.getTrusts());
+				
+				boolean proposeContainable = !isContainable;
+				if (TypeUtil.isFinal(varDecl) && !isContainable) {
+	        /*
+	         * If the type is not containable, we can check to see
+	         * if the implementation assigned to the field is containable,
+	         * but only if the field is final.
+	         */
+	        final IRNode init = VariableDeclarator.getInit(varDecl);
+	        if (Initialization.prototype.includes(init)) {
+	          final IRNode initExpr = Initialization.getValue(init);
+	          if (NewExpression.prototype.includes(initExpr)) {
+	            final ContainableAnnotationTester tester2 =
+	                new ContainableAnnotationTester(
+	                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+	                    ParameterizedTypeAnalysis.getFolders(), true, true); 
+	            if (tester2.testType(binder.getJavaType(initExpr))) {
+	              // we have an instance of an immutable implementation
+	              proposeContainable = false;
+	              final ResultDrop result = createResult(
+	                  true, typeFolder, initExpr, CONTAINABLE_IMPL);
+	              result.addTrusted(tester2.getTrusts());
+	            }
+	          }
+	        }
+				}
+				
+				if (proposeContainable) {
           for (final IRNode t : tester.getFailed()) {
             cResult.addProposal(new ProposedPromiseDrop(
                 "Containable", null, t, varDecl, Origin.MODEL));

@@ -45,10 +45,11 @@ public class PolicyLockDeclarationNode extends AbstractLockDeclarationNode {
       sb.append("\n");
       sb.append(getField().unparse(debug, indent+2));
     } else {
-      sb.append("PolicyLock ");
+      sb.append("PolicyLock(\"");
       sb.append(getId());
       sb.append(" is ");
       sb.append(getField().toString());
+      sb.append("\")");
     }
     return sb.toString();
   }

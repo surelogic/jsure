@@ -73,5 +73,9 @@ public final class VouchFieldIsNode extends AASTRootNode {
 		}
 		return sb.toString();
   }
+  
+  public String unparseForPromise() {
+	  return unparse(false);  
+  }
 }
 

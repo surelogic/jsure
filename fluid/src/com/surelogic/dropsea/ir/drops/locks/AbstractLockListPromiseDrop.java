@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.locks;
 
 import com.surelogic.aast.promise.AbstractLockListNode;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -10,7 +11,9 @@ public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode
 
   AbstractLockListPromiseDrop(N node) {
     super(node);
+    if (!XUtil.useExperimental()) {
     setMessage(Messages.LockAnnotation_requiresLockDrop, getAAST().toString(), JavaNames.genMethodConstructorName(getNode()));
+    }
   }
 
   /**

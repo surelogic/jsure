@@ -31,6 +31,7 @@ import com.surelogic.persistence.JavaIdentifier;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
 /**
@@ -75,6 +76,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       f_lineNumber = -1;
       f_hash = -1L;
     }
+    setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(getPromisedFor()));
   }
 
   public final IRNode getPromisedFor() {

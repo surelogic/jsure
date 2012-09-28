@@ -23,4 +23,23 @@ public abstract class AbstractSingleLockNode extends AASTRootNode {
 	public final LockNameNode getLock(){
 		return lock;
 	}
+	
+	public final String unparseForPromise() {
+		return unparse(false);
+	}
+	
+	protected final String unparse(boolean debug, int indent, String name) {
+		StringBuilder sb = new StringBuilder();
+		if (debug) {
+			indent(sb, indent);
+			sb.append(name).append("Node\n");
+			indent(sb, indent+2);
+			sb.append(getLock().unparse(debug, indent+2));
+		} else {
+			sb.append(name).append("(\"");
+			sb.append(getLock().unparse(debug, indent));
+			sb.append("\")");
+		}
+		return sb.toString();
+	}
 }

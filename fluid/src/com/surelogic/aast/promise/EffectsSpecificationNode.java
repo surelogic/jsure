@@ -9,7 +9,7 @@ import java.util.*;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
 
-public class EffectsSpecificationNode extends AASTRootNode 
+public class EffectsSpecificationNode extends AASTNode 
 {  
   // Fields
   private final List<EffectSpecificationNode> effect;
