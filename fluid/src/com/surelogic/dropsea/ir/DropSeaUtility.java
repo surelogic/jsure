@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 
 import com.surelogic.Utility;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.promise.TextFile;
@@ -92,19 +89,6 @@ public final class DropSeaUtility {
       SLLogger.getLogger().severe("Drop " + this + "has more than one CU deponent");
     }
     return cus.get(0);
-  }
-
-  public static JavaSourceReference createJavaSourceReferenceFromOneOrTheOther(IRNode n, ISrcRef ref) {
-    if (ref == null) {
-      if (n == null) {
-        return null;
-      }
-      IRNode cu = VisitUtil.getEnclosingCUorHere(n);
-      String pkg = VisitUtil.getPackageName(cu);
-      IRNode type = VisitUtil.getPrimaryType(cu);
-      return new JavaSourceReference(pkg, JavaNames.getTypeName(type));
-    }
-    return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
   }
 
   private DropSeaUtility() {

@@ -10,10 +10,8 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
-import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IHintDrop;
@@ -175,12 +173,6 @@ public abstract class IRReferenceDrop extends Drop {
       else
         return Collections.unmodifiableList(f_proposals);
     }
-  }
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(getNode(), getSrcRef());
   }
 
   @Override

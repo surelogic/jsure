@@ -104,7 +104,7 @@ public class IRFreeDrop implements IDrop {
     if (messageCanonical != null)
       f_messageCanonical = messageCanonical;
     else
-      f_messageCanonical = getClass().getSimpleName() + " (EMPTY)";
+      f_messageCanonical = f_message; // per Javadoc on IDrop
 
     final String hash = e.getAttribute(HASH_ATTR);
     Long treeHash = null;

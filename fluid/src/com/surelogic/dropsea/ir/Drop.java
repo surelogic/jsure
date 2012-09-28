@@ -25,7 +25,6 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
 import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
@@ -180,10 +179,23 @@ public abstract class Drop implements IDrop {
       f_message = value;
   }
 
-  @Nullable
-  public String getCategorizingString() {
+  @NonNull
+  public final String getMessage() {
     synchronized (f_seaLock) {
-      return f_categorizingString;
+      if (f_message == null)
+        return getClass().getSimpleName() + " (EMPTY)";
+      else
+        return f_message.getResultString();
+    }
+  }
+
+  @NonNull
+  public String getMessageCanonical() {
+    synchronized (f_seaLock) {
+      if (f_message == null)
+        return getClass().getSimpleName() + " (EMPTY)";
+      else
+        return f_message.getResultStringCanonical();
     }
   }
 
@@ -205,28 +217,10 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    return JavaSourceReference.UNKNOWN;
-  }
-
-  @NonNull
-  public final String getMessage() {
+  @Nullable
+  public String getCategorizingString() {
     synchronized (f_seaLock) {
-      if (f_message == null)
-        return getClass().getSimpleName() + " (EMPTY)";
-      else
-        return f_message.getResultString();
-    }
-  }
-
-  @NonNull
-  public String getMessageCanonical() {
-    synchronized (f_seaLock) {
-      if (f_message == null)
-        return getClass().getSimpleName() + " (EMPTY)";
-      else
-        return f_message.getResultStringCanonical();
+      return f_categorizingString;
     }
   }
 

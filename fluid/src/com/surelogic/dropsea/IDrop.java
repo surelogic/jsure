@@ -60,6 +60,23 @@ public interface IDrop {
   @NonNull
   String getMessage();
 
+  /**
+   * Returns a canonical version of the analysis result typically used for
+   * comparisons in the regression test suite.
+   * <p>
+   * The resulting string is constructed by calling
+   * {@link I18N#resc(int, Object...)} if this drop's message was constructed
+   * using {@link I18N}. For example, {@code I18N.resc(2001, "foo", 5)} returns
+   * <tt>"(2001,foo,5)"</tt>.
+   * <p>
+   * If this drop's message was not constructed using {@link I18N} than the
+   * result of this call is identical to calling {@link #getMessage()}.
+   * 
+   * @return a canonical version of the message describing this drop, usually
+   *         used by the regression test suite for comparisons.
+   * @see I18N#resc(int)
+   * @see I18N#resc(int, Object...)
+   */
   @NonNull
   String getMessageCanonical();
 

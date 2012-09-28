@@ -22,7 +22,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -477,16 +476,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    IRNode n = getNode();
-    if (n == null) {
-      n = getAAST().getPromisedFor();
-    }
-    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(n, getSrcRef());
-  }
 
   /*
    * Consistency proof methods
