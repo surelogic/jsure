@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.surelogic.aast.promise.BorrowedNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 
@@ -25,8 +26,10 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
     super(a);
     setCategorizingString(JavaGlobals.UNIQUENESS_CAT);
     final IRNode node = getNode();
+    final IRNode decl = VisitUtil.getEnclosingClassBodyDecl(node);
     setMessage(Messages.UniquenessAnnotation_borrowedDrop, getAAST().allowReturn() ? JavaNames.getFieldDecl(node)
-        + ", allowReturn=true" : JavaNames.getFieldDecl(node), JavaNames.getFullName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
+        + ", allowReturn=true" : JavaNames.getFieldDecl(node), 
+        XUtil.useExperimental() ? JavaNames.getRelativeName(decl) : JavaNames.getFullName(decl)); //$NON-NLS-1$
   }
 
   public final boolean allowReturn() {
