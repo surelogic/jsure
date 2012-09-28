@@ -1,6 +1,7 @@
 package com.surelogic.analysis.annotationbounds;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -8,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
@@ -21,7 +21,7 @@ import com.surelogic.analysis.type.constraints.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeDeclAnnotationTester;
 import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
@@ -51,7 +51,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   
   private static final Map<IJavaType, ResultFolderDrop> folders =
       new ConcurrentHashMap<IJavaType, ResultFolderDrop>();
-      
+  private static final Map<IJavaType, ResultFolderDrop> foldersExternal =
+      Collections.unmodifiableMap(folders);
+  
   private static final Map<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>> cachedBounds =
       new ConcurrentHashMap<IRNode, List<Pair<IRNode, Set<AnnotationBounds>>>>();
 
@@ -70,7 +72,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ContainableAnnotationTester(binder, formalEnv, false);
+        return new ContainableAnnotationTester(binder, formalEnv, foldersExternal, false, false);
       }
       
       @Override
@@ -86,7 +88,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ImmutableAnnotationTester(binder, formalEnv, false);
+        return new ImmutableAnnotationTester(binder, formalEnv, foldersExternal, false, false);
       }
       
       @Override
@@ -102,7 +104,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ReferenceObjectAnnotationTester(binder, formalEnv, false);
+        return new ReferenceObjectAnnotationTester(binder, formalEnv, foldersExternal, false);
       }
       
       @Override
@@ -118,7 +120,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ThreadSafeAnnotationTester(binder, formalEnv, false);
+        return new ThreadSafeAnnotationTester(binder, formalEnv, foldersExternal, false, false);
       }
       
       @Override
@@ -134,7 +136,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       @Override
       public TypeDeclAnnotationTester getTester(
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ValueObjectAnnotationTester(binder, formalEnv, false);
+        return new ValueObjectAnnotationTester(binder, formalEnv, foldersExternal, false);
       }
       
       @Override
@@ -179,8 +181,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   
   
   
-  static ResultFolderDrop getFolderFromTypeNode(final IRNode node) {
-    return folders.get(node);
+  static Map<IJavaType, ResultFolderDrop> getFolders() {
+    return foldersExternal;
   }
 
   static void clearFolders() {
@@ -217,7 +219,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
             getBounds(baseTypeDecl, boundsDrop);
         if (bounds != null) {
-          folder = checkActualsAgainstBounds(boundsDrop, pType, jTypeOfParameterizedType, bounds);
+          folder = checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
+          folder.addChecked(boundsDrop);
+          folders.put(jTypeOfParameterizedType, folder);
         }
       }
       // be safe
@@ -327,7 +331,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   
 
   private ResultFolderDrop checkActualsAgainstBounds(
-      final AnnotationBoundsPromiseDrop boundsDrop,
       final IRNode parameterizedType,
       final IJavaDeclaredType jTypeOfParameterizedType,
       final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {    
@@ -336,9 +339,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
     folder.setMessage(
         ANNOTATION_BOUNDS_FOLDER, jTypeOfParameterizedType.toSourceText());
-    folders.put(jTypeOfParameterizedType, folder);
-    folder.addChecked(boundsDrop);
-
     for (int i = 0; i < boundsList.size(); i++) {
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
@@ -346,13 +346,12 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       final String boundsString = boundsSetToString(bounds);
       final IJavaType jTypeOfActual = actualList.get(i);
       
-      final Set<PromiseDrop<? extends IAASTRootNode>> promises = 
-          new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+      final Set<ProofDrop> trusts = new HashSet<ProofDrop>();
       boolean checks = false;
       for (final AnnotationBounds bound : bounds) {
         final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
         checks |= tester.testType(jTypeOfActual);
-        promises.addAll(tester.getPromises());
+        trusts.addAll(tester.getTrusts());
       }      
 
       final ResultDrop result = new ResultDrop(parameterizedType);
@@ -360,7 +359,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
           jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
       result.setConsistent(checks);
-      result.addTrusted(promises);
+      result.addTrusted(trusts);
       folder.addTrusted(result);
     }
     return folder;

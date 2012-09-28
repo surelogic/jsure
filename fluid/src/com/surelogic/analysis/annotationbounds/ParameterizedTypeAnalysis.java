@@ -1,5 +1,7 @@
 package com.surelogic.analysis.annotationbounds;
 
+import java.util.Map;
+
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
@@ -10,6 +12,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 
 public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<GenericTypeInstantiationChecker, Unused> {
   public ParameterizedTypeAnalysis() {
@@ -52,7 +55,7 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	
 	
 	
-	public static ResultFolderDrop getFolderForTypeNode(final IRNode node) {
-	  return GenericTypeInstantiationChecker.getFolderFromTypeNode(node);
+	public static Map<IJavaType, ResultFolderDrop> getFolders() {
+	  return GenericTypeInstantiationChecker.getFolders();
 	}
 }
