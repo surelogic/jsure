@@ -91,7 +91,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 					IBinding parent = StructureRules.findParentWithMustInvokeOnOverride(getAnalysis().getBinder(), n);					
 					if (parent != null) {
 						ResultDrop rd = new ResultDrop(n);
-						rd.setCategorizingString(Messages.DSC_LAYERS_ISSUES);
+						rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
 						
 						// Check if it really invokes the parent
 						final boolean found = getAnalysis().doAccept(cu);

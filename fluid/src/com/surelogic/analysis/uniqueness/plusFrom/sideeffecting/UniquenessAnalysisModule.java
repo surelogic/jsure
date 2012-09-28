@@ -255,7 +255,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategorizingString(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
+					  callDrop.setCategorizingMessage(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
 			} else {
@@ -264,7 +264,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           callDrop.addInformationHint(node, getErrorMessage(insideDecl, node));
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategorizingString(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
+					  callDrop.setCategorizingMessage(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
 			}

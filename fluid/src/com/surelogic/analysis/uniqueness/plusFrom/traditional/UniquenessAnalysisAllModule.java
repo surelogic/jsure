@@ -227,7 +227,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
         final HintDrop info = HintDrop.newWarning(node.methodDecl);
         info.setMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
-        info.setCategorizingString(Messages.DSC_UNIQUENESS_LONG_RUNNING);
+        info.setCategorizingMessage(Messages.DSC_UNIQUENESS_LONG_RUNNING);
         for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecked()) {
           pd.addDependent(info);
         }
@@ -237,7 +237,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
       final long duration = endTime - startTime;
       /* (1) Mark our control flow drop as timed out */
       pr.controlFlow.setTimeout();
-      pr.controlFlow.setCategorizingString(Messages.DSC_UNIQUENESS_TIMEOUT);
+      pr.controlFlow.setCategorizingMessage(Messages.DSC_UNIQUENESS_TIMEOUT);
       pr.controlFlow.setMessage(Messages.TIMEOUT, e.timeOut / NANO_SECONDS_PER_SECOND,
           methodName, duration / NANO_SECONDS_PER_SECOND);
       
@@ -301,7 +301,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategorizingString(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
+					  callDrop.setCategorizingMessage(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
 			} else {
@@ -310,7 +310,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
           callDrop.addInformationHint(node, getErrorMessage(insideDecl, node));
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategorizingString(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
+					  callDrop.setCategorizingMessage(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
 			}

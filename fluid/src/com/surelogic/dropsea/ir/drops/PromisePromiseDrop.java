@@ -11,7 +11,7 @@ public final class PromisePromiseDrop extends ScopedPromiseDrop {
 
   public PromisePromiseDrop(ScopedPromiseNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.PROMISE_CAT);
+    setCategorizingMessage(JavaGlobals.PROMISE_CAT);
     setMessage(19, getAAST());
   }
 }

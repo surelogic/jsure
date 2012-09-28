@@ -501,7 +501,7 @@ public class TRoleSecondPass implements IBinderClient {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final HintDrop info = TRoleMessages.createWarningDrop(msg, context);
     setResultDep(info, resultDependUpon);
-    info.setCategorizingString(category);
+    info.setCategorizingMessage(category);
     return info;
   }
 
@@ -694,7 +694,7 @@ public class TRoleSecondPass implements IBinderClient {
       final ResultDrop reqResDrop = reqSumm.getResDrop();
       // resultDependUpon.addDependent(reqResDrop);
       methodConstraintResultsDependOn.addDependent(reqSumm);
-      reqResDrop.setCategorizingString(TRoleMessages.assuranceCategory);
+      reqResDrop.setCategorizingMessage(TRoleMessages.assuranceCategory);
       methodConstraintCount += 1;
 
       if (reqSumm.isInferred()) {
@@ -858,7 +858,7 @@ public class TRoleSecondPass implements IBinderClient {
           sb.append(expandedMName);
           sb.append(" may be invoked from more than one thread."); //$NON-NLS-1$
           HintDrop id = TRoleMessages.createInfoDrop(sb.toString(), ctxSumm.getNode());
-          id.setCategorizingString(TRoleMessages.multiThreadedInfoCategory);
+          id.setCategorizingMessage(TRoleMessages.multiThreadedInfoCategory);
           sb.setLength(0);
           sb.append("Union of calling contexts is "); //$NON-NLS-1$
           sb.append(TRoleBDDPack.userStr(ctxSumm.getFullExpr()));
@@ -905,7 +905,7 @@ public class TRoleSecondPass implements IBinderClient {
         rd.addChecked(regTRoleMod.getUserDeponents());
         rd.addTrusted(regTRoleMod);
         rd.setConsistent();
-        rd.setCategorizingString(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
+        rd.setCategorizingMessage(JavaGlobals.THREAD_ROLE_REPORT_REGION_CAT);
       } else {
         // Check whether the computed context satisfies the user constraint
         final JBDD computedContext = regTRoleMod.getComputedContext();
@@ -939,7 +939,7 @@ public class TRoleSecondPass implements IBinderClient {
         rd.addChecked(regTRoleMod.getUserDeponents());
         rd.addTrusted(regTRoleMod);
         rd.setConsistent();
-        rd.setCategorizingString(JavaGlobals.THREAD_ROLE_CONSTRAINED_REGION_CAT);
+        rd.setCategorizingMessage(JavaGlobals.THREAD_ROLE_CONSTRAINED_REGION_CAT);
 
       }
     }

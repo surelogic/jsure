@@ -160,7 +160,7 @@ public class TRoleCtxSummaryDrop extends IRReferenceDrop implements IThreadRoleD
     assert (ThreadRoleRules.getCtxSummDrop(node) == null);
     ThreadRoleRules.setCtxSummDrop(node, this);
 
-    setCategorizingString(TRoleMessages.assuranceCategory);
+    setCategorizingMessage(TRoleMessages.assuranceCategory);
   }
 
   // private ColorCtxSummaryDrop(ColorContextDrop proto,

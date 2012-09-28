@@ -335,7 +335,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         
         final ResultDrop timeOutResult = new ResultDrop(flowUnit);
         timeOutResult.setTimeout();
-        timeOutResult.setCategorizingString(Messages.DSC_UNIQUENESS_TIMEOUT);
+        timeOutResult.setCategorizingMessage(Messages.DSC_UNIQUENESS_TIMEOUT);
         timeOutResult.setMessage(Messages.TIMEOUT,
             e.timeOut / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);

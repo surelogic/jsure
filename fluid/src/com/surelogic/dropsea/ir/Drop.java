@@ -23,7 +23,6 @@ import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
-import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
@@ -32,6 +31,7 @@ import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -135,12 +135,12 @@ public abstract class Drop implements IDrop {
    * result.02001=A singular problem.
    * </pre>
    * 
-   * is contained in the SureLogicResults.properties file. If the key is not
-   * defined in the SureLogicResults.properties file an exception is thrown.
+   * is contained in the <tt>SureLogicResults.properties</tt> file. If the key
+   * is not defined in the file an exception is thrown.
    * <p>
-   * <i>Implementation Note:</i> The {@code getInstance} methods of
-   * {@link AnalysisResultMessage} are used to an {@link AnalysisResultMessage}
-   * which is stored internally to this drop.
+   * If the message is for a {@link IResultFolderDrop} special processing is
+   * done, post format, but prior to display in the UI as described in
+   * {@link I18N#toStringForUIFolderLabel(String, int)}.
    * 
    * @param number
    *          the number of the result in the
@@ -148,8 +148,9 @@ public abstract class Drop implements IDrop {
    * @param args
    *          arguments to <tt>String.format</tt>.
    * 
-   * @see AnalysisResultMessage
-   * @see I18N
+   * @see I18N#res(int)
+   * @see I18N#res(int, Object...)
+   * @see I18N#toStringForUIFolderLabel(String, int)
    */
   public final void setMessage(int number, Object... args) {
     if (number < 1) {
@@ -157,13 +158,25 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      f_message = AnalysisResultMessage.getInstance(number, args);
+      f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+      f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
   }
 
-  public final void setMessage(String msg) {
+  /**
+   * This method sets the message for this drop.
+   * <p>
+   * Whenever possible {@link #setMessage(int, Object...)} should be used
+   * instead of this method, because it handles small changes to a message when
+   * comparisons are done by the regression test suite.
+   * 
+   * @param value
+   *          a message.
+   */
+  public final void setMessage(String value) {
     synchronized (f_seaLock) {
-      f_message = AnalysisResultMessage.getInstance(12, msg);
+      f_message = value;
+      f_messageCanonical = null;
     }
   }
 
@@ -171,12 +184,16 @@ public abstract class Drop implements IDrop {
    * Used by {@link ProofDrop} to set the message based upon the verification
    * judgment.
    * 
-   * @param value
-   *          a message.
+   * @param message
+   *          a message describing this drop, usually used by the UI.
+   * @param messageCanonical
+   *          a canonical version of the message describing this drop, usually
+   *          used by the regression test suite for comparisons.
    */
-  void setMessage(AnalysisResultMessage value) {
-    if (value != null)
-      f_message = value;
+  @RequiresLock("SeaLock")
+  protected final void setMessageHelper(String message, String messageCanonical) {
+    f_message = message;
+    f_messageCanonical = messageCanonical;
   }
 
   @NonNull
@@ -185,42 +202,101 @@ public abstract class Drop implements IDrop {
       if (f_message == null)
         return getClass().getSimpleName() + " (EMPTY)";
       else
-        return f_message.getResultString();
+        return f_message;
     }
   }
 
   @NonNull
   public String getMessageCanonical() {
     synchronized (f_seaLock) {
-      if (f_message == null)
-        return getClass().getSimpleName() + " (EMPTY)";
+      if (f_messageCanonical == null)
+        return getMessage(); // per Javadoc
       else
-        return f_message.getResultStringCanonical();
+        return f_messageCanonical;
     }
   }
 
-  public final void setCategorizingString(int number, Object... args) {
+  /**
+   * This method sets the categorizing message for this drop. These strings are
+   * only used by the UI to improve how results are presented to the user.
+   * Calling this method is similar to calling
+   * 
+   * <pre>
+   * String.format(<i>formatString</i>, args)
+   * </pre>
+   * 
+   * where <i>formatString</i> is obtained from the
+   * <tt>SureLogicResults.properties</tt> file in the
+   * <tt>com.surelogic.common.i18n</tt> package.
+   * <p>
+   * The <tt>number</tt> for the categorizing message in the
+   * <tt>SureLogicResults.properties</tt> file is <i>category.nnnnn</i>. For
+   * example, if <tt>number == 2001</tt> would result in the string
+   * <tt>"### java.lang.Runnable subtype instance {{{created|||creations}}} - not{{{ a|||}}} Thread{{{|||s}}}"</tt>
+   * if the definition
+   * 
+   * <pre>
+   * category.02001=### java.lang.Runnable subtype instance {{{created|||creations}}} - not{{{ a|||}}} Thread{{{|||s}}}
+   * </pre>
+   * 
+   * is contained in the <tt>SureLogicResults.properties</tt> file. If the key
+   * is not defined in the file an exception is thrown.
+   * <p>
+   * Special processing is applied to all categorizing messages prior to their
+   * display in the UI as described in
+   * {@link I18N#toStringForUIFolderLabel(String, int)}. This special processing
+   * allows the string to react to the number of items, <i>c</i>, contained in
+   * the category. In the case of category 2001 (shown above) the UI would
+   * display
+   * 
+   * <ul>
+   * <li><tt>"1 java.lang.Runnable subtype instance created - not a Thread"</tt>
+   * when <i>c</i> = 1, and</li>
+   * <li>
+   * <tt>"2 java.lang.Runnable subtype instance creations - not Threads"</tt>
+   * when <i>c</i> = 2 (or more).</li>
+   * </ul>
+   * 
+   * @param number
+   *          the number of the result in the
+   *          <tt>SureLogicResults.properties</tt> file.
+   * @param args
+   *          arguments to <tt>String.format</tt>.
+   * 
+   * @see I18N#cat(int)
+   * @see I18N#cat(int, Object...)
+   * @see I18N#toStringForUIFolderLabel(String, int)
+   */
+  public final void setCategorizingMessage(int number, Object... args) {
+    if (number < 1) {
+      LOG.warning(I18N.err(251, number));
+      return;
+    }
     synchronized (f_seaLock) {
-      f_categorizingString = I18N.cat(number, args);
+      f_categorizingMessage = args.length == 0 ? I18N.cat(number) : I18N.cat(number, args);
     }
   }
 
-  public final void setCategorizingString(int number) {
+  /**
+   * This method sets the categorizing message for this drop. These strings are
+   * only used by the UI to improve how results are presented to the user.
+   * <p>
+   * Whenever possible {@link #setCategorizingMessage(int, Object...)} should be
+   * used instead of this method.
+   * 
+   * @param value
+   *          a categorizing string.
+   */
+  public final void setCategorizingMessage(String value) {
     synchronized (f_seaLock) {
-      f_categorizingString = I18N.cat(number);
-    }
-  }
-
-  public final void setCategorizingString(String value) {
-    synchronized (f_seaLock) {
-      f_categorizingString = value;
+      f_categorizingMessage = value;
     }
   }
 
   @Nullable
-  public String getCategorizingString() {
+  public String getCategorizingMessage() {
     synchronized (f_seaLock) {
-      return f_categorizingString;
+      return f_categorizingMessage;
     }
   }
 
@@ -614,22 +690,26 @@ public abstract class Drop implements IDrop {
   private boolean f_valid = true;
 
   /**
-   * An analysis result message about this drop, usually used by the UI.
-   * <p>
-   * May be {@code null}.
+   * A message describing this drop, usually used by the UI.
    */
   @InRegion("DropState")
   @Nullable
-  private AnalysisResultMessage f_message;
+  private String f_message;
 
   /**
-   * A categorizing string for this drop, usually used by the UI.
-   * <p>
-   * May be {@code null}.
+   * A canonical version of the message describing this drop, usually used by
+   * the regression test suite for comparisons.
    */
   @InRegion("DropState")
   @Nullable
-  private String f_categorizingString = null;
+  private String f_messageCanonical;
+
+  /**
+   * A categorizing message for this drop, usually used by the UI.
+   */
+  @InRegion("DropState")
+  @Nullable
+  private String f_categorizingMessage = null;
 
   /**
    * The set of drops whose truth depends upon this drop.
@@ -672,10 +752,9 @@ public abstract class Drop implements IDrop {
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
-    if (f_message != null)
-      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(f_message.getResultStringCanonical()));
+    s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(getMessageCanonical()));
 
-    final String cat = getCategorizingString();
+    final String cat = getCategorizingMessage();
     if (cat != null)
       s.addAttribute(CATEGORY_ATTR, cat);
   }

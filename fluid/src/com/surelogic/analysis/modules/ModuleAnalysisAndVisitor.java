@@ -157,7 +157,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
           ResultDrop rd = makeResultDrop(where, currMod, false, 
                                          DS_BAD_CROSS_MODULE_REF,
                                          DebugUnparser.toString(where));
-          rd.setCategorizingString(DSC_BAD_CROSS_MODULE_REF);
+          rd.setCategorizingMessage(DSC_BAD_CROSS_MODULE_REF);
 //          ModuleModel.setModuleInformationIsConsistent(false);
           // this is an error, but the module STRUCTURE is OK.
           
@@ -178,7 +178,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
               ResultDrop rd = makeResultDrop(node, modPromise, false,
                                              DS_MODULE_ERR_NONLEAF_WITH_CODE,
                                              currMod.name);
-              rd.setCategorizingString(DSC_BAD_MODULE_PROMISE);
+              rd.setCategorizingMessage(DSC_BAD_MODULE_PROMISE);
               ModuleModel.setModuleInformationIsConsistent(false);
               modPromise.setBadPlacement(true);
             }
@@ -362,7 +362,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         ResultDrop rd = makeResultDrop(node, currMod, false, 
                                        DS_BAD_CROSS_MODULE_REF,
                                        TypeRef.getId(node));
-        rd.setCategorizingString(DSC_BAD_CROSS_MODULE_REF);
+        rd.setCategorizingMessage(DSC_BAD_CROSS_MODULE_REF);
         
         ModuleModel.updateWishIWere(typ, currMod);
       }
@@ -804,7 +804,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     final HintDrop info = HintDrop.newWarning(context);
     setResultDep(info, context);
     info.setMessage(msg);
-    info.setCategorizingString(category);
+    info.setCategorizingMessage(category);
     return info;
   }
   
@@ -815,7 +815,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     final HintDrop info = HintDrop.newWarning(context);
     setResultDep(info, context);
     info.setMessage(msg);
-    info.setCategorizingString(category);
+    info.setCategorizingMessage(category);
     return info;
   }
   

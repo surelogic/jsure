@@ -10,7 +10,7 @@ public class TRoleTransparentDrop extends BooleanPromiseDrop<ThreadRoleTranspare
 implements IThreadRoleDrop {
   public TRoleTransparentDrop(ThreadRoleTransparentNode n) {
     super(n);
-    setCategorizingString(TRoleMessages.assuranceCategory);
+    setCategorizingMessage(TRoleMessages.assuranceCategory);
     setMessage(12,"@ThreadRoleTransparent");
   }
 }

@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.java.bind.Messages;
 public final class StartsPromiseDrop extends PromiseDrop<StartsSpecificationNode> {
   public StartsPromiseDrop(StartsSpecificationNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.THREAD_EFFECTS_CAT);
+    setCategorizingMessage(JavaGlobals.THREAD_EFFECTS_CAT);
     setMessage(Messages.StartsAnnotation_startNothingDrop, JavaNames.genMethodConstructorName(getNode()));
   }
 

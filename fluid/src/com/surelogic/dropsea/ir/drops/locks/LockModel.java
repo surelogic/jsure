@@ -59,7 +59,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
     super(decl);
     f_lockName = lockName;
     setMessage(15, lockName);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
   public static LockModel create(AbstractLockDeclarationNode decl, String lockName) {
