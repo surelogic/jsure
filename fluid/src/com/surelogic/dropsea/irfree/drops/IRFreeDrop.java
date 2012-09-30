@@ -26,6 +26,8 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.BasicJavaRef;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
@@ -222,6 +224,34 @@ public class IRFreeDrop implements IDrop {
 
     final int offset = convert(ref.getAttribute(OFFSET_ATTR));
     final int length = convert(ref.getAttribute(LENGTH_ATTR));
+
+    if (cuName.contains("[]")) {
+      System.out.println("BOGUS:");
+      System.out.println(" -- (path) " + path);
+      System.out.println(" --  (pkg) " + pkg);
+      System.out.println("--    (cu) " + cuName);
+
+    } else {
+      // Test of IJavaRef
+      boolean classExt = cuName.endsWith(".class");
+      String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
+      // Note that the default package is "" in the files
+      String jarStyleName = pkg + "/" + classNm;
+      BasicJavaRef.Builder builder = new BasicJavaRef.Builder(jarStyleName);
+      builder.setRelativePath(path);
+      if (classExt)
+        builder.setWithin(IJavaRef.Within.JAR_FILE);
+      if (line < Integer.MAX_VALUE)
+        builder.setLineNumber(line);
+      if (offset < Integer.MAX_VALUE)
+        builder.setOffset(offset);
+      if (length < Integer.MAX_VALUE)
+        builder.setLength(length);
+      builder.setJavaId(javaId);
+      builder.setEnclosingJavaId(enclosingId);
+      builder.build();
+    }
+
     return new AbstractSrcRef() {
 
       @Override
