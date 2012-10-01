@@ -11,10 +11,6 @@ public abstract class AbstractRef implements ISrcRef {
     f_line = (int) l;
   }
 
-  public void clearJavadoc() {
-    // Nothing to do
-  }
-
   public IJavadocElement getJavadoc() {
     return null;
   }

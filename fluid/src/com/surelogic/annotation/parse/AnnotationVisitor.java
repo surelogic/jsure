@@ -476,7 +476,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
 					return handleJavadocTag(node, (IJavadocTag) o);
 				}
 			}
-			ref.clearJavadoc();
 		}
 		return 0;
 	}

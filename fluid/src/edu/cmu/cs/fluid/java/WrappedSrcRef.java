@@ -56,10 +56,6 @@ public abstract class WrappedSrcRef implements ISrcRef {
     return f_wrapped.getJavadoc();
   }
 
-  public void clearJavadoc() {
-    f_wrapped.clearJavadoc();
-  }
-
   public Long getHash() {
     return f_wrapped.getHash();
   }

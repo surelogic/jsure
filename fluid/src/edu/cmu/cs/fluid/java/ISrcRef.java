@@ -95,8 +95,6 @@ public interface ISrcRef {
 
   IJavadocElement getJavadoc();
 
-  void clearJavadoc();
-
   Long getHash();
 
   /**
