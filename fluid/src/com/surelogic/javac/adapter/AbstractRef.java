@@ -19,10 +19,6 @@ public abstract class AbstractRef implements ISrcRef {
     return null;
   }
 
-  public String getComment() {
-    return null;
-  }
-
   public int getLineNumber() {
     return f_line;
   }
@@ -30,8 +26,8 @@ public abstract class AbstractRef implements ISrcRef {
   public String getJavaId() {
     return null;
   }
-  
+
   public String getEnclosingJavaId() {
-	  return null;
+    return null;
   }
 }

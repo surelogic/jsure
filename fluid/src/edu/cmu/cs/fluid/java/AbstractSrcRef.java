@@ -5,9 +5,6 @@ import java.net.URI;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 public abstract class AbstractSrcRef implements ISrcRef {
-  public String getComment() {
-    return null;
-  }
 
   public String getEnclosingFile() {
     return null;
