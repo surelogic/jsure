@@ -185,7 +185,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
 
     final NewRegionDeclarationNode ast = getAAST();
     if (!XUtil.useExperimental()) {
-    setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_simpleName); // TODO
+    setResultMessage(this, ast.isStatic(), ast.getVisibility(), name); // TODO
     }
     setCategorizingMessage(JavaGlobals.REGION_CAT);
 

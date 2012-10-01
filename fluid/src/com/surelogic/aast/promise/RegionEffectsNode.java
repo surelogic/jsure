@@ -109,11 +109,19 @@ public class RegionEffectsNode extends AASTRootNode {
     return sb.toString();
 	}
 
-	 public final String unparseForPromise() {
+	@Override
+	public final String unparseForPromise() {
+		return unparseForPromise(false);
+	}
+	
+	public final String unparseForPromise(boolean onlyContents) {
       if (effects.isEmpty()) {
+    	if (onlyContents) {
+    		return "none";
+    	}
     	return "RegionEffects(\"none\")";
       } else { 
-  	    final StringBuilder sb = new StringBuilder("RegionEffects(\"");    	  
+  	    final StringBuilder sb = new StringBuilder(onlyContents ? "" : "RegionEffects(\"");    	  
         boolean first = true;
         for(final EffectsSpecificationNode _n : effects) {
           if (first) {
@@ -123,7 +131,9 @@ public class RegionEffectsNode extends AASTRootNode {
           }
           sb.append(_n.unparseForPromise());
         }     
-        sb.append("\")");
+        if (!onlyContents) {
+        	sb.append("\")");
+        }
 	    return sb.toString();
       }     
 	}

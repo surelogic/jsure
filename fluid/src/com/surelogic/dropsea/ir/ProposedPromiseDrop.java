@@ -105,7 +105,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
    * @param origin
    *          where this proposed promise originated.
    */
-  public ProposedPromiseDrop(final String annotation, final String contents, final Map<String, String> attrs,
+  private ProposedPromiseDrop(final String annotation, final String contents, final Map<String, String> attrs,
       final String replacedAnnotation, final String replacedContents, final Map<String, String> replacedAttrs, final IRNode at,
       final IRNode from, final Origin origin) {
     super(at);

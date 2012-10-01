@@ -86,7 +86,9 @@ public abstract class DropMatcher {
 		Boolean result;
 		if (!o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for summaries
 			result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical());
-			if (result != null) {
+			if (result != null && result.booleanValue()) {
+				// Return if true
+				// Otherwise, check the message
 				return result;
 			}
 		}
