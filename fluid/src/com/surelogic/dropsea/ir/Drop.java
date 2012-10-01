@@ -34,6 +34,7 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
@@ -158,12 +159,12 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      String oldMessage = f_message;    	
+      String oldMessage = f_message;
       f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
       if (oldMessage != null && !(oldMessage.startsWith("Borrowed on") || oldMessage.startsWith("Unique on"))) {
-    	  String newMessage = f_message;
-    	  System.out.println("Changing the message from "+oldMessage);
-    	  System.out.println("\t to "+newMessage);    	  
+        String newMessage = f_message;
+        System.out.println("Changing the message from " + oldMessage);
+        System.out.println("\t to " + newMessage);
       }
       f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
@@ -791,6 +792,11 @@ public abstract class Drop implements IDrop {
 
   @Nullable
   public ISrcRef getSrcRef() {
+    return null;
+  }
+
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
     return null;
   }
 

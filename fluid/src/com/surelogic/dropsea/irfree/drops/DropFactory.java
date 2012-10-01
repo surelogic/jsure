@@ -18,7 +18,9 @@ import com.surelogic.dropsea.irfree.DropTypeUtility;
 public class DropFactory {
 	public static IDrop create(Entity drop, Entity ref) {
 		IRFreeDrop d = (IRFreeDrop) create(drop);
-		d.setSrcRef(IRFreeDrop.makeSrcRef(new SourceRef(ref)));
+		final SourceRef sourceRef = new SourceRef(ref);
+		d.setSrcRef(IRFreeDrop.makeSrcRef(sourceRef));
+		d.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sourceRef));
 		return d;
 	}
 	

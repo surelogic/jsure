@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -99,7 +100,18 @@ public interface IDrop {
    *         can be <code>null</code>
    */
   @Nullable
+  @Deprecated
   ISrcRef getSrcRef();
+
+  /**
+   * Gets a reference to the Java code this information is about, or
+   * {@code null} if none.
+   * 
+   * @return a reference to the Java code this information is about, or
+   *         {@code null} if none.
+   */
+  @Nullable
+  IJavaRef getJavaRef();
 
   /**
    * Gets the set of proposed promises for this drop.

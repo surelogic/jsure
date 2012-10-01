@@ -190,8 +190,10 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       IRFreeDrop drop = ((SeaEntity) e).getDrop();
       if (drop != null) {
         final SourceRef sr = e.getSource();
-        if (sr != null)
+        if (sr != null) {
           drop.setSrcRef(IRFreeDrop.makeSrcRef(sr));
+          drop.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
+        }
 
         for (MoreInfo i : e.getInfos()) {
           /*
@@ -203,8 +205,10 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           a.put(AbstractXMLReader.HINT_TYPE_ATTR, IHintDrop.HintType.INFORMATION.toString());
           Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
           IRFreeHintDrop hint = new IRFreeHintDrop(hintE, HintDrop.class);
-          if (i.source != null)
+          if (i.source != null) {
             hint.setSrcRef(IRFreeDrop.makeSrcRef(i.source));
+            hint.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(i.source));
+          }
           pd.addHint(hint);
         }
       }

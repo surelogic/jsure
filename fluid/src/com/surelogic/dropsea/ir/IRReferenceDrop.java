@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -20,6 +21,7 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -68,6 +70,16 @@ public abstract class IRReferenceDrop extends Drop {
       return ref;
     }
     return null;
+  }
+
+  @Override
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
+    final IFluidJavaRef javaRef = JavaNode.getJavaRef(f_node);
+    if (javaRef != null)
+      return javaRef;
+    final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
+    return JavaNode.getJavaRef(parent);
   }
 
   /**

@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
@@ -29,6 +30,8 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.FluidJavaRef;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -411,6 +414,19 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       };
     } else
       return null;
+  }
+
+  @Override
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
+    final IFluidJavaRef javaRef = super.getJavaRef();
+    if (javaRef == null)
+      return null;
+
+    final IRNode decl = getNode();
+    String javaId = decl == null ? null : JavaIdentifier.encodeDecl(decl);
+    return new FluidJavaRef.Builder(javaRef).setLineNumber(f_lineNumber).setOffset(f_aast.getOffset()).setJavaId(javaId).build();
+
   }
 
   /**
