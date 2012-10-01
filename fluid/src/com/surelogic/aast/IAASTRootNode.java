@@ -24,7 +24,8 @@ public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
   boolean implies(IAASTRootNode other);
   boolean isSameAs(IAASTRootNode other);
   /**
-   * Unparse as if it should show up in source code
+   * Unparse as if it should show up in source code,
+   * including the annotation and quotes
    */
   String unparseForPromise();
 }
