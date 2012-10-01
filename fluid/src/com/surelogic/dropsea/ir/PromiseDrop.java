@@ -18,11 +18,11 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -30,8 +30,11 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.FluidJavaRef;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
 /**
@@ -76,6 +79,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       f_lineNumber = -1;
       f_hash = -1L;
     }
+    setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(getPromisedFor()));
   }
 
   public final IRNode getPromisedFor() {
@@ -412,6 +416,19 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       return null;
   }
 
+  @Override
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
+    final IFluidJavaRef javaRef = super.getJavaRef();
+    if (javaRef == null)
+      return null;
+
+    final IRNode decl = getNode();
+    String javaId = decl == null ? null : JavaIdentifier.encodeDecl(decl);
+    return new FluidJavaRef.Builder(javaRef).setLineNumber(f_lineNumber).setOffset(f_aast.getOffset()).setJavaId(javaId).build();
+
+  }
+
   /**
    * @return the PromiseDrop that this one was created from, or null if this is
    *         the source
@@ -477,16 +494,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    IRNode n = getNode();
-    if (n == null) {
-      n = getAAST().getPromisedFor();
-    }
-    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(n, getSrcRef());
-  }
 
   /*
    * Consistency proof methods

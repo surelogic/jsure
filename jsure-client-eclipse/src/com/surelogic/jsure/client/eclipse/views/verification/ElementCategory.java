@@ -34,7 +34,7 @@ final class ElementCategory extends Element {
       if (drop == null)
         return;
 
-      final String categorizingString = drop.getCategorizingString();
+      final String categorizingString = drop.getCategorizingMessage();
       if (categorizingString == null || isPromiseDropNotAtRoot(drop)) {
         f_uncategorized.add(drop);
       } else {

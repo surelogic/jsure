@@ -42,13 +42,17 @@ public class SimpleBorrowedInRegionNode extends AASTRootNode
     	indent(sb, indent+2);
     	sb.append(getSpec().unparse(debug, indent+2));
     } else {
-    	sb.append("@BorrowedInRegion(");
+    	sb.append("BorrowedInRegion(\"");
     	sb.append(getSpec());
-    	sb.append(')');
+    	sb.append("\")");
     }
     return sb.toString();
   }
 
+  public String unparseForPromise() {
+	  return unparse(false);
+  }
+  
   /**
    * @return A non-null node
    */

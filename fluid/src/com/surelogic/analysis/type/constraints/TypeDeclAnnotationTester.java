@@ -1,10 +1,13 @@
 package com.surelogic.analysis.type.constraints;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProofDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -22,23 +25,25 @@ import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 public abstract class TypeDeclAnnotationTester {
+  private final Map<IJavaType, ResultFolderDrop> annoBoundsFolders;
   protected final ITypeFormalEnv formalEnv;
   private final ITypeEnvironment typeEnv;
   protected final boolean exclusive;
   
   private final IJavaDeclaredType javaLangObject;
   private final Set<IRNode> tested = new HashSet<IRNode>();
-  private final Set<PromiseDrop<? extends IAASTRootNode>> promises = 
-      new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  private final Set<ProofDrop> trusts = new HashSet<ProofDrop>();
   private final Set<IRNode> failed = new HashSet<IRNode>();
   
   
   
   protected TypeDeclAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, final boolean ex) {
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
     formalEnv = fe;
     final ITypeEnvironment te = binder.getTypeEnvironment();
     typeEnv = te;
+    annoBoundsFolders = folders;
     javaLangObject = te.getObjectType();
     exclusive = ex;
   }
@@ -49,8 +54,8 @@ public abstract class TypeDeclAnnotationTester {
     return tested;
   }
   
-  public final Set<PromiseDrop<? extends IAASTRootNode>> getPromises() {
-    return promises;
+  public final Set<ProofDrop> getTrusts() {
+    return trusts;
   }
   
   public final Iterable<IRNode> getFailed() {
@@ -67,7 +72,7 @@ public abstract class TypeDeclAnnotationTester {
     } else if (type instanceof IJavaVoidType) {
       return false;
     } else if (type instanceof IJavaDeclaredType) {
-      return testDeclaredType(((IJavaDeclaredType) type).getDeclaration());
+      return testDeclaredType((IJavaDeclaredType) type);
     } else if (type instanceof IJavaArrayType) {
       return testArrayType((IJavaArrayType) type);
     } else if (type instanceof IJavaCaptureType) {
@@ -94,7 +99,7 @@ public abstract class TypeDeclAnnotationTester {
       final PromiseDrop<? extends IAASTRootNode> bound =
           testFormalAgainstAnnotationBounds((IJavaTypeFormal) type);
       if (bound != null) {
-        promises.add(bound);
+        trusts.add(bound);
         return true;
       } else {
         // Test the upperbound
@@ -115,14 +120,19 @@ public abstract class TypeDeclAnnotationTester {
   
   
   
-  protected final boolean testDeclaredType(final IRNode type) {
-    tested.add(type);
-    final PromiseDrop<? extends IAASTRootNode> drop = testTypeDeclaration(type);
+  protected final boolean testDeclaredType(final IJavaDeclaredType type) {
+    final IRNode typeDecl = type.getDeclaration();
+    tested.add(typeDecl);
+    final PromiseDrop<? extends IAASTRootNode> drop = testTypeDeclaration(typeDecl);
     if (drop != null) {
-      promises.add(drop);
+      trusts.add(drop);
+      final ResultFolderDrop annoBounds = annoBoundsFolders.get(type);
+      if (annoBounds != null) {
+        trusts.add(annoBounds);
+      }
       return true;
     } else {
-      failed.add(type);
+      failed.add(typeDecl);
       return false;
     }
   }

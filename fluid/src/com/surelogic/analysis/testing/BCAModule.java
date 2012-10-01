@@ -85,7 +85,7 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
       if (type instanceof IJavaReferenceType) {
         final ImmutableSet<IRNode> bindings = currentQuery().getResultFor(use);
         final HintDrop drop = HintDrop.newInformation(use);
-        drop.setCategorizingString(Messages.DSC_BCA);
+        drop.setCategorizingMessage(Messages.DSC_BCA);
         drop.setMessage(Messages.BINDS_TO,
             VariableUseExpression.getId(use),
             BindingContext.setToString(bindings));

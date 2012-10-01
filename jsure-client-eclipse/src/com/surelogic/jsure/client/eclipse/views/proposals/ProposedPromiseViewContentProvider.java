@@ -28,13 +28,14 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
-import com.surelogic.jsure.client.eclipse.views.DropInfoUtility;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
+
+import edu.cmu.cs.fluid.java.ISrcRef;
 
 final class ProposedPromiseViewContentProvider extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
     IResultsTableContentProvider, IJSureTreeContentProvider {
@@ -57,7 +58,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     return asTree;
   }
 
-  protected String getAndSortResults(List<IProposedPromiseDrop> contents) {
+  protected String getAndSortResults(List<IProposedPromiseDrop> mutableContents) {
     final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (info == null) {
       packages = noPackages;
@@ -75,7 +76,8 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
         if (!p.isAbductivelyInferred())
           it.remove();
       }
-      final String resource = DropInfoUtility.getResource(p);
+      final ISrcRef ref = p.getSrcRef();
+      final String resource = ref == null ? "" : ref.getRelativePath();
       /*
        * We filter results based upon the resource.
        */
@@ -87,14 +89,14 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     }
     for (IProposedPromiseDrop id : proposedPromiseDrops) {
       if (id != null && id.getSrcRef() != null) {
-        contents.add(id);
+        mutableContents.add(id);
       }
     }
     packages = Package.organize(proposedPromiseDrops);
     if (packages != null) {
       Arrays.sort(packages);
     }
-    Collections.sort(contents, sortByProposal);
+    Collections.sort(mutableContents, sortByProposal);
     return info.getLabel();
   }
 

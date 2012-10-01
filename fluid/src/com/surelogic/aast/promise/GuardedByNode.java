@@ -45,11 +45,16 @@ public final class GuardedByNode extends AASTRootNode
     	indent(sb, indent+2);
     	sb.append(getLock().unparse(debug, indent+2));
     } else {
-    	sb.append("GuardedBy ").append(getLock().unparse(debug, indent));
+    	sb.append("GuardedBy(\"").append(getLock().unparse(debug, indent));
+    	sb.append("\")");
     }
     return sb.toString();  
   }
 
+  public String unparseForPromise() {
+	  return unparse(false);
+  }
+  
   /**
    * @return A non-null node
    */

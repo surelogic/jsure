@@ -62,12 +62,25 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 				sb.append(getRegionParent().unparse(debug, indent + 2));
 			}
 		} else {
-			sb.append("Region ");
+			sb.append("Region(\"");
+			if (JavaNode.isSet(modifiers, JavaNode.PUBLIC)) {
+				sb.append("public ");
+			}
+			if (JavaNode.isSet(modifiers, JavaNode.PROTECTED)) {
+				sb.append("protected ");
+			}
+			if (JavaNode.isSet(modifiers, JavaNode.PRIVATE)) {
+				sb.append("private ");
+			}
+			if (JavaNode.isSet(modifiers, JavaNode.STATIC)) {
+				sb.append("static ");
+			}
 			sb.append(getId());
 			if (getRegionParent() != null) {
 				sb.append(" extends ");
 				sb.append(getRegionParent().unparse(false));
 			}
+			sb.append("\")");
 		}
 		return sb.toString();
 	}

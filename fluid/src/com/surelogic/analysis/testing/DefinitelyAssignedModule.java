@@ -63,7 +63,7 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
       
       for (final IRNode vd : notAssigned) {
         final HintDrop drop = HintDrop.newInformation(cdecl);
-        drop.setCategorizingString(Messages.DSC_NON_NULL);
+        drop.setCategorizingMessage(Messages.DSC_NON_NULL);
         drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(vd));
       }
       

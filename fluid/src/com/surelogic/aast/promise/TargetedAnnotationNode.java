@@ -12,5 +12,9 @@ public abstract class TargetedAnnotationNode extends AASTRootNode {
   public TargetedAnnotationNode(int offset) {
     super(offset);
   }
+  
+  public final String unparseForPromise() {
+	  return unparse(false);
+  }
 }
 

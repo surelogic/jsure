@@ -1,44 +1,65 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/JavaNode.java,v 1.93 2008/12/12 19:01:03 chance Exp $ */
 package edu.cmu.cs.fluid.java;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.logging.Logger;
-import java.io.*;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.tree.SyntaxTreeNode;
 
-import edu.cmu.cs.fluid.*;
-import edu.cmu.cs.fluid.util.*;
-import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.FluidRuntimeException;
+import edu.cmu.cs.fluid.ir.Bundle;
+import edu.cmu.cs.fluid.ir.ConstantSlotFactory;
+import edu.cmu.cs.fluid.ir.IRIntegerType;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeType;
+import edu.cmu.cs.fluid.ir.IRPersistent;
+import edu.cmu.cs.fluid.ir.IRStringType;
+import edu.cmu.cs.fluid.ir.IRType;
+import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
+import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
+import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
-import edu.cmu.cs.fluid.tree.*;
-import edu.cmu.cs.fluid.parse.*;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.IROperatorType;
+import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
+import edu.cmu.cs.fluid.unparse.Combined;
+import edu.cmu.cs.fluid.unparse.Delim;
+import edu.cmu.cs.fluid.unparse.Glue;
+import edu.cmu.cs.fluid.unparse.Identifier;
+import edu.cmu.cs.fluid.unparse.IndepBP;
+import edu.cmu.cs.fluid.unparse.Keyword;
 import edu.cmu.cs.fluid.unparse.Token;
-import edu.cmu.cs.fluid.unparse.*;
+import edu.cmu.cs.fluid.unparse.UnitedBP;
+import edu.cmu.cs.fluid.util.IntegerTable;
+import edu.cmu.cs.fluid.util.UniqueID;
 
 /**
- * The class used by the parser to build Java IR.
- * Not all nodes of Java IR (for example, IRNodes stored and then
- * loaded) need have this type.
+ * The class used by the parser to build Java IR. Not all nodes of Java IR (for
+ * example, IRNodes stored and then loaded) need have this type.
+ * 
  * @see JavaOperator
  */
 @SuppressWarnings("serial")
 public class JavaNode extends JJNode {
   // For debugging
-  //private StackTraceElement[] trace = new Throwable().getStackTrace();
-  
+  // private StackTraceElement[] trace = new Throwable().getStackTrace();
+
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.JavaNode");
 
   /**
-   * Only to be called by SyntaxTreeNode() 
+   * Only to be called by SyntaxTreeNode()
    */
   protected JavaNode(SyntaxTreeInterface tree) {
-	super(tree);
+    super(tree);
   }
-	  
+
   protected JavaNode(SyntaxTreeInterface tree, Operator operator) {
     super(tree, operator);
   }
@@ -51,45 +72,45 @@ public class JavaNode extends JJNode {
   public static JavaNode makeJavaNode(Operator op) {
     if (JJNode.specializeForSyntaxTree) {
       return new SyntaxTreeNode(op);
-    } 
+    }
     return new JavaNode(tree, op);
   }
-  
+
   public static JavaNode makeJavaNode(Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree) {
       return new SyntaxTreeNode(op, children);
-    } 
-    return new JavaNode(tree, op, children);
-  }
-  
-  public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op) {
-    if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op);
-    } 
-    return new JavaNode(tree, op);
-  }
-  
-  public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op, IRNode[] children) {
-    if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op, children);    
     }
     return new JavaNode(tree, op, children);
   }
-  
+
+  public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op) {
+    if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
+      return new SyntaxTreeNode(op);
+    }
+    return new JavaNode(tree, op);
+  }
+
+  public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op, IRNode[] children) {
+    if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
+      return new SyntaxTreeNode(op, children);
+    }
+    return new JavaNode(tree, op, children);
+  }
+
   /**
-   * Defaults to returning the operator for JJNode.tree
-   * Designed to be overridden by subclasses
+   * Defaults to returning the operator for JJNode.tree Designed to be
+   * overridden by subclasses
    */
   public Operator getOperator() {
     return tree.getOperator(this);
   }
-  
+
   /*
-   %- SlotInit stuff
+   * %- SlotInit stuff
    */
   public static <T> SlotInfo<T> getSlotInfo(String slotName) {
     try {
-      //! Will need to give a real type when we want it to persist.
+      // ! Will need to give a real type when we want it to persist.
       return SimpleSlotFactory.prototype.newAttribute(slotName, null);
     } catch (SlotAlreadyRegisteredException e) {
       throw new FluidRuntimeException(slotName + " slot already allocated");
@@ -114,8 +135,7 @@ public class JavaNode extends JJNode {
     }
   }
 
-  public static <T> SlotInfo<T> getVersionedSlotInfo(String slotName, IRType<T> ty,
-      T defaultValue) {
+  public static <T> SlotInfo<T> getVersionedSlotInfo(String slotName, IRType<T> ty, T defaultValue) {
     try {
       SlotInfo<T> si = treeSlotFactory.newAttribute(slotName, ty, defaultValue);
       si.addObserver(treeChanged);
@@ -126,7 +146,7 @@ public class JavaNode extends JJNode {
   }
 
   /*
-   %- Modifiers stuff
+   * %- Modifiers stuff
    */
   public static final int ALL_FALSE = 0;
 
@@ -153,39 +173,37 @@ public class JavaNode extends JJNode {
   public static final int STRICTFP = (1 << 10);
 
   public static final int IMPLICIT = (1 << 11);
-  
-  public static final int INSTANCE = (1 << 12);
-  
-  public static final int VARARGS = (1 << 13);
-  
-  public static final int WRITE = (1 << 14);
-  
-  public static final int AS_BINARY = (1 << 15);
-  
-  public static final int MUTABLE = (1 << 16);
-  
-  public static final int IS_GRANULE = (1 << 17);
-  
-  public static final int NOT_GRANULE = (1 << 18);
-  
-  public static final int IMPLEMENTATION_ONLY = (1 << 19);
-  
-  public static final int NO_VERIFY = (1 << 20);
-  
-  public static final int ALLOW_RETURN = (1 << 21);
-  
-  public static final int ALLOW_READ = (1 << 22);
-  
-  public static final int[] MODIFIERS = {
-    ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, 
-    TRANSIENT, VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE,
-    AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY, ALLOW_RETURN, ALLOW_READ
-  };
 
-  public static final String MODIFIERS_ID =  "Java.modifiers";
-  
-  private static final SlotInfo<Integer> modifiersSlotInfo = getVersionedSlotInfo(
-		  MODIFIERS_ID, IRIntegerType.prototype, new Integer(ALL_FALSE));
+  public static final int INSTANCE = (1 << 12);
+
+  public static final int VARARGS = (1 << 13);
+
+  public static final int WRITE = (1 << 14);
+
+  public static final int AS_BINARY = (1 << 15);
+
+  public static final int MUTABLE = (1 << 16);
+
+  public static final int IS_GRANULE = (1 << 17);
+
+  public static final int NOT_GRANULE = (1 << 18);
+
+  public static final int IMPLEMENTATION_ONLY = (1 << 19);
+
+  public static final int NO_VERIFY = (1 << 20);
+
+  public static final int ALLOW_RETURN = (1 << 21);
+
+  public static final int ALLOW_READ = (1 << 22);
+
+  public static final int[] MODIFIERS = { ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, TRANSIENT,
+      VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE, AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY,
+      ALLOW_RETURN, ALLOW_READ };
+
+  public static final String MODIFIERS_ID = "Java.modifiers";
+
+  private static final SlotInfo<Integer> modifiersSlotInfo = getVersionedSlotInfo(MODIFIERS_ID, IRIntegerType.prototype,
+      new Integer(ALL_FALSE));
 
   public final void setModifiers(int i) {
     setModifiers(this, i);
@@ -212,14 +230,12 @@ public class JavaNode extends JJNode {
 
   private static final int LASTMODIFIER = ALLOW_READ;
   public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
-	  
-  static final String[] modifiers = {"abstract", "final", "native", "private",
-      "protected", "public", "static", "synchronized", "transient", "volatile",
-      "strictfp", "", // implicit
-      "instance", "varargs", "write", "binary", "mutable",
-  };
 
-  // verify that the mask is good 
+  static final String[] modifiers = { "abstract", "final", "native", "private", "protected", "public", "static", "synchronized",
+      "transient", "volatile", "strictfp", "", // implicit
+      "instance", "varargs", "write", "binary", "mutable", };
+
+  // verify that the mask is good
   private static void checkMod(int mod) {
     int mask = mod - 1;
     int check = mod & mask;
@@ -234,7 +250,7 @@ public class JavaNode extends JJNode {
     int mods = getModifiers(node);
     return getModifier(mods, mod);
   }
-  
+
   public static boolean getModifier(int mods, int mod) {
     return ((mods & mod) != 0);
   }
@@ -243,9 +259,9 @@ public class JavaNode extends JJNode {
   public static int setModifier(int mods, int mod, boolean accumulate) {
     checkMod(mod);
     if (accumulate) {
-    	mods |= mod;  // Add this
+      mods |= mod; // Add this
     } else {
-    	mods &= ~mod; // Keep all but this
+      mods &= ~mod; // Keep all but this
     }
     return mods;
   }
@@ -266,34 +282,33 @@ public class JavaNode extends JJNode {
   public static boolean isSet(int mods, int mod) {
     return (mods & mod) != 0;
   }
-  
+
   /*
-   %- Op stuff
+   * %- Op stuff
    */
-  private static final SlotInfo<Operator> opSlotInfo = getVersionedSlotInfo("Java.op",
-      IROperatorType.prototype);
+  private static final SlotInfo<Operator> opSlotInfo = getVersionedSlotInfo("Java.op", IROperatorType.prototype);
 
   public static void setOp(IRNode node, JavaOperator i) {
     node.setSlotValue(opSlotInfo, i);
   }
 
   /**
-   * Gets the operator for OpAssignExpressions
-   * Doesn't apply to any other kind of node
+   * Gets the operator for OpAssignExpressions Doesn't apply to any other kind
+   * of node
    */
   public static JavaOperator getOp(IRNode node) {
     Operator op = tree.getOperator(node);
     if (OpAssignExpression.prototype.includes(op)) {
       return (JavaOperator) node.getSlotValue(opSlotInfo);
     }
-    throw new IllegalArgumentException("Not an OpAssignExpression"+op.name());
+    throw new IllegalArgumentException("Not an OpAssignExpression" + op.name());
   }
 
   /*
-   %- Dimensions
+   * %- Dimensions
    */
-  private static final SlotInfo<Integer> dimsSlotInfo = getVersionedSlotInfo(
-      "Java.dims", IRIntegerType.prototype, Integer.valueOf(0));
+  private static final SlotInfo<Integer> dimsSlotInfo = getVersionedSlotInfo("Java.dims", IRIntegerType.prototype,
+      Integer.valueOf(0));
 
   public static void setDimInfo(IRNode node, int dims) {
     node.setSlotValue(dimsSlotInfo, dims);
@@ -303,9 +318,8 @@ public class JavaNode extends JJNode {
     return node.getIntSlotValue(dimsSlotInfo);
   }
 
-  /// Node (for refs to other nodes without re-parenting
-  private static final SlotInfo<IRNode> nodeSlotInfo = getConstantSlotInfo("Java.node",
-      IRNodeType.prototype);
+  // / Node (for refs to other nodes without re-parenting
+  private static final SlotInfo<IRNode> nodeSlotInfo = getConstantSlotInfo("Java.node", IRNodeType.prototype);
 
   public static void setConstantNode(IRNode node, IRNode n) {
     node.setSlotValue(nodeSlotInfo, n);
@@ -316,13 +330,12 @@ public class JavaNode extends JJNode {
   }
 
   public static void unparseConstantNode(IRNode node, JavaUnparser u) {
-    //throw new FluidError("Not implemented");
+    // throw new FluidError("Not implemented");
     unparse(getConstantNode(node), u);
   }
 
-  /// Int 
-  private static final SlotInfo<Integer> intSlotInfo = getConstantSlotInfo("Java.int",
-      IRIntegerType.prototype);
+  // / Int
+  private static final SlotInfo<Integer> intSlotInfo = getConstantSlotInfo("Java.int", IRIntegerType.prototype);
 
   public static void setConstantInt(IRNode node, int i) {
     node.setSlotValue(intSlotInfo, i);
@@ -340,16 +353,15 @@ public class JavaNode extends JJNode {
   }
 
   /*
-   %- code for compiled methods.
+   * %- code for compiled methods.
    */
-  /** The code slot holds the byte code and extra information
-   * such as exception ranges necessary to execute a method on
-   * the virtual machine.  
-   *
+  /**
+   * The code slot holds the byte code and extra information such as exception
+   * ranges necessary to execute a method on the virtual machine.
+   * 
    * TODO Currently, we assume it is a string. This will be changed.
    */
-  private static final SlotInfo<String> codeSlotInfo = getVersionedSlotInfo(
-      "Java.code", IRStringType.prototype);
+  private static final SlotInfo<String> codeSlotInfo = getVersionedSlotInfo("Java.code", IRStringType.prototype);
 
   public static void setCode(IRNode node, Object code) {
     node.setSlotValue(codeSlotInfo, (String) code);
@@ -360,13 +372,13 @@ public class JavaNode extends JJNode {
   }
 
   /*
-   %- comment
+   * %- comment
    */
   /**
-   * This slot holds text of comments. Not currently used, but I want it in
-   * the bundle since Bundle's are immutable.
+   * This slot holds text of comments. Not currently used, but I want it in the
+   * bundle since Bundle's are immutable.
    */
-  public static final SlotInfo<String> commentSlotInfo = 
+  public static final SlotInfo<String> commentSlotInfo =
   // new RootNamedSlotInfoWrapper(
   getVersionedSlotInfo("Java.comment", IRStringType.prototype, "");
 
@@ -384,45 +396,84 @@ public class JavaNode extends JJNode {
     }
     return null;
   }
-  
 
-  
+  /**
+   * Fluid IR slot to hold Fluid Java code reference information.
+   */
+  private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(IFluidJavaRef.SRC_REF_SLOT_NAME,
+      IFluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
+
+  /**
+   * Returns the SlotInfo to access the code reference information within Java
+   * IR nodes.
+   */
+  private static SlotInfo<IFluidJavaRef> getFluidJavaRefSlotInfo() {
+    return f_fluidJavaRefSlotInfo;
+  }
+
+  public static void setJavaRef(IRNode node, IFluidJavaRef ref) {
+    if (ref == null) {
+      return;
+    }
+    node.setSlotValue(getFluidJavaRefSlotInfo(), ref);
+  }
+
+  /**
+   * Given an IRNode from a Java AST, this method returns the node's Java code
+   * reference information, or {@code null} if none exists.
+   * 
+   * @param node
+   *          The IRNode which should have binding information.
+   * @return a Java code reference information, or {@code null} if none exists.
+   */
+  public static IFluidJavaRef getJavaRef(IRNode node) {
+    if (node == null) {
+      return null;
+    }
+    final SlotInfo<IFluidJavaRef> srcSlotInfo = getFluidJavaRefSlotInfo();
+    if (!node.valueExists(srcSlotInfo)) {
+      return null;
+    }
+    return node.getSlotValue(srcSlotInfo);
+  }
+
   /**
    * Fluid IR slot to hold Fluid Java source code reference information
    * 
    * @see fluid.ir.SlotInfo
    */
-  private static final SlotInfo<ISrcRef> f_srcRefSlotInfo = 
-    getVersionedSlotInfo(ISrcRef.SRC_REF_SLOT_NAME, ISrcRef.SRC_REF_SLOT_TYPE);  
-  
+  private static final SlotInfo<ISrcRef> f_srcRefSlotInfo = getVersionedSlotInfo(ISrcRef.SRC_REF_SLOT_NAME,
+      ISrcRef.SRC_REF_SLOT_TYPE);
+
   /**
-   * Returns the SlotInfo to access the source code reference information
-   * within Java IR nodes.
+   * Returns the SlotInfo to access the source code reference information within
+   * Java IR nodes.
    */
   private static SlotInfo<ISrcRef> getSrcRefSlotInfo() {
     return f_srcRefSlotInfo;
-  }  
+  }
 
   public static void setSrcRef(IRNode node, ISrcRef ref) {
-	  if (ref == null) {
-		  return;
-	  }
-	  node.setSlotValue(getSrcRefSlotInfo(), ref);
+    if (ref == null) {
+      return;
+    }
+    node.setSlotValue(getSrcRefSlotInfo(), ref);
   }
-  
+
   /**
-   * Given an IRNode from a Java AST, this method returns the node's Java
-   * source code reference information, or null if no source code reference
-   * information exists.
+   * Given an IRNode from a Java AST, this method returns the node's Java source
+   * code reference information, or null if no source code reference information
+   * exists.
    * 
-   * @param node The IRNode which should have binding information.
+   * @param node
+   *          The IRNode which should have binding information.
    * @return The source code reference interface object or null if none.
    * @see fluid.eclipse.ISrcRef
    */
   public static ISrcRef getSrcRef(IRNode node) {
-	  if (node == null) {
-		  return null;
-	  }
+    if (node == null) {
+      return null;
+    }
     /*
      * LOG.debug( "getSrcRef() IR version before binding = " +
      * fluid.version.Version.getVersion());
@@ -431,25 +482,24 @@ public class JavaNode extends JJNode {
     if (!node.valueExists(srcSlotInfo)) {
       return null;
     }
-    //	if (result == null) {
-    //		LOG.log(Level.SEVERE,
-    //			"getSrcRef() No source reference on JavaNode "
-    //				+ JJNode.tree.getOperator(node));
-    //	}
+    // if (result == null) {
+    // LOG.log(Level.SEVERE,
+    // "getSrcRef() No source reference on JavaNode "
+    // + JJNode.tree.getOperator(node));
+    // }
     return node.getSlotValue(srcSlotInfo);
-  }  
-  
+  }
+
   // Copied from JavaPromise formatting
   private static Glue commentIndent = new Glue(2);
 
-  private static Token startComments = new Combined(new Keyword(""),
-      new UnitedBP(1, "comment", Glue.UNIT, commentIndent));
+  private static Token startComments = new Combined(new Keyword(""), new UnitedBP(1, "comment", Glue.UNIT, commentIndent));
 
-  private static Token startComment = new Combined(new UnitedBP(2, "comment",
-      Glue.UNIT, Glue.UNIT), new Combined(new Keyword(""), IndepBP.JUXTBP));
+  private static Token startComment = new Combined(new UnitedBP(2, "comment", Glue.UNIT, Glue.UNIT), new Combined(new Keyword(""),
+      IndepBP.JUXTBP));
 
-  private static Token stopComments = new Combined(new UnitedBP(1, "comment",
-      Glue.UNIT, Glue.JUXT), new Combined(new Keyword(""), IndepBP.DEFAULTBP));
+  private static Token stopComments = new Combined(new UnitedBP(1, "comment", Glue.UNIT, Glue.JUXT), new Combined(new Keyword(""),
+      IndepBP.DEFAULTBP));
 
   public static void unparseComment(IRNode node, JavaUnparser u) {
     String comment = getCommentOrNull(node);
@@ -481,12 +531,12 @@ public class JavaNode extends JJNode {
   }
 
   /*
-   %- Unparsing  
+   * %- Unparsing
    */
   private static Token ellipsis = new Delim("...");
 
   public static void unparse(IRNode node, JavaUnparser u) {
-    //! TODO: add comments
+    // ! TODO: add comments
     if (node == null) {
       // Assume that it is elided
       // What node should I associate it with?
@@ -495,16 +545,16 @@ public class JavaNode extends JJNode {
     }
     unparseComment(node, u);
     // leave catching to debug unparser, or else leave some record in unparser.
-    //try {
+    // try {
     if (node.identity() != IRNode.destroyedNode) {
       ((JavaOperator) u.getTree().getOperator(node)).unparseWrapper(node, u);
     }
-    /*} catch(SlotUndefinedException e) {
-      if (JJNode.tree != u.getTree()) {
-        LOG.severe("unparse died trying to unparse: "+DebugUnparser.toString(node));
-      }
-      e.printStackTrace();
-    }*/
+    /*
+     * } catch(SlotUndefinedException e) { if (JJNode.tree != u.getTree()) {
+     * LOG.
+     * severe("unparse died trying to unparse: "+DebugUnparser.toString(node));
+     * } e.printStackTrace(); }
+     */
   }
 
   // FIX SlotInfos for SyntaxTreeInterface??
@@ -596,7 +646,7 @@ public class JavaNode extends JJNode {
       StringBuilder sb = new StringBuilder();
       try {
         int mods = getModifiers(node);
-        
+
         for (int i = 0; mods != 0; ++i, mods >>>= 1) {
           if ((mods & 1) != 0) {
             sb.append(modifiers[i]);
@@ -604,7 +654,7 @@ public class JavaNode extends JJNode {
           }
         }
       } catch (SlotUndefinedException e) {
-    	  // Ignore it
+        // Ignore it
       }
       sb.append(JJNode.toString(node));
       try {
@@ -612,14 +662,16 @@ public class JavaNode extends JJNode {
         sb.append(' ');
         sb.append(op.name());
       } catch (SlotUndefinedException e) {
-        //ignore
+        // ignore
       }
       return sb.toString();
     }
   }
 
-  /** Dump a tree made up of Java AST nodes.
-   * We add Java-specific AST information.
+  /**
+   * Dump a tree made up of Java AST nodes. We add Java-specific AST
+   * information.
+   * 
    * @see JJNode#dumpTree
    */
   public static void dumpTree(PrintStream s, IRNode root, int indent) {
@@ -639,20 +691,20 @@ public class JavaNode extends JJNode {
   public static void dumpTree(PrintStream s, IRNode root) {
     dumpTree(s, root, 0);
   }
-  
+
   public static void dumpTree(IRNode root) {
-    dumpTree(System.out, root);   
+    dumpTree(System.out, root);
   }
-  
+
   /*
-   %- Storage methods.
+   * %- Storage methods.
    */
   public static void saveAttributes(Bundle b) {
     // NB: Do not call JJNode.saveAttributes(b);
     b.saveAttribute(modifiersSlotInfo);
     b.saveAttribute(opSlotInfo);
     b.saveAttribute(dimsSlotInfo);
-    //b.saveAttribute(codeSlotInfo);
+    // b.saveAttribute(codeSlotInfo);
     b.saveAttribute(nodeSlotInfo);
     b.saveAttribute(intSlotInfo);
     b.saveAttribute(commentSlotInfo);
@@ -660,10 +712,9 @@ public class JavaNode extends JJNode {
 
   private static Bundle javabundle = null;
   static {
-	final UniqueID id = UniqueID.parseUniqueID("javanode");
+    final UniqueID id = UniqueID.parseUniqueID("javanode");
     try {
-      javabundle = Bundle.loadBundle(id,
-          IRPersistent.fluidFileLocator);
+      javabundle = Bundle.loadBundle(id, IRPersistent.fluidFileLocator);
     } catch (IOException ex) {
       JavaGlobals.PARSE.fine(ex.toString());
       // temp
@@ -681,8 +732,7 @@ public class JavaNode extends JJNode {
     Bundle b = getBundle();
     if (b != null) {
       b.describe(System.out);
-      if (!b.getID().equals(UniqueID.parseUniqueID("javanode")) &&
-          JJNode.versioningIsOn) {
+      if (!b.getID().equals(UniqueID.parseUniqueID("javanode")) && JJNode.versioningIsOn) {
         System.out.println("bundle has wrong naming, saving...");
         try {
           b.store(IRPersistent.fluidFileLocator);

@@ -3,7 +3,6 @@ package com.surelogic.aast.layers;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class InLayerNode extends AASTRootNode {
   private final AbstractLayerMatchTarget layerNames;
@@ -48,8 +47,12 @@ public class InLayerNode extends AASTRootNode {
 		  sb.append("name=").append(layerNames.unparse(debug, indent+2));
 		  sb.append("\n");
 	  } else {
-		  sb.append("InLayer ").append(layerNames.unparse(debug, indent));
+		  sb.append("InLayer(\"").append(layerNames.unparse(debug, indent)).append("\")");
 	  }
 	  return sb.toString();
+  }
+  
+  public final String unparseForPromise() {
+	  return unparse(false);
   }
 }

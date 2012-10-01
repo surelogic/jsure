@@ -60,15 +60,6 @@ public interface ISrcRef {
   String getRelativePath();
 
   /**
-   * Returns either the leading Javadoc comment, if the node is a body
-   * declaration, or the leading comment, if the node is a statement, or
-   * <code>null</code>.
-   * 
-   * @return the leading comment or <code>null</code> if no comment exists
-   */
-  String getComment();
-
-  /**
    * Returns the length, in characters, of the source reference.
    * 
    * @return the length of the source reference
@@ -104,8 +95,6 @@ public interface ISrcRef {
 
   IJavadocElement getJavadoc();
 
-  void clearJavadoc();
-
   Long getHash();
 
   /**
@@ -132,6 +121,6 @@ public interface ISrcRef {
    * @return the corresponding JavaIdentifier, if any
    */
   String getJavaId();
-  
+
   String getEnclosingJavaId();
 }

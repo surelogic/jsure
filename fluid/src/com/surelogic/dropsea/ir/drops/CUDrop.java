@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
-import com.surelogic.RequiresLock;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Drop;
@@ -15,8 +13,6 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -188,16 +184,6 @@ public abstract class CUDrop extends Drop {
    */
   public Object getHostEnvResource() {
     return f_hostEnvResource;
-  }
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    final ISrcRef ref = JavaNode.getSrcRef(f_cu);
-    if (ref != null)
-      return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
-    else
-      return super.createSourceRef();
   }
 
   /*

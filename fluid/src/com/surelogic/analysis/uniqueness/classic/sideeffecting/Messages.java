@@ -1,7 +1,5 @@
 package com.surelogic.analysis.uniqueness.classic.sideeffecting;
 
-import com.surelogic.common.i18n.I18N;
-
 
 public final class Messages {
   private Messages() {
@@ -13,8 +11,8 @@ public final class Messages {
   public static final int DSC_UNIQUENESS_TIMEOUT = 302;
   public static final int DSC_UNIQUENESS_LONG_RUNNING = 303;
 
-  public static final String NORMAL_EXIT = I18N.misc(320);
-  public static final String ABRUPT_EXIT = I18N.misc(321);
+  public static final String NORMAL_EXIT = "";
+  public static final String ABRUPT_EXIT = "\u2014Exceptional control flow";
 
   public static final int TIMEOUT = 312;
   public static final int TOO_LONG = 313;

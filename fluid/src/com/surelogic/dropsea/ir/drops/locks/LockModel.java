@@ -5,6 +5,7 @@ import java.util.*;
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
@@ -58,8 +59,10 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
   private LockModel(AbstractLockDeclarationNode decl, String lockName) {
     super(decl);
     f_lockName = lockName;
+    if (!XUtil.useExperimental()) {
     setMessage(15, lockName);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
+    }
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
   public static LockModel create(AbstractLockDeclarationNode decl, String lockName) {

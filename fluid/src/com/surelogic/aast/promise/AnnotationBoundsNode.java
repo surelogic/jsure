@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.*;
 
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
@@ -33,12 +32,31 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   }
 
   @Override
-  public String unparse(boolean debug, int indent) {
+  public String unparse(boolean debug, int indent) {  
     return unparse(debug, indent, "AnnotationBounds");
   }
 
   @Override
   protected void unparseExtra(boolean debug, int indent, StringBuilder sb) {
+	  final String[] attrs = new String[] { 
+			  getNameList("containable", getContainable()),
+			  getNameList("immutable", getImmutable()), 
+			  getNameList("referenceObject", getReference()),
+			  getNameList("threadSafe", getThreadSafe()), 
+			  getNameList("valueObject", getValue()) 
+	  };
+	  boolean first = true;
+	  for (final String at : attrs) {
+		  if (at != null) {
+			  if (!first) {
+				  sb.append(", ");
+			  } else {
+				  first = false;
+			  }
+			  sb.append(at);
+		  }
+	  }	
+	/*	    
     if (unparseTypes(debug, indent, sb, LockRules.CONTAINABLE_PROP, containable)) {
       // Need a comma since something's coming up     
       sb.append(", ");
@@ -58,6 +76,29 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
     if (unparseTypes(debug, indent, sb, LockRules.VALUE_PROP, value)) {
 //      // Need a comma since something's coming up     
 //      sb.append(", ");
+    }
+    */
+  }
+  
+  private String getNameList(final String attribute, final NamedTypeNode[] list) {
+    if (list.length > 0) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(attribute);
+      sb.append(" = {");
+      boolean first = true;
+      for (final NamedTypeNode namedType : list) {
+        if (!first) {
+          sb.append("\", \"");
+        } else {
+          first = false;
+          sb.append('\"');
+        }
+        sb.append(namedType.getType());
+      }
+      sb.append("\"}");
+      return sb.toString();
+    } else {
+      return null;
     }
   }
   

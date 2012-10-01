@@ -117,7 +117,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     synchronized(ModuleModel.class) {
       cache.put(name, this);
     }
-    setCategorizingString(JavaGlobals.MODULE_CAT);
+    setCategorizingMessage(JavaGlobals.MODULE_CAT);
     dependOn.addDependent(this);
   }
   
@@ -149,7 +149,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
     synchronized(ModuleModel.class) {
       cache.put(name, this);
     }
-    setCategorizingString(JavaGlobals.MODULE_CAT);
+    setCategorizingMessage(JavaGlobals.MODULE_CAT);
     dependOn.addDependent(this);
   }
 
@@ -162,7 +162,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
 	name = "The World";
     enclosedModuleNames = null;
     enclosedModuleModels = null;
-    setCategorizingString(JavaGlobals.MODULE_CAT);
+    setCategorizingMessage(JavaGlobals.MODULE_CAT);
     setMessage(12, "(Module \"The World\")");
   }
 

@@ -29,7 +29,7 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
   private void reportInference(IRNode loc, int catNumber, int resNumber, Object... args) {
     HintDrop id = HintDrop.newInformation(loc);
     id.setMessage(resNumber, args);
-    id.setCategorizingString(catNumber);
+    id.setCategorizingMessage(catNumber);
   }
 
   private static IJavaDeclaredType findNamedType(final ITypeEnvironment tEnv, String qname) {

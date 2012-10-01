@@ -10,10 +10,9 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
-import com.surelogic.RequiresLock;
+import com.surelogic.Nullable;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IHintDrop;
@@ -22,6 +21,7 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -72,6 +72,16 @@ public abstract class IRReferenceDrop extends Drop {
     return null;
   }
 
+  @Override
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
+    final IFluidJavaRef javaRef = JavaNode.getJavaRef(f_node);
+    if (javaRef != null)
+      return javaRef;
+    final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
+    return JavaNode.getJavaRef(parent);
+  }
+
   /**
    * Gets the fAST node associated with this drop.
    * 
@@ -118,7 +128,7 @@ public abstract class IRReferenceDrop extends Drop {
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
     if (catNum > 0)
-      hint.setCategorizingString(catNum);
+      hint.setCategorizingMessage(catNum);
     hint.setMessage(num, args);
     addDependent(hint);
     return hint;
@@ -129,7 +139,7 @@ public abstract class IRReferenceDrop extends Drop {
       link = getNode();
     final HintDrop hint = new HintDrop(link, hintType);
     if (catNum > 0)
-      hint.setCategorizingString(catNum);
+      hint.setCategorizingMessage(catNum);
     hint.setMessage(msg);
     addDependent(hint);
     return hint;
@@ -175,12 +185,6 @@ public abstract class IRReferenceDrop extends Drop {
       else
         return Collections.unmodifiableList(f_proposals);
     }
-  }
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected JavaSourceReference createSourceRef() {
-    return DropSeaUtility.createJavaSourceReferenceFromOneOrTheOther(getNode(), getSrcRef());
   }
 
   @Override

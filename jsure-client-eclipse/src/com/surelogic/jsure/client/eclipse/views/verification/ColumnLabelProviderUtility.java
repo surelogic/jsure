@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 @Utility
@@ -120,12 +121,29 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      if (cell.getElement() instanceof Element) {
-        final Element element = (Element) cell.getElement();
+      if (cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
         final String typeName = element.getSimpleTypeNameOrNull();
         if (isNotEmptyOrNull(typeName)) {
           cell.setText(typeName);
-          cell.setImage(f_classRid.getCachedImage());
+          IJavaRef ref = element.getDrop().getJavaRef();
+          if (ref == null)
+            cell.setImage(f_classRid.getCachedImage());
+          else {
+            switch (ref.getTypeType()) {
+            case ENUM:
+              cell.setImage(f_enumRid.getCachedImage());
+              break;
+            case CLASS:
+              cell.setImage(f_classRid.getCachedImage());
+              break;
+            case INTERFACE:
+              cell.setImage(f_interfaceRid.getCachedImage());
+              break;
+            default:
+              cell.setImage(f_classRid.getCachedImage());
+            }
+          }
         }
       }
     }

@@ -167,7 +167,7 @@ public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, 
     super(locInIR); // may blow up!! can't be null
     tRoleName = name;
     this.setMessage("ThreadRole " + name);
-    setCategorizingString(TRoleMessages.assuranceCategory);
+    setCategorizingMessage(TRoleMessages.assuranceCategory);
 //    if (locInIR != null) {
 //      setNodeAndCompilationUnitDependency(locInIR);
 //    }

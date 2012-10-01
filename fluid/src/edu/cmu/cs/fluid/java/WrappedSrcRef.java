@@ -40,10 +40,6 @@ public abstract class WrappedSrcRef implements ISrcRef {
     return f_wrapped.getRelativePath();
   }
 
-  public String getComment() {
-    return f_wrapped.getComment();
-  }
-
   public int getLength() {
     return f_wrapped.getLength();
   }
@@ -58,10 +54,6 @@ public abstract class WrappedSrcRef implements ISrcRef {
 
   public IJavadocElement getJavadoc() {
     return f_wrapped.getJavadoc();
-  }
-
-  public void clearJavadoc() {
-    f_wrapped.clearJavadoc();
   }
 
   public Long getHash() {
@@ -87,8 +79,8 @@ public abstract class WrappedSrcRef implements ISrcRef {
   public String getJavaId() {
     return f_wrapped.getJavaId();
   }
-  
+
   public String getEnclosingJavaId() {
-	  return f_wrapped.getEnclosingJavaId();
+    return f_wrapped.getEnclosingJavaId();
   }
 }

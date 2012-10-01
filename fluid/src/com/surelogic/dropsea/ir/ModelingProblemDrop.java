@@ -2,9 +2,12 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MODELING_PROBLEM_DROP;
 
+import com.surelogic.Nullable;
 import com.surelogic.dropsea.IModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.FluidJavaRef;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
 
@@ -52,6 +55,31 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
        * The offset we have is nonsense, return the existing source reference.
        */
       return ref;
+    }
+  }
+
+  @Override
+  @Nullable
+  public IFluidJavaRef getJavaRef() {
+    final IFluidJavaRef javaRef = super.getJavaRef();
+
+    /*
+     * If the overall code reference is null we can't wrap it.
+     */
+    if (javaRef == null)
+      return null;
+
+    if (f_offset >= 0) {
+      /*
+       * Change the code reference so that it returns the more precise offset
+       * that this drop knows about (from the parser).
+       */
+      return new FluidJavaRef.Builder(javaRef).setOffset(f_offset).build();
+    } else {
+      /*
+       * The offset we have is nonsense, return the existing source reference.
+       */
+      return javaRef;
     }
   }
 

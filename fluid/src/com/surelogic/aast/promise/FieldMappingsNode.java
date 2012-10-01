@@ -7,6 +7,7 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
+import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.parse.TempListNode;
 
 public class FieldMappingsNode extends AASTRootNode { 
@@ -72,6 +73,11 @@ public class FieldMappingsNode extends AASTRootNode {
     return sb.toString();
   }
 
+  public String unparseForPromise() {
+	  // TODO check why the code above doesn't do this
+	  return RegionRules.MAP_FIELDS+"(\""+unparse(false)+"\")";
+  }
+  
   /**
    * @return A non-null, but possibly empty list of nodes
    */

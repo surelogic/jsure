@@ -17,7 +17,6 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.i18n.AnalysisResultMessage;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
@@ -155,7 +154,10 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   @InRegion("DropState")
   @Nullable
-  private AnalysisResultMessage f_messageConsistent;
+  private String f_messageConsistent;
+  @InRegion("DropState")
+  @Nullable
+  private String f_messageConsistentCanonical;
 
   public final void setMessageWhenProvedConsistent(int number, Object... args) {
     if (number < 1) {
@@ -163,13 +165,17 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       return;
     }
     synchronized (f_seaLock) {
-      f_messageConsistent = AnalysisResultMessage.getInstance(number, args);
+      f_messageConsistent = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+      f_messageConsistentCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
   }
 
   @InRegion("DropState")
   @Nullable
-  private AnalysisResultMessage f_messageInconsistent;
+  private String f_messageInconsistent;
+  @InRegion("DropState")
+  @Nullable
+  private String f_messageInconsistentCanonical;
 
   public final void setMessageWhenNotProvedConsistent(int number, Object... args) {
     if (number < 1) {
@@ -177,7 +183,8 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
       return;
     }
     synchronized (f_seaLock) {
-      f_messageInconsistent = AnalysisResultMessage.getInstance(number, args);
+      f_messageInconsistent = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+      f_messageInconsistentCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
   }
 
@@ -239,10 +246,10 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   protected void proofFinalize() {
     if (provedConsistent()) {
       if (f_messageConsistent != null)
-        setMessage(f_messageConsistent);
+        setMessageHelper(f_messageConsistent, f_messageConsistentCanonical);
     } else {
       if (f_messageInconsistent != null)
-        setMessage(f_messageInconsistent);
+        setMessageHelper(f_messageInconsistent, f_messageInconsistentCanonical);
     }
   }
 

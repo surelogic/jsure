@@ -38,12 +38,13 @@ public abstract class AbstractLayerMatchDeclNode extends AbstractLayerMatchRootN
 				  sb.append("\n");
 			  }
 		  } else {
-			  sb.append(name).append(' ');
+			  sb.append(name).append("(\"");
 			  sb.append(getId());
 			  if (getTarget() != null) {
 				  sb.append(connector).append(getTarget().unparse(debug, indent));
 			  }
+			  sb.append("\")");
 		  }
 		  return sb.toString();
-	  }
+	}
 }

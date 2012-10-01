@@ -4,6 +4,8 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.IJavaRef;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 
@@ -59,16 +61,37 @@ public interface IDrop {
   @NonNull
   String getMessage();
 
+  /**
+   * Returns a canonical version of the analysis result typically used for
+   * comparisons in the regression test suite.
+   * <p>
+   * The resulting string is constructed by calling
+   * {@link I18N#resc(int, Object...)} if this drop's message was constructed
+   * using {@link I18N}. For example, {@code I18N.resc(2001, "foo", 5)} returns
+   * <tt>"(2001,foo,5)"</tt>.
+   * <p>
+   * If this drop's message was not constructed using {@link I18N} than the
+   * result of this call is identical to calling {@link #getMessage()}.
+   * 
+   * @return a canonical version of the message describing this drop, usually
+   *         used by the regression test suite for comparisons.
+   * @see I18N#resc(int)
+   * @see I18N#resc(int, Object...)
+   */
   @NonNull
   String getMessageCanonical();
 
   /**
-   * Gets this drop's categorizing string, or {@code null} if none.
+   * Gets this drop's categorizing message, or {@code null} if none.
+   * <p>
+   * It is intended that {@link I18N#toStringForUIFolderLabel(String, int)} is
+   * called prior to display on the string returned from this method.
    * 
    * @return a categorizing string, or {@code null} if none.
+   * @see I18N#toStringForUIFolderLabel(String, int)
    */
   @Nullable
-  String getCategorizingString();
+  String getCategorizingMessage();
 
   /**
    * Gets the source reference of this drop.
@@ -77,7 +100,18 @@ public interface IDrop {
    *         can be <code>null</code>
    */
   @Nullable
+  @Deprecated
   ISrcRef getSrcRef();
+
+  /**
+   * Gets a reference to the Java code this information is about, or
+   * {@code null} if none.
+   * 
+   * @return a reference to the Java code this information is about, or
+   *         {@code null} if none.
+   */
+  @Nullable
+  IJavaRef getJavaRef();
 
   /**
    * Gets the set of proposed promises for this drop.

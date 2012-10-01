@@ -85,6 +85,10 @@ public class ModuleChoiceNode extends AASTRootNode {
     return sb.toString();
   }
 
+  public final String unparseForPromise() {
+	  throw new UnsupportedOperationException();
+  }  
+  
   public ModuleWrapperNode getModWrapper() {
     return modWrapper;
   }

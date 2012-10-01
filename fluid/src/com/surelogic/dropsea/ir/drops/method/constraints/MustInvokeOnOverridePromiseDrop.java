@@ -11,7 +11,7 @@ public final class MustInvokeOnOverridePromiseDrop extends BooleanPromiseDrop<Mu
 
   public MustInvokeOnOverridePromiseDrop(MustInvokeOnOverrideNode a) {
     super(a);
-    setCategorizingString(Messages.DSC_LAYERS_ISSUES);
+    setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
     setMessage(20, StructureRules.MUST_INVOKE_ON_OVERRIDE, JavaNames.getFullName(getNode()));
   }
 }

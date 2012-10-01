@@ -5,9 +5,6 @@ import java.net.URI;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 public abstract class AbstractSrcRef implements ISrcRef {
-  public String getComment() {
-    return null;
-  }
 
   public String getEnclosingFile() {
     return null;
@@ -37,9 +34,6 @@ public abstract class AbstractSrcRef implements ISrcRef {
     return 0;
   }
 
-  public void clearJavadoc() {
-  }
-
   public ISrcRef createSrcRef(int offset) {
     return null;
   }
@@ -47,8 +41,8 @@ public abstract class AbstractSrcRef implements ISrcRef {
   public String getJavaId() {
     return null;
   }
-  
+
   public String getEnclosingJavaId() {
-	  return null;
+    return null;
   }
 }

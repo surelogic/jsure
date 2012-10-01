@@ -35,7 +35,6 @@ public interface INodeVisitor<T> {
   T visit(FloatTypeNode n);
   T visit(ConditionNode n);
   T visit(TypeQualifierPatternNode n);
-  T visit(UsedBySpecificationNode n);
   T visit(EffectSpecificationNode n);
   T visit(ImplicitQualifierNode n);
   T visit(ThreadRoleAndNode n);

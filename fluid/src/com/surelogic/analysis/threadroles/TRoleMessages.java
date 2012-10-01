@@ -40,7 +40,7 @@ public class TRoleMessages {
     // rd.addCheckedPromise(pd);
     // rd.setNodeAndCompilationUnitDependency(loc);
     rd.setMessage(msg);
-    rd.setCategorizingString(assuranceCategory);
+    rd.setCategorizingMessage(assuranceCategory);
 
     if (loc != null) {
       Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
@@ -56,7 +56,7 @@ public class TRoleMessages {
     // rd.addCheckedPromise(pd);
     // wd.setNodeAndCompilationUnitDependency(loc);
     wd.setMessage(msg);
-    wd.setCategorizingString(warningCategory);
+    wd.setCategorizingMessage(warningCategory);
 
     if (loc != null) {
       Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
@@ -72,7 +72,7 @@ public class TRoleMessages {
     // rd.addCheckedPromise(pd);
     // id.setNodeAndCompilationUnitDependency(loc);
     id.setMessage(msg);
-    id.setCategorizingString(infoCategory);
+    id.setCategorizingMessage(infoCategory);
 
     if (loc != null) {
       Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
@@ -98,7 +98,7 @@ public class TRoleMessages {
       }
     }
     rd.setMessage(msg);
-    rd.setCategorizingString(problemCategory);
+    rd.setCategorizingMessage(problemCategory);
 
     return rd;
   }
@@ -109,7 +109,7 @@ public class TRoleMessages {
 
       while (it.hasNext()) {
         HintDrop d = it.next();
-        if (d.getHintType() == IHintDrop.HintType.WARNING && warningCategory.equals(d.getCategorizingString())) {
+        if (d.getHintType() == IHintDrop.HintType.WARNING && warningCategory.equals(d.getCategorizingMessage())) {
           d.invalidate();
         }
       }
@@ -119,7 +119,7 @@ public class TRoleMessages {
 
       while (it.hasNext()) {
         ResultDrop d = (ResultDrop) it.next();
-        if (problemCategory.equals(d.getCategorizingString())) {
+        if (problemCategory.equals(d.getCategorizingMessage())) {
           d.invalidate();
         }
       }

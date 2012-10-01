@@ -114,7 +114,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
 
       final Element rawness = currentQuery().getResultFor(expr);
       final HintDrop drop = HintDrop.newInformation(expr);
-      drop.setCategorizingString(Messages.DSC_NON_NULL);
+      drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness);
       return null;
     }
@@ -123,7 +123,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     public void handleConstructorCall(final IRNode expr) {
       final Element rawness = currentQuery().getResultFor(expr);
       final HintDrop drop = HintDrop.newInformation(expr);
-      drop.setCategorizingString(Messages.DSC_NON_NULL);
+      drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness);
       
       super.handleConstructorCall(expr);

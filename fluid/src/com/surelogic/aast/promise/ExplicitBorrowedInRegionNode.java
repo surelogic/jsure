@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ExplicitBorrowedInRegionNode extends AASTRootNode 
 { 
@@ -43,12 +42,17 @@ public class ExplicitBorrowedInRegionNode extends AASTRootNode
     	indent(sb, indent+2);
     	sb.append(spec.unparse(debug, indent+2));
     } else {
-    	sb.append("BorrowedInRegion ");
+    	sb.append("BorrowedInRegion(\"");
     	sb.append(spec.unparse(debug, indent+2));
+    	sb.append("\")");
     }
     return sb.toString();
   }
 
+  public String unparseForPromise() {
+	  return unparse(false);
+  }
+  
   /**
    * @return A non-null node
    */

@@ -32,6 +32,10 @@ public abstract class ThreadRoleExprPromiseNode extends AASTRootNode {
     this.kind = kind;
   }
 
+  public final String unparseForPromise() {
+	  throw new UnsupportedOperationException();
+  }
+  
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();

@@ -145,13 +145,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  public T visit(UsedBySpecificationNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : n.getTypesList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
+
   public T visit(EffectSpecificationNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getContext()));

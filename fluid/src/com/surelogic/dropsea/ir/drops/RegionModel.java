@@ -16,6 +16,7 @@ import com.surelogic.analysis.regions.AbstractRegion;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.UiShowAtTopLevel;
@@ -119,7 +120,10 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
      * else if (n == null && "test.Test.counter".equals(qname)) {
      * System.out.println("Creating region model for test.Test.counter"); }
      */
-    setResultMessage(model, region.isStatic(), region.getVisibility(), qname);
+    if (!XUtil.useExperimental()) {
+    // TODO what about enclosing types?
+    setResultMessage(model, region.isStatic(), region.getVisibility(), XUtil.useExperimental() ? region.getName() : qname);
+    }
     return model;
   }
 
@@ -180,8 +184,10 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     f_project = getPair(name, decl.getPromisedFor()).second();
 
     final NewRegionDeclarationNode ast = getAAST();
-    setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_regionName);
-    setCategorizingString(JavaGlobals.REGION_CAT);
+    if (!XUtil.useExperimental()) {
+    setResultMessage(this, ast.isStatic(), ast.getVisibility(), f_simpleName); // TODO
+    }
+    setCategorizingMessage(JavaGlobals.REGION_CAT);
 
     if ("java.lang.Object.Instance".equals(name)) {
       System.out.println("Creating RegionModel " + name + " for " + f_project);

@@ -26,6 +26,8 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.IJavaRef;
+import com.surelogic.common.JavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
@@ -49,9 +51,11 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private List<IRFreeProposedPromiseDrop> f_proposedPromises = null;
   @Nullable
-  private String f_categorizingString = null;
+  private String f_categorizingMessage = null;
   @Nullable
   private ISrcRef f_srcRef = null;
+  @Nullable
+  private IJavaRef f_javaRef = null;
   @NonNull
   private final String f_message;
   @NonNull
@@ -78,6 +82,10 @@ public class IRFreeDrop implements IDrop {
     f_srcRef = value;
   }
 
+  void setJavaRef(IJavaRef value) {
+    f_javaRef = value;
+  }
+
   void addHint(IRFreeHintDrop hint) {
     if (f_analysisHints == null) {
       f_analysisHints = new ArrayList<IRFreeHintDrop>(1);
@@ -92,7 +100,7 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
 
-    f_categorizingString = e.getAttribute(CATEGORY_ATTR);
+    f_categorizingMessage = e.getAttribute(CATEGORY_ATTR);
 
     final String message = e.getAttribute(MESSAGE_ATTR);
     if (message != null)
@@ -104,7 +112,7 @@ public class IRFreeDrop implements IDrop {
     if (messageCanonical != null)
       f_messageCanonical = messageCanonical;
     else
-      f_messageCanonical = getClass().getSimpleName() + " (EMPTY)";
+      f_messageCanonical = f_message; // per Javadoc on IDrop
 
     final String hash = e.getAttribute(HASH_ATTR);
     Long treeHash = null;
@@ -132,8 +140,8 @@ public class IRFreeDrop implements IDrop {
   }
 
   @Nullable
-  public String getCategorizingString() {
-    return f_categorizingString;
+  public String getCategorizingMessage() {
+    return f_categorizingMessage;
   }
 
   @NonNull
@@ -146,8 +154,14 @@ public class IRFreeDrop implements IDrop {
     return f_messageCanonical;
   }
 
+  @Nullable
   public ISrcRef getSrcRef() {
     return f_srcRef;
+  }
+
+  @Nullable
+  public IJavaRef getJavaRef() {
+    return f_javaRef;
   }
 
   @NonNull
@@ -205,6 +219,50 @@ public class IRFreeDrop implements IDrop {
     }
   }
 
+  static IJavaRef makeJavaRefFromSrcRef(SourceRef ref) {
+    if (ref == null) {
+      return null;
+    }
+    final int line = Integer.valueOf(ref.getLine());
+    final String pkg = ref.getAttribute(PKG_ATTR);
+    final String path = ref.getAttribute(PATH_ATTR);
+    final String cuName = ref.getAttribute(CUNIT_ATTR);
+    final String javaId = ref.getAttribute(JAVA_ID_ATTR);
+    final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
+    final String project = ref.getAttribute(PROJECT_ATTR);
+
+    final int offset = convert(ref.getAttribute(OFFSET_ATTR));
+    final int length = convert(ref.getAttribute(LENGTH_ATTR));
+
+    if (cuName.contains("[]")) {
+      System.out.println("BOGUS:");
+      System.out.println(" -- (path) " + path);
+      System.out.println(" --  (pkg) " + pkg);
+      System.out.println("--    (cu) " + cuName);
+      return null;
+    } else {
+      // Test of IJavaRef
+      boolean classExt = cuName.endsWith(".class");
+      final String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
+      // Note that the default package is "" in the SourceRef instances
+      final String jarStyleName = pkg + "/" + classNm;
+      final JavaRef.Builder builder = new JavaRef.Builder(jarStyleName);
+      builder.setRelativePath(path);
+      builder.setEclipseProjectName(project);
+      if (classExt)
+        builder.setWithin(IJavaRef.Within.JAR_FILE);
+      if (line < Integer.MAX_VALUE)
+        builder.setLineNumber(line);
+      if (offset < Integer.MAX_VALUE)
+        builder.setOffset(offset);
+      if (length < Integer.MAX_VALUE)
+        builder.setLength(length);
+      builder.setJavaId(javaId);
+      builder.setEnclosingJavaId(enclosingId);
+      return builder.build();
+    }
+  }
+
   static ISrcRef makeSrcRef(SourceRef ref) {
     if (ref == null) {
       return null;
@@ -222,6 +280,7 @@ public class IRFreeDrop implements IDrop {
 
     final int offset = convert(ref.getAttribute(OFFSET_ATTR));
     final int length = convert(ref.getAttribute(LENGTH_ATTR));
+
     return new AbstractSrcRef() {
 
       @Override

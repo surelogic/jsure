@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.type.constraints;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -17,8 +18,8 @@ public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
 
   public MutablePromiseDrop(MutableNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
-    final String name = JavaNames.getTypeName(getNode());
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     setMessage(Messages.LockAnnotation_mutableDrop, name);
   }
 }

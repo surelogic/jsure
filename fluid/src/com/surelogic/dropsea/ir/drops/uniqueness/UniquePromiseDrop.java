@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
@@ -29,7 +30,7 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
 
   public UniquePromiseDrop(UniqueNode n) {
     super(n);
-    setCategorizingString(JavaGlobals.UNIQUENESS_CAT);
+    setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
     isUniqueReturn = false;
 
     final IRNode node = getNode();
@@ -42,7 +43,8 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
         method = node;
       }
       setMessage(Messages.UniquenessAnnotation_uniqueDrop2, JavaNames.getFieldDecl(node),
-          JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
+    		  XUtil.useExperimental() ? JavaNames.genRelativeFunctionName(method) : 
+    		  JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
     }
   }
 

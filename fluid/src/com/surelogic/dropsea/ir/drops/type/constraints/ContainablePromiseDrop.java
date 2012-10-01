@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.type.constraints;
 
 import com.surelogic.aast.promise.ContainableNode;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -19,14 +20,14 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
 
   public ContainablePromiseDrop(ContainableNode a) {
     super(a);
-    setCategorizingString(JavaGlobals.LOCK_ASSURANCE_CAT);
-    final String name = JavaNames.getTypeName(getNode());
+    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();
     if (isVerify) {
       if (!isImplementationOnly) { // default case
         setMessage(Messages.LockAnnotation_containableDrop, name);
-      } else {
+      } else if (!XUtil.useExperimental()) {
         setMessage(Messages.LockAnnotation_containable_implOnly, name);
       }
     } else {

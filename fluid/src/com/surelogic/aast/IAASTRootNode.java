@@ -23,4 +23,8 @@ public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
   void markAsUnassociated();
   boolean implies(IAASTRootNode other);
   boolean isSameAs(IAASTRootNode other);
+  /**
+   * Unparse as if it should show up in source code
+   */
+  String unparseForPromise();
 }

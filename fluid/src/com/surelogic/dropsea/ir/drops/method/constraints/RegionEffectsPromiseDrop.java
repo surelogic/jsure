@@ -15,15 +15,16 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
 
   public RegionEffectsPromiseDrop(RegionEffectsNode s) {
     super(s);
-    setCategorizingString(JavaGlobals.EFFECTS_CAT);
+    setCategorizingMessage(JavaGlobals.EFFECTS_CAT);
 
     final IRNode declNode = getNode();
-    final String target = JavaNames.genMethodConstructorName(declNode);
     final List<EffectsSpecificationNode> effects = getAAST().getEffectsList();
 
     if (XUtil.useExperimental()) {
-    	setMessage(138, getAAST().unparseForPromise(), target);
+        //final String target = JavaNames.genRelativeFunctionName(declNode);
+    	//setMessage(138, getAAST().unparseForPromise(), target);
     } else {
+        final String target = JavaNames.genMethodConstructorName(declNode);
     	if (effects.size() > 0) {
     		StringBuilder sb = new StringBuilder();
     		sb.append(effects.get(0).toString());

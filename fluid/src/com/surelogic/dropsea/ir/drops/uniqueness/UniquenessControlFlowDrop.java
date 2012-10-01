@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import com.surelogic.aast.promise.UniqueNode;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -26,8 +27,9 @@ public final class UniquenessControlFlowDrop extends PromiseDrop<UniqueNode> {
 	  dummy.setPromisedFor(mdecl);
 	  
 	  UniquenessControlFlowDrop result = new UniquenessControlFlowDrop(dummy);
-	  result.setCategorizingString(JavaGlobals.UNIQUENESS_CAT);
-	  result.setMessage(Messages.ControlFlow, JavaNames.genMethodConstructorName(mdecl));
+	  result.setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
+	  result.setMessage(Messages.ControlFlow, XUtil.useExperimental() ? JavaNames.genRelativeFunctionName(mdecl) :
+		  JavaNames.genMethodConstructorName(mdecl));
 	  result.setVirtual(true);
 	  return result;
   }

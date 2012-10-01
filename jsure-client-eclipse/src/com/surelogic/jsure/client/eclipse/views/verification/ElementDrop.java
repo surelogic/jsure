@@ -5,14 +5,13 @@ import java.util.Collection;
 import java.util.List;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 abstract class ElementDrop extends Element {
 
@@ -50,36 +49,36 @@ abstract class ElementDrop extends Element {
 
   @Override
   String getProjectNameOrNull() {
-    final ISrcRef sr = getDrop().getSrcRef();
-    if (sr != null)
-      return sr.getProject();
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null)
+      return jr.getEclipseProjectName();
     else
       return null;
   }
 
   @Override
   String getPackageNameOrNull() {
-    final ISrcRef sr = getDrop().getSrcRef();
-    if (sr != null)
-      return sr.getPackage();
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null)
+      return jr.getPackageName();
     else
       return null;
   }
 
   @Override
   String getSimpleTypeNameOrNull() {
-    final ISrcRef sr = getDrop().getSrcRef();
-    if (sr != null)
-      return sr.getCUName();
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null)
+      return jr.getTypeName();
     else
       return null;
   }
 
   @Override
   int getLineNumber() {
-    final ISrcRef sr = getDrop().getSrcRef();
-    if (sr != null)
-      return sr.getLineNumber();
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null)
+      return jr.getLineNumber();
     else
       return super.getLineNumber();
   }
