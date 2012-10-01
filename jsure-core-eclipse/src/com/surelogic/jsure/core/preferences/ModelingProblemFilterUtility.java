@@ -48,7 +48,13 @@ public final class ModelingProblemFilterUtility {
     return result;
   }
 
-  public static boolean showResource(final IJavaRef about) {
+  public static boolean show(final IDrop drop) {
+    if (drop == null)
+      return false;
+    return showLocation(drop.getJavaRef());
+  }
+
+  public static boolean showLocation(final IJavaRef about) {
     if (about == null)
       return false;
     final String name = about.getTypeNameFullyQualified();
@@ -63,9 +69,7 @@ public final class ModelingProblemFilterUtility {
   public static IDropFilter defaultFilter = new IDropFilter() {
     @Override
     public boolean show(IDrop d) {
-      if (d == null)
-        return false;
-      return ModelingProblemFilterUtility.showResource(d.getJavaRef());
+      return ModelingProblemFilterUtility.show(d);
     }
   };
 }

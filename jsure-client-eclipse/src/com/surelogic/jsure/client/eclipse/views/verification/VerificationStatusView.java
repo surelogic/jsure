@@ -68,8 +68,6 @@ import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
   /**
@@ -653,11 +651,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     int result = 0;
     if (info != null) {
       for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
-        final IJavaRef ref = problem.getJavaRef();
         /*
          * We filter results based upon the resource.
          */
-        if (ModelingProblemFilterUtility.showResource(ref))
+        if (ModelingProblemFilterUtility.show(problem))
           result++;
       }
     }

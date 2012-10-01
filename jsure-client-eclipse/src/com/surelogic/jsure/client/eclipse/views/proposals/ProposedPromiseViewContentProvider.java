@@ -79,7 +79,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
       /*
        * We filter results based upon the code location.
        */
-      if (!ModelingProblemFilterUtility.showResource(p.getJavaRef()))
+      if (!ModelingProblemFilterUtility.show(p))
         remove = true;
 
       if (remove)

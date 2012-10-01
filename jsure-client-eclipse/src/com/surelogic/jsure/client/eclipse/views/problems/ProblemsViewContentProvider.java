@@ -31,7 +31,7 @@ final class ProblemsViewContentProvider extends AbstractResultsTableContentProvi
       /*
        * We filter results based upon the code location.
        */
-      if (ModelingProblemFilterUtility.showResource(problem.getJavaRef()))
+      if (ModelingProblemFilterUtility.show(problem))
         mutableContents.add(problem);
     }
     Collections.sort(mutableContents, sortByLocation);

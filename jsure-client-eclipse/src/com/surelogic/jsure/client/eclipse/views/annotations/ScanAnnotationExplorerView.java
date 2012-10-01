@@ -177,16 +177,14 @@ public class ScanAnnotationExplorerView extends
 				return null;
 			}
 			final MultiMap<String, IDrop> pkgToDrop = new MultiHashMap<String, IDrop>();
-			for (IPromiseDrop d : info.getPromiseDrops()) {
-			//for (IDrop d : info.getDropInfo()) {
-				final ISrcRef sr = d.getSrcRef();
-				if (sr == null) {
-					continue;
-				}
-				if (ModelingProblemFilterUtility.showResource(d.getJavaRef())) {
-					pkgToDrop.put(sr.getPackage(), d);
-				}
-			}
+      for (IPromiseDrop d : info.getPromiseDrops()) {
+        if (d == null) {
+          continue;
+        }
+        if (ModelingProblemFilterUtility.show(d)) {
+          pkgToDrop.put(d.getJavaRef().getPackageName(), d);
+        }
+      }
 			// Organize by type
 			roots = new Package[pkgToDrop.size()];
 			int i = 0;
