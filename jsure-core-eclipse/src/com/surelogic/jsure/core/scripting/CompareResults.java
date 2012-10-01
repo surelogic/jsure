@@ -8,7 +8,7 @@ import java.io.*;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.dropsea.irfree.SeaSummary;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -55,9 +55,9 @@ public class CompareResults extends AbstractCommand {
 		ISeaDiff diff = null;
 		try {
 			diff = SeaSummary.diff(info.getDropInfo(),//PersistentDropInfo.getInstance().getRawInfo(), 
-					oracle, ModelingProblemFilterUtility.defaultFilter);
+					oracle, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
 		} catch (Exception e) {
-			diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, oracle, info.getDropInfo());
+			diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, oracle, info.getDropInfo());
 		}
 		final File diffs = resolveFile(context, contents[3], true);	
 		if (!diff.isEmpty()) {

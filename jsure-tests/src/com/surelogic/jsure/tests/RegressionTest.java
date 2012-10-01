@@ -49,7 +49,7 @@ import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
@@ -617,9 +617,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);		
 		ISeaDiff diff;
 		if (RegressionUtility.snapshotOracleFilter.accept(xmlLocation.getParentFile(), xmlLocation.getName())) {
-			diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, xmlLocation, newResults);
+			diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, xmlLocation, newResults);
 		} else {
-			diff = SeaSummary.diff(newResults, xmlLocation, ModelingProblemFilterUtility.defaultFilter);
+			diff = SeaSummary.diff(newResults, xmlLocation, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
 		}
 
 		String diffPath = new File(workspaceFile, projectName

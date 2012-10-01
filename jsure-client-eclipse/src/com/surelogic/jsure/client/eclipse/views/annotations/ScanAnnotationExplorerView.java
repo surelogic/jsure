@@ -38,7 +38,7 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.persistence.JavaIdentifier;
@@ -181,9 +181,7 @@ public class ScanAnnotationExplorerView extends
         if (d == null) {
           continue;
         }
-        if (ModelingProblemFilterUtility.show(d)) {
-          pkgToDrop.put(d.getJavaRef().getPackageName(), d);
-        }
+        pkgToDrop.put(d.getJavaRef().getPackageName(), d);
       }
 			// Organize by type
 			roots = new Package[pkgToDrop.size()];

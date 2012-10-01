@@ -133,7 +133,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     final List<IDrop> drops = new ArrayList<IDrop>();
     // Collections.sort(oldDrops, EntityComparator.prototype);
     for (IDrop d : l) {
-      if (f.show(d)) {
+      if (f.keep(d)) {
         drops.add(d);
       }
     }
@@ -207,9 +207,9 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
     rv.setFilter(new IDropFilter() {
       @Override
-      public boolean show(IDrop d) {
+      public boolean keep(IDrop d) {
         // TODO Auto-generated method stub
-        return select(d) && f.show(d);
+        return select(d) && f.keep(d);
       }
     });
     rv.setSeparator(new IDropSeparator<CPair<String, String>>() {

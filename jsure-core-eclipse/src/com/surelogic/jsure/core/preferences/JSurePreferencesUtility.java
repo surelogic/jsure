@@ -54,7 +54,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(IDEPreferences.TOOL_MEMORY_MB, mem);
       EclipseUtility.setDefaultBooleanPreference(IDEPreferences.LOAD_ALL_CLASSES, false);
 
-      EclipseUtility.setDefaultStringListPreference(IDEPreferences.MODELING_PROBLEM_FILTERS, ModelingProblemFilterUtility.DEFAULT);
+      EclipseUtility.setDefaultStringListPreference(IDEPreferences.UNINTERESTING_PACKAGE_FILTERS, UninterestingPackageFilterUtility.DEFAULT);
 
       EclipseUtility.setDefaultBooleanPreference(SHOW_BALLOON_NOTIFICATIONS, true);
       EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences().getPromptPerspectiveSwitchConstant(), true);

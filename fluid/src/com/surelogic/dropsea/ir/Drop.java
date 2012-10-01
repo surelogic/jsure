@@ -757,7 +757,8 @@ public abstract class Drop implements IDrop {
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
     s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
-    s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(getMessageCanonical()));
+    if (getMessageCanonical() != null)
+      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(getMessageCanonical()));
 
     final String cat = getCategorizingMessage();
     if (cat != null)

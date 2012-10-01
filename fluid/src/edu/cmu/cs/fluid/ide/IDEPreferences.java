@@ -9,7 +9,7 @@ public interface IDEPreferences {
 	String DEFAULT_JRE = PREFIX + "default.JRE";
 	String JSURE_XML_DIFF_DIRECTORY = PREFIX + "xml.diff.directory";
 	String LOAD_ALL_CLASSES = PREFIX + "load.all.classes";
-	String MODELING_PROBLEM_FILTERS = PREFIX + "modeling.problem.filters";
+	String UNINTERESTING_PACKAGE_FILTERS = PREFIX + "modeling.problem.filters";
 
 	String TIMEOUT_WARNING_SEC = PREFIX + "timeoutWarningSec";
 	String TIMEOUT_FLAG = PREFIX + "timeoutFlag";
@@ -23,7 +23,7 @@ public interface IDEPreferences {
 
 	String[] STR_PREFS_TO_SYNC = { JSURE_DATA_DIRECTORY,
 			// DEFAULT_JRE,
-			JSURE_XML_DIFF_DIRECTORY, MODELING_PROBLEM_FILTERS };
+			JSURE_XML_DIFF_DIRECTORY, UNINTERESTING_PACKAGE_FILTERS };
 
 	/**
 	 * The preference prefix for whether an analysis is on

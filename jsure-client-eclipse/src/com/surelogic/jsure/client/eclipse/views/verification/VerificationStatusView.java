@@ -64,7 +64,7 @@ import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -654,7 +654,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         /*
          * We filter results based upon the resource.
          */
-        if (ModelingProblemFilterUtility.show(problem))
+        if (UninterestingPackageFilterUtility.keep(problem))
           result++;
       }
     }

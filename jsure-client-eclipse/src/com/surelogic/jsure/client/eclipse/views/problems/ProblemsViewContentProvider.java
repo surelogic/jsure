@@ -10,7 +10,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -31,7 +31,7 @@ final class ProblemsViewContentProvider extends AbstractResultsTableContentProvi
       /*
        * We filter results based upon the code location.
        */
-      if (ModelingProblemFilterUtility.show(problem))
+      if (UninterestingPackageFilterUtility.keep(problem))
         mutableContents.add(problem);
     }
     Collections.sort(mutableContents, sortByLocation);

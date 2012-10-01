@@ -35,7 +35,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
 import com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 public class ProblemsFilterPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
@@ -78,7 +78,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		data.grabExcessVerticalSpace = true;
 		f_filterTable.setLayoutData(data);
 
-		setTableContents(ModelingProblemFilterUtility.getPreference());
+		setTableContents(UninterestingPackageFilterUtility.getPreference());
 
 		f_filterTable.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -170,7 +170,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 
 	@Override
 	protected void performDefaults() {
-		setTableContents(ModelingProblemFilterUtility.DEFAULT);
+		setTableContents(UninterestingPackageFilterUtility.DEFAULT);
 		super.performDefaults();
 		selectionMayHaveChanged();
 	}
@@ -181,7 +181,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements
 		 * Save the filters.
 		 */
 		final List<String> filters = getTableContents();
-		ModelingProblemFilterUtility.setPreference(filters);
+		UninterestingPackageFilterUtility.setPreference(filters);
 
 		/*
 		 * Notify the problems view if it is opened that the filter changed.

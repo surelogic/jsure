@@ -31,7 +31,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvi
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -79,7 +79,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
       /*
        * We filter results based upon the code location.
        */
-      if (!ModelingProblemFilterUtility.show(p))
+      if (!UninterestingPackageFilterUtility.keep(p))
         remove = true;
 
       if (remove)

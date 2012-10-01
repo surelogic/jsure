@@ -9,12 +9,13 @@ import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.irfree.IDropFilter;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 @Utility
-public final class ModelingProblemFilterUtility {
+public final class UninterestingPackageFilterUtility {
 
   /**
    * The default filters: a series of regular expressions separated by newlines
@@ -28,12 +29,12 @@ public final class ModelingProblemFilterUtility {
   public static void setPreference(final List<String> value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
-    EclipseUtility.setStringListPreference(IDEPreferences.MODELING_PROBLEM_FILTERS, value);
+    EclipseUtility.setStringListPreference(IDEPreferences.UNINTERESTING_PACKAGE_FILTERS, value);
     updateCache();
   }
 
   public static List<String> getPreference() {
-    return EclipseUtility.getStringListPreference(IDEPreferences.MODELING_PROBLEM_FILTERS);
+    return EclipseUtility.getStringListPreference(IDEPreferences.UNINTERESTING_PACKAGE_FILTERS);
   }
 
   private static void updateCache() {
@@ -48,16 +49,32 @@ public final class ModelingProblemFilterUtility {
     return result;
   }
 
-  public static boolean show(final IDrop drop) {
+  /**
+   * Judges if the passed drop should be kept because it is <i>not</i> in an
+   * interesting package.
+   * 
+   * @param drop
+   *          a drop.
+   * @return {@link true} if the drop should be kept, {@code false} otherwise.
+   */
+  public static boolean keep(final IDrop drop) {
     if (drop == null)
       return false;
-    return showLocation(drop.getJavaRef());
+    return keep(drop.getJavaRef());
   }
 
-  public static boolean showLocation(final IJavaRef about) {
-    if (about == null)
+  /**
+   * Judges if the passed location it is <i>not</i> in an interesting package.
+   * 
+   * @param javaRef
+   *          a code location.
+   * @return {@link true} if the location should be kept, {@code false}
+   *         otherwise.
+   */
+  public static boolean keep(final IJavaRef javaRef) {
+    if (javaRef == null)
       return false;
-    final String name = about.getTypeNameFullyQualified();
+    final String name = javaRef.getTypeNameFullyQualified();
     List<String> filters = getCache();
     for (String regex : filters) {
       if (name.matches(regex))
@@ -66,10 +83,17 @@ public final class ModelingProblemFilterUtility {
     return true; // show this resource
   }
 
-  public static IDropFilter defaultFilter = new IDropFilter() {
+  /**
+   * Filters drops based upon the saved set of regular expressions that identify
+   * uninteresting packages defined in {@link UninterestingPackageFilterUtility}
+   */
+  public static IDropFilter UNINTERESTING_PACKAGE_FILTER = new IDropFilter() {
     @Override
-    public boolean show(IDrop d) {
-      return ModelingProblemFilterUtility.show(d);
+    public boolean keep(IDrop d) {
+      if (d instanceof IModelingProblemDrop)
+        return UninterestingPackageFilterUtility.keep(d);
+      else
+        return true;
     }
   };
 }

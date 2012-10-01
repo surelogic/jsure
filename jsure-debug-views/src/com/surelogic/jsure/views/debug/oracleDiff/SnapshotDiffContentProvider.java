@@ -19,7 +19,7 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.*;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
-import com.surelogic.jsure.core.preferences.ModelingProblemFilterUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -74,9 +74,9 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 				}
 				if (file != null) {
 					if (RegressionUtility.snapshotOracleFilter.accept(file.getParentFile(), file.getName())) {
-						diff = SeaSnapshotDiff.diff(ModelingProblemFilterUtility.defaultFilter, file, info);
+						diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, file, info);
 					} else {
-						diff = SeaSummary.diff(info, file, ModelingProblemFilterUtility.defaultFilter);
+						diff = SeaSummary.diff(info, file, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
 					}
 					if (diff != null) {
 						return scan.getLabel();
