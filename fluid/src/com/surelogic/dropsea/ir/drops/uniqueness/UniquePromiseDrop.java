@@ -32,7 +32,7 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
     super(n);
     setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
     isUniqueReturn = false;
-
+    if (!XUtil.useExperimental()) {
     final IRNode node = getNode();
     if (VariableDeclarator.prototype.includes(node)) {
       setMessage(Messages.UniquenessAnnotation_uniqueDrop1, JavaNames.getFieldDecl(node)); //$NON-NLS-1$
@@ -46,8 +46,22 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
     		  XUtil.useExperimental() ? JavaNames.genRelativeFunctionName(method) : 
     		  JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
     }
+    }
   }
 
+  @Override
+  protected IRNode useAlternateDeclForUnparse() {
+	  final IRNode node = getNode();
+	  if (VariableDeclarator.prototype.includes(node)) {
+		  return null;
+	  }
+	  IRNode rv = VisitUtil.getEnclosingClassBodyDecl(getNode());
+	  if (rv == null) {
+		  return node;
+	  }
+	  return rv;
+  }
+  
   @Override
   public boolean isCheckedByAnalysis() {
     if (isUniqueReturn) {

@@ -1129,10 +1129,12 @@ public class LockRules extends AnnotationRules {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
     	final LockModel model = LockModel.create(lockDecl, qualifiedName); 
+    	if (!XUtil.useExperimental()) {
         model.setMessage(Messages.LockAnnotation_policyLockModel,
         	XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
             lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
+    	}
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);
 

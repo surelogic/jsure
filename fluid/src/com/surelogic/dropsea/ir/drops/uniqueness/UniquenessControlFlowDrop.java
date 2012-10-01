@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.common.XUtil;
+import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -12,7 +13,7 @@ import edu.cmu.cs.fluid.java.bind.Messages;
 /**
  * Currently taking a dummy UniqueNode
  */
-public final class UniquenessControlFlowDrop extends PromiseDrop<UniqueNode> {
+public final class UniquenessControlFlowDrop extends PromiseDrop<UniqueNode> implements ICustomizedPromiseDrop {
   /**
    * Construct a new control flow drop that represents the control flow for
    * the given method/constructor declaration.
