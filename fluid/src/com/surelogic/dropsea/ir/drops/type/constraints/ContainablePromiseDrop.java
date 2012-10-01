@@ -21,6 +21,7 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
   public ContainablePromiseDrop(ContainableNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    if (!XUtil.useExperimental()) {
     final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAAST().isImplementationOnly();
     final boolean isVerify = getAAST().verify();
@@ -36,6 +37,7 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
       } else {
         setMessage(Messages.LockAnnotation_containable_noVerify, name);
       }
+    }
     }
   }
 

@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.locks;
 
 import com.surelogic.aast.promise.ReturnsLockNode;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -25,7 +26,14 @@ public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
   public ReturnsLockPromiseDrop(ReturnsLockNode node) {
     super(node);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    if (!XUtil.useExperimental()) {
     IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAAST().getPromisedFor());
     setMessage(Messages.LockAnnotation_returnsLockDrop, getAAST().getLock(), JavaNames.genMethodConstructorName(mdecl));
+    }
+  }
+  
+  @Override
+  protected IRNode useAlternateDeclForUnparse() {
+	  return VisitUtil.getEnclosingClassBodyDecl(getNode());
   }
 }

@@ -25,13 +25,20 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
   public BorrowedPromiseDrop(BorrowedNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
+    if (!XUtil.useExperimental()) {
     final IRNode node = getNode();
     final IRNode decl = VisitUtil.getEnclosingClassBodyDecl(node);
     setMessage(Messages.UniquenessAnnotation_borrowedDrop, getAAST().allowReturn() ? JavaNames.getFieldDecl(node)
         + ", allowReturn=true" : JavaNames.getFieldDecl(node), 
         XUtil.useExperimental() ? JavaNames.getRelativeName(decl) : JavaNames.getFullName(decl)); //$NON-NLS-1$
+    }
   }
 
+  @Override
+  protected IRNode useAlternateDeclForUnparse() {
+	  return VisitUtil.getEnclosingClassBodyDecl(getNode());
+  }
+  
   public final boolean allowReturn() {
     return getAAST().allowReturn();
   }

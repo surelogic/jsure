@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops.uniqueness;
 
 import com.surelogic.aast.promise.ReadOnlyNode;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
@@ -11,6 +12,8 @@ public final class ReadOnlyPromiseDrop extends BooleanPromiseDrop<ReadOnlyNode> 
   public ReadOnlyPromiseDrop(ReadOnlyNode n) {
     super(n);
     setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
+    if (!XUtil.useExperimental()) {
     setMessage(12, getAAST().toString());
+    }
   }
 }

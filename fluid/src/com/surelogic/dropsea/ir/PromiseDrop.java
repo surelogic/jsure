@@ -25,6 +25,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.persistence.JavaIdentifier;
@@ -79,9 +80,26 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       f_lineNumber = -1;
       f_hash = -1L;
     }
-    setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(getPromisedFor()));
+    if (this instanceof ICustomizedPromiseDrop) {
+    	return;
+    }
+    final IRNode altDecl = useAlternateDeclForUnparse();
+    if (altDecl != null) {
+    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
+    } else {
+    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(getPromisedFor()));
+    }
   }
 
+  /**
+   * Typically returns null, or the the enclosing body decl of the promised-for node
+   * 
+   * @return non-null if the unparse should use an alternative IRNode as the location of the promise
+   */
+  protected IRNode useAlternateDeclForUnparse() {
+	return null;
+  }
+  
   public final IRNode getPromisedFor() {
     return getNode();
   }

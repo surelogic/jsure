@@ -206,11 +206,15 @@ public final class JavaNames {
 					paramCount++;
 					
 					final String pType = getTypeName(ParameterDeclaration.getType(param));
-					final int lastDot = pType.lastIndexOf('.');
-					if (lastDot < 0) {
+					if (useFullTypes) {
 						result.append(pType);
 					} else {
-						result.append(pType.substring(lastDot+1));
+						final int lastDot = pType.lastIndexOf('.');
+						if (lastDot < 0) {
+							result.append(pType);
+						} else {
+							result.append(pType.substring(lastDot+1));
+						}
 					}
 				}
 			}

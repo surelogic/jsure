@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 import com.surelogic.dropsea.ir.drops.InRegionPromiseDrop;
@@ -26,9 +27,11 @@ public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInR
   public SimpleUniqueInRegionPromiseDrop(UniqueInRegionNode n) {
     super(n);
     setCategorizingMessage(JavaGlobals.REGION_CAT);
+    if (!XUtil.useExperimental()) {
     final String name = JavaNames.getFieldDecl(getNode());
     final String regionName = getAAST().getSpec().unparse(false);
     setMessage(Messages.RegionAnnotation_uniqueInRegionDrop, regionName, name);
+    }
   }
 
   /**

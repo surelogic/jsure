@@ -5,6 +5,10 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+
 public class UniqueNode extends AbstractBooleanNode 
 { 
   /*public static final AbstractAASTNodeFactory factory = new Factory("Unique") {   
@@ -21,11 +25,24 @@ public class UniqueNode extends AbstractBooleanNode
     super(offset);
     allowRead = allow;
   }
-
+  
   @Override
   public String unparse(boolean debug, int indent) {
-	  // TODO: allowRead?
+	if (!debug) {
+		return unparseForPromise();
+	}		
+    // TODO allowRead?
     return unparse(debug, indent, "Unique");
+  }
+
+  @Override
+  public String unparseForPromise() {
+	  final IRNode node = getPromisedFor();
+	  if (VariableDeclarator.prototype.includes(node)) {
+		  return "Unique"+(allowRead ? "(allowRead=true)" : "");
+	  }
+	  return "Unique(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
+		     (allowRead ? ", allowRead=true)" : ")");
   }
 
   @Override

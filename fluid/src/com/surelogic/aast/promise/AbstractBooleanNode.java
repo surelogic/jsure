@@ -24,7 +24,7 @@ public abstract class AbstractBooleanNode extends AASTRootNode
     super(offset);
   }
 
-  public final String unparseForPromise() {
+  public String unparseForPromise() {
 	  return unparse(false);
   }
   
