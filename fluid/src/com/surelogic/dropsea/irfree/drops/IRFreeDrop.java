@@ -26,7 +26,7 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.BasicJavaRef;
+import com.surelogic.common.JavaRef;
 import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -237,7 +237,7 @@ public class IRFreeDrop implements IDrop {
       String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
       // Note that the default package is "" in the files
       String jarStyleName = pkg + "/" + classNm;
-      BasicJavaRef.Builder builder = new BasicJavaRef.Builder(jarStyleName);
+      JavaRef.Builder builder = new JavaRef.Builder(jarStyleName);
       builder.setRelativePath(path);
       if (classExt)
         builder.setWithin(IJavaRef.Within.JAR_FILE);
