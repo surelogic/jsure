@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir.drops.layers;
 
 import com.surelogic.aast.layers.*;
 import com.surelogic.analysis.layers.Messages;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 
@@ -10,6 +11,8 @@ public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {
 		super(a);
 		setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
+	    if (!XUtil.useExperimental()) {
 		setMessage(12, getAAST().toString());
+	    }
 	}
 }

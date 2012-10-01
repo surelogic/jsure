@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -16,6 +17,7 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
   public MapFieldsPromiseDrop(FieldMappingsNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.REGION_CAT);
+    if (!XUtil.useExperimental()) {
     StringBuffer fieldNames = new StringBuffer();
     boolean first = true;
     for (RegionSpecificationNode reg : getAAST().getFieldsList()) {
@@ -28,6 +30,7 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
     }
     String regionName = getAAST().getTo().toString();
     setMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames, regionName);
+    }
   }
 
   /**

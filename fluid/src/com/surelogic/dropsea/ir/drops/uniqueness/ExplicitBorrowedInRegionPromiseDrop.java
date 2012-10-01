@@ -7,6 +7,7 @@ import java.util.Map;
 import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -25,9 +26,11 @@ public final class ExplicitBorrowedInRegionPromiseDrop extends PromiseDrop<Expli
   public ExplicitBorrowedInRegionPromiseDrop(ExplicitBorrowedInRegionNode n) {
     super(n);
     setCategorizingMessage(JavaGlobals.REGION_CAT);
+    if (!XUtil.useExperimental()) {
     final String name = JavaNames.getFieldDecl(getNode());
     final String mappings = getAAST().getMapping().unparse(false);
     setMessage(Messages.RegionAnnotation_borrowedInRegionDrop, mappings, name);
+    }
   }
 
   @Override
