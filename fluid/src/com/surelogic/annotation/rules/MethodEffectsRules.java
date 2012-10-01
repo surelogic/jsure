@@ -391,7 +391,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final RegionEffectsNode cloned =
                     overriddenFx.cloneForProposal(paramMap);
                 final ProposedPromiseDrop p = new ProposedPromiseDrop(
-                    REGIONEFFECTS, cloned.unparseForPromise(),
+                    REGIONEFFECTS, cloned.unparseForPromise(true),
                     node.toString().substring("RegionEffects".length()).trim(),
                     promisedFor, overriddenMethod, Origin.PROBLEM);
                 scrubberContext.reportErrorAndProposal(p, 
