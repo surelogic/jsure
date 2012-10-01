@@ -47,6 +47,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -378,10 +379,13 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
              * Try to open an editor at the point this item references in the
              * code
              */
-            final ISrcRef srcRef = ((ElementDrop) first).getDrop().getSrcRef();
-            if (srcRef != null) {
-              EditorUtil.highlightLineInJavaEditor(srcRef);
-            }
+//            final ISrcRef srcRef = ((ElementDrop) first).getDrop().getSrcRef();
+//            if (srcRef != null) {
+//              EditorUtil.highlightLineInJavaEditor(srcRef);
+//            }
+            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+            if (ref != null)
+              EditorUtil.highlightLineInJavaEditor(ref);
           }
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(first)) {
@@ -648,7 +652,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     int result = 0;
     if (info != null) {
       for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
-        final ISrcRef ref = problem.getSrcRef();
+        final IJavaRef ref = problem.getJavaRef();
         final String resource = ref == null ? "" : ref.getRelativePath();
         /*
          * We filter results based upon the resource.
