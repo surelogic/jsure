@@ -213,13 +213,10 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  @NonNull
+  @Nullable
   public String getMessageCanonical() {
     synchronized (f_seaLock) {
-      if (f_messageCanonical == null)
-        return getMessage(); // per Javadoc
-      else
-        return f_messageCanonical;
+      return f_messageCanonical;
     }
   }
 

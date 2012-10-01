@@ -194,7 +194,6 @@ public abstract class VisibilityDrop<T extends ModuleAnnotationNode> extends Pro
             ModuleAnalysisAndVisitor.makeResultDrop(where, vd, false, 
                                                     DS_ERROR_VIS_NO_SUCH_MODULE,
                                                     reqModName, vd.toString());
-          rd.setCategorizingMessage(JavaGlobals.PROMISE_PARSER_PROBLEM);
           
         } else if (refdMod.moduleIsTheWorld()) {
           final ModuleModel enclosingLeafMod = ModuleModel.getModuleDrop(where);

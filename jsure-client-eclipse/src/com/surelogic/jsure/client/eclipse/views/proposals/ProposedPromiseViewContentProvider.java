@@ -76,12 +76,10 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
         if (!p.isAbductivelyInferred())
           it.remove();
       }
-      final ISrcRef ref = p.getSrcRef();
-      final String resource = ref == null ? "" : ref.getRelativePath();
       /*
-       * We filter results based upon the resource.
+       * We filter results based upon the code location.
        */
-      if (!ModelingProblemFilterUtility.showResource(resource))
+      if (!ModelingProblemFilterUtility.showResource(p.getJavaRef()))
         remove = true;
 
       if (remove)

@@ -71,14 +71,14 @@ public interface IDrop {
    * <tt>"(2001,foo,5)"</tt>.
    * <p>
    * If this drop's message was not constructed using {@link I18N} than the
-   * result of this call is identical to calling {@link #getMessage()}.
+   * result of this call is {@code null}.
    * 
    * @return a canonical version of the message describing this drop, usually
    *         used by the regression test suite for comparisons.
    * @see I18N#resc(int)
    * @see I18N#resc(int, Object...)
    */
-  @NonNull
+  @Nullable
   String getMessageCanonical();
 
   /**

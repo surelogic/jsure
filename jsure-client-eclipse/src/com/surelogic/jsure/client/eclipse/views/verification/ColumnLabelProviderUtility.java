@@ -52,6 +52,16 @@ public final class ColumnLabelProviderUtility {
             cell.setStyleRanges(ranges);
           }
         }
+
+        if (element instanceof ElementCategory) {
+          if (label.endsWith(")")) {
+            int start = label.lastIndexOf('(');
+            if (start != -1) {
+              StyleRange[] ranges = { new StyleRange(start, label.length() - start, getOnClauseColor(), null) };
+              cell.setStyleRanges(ranges);
+            }
+          }
+        }
       } else
         super.update(cell);
     }

@@ -201,7 +201,6 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   public static void reportError(IRNode node, int offset, String txt) {	    
 	  ModelingProblemDrop d = new ModelingProblemDrop(node, offset);
 	  d.setMessage(txt);
-	  d.setCategorizingMessage(JavaGlobals.PROMISE_PARSER_PROBLEM);
   }
   
   public void reportError(int offset, String msg) {

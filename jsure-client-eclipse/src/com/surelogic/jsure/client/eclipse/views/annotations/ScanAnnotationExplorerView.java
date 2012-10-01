@@ -183,8 +183,7 @@ public class ScanAnnotationExplorerView extends
 				if (sr == null) {
 					continue;
 				}
-				if (ModelingProblemFilterUtility.showResource(sr
-						.getRelativePath())) {
+				if (ModelingProblemFilterUtility.showResource(d.getJavaRef())) {
 					pkgToDrop.put(sr.getPackage(), d);
 				}
 			}

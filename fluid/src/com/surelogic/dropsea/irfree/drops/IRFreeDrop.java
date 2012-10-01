@@ -58,7 +58,7 @@ public class IRFreeDrop implements IDrop {
   private IJavaRef f_javaRef = null;
   @NonNull
   private final String f_message;
-  @NonNull
+  @Nullable
   private final String f_messageCanonical;
   @NonNull
   private final Long f_treeHash;
@@ -108,11 +108,7 @@ public class IRFreeDrop implements IDrop {
     else
       f_message = getClass().getSimpleName() + " (EMPTY)";
 
-    final String messageCanonical = e.getAttribute(MESSAGE_ID);
-    if (messageCanonical != null)
-      f_messageCanonical = messageCanonical;
-    else
-      f_messageCanonical = f_message; // per Javadoc on IDrop
+    f_messageCanonical = e.getAttribute(MESSAGE_ID);
 
     final String hash = e.getAttribute(HASH_ATTR);
     Long treeHash = null;
@@ -225,7 +221,6 @@ public class IRFreeDrop implements IDrop {
     }
     final int line = Integer.valueOf(ref.getLine());
     final String pkg = ref.getAttribute(PKG_ATTR);
-    final String path = ref.getAttribute(PATH_ATTR);
     final String cuName = ref.getAttribute(CUNIT_ATTR);
     final String javaId = ref.getAttribute(JAVA_ID_ATTR);
     final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
@@ -236,18 +231,17 @@ public class IRFreeDrop implements IDrop {
 
     if (cuName.contains("[]")) {
       System.out.println("BOGUS:");
-      System.out.println(" -- (path) " + path);
       System.out.println(" --  (pkg) " + pkg);
       System.out.println("--    (cu) " + cuName);
       return null;
     } else {
       // Test of IJavaRef
       boolean classExt = cuName.endsWith(".class");
-      final String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
+      String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
+      classNm = classNm.replaceAll("\\$", ".");
       // Note that the default package is "" in the SourceRef instances
       final String jarStyleName = pkg + "/" + classNm;
       final JavaRef.Builder builder = new JavaRef.Builder(jarStyleName);
-      builder.setRelativePath(path);
       builder.setEclipseProjectName(project);
       if (classExt)
         builder.setWithin(IJavaRef.Within.JAR_FILE);

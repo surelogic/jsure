@@ -256,7 +256,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     // Collections.sort(oldDrops, EntityComparator.prototype);
     for (Entity e : l.drops) {
       String path = e.getAttribute(PATH_ATTR);
-      if (path == null || f.showResource(path)) {
+      if (path == null /*|| f.showResource(path) */) {
         drops.add(e);
       }
     }

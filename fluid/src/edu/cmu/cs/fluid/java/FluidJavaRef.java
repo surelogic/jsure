@@ -33,12 +33,6 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     }
 
     @Override
-    public Builder setRelativePath(String value) {
-      super.setRelativePath(value);
-      return this;
-    }
-
-    @Override
     public Builder setTypeType(TypeType value) {
       super.setTypeType(value);
       return this;
@@ -87,8 +81,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
     @Override
     public IFluidJavaRef build() {
-      return new FluidJavaRef(f_within, f_typeNameFullyQualifiedSureLogic, f_relativePath, f_typeType, f_eclipseProjectName,
-          f_lineNumber, f_offset, f_length, f_javaId, f_enclosingJavaId, f_javadocElement);
+      return new FluidJavaRef(f_within, f_typeNameFullyQualifiedSureLogic, f_typeType, f_eclipseProjectName, f_lineNumber,
+          f_offset, f_length, f_javaId, f_enclosingJavaId, f_javadocElement);
     }
 
     @Override
@@ -150,12 +144,11 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
   }
 
   protected FluidJavaRef(final @NonNull Within within, final @NonNull String typeNameFullyQualifiedSureLogic,
-      final @Nullable String relativePathOrNullIfWithinJar, final @Nullable TypeType typeTypeOrNullifUnknown,
-      final @Nullable String eclipseProjectNameOrNullIfUnknown, final int lineNumber, final int offset, final int length,
-      final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
-      final @Nullable IJavadocElement javadocElementOrNull) {
-    super(within, typeNameFullyQualifiedSureLogic, relativePathOrNullIfWithinJar, typeTypeOrNullifUnknown,
-        eclipseProjectNameOrNullIfUnknown, lineNumber, offset, length, javaIdOrNull, enclosingJavaIdOrNull);
+      final @Nullable TypeType typeTypeOrNullifUnknown, final @Nullable String eclipseProjectNameOrNullIfUnknown,
+      final int lineNumber, final int offset, final int length, final @Nullable String javaIdOrNull,
+      final @Nullable String enclosingJavaIdOrNull, final @Nullable IJavadocElement javadocElementOrNull) {
+    super(within, typeNameFullyQualifiedSureLogic, typeTypeOrNullifUnknown, eclipseProjectNameOrNullIfUnknown, lineNumber, offset,
+        length, javaIdOrNull, enclosingJavaIdOrNull);
     f_javadocElement = javadocElementOrNull;
   }
 

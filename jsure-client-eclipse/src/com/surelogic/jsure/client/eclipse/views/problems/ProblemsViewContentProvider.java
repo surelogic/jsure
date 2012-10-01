@@ -28,12 +28,10 @@ final class ProblemsViewContentProvider extends AbstractResultsTableContentProvi
       return null;
     }
     for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
-      final ISrcRef ref = problem.getSrcRef();
-      final String resource = ref == null ? "" : ref.getRelativePath();
       /*
-       * We filter results based upon the resource.
+       * We filter results based upon the code location.
        */
-      if (ModelingProblemFilterUtility.showResource(resource))
+      if (ModelingProblemFilterUtility.showResource(problem.getJavaRef()))
         mutableContents.add(problem);
     }
     Collections.sort(mutableContents, sortByLocation);

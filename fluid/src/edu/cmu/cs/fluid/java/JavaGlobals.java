@@ -53,15 +53,8 @@ public interface JavaGlobals {
   static final int THREAD_ROLES_CAT = 107;
   static final int THREAD_ROLE_REPORT_REGION_CAT = 108;
   static final int THREAD_ROLE_CONSTRAINED_REGION_CAT = 109;
-  static final int USES_CAT = 110;
-  static final int PROMISE_CAT = 111;
+  static final int SCOPED_PROMISE_CAT = 111;
   static final int VOUCH_CAT = 112;
-  static final int ASSUME_CAT = 113;
-  static final int PROMISE_SCRUBBER = 114;
-  static final int PROMISE_PARSER_PROBLEM = PROMISE_SCRUBBER;
-  static final int PROMISE_PARSER_WARNING = 115;
-  static final int CONVERT_TO_IR = 116;
-  static final int UNCATEGORIZED = 117;
   static final int MODULE_CAT = 118;
   static final int UTILITY_CAT = 119;
   static final int SINGLETON_CAT = 120;

@@ -379,10 +379,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
              * Try to open an editor at the point this item references in the
              * code
              */
-//            final ISrcRef srcRef = ((ElementDrop) first).getDrop().getSrcRef();
-//            if (srcRef != null) {
-//              EditorUtil.highlightLineInJavaEditor(srcRef);
-//            }
+            // final ISrcRef srcRef = ((ElementDrop)
+            // first).getDrop().getSrcRef();
+            // if (srcRef != null) {
+            // EditorUtil.highlightLineInJavaEditor(srcRef);
+            // }
             final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
             if (ref != null)
               EditorUtil.highlightLineInJavaEditor(ref);
@@ -653,11 +654,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     if (info != null) {
       for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
         final IJavaRef ref = problem.getJavaRef();
-        final String resource = ref == null ? "" : ref.getRelativePath();
         /*
          * We filter results based upon the resource.
          */
-        if (ModelingProblemFilterUtility.showResource(resource))
+        if (ModelingProblemFilterUtility.showResource(ref))
           result++;
       }
     }
