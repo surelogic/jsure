@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.WrappedSrcRef;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 /**
  * Abstract base class for tracking all promises in the "sea" of knowledge.
@@ -83,11 +84,17 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (this instanceof ICustomizedPromiseDrop) {
     	return;
     }
+    final IRNode decl = getPromisedFor();
     final IRNode altDecl = useAlternateDeclForUnparse();
     if (altDecl != null) {
-    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
+    	if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
+    		setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl),
+    				JavaNames.genRelativeFunctionName(altDecl));
+    	} else {
+    		setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
+    	}
     } else {
-    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(getPromisedFor()));
+    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(decl));
     }
   }
 

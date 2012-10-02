@@ -3,7 +3,9 @@ package com.surelogic.aast.promise;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
+
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public class ReadOnlyNode extends AbstractBooleanNode 
 { 
@@ -24,6 +26,14 @@ public class ReadOnlyNode extends AbstractBooleanNode
     return unparse(debug, indent, "ReadOnly");
   }
 
+  @Override
+  public String unparseForPromise() {
+	  if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
+		  return "ReadOnly";
+	  }
+	  return "ReadOnly(\""+JavaNames.getFieldDecl(getPromisedFor())+"\")";
+  }
+  
   @Override
   public <T> T accept(INodeVisitor<T> visitor) {
     return visitor.visit(this);

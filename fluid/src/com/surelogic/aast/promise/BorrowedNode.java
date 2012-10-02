@@ -5,6 +5,7 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.*;
 
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public final class BorrowedNode extends AbstractBooleanNode 
 { 
@@ -31,6 +32,9 @@ public final class BorrowedNode extends AbstractBooleanNode
 
   @Override
   public String unparseForPromise() {
+	  if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
+		  return allowReturn ? "Borrowed(allowReturn=true)" : "Borrowed";
+	  }
 	  return "Borrowed(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
 		     (allowReturn ? ", allowReturn=true)" : ")");
   }
