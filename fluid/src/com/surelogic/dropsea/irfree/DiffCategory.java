@@ -1,9 +1,19 @@
 package com.surelogic.dropsea.irfree;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import com.surelogic.common.*;
+import com.surelogic.common.IJavaRef;
+import com.surelogic.common.IViewable;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 
@@ -183,7 +193,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 	
 	private static String toString(DiffNode n) {
 		IDrop d = n.drop;
-		ISrcRef ref = d.getSrcRef();
+		IJavaRef ref = d.getJavaRef();
 		boolean proved = false;
 		if (d instanceof IProofDrop) {
 			IProofDrop p = (IProofDrop) d;

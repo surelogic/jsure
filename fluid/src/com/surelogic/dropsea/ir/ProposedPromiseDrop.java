@@ -26,6 +26,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
@@ -128,13 +129,13 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     f_origin = origin;
 
     if (XUtil.useExperimental()) {
-    	if (contents == null) {
-    		setMessage(18, annotation);
-    	} else {
-    		setMessage(10, annotation, contents);
-    	}
+      if (contents == null) {
+        setMessage(18, annotation);
+      } else {
+        setMessage(10, annotation, contents);
+      }
     } else {
-    	setMessage(10, annotation, contents == null ? "" : contents);
+      setMessage(10, annotation, contents == null ? "" : contents);
     }
   }
 
@@ -304,12 +305,17 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     return VisitUtil.getClosestType(f_requestedFrom);
   }
 
-  /**
-   * Gets the source reference of the fAST node this information references.
-   * 
-   * @return the source reference of the fAST node this information references.
-   */
-  public ISrcRef getAssumptionRef() {
+  public IJavaRef getAssumptionRef() {
+    final IJavaRef ref = JavaNode.getJavaRef(f_requestedFrom);
+    if (ref == null) {
+      final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
+      return JavaNode.getJavaRef(parent);
+    }
+    return ref;
+  }
+
+  @Deprecated
+  public ISrcRef getAssumptionRefOLD() {
     final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
     if (ref == null) {
       final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
@@ -404,7 +410,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
       return false;
 
     return isSame(f_annotation, other.getAnnotation()) && isSame(f_contents, other.getContents())
-        && isSame(f_replacedContents, other.getReplacedContents()) && isSame(getSrcRef(), other.getSrcRef());
+        && isSame(f_replacedContents, other.getReplacedContents()) && isSame(getJavaRef(), other.getJavaRef());
   }
 
   private static <T> boolean isSame(T o1, T o2) {
@@ -498,7 +504,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    s.addSrcRef(db, getAssumptionNode(), getAssumptionRef(), FROM_REF);
+    s.addSrcRef(db, getAssumptionNode(), getAssumptionRefOLD(), FROM_REF);
     s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
     s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
     s.addProperties(db, ANNO_ATTRS, f_attrs);

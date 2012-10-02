@@ -35,8 +35,6 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 final class ProposedPromiseViewContentProvider extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
     IResultsTableContentProvider, IJSureTreeContentProvider {
   private static final Package[] noPackages = new Package[0];
@@ -86,7 +84,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
         it.remove();
     }
     for (IProposedPromiseDrop id : proposedPromiseDrops) {
-      if (id != null && id.getSrcRef() != null) {
+      if (id != null && id.getJavaRef() != null) {
         mutableContents.add(id);
       }
     }
@@ -227,10 +225,10 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     static Package[] organize(Collection<IProposedPromiseDrop> drops) {
       MultiMap<String, IProposedPromiseDrop> map = new MultiHashMap<String, IProposedPromiseDrop>();
       for (IProposedPromiseDrop d : drops) {
-        if (d.getSrcRef() == null) {
+        if (d.getJavaRef() == null) {
           continue;
         }
-        String key = d.getSrcRef().getPackage();
+        String key = d.getJavaRef().getPackageName();
         map.put(key, d);
       }
       List<Package> things = new ArrayList<Package>();

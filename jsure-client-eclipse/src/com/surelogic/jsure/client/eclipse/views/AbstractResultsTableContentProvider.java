@@ -7,9 +7,8 @@ import java.util.List;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IDrop;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public abstract class AbstractResultsTableContentProvider<T extends IDrop> implements IResultsTableContentProvider {
   private final List<T> f_contents = new ArrayList<T>();
@@ -23,32 +22,41 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
 
   protected final Comparator<IDrop> sortByLocation = new Comparator<IDrop>() {
     public int compare(IDrop d1, IDrop d2) {
-      ISrcRef ref = d1.getSrcRef();
-      final String res1 = ref == null ? "" : ref.getRelativePath();
-      ref = d2.getSrcRef();
-      final String res2 = ref == null ? "" : ref.getRelativePath();
+      IJavaRef ref = d1.getJavaRef();
+      final String tn1 = ref == null ? "" : ref.getTypeNameFullyQualified();
+      ref = d2.getJavaRef();
+      final String tn2 = ref == null ? "" : ref.getTypeNameFullyQualified();
       int rv = 0;
       // Make those with a real path go first
-      if (res1.startsWith("/")) {
+      if (tn1.startsWith("/")) {
         rv = -1;
       }
-      if (res2.startsWith("/")) {
+      if (tn2.startsWith("/")) {
         rv++;
       }
       if (rv == 0) {
         // Make those with no path go last
-        if (res1.length() == 0) {
+        if (tn1.length() == 0) {
           rv = 1;
         }
-        if (res2.length() == 0) {
+        if (tn2.length() == 0) {
           rv--;
         }
       }
       if (rv == 0) {
-        rv = res1.compareTo(res2);
+        rv = tn1.compareTo(tn2);
       }
       if (rv == 0) {
-        rv = getLine(d1) - getLine(d2);
+        int line1 = getLine(d1);
+        int line2 = getLine(d2);
+        if (line1 == -1 && line2 == -1) {
+          // same, leave rv at 0
+        } else if (line1 == -1)
+          rv = 1;
+        else if (line2 == -1)
+          rv = -1;
+        else
+          rv = line1 - line2;
       }
       if (rv == 0) {
         rv = d1.getMessage().compareTo(d2.getMessage());
@@ -115,12 +123,12 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     case 0:
       return getMainColumnText(d);
     case 1:
-      ISrcRef ref = d.getSrcRef();
-      final String relPath = ref == null ? "" : ref.getRelativePath();
-      return relPath;
+      IJavaRef ref = d.getJavaRef();
+      final String typeName = ref == null ? "" : ref.getTypeNameFullyQualified();
+      return typeName;
     case 2:
       int line = getLine(d);
-      if (line > 0 && line < Integer.MAX_VALUE) {
+      if (line > 0) {
         return Integer.toString(line);
       } else if (line >= 0) {
         return "(binary)";
@@ -149,11 +157,20 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     // throw new UnsupportedOperationException();
   }
 
+  /**
+   * Gets the line number of the code snippet to which the passed drop refers
+   * to, or -1 if unknown.
+   * 
+   * @param d
+   *          a drop
+   * @return the line number of the code snippet to which the passed drop refers
+   *         to, or -1 if unknown.
+   */
   private static int getLine(IDrop d) {
-    ISrcRef ref = d.getSrcRef();
+    IJavaRef ref = d.getJavaRef();
     if (ref != null) {
       return ref.getLineNumber();
     }
-    return Integer.MAX_VALUE;
+    return -1;
   }
 }

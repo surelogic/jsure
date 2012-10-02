@@ -9,8 +9,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 /**
  * The interface for for all drops within the sea, intended to allow multiple
  * implementations.
@@ -92,16 +90,6 @@ public interface IDrop {
    */
   @Nullable
   String getCategorizingMessage();
-
-  /**
-   * Gets the source reference of this drop.
-   * 
-   * @return the source reference of the fAST node this information references,
-   *         can be <code>null</code>
-   */
-  @Nullable
-  @Deprecated
-  ISrcRef getSrcRef();
 
   /**
    * Gets a reference to the Java code this information is about, or

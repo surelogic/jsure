@@ -21,6 +21,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
@@ -36,8 +37,6 @@ import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 import com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
 
@@ -153,9 +152,9 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
         /*
          * Highlight this line in the editor if possible.
          */
-        final ISrcRef src = info.getSrcRef();
-        if (src != null) {
-          highlightLineInJavaEditor(src);
+        final IJavaRef ref = info.getJavaRef();
+        if (ref != null) {
+          EditorUtil.highlightLineInJavaEditor(ref);
         }
       }
     }
@@ -337,16 +336,5 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     } else {
       super.selectAll();
     }
-  }
-
-  /**
-   * Open and highlight a line within the Java editor, if possible. Otherwise,
-   * try to open as a text file
-   * 
-   * @param srcRef
-   *          the source reference to highlight
-   */
-  protected void highlightLineInJavaEditor(ISrcRef srcRef) {
-    EditorUtil.highlightLineInJavaEditor(srcRef);
   }
 }

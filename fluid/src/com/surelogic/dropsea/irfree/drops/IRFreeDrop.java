@@ -3,21 +3,16 @@ package com.surelogic.dropsea.irfree.drops;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.WITHIN_DECL_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,9 +29,6 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IDrop;
 
-import edu.cmu.cs.fluid.java.AbstractSrcRef;
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 public class IRFreeDrop implements IDrop {
   @Deprecated
   private final String f_xmlElementName; // TODO remove when SeaSummary is
@@ -52,8 +44,6 @@ public class IRFreeDrop implements IDrop {
   private List<IRFreeProposedPromiseDrop> f_proposedPromises = null;
   @Nullable
   private String f_categorizingMessage = null;
-  @Nullable
-  private ISrcRef f_srcRef = null;
   @Nullable
   private IJavaRef f_javaRef = null;
   @NonNull
@@ -76,10 +66,6 @@ public class IRFreeDrop implements IDrop {
       f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
     }
     f_proposedPromises.add(info);
-  }
-
-  void setSrcRef(ISrcRef value) {
-    f_srcRef = value;
   }
 
   void setJavaRef(IJavaRef value) {
@@ -151,11 +137,6 @@ public class IRFreeDrop implements IDrop {
   }
 
   @Nullable
-  public ISrcRef getSrcRef() {
-    return f_srcRef;
-  }
-
-  @Nullable
   public IJavaRef getJavaRef() {
     return f_javaRef;
   }
@@ -201,12 +182,6 @@ public class IRFreeDrop implements IDrop {
     return f_xmlElementName;
   }
 
-  // public void snapshotAttrs(XMLCreator.Builder s) {
-  // for (Map.Entry<String, String> a : f_entity.getAttributes().entrySet()) {
-  // s.addAttribute(a.getKey(), a.getValue());
-  // }
-  // }
-
   static int convert(String val) {
     if (val == null) {
       return 0;
@@ -230,12 +205,9 @@ public class IRFreeDrop implements IDrop {
     final int length = convert(ref.getAttribute(LENGTH_ATTR));
 
     if (cuName.contains("[]")) {
-      System.out.println("BOGUS:");
-      System.out.println(" --  (pkg) " + pkg);
-      System.out.println("--    (cu) " + cuName);
+      // this is a SrcRef to [].length which is bogas -- quietly ignore this one
       return null;
     } else {
-      // Test of IJavaRef
       boolean classExt = cuName.endsWith(".class");
       String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
       classNm = classNm.replaceAll("\\$", ".");
@@ -255,107 +227,5 @@ public class IRFreeDrop implements IDrop {
       builder.setEnclosingJavaId(enclosingId);
       return builder.build();
     }
-  }
-
-  static ISrcRef makeSrcRef(SourceRef ref) {
-    if (ref == null) {
-      return null;
-    }
-    final int line = Integer.valueOf(ref.getLine());
-    final String pkg = ref.getAttribute(PKG_ATTR);
-    final String file = ref.getAttribute(FILE_ATTR);
-    final String path = ref.getAttribute(PATH_ATTR);
-    final String cuName = ref.getAttribute(CUNIT_ATTR);
-    final String javaId = ref.getAttribute(JAVA_ID_ATTR);
-    final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
-    final String project = ref.getAttribute(PROJECT_ATTR);
-    final String hash = ref.getAttribute(HASH_ATTR);
-    final String uri = ref.getAttribute(URI_ATTR);
-
-    final int offset = convert(ref.getAttribute(OFFSET_ATTR));
-    final int length = convert(ref.getAttribute(LENGTH_ATTR));
-
-    return new AbstractSrcRef() {
-
-      @Override
-      public boolean equals(Object o) {
-        if (this.getClass().isInstance(o)) {
-          final ISrcRef other = (ISrcRef) o;
-          return getOffset() == other.getOffset() && getCUName().equals(other.getCUName())
-              && getPackage().equals(other.getPackage());
-        }
-        return false;
-      }
-
-      @Override
-      public ISrcRef createSrcRef(int offset) {
-        return this;
-      }
-
-      public String getJavaId() {
-        return javaId;
-      }
-
-      public String getEnclosingJavaId() {
-        return enclosingId;
-      }
-
-      public String getCUName() {
-        return cuName;
-      }
-
-      @Override
-      public String getEnclosingFile() {
-        return file;
-      }
-
-      @Override
-      public String getRelativePath() {
-        return path;
-      }
-
-      @Override
-      public URI getEnclosingURI() {
-        if (uri != null) {
-          try {
-            return new URI(uri);
-          } catch (URISyntaxException e) {
-            System.out.println("Couldn't parse as URI: " + uri);
-          }
-        }
-        return null;
-      }
-
-      @Override
-      public int getOffset() {
-        return offset;
-      }
-
-      @Override
-      public int getLength() {
-        return length;
-      }
-
-      public Long getHash() {
-        if (hash == null) {
-          throw new UnsupportedOperationException();
-        } else {
-          return Long.valueOf(hash);
-        }
-      }
-
-      @Override
-      public int getLineNumber() {
-        return line;
-      }
-
-      public String getPackage() {
-        return pkg;
-      }
-
-      public String getProject() {
-        return project;
-      }
-    };
   }
 }

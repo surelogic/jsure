@@ -2,10 +2,9 @@ package com.surelogic.dropsea;
 
 import java.util.Map;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * The interface for all proposed promise drops within the sea, intended to
@@ -44,7 +43,7 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop {
 
   IJavaDeclaration getFromInfo();
 
-  ISrcRef getAssumptionRef();
+  IJavaRef getAssumptionRef();
 
   long computeHash();
 
