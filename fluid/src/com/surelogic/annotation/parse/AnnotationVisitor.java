@@ -483,26 +483,24 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {
-    final String rawText = javadocAnnotation.getAnnotation();
     final int offset = javadocAnnotation.getOffset();
-    System.out.println("*****Text:" + rawText);
-    /*
-     * The promise is in one of two forms: Promise("text") or Promise
-     */
-    final int startContents = rawText.indexOf("(\"");
-    final int endContents = rawText.lastIndexOf("\")");
-    if (startContents == -1 && endContents == -1) {
-      return handleSimpleJavadocPromise(decl, rawText, offset);
-    }
-    if (startContents == -1 || endContents == -1) {
-      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate " + rawText
-          + " : JSure only handles a single string as an argument to any Javadoc promise");
+    if (!javadocAnnotation.isValid()) {
+      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate matches no known JSure promise: "
+          + javadocAnnotation.getRawCommentText());
       return false;
     }
-    final String annotationName = rawText.substring(0, startContents).trim();
-    final String stringArg = rawText.substring(startContents + 2, endContents);
-    System.out.println("*****Trying to parse: " + annotationName + " -- " + stringArg);
-    return createPromise(makeContext(decl, annotationName, stringArg, AnnotationSource.JAVADOC, offset));
+    final String annotation = javadocAnnotation.getAnnotation();
+    if (!javadocAnnotation.hasArgument()) {
+      return handleSimpleJavadocPromise(decl, annotation, offset);
+    }
+    final String argument = javadocAnnotation.getArgument().trim();
+    if (!(argument.startsWith("\"") && argument.endsWith("\""))) {
+      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate " + annotation + "(" + argument
+          + ") : JSure only handles a single string as an argument to any Javadoc promise");
+      return false;
+    }
+    return createPromise(makeContext(decl, annotation, argument.substring(1, argument.length() - 1), AnnotationSource.JAVADOC,
+        offset));
   }
 
   /**
