@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.java.comment;
+package com.surelogic.annotation;
 
 import java.util.List;
 

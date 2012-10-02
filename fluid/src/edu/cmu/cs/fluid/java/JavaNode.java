@@ -11,6 +11,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import com.surelogic.NonNull;
+import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.tree.SyntaxTreeNode;
 
@@ -27,7 +28,6 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
-import edu.cmu.cs.fluid.java.comment.JavadocAnnotation;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IROperatorType;
