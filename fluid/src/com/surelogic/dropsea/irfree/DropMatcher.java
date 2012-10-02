@@ -5,8 +5,6 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 public abstract class DropMatcher {
 	private final String[] labels;
 
@@ -79,6 +77,7 @@ public abstract class DropMatcher {
 		String oMsg = preprocess(o);
 		if (nMsg != null && oMsg != null) {
 			boolean result = nMsg.equals(oMsg);
+			/*
 			if (!result && startsWith) { 
 				// TODO hack for now
 				if (nMsg.startsWith(oMsg)) {
@@ -88,6 +87,7 @@ public abstract class DropMatcher {
 					return true;
 				}
 			}
+			*/
 			return result;
 		}
 		return null;
@@ -95,14 +95,14 @@ public abstract class DropMatcher {
 	
 	protected static boolean matchMessage(IDrop n, IDrop o) {		
 		Boolean result;
-		if (!o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for summaries
-			result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical(), false);
-			if (result != null && result.booleanValue()) {
-				// Return if true
-				// Otherwise, check the message
-				return result;
-			}
+		//if (o.getMessageCanonical() != null && !o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for summaries			
+		result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical(), false);
+		if (result != null && result.booleanValue()) {
+			// Return if true
+			// Otherwise, check the message
+			return result;
 		}
+		//}
 		result = matchStrings(n.getMessage(), o.getMessage(), true);
 		return result != null ? result : false;
 	}
