@@ -69,7 +69,6 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
-import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -108,7 +107,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
@@ -1084,12 +1082,7 @@ public class LockRules extends AnnotationRules {
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.create(lockDecl, qualifiedName); 
-        if (!XUtil.useExperimental()) {
-        model.setMessage(Messages.LockAnnotation_lockModel,
-            XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
-            field, region,
-            JavaNames.getTypeName(lockDecl.getPromisedFor()));
-        }
+
         // Add the protected region
         model.addDependent(regionBinding.getModel());        
         // Get the AssumeFinal promise, if any
@@ -1129,12 +1122,7 @@ public class LockRules extends AnnotationRules {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
     	final LockModel model = LockModel.create(lockDecl, qualifiedName); 
-    	if (!XUtil.useExperimental()) {
-        model.setMessage(Messages.LockAnnotation_policyLockModel,
-        	XUtil.useExperimental() ? model.getSimpleName() : model.getQualifiedName(), 
-            lockDecl.getField(), JavaNames.getTypeName(lockDecl
-                .getPromisedFor()));
-    	}
+
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);
 

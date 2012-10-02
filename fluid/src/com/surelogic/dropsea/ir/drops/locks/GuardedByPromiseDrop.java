@@ -2,7 +2,6 @@
 package com.surelogic.dropsea.ir.drops.locks;
 
 import com.surelogic.aast.promise.GuardedByNode;
-import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 
@@ -13,9 +12,6 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements 
   public GuardedByPromiseDrop(GuardedByNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
-    if (!XUtil.useExperimental()) {
-    setMessage(12, getAAST().toString());
-    }
   }
 
   public void validated(final LockModel lm) {

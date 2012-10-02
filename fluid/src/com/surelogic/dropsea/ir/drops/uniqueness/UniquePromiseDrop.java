@@ -32,21 +32,6 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
     super(n);
     setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
     isUniqueReturn = false;
-    if (!XUtil.useExperimental()) {
-    final IRNode node = getNode();
-    if (VariableDeclarator.prototype.includes(node)) {
-      setMessage(Messages.UniquenessAnnotation_uniqueDrop1, JavaNames.getFieldDecl(node)); //$NON-NLS-1$
-    } else {
-      IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
-      if (method == null) {
-        // Assume that it is a method
-        method = node;
-      }
-      setMessage(Messages.UniquenessAnnotation_uniqueDrop2, JavaNames.getFieldDecl(node),
-    		  XUtil.useExperimental() ? JavaNames.genRelativeFunctionName(method) : 
-    		  JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
-    }
-    }
   }
 
   @Override
