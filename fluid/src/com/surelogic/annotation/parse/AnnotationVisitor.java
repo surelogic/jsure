@@ -414,12 +414,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   @Override
-  public Integer visitBlockStatement(IRNode node) {
-    final int num = checkForBlockComment(node);
-    return num + super.visitBlockStatement(node);
-  }
-
-  @Override
   public Integer visitFieldDeclaration(IRNode node) {
     final int num = checkForJavadoc(node);
     return num + super.visitVariableDeclList(node);
@@ -431,39 +425,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return num + super.visitDeclaration(node);
   }
 
-  private int checkForBlockComment(IRNode node) {
-    final String comment = JavaNode.getCommentOrNull(node);
-    if (comment != null && comment.length() != 0) {
-      // Trim comment bits
-      int start = comment.indexOf('@');
-
-      if (start >= 0) {
-        for (int i = 0; i < start; i++) {
-          if (!Character.isWhitespace(comment.charAt(i))) {
-            // There's something before the @,
-            // so it's not an annotation
-            return 0;
-          }
-        }
-        int end = comment.length();
-        if (comment.endsWith("*/")) {
-          end = end - 2;
-        }
-        final ISrcRef ref = JavaNode.getSrcRef(node);
-        return translate(handleJavadocPromise(node, comment.substring(start, end), ref.getOffset()));
-      }
-    }
-    return 0;
-  }
-
   private int checkForJavadoc(IRNode node) {
     if (!allowJavadoc) {
       return 0;
     }
     final List<JavadocAnnotation> elt = JavaNode.getJavadocAnnotations(node);
     int num = 0;
-    for (JavadocAnnotation anno : elt) {
-      num += translate(handleJavadocPromise(node, anno.getAnnotation(), anno.getOffset()));
+    for (JavadocAnnotation javadocAnnotation : elt) {
+      num += translate(handleJavadocPromise(node, javadocAnnotation));
     }
     return num;
   }
@@ -513,32 +482,27 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return createPromise(makeContext(node, capitalize(promise), c, AnnotationSource.XML, Integer.MAX_VALUE, modifiers, props));
   }
 
-  /**
-   * Assumes that text looks like Foo("...")
-   */
-  private boolean handleJavadocPromise(IRNode decl, String text, int offset) {
-    // Test result?
-    final int startContents = text.indexOf("(\"");
-    final int endContents = text.lastIndexOf("\")");
-    if (startContents < 0 && endContents < 0) {
-      return handleSimpleJavadocPromise(decl, text, offset);
+  private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {
+    final String rawText = javadocAnnotation.getAnnotation();
+    final int offset = javadocAnnotation.getOffset();
+    System.out.println("*****Text:" + rawText);
+    /*
+     * The promise is in one of two forms: Promise("text") or Promise
+     */
+    final int startContents = rawText.indexOf("(\"");
+    final int endContents = rawText.lastIndexOf("\")");
+    if (startContents == -1 && endContents == -1) {
+      return handleSimpleJavadocPromise(decl, rawText, offset);
     }
-    if (startContents < 0 || endContents < 0) {
-      SimpleAnnotationParsingContext.reportError(decl, offset, "Syntax not matching Foo(\"...\"): " + text);
+    if (startContents == -1 || endContents == -1) {
+      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate " + rawText
+          + " : JSure only handles a single string as an argument to any Javadoc promise");
       return false;
     }
-    // Check if the rest is whitespace
-    for (int i = endContents + 2; i < text.length(); i++) {
-      if (!Character.isWhitespace(text.charAt(i))) {
-        SimpleAnnotationParsingContext.reportError(decl, offset, "Non-whitespace after annotation: " + text);
-        return false;
-      }
-    }
-    final int start = text.startsWith("@") ? 1 : 0;
-    final String tag = text.substring(start, startContents).trim();
-    final String contents = text.substring(startContents + 2, endContents);
-    // System.out.println("Trying to parse: "+tag+" -- "+contents);
-    return createPromise(makeContext(decl, tag, contents, AnnotationSource.JAVADOC, offset));
+    final String annotationName = rawText.substring(0, startContents).trim();
+    final String stringArg = rawText.substring(startContents + 2, endContents);
+    System.out.println("*****Trying to parse: " + annotationName + " -- " + stringArg);
+    return createPromise(makeContext(decl, annotationName, stringArg, AnnotationSource.JAVADOC, offset));
   }
 
   /**

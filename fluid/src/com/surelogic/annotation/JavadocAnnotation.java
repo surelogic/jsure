@@ -51,13 +51,29 @@ public final class JavadocAnnotation {
   public JavadocAnnotation(String annotationPlusExtra, int offset) {
     if (annotationPlusExtra == null)
       throw new IllegalArgumentException(I18N.err(44, "annotationPlusExtra"));
-    f_annotation = annotationPlusExtra;
+    final StringBuilder raw = new StringBuilder(annotationPlusExtra);
+    int i1 = raw.indexOf("\")");
+    if (i1 != -1) {
+      /*
+       * of the form Promise(" text ")
+       */
+      if (raw.length() > i1 + 2)
+        raw.delete(i1 + 2, raw.length());
+    } else {
+      /*
+       * of the form Promise (e.g., Unique, NonNull, Nullable)
+       */
+      int spaceIndex = raw.indexOf(" ");
+      if (spaceIndex != -1) {
+        raw.delete(spaceIndex, raw.length());
+      }
+    }
+    f_annotation = raw.toString();
     f_offset = offset;
   }
 
   /**
-   * Gets the annotation text plus extra characters until the next Javadoc tag
-   * was encountered in the comment.
+   * Gets the annotation text that was encountered in the comment.
    * 
    * @return the annotation text plus extra characters until the next Javadoc
    *         tag was encountered in the comment.
