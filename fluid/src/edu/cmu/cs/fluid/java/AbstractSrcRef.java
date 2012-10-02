@@ -18,10 +18,6 @@ public abstract class AbstractSrcRef implements ISrcRef {
     return null;
   }
 
-  public IJavadocElement getJavadoc() {
-    return null;
-  }
-
   public int getLength() {
     return 0;
   }

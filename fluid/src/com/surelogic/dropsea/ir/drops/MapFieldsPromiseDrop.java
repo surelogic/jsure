@@ -1,11 +1,9 @@
 package com.surelogic.dropsea.ir.drops;
 
-import com.surelogic.aast.promise.*;
-import com.surelogic.common.XUtil;
+import com.surelogic.aast.promise.FieldMappingsNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.bind.Messages;
 
 /**
  * Promise drop for "InRegion" promise annotations defining a region.
@@ -17,20 +15,6 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
   public MapFieldsPromiseDrop(FieldMappingsNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.REGION_CAT);
-    if (!XUtil.useExperimental()) {
-    StringBuffer fieldNames = new StringBuffer();
-    boolean first = true;
-    for (RegionSpecificationNode reg : getAAST().getFieldsList()) {
-      if (first) {
-        first = false;
-      } else {
-        fieldNames.append(", ");
-      }
-      fieldNames.append(reg);
-    }
-    String regionName = getAAST().getTo().toString();
-    setMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames, regionName);
-    }
   }
 
   /**

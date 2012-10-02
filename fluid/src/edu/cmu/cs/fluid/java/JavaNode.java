@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IROperatorType;
@@ -411,6 +412,14 @@ public class JavaNode extends JJNode {
     return f_fluidJavaRefSlotInfo;
   }
 
+  /**
+   * Sets the passed code reference on the passed IRNode.
+   * 
+   * @param node
+   *          an IRNode which should have binding information.
+   * @param ref
+   *          a Java code reference.
+   */
   public static void setJavaRef(IRNode node, IFluidJavaRef ref) {
     if (ref == null) {
       return;
@@ -423,8 +432,8 @@ public class JavaNode extends JJNode {
    * reference information, or {@code null} if none exists.
    * 
    * @param node
-   *          The IRNode which should have binding information.
-   * @return a Java code reference information, or {@code null} if none exists.
+   *          an IRNode which should have binding information.
+   * @return a Java code reference, or {@code null} if none exists.
    */
   public static IFluidJavaRef getJavaRef(IRNode node) {
     if (node == null) {
@@ -488,6 +497,55 @@ public class JavaNode extends JJNode {
     // + JJNode.tree.getOperator(node));
     // }
     return node.getSlotValue(srcSlotInfo);
+  }
+
+  /**
+   * Fluid IR slot to hold Javadoc information
+   */
+  private static final SlotInfo<IJavadocElement> f_javadocRefSlotInfo = getVersionedSlotInfo(IJavadocElement.JAVADOC_REF_SLOT_NAME,
+      IJavadocElement.FLUID_JAVADOC_REF_SLOT_TYPE);
+
+  /**
+   * Returns the SlotInfo to access the Javadoc reference information within
+   * Java IR nodes.
+   */
+  private static SlotInfo<IJavadocElement> getJavadocSlotInfo() {
+    return f_javadocRefSlotInfo;
+  }
+
+  /**
+   * Sets the Javadoc referenc information on the passed IRNode.
+   * 
+   * @param node
+   *          an IRNode which should have binding information.
+   * @param ref
+   *          the Javadoc information
+   */
+  public static void setJavadoc(IRNode node, IJavadocElement ref) {
+    if (ref == null) {
+      return;
+    }
+    node.setSlotValue(getJavadocSlotInfo(), ref);
+  }
+
+  /**
+   * Given an IRNode from a Java AST, this method returns the node's Javadoc
+   * reference information, or {@code null} if no information exists.
+   * 
+   * @param node
+   *          an IRNode which should have binding information.
+   * @return the Javadoc reference interface object, or {@code null} if none
+   *         exists.
+   */
+  public static IJavadocElement getJavadoc(IRNode node) {
+    if (node == null) {
+      return null;
+    }
+    final SlotInfo<IJavadocElement> javadocSlotInfo = getJavadocSlotInfo();
+    if (!node.valueExists(javadocSlotInfo)) {
+      return null;
+    }
+    return node.getSlotValue(javadocSlotInfo);
   }
 
   // Copied from JavaPromise formatting

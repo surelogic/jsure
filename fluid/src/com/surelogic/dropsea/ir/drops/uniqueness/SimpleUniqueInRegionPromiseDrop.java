@@ -27,11 +27,6 @@ public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInR
   public SimpleUniqueInRegionPromiseDrop(UniqueInRegionNode n) {
     super(n);
     setCategorizingMessage(JavaGlobals.REGION_CAT);
-    if (!XUtil.useExperimental()) {
-    final String name = JavaNames.getFieldDecl(getNode());
-    final String regionName = getAAST().getSpec().unparse(false);
-    setMessage(Messages.RegionAnnotation_uniqueInRegionDrop, regionName, name);
-    }
   }
 
   /**

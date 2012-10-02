@@ -1,12 +1,9 @@
 package com.surelogic.dropsea.ir.drops.type.constraints;
 
 import com.surelogic.aast.promise.NotContainableNode;
-import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.Messages;
 
 /**
  * Promise drop for "NotContainable" promises.
@@ -19,9 +16,5 @@ public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotConta
   public NotContainablePromiseDrop(NotContainableNode a) {
     super(a);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
-    if (!XUtil.useExperimental()) {
-    final String name = XUtil.useExperimental() ? JavaNames.getRelativeTypeName(getNode()) : JavaNames.getTypeName(getNode());
-    setMessage(Messages.LockAnnotation_notContainableDrop, name);
-    }
   }
 }

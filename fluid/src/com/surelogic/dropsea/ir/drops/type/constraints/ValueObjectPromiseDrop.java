@@ -13,8 +13,5 @@ public final class ValueObjectPromiseDrop extends BooleanPromiseDrop<ValueObject
   public ValueObjectPromiseDrop(ValueObjectNode a) {
     super(a);
     setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
-    if (!XUtil.useExperimental()) {
-    setMessage(20, EqualityRules.VALUE_OBJECT, JavaNames.getFullName(getNode()));
-    }
   }
 }

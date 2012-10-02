@@ -16,7 +16,6 @@ import com.surelogic.analysis.regions.AbstractRegion;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.UiShowAtTopLevel;
@@ -29,7 +28,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
@@ -120,16 +118,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
      * else if (n == null && "test.Test.counter".equals(qname)) {
      * System.out.println("Creating region model for test.Test.counter"); }
      */
-    if (!XUtil.useExperimental()) {
-    // TODO what about enclosing types?
-    setResultMessage(model, region.isStatic(), region.getVisibility(), XUtil.useExperimental() ? region.getName() : qname);
-    }
     return model;
-  }
-
-  private static void setResultMessage(RegionModel model, final boolean isStatic, final Visibility viz, final String name) {
-    final String stat = isStatic ? " static" : "";
-    model.setMessage(Messages.RegionAnnotation_regionDrop, viz.getSourceText(), stat, name);
   }
 
   /**
@@ -183,10 +172,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     f_simpleName = JavaNames.genSimpleName(name);
     f_project = getPair(name, decl.getPromisedFor()).second();
 
-    final NewRegionDeclarationNode ast = getAAST();
-    if (!XUtil.useExperimental()) {
-    setResultMessage(this, ast.isStatic(), ast.getVisibility(), name); // TODO
-    }
     setCategorizingMessage(JavaGlobals.REGION_CAT);
 
     if ("java.lang.Object.Instance".equals(name)) {

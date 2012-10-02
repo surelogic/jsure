@@ -12,8 +12,5 @@ public final class ReadOnlyPromiseDrop extends BooleanPromiseDrop<ReadOnlyNode> 
   public ReadOnlyPromiseDrop(ReadOnlyNode n) {
     super(n);
     setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);
-    if (!XUtil.useExperimental()) {
-    setMessage(12, getAAST().toString());
-    }
   }
 }

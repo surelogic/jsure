@@ -128,14 +128,10 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     f_replacedAttrs = replacedAttrs != null ? replacedAttrs : Collections.<String, String> emptyMap();
     f_origin = origin;
 
-    if (XUtil.useExperimental()) {
-      if (contents == null) {
-        setMessage(18, annotation);
-      } else {
-        setMessage(10, annotation, contents);
-      }
+    if (contents == null) {
+    	setMessage(18, annotation);
     } else {
-      setMessage(10, annotation, contents == null ? "" : contents);
+    	setMessage(10, annotation, contents);
     }
   }
 

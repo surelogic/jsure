@@ -4,7 +4,6 @@ import java.net.URI;
 
 import edu.cmu.cs.fluid.ir.IRObjectType;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 /**
  * Information about source references within the Fluid IR from (ye olde) files
@@ -92,8 +91,6 @@ public interface ISrcRef {
    * @return the original source text of the source reference
    */
   String toString();
-
-  IJavadocElement getJavadoc();
 
   Long getHash();
 

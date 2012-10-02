@@ -23,7 +23,6 @@ import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
@@ -160,13 +159,7 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      String oldMessage = f_message;
       f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
-      if (XUtil.useExperimental() && oldMessage != null) {
-        String newMessage = f_message;
-        System.out.println("Changing the message from " + oldMessage);
-        System.out.println("\t to " + newMessage);
-      }
       f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
     }
   }
