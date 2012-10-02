@@ -1,28 +1,101 @@
 package com.surelogic.javac.adapter;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 
-import com.sun.source.tree.*;
+import com.sun.source.tree.AnnotatedTypeTree;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.ArrayTypeTree;
+import com.sun.source.tree.AssertTree;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.BreakTree;
+import com.sun.source.tree.CaseTree;
+import com.sun.source.tree.CatchTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.ContinueTree;
+import com.sun.source.tree.DoWhileLoopTree;
+import com.sun.source.tree.EmptyStatementTree;
+import com.sun.source.tree.EnhancedForLoopTree;
+import com.sun.source.tree.ErroneousTree;
+import com.sun.source.tree.ExpressionStatementTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.ForLoopTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.IfTree;
+import com.sun.source.tree.ImportTree;
+import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.LabeledStatementTree;
+import com.sun.source.tree.LambdaExpressionTree;
+import com.sun.source.tree.LineMap;
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.MemberReferenceTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.ModifiersTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.ParenthesizedTree;
+import com.sun.source.tree.PrimitiveTypeTree;
+import com.sun.source.tree.ReturnTree;
+import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.SwitchTree;
+import com.sun.source.tree.SynchronizedTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
-import com.sun.source.util.*;
+import com.sun.source.tree.TreeVisitor;
+import com.sun.source.tree.TryTree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.UnionTypeTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WhileLoopTree;
+import com.sun.source.tree.WildcardTree;
+import com.sun.source.util.SourcePositions;
+import com.sun.source.util.Trees;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.*;
+import com.surelogic.javac.FileResource;
+import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.Projects;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.adapter.*;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
-import edu.cmu.cs.fluid.java.comment.IJavadocTag;
-import edu.cmu.cs.fluid.java.comment.JavadocElement;
-import edu.cmu.cs.fluid.java.comment.JavadocTag;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
+import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -211,20 +284,21 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     String comment = javadoc == null ? null : javadoc.get(t);
     if (comment != null && AnnotationVisitor.allowJavadoc(jp.getTypeEnv())) {
       JavaNode.setComment(result, comment);
-      IJavadocElement elmt = createIJavadocElement(comment, (int) start);
+      List<JavadocAnnotation> elmt = getJavadocAnnotations(comment, (int) start);
       if (elmt != null)
-        JavaNode.setJavadoc(result, elmt);
+        JavaNode.setJavadocAnnotations(result, elmt);
     }
     ref = new SourceRef(cuRef, start, end, line);
     JavaNode.setSrcRef(result, ref);
     return ref;
   }
 
-  private IJavadocElement createIJavadocElement(final String declarationComment, final int declarationCommentOffset) {
+  private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment, final int declarationCommentOffset) {
     if (declarationComment == null)
       return null;
 
-    final JavadocElement doc = new JavadocElement(declarationCommentOffset, 0);
+    final List<JavadocAnnotation> javadocAnnotations = new ArrayList<JavadocAnnotation>();
+
     String tag = null;
     StringBuilder sb = new StringBuilder();
     StringTokenizer st = new StringTokenizer(declarationComment, "\n");
@@ -232,39 +306,43 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String line = st.nextToken().trim();
       if (line.startsWith("@")) {
         if (tag != null) {
-          doc.add(createTag(tag, sb.toString(), declarationCommentOffset));
+          javadocAnnotations.add(new JavadocAnnotation(sb.toString(), declarationCommentOffset));
           sb.setLength(0);
         }
-        // Find the first space after the tag
-        int firstSpace = line.indexOf(' ');
-        while (firstSpace >= 0 && !Character.isLetter(line.charAt(firstSpace - 1))) {
-          firstSpace = line.indexOf(' ', firstSpace + 1);
-        }
-        if (firstSpace >= 0) {
-          tag = line.substring(1, firstSpace).trim();
-          sb.append(line.substring(firstSpace + 1));
+        int spaceIndex = line.indexOf(' ');
+        if (spaceIndex == -1) {
+          // rest of the line is the tag
+          tag = line.substring(1);
+          line = ""; // trim off
         } else {
-          tag = line.substring(1).trim();
+          tag = line.substring(1, spaceIndex);
+          line = line.substring(spaceIndex + 1);
         }
-        // System.out.println("@"+tag+" -- "+sb);
+        System.out.println("found tag: " + tag);
+        if (SLUtility.JAVADOC_ANNOTATE_TAG.equals(tag)) {
+          /*
+           * Found an "annotate" tag
+           */
+          sb.setLength(0); // clear
+          sb.append(line.trim()); // add rest of line - no tag
+        } else {
+          // keep searching -- just a normal tag, e.g., @author @see
+          tag = null;
+        }
       } else if (tag != null) {
-        sb.append(' ').append(line);
-        // System.out.println("@"+tag+" -- "+sb);
-      } else {
-        // System.out.println("Skipping description: "+line);
-        continue;
+        sb.append(' ').append(line.trim());
       }
     }
+    // at end -- process last tag, if any
     if (tag != null) {
-      doc.add(createTag(tag, sb.toString(), declarationCommentOffset));
+      javadocAnnotations.add(new JavadocAnnotation(sb.toString(), declarationCommentOffset));
+      sb.setLength(0);
     }
-    return doc;
-  }
-
-  private IJavadocTag createTag(final String tag, final String contents, final int declarationCommentOffset) {
-    JavadocTag jt = new JavadocTag(declarationCommentOffset, 0, tag);
-    jt.addString(contents);
-    return jt;
+    System.out.println(javadocAnnotations);
+    if (javadocAnnotations.isEmpty())
+      return null; // if empty so won't store on IRNode
+    else
+      return javadocAnnotations;
   }
 
   @SuppressWarnings("unused")

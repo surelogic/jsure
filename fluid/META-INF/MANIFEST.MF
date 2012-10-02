@@ -83,7 +83,6 @@ Export-Package:
  edu.cmu.cs.fluid.java.analysis,
  edu.cmu.cs.fluid.java.annotation,
  edu.cmu.cs.fluid.java.bind,
- edu.cmu.cs.fluid.java.comment,
  edu.cmu.cs.fluid.java.control,
  edu.cmu.cs.fluid.java.operator,
  edu.cmu.cs.fluid.java.parse,
