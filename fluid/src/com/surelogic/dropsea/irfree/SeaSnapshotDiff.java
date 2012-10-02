@@ -207,7 +207,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       Collection<? extends IDrop> newer) {
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
     rv.setFilter(new IDropFilter() {
-      @Override
+//      @Override
       public boolean keep(IDrop d) {
         // TODO Auto-generated method stub
         return select(d) && f.keep(d);

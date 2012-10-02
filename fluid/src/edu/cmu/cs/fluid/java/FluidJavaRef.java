@@ -155,7 +155,7 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
   @Nullable
   private final IJavadocElement f_javadocElement;
 
-  @Override
+//  @Override
   public IJavadocElement getJavadoc() {
     return f_javadocElement;
   }
