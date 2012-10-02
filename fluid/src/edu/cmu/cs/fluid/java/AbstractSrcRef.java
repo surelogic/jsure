@@ -2,8 +2,6 @@ package edu.cmu.cs.fluid.java;
 
 import java.net.URI;
 
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
-
 public abstract class AbstractSrcRef implements ISrcRef {
 
   public String getEnclosingFile() {

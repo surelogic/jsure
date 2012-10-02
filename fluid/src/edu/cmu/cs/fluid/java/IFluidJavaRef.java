@@ -1,11 +1,9 @@
 package edu.cmu.cs.fluid.java;
 
-import com.surelogic.Nullable;
 import com.surelogic.common.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRObjectType;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 public interface IFluidJavaRef extends IJavaRef {
 
@@ -20,13 +18,4 @@ public interface IFluidJavaRef extends IJavaRef {
    */
   public static final String SRC_REF_SLOT_NAME = "JavaNode.IFluidJavaRef";
 
-  /**
-   * Gets the Javadoc for the declaration this node refers to, or {@code null}
-   * if none.
-   * 
-   * @return the Javadoc for the declaration this node refers to, or
-   *         {@code null} if none.
-   */
-  @Nullable
-  IJavadocElement getJavadoc();
 }

@@ -3,11 +3,14 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.tree.SyntaxTreeNode;
 
@@ -24,7 +27,7 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
+import edu.cmu.cs.fluid.java.comment.JavadocAnnotation;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IROperatorType;
@@ -500,52 +503,58 @@ public class JavaNode extends JJNode {
   }
 
   /**
-   * Fluid IR slot to hold Javadoc information
+   * Fluid IR slot to hold Javadoc annotations, via the
+   * <code>&#064;annotate</code> tag.
    */
-  private static final SlotInfo<IJavadocElement> f_javadocRefSlotInfo = getVersionedSlotInfo(IJavadocElement.JAVADOC_REF_SLOT_NAME,
-      IJavadocElement.FLUID_JAVADOC_REF_SLOT_TYPE);
+  private static final SlotInfo<List<JavadocAnnotation>> f_javadocAnnosSlotInfo = getVersionedSlotInfo(
+      JavadocAnnotation.JAVADOC_REF_SLOT_NAME, JavadocAnnotation.FLUID_JAVADOC_REF_SLOT_TYPE);
 
   /**
-   * Returns the SlotInfo to access the Javadoc reference information within
+   * Returns the SlotInfo to access the Javadoc annotations information within
    * Java IR nodes.
    */
-  private static SlotInfo<IJavadocElement> getJavadocSlotInfo() {
-    return f_javadocRefSlotInfo;
+  private static SlotInfo<List<JavadocAnnotation>> getJavadocAnnosSlotInfo() {
+    return f_javadocAnnosSlotInfo;
   }
 
   /**
-   * Sets the Javadoc referenc information on the passed IRNode.
+   * Sets the ordered list of Javadoc annotations information on the passed
+   * IRNode.
    * 
    * @param node
    *          an IRNode which should have binding information.
    * @param ref
-   *          the Javadoc information
+   *          the Javadoc annotations.
    */
-  public static void setJavadoc(IRNode node, IJavadocElement ref) {
+  public static void setJavadocAnnotations(IRNode node, List<JavadocAnnotation> ref) {
     if (ref == null) {
       return;
     }
-    node.setSlotValue(getJavadocSlotInfo(), ref);
+    node.setSlotValue(getJavadocAnnosSlotInfo(), ref);
   }
 
   /**
-   * Given an IRNode from a Java AST, this method returns the node's Javadoc
-   * reference information, or {@code null} if no information exists.
+   * Given an IRNode from a Java AST, this method returns an ordered, possibly
+   * empty, list of the node's Javadoc annotations.
    * 
    * @param node
    *          an IRNode which should have binding information.
-   * @return the Javadoc reference interface object, or {@code null} if none
-   *         exists.
+   * @return an ordered, possibly empty, list of the node's Javadoc annotations.
    */
-  public static IJavadocElement getJavadoc(IRNode node) {
+  @NonNull
+  public static List<JavadocAnnotation> getJavadocAnnotations(IRNode node) {
     if (node == null) {
-      return null;
+      return Collections.emptyList();
     }
-    final SlotInfo<IJavadocElement> javadocSlotInfo = getJavadocSlotInfo();
+    final SlotInfo<List<JavadocAnnotation>> javadocSlotInfo = getJavadocAnnosSlotInfo();
     if (!node.valueExists(javadocSlotInfo)) {
-      return null;
+      return Collections.emptyList();
     }
-    return node.getSlotValue(javadocSlotInfo);
+    List<JavadocAnnotation> result = node.getSlotValue(javadocSlotInfo);
+    if (result == null)
+      return Collections.emptyList();
+    else
+      return result;
   }
 
   // Copied from JavaPromise formatting

@@ -1,7 +1,6 @@
 package com.surelogic.javac.adapter;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 public abstract class AbstractRef implements ISrcRef {
 
@@ -9,10 +8,6 @@ public abstract class AbstractRef implements ISrcRef {
 
   AbstractRef(long l) {
     f_line = (int) l;
-  }
-
-  public IJavadocElement getJavadoc() {
-    return null;
   }
 
   public int getLineNumber() {

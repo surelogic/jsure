@@ -5,8 +5,6 @@ import java.net.URI;
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 
-import edu.cmu.cs.fluid.java.comment.IJavadocElement;
-
 /**
  * This abstract class provides the basis to wrap an existing {@link ISrcRef}
  * instance and extend its behavior by overriding any of the methods.
