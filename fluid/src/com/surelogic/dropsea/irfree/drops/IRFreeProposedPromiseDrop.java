@@ -27,8 +27,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop,
     Comparable<IRFreeProposedPromiseDrop> {
 
@@ -212,7 +210,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     if (replaced != null) {
       hash += replaced.hashCode();
     }
-    final ISrcRef ref = getSrcRef();
+    final IJavaRef ref = getJavaRef();
     if (ref != null) {
       hash += ref.getHash(); // Instead of hashCode()?
     }

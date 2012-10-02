@@ -19,7 +19,6 @@ public class DropFactory {
 	public static IDrop create(Entity drop, Entity ref) {
 		IRFreeDrop d = (IRFreeDrop) create(drop);
 		final SourceRef sourceRef = new SourceRef(ref);
-		d.setSrcRef(IRFreeDrop.makeSrcRef(sourceRef));
 		d.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sourceRef));
 		return d;
 	}
