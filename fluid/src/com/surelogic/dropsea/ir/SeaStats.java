@@ -11,12 +11,11 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.VouchPromiseDrop;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class SeaStats {
 	private SeaStats() {
@@ -97,7 +96,7 @@ public final class SeaStats {
 	
 	public static final Splitter<String> splitByProject = new Splitter<String>() {
         public String getLabel(IDrop d) {
-            ISrcRef sr = d.getSrcRef();
+            IJavaRef sr = d.getJavaRef();
             if (sr != null) {            	
             	/*
                 String path = sr.getRelativePath();
@@ -110,34 +109,31 @@ public final class SeaStats {
                 	return label;
                 }                
                 */
-            	return sr.getProject();
+            	return sr.getEclipseProjectName();
             }
             return null;
         }	    
 	};
 	
-	public static final Counter[] STANDARD_COUNTERS = {
-		new Counter() {
-            public String count(IDrop d) {
-            	ISrcRef sr = d.getSrcRef();
-                if (sr == null || !sr.getRelativePath().endsWith(".java")) {
-                	return null; // Not from source
-                }
-                String l = labelMap.get(d.getIRDropSeaClass().getName());
-                if (l != null) {
-                    return l;
-                }
-                if (d.instanceOfIRDropSea(PromiseDrop.class)) {
-                    return PROMISES;
-                }
-                else if (d.instanceOfIRDropSea(ResultDrop.class)) {
-                    IResultDrop pd = (IResultDrop) d;
-                    return pd.isConsistent() ? CONSISTENT : INCONSISTENT;
-                }
-                return null;
-            }		    
-		}
-	};
+  public static final Counter[] STANDARD_COUNTERS = { new Counter() {
+    public String count(IDrop d) {
+      final IJavaRef sr = d.getJavaRef();
+      if (sr == null || sr.getWithin() != IJavaRef.Within.JAVA_FILE) {
+        return null; // Not from source
+      }
+      String l = labelMap.get(d.getIRDropSeaClass().getName());
+      if (l != null) {
+        return l;
+      }
+      if (d.instanceOfIRDropSea(PromiseDrop.class)) {
+        return PROMISES;
+      } else if (d.instanceOfIRDropSea(ResultDrop.class)) {
+        IResultDrop pd = (IResultDrop) d;
+        return pd.isConsistent() ? CONSISTENT : INCONSISTENT;
+      }
+      return null;
+    }
+  } };
 	
 	public static final String ALL_PROJECTS = "all projects";
 	

@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
@@ -55,7 +56,6 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.DropFactory;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**
@@ -141,7 +141,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
     }
     if (d.instanceOfIRDropSea(IRReferenceDrop.class)) {
       // Need a location to report
-      ISrcRef ref = d.getSrcRef();
+      IJavaRef ref = d.getJavaRef();
       if (ref == null) {
         if (!d.getMessage().contains("java.lang.Object")) {
           /*

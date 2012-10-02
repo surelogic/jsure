@@ -5,10 +5,9 @@ import java.util.List;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProofDrop;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public final class FilterJavaClass extends Filter {
 
@@ -47,9 +46,9 @@ public final class FilterJavaClass extends Filter {
 		f_counts.clear();
 		int runningTotal = 0;
 		for (IProofDrop d : incomingResults) {
-			final ISrcRef sr = d.getSrcRef();
-			if (sr != null) {
-				final String value = sr.getCUName();
+			final IJavaRef jr = d.getJavaRef();
+			if (jr != null) {
+				final String value = jr.getTypeName();
 				if (value != null) {
 					Integer count = f_counts.get(value);
 					if (count == null) {
@@ -68,9 +67,9 @@ public final class FilterJavaClass extends Filter {
 	protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
 		f_porousDrops.clear();
 		for (IProofDrop d : incomingResults) {
-			final ISrcRef sr = d.getSrcRef();
-			if (sr != null) {
-				final String value = sr.getCUName();
+		  final IJavaRef jr = d.getJavaRef();
+			if (jr != null) {
+				final String value = jr.getTypeName();
 				if (value != null) {
 					if (f_porousValues.contains(value))
 						f_porousDrops.add(d);

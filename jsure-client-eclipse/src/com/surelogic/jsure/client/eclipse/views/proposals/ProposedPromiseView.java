@@ -26,6 +26,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -35,8 +36,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanStructuredView;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class ProposedPromiseView extends
 		AbstractScanStructuredView<IProposedPromiseDrop> implements
@@ -235,7 +234,7 @@ public class ProposedPromiseView extends
 			for (Object o : s.toArray()) {
 				if (o instanceof IProposedPromiseDrop) {
 					final IProposedPromiseDrop p = (IProposedPromiseDrop) o;
-					ISrcRef ref = p.getSrcRef();
+					IJavaRef ref = p.getJavaRef();
 					if (ref != null) {
 						manager.add(f_annotate);
 						manager.add(new Separator());

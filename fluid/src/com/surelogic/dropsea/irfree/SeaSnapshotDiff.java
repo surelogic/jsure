@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.*;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 
@@ -178,7 +179,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     }
     if (d.instanceOfIRDropSea(IRReferenceDrop.class)) {
       // Need a location to report
-      ISrcRef ref = d.getSrcRef();
+      IJavaRef ref = d.getJavaRef();
       if (ref == null) {
         if (!d.getMessage().contains("java.lang.Object")) {
           /*
@@ -219,17 +220,17 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
         if (type == null) {
           return null;
         }
-        ISrcRef ref = d.getSrcRef();
+        IJavaRef ref = d.getJavaRef();
         String f = null;
-        if (ref != null) {
-          String path = ref.getRelativePath();
-          URI uri = ref.getEnclosingURI();
-          String file = ref.getEnclosingFile();
-          f = uri == null ? file : path;
-          if (f != null) {
-            f = FileUtility.normalizePath(f);
-          }
-        }
+//        if (ref != null) {
+//          String path = ref.getRelativePath();
+//          URI uri = ref.getEnclosingURI();
+//          String file = ref.getEnclosingFile();
+//          f = uri == null ? file : path;
+//          if (f != null) {
+//            f = FileUtility.normalizePath(f);
+//          }
+//        }
         return new CPair<String, String>(f, type.getName());
       }
     });

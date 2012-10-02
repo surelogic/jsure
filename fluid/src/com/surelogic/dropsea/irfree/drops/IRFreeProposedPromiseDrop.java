@@ -18,6 +18,7 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.refactor.IJavaDeclaration;
@@ -52,7 +53,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @Nullable
   private IJavaDeclaration f_targetInfo = null;
   @Nullable
-  private ISrcRef f_assumptionRef = null;
+  private IJavaRef f_assumptionRef = null;
   @NonNull
   private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
   @NonNull
@@ -75,7 +76,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     f_targetInfo = value;
   }
 
-  void setAssumptionRef(ISrcRef value) {
+  void setAssumptionRef(IJavaRef value) {
     f_assumptionRef = value;
   }
 
@@ -104,16 +105,14 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     Origin result = Origin.MODEL; // default
     if (origin != null) {
       try {
-    	  // FIX
-    	  if ("PROMISE".equals(origin)) {
-    		  result = Origin.MODEL;
-    	  }
-    	  else if ("INFERENCE".equals(origin)) {
-    		  result = Origin.CODE;
-    	  }
-    	  else {
-    		  result = Origin.valueOf(origin);
-    	  }
+        // FIX
+        if ("PROMISE".equals(origin)) {
+          result = Origin.MODEL;
+        } else if ("INFERENCE".equals(origin)) {
+          result = Origin.CODE;
+        } else {
+          result = Origin.valueOf(origin);
+        }
       } catch (Exception e1) {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(249, origin, ORIGIN), e1);
       }
@@ -166,7 +165,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     return f_fromProjectName;
   }
 
-  public ISrcRef getAssumptionRef() {
+  public IJavaRef getAssumptionRef() {
     return f_assumptionRef;
   }
 
@@ -185,7 +184,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       return false;
 
     return isSame(getAnnotation(), other.getAnnotation()) && isSame(getContents(), other.getContents())
-        && isSame(getReplacedContents(), other.getReplacedContents()) && isSame(getSrcRef(), other.getSrcRef());
+        && isSame(getReplacedContents(), other.getReplacedContents()) && isSame(getJavaRef(), other.getJavaRef());
   }
 
   private static <T> boolean isSame(T o1, T o2) {

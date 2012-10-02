@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -131,7 +132,7 @@ public abstract class DropMatcher {
 	}
 	
 	protected static Long getOffset(IDrop d) {
-		ISrcRef ref = d.getSrcRef();
+		IJavaRef ref = d.getJavaRef();
 		if (ref != null) {
 			return (long) ref.getOffset();
 		}

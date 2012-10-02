@@ -1,25 +1,40 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IStorageEditorInput;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
-import com.surelogic.jsure.core.scans.*;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.xml.TestXMLParserConstants;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
 	private final ASTParser parser;
@@ -117,7 +132,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	private Map<String,List<IDrop>> preprocessPromises(final JSureScanInfo info) {
 		Map<String,List<IDrop>> rv = new HashMap<String, List<IDrop>>();
 		for(IPromiseDrop d : info.getPromiseDrops()) {
-			final ISrcRef ref = d.getSrcRef();						
+			final IJavaRef ref = d.getJavaRef();			
 			if (ref == null) {
 				//System.out.println("No src ref:  @"+d.getMessage());
 			} else {				

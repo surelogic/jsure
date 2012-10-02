@@ -125,7 +125,7 @@ public abstract class AbstractScanStructuredView<T> extends
 		final Object d = selection.getFirstElement();
 		if (d instanceof IDrop) {
 			IDrop di = (IDrop) d;
-			EditorUtil.highlightLineInJavaEditor(di.getSrcRef());
+			EditorUtil.highlightLineInJavaEditor(di.getJavaRef());
 		} else {
 			if (d != null)
 				handleDoubleClick(d);
