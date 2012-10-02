@@ -421,21 +421,13 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
 	@Override
 	public Integer visitFieldDeclaration(IRNode node) {
-		ISrcRef ref = JavaNode.getSrcRef(node);
-		if (ref == null) {
-			return super.visitVariableDeclList(node);
-		}
-		final int num = checkForJavadoc(node, ref);
+		final int num = checkForJavadoc(node);
 		return num + super.visitVariableDeclList(node);
 	}
 
 	@Override
 	public Integer visitDeclaration(IRNode node) {
-		ISrcRef ref = JavaNode.getSrcRef(node);
-		if (ref == null) {
-			return super.visitDeclaration(node);
-		}
-		final int num = checkForJavadoc(node, ref);
+		final int num = checkForJavadoc(node);
 		return num + super.visitDeclaration(node);
 	}
 
@@ -465,11 +457,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return 0;
 	}
 
-	private int checkForJavadoc(IRNode node, ISrcRef ref) {
+	private int checkForJavadoc(IRNode node) {
 		if (!allowJavadoc) {
 			return 0;
 		}
-		IJavadocElement elt = ref.getJavadoc();
+		IJavadocElement elt = JavaNode.getJavadoc(node);
 		if (elt != null) {
 			for (Object o : elt) {
 				if (o instanceof IJavadocTag) {
