@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
+import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -73,11 +74,21 @@ public abstract class DropMatcher {
 		return value.trim();
 	}
 	
-	protected static Boolean matchStrings(String n, String o) {
+	protected static Boolean matchStrings(String n, String o, boolean startsWith) {
 		String nMsg = preprocess(n);
 		String oMsg = preprocess(o);
 		if (nMsg != null && oMsg != null) {
-			return nMsg.equals(oMsg);
+			boolean result = nMsg.equals(oMsg);
+			if (!result && startsWith) { 
+				// TODO hack for now
+				if (nMsg.startsWith(oMsg)) {
+					return true;
+				}
+				if (nMsg.replace("(\"", " ").replace("\")", "").equals(oMsg)) {
+					return true;
+				}
+			}
+			return result;
 		}
 		return null;
 	}
@@ -85,14 +96,14 @@ public abstract class DropMatcher {
 	protected static boolean matchMessage(IDrop n, IDrop o) {		
 		Boolean result;
 		if (!o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for summaries
-			result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical());
+			result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical(), false);
 			if (result != null && result.booleanValue()) {
 				// Return if true
 				// Otherwise, check the message
 				return result;
 			}
 		}
-		result = matchStrings(n.getMessage(), o.getMessage());
+		result = matchStrings(n.getMessage(), o.getMessage(), true);
 		return result != null ? result : false;
 	}
 	
@@ -131,7 +142,7 @@ public abstract class DropMatcher {
 	}
 	
 	protected static Long getOffset(IDrop d) {
-		ISrcRef ref = d.getSrcRef();
+		IJavaRef ref = d.getJavaRef();
 		if (ref != null) {
 			return (long) ref.getOffset();
 		}
