@@ -221,7 +221,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
           return null;
         }
         IJavaRef ref = d.getJavaRef();
-        String f = null;
+        String f = ref.getClasspathRelativePathname();
 //        if (ref != null) {
 //          String path = ref.getRelativePath();
 //          URI uri = ref.getEnclosingURI();
