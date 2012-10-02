@@ -1402,7 +1402,7 @@ public final class LockUtils {
      */
     final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
     final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);
-    boolean isEffectsWork = teDrop != null;
+    boolean isEffectsWork = teDrop != null && eDrop != null;
     if (isEffectsWork && declFx != null) {
       final Iterator<Effect> iter = declFx.iterator();
       while (isEffectsWork && iter.hasNext()) {
