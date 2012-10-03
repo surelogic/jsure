@@ -403,7 +403,7 @@
 			<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
 			<entry key="data-dir" value="${unit.test.dir}" />
 			<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
-			<entry key="classname" value="${jsure-tests-plugin-id}.AllUnitTests" />
+			<entry key="classname" value="${jsure-tests-plugin-id}.JUnitTestsRunByRegressionTest" />
 			<entry key="junit-report-output" value="${unit.test.dir}" />
 			<entry key="extraVMargs" value="-Dfluid.ir.path=${fluid.ir.path} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 		</propertyfile>
@@ -480,7 +480,7 @@
 		<echo message="${ln}" />
 		<echo message="JUNIT TEST RESULTS" />
 		<echo message="${ln}" />
-		<testResults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
+		<testResults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.JUnitTestsRunByRegressionTest.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
 
 		<!-- Sets the standard DSTAMP, TSTAMP, and TODAY properties -->
 		<tstamp/>

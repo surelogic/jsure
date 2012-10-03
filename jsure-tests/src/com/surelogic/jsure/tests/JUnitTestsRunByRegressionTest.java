@@ -15,9 +15,9 @@ import edu.cmu.cs.fluid.tree.TestTreePackage;
 import edu.cmu.cs.fluid.util.TestMultiMap;
 import edu.cmu.cs.fluid.version.TestVersionPackage;
 
-public class AllUnitTests extends TestSuite {
+public class JUnitTestsRunByRegressionTest extends TestSuite {
 
-  public AllUnitTests() {
+  public JUnitTestsRunByRegressionTest() {
     // Keep in order with junit-test-src folder
 
     // com.surelogic.common
@@ -58,6 +58,6 @@ public class AllUnitTests extends TestSuite {
   }
 
   public static junit.framework.Test suite() {
-    return new AllUnitTests();
+    return new JUnitTestsRunByRegressionTest();
   }
 }
