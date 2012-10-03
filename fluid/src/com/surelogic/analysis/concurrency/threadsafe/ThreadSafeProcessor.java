@@ -273,12 +273,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor<Threa
         }
       }
 
-      // Not sure where to put this now
-//      if (!isPrimitive) {
-//        // Propose that the field be vouched threadsafe
-//        folder.addProposal(new ProposedPromiseDrop(
-//            "Vouch", "ThreadSafe", varDecl, varDecl, Origin.MODEL));
-//      }
+      if (!isPrimitive) {
+        // Propose that the field be vouched threadsafe
+        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
+            "Vouch", "ThreadSafe", varDecl, varDecl, Origin.MODEL));
+      }
     }
   }
 }

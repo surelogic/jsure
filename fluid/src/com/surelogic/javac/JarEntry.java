@@ -88,6 +88,7 @@ public class JarEntry extends AbstractClassPathEntry {
 		System.out.println("Scanning "+dir.getAbsolutePath());
 		int i=0;
 		for(File f : dir.listFiles()) {
+			boolean createdPkg = false;
 			if (f.isDirectory()) {
 				initForJarDir(jp, loader, f, pkgPrefix == null ? f.getName() : pkgPrefix+'.'+f.getName());
 			}
@@ -95,6 +96,9 @@ public class JarEntry extends AbstractClassPathEntry {
 				final String name  = f.getName().substring(0, f.getName().length()-6).replace('$', '.');				
 				final String qname = pkgPrefix == null ? name : pkgPrefix+'.'+name;
 				loader.mapClass(jp.getName(), qname, project.getProject(), f);
+				if (!createdPkg) {
+					jp.getTypeEnv().addPackage(pkgPrefix == null ? "" : pkgPrefix);
+				}
 				System.out.println("\tMapping "+qname);
 				i++;
 			}

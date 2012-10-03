@@ -202,10 +202,9 @@ public final class ContainableProcessor extends
                 "Containable", null, t, varDecl, Origin.MODEL));
           }
 				}
-		    
-		    // Not sure where to put this now
-//		    folder.addProposal(new ProposedPromiseDrop(
-//		        "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
+	    
+				folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
+		        "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
 			}
 		}
 	}

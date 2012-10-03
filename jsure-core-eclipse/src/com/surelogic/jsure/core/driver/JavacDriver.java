@@ -40,6 +40,7 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSummary;
@@ -1967,6 +1968,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			NotificationHub.notifyAnalysisStarting();
 			try {
 				boolean ok = false;
+				JavacEclipse.getDefault().savePreferences(projects.getRunDir());
+				
 				if (useSeparateJVM) {
 					// Normally done by Javac, but needs to be repeated locally
 					final boolean noConflict;
@@ -1981,18 +1984,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					} else {
 						noConflict = true;
 					}
-					JavacEclipse.getDefault().savePreferences(
-							projects.getRunDir());
 					LocalJSureJob job = makeLocalJSureJob(projects);
 					SLStatus status = job.run(monitor);
 					if (status == SLStatus.OK_STATUS) {
-						ok = true;
-
-						final File runDir = projects.getRunDir();
-						// Unneeded after running the scan
-						FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
-						new File(runDir, JSureScan.INCOMPLETE_SCAN).delete();
-						new File(runDir, JSureScan.COMPLETE_SCAN).createNewFile();		
+						ok = true;	
 						
 						/*
 						// Normally done by Javac, but needs to be repeated
@@ -2022,8 +2017,22 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 							RemoteJSureRun.RESULTS_XML);
 					new SeaSnapshot(location).snapshot(
 							projects.getShortLabel(), Sea.getDefault());
+					SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
+			                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
+					System.out.println("Finished "+RemoteJSureRun.SUMMARIES_ZIP);
+					
+					// Create empty files
+					final File log = new File(projects.getRunDir(),
+							RemoteJSureRun.LOG_TXT);
+					log.createNewFile();
 				}
 				if (ok) {
+					final File runDir = projects.getRunDir();
+					// Unneeded after running the scan
+					FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
+					new File(runDir, JSureScan.INCOMPLETE_SCAN).delete();
+					new File(runDir, JSureScan.COMPLETE_SCAN).createNewFile();	
+					
 					JSureDataDirHub.getInstance().scanDirectoryAdded(
 							projects.getRunDir());
 				} else {
