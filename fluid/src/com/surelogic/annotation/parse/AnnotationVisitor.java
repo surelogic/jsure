@@ -135,8 +135,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
     IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance().getParseDropRule(promise);
     Context context = new Context(src, node, r, contents, offset, modifiers, props);
-    if (r == null && context.getSourceType() != AnnotationSource.JAVA_5){
-    	context.reportError(0, "Invalid promise: @"+promise);
+    if (r == null && context.getSourceType() != AnnotationSource.JAVA_5) {
+      SimpleAnnotationParsingContext.reportError(node, offset, "Javadoc @annotate '" + promise + "' is invalid");
     }
   	return context;
   }
