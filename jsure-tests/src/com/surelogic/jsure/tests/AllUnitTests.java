@@ -1,37 +1,60 @@
 package com.surelogic.jsure.tests;
 
 import junit.framework.TestSuite;
+
+import com.surelogic.common.TestFileUtility;
+import com.surelogic.common.TestJavaRef;
+import com.surelogic.common.adhoc.model.TestColumnAnnotationParser;
+import com.surelogic.dropsea.TestDrop;
+import com.surelogic.dropsea.TestSea;
+
 import edu.cmu.cs.fluid.ir.TestIRPackage;
 import edu.cmu.cs.fluid.java.analysis.TestJavaAnalysisPackage;
-import edu.cmu.cs.fluid.sea.test.*;
+import edu.cmu.cs.fluid.java.bind.TestJavaTypeCache2;
 import edu.cmu.cs.fluid.tree.TestTreePackage;
 import edu.cmu.cs.fluid.util.TestMultiMap;
 import edu.cmu.cs.fluid.version.TestVersionPackage;
 
 public class AllUnitTests extends TestSuite {
 
-	public AllUnitTests() {
-		addTest(new TestSuite(TestSea.class));
-		addTest(new TestSuite(TestDrop.class));
-		addTest(new TestSuite(TestPromiseDrop.class));
+  public AllUnitTests() {
+    // Keep in order with junit-test-src folder
 
-		addTest(new TestSuite(TestMultiMap.class));
-		// addTest(new TestSuite(TestUtilPackage.class));
-		addTest(new TestSuite(TestIRPackage.class));
-		addTest(new TestSuite(TestTreePackage.class));
+    // com.surelogic.common
+    addTest(new TestSuite(TestFileUtility.class));
+    addTest(new TestSuite(TestJavaRef.class));
 
-		// Has some problems running with unversioned tests
-		addTest(new TestSuite(TestVersionPackage.class));
+    // com.surelogic.dropsea
+    addTest(new TestSuite(TestSea.class));
+    addTest(new TestSuite(TestDrop.class));
 
-		addTest(new TestSuite(TestJavaAnalysisPackage.class));
-		addTest(new TestSuite(TestTaskFramework.class));
-		addTest(new TestSuite(TestSLAnnotationsParser.class));
-		addTest(new TestSuite(SLParseTest.class));
-		addTest(new TestSuite(TestScopedPromiseMatching.class));
-		addTest(new TestSuite(TestAASTCloning.class));
-	}
+    // com.surelogic.common.adhoc.model
+    addTest(new TestSuite(TestColumnAnnotationParser.class));
 
-	public static junit.framework.Test suite() {
-		return new AllUnitTests();
-	}
+    // edu.cmu.cs.fluid.ir
+    addTest(new TestSuite(TestIRPackage.class));
+
+    // edu.cmu.cs.fluid.java.analysis
+    addTest(new TestSuite(TestJavaAnalysisPackage.class));
+
+    // edu.cmu.cs.fluid.java.bind
+    addTest(new TestSuite(TestJavaTypeCache2.class));
+
+    addTest(new TestSuite(TestMultiMap.class));
+    // addTest(new TestSuite(TestUtilPackage.class));
+    addTest(new TestSuite(TestTreePackage.class));
+
+    // Has some problems running with unversioned tests
+    addTest(new TestSuite(TestVersionPackage.class));
+
+    addTest(new TestSuite(TestTaskFramework.class));
+    addTest(new TestSuite(TestSLAnnotationsParser.class));
+    addTest(new TestSuite(SLParseTest.class));
+    addTest(new TestSuite(TestScopedPromiseMatching.class));
+    addTest(new TestSuite(TestAASTCloning.class));
+  }
+
+  public static junit.framework.Test suite() {
+    return new AllUnitTests();
+  }
 }
