@@ -390,12 +390,21 @@ public final class JavaNames {
 		return new TypeNameBuilder(true, '$').build(decl);
 	}
 
-	/**
-	 * @return the name of the type inside this CU (no package)
-	 */
-	public static String getRelativeTypeName(final IRNode decl) {
-		return new TypeNameBuilder(false, '$').build(decl);
-	}
+  /**
+   * @return the name of the type inside this CU (no package). Nested types are
+   *         separated with a "$"
+   */
+  public static String getRelativeTypeName(final IRNode decl) {
+    return new TypeNameBuilder(false, '$').build(decl);
+  }
+
+  /**
+   * @return the name of the type inside this CU (no package). Nested types are
+   *         separated with a "."
+   */
+  public static String getRelativeTypeNameDotSep(final IRNode decl) {
+    return new TypeNameBuilder(false, '.').build(decl);
+  }
 
 	private static class TypeNameBuilder {
 		final StringBuilder name = new StringBuilder();

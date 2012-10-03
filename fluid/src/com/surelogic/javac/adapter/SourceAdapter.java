@@ -90,8 +90,11 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.FluidJavaRef;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
@@ -200,7 +203,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return null;
     }
     IRNode result = t.accept(this, context);
-    addSrcRef(t, result);
+    addJavaRefAndCheckForJavadocAnnotations(t, result);
     return result;
   }
 
@@ -270,10 +273,10 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     // Otherwise, no comment
   }
 
-  private ISrcRef addSrcRef(Tree t, IRNode result) {
+  private void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
     ISrcRef ref = JavaNode.getSrcRef(result);
     if (ref != null) {
-      return ref;
+      return;
     }
     long start = source.getStartPosition(root, t);
     long end = source.getEndPosition(root, t);
@@ -290,7 +293,28 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
     ref = new SourceRef(cuRef, start, end, line);
     JavaNode.setSrcRef(result, ref);
-    return ref;
+    /*
+     * Add Fluid JavaRef to the IRNode
+     */
+    final StringBuilder b = new StringBuilder();
+    final String pkgName = cuRef.getPackage();
+    if (pkgName != null)
+      b.append(pkgName);
+    b.append('/');
+    final String typName = JavaNames.getRelativeTypeNameDotSep(result);
+    b.append(typName);
+    final String relPath = cuRef.getRelativePath();
+    final String project = cuRef.getProjectName();
+    final FluidJavaRef.Builder builder = new FluidJavaRef.Builder(b.toString());
+    builder.setEclipseProjectName(project);
+    builder.setWorkspaceRelativePath(relPath);
+    builder.setLineNumber((int) line);
+    builder.setOffset((int) start);
+    builder.setLength((int) (end - start));
+    System.out.println(b.toString() + " : " + cuRef.getCUName());
+    final IFluidJavaRef javaRef = null; // TODO builder.build(); // or null TODO
+    if (javaRef != null)
+      JavaNode.setJavaRef(result, javaRef);
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment, final int declarationCommentOffset) {
@@ -355,7 +379,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   protected abstract class AbstractSourceFunction<T extends Tree> extends AbstractFunction<T> {
     public final IRNode call(T t, CodeContext context) {
       IRNode result = callFunc(t, context);
-      addSrcRef(t, result);
+      addJavaRefAndCheckForJavadocAnnotations(t, result);
       return result;
     }
 
@@ -437,7 +461,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     String id = v.getName().toString();
     id = CommonStrings.intern(id);
     IRNode rv = ParameterDeclaration.createNode(annos, mods, type, id);
-    addSrcRef(t, rv);
+    addJavaRefAndCheckForJavadocAnnotations(t, rv);
     return rv;
   }
 
@@ -462,7 +486,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String id = node.getName().toString();
       id = CommonStrings.intern(id);
       IRNode vd = VariableDeclarator.createNode(id, 0, init);
-      addSrcRef(node.getInitializer(), vd);
+      addJavaRefAndCheckForJavadocAnnotations(node.getInitializer(), vd);
 
       IRNode[] vars = new IRNode[] { vd };
       IRNode vdecls = VariableDeclarators.createNode(vars);
@@ -536,7 +560,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     default:
       rv = acceptNode(t, context);
     }
-    addSrcRef(t, rv);
+    addJavaRefAndCheckForJavadocAnnotations(t, rv);
     return rv;
   }
 
@@ -619,7 +643,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     } finally {
       if (rv != null) {
         findComment(node, rv);
-        addSrcRef(node, rv);
+        addJavaRefAndCheckForJavadocAnnotations(node, rv);
       }
     }
   }
@@ -808,7 +832,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       } else {
         rv = InterfaceDeclaration.createNode(annos, mods, id, formals, Extensions.createNode(impl), body);
       }
-      addSrcRef(node, rv);
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
       createRequiredInterfaceNodes(rv);
       return rv;
     }
@@ -820,7 +844,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       } else {
         rv = EnumDeclaration.createNode(annos, mods, id, impls, body);
       }
-      addSrcRef(node, rv);
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
       createRequiredClassNodes(rv);
       return rv;
     }
@@ -840,7 +864,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     } else {
       rv = ClassDeclaration.createNode(annos, mods, id, formals, ext, impls, body);
     }
-    addSrcRef(node, rv);
+    addJavaRefAndCheckForJavadocAnnotations(node, rv);
     createRequiredClassNodes(rv);
     return rv;
   }
@@ -853,7 +877,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String pkgName = CommonStrings.intern(node.getPackageName().toString());
       IRNode[] annos = map(acceptNodes, node.getPackageAnnotations(), context);
       pkg = NamedPackageDeclaration.createNode(Annotations.createNode(annos), pkgName);
-      addSrcRef(node, pkg);
+      addJavaRefAndCheckForJavadocAnnotations(node, pkg);
     }
     IRNode[] imports = augmentImports(map(acceptNodes, node.getImports(), context));
     IRNode[] types = map(acceptNodes, filterStmts(node.getTypeDecls()), context);
@@ -996,7 +1020,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String id = node.getName().toString();
       id = CommonStrings.intern(id);
       IRNode vd = VariableDeclarator.createNode(id, 0, init);
-      addSrcRef(node.getInitializer(), vd);
+      addJavaRefAndCheckForJavadocAnnotations(node.getInitializer(), vd);
       vars[0] = vd;
 
       IRNode vdecls = VariableDeclarators.createNode(vars);
@@ -1048,7 +1072,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return rv = SimpleName.createNode(id);
     } finally {
       if (rv != null) {
-        addSrcRef(node, rv);
+        addJavaRefAndCheckForJavadocAnnotations(node, rv);
       }
     }
   }
@@ -1191,7 +1215,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return rv = QualifiedName.createNode(e, id);
     } finally {
       if (rv != null) {
-        addSrcRef(node, rv);
+        addJavaRefAndCheckForJavadocAnnotations(node, rv);
       }
     }
   }
@@ -1361,7 +1385,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String name = getNextACEName();
       result = AnonClassExpression.createNode(result, body);
       JJNode.setInfo(result, name);
-      addSrcRef(node, result);
+      addJavaRefAndCheckForJavadocAnnotations(node, result);
       createRequiredAnonClassNodes(result);
     }
     if (oos != null) {
@@ -1549,7 +1573,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (vdt == null) {
       vdt = node;
     }
-    addSrcRef(vdt, vd);
+    addJavaRefAndCheckForJavadocAnnotations(vdt, vd);
 
     IRNode[] vars = new IRNode[] { vd };
     IRNode vdecls = VariableDeclarators.createNode(vars);
