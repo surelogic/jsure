@@ -670,7 +670,7 @@ public abstract class Drop implements IDrop {
     return result;
   }
 
-  public boolean hasAnyWarningHints() {
+  public boolean hasWarningHints() {
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
         if (d instanceof HintDrop)

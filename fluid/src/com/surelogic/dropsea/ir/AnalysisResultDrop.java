@@ -174,7 +174,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     // analysis result drops, by definition, can not start off with a red dot
     setProofUsesRedDot(false);
     setDerivedFromSrc(isFromSrc());
-    setDerivedFromWarningHint(hasAnyWarningHints());
+    setDerivedFromWarningHint(hasWarningHints());
   }
 
   @Override

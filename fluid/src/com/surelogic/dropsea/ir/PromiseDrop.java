@@ -535,7 +535,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     // if no immediate result drops are an "X" then we are consistent
     setProvedConsistent(true); // assume true
     setDerivedFromSrc(isFromSrc());
-    setDerivedFromWarningHint(hasAnyWarningHints());
+    setDerivedFromWarningHint(hasWarningHints());
 
     Collection<AnalysisResultDrop> analysisResults = getCheckedBy();
     for (AnalysisResultDrop result : analysisResults) {
