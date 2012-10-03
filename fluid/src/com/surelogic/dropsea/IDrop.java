@@ -134,12 +134,4 @@ public interface IDrop {
    * @return a hash.
    */
   Long getContextHash();
-
-  /**
-   * Gets the XML element name for this drop.
-   * 
-   * @return the XML element name for this drop.
-   */
-  @Deprecated
-  String getXMLElementName();
 }

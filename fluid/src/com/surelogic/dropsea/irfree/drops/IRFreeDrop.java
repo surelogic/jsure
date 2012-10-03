@@ -30,9 +30,6 @@ import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IDrop;
 
 public class IRFreeDrop implements IDrop {
-  @Deprecated
-  private final String f_xmlElementName; // TODO remove when SeaSummary is
-                                         // removed
 
   @NonNull
   private final Class<?> f_irDropSeaClass;
@@ -117,8 +114,6 @@ public class IRFreeDrop implements IDrop {
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
-
-    f_xmlElementName = e.getEntityName();
   }
 
   @Nullable
@@ -175,11 +170,6 @@ public class IRFreeDrop implements IDrop {
 
   public Long getContextHash() {
     return f_contextHash;
-  }
-
-  // TODO remove when SeaSummary is removed
-  public String getXMLElementName() {
-    return f_xmlElementName;
   }
 
   static int convert(String val) {
