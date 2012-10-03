@@ -404,8 +404,8 @@ public class JavaNode extends JJNode {
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
-  private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(IFluidJavaRef.SRC_REF_SLOT_NAME,
-      IFluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
+  private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FluidJavaRef.FLUID_JAVA_REF_SLOT_NAME,
+      FluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
 
   /**
    * Returns the SlotInfo to access the code reference information within Java

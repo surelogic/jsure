@@ -4,6 +4,11 @@ import com.surelogic.Immutable;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.JavaRef;
+import com.surelogic.javac.FileResource;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRObjectType;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 
 /**
  * Provides an implementation for code references within the JSure analysis and
@@ -13,6 +18,30 @@ import com.surelogic.common.JavaRef;
  */
 @Immutable
 public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
+
+  static final IRObjectType<IFluidJavaRef> FLUID_JAVA_REF_SLOT_TYPE = new IRObjectType<IFluidJavaRef>();
+  static final String FLUID_JAVA_REF_SLOT_NAME = "JavaNode.FluidJavaRef";
+
+  static final IRObjectType<FluidJavaRef.IRBuilder> FLUID_JAVA_REF_IRBUILDER_SLOT_TYPE = new IRObjectType<FluidJavaRef.IRBuilder>();
+  static final String FLUID_JAVA_REF_IRBUILDER_SLOT_NAME = "JavaNode.FluidJavaRef.IRBuilder";
+
+  public static final class IRBuilder {
+    private final int f_lineNumber;
+    private final int f_offset;
+    private final int f_length;
+    private final FileResource f_fileResource;
+
+    public IRBuilder(FileResource fileResource, int lineNumber, int offset, int length) {
+      f_fileResource = fileResource;
+      f_lineNumber = lineNumber;
+      f_offset = offset;
+      f_length = length;
+    }
+
+    public IFluidJavaRef buildOrNullOnFailure(IRNode node) {
+      return null;
+    }
+  }
 
   /**
    * Builder for {@link IFluidJavaRef} instances. Copy-and-modify is supported
