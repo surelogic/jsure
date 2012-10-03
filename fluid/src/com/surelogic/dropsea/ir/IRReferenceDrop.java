@@ -189,12 +189,12 @@ public abstract class IRReferenceDrop extends Drop {
   @NonNull
   public final List<ProposedPromiseDrop> getProposals() {
     synchronized (f_seaLock) {
-      List<ProposedPromiseDrop> fromSubtypes = getConditionalProposals();
-      if (f_proposals == null && fromSubtypes.isEmpty())
+      final List<ProposedPromiseDrop> conditionalProposals = getConditionalProposals();
+      if (f_proposals == null && conditionalProposals.isEmpty())
         return Collections.emptyList();
       else {
-        List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>(f_proposals);
-        result.addAll(fromSubtypes);
+        final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>(f_proposals);
+        result.addAll(conditionalProposals);
         return result;
       }
     }
