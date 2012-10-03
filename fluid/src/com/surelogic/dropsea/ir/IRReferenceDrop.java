@@ -193,7 +193,9 @@ public abstract class IRReferenceDrop extends Drop {
       if (f_proposals == null && conditionalProposals.isEmpty())
         return Collections.emptyList();
       else {
-        final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>(f_proposals);
+        final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
+        if (f_proposals != null)
+          result.addAll(f_proposals);
         result.addAll(conditionalProposals);
         return result;
       }
