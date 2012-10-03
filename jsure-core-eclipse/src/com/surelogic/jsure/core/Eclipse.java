@@ -315,8 +315,6 @@ public final class Eclipse extends IDE {
 		if (n == null) {
 			// n = new MarkedIRNode(name);
 			n = edu.cmu.cs.fluid.java.promise.TextFile.createNode(name);
-			ISrcRef ref = null; // SrcRef.getInstance(0, 0, 0, res, null);
-			JavaNode.setSrcRef(n, ref);
 			nodeMap.put(name, n);
 			nodeMap.put(res, n);
 		}
