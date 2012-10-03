@@ -9,6 +9,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -208,10 +209,11 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
   @RequiresLock("SeaLock")
   @NonNull
   protected List<ProposedPromiseDrop> getConditionalProposals() {
-    if (f_proposalsNotProvedConsistent == null)
-      return super.getConditionalProposals();
-    else
-      return f_proposalsNotProvedConsistent;
+    if (!provedConsistent()) {
+      if (f_proposalsNotProvedConsistent != null)
+        return f_proposalsNotProvedConsistent;
+    }
+    return Collections.emptyList();
   }
 
   /**
