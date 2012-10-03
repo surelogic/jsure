@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Display;
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.IJavaRef;
+import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 @Utility
@@ -36,11 +37,20 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final boolean duplicate = hasAncestorWithSameDrop(element);
-        final String label;
+        String label;
         if (duplicate) {
           label = "\u2191  " + element.getLabel();
         } else {
           label = element.getLabel();
+        }
+        if (element instanceof ElementResultFolderDrop) {
+          IResultFolderDrop folder = ((ElementResultFolderDrop) element).getDrop();
+          if (folder.getLogicOperator() == IResultFolderDrop.LogicOperator.OR) {
+            final String prefix = "(CHOICE)  ";
+            label = prefix + label;
+            StyleRange[] ranges = { new StyleRange(0, prefix.length(), getOnClauseColor(), null) };
+            cell.setStyleRanges(ranges);
+          }
         }
         cell.setText(label);
         cell.setImage(element.getImage());
@@ -52,7 +62,6 @@ public final class ColumnLabelProviderUtility {
             cell.setStyleRanges(ranges);
           }
         }
-
         if (element instanceof ElementCategory) {
           if (label.endsWith(")")) {
             int start = label.lastIndexOf('(');
