@@ -1,7 +1,5 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ENCLOSED_IN_FOLDER;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,7 +15,6 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
 
   private final List<IRFreePromiseDrop> f_checkedPromises = new ArrayList<IRFreePromiseDrop>(0);;
   private final List<IRFreeProofDrop> f_trusted = new ArrayList<IRFreeProofDrop>(0);
-  private final boolean f_isInResultFolder;
 
   void addCheckedPromise(IRFreePromiseDrop info) {
     f_checkedPromises.add(info);
@@ -29,7 +26,6 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
 
   IRFreeAnalysisResultDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
-    f_isInResultFolder = "true".equals(e.getAttribute(ENCLOSED_IN_FOLDER));
   }
 
   public boolean hasChecked() {
@@ -47,9 +43,5 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
 
   public boolean hasTrusted() {
     return !f_trusted.isEmpty();
-  }
-
-  public boolean isInResultFolder() {
-    return f_isInResultFolder;
   }
 }

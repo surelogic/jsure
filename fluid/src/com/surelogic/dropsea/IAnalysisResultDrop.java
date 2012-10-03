@@ -32,14 +32,6 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
   Collection<? extends IPromiseDrop> getChecked();
 
   /**
-   * Checks if this result is within an analysis results folder.
-   * 
-   * @return {@code true} if this result is within a results folder,
-   *         {@code false} otherwise.
-   */
-  boolean isInResultFolder();
-
-  /**
    * Checks if this drop has any prerequisite assertions at all. For a results
    * folder, this method checks if any proof drops are in the folder.
    * 

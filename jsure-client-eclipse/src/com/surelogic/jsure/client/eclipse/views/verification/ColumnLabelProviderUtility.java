@@ -20,7 +20,7 @@ public final class ColumnLabelProviderUtility {
 
     private Color f_onClauseColor;
 
-    private Color getOnClauseColor() {
+    private Color getSpecialColor() {
       if (f_onClauseColor == null) {
         f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
         Display.getCurrent().disposeExec(new Runnable() {
@@ -37,18 +37,18 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final boolean duplicate = hasAncestorWithSameDrop(element);
-        String label;
-        if (duplicate) {
-          label = "\u2191  " + element.getLabel();
-        } else {
-          label = element.getLabel();
-        }
-        if (element instanceof ElementResultFolderDrop) {
-          IResultFolderDrop folder = ((ElementResultFolderDrop) element).getDrop();
-          if (folder.getLogicOperator() == IResultFolderDrop.LogicOperator.OR) {
-            final String prefix = "(CHOICE)  ";
-            label = prefix + label;
-            StyleRange[] ranges = { new StyleRange(0, prefix.length(), getOnClauseColor(), null) };
+        String label = element.getLabel();
+        if (duplicate)
+          label = "\u2191  " + label;
+
+        if (element instanceof ElementAnalysisResultDrop) {
+          final Element parent = element.getParent();
+          final boolean parentIsAnOrFolder = parent instanceof ElementResultFolderDrop
+              && ((ElementResultFolderDrop) parent).getDrop().getLogicOperator() == IResultFolderDrop.LogicOperator.OR;
+          if (parentIsAnOrFolder) {
+            final String OR = "(or)  ";
+            label = OR + label;
+            StyleRange[] ranges = { new StyleRange(0, OR.length(), getSpecialColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -58,7 +58,7 @@ public final class ColumnLabelProviderUtility {
         if (element instanceof ElementPromiseDrop) {
           int index = label.indexOf(" on ");
           if (index != -1) {
-            StyleRange[] ranges = { new StyleRange(index, label.length() - index, getOnClauseColor(), null) };
+            StyleRange[] ranges = { new StyleRange(index, label.length() - index, getSpecialColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -66,7 +66,7 @@ public final class ColumnLabelProviderUtility {
           if (label.endsWith(")")) {
             int start = label.lastIndexOf('(');
             if (start != -1) {
-              StyleRange[] ranges = { new StyleRange(start, label.length() - start, getOnClauseColor(), null) };
+              StyleRange[] ranges = { new StyleRange(start, label.length() - start, getSpecialColor(), null) };
               cell.setStyleRanges(ranges);
             }
           }
