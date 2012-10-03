@@ -7,7 +7,7 @@ import com.surelogic.aast.INodeVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 
 public class UniqueNode extends AbstractBooleanNode 
 { 
@@ -38,7 +38,7 @@ public class UniqueNode extends AbstractBooleanNode
   @Override
   public String unparseForPromise() {
 	  final IRNode node = getPromisedFor();
-	  if (VariableDeclarator.prototype.includes(node)) {
+	  if (VariableDeclaration.prototype.includes(node)) {
 		  return "Unique"+(allowRead ? "(allowRead=true)" : "");
 	  }
 	  return "Unique(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
