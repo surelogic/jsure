@@ -1,6 +1,5 @@
 package com.surelogic.jsure.views.debug.resultsView.actions;
 
-import java.io.IOException;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IFile;
@@ -18,7 +17,6 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -82,18 +80,8 @@ public class ExportToSnapshot implements IViewActionDelegate {
         return;
       }
     }
-    
-    try {
-    	if (RegressionUtility.useSnapshotOracles) {
-    		FileUtility.copy(scan.getJSureRun().getResultsFile(), oracleFile.getLocation().toFile());
-    	} else {
-    		SeaSummary.summarize(resultsBelongTo.getName(), 
-    				scan.getDropInfo(), 
-    				oracleFile.getLocation().toFile());
-    	}
-	} catch (IOException e1) {
-		e1.printStackTrace();
-	}
+       
+    FileUtility.copy(scan.getJSureRun().getResultsFile(), oracleFile.getLocation().toFile());
     
     /* Refresh the worksapce to pick up the new file.  There has to be
      * better way to create the IFile directly, but I cannot find one.

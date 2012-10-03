@@ -7,15 +7,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.URI;
 import java.util.*;
 
-import com.surelogic.common.FileUtility;
 import com.surelogic.common.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.util.CPair;
 
 /**
@@ -197,6 +194,12 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     return false;
   }
 
+  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer)
+  throws Exception {
+	  Collection<IDrop> newerResults = SeaSnapshot.loadSnapshot(newer);
+	  return diff(f, old, newerResults);
+  }
+  
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, Collection<? extends IDrop> newer)
       throws Exception {
     Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);

@@ -43,7 +43,7 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.SeaSummary;
+import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.*;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
@@ -655,15 +655,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			try {
 				final String path = computePrefix();
 				final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-				if (RegressionUtility.useSnapshotOracles) {
-					FileUtility.copy(info.getJSureRun().getResultsFile(), location);
-				} else {
-					SeaSummary.summarize("workspace", info.getDropInfo(), location);
-				}
+				FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+					
 				printToScript(ScriptCommands.COMPARE_RESULTS + " workspace "
 						+ path + '/' + name + " " + path + "/../" + prefix
 						+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -698,7 +695,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 						System.out.println("\nUpdated " + f.getName() + ": \t"
 								+ oldLength + " -> " + f.length());
 						try {
-							final ISeaDiff d = SeaSummary.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER,
+							final ISeaDiff d = 
+								SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER,
 									new File(deletedDir, f.getName()), f);
 							if (d.isEmpty()) {
 								System.out.println("\tNo differences.");

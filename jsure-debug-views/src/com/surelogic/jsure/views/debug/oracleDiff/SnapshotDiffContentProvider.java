@@ -73,11 +73,9 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 					file = RegressionUtility.findOracle(file.getParentFile().getParent());		
 				}
 				if (file != null) {
-					if (RegressionUtility.snapshotOracleFilter.accept(file.getParentFile(), file.getName())) {
-						diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, file, info);
-					} else {
-						diff = SeaSummary.diff(info, file, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
-					}
+					diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
+							file, info);
+
 					if (diff != null) {
 						return scan.getLabel();
 					}

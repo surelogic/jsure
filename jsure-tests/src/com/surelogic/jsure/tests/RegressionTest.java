@@ -38,7 +38,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
@@ -615,12 +614,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			return resultsOk;
 		}
 		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);		
-		ISeaDiff diff;
-		if (RegressionUtility.snapshotOracleFilter.accept(xmlLocation.getParentFile(), xmlLocation.getName())) {
-			diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, xmlLocation, newResults);
-		} else {
-			diff = SeaSummary.diff(newResults, xmlLocation, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
-		}
+		ISeaDiff diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
+				xmlLocation, newResults);
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)

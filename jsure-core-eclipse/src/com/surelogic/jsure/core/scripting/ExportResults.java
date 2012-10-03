@@ -9,7 +9,6 @@ import org.eclipse.core.resources.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.dropsea.irfree.SeaSummary;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -32,35 +31,27 @@ public class ExportResults extends AbstractCommand {
 		//ws.getRoot().getFullPath().toFile();
 
 		// Export the results from this run
-		try {
-			File location = null;
-			String loc = contents[2];
-			if (loc.contains("/") || loc.contains("\\")) {
-				location = resolveFile(context, loc, true);
-			}
-			if (location == null) {
-				String name;
-				if (loc.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX)) {
-					name = loc;
-				} else {
-					name = loc + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
-				}
-				location = new File(workspaceFile, name);
-			}
-			final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-			if (RegressionUtility.useSnapshotOracles) {
-				FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+		File location = null;
+		String loc = contents[2];
+		if (loc.contains("/") || loc.contains("\\")) {
+			location = resolveFile(context, loc, true);
+		}
+		if (location == null) {
+			String name;
+			if (loc.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX)) {
+				name = loc;
 			} else {
-				SeaSummary.summarize(info.findProjectsLabel(), info.getDropInfo(), location);
+				name = loc + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 			}
+			location = new File(workspaceFile, name);
+		}
+		final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+		boolean success = FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+		if (success) {
 			System.out.println("Exported: "+location);
 			assert (location.exists());
-		} catch (FileNotFoundException e) {
-			System.out.println("Problem while creating results:");
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Problem while closing results:");
-			e.printStackTrace();
+		} else {
+			System.out.println("Problem while copying results");
 		}
 		return false;
 	}
