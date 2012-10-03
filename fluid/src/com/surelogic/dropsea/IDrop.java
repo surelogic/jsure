@@ -102,10 +102,11 @@ public interface IDrop {
   IJavaRef getJavaRef();
 
   /**
-   * Gets the set of proposed promises for this drop.
+   * Gets the set of proposed promises for this drop. The returned list is a
+   * copy and may be modified.
    * 
-   * @return the, possibly empty but non-null, set of proposed promises for this
-   *         drop.
+   * @return the possibly empty set of proposed promises for this drop. The
+   *         returned list is a copy and may be modified.
    */
   @NonNull
   Collection<? extends IProposedPromiseDrop> getProposals();

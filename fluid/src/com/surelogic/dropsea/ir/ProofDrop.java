@@ -7,6 +7,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
@@ -192,6 +194,41 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
     synchronized (f_seaLock) {
       setMessageWhenProvedConsistent(whenConsistent, args);
       setMessageWhenNotProvedConsistent(whenInconsistent, args);
+    }
+  }
+
+  /**
+   * Holds the set of promises proposed by this drop if not proved consistent.
+   */
+  @InRegion("DropState")
+  @UniqueInRegion("DropState")
+  private List<ProposedPromiseDrop> f_proposalsNotProvedConsistent = null;
+
+  @Override
+  @RequiresLock("SeaLock")
+  @NonNull
+  protected List<ProposedPromiseDrop> getConditionalProposals() {
+    if (f_proposalsNotProvedConsistent == null)
+      return super.getConditionalProposals();
+    else
+      return f_proposalsNotProvedConsistent;
+  }
+
+  /**
+   * Adds a proposed promise to this drop that will only be proposed to the tool
+   * user when this drop is not proved consistent.
+   * 
+   * @param proposal
+   *          the proposed promise.
+   */
+  public final void addProposalNotProvedConsistent(ProposedPromiseDrop proposal) {
+    if (proposal != null) {
+      synchronized (f_seaLock) {
+        if (f_proposalsNotProvedConsistent == null) {
+          f_proposalsNotProvedConsistent = new ArrayList<ProposedPromiseDrop>(1);
+        }
+        f_proposalsNotProvedConsistent.add(proposal);
+      }
     }
   }
 

@@ -11,6 +11,7 @@ import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -153,8 +154,23 @@ public abstract class IRReferenceDrop extends Drop {
   private List<ProposedPromiseDrop> f_proposals = null;
 
   /**
-   * Adds a proposed promise to this drop. Typically this is done to
-   * {@link ResultDrop}s.
+   * Asks subtypes if they have any other proposals to add to the set of
+   * promises proposed by this drop.
+   * <p>
+   * It is okay to return a reference to an internal collection because
+   * {@link #getProposals()} will copy the elements out of the returned
+   * collection and not keep an alias.
+   * 
+   * @return a possibly empty list of proposed promises.
+   */
+  @RequiresLock("SeaLock")
+  @NonNull
+  protected List<ProposedPromiseDrop> getConditionalProposals() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * Adds a proposed promise to this drop for the tool user to consider.
    * 
    * @param proposal
    *          the proposed promise.
@@ -170,20 +186,17 @@ public abstract class IRReferenceDrop extends Drop {
     }
   }
 
-  /**
-   * Gets the set of proposed promises for this drop. The returned list may not
-   * be modified.
-   * 
-   * @return the, possibly empty but non-null, set of proposed promises for this
-   *         drop. The returned list may not be modified.
-   */
   @NonNull
   public final List<ProposedPromiseDrop> getProposals() {
     synchronized (f_seaLock) {
-      if (f_proposals == null)
+      List<ProposedPromiseDrop> fromSubtypes = getConditionalProposals();
+      if (f_proposals == null && fromSubtypes.isEmpty())
         return Collections.emptyList();
-      else
-        return Collections.unmodifiableList(f_proposals);
+      else {
+        List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>(f_proposals);
+        result.addAll(fromSubtypes);
+        return result;
+      }
     }
   }
 
