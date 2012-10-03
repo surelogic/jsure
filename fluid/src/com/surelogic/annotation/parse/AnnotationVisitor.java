@@ -134,8 +134,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
     String contents = (c == null) ? "" : c;
 
     IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance().getParseDropRule(promise);
-
-    return new Context(src, node, r, contents, offset, modifiers, props);
+    Context context = new Context(src, node, r, contents, offset, modifiers, props);
+    if (r == null && context.getSourceType() != AnnotationSource.JAVA_5){
+    	context.reportError(0, "Invalid promise: @"+promise);
+    }
+  	return context;
   }
 
   // FIX needs more info about where the contents are coming from
@@ -147,9 +150,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
         context.getRule().parse(context, context.getAllText());
         return context.createdAAST();
-      } else {
-        // FIX throw new Error("No rule for "+promise);
-        // System.out.println("No rule for "+promise);
       }
     } catch (Exception e) {
       if (e instanceof RecognitionException) {
