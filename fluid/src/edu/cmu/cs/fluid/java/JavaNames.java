@@ -255,13 +255,17 @@ public final class JavaNames {
 		return sb.toString();
 	}
 
+	/**
+	 * Outer.Inner.foo(int,Object)
+	 * Separated by dots
+	 */
 	public static String genRelativeFunctionName(final IRNode node) {
 		if (node == null) {
 			return "(n/a)";
 		}
 		// add the type we found the method within (could be the promised type)
 		final IRNode enclosingType = VisitUtil.getEnclosingType(node);
-		final String typeName = getRelativeTypeName(enclosingType);
+		final String typeName = getRelativeTypeNameDotSep(enclosingType);
 		final StringBuilder sb = new StringBuilder(typeName);
 		addTargetName(sb.append('.'), node, false);
 		return sb.toString();
@@ -544,6 +548,10 @@ public final class JavaNames {
 		return getFullTypeName(type) + '.' + getFieldDecl(node);
 	}
 	
+	/**
+     * Outer.Inner.foo(int,Object)
+	 * Separated by dots
+	 */
 	public static String getRelativeName(final IRNode node) {
 		if (node == null) {
 			return "Null";
@@ -556,7 +564,7 @@ public final class JavaNames {
 			return genRelativeFunctionName(node);
 		}
 		if (op instanceof TypeDeclInterface) {
-			return getRelativeTypeName(node);
+			return getRelativeTypeNameDotSep(node);
 		}
 		if (NamedPackageDeclaration.prototype.includes(op)) {
 			return NamedPackageDeclaration.getId(node);
@@ -565,7 +573,7 @@ public final class JavaNames {
 		if (type == null) {
 			return getFieldDecl(node);
 		}
-		return getRelativeTypeName(type) + '.' + getFieldDecl(node);
+		return getRelativeTypeNameDotSep(type) + '.' + getFieldDecl(node);
 	}
 
 	public static String unparseType(final IRNode type) {
