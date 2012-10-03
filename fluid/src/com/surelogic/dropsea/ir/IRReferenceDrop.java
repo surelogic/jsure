@@ -76,11 +76,11 @@ public abstract class IRReferenceDrop extends Drop {
   @Override
   @Nullable
   public IFluidJavaRef getJavaRef() {
-    final IFluidJavaRef javaRef = JavaNode.getJavaRef(f_node);
+    final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(f_node);
     if (javaRef != null)
       return javaRef;
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
-    return JavaNode.getJavaRef(parent);
+    return JavaNode.getFluidJavaRef(parent);
   }
 
   /**

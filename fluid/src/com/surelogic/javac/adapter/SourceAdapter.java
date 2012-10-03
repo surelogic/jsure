@@ -91,10 +91,8 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.FluidJavaRef;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
@@ -296,25 +294,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     /*
      * Add Fluid JavaRef to the IRNode
      */
-    final StringBuilder b = new StringBuilder();
-    final String pkgName = cuRef.getPackage();
-    if (pkgName != null)
-      b.append(pkgName);
-    b.append('/');
-    final String typName = JavaNames.getRelativeTypeNameDotSep(result);
-    b.append(typName);
-    final String relPath = cuRef.getRelativePath();
-    final String project = cuRef.getProjectName();
-    final FluidJavaRef.Builder builder = new FluidJavaRef.Builder(b.toString());
-    builder.setEclipseProjectName(project);
-    builder.setWorkspaceRelativePath(relPath);
-    builder.setLineNumber((int) line);
-    builder.setOffset((int) start);
-    builder.setLength((int) (end - start));
-//    System.out.println(b.toString() + " : " + cuRef.getCUName());
-//    final IFluidJavaRef javaRef = null; // TODO builder.build(); // or null TODO
-//    if (javaRef != null)
-//      JavaNode.setJavaRef(result, javaRef);
+    final FluidJavaRef.IRBuilder builder = new FluidJavaRef.IRBuilder(cuRef, (int) line, (int) start, (int) (end - start));
+    JavaNode.setFluidJavaRefIrBuilder(result, builder);
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment, final int declarationCommentOffset) {

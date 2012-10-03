@@ -129,9 +129,9 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     f_origin = origin;
 
     if (contents == null) {
-    	setMessage(18, annotation);
+      setMessage(18, annotation);
     } else {
-    	setMessage(10, annotation, contents);
+      setMessage(10, annotation, contents);
     }
   }
 
@@ -302,10 +302,10 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   }
 
   public IJavaRef getAssumptionRef() {
-    final IJavaRef ref = JavaNode.getJavaRef(f_requestedFrom);
+    final IJavaRef ref = JavaNode.getFluidJavaRef(f_requestedFrom);
     if (ref == null) {
       final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
-      return JavaNode.getJavaRef(parent);
+      return JavaNode.getFluidJavaRef(parent);
     }
     return ref;
   }

@@ -11,6 +11,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.tree.SyntaxTreeNode;
@@ -404,49 +405,45 @@ public class JavaNode extends JJNode {
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
+  private static final SlotInfo<FluidJavaRef.IRBuilder> f_fluidJavaRefIrBuilderSlotInfo = getVersionedSlotInfo(
+      FluidJavaRef.FLUID_JAVA_REF_IRBUILDER_SLOT_NAME, FluidJavaRef.FLUID_JAVA_REF_IRBUILDER_SLOT_TYPE);
   private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FluidJavaRef.FLUID_JAVA_REF_SLOT_NAME,
       FluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
 
-  /**
-   * Returns the SlotInfo to access the code reference information within Java
-   * IR nodes.
-   */
-  private static SlotInfo<IFluidJavaRef> getFluidJavaRefSlotInfo() {
-    return f_fluidJavaRefSlotInfo;
-  }
-
-  /**
-   * Sets the passed code reference on the passed IRNode.
-   * 
-   * @param node
-   *          an IRNode which should have binding information.
-   * @param ref
-   *          a Java code reference.
-   */
-  public static void setJavaRef(IRNode node, IFluidJavaRef ref) {
-    if (ref == null) {
-      return;
-    }
-    node.setSlotValue(getFluidJavaRefSlotInfo(), ref);
+  public static void setFluidJavaRefIrBuilder(IRNode node, FluidJavaRef.IRBuilder builder) {
+    node.setSlotValue(f_fluidJavaRefIrBuilderSlotInfo, builder);
   }
 
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java code
    * reference information, or {@code null} if none exists.
+   * <p>
+   * <i>Implementation note:</i> This call constructs and cache the code
+   * reference from a {@link FluidJavaRef.IRBuilder} object place on the node
+   * during fAST construction.
    * 
    * @param node
    *          an IRNode which should have binding information.
    * @return a Java code reference, or {@code null} if none exists.
    */
-  public static IFluidJavaRef getJavaRef(IRNode node) {
+  @Nullable
+  public static IFluidJavaRef getFluidJavaRef(IRNode node) {
     if (node == null) {
       return null;
     }
-    final SlotInfo<IFluidJavaRef> srcSlotInfo = getFluidJavaRefSlotInfo();
-    if (!node.valueExists(srcSlotInfo)) {
-      return null;
+    if (node.valueExists(f_fluidJavaRefSlotInfo))
+      return node.getSlotValue(f_fluidJavaRefSlotInfo);
+    else {
+      if (node.valueExists(f_fluidJavaRefIrBuilderSlotInfo)) {
+        final FluidJavaRef.IRBuilder builder = node.getSlotValue(f_fluidJavaRefIrBuilderSlotInfo);
+        if (builder != null) {
+          final IFluidJavaRef javaRef = builder.buildOrNullOnFailure(node);
+          node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
+          return javaRef;
+        }
+      }
     }
-    return node.getSlotValue(srcSlotInfo);
+    return null;
   }
 
   /**
