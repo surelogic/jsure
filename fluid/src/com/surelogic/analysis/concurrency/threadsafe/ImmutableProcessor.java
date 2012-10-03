@@ -181,10 +181,11 @@ public final class ImmutableProcessor extends TypeImplementationProcessor<Immuta
               Origin.MODEL));
         }
       }        
- 
-      // Not sure where to put this now
-//      folder.addProposal(new ProposedPromiseDrop("Vouch",
-//          "Immutable", varDecl, varDecl, Origin.MODEL));
+
+      if (!isPrimitive) {
+        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop("Vouch",
+            "Immutable", varDecl, varDecl, Origin.MODEL));
+      }
     }
   }
 }
