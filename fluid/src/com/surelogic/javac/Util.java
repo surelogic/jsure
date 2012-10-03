@@ -41,7 +41,6 @@ import com.surelogic.analysis.GroupedAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.threads.ThreadEffectsAnalysis;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -65,6 +64,7 @@ import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.CUDropClearOutAfterAnalysisProofHook;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticConsistencyProofHook;
@@ -334,7 +334,7 @@ public class Util {
     boolean result = process(projects, analyze);
     if (noConflict) {
       final Projects merged = projects.merge(oldProjects);
-      //pd.setProjects(merged);
+      // pd.setProjects(merged);
       // System.out.println("Merged projects: "+merged.getLabel());
     }
     return result;
@@ -448,7 +448,9 @@ public class Util {
     if (analyze) {
       // These are all the SourceCUDrops for this project
       final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
-      final IParallelArray<SourceCUDrop> allCuds = cuds;//findSourceCUDrops(null, singleThreaded, pool);
+      final IParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
+                                                        // singleThreaded,
+                                                        // pool);
 
       times = analyzeCUs(env, projects, analyses, cuds, allCuds, singleThreaded);
       env.done();
@@ -460,12 +462,14 @@ public class Util {
     System.out.println("Updating consistency proof");
     final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
     final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticConsistencyProofHook();
+    final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
     Sea.getDefault().addConsistencyProofHook(vouchHook);
     Sea.getDefault().addConsistencyProofHook(staticHook);
+    Sea.getDefault().addConsistencyProofHook(cuDropHook);
     Sea.getDefault().updateConsistencyProof();
+    Sea.getDefault().removeConsistencyProofHook(cuDropHook);
     Sea.getDefault().removeConsistencyProofHook(staticHook);
     Sea.getDefault().removeConsistencyProofHook(vouchHook);
-    
 
     final long export = System.currentTimeMillis();
 
@@ -690,11 +694,10 @@ public class Util {
   /**
    * Gets every drop if pd is null
    */
-  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded,
-      final ForkJoinExecutor pool) {
+  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinExecutor pool) {
     final IParallelArray<SourceCUDrop> cuds = createArray(singleThreaded, SourceCUDrop.class, pool);
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
-    	cuds.asList().add(scud);      
+      cuds.asList().add(scud);
     }
     return cuds;
   }
