@@ -40,12 +40,15 @@ public class AllUnitTests extends TestSuite {
     // edu.cmu.cs.fluid.java.bind
     addTest(new TestSuite(TestJavaTypeCache2.class));
 
-    addTest(new TestSuite(TestMultiMap.class));
-    // addTest(new TestSuite(TestUtilPackage.class));
+    // edu.cmu.cs.fluid.tree
     addTest(new TestSuite(TestTreePackage.class));
 
-    // Has some problems running with unversioned tests
+    // edu.cmu.cd.fluid.util
+    addTest(new TestSuite(TestMultiMap.class));
+
+    // edu.cmu.cs.fluid.version
     addTest(new TestSuite(TestVersionPackage.class));
+    // ^ Has some problems running with unversioned tests
 
     addTest(new TestSuite(TestTaskFramework.class));
     addTest(new TestSuite(TestSLAnnotationsParser.class));
