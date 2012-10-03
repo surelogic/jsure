@@ -293,7 +293,7 @@ public class JSureScan implements Comparable<JSureScan> {
 			resultsZip = new File(f_scanDir, PersistenceConstants.RESULTS_ZIP);
 			info = new HashMap<String, JSureFileInfo>();
 		}
-		if (!resultsZip.exists()) {
+		if (!resultsZip.exists() || resultsZip.length() == 0) {
 			// System.out.println("No results: "+resultsZip);
 			return Collections.emptyMap();
 		}

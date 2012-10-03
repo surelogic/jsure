@@ -138,7 +138,7 @@ public class JSureDataDirScanner {
 				// Check for results
 				final File results = new File(scan.getDir(),
 						PersistenceConstants.RESULTS_ZIP);
-				if (!results.exists()) {
+				if (!results.exists() || results.length() == 0) {
 					continue;
 				}
 				// Collect up all the sources
