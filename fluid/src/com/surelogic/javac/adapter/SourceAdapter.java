@@ -311,10 +311,10 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     builder.setLineNumber((int) line);
     builder.setOffset((int) start);
     builder.setLength((int) (end - start));
-    System.out.println(b.toString() + " : " + cuRef.getCUName());
-    final IFluidJavaRef javaRef = null; // TODO builder.build(); // or null TODO
-    if (javaRef != null)
-      JavaNode.setJavaRef(result, javaRef);
+//    System.out.println(b.toString() + " : " + cuRef.getCUName());
+//    final IFluidJavaRef javaRef = null; // TODO builder.build(); // or null TODO
+//    if (javaRef != null)
+//      JavaNode.setJavaRef(result, javaRef);
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment, final int declarationCommentOffset) {
@@ -367,13 +367,6 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return null; // if empty so won't store on IRNode
     else
       return javadocAnnotations;
-  }
-
-  @SuppressWarnings("unused")
-  private void cloneSrcRef(ISrcRef ref, IRNode... nodes) {
-    for (IRNode n : nodes) {
-      JavaNode.setSrcRef(n, ref);
-    }
   }
 
   protected abstract class AbstractSourceFunction<T extends Tree> extends AbstractFunction<T> {

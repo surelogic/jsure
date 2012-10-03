@@ -114,8 +114,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
     @Override
     public IFluidJavaRef build() {
-      return new FluidJavaRef(f_within, f_typeNameFullyQualifiedSureLogic, f_typeType, f_eclipseProjectName, f_lineNumber,
-          f_offset, f_length, f_javaId, f_enclosingJavaId, f_workspaceRelativePath);
+      return new FluidJavaRef(f_within, getEncodedNames(), f_typeType, f_lineNumber, f_offset, f_length, f_javaId,
+          f_enclosingJavaId, f_workspaceRelativePath);
     }
 
     @Override
@@ -130,12 +130,10 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
   }
 
-  protected FluidJavaRef(final @NonNull Within within, final @NonNull String typeNameFullyQualifiedSureLogic,
-      final @Nullable TypeType typeTypeOrNullifUnknown, final @Nullable String eclipseProjectNameOrNullIfUnknown,
+  protected FluidJavaRef(final @NonNull Within within, final @NonNull String encodedNames, final @NonNull TypeType typeType,
       final int lineNumber, final int offset, final int length, final @Nullable String javaIdOrNull,
       final @Nullable String enclosingJavaIdOrNull, final @Nullable String workspaceRelativePathOrNull) {
-    super(within, typeNameFullyQualifiedSureLogic, typeTypeOrNullifUnknown, eclipseProjectNameOrNullIfUnknown, lineNumber, offset,
-        length, javaIdOrNull, enclosingJavaIdOrNull);
+    super(within, encodedNames, typeType, lineNumber, offset, length, javaIdOrNull, enclosingJavaIdOrNull);
     f_workspaceRelativePath = workspaceRelativePathOrNull;
   }
 
