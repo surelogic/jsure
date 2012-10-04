@@ -101,6 +101,8 @@ final class ModificationManagerImpl implements ModificationManager {
 	Version.saveVersion( startVersion ); 
 	try { 
 		runner.run(); 
+    } catch (final Exception e) {
+        LOG.log(Level.SEVERE, "Exception from Runnable: "+e.getMessage(), e);
 	} finally { 
 		final Version endVersion = Version.getVersion(); 
 		if (!endVersion.equals(startVersion)) {
