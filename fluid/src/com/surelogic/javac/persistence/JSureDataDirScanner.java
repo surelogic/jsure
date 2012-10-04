@@ -161,7 +161,7 @@ public class JSureDataDirScanner {
 				ZipFile resultsZip = new ZipFile(results);
 				for (String path : sources) {
 					if (resultsZip.getEntry(path) == null) {
-						System.out.println("No results for " + path);
+						//System.out.println("No results for " + path);
 					}
 				}
 			} catch (Exception e) {
