@@ -80,33 +80,36 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	public void run() {
 		IDE.runAtMarker(new AbstractRunner() {
 			public void run() {
-				if (SLLogger.getLogger().isLoggable(Level.FINER)) {
-					SLLogger.getLogger().finer(
-							"Running "
-									+ AbstractHierarchyScrubber.this.getClass()
-											.getName());
-				}
-				switch (scrubberType) {
-				case UNORDERED:
-					/* Eliminated due to @Assume's need to process by type
+				try {
+					if (SLLogger.getLogger().isLoggable(Level.FINER)) {
+						SLLogger.getLogger().finer(
+								"Running "
+								+ AbstractHierarchyScrubber.this.getClass()
+								.getName());
+					}					
+					switch (scrubberType) {
+					case UNORDERED:
+						/* Eliminated due to @Assume's need to process by type
 					scrub(cls);
 					return;
-					*/
-				case BY_TYPE:
-					scrubByPromisedFor_Type();
-					return;
-				case BY_HIERARCHY:
-				case INCLUDE_SUBTYPES_BY_HIERARCHY:
-				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy();
-					return;
-				case DIY:
-					scrubAll(getNullCallback(), getRelevantAnnotations());
-					return;
-				case OTHER:
-					throw new UnsupportedOperationException();
+						 */
+					case BY_TYPE:
+						scrubByPromisedFor_Type();
+						return;
+					case BY_HIERARCHY:
+					case INCLUDE_SUBTYPES_BY_HIERARCHY:
+					case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
+						scrubByPromisedFor_Hierarchy();
+						return;
+					case DIY:
+						scrubAll(getNullCallback(), getRelevantAnnotations());
+						return;
+					case OTHER:
+						throw new UnsupportedOperationException();
+					}
+				} finally {
+					finishRun();
 				}
-				finishRun();
 			}
 		});	
 	}
