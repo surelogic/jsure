@@ -1835,7 +1835,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 			if (monitor.isCanceled()) {
 				return SLStatus.CANCEL_STATUS;
 			}
-			final boolean runRemote = !XUtil.profile && ignoreNature;
+			final boolean runRemote = !XUtil.runJSureInMemory && ignoreNature;
 			doBuild(projects, args, monitor, runRemote);
 			return SLStatus.OK_STATUS;
 		}
