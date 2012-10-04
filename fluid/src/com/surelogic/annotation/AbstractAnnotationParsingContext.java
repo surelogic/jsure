@@ -20,7 +20,7 @@ import edu.cmu.cs.fluid.util.*;
 public abstract class AbstractAnnotationParsingContext implements
 ITestAnnotationParsingContext {
   private final AnnotationSource srcType;
-  protected boolean hadProblem = true;
+  protected boolean hadProblem = false;
   protected boolean createdAAST = false;
   
   protected AbstractAnnotationParsingContext(AnnotationSource src) {
