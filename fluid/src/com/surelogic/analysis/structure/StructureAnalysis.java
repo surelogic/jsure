@@ -2,6 +2,7 @@
 package com.surelogic.analysis.structure;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -19,10 +20,11 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.MustInvokeOnOverridePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
-import edu.cmu.cs.fluid.java.operator.Visitor;
+import edu.cmu.cs.fluid.java.operator.TreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.IntegerTable;
@@ -54,7 +56,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 	}
 	
 	@Override
-	public void init(IIRAnalysisEnvironment env) {
+	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
 		// Precompute the set of methods that could override
 		preFilter = new MultiHashMap<String, Integer>();
 		for(final MustInvokeOnOverridePromiseDrop d : 
@@ -91,10 +93,12 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 					IBinding parent = StructureRules.findParentWithMustInvokeOnOverride(getAnalysis().getBinder(), n);					
 					if (parent != null) {
 						ResultDrop rd = new ResultDrop(n);
+						rd.setMessage("Overridden by "+JavaNames.genRelativeFunctionName(n));
 						rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
+						rd.addChecked(StructureRules.getMustInvokeDrop(parent.getNode()));
 						
 						// Check if it really invokes the parent
-						final boolean found = getAnalysis().doAccept(cu);
+						final boolean found = getAnalysis().findSuperCall(n, parent);
 						rd.setConsistent(found);		
 					}
 				}
@@ -109,11 +113,17 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		return super.analyzeEnd(env, p);
 	}
 	
-	class PerThreadInfo extends Visitor<Boolean> implements IBinderClient {
+	class PerThreadInfo extends TreeWalkVisitor<Boolean> implements IBinderClient {
 		final IBinder b;
+		IBinding parentToMatch;
 		
 		PerThreadInfo(IBinder binder) {
 			b = binder;
+		}
+
+		public boolean findSuperCall(IRNode n, IBinding parent) {
+			parentToMatch = parent;
+			return doAccept(n);
 		}
 
 //		@Override
@@ -125,10 +135,28 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		public void clearCaches() {
 			// Nothing to do yet
 		}
-		
+
 		@Override
-		public Boolean visitEqualityExpression(IRNode node) {
-			return null;
+		protected Boolean mergeResults(List<Boolean> results) {
+			boolean result = false;
+			for(Boolean b : results) {
+				if (b != null) {
+					result |= b.booleanValue();
+				}
+			}
+			return result;
+		}
+	
+		@Override
+		public Boolean visitMethodCall(IRNode node) {
+			IBinding b =  this.b.getIBinding(node);
+			if (b.equals(parentToMatch)) {
+				return true;
+			}
+			if (b.getNode() == parentToMatch.getNode()) {
+				return true;
+			}
+			return false;
 		}
 	}
 }

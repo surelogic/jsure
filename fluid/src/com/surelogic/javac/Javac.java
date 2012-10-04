@@ -17,6 +17,7 @@ import com.surelogic.analysis.effects.EffectsAnalysis;
 import com.surelogic.analysis.equality.EqualityAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
+import com.surelogic.analysis.structure.StructureAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
 import com.surelogic.analysis.testing.CollectMethodCallsModule;
 import com.surelogic.analysis.testing.DefinitelyAssignedModule;
@@ -50,6 +51,10 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
 		init(LayersAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");
+		if (XUtil.useExperimental()) {
+			init(StructureAnalysis.class,
+				"com.surelogic.jsure.client.eclipse.StructureAssurance", false, "Structure analysis");
+		}
 		init(EffectsAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 		
