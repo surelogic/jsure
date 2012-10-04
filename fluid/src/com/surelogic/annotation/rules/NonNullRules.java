@@ -46,10 +46,10 @@ public class NonNullRules extends AnnotationRules {
 	
 	@Override
 	public void register(PromiseFramework fw) {
-		fw.registerParseDropRule(nonNullRule);
-		fw.registerParseDropRule(nullableRule);
-		fw.registerParseDropRule(rawRule);
-	}
+		registerParseRuleStorage(fw, nonNullRule);
+		registerParseRuleStorage(fw, nullableRule);
+		registerParseRuleStorage(fw, rawRule);
+	} 
 
 	public static class Raw_ParseRule extends DefaultBooleanAnnotationParseRule<RawNode,RawPromiseDrop> {
 		public Raw_ParseRule() {
