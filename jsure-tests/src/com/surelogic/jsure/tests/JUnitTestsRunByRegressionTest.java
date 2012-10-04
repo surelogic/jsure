@@ -3,8 +3,9 @@ package com.surelogic.jsure.tests;
 import junit.framework.TestSuite;
 
 import com.surelogic.common.TestFileUtility;
-import com.surelogic.common.TestJavaRef;
 import com.surelogic.common.adhoc.model.TestColumnAnnotationParser;
+import com.surelogic.common.ref.TestDecl;
+import com.surelogic.common.ref.TestJavaRef;
 import com.surelogic.dropsea.TestDrop;
 import com.surelogic.dropsea.TestSea;
 
@@ -22,7 +23,10 @@ public class JUnitTestsRunByRegressionTest extends TestSuite {
 
     // com.surelogic.common
     addTest(new TestSuite(TestFileUtility.class));
+
+    // com.surelogic.common.ref
     addTest(new TestSuite(TestJavaRef.class));
+    addTest(new TestSuite(TestDecl.class));
 
     // com.surelogic.dropsea
     addTest(new TestSuite(TestSea.class));
