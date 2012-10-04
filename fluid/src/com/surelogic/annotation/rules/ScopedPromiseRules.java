@@ -154,15 +154,20 @@ public class ScopedPromiseRules extends AnnotationRules {
           context.reportError(0, "Incompatible targets for " + sp.getPromise());
           return null;
         }
+        boolean ok = false;
         if (contextOp == Operator.prototype) {
           // Applies to anything that the rule applies to
-          contextOp = r.getOps(null)[0];
+          for(Operator rop : r.getOps(null)) {          
+        	  if (canBeParsed(context, r, parser.content, rop)) {
+        		  ok = true;
+        		  break;
+        	  }
+          }
+        } else {
+        	ok = canBeParsed(context, r, parser.content, contextOp); 
         }
-        Proxy proxy = new Proxy(context, r, contextOp, parser.content);
-        r.parse(proxy, parser.content);
-        if (!proxy.createdAAST() && !proxy.hadProblem()) {
-          context.reportError(0, "No AAST created from " + sp.getPromise());
-          return null;
+        if (!ok) {
+        	context.reportError(sp.getOffset(), "Unable to parse @"+parser.tag+"("+parser.content+")");
         }
       } else {
         context.reportError(0, "No rule for @" + parser.tag);
@@ -172,6 +177,15 @@ public class ScopedPromiseRules extends AnnotationRules {
       return rewrap(c, sp);
     }
 
+    private boolean canBeParsed(AbstractAnnotationParsingContext context, IAnnotationParseRule<?, ?> r, String content, Operator op) {
+        Proxy proxy = new Proxy(context, r, op, content);
+        r.parse(proxy, content);
+        if (!proxy.createdAAST() && !proxy.hadProblem()) {
+            throw new IllegalStateException("No AAST created from rule for "+r+" "+content);
+        }
+        return proxy.createdAAST();
+    }
+    
     protected abstract AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp);
   }
 
@@ -527,7 +541,6 @@ public class ScopedPromiseRules extends AnnotationRules {
    */
   static class Proxy extends AnnotationParsingContextProxy {
     final IAnnotationParseRule<?, ?> rule;
-    private boolean reported;
     private final Operator op;
     private final String contents;
 
@@ -544,9 +557,14 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     public boolean createdAAST() {
-      return reported;
+      return createdAAST;
     }
 
+    @Override
+    public boolean hadProblem() {
+      return hadProblem;
+    }
+    
     @Override
     public Operator getOp() {
       return op;
@@ -554,7 +572,12 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
-      reported = true;
+      createdAAST = true;
+    }
+    
+    @Override
+    public void reportError(int offset, String msg) {
+    	hadProblem = true;
     }
   }
 
