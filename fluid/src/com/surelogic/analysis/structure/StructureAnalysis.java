@@ -1,8 +1,7 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.structure;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -50,6 +49,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 	}
 	
 	MultiMap<String,Integer> preFilter;
+	final Map<IRNode,MustInvokeOnOverridePromiseDrop> unchecked = new HashMap<IRNode, MustInvokeOnOverridePromiseDrop>();
 	
 	private static Integer numChildren(IRNode params) {
 		return IntegerTable.newInteger(JJNode.tree.numChildren(params));
@@ -92,14 +92,23 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 				if (preFilterMatches(n)) {
 					IBinding parent = StructureRules.findParentWithMustInvokeOnOverride(getAnalysis().getBinder(), n);					
 					if (parent != null) {
-						ResultDrop rd = new ResultDrop(n);
-						rd.setMessage("Overridden by "+JavaNames.genRelativeFunctionName(n));
+						synchronized (unchecked) {
+							unchecked.remove(parent.getNode());
+						}						
+						// Check if it really invokes the parent						
+						final IRNode call = getAnalysis().findSuperCall(n, parent);
+						final ResultDrop rd;
+						if (call != null) {
+							rd = new ResultDrop(call);
+							rd.setMessage("Invoked in "+JavaNames.genRelativeFunctionName(n));
+							rd.setConsistent();
+						} else {
+							rd = new ResultDrop(n);
+							rd.setMessage("Not invoked in "+JavaNames.genRelativeFunctionName(n));
+							rd.setInconsistent();
+						}
 						rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
-						rd.addChecked(StructureRules.getMustInvokeDrop(parent.getNode()));
-						
-						// Check if it really invokes the parent
-						final boolean found = getAnalysis().findSuperCall(n, parent);
-						rd.setConsistent(found);		
+						rd.addChecked(StructureRules.getMustInvokeDrop(parent.getNode()));	
 					}
 				}
 			}
@@ -113,7 +122,18 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		return super.analyzeEnd(env, p);
 	}
 	
-	class PerThreadInfo extends TreeWalkVisitor<Boolean> implements IBinderClient {
+	@Override
+	public void finish(IIRAnalysisEnvironment env) {
+		for(MustInvokeOnOverridePromiseDrop d : unchecked.values()) {
+			ResultDrop rd = new ResultDrop(d.getPromisedFor());
+			rd.setMessage("Trivially satisfied because there are no known overrides");
+			rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
+			rd.addChecked(d);
+			rd.setConsistent();
+		}
+	}
+	
+	class PerThreadInfo extends TreeWalkVisitor<IRNode> implements IBinderClient {
 		final IBinder b;
 		IBinding parentToMatch;
 		
@@ -121,7 +141,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 			b = binder;
 		}
 
-		public boolean findSuperCall(IRNode n, IBinding parent) {
+		public IRNode findSuperCall(IRNode n, IBinding parent) {
 			parentToMatch = parent;
 			return doAccept(n);
 		}
@@ -137,26 +157,25 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		}
 
 		@Override
-		protected Boolean mergeResults(List<Boolean> results) {
-			boolean result = false;
-			for(Boolean b : results) {
+		protected IRNode mergeResults(List<IRNode> results) {
+			for(IRNode b : results) {
 				if (b != null) {
-					result |= b.booleanValue();
+					return b;
 				}
 			}
-			return result;
+			return null;
 		}
 	
 		@Override
-		public Boolean visitMethodCall(IRNode node) {
+		public IRNode visitMethodCall(IRNode node) {
 			IBinding b =  this.b.getIBinding(node);
 			if (b.equals(parentToMatch)) {
-				return true;
+				return node;
 			}
 			if (b.getNode() == parentToMatch.getNode()) {
-				return true;
+				return node;
 			}
-			return false;
+			return null;
 		}
 	}
 }
