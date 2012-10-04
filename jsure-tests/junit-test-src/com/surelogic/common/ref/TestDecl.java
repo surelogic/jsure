@@ -51,6 +51,10 @@ public class TestDecl extends TestCase {
     assertEquals("org", p.getName());
     assertNull(p.getParent());
 
+    p = new Decl.ClassBuilder("Foo").setFormalTypeParameters("<E>").build();
+    assertSame(IDecl.Kind.CLASS, p.getKind());
+    assertEquals("<E>", p.getFormalTypeParameters());
+
     try { // empty nested packages
       p = new Decl.ClassBuilder("111").build();
       fail("111 was a legal class naem");
