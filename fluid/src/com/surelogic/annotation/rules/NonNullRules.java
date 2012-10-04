@@ -101,7 +101,7 @@ public class NonNullRules extends AnnotationRules {
 		}
 		if (MethodDeclaration.prototype.includes(context.getOp())) {
 			// Only allows "return"
-			return parser.nonNullMethod();
+			return parser.nonNullMethod().getTree();
 		} else {
 			// For parameters and fields 
 			return parser.nothing().getTree();
