@@ -2,8 +2,8 @@ package edu.cmu.cs.fluid.java;
 
 import com.surelogic.Nullable;
 import com.surelogic.ThreadSafe;
-import com.surelogic.common.IJavaRef;
-import com.surelogic.common.JavaRef.Builder;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef.Builder;
 
 /**
  * Interface for code references within the JSure analysis and infrastructure.

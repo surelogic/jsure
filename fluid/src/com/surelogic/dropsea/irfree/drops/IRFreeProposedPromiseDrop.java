@@ -18,9 +18,9 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;

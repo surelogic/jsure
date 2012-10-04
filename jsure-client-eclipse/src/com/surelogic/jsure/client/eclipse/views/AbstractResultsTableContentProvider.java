@@ -7,7 +7,7 @@ import java.util.List;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 
 public abstract class AbstractResultsTableContentProvider<T extends IDrop> implements IResultsTableContentProvider {

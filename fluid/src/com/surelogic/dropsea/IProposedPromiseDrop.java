@@ -2,7 +2,7 @@ package com.surelogic.dropsea;
 
 import java.util.Map;
 
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 

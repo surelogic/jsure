@@ -12,8 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.IViewable;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 

@@ -28,8 +28,8 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.IJavaRef;
-import com.surelogic.common.JavaRef;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;

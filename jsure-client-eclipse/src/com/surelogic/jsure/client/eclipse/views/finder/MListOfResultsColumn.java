@@ -21,8 +21,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.EclipseUIUtility;

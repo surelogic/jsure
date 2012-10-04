@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.java;
 import com.surelogic.Immutable;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.JavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.javac.FileResource;
 
 import edu.cmu.cs.fluid.ir.IRNode;

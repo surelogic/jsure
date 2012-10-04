@@ -19,8 +19,8 @@ import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.TextEdit;
 
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
 import com.surelogic.common.refactor.Field;

@@ -1,5 +1,8 @@
 package com.surelogic.common;
 
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
+
 import edu.cmu.cs.fluid.java.FluidJavaRef;
 import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import junit.framework.TestCase;

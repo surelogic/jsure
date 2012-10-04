@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.Utility;
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.irfree.IDropFilter;

@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;

@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.surelogic.NonNull;
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;

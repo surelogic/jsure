@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.*;
 
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 

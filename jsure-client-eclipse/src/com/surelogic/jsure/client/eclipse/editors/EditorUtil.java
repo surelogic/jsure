@@ -18,10 +18,10 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;

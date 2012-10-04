@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;

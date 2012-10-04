@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.IJavaRef;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 

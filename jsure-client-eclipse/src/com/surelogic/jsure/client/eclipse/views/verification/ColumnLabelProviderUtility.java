@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.IJavaRef;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
