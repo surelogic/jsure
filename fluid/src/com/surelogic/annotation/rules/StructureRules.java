@@ -41,7 +41,7 @@ public class StructureRules extends AnnotationRules {
 	static class MustInvokeOnOverride_ParseRule extends 
 	SimpleBooleanAnnotationParseRule<MustInvokeOnOverrideNode,MustInvokeOnOverridePromiseDrop> {
 		protected MustInvokeOnOverride_ParseRule() {
-			super(MUST_INVOKE_ON_OVERRIDE, typeDeclOps, MustInvokeOnOverrideNode.class);
+			super(MUST_INVOKE_ON_OVERRIDE, methodDeclOp, MustInvokeOnOverrideNode.class);
 		}	
 		
 		@Override

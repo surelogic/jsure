@@ -37,7 +37,8 @@ extends AbstractAnnotationParseRule<A,P> {
       return ParseResult.FAIL;
     }
     try {
-      AASTAdaptor.Node tn    = (AASTAdaptor.Node) parse(context, SLParse.prototype.initParser(contents));
+      Object result = parse(context, SLParse.prototype.initParser(contents));
+      AASTAdaptor.Node tn    = (AASTAdaptor.Node) result;
       if (tn == null) {
         return ParseResult.FAIL;
       }
