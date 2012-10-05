@@ -3,6 +3,7 @@ package com.surelogic.common.ref;
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ref.Decl.ParameterBuilder;
 import com.surelogic.common.ref.IDecl.Visibility;
 
 public class TestDecl extends TestCase {
@@ -282,6 +283,24 @@ public class TestDecl extends TestCase {
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent().getParent());
+
+    p = new Decl.MethodBuilder("Foo").setParent(parent).setFormalTypeParameters("<E>").build();
+    assertSame(IDecl.Kind.METHOD, p.getKind());
+    assertEquals("<E>", p.getFormalTypeParameters());
+
+    try {
+      p = new Decl.MethodBuilder("111").setParent(parent).build();
+      fail("111 was a legal method name");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try { // abstract and final class
+      p = new Decl.MethodBuilder("Foo").setParent(parent).setIsAbstract(true).setIsFinal(true).build();
+      fail("Foo was allowed to be both abstract and final");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
   }
 
   public void testPackageBuilder() {
@@ -354,8 +373,26 @@ public class TestDecl extends TestCase {
       // good
     }
   }
-  
+
   public void testParameterBuilder() {
-    // todo
+    IDecl jlo = new Decl.ClassBuilder("Object").setParent(new Decl.PackageBuilder("java.lang")).build();
+    // java.lang.String
+    IDecl string = new Decl.ClassBuilder("String").setParent(new Decl.PackageBuilder("java.lang")).build();
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+
+    Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(string);
+    b.setParent(parent);
+
+    Decl.ParameterBuilder param = new Decl.ParameterBuilder(0, "foo");
+    param.setTypeOf(jlo);
+    param.setParent(b);
+    IDecl p = param.build();
+    
+   // new Decl.ParameterBuilder(254).setParent(b).setTypeOf(jlo).build();
   }
 }
