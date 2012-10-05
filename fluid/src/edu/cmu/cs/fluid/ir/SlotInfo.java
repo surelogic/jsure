@@ -209,6 +209,9 @@ public abstract class SlotInfo<T> extends IRObservable {
 		// Nothing to do
 	}
 
+	/**
+	 * Remove invalid nodes
+	 */
 	public static synchronized void gc() {
 		if (!AbstractIRNode.checkIfNumDestroyed(1000)) {
 			return;
