@@ -55,9 +55,9 @@ public class TestDecl extends TestCase {
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("<E>", p.getFormalTypeParameters());
 
-    try { // empty nested packages
+    try {
       p = new Decl.ClassBuilder("111").build();
-      fail("111 was a legal class naem");
+      fail("111 was a legal class name");
     } catch (IllegalArgumentException expected) {
       // good
     }
@@ -65,6 +65,185 @@ public class TestDecl extends TestCase {
     try { // abstract and final class
       p = new Decl.ClassBuilder("Foo").setIsAbstract(true).setIsFinal(true).build();
       fail("Foo was allowed to be both abstract and final");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+  }
+
+  public void testConstructorBuilder() {
+    // java.lang.Object
+    IDecl jlo = new Decl.ClassBuilder("Object").setParent(new Decl.PackageBuilder("java.lang")).build();
+    // java.lang.String
+    IDecl string = new Decl.ClassBuilder("String").setParent(new Decl.PackageBuilder("java.lang")).build();
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+
+    Decl.ConstructorBuilder b = new Decl.ConstructorBuilder();
+    // parameters: (Object, Object, String)
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(string);
+    b.setParent(parent);
+    IDecl p = b.build();
+
+    assertSame(IDecl.Kind.CONSTRUCTOR, p.getKind());
+    assertEquals("MyType", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals("", p.getFormalTypeParameters());
+    IDecl[] paramaterTypes = p.getFormalParameterTypes();
+    assertEquals(3, paramaterTypes.length);
+    assertEquals(jlo, paramaterTypes[0]);
+    assertEquals(jlo, paramaterTypes[1]);
+    assertEquals(string, paramaterTypes[2]);
+    assertNull(p.getTypeOf());
+    assertEquals("MyType", p.getParent().getName());
+    assertEquals("surelogic", p.getParent().getParent().getName());
+    assertEquals("com", p.getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent());
+  }
+
+  public void testEnumBuilder() {
+    IDecl p = new Decl.EnumBuilder("Foo").build();
+    assertSame(IDecl.Kind.ENUM, p.getKind());
+    assertEquals("Foo", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals("", p.getFormalTypeParameters());
+    assertEquals(0, p.getFormalParameterTypes().length);
+    assertNull(p.getTypeOf());
+    assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
+    assertNull(p.getParent().getParent());
+
+    p = new Decl.EnumBuilder("Foo").setVisibility(Visibility.DEFAULT).build();
+    assertSame(IDecl.Kind.ENUM, p.getKind());
+    assertEquals("Foo", p.getName());
+    assertSame(Visibility.DEFAULT, p.getVisiblity());
+
+    try {
+      p = new Decl.EnumBuilder("111").build();
+      fail("111 was a legal enum name");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+  }
+
+  public void testFieldBuilder() {
+    // java.lang.Object
+    IDecl jlo = new Decl.ClassBuilder("Object").setParent(new Decl.PackageBuilder("java.lang")).build();
+
+    Decl.FieldBuilder b = new Decl.FieldBuilder("f_field");
+    b.setTypeOf(jlo);
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+
+    b.setParent(parent);
+    b.setVisibility(Visibility.PRIVATE);
+    IDecl p = b.build();
+
+    assertSame(IDecl.Kind.FIELD, p.getKind());
+    assertEquals("f_field", p.getName());
+    assertSame(Visibility.PRIVATE, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals(jlo, p.getTypeOf());
+    assertEquals("", p.getFormalTypeParameters());
+    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals("MyType", p.getParent().getName());
+    assertEquals("surelogic", p.getParent().getParent().getName());
+    assertEquals("com", p.getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent());
+
+    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setParent(parent).setTypeOf(jlo).build();
+    assertTrue(p.isFinal());
+    assertTrue(p.isStatic());
+
+    try {
+      p = new Decl.FieldBuilder("111").setParent(parent).setTypeOf(jlo).build();
+      fail("111 was a legal field name");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+  }
+
+  public void testInitializerBuilder() {
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+
+    Decl.InitializerBuilder b = new Decl.InitializerBuilder();
+    b.setParent(parent);
+    IDecl p = b.build();
+    assertSame(IDecl.Kind.INITIALIZER, p.getKind());
+    assertEquals("", p.getName());
+    assertSame(Visibility.NA, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertNull(p.getTypeOf());
+    assertEquals("", p.getFormalTypeParameters());
+    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals("MyType", p.getParent().getName());
+    assertEquals("surelogic", p.getParent().getParent().getName());
+    assertEquals("com", p.getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent());
+
+    p = new Decl.InitializerBuilder().setParent(parent).setIsStatic(true).build();
+    assertTrue(p.isStatic());
+  }
+
+  public void testInterfaceBuilder() {
+    IDecl p = new Decl.InterfaceBuilder("Foo").build();
+    assertSame(IDecl.Kind.INTERFACE, p.getKind());
+    assertEquals("Foo", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals("", p.getFormalTypeParameters());
+    assertEquals(0, p.getFormalParameterTypes().length);
+    assertNull(p.getTypeOf());
+    assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
+    assertNull(p.getParent().getParent());
+
+    Decl.InterfaceBuilder inner = new Decl.InterfaceBuilder("Inner");
+    Decl.InterfaceBuilder outer = new Decl.InterfaceBuilder("Outer");
+    Decl.PackageBuilder pkg = new Decl.PackageBuilder("org.apache");
+    outer.setParent(pkg);
+    inner.setParent(outer);
+    inner.setVisibility(Visibility.PRIVATE);
+    p = inner.build();
+    assertSame(IDecl.Kind.INTERFACE, p.getKind());
+    assertEquals("Inner", p.getName());
+    assertSame(Visibility.PRIVATE, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    p = p.getParent();
+    assertSame(IDecl.Kind.INTERFACE, p.getKind());
+    assertEquals("Outer", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    p = p.getParent();
+    assertSame(IDecl.Kind.PACKAGE, p.getKind());
+    assertEquals("apache", p.getName());
+    p = p.getParent();
+    assertSame(IDecl.Kind.PACKAGE, p.getKind());
+    assertEquals("org", p.getName());
+    assertNull(p.getParent());
+
+    p = new Decl.InterfaceBuilder("Foo").setFormalTypeParameters("<E>").build();
+    assertSame(IDecl.Kind.INTERFACE, p.getKind());
+    assertEquals("<E>", p.getFormalTypeParameters());
+
+    try {
+      p = new Decl.InterfaceBuilder("111").build();
+      fail("111 was a legal class name");
     } catch (IllegalArgumentException expected) {
       // good
     }
