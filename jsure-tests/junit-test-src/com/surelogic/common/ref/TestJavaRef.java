@@ -242,5 +242,4 @@ public final class TestJavaRef extends TestCase {
     assertNull(r.getJavaId());
     assertEquals("javaId", r.getEnclosingJavaId());
   }
-
 }

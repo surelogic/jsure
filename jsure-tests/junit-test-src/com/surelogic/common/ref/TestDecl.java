@@ -3,7 +3,6 @@ package com.surelogic.common.ref;
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.ref.Decl.ParameterBuilder;
 import com.surelogic.common.ref.IDecl.Visibility;
 
 public class TestDecl extends TestCase {
@@ -295,7 +294,7 @@ public class TestDecl extends TestCase {
       // good
     }
 
-    try { // abstract and final class
+    try {
       p = new Decl.MethodBuilder("Foo").setParent(parent).setIsAbstract(true).setIsFinal(true).build();
       fail("Foo was allowed to be both abstract and final");
     } catch (IllegalArgumentException expected) {
@@ -356,7 +355,7 @@ public class TestDecl extends TestCase {
       // good
     }
 
-    try { // illegal package name
+    try {
       p = new Decl.PackageBuilder("com.surelogic.333.edu").build();
       fail("package name 333 was allowed");
     } catch (IllegalArgumentException expected) {
@@ -392,7 +391,41 @@ public class TestDecl extends TestCase {
     param.setTypeOf(jlo);
     param.setParent(b);
     IDecl p = param.build();
-    
-   // new Decl.ParameterBuilder(254).setParent(b).setTypeOf(jlo).build();
+    assertSame(IDecl.Kind.PARAMETER, p.getKind());
+    assertEquals("foo", p.getName());
+    assertSame(Visibility.NA, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals("", p.getFormalTypeParameters());
+    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(jlo, p.getTypeOf());
+    assertEquals("processSomething", p.getParent().getName());
+    assertEquals("MyType", p.getParent().getParent().getName());
+    assertEquals("surelogic", p.getParent().getParent().getParent().getName());
+    assertEquals("com", p.getParent().getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent().getParent());
+
+    p = new Decl.ParameterBuilder(0).setParent(b).setTypeOf(jlo).setIsFinal(true).build();
+    assertTrue(p.isFinal());
+
+    try {
+      new Decl.ParameterBuilder(1, "111").setParent(b).setTypeOf(jlo).build();
+      fail("111 was a legal parameter name");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
+      new Decl.ParameterBuilder(-1).setParent(b).setTypeOf(jlo).build();
+      fail("argnum of -1 was allowed");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
+      new Decl.ParameterBuilder(255).setParent(b).setTypeOf(jlo).build();
+      fail("argnum of 255 was allowed");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
   }
 }
