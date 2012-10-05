@@ -10,6 +10,11 @@ public operator EnumDeclaration extends TypeDeclaration implements FlowUnit
     typeBinding=Declared
   }
 
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.ENUM;
+  }  
+
   @Override public Component createComponent(IRNode node) {
     return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
   }

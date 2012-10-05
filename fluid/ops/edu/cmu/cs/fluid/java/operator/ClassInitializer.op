@@ -17,4 +17,9 @@ public operator ClassInitializer extends ClassBodyDeclaration {
     id=""
   } 
   */ 
+  
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.INITIALIZER;
+  }
 }

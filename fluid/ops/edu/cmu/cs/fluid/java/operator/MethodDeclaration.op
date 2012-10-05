@@ -16,6 +16,11 @@ public operator MethodDeclaration extends SomeFunctionDeclaration
     binding=Method 
   }
   
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.METHOD;
+  }  
+  
   @Override public Component createComponent(IRNode node) {
     Component comp = new Component(node,1,1,0);
     ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());

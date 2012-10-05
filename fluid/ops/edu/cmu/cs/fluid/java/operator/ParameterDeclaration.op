@@ -10,4 +10,8 @@ public operator ParameterDeclaration extends VariableDeclaration
     binding=Variable  
     bindsToType=Type 
   }  
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.PARAMETER;
+  }
 }

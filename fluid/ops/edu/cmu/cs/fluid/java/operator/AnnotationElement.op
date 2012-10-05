@@ -10,7 +10,8 @@ public operator AnnotationElement extends SomeFunctionDeclaration /* TODO implem
     value:OptDefaultValue
   }
 
-  // @Override public Component createComponent(IRNode node) {
-  //  return null; // TODO
-  // }
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.METHOD;
+  }
 }

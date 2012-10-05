@@ -12,6 +12,11 @@ public operator ClassDeclaration extends TypeDeclaration implements DripOperator
     typeBinding=Declared
   }
   
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.CLASS;
+  }  
+  
   public static Component createTypeDeclComponent(IRNode node, int bodyNum, boolean nested) {
     Component comp = new Component(node,nested?1:0, nested?1:0 ,0);
     if (nested) {

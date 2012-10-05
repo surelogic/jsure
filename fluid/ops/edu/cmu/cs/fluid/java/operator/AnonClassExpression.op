@@ -12,6 +12,10 @@ public operator AnonClassExpression extends AllocationCallExpression
     typeBinding=SourceRef
   }
   
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.CLASS;
+  } 
+  
   // backward compatibility
   public static IRNode getType(IRNode node) {
     IRNode alloc       = getAlloc(node);

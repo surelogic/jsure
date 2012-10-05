@@ -15,6 +15,11 @@ public operator EnumConstantDeclaration extends VariableDeclaration implements C
     return ConstructorDeclaration.prototype;
   }
   
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.FIELD;
+  }  
+  
   public IRNode get_TypeArgs(IRNode n) {
     return null;
   }
