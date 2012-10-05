@@ -44,6 +44,7 @@ import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
+import com.surelogic.dropsea.ir.utility.*;
 import com.surelogic.javac.*;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
@@ -2023,6 +2024,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 					final File log = new File(projects.getRunDir(),
 							RemoteJSureRun.LOG_TXT);
 					log.createNewFile();
+					
+					ClearStateUtility.clearAllState();
 				}
 				if (ok) {
 					final File runDir = projects.getRunDir();

@@ -54,6 +54,7 @@ Export-Package:
  com.surelogic.dropsea,
  com.surelogic.dropsea.ir,
  com.surelogic.dropsea.ir.drops,
+ com.surelogic.dropsea.ir.utility,
  com.surelogic.dropsea.irfree,
  com.surelogic.dropsea.irfree.drops,
  com.surelogic.javac,
