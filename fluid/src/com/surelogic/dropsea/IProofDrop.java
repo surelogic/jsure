@@ -8,7 +8,7 @@ package com.surelogic.dropsea;
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
  */
-public interface IProofDrop extends IDrop {
+public interface IProofDrop extends IDrop, ISnapshotDrop {
 
   /**
    * Returns if this element is able to be proved consistent (model/code

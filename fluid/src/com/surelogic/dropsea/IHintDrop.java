@@ -9,7 +9,7 @@ import com.surelogic.NonNull;
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
  */
-public interface IHintDrop extends IAnalysisOutputDrop {
+public interface IHintDrop extends IAnalysisOutputDrop, ISnapshotDrop {
 
   enum HintType {
 

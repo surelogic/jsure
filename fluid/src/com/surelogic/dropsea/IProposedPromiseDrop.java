@@ -15,7 +15,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
  */
-public interface IProposedPromiseDrop extends IAnalysisOutputDrop {
+public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop {
 
   String getAnnotation();
 
