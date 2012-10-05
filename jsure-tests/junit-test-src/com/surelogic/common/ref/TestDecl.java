@@ -1,5 +1,7 @@
 package com.surelogic.common.ref;
 
+import java.io.Serializable;
+
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
