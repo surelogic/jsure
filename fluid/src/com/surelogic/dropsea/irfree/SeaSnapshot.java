@@ -21,10 +21,10 @@ import java.util.UUID;
 
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 
@@ -77,7 +77,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       System.out.println("Ignoring invalid: " + d.getMessage());
       return; // ignore invalid drops
     }
-    if (IThreadRoleDrop.class.isInstance(d)) {
+    if (!ISnapshotDrop.class.isInstance(d)) {
       // Ignoring these for now
       return;
     }
