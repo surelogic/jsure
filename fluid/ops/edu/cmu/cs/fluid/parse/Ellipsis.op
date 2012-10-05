@@ -21,6 +21,10 @@ public operator Ellipsis
     return Ellipsis.prototype;
   }
   
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    throw new UnsupportedOperationException();
+  }   
+  
   public void unparseWrapper(IRNode node, JavaUnparser u) {
     OPENTOKEN.emit(u, node);
     unparse(node, u);

@@ -6,4 +6,9 @@ public operator PackageDeclaration extends Declaration implements edu.cmu.cs.flu
   public Operator getResultOp() {
     return PackageDeclaration.prototype;
   }
+  
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.PACKAGE;
+  }
 }

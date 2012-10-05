@@ -8,7 +8,9 @@ public operator AnnotationDeclaration extends TypeDeclaration /* implements Flow
   properties {
     binding=Annotation
   }
-  // @Override public Component createComponent(IRNode node) {
-  //  return null; // TODO
-  // }
+  
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.INTERFACE;
+  }  
 }

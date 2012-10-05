@@ -13,4 +13,8 @@ public operator Declaration {
   public boolean includes(Operator other) {
     return super.includes(other) || (getClass() == Declaration.class && other instanceof TypeDeclInterface);
   }
+  
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    throw new UnsupportedOperationException();
+  }  
 }

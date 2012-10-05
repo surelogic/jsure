@@ -8,4 +8,9 @@ public operator TypeFormal extends TypeDeclaration
     body=null
     typeBinding=TypeFormal
   }
+  
+  @Override
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+    return com.surelogic.common.ref.IDecl.Kind.TYPE_PARAMETER;
+  } 
 }
