@@ -16,7 +16,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals("", p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameters().length);
+    assertEquals(0, p.getFormalParameterTypes().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
