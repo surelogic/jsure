@@ -249,6 +249,41 @@ public class TestDecl extends TestCase {
     }
   }
 
+  public void testMethodBuilder() {
+    // java.lang.Object
+    IDecl jlo = new Decl.ClassBuilder("Object").setParent(new Decl.PackageBuilder("java.lang")).build();
+    // java.lang.String
+    IDecl string = new Decl.ClassBuilder("String").setParent(new Decl.PackageBuilder("java.lang")).build();
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+
+    Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(jlo);
+    b.addFormalParameterType(string);
+    b.setParent(parent);
+    IDecl p = b.build();
+
+    assertSame(IDecl.Kind.METHOD, p.getKind());
+    assertEquals("processSomething", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisiblity());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertEquals("", p.getFormalTypeParameters());
+    IDecl[] paramaterTypes = p.getFormalParameterTypes();
+    assertEquals(3, paramaterTypes.length);
+    assertEquals(jlo, paramaterTypes[0]);
+    assertEquals(jlo, paramaterTypes[1]);
+    assertEquals(string, paramaterTypes[2]);
+    assertNull(p.getTypeOf());
+    assertEquals("MyType", p.getParent().getName());
+    assertEquals("surelogic", p.getParent().getParent().getName());
+    assertEquals("com", p.getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent());
+  }
+
   public void testPackageBuilder() {
     IDecl p = new Decl.PackageBuilder(null).build();
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -318,5 +353,9 @@ public class TestDecl extends TestCase {
     } catch (IllegalArgumentException expected) {
       // good
     }
+  }
+  
+  public void testParameterBuilder() {
+    // todo
   }
 }
