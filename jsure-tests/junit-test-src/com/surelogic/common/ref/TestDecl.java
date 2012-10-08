@@ -16,7 +16,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -81,9 +81,9 @@ public class TestDecl extends TestCase {
 
     Decl.ConstructorBuilder b = new Decl.ConstructorBuilder();
     // parameters: (Object, Object, String)
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(string);
+    // b.addParameter(jlo);
+    // b.addParameter(jlo);
+    // b.addParameter(string);
     b.setParent(parent);
     IDecl p = b.build();
 
@@ -94,7 +94,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    TypeRef[] paramaterTypes = p.getParameterTypes();
+    IDecl[] paramaterTypes = p.getParameters();
     assertEquals(3, paramaterTypes.length);
     assertEquals(jlo, paramaterTypes[0]);
     assertEquals(jlo, paramaterTypes[1]);
@@ -115,7 +115,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -154,7 +154,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertEquals(jlo, p.getTypeOf());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
@@ -186,7 +186,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertNull(p.getTypeOf());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
@@ -205,7 +205,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -262,9 +262,9 @@ public class TestDecl extends TestCase {
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
     // parameters: (Object, Object, String)
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(string);
+    // b.addParameter(jlo);
+    // b.addParameter(jlo);
+    // b.addParameter(string);
     b.setParent(parent);
     IDecl p = b.build();
 
@@ -275,7 +275,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    TypeRef[] paramaterTypes = p.getParameterTypes();
+    IDecl[] paramaterTypes = p.getParameters();
     assertEquals(3, paramaterTypes.length);
     assertEquals(jlo, paramaterTypes[0]);
     assertEquals(jlo, paramaterTypes[1]);
@@ -387,9 +387,9 @@ public class TestDecl extends TestCase {
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
     // parameters: (Object, Object, String)
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(jlo);
-    b.addFormalParameterType(string);
+//    b.addParameter(jlo);
+//    b.addParameter(jlo);
+//    b.addParameter(string);
     b.setParent(parent);
 
     Decl.ParameterBuilder param = new Decl.ParameterBuilder(0, "foo");
@@ -403,7 +403,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(Decl.EMPTY, p.getTypeParameters());
-    assertEquals(0, p.getParameterTypes().length);
+    assertEquals(0, p.getParameters().length);
     assertEquals(jlo, p.getTypeOf());
     assertEquals("processSomething", p.getParent().getName());
     assertEquals("MyType", p.getParent().getParent().getName());
