@@ -1,7 +1,5 @@
 package com.surelogic.common.ref;
 
-import java.io.Serializable;
-
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
@@ -17,8 +15,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -95,8 +93,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    TypeRef[] paramaterTypes = p.getFormalParameterTypes();
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    TypeRef[] paramaterTypes = p.getParameterTypes();
     assertEquals(3, paramaterTypes.length);
     assertEquals(jlo, paramaterTypes[0]);
     assertEquals(jlo, paramaterTypes[1]);
@@ -116,8 +114,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -155,8 +153,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(jlo, p.getTypeOf());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
@@ -187,8 +185,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertNull(p.getTypeOf());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
@@ -206,8 +204,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
@@ -276,8 +274,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    TypeRef[] paramaterTypes = p.getFormalParameterTypes();
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    TypeRef[] paramaterTypes = p.getParameterTypes();
     assertEquals(3, paramaterTypes.length);
     assertEquals(jlo, paramaterTypes[0]);
     assertEquals(jlo, paramaterTypes[1]);
@@ -404,8 +402,8 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
-    assertEquals(Decl.EMPTY, p.getFormalTypeParameters());
-    assertEquals(0, p.getFormalParameterTypes().length);
+    assertEquals(Decl.EMPTY, p.getTypeParameters());
+    assertEquals(0, p.getParameterTypes().length);
     assertEquals(jlo, p.getTypeOf());
     assertEquals("processSomething", p.getParent().getName());
     assertEquals("MyType", p.getParent().getParent().getName());
