@@ -31,8 +31,14 @@ public interface IJavaType extends IType {
   
   /**
    * Get an unparse similar to what would appear in source code
+   * (e.g., relative names omitting package names)
    */
   public String toSourceText();
+  
+  /**
+   * Get a unparse that uses fully qualified type names
+   */
+  public String toFullyQualifiedText();
   
   /**
    * Produce a new type in which any type parameters are substituted
