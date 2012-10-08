@@ -103,11 +103,11 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> paramaters = p.getParameters();
-    assertEquals(3, paramaters.size());
-    assertEquals(jlo, paramaters.get(0).getTypeOf());
-    assertEquals(jlo, paramaters.get(1).getTypeOf());
-    assertEquals(string, paramaters.get(2).getTypeOf());
+    List<IDecl> parameters = p.getParameters();
+    assertEquals(3, parameters.size());
+    assertEquals(jlo, parameters.get(0).getTypeOf());
+    assertEquals(jlo, parameters.get(1).getTypeOf());
+    assertEquals(string, parameters.get(2).getTypeOf());
     assertNull(p.getTypeOf());
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
@@ -327,22 +327,24 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> paramaters = p.getParameters();
-    assertEquals(3, paramaters.size());
-    assertEquals(jlo, paramaters.get(0).getTypeOf());
-    assertEquals(jlo, paramaters.get(1).getTypeOf());
-    assertEquals(string, paramaters.get(2).getTypeOf());
+    List<IDecl> parameters = p.getParameters();
+    assertEquals(3, parameters.size());
+    assertEquals(jlo, parameters.get(0).getTypeOf());
+    assertEquals(jlo, parameters.get(1).getTypeOf());
+    assertEquals(string, parameters.get(2).getTypeOf());
     assertNull(p.getTypeOf());
     assertEquals("MyType", p.getParent().getName());
     assertEquals("surelogic", p.getParent().getParent().getName());
     assertEquals("com", p.getParent().getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent().getParent());
 
-    // TODO
-    // p = new
-    // Decl.MethodBuilder("Foo").setParent(parent).setFormalTypeParameters("<E>").build();
-    // assertSame(IDecl.Kind.METHOD, p.getKind());
-    // assertEquals("<E>", p.getFormalTypeParameters());
+    Decl.MethodBuilder foo = new Decl.MethodBuilder("testParamType");
+    foo.setParent(parent);
+    Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
+    foo.addTypeParameter(tpb);
+    IDecl fooDecl = foo.build();
+    assertEquals(1, fooDecl.getTypeParameters().size());
+    assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
 
     try {
       p = new Decl.MethodBuilder("foo").build();
@@ -505,7 +507,7 @@ public class TestDecl extends TestCase {
           "surelogic").setParent(new Decl.PackageBuilder("com"))));
       b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
       new Decl.ParameterBuilder(0).setParent(b).setTypeOf(jlo).build();
-      fail("(method) two paramaters allowed at argument 0 position");
+      fail("(method) two parameters allowed at argument 0 position");
     } catch (IllegalArgumentException expected) {
       // good
     }
@@ -514,7 +516,62 @@ public class TestDecl extends TestCase {
           .setParent(new Decl.PackageBuilder("surelogic").setParent(new Decl.PackageBuilder("com"))));
       cb.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
       new Decl.ParameterBuilder(0).setParent(cb).setTypeOf(jlo).build();
-      fail("(constructor) two paramaters allowed at argument 0 position");
+      fail("(constructor) two parameters allowed at argument 0 position");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+  }
+
+  public void testTypeParameterBuilder() {
+    TypeRef jlo = new TypeRef("java.lang.Object", "Object");
+    TypeRef string = new TypeRef("java.lang.String", "String");
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic")
+        .setParent(new Decl.PackageBuilder("com")));
+
+    parent.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+    parent.addTypeParameter(new Decl.TypeParameterBuilder(1, "T").addBounds(jlo).addBounds(string));
+
+    IDecl p = parent.build();
+    assertEquals(2, p.getTypeParameters().size());
+    IDecl tp1 = p.getTypeParameters().get(0);
+    assertEquals("E", tp1.getName());
+    assertTrue(tp1.getBounds().isEmpty());
+    IDecl tp2 = p.getTypeParameters().get(1);
+    assertEquals("T", tp2.getName());
+    List<TypeRef> bounds = tp2.getBounds();
+    assertEquals(2, bounds.size());
+    assertEquals(jlo.getFullyQualified(), bounds.get(0).getFullyQualified());
+    assertEquals(string.getFullyQualified(), bounds.get(1).getFullyQualified());
+
+    try {
+      parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic").setParent(new Decl.PackageBuilder(
+          "com")));
+      parent.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+      parent.addTypeParameter(new Decl.TypeParameterBuilder(0, "T").addBounds(jlo).addBounds(string));
+      p = parent.build();
+      fail("(class) two type parameters allowed at argument 0 position");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
+      Decl.InterfaceBuilder iparent = new Decl.InterfaceBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic")
+          .setParent(new Decl.PackageBuilder("com")));
+      iparent.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+      iparent.addTypeParameter(new Decl.TypeParameterBuilder(0, "T").addBounds(jlo).addBounds(string));
+      p = iparent.build();
+      fail("(interface) two type parameters allowed at argument 0 position");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
+      parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic").setParent(new Decl.PackageBuilder(
+          "com")));
+      Decl.MethodBuilder method = new Decl.MethodBuilder("processSomething").setParent(parent);
+      method.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+      method.addTypeParameter(new Decl.TypeParameterBuilder(0, "T").addBounds(jlo).addBounds(string));
+      p = method.build();
+      fail("(method) two type parameters allowed at argument 0 position");
     } catch (IllegalArgumentException expected) {
       // good
     }
