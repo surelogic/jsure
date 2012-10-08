@@ -729,6 +729,10 @@ abstract class JavaType implements IJavaType {
   
   public String toSourceText() { return toString(); }
   
+  public String toFullyQualifiedText() {
+	  return toSourceText();
+  }
+  
   public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
     return env.isSubType(this, t2);
   }
@@ -978,6 +982,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     return JavaNames.getTypeName(declaration)+" in "+JavaNames.getFullName(decl);
   }
   
+  @Override
   public String toSourceText() {
     return TypeFormal.getId(declaration);
   }
@@ -1126,8 +1131,14 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
 	return primaryBound+" & "+secondaryBound;
   }
   
+  @Override
   public String toSourceText() {
 	  return primaryBound.toSourceText()+" & "+secondaryBound.toSourceText();
+  }
+  
+  @Override
+  public String toFullyQualifiedText() {
+	  return primaryBound.toFullyQualifiedText()+" & "+secondaryBound.toFullyQualifiedText();
   }
   
   @Override
@@ -1202,8 +1213,14 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 		return primaryBound+" | "+secondaryBound;
 	  }
 	  
+	  @Override
 	  public String toSourceText() {
 		return primaryBound.toSourceText()+" | "+secondaryBound.toSourceText();
+	  }
+	  
+	  @Override
+	  public String toFullyQualifiedText() {
+		  return primaryBound.toFullyQualifiedText()+" | "+secondaryBound.toFullyQualifiedText();
 	  }
 	  
 	  @Override
@@ -1306,6 +1323,17 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
 	      return "? extends "+lowerBound.toSourceText();
 	  } else if (upperBound != null) {
 		  return "? super "+upperBound.toSourceText();
+	  } else {
+		  return "?";
+	  }
+  }
+ 
+  @Override
+  public String toFullyQualifiedText() {
+	  if (lowerBound != null) {
+	      return "? extends "+lowerBound.toFullyQualifiedText();
+	  } else if (upperBound != null) {
+		  return "? super "+upperBound.toFullyQualifiedText();
 	  } else {
 		  return "?";
 	  }
@@ -1431,6 +1459,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
   
   @Override
+  public String toFullyQualifiedText() {
+	  throw new UnsupportedOperationException();
+  }
+  
+  @Override
   public boolean isValid() {
     if (!wildcard.isValid()) return false;
     if (lowerBound != null && !lowerBound.isValid()) return false;    
@@ -1520,6 +1553,11 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   @Override
   public final String toSourceText() {
 	  return elementType.toSourceText() + "[]";
+  }
+  
+  @Override
+  public String toFullyQualifiedText() {
+	  return elementType.toFullyQualifiedText() + "[]";
   }
   
   @Override
@@ -1757,39 +1795,66 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
     
     @Override public String toString() {
-      return JavaDeclaredType.this.toString() + "." + super.toString(false, false);
+      return JavaDeclaredType.this.toString() + "." + 
+      	super.toString(TextKind.UNQUALIFIED, ParamTextKind.TO_STRING);
     }
     
     @Override
     public String toSourceText() {
-    	return JavaDeclaredType.this.toString(false, true) + "." + super.toSourceText();
+    	return JavaDeclaredType.this.toSourceText() + "." + 
+    		super.toString(TextKind.UNQUALIFIED, ParamTextKind.SOURCE_TEXT);
+    }
+    
+    @Override
+    public String toFullyQualifiedText() {
+    	return JavaDeclaredType.this.toFullyQualifiedText() + "." + 
+    		super.toString(TextKind.UNQUALIFIED, ParamTextKind.QUALIFIED_TEXT);
     }
   }
   
   @Override public String toString() {
-    return toString(true, false);
+    return toString(TextKind.FULLY_QUALIFIED, ParamTextKind.TO_STRING);
   }
   
   @Override
   public String toSourceText() {
-	  return toString(false, true);
+	  return toString(TextKind.RELATIVE, ParamTextKind.SOURCE_TEXT);
   }
   
-  protected final String toString(boolean fullyQualify, boolean asSourceText) {
+  @Override
+  public String toFullyQualifiedText() {
+	  return toString(TextKind.FULLY_QUALIFIED, ParamTextKind.QUALIFIED_TEXT);
+  }
+  enum TextKind {
+	  UNQUALIFIED, RELATIVE, FULLY_QUALIFIED
+  }
+  
+  enum ParamTextKind {
+	  TO_STRING, SOURCE_TEXT, QUALIFIED_TEXT
+  }
+  
+  protected final String toString(TextKind kindOfUnparse, ParamTextKind kindOfParams) {
     if (declaration == null) return "?NULL?";
     if (declaration.identity() == IRNode.destroyedNode) {
     	return "?Destroyed?";
     }
     String base;
     try {
-      if (fullyQualify) {
-        base = JavaNames.getQualifiedTypeName(declaration);
-      } else {
-        base = JJNode.getInfoOrNull(declaration);
+    	switch (kindOfUnparse) {
+    	case FULLY_QUALIFIED:
+    		base = JavaNames.getQualifiedTypeName(declaration);
+    		break;
+    	case RELATIVE:
+    		base = JavaNames.getRelativeTypeNameDotSep(declaration);    		
+    		break;
+    	case UNQUALIFIED:
+    	default:
+    		base = JJNode.getInfoOrNull(declaration);
+    		break;
+    	}
         if (base == null) {
         	base = DebugUnparser.toString(declaration);
-        }
-      }
+        }      
     } catch (SlotUndefinedException ex) {
       base = DebugUnparser.toString(declaration);
     }
@@ -1803,10 +1868,16 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       } else {
         sb.append(',');
       }
-      if (asSourceText) {
+      switch (kindOfParams) {
+      case SOURCE_TEXT:
     	  sb.append(it.next().toSourceText());
-      } else {
+    	  break;
+      case QUALIFIED_TEXT:
+     	  sb.append(it.next().toFullyQualifiedText());
+    	  break;
+      case TO_STRING:
     	  sb.append(it.next().toString());
+    	  break;
       }
     }
     sb.append(">");
