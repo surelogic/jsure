@@ -13,6 +13,8 @@ public class TestDecl extends TestCase {
     IDecl p = new Decl.ClassBuilder("Foo").setParent(new Decl.PackageBuilder()).build();
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("Foo", p.getName());
+    assertEquals("Foo", DeclUtil.getTypeNameOrNull(p));
+    assertEquals("Foo", DeclUtil.getTypeNameDollarSignOrNull(p));
     assertSame(Visibility.PUBLIC, p.getVisiblity());
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
@@ -34,6 +36,8 @@ public class TestDecl extends TestCase {
     p = inner.build();
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("Inner", p.getName());
+    assertEquals("Outer.Inner", DeclUtil.getTypeNameOrNull(p));
+    assertEquals("Outer$Inner", DeclUtil.getTypeNameDollarSignOrNull(p));
     assertSame(Visibility.PRIVATE, p.getVisiblity());
     assertFalse(p.isAbstract());
     assertTrue(p.isStatic());
@@ -41,6 +45,8 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("Outer", p.getName());
+    assertEquals("Outer", DeclUtil.getTypeNameOrNull(p));
+    assertEquals("Outer", DeclUtil.getTypeNameDollarSignOrNull(p));
     assertSame(Visibility.PUBLIC, p.getVisiblity());
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
@@ -48,6 +54,8 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("apache", p.getName());
+    assertNull(DeclUtil.getTypeNameOrNull(p));
+    assertNull(DeclUtil.getTypeNameDollarSignOrNull(p));
     p = p.getParent();
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("org", p.getName());
