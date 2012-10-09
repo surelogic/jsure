@@ -122,6 +122,8 @@ public class TestDecl extends TestCase {
     foo.setParent(parent);
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
     foo.addTypeParameter(tpb);
+    Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
+    assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
@@ -291,6 +293,8 @@ public class TestDecl extends TestCase {
     foo.setParent(new Decl.PackageBuilder());
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
     foo.addTypeParameter(tpb);
+    Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
+    assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
@@ -346,6 +350,8 @@ public class TestDecl extends TestCase {
     foo.setParent(parent);
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
     foo.addTypeParameter(tpb);
+    Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
+    assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
@@ -469,15 +475,21 @@ public class TestDecl extends TestCase {
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
     // parameters: (Object, Object, String)
-    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
-    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
-    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    Decl.ParameterBuilder p0 = new Decl.ParameterBuilder(0).setTypeOf(jlo);
+    Decl.ParameterBuilder p1 = new Decl.ParameterBuilder(1).setTypeOf(jlo);
+    Decl.ParameterBuilder p2 = new Decl.ParameterBuilder(2).setTypeOf(string);
+    b.addParameter(p0);
+    b.addParameter(p1);
+    b.addParameter(p2);
     b.setParent(parent);
-
-    Decl.ParameterBuilder param = new Decl.ParameterBuilder(3, "foo");
-    param.setTypeOf(jlo);
-    param.setParent(b);
-    IDecl p = param.build();
+    Decl.ParameterBuilder p3 = new Decl.ParameterBuilder(3, "foo");
+    p3.setTypeOf(jlo);
+    p3.setParent(b);
+    assertSame(p0, b.getParameterBuilderAt(0));
+    assertSame(p1, b.getParameterBuilderAt(1));
+    assertSame(p2, b.getParameterBuilderAt(2));
+    assertSame(p3, b.getParameterBuilderAt(3));
+    IDecl p = p3.build();
     assertSame(IDecl.Kind.PARAMETER, p.getKind());
     assertEquals("foo", p.getName());
     assertSame(Visibility.NA, p.getVisiblity());
@@ -551,6 +563,15 @@ public class TestDecl extends TestCase {
     } catch (IllegalArgumentException expected) {
       // good
     }
+    try {
+      Decl.ConstructorBuilder cb = new Decl.ConstructorBuilder().setParent(new Decl.ClassBuilder("MyType")
+          .setParent(new Decl.PackageBuilder("surelogic").setParent(new Decl.PackageBuilder("com"))));
+      cb.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+      cb.getParameterBuilderAt(4);
+      fail("Got a parameter at position 4 when none existed");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
   }
 
   public void testTypeParameterBuilder() {
@@ -599,6 +620,14 @@ public class TestDecl extends TestCase {
       method.addTypeParameter(new Decl.TypeParameterBuilder(0, "T").addBounds(jlo).addBounds(string));
       p = method.build();
       fail("(method) two type parameters allowed at argument 0 position");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
+      parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+      parent.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+      parent.getTypeParameterBuilderAt(4);
+      fail("Got a type parameter at position 4 when none existed");
     } catch (IllegalArgumentException expected) {
       // good
     }

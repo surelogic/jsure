@@ -112,7 +112,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
           result = Origin.valueOf(origin);
         }
       } catch (Exception e1) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(249, origin, ORIGIN), e1);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, origin, ORIGIN), e1);
       }
     }
     f_origin = result;

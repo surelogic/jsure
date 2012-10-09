@@ -101,7 +101,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         } else if (TARGET_INFO.equals(flavor)) {
           ppd.setTargetInfo(info.makeDecl());
         } else {
-          throw new IllegalStateException(I18N.err(250, flavor, ppd));
+          throw new IllegalStateException(I18N.err(260, flavor, ppd));
         }
       }
     }
@@ -337,7 +337,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       /*
        * The reference not handled if we got to here.
        */
-      throw new IllegalStateException(I18N.err(248, refType, fromLabel, fromE, to.getId(), toE));
+      throw new IllegalStateException(I18N.err(258, refType, fromLabel, fromE, to.getId(), toE));
     }
   }
 }
