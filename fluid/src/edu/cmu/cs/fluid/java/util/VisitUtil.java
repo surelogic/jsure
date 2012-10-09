@@ -4,8 +4,6 @@ package edu.cmu.cs.fluid.java.util;
 import java.util.*;
 import java.util.Stack;
 
-import com.surelogic.common.ref.IDecl;
-
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -27,24 +25,7 @@ public class VisitUtil implements JavaGlobals {
   public static IRNode findRoot(IRNode here) {
     return OpSearch.rootSearch.find(here);
   }
-
-  /**
-   * Constructs an {@link IDecl} from the passed node and returns if the node is
-   * on or within the declaration.
-   * 
-   * @param here
-   *          the node.
-   * @return a pair with non-{@code} null entries, or {@code null} to indicate
-   *         something went wrong.
-   */
-  public static Pair<IDecl, IDecl.Position> getDeclAndPosition(IRNode here) {
-    // construct IDecl
-    // return Position.ON_DECL if on the declaration
-    // return Position.WITHIN_DECL if within the declaration
-    // return null if the IRNode is bad or something like that (no exception)
-    return null;
-  }
-
+  
   /**
    * Check for a promisedFor node before declaring the node as a root
    */
