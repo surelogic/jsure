@@ -114,6 +114,16 @@ public class TestDecl extends TestCase {
     assertEquals("com", p.getParent().getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent().getParent());
 
+    parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic")
+        .setParent(new Decl.PackageBuilder("com")));
+    Decl.ConstructorBuilder foo = new Decl.ConstructorBuilder();
+    foo.setParent(parent);
+    Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
+    foo.addTypeParameter(tpb);
+    IDecl fooDecl = foo.build();
+    assertEquals(1, fooDecl.getTypeParameters().size());
+    assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
+
     try {
       p = new Decl.ConstructorBuilder().build();
       fail("constructor allowed to have a null parent");
@@ -338,6 +348,8 @@ public class TestDecl extends TestCase {
     assertEquals("com", p.getParent().getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent().getParent());
 
+    parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("surelogic")
+        .setParent(new Decl.PackageBuilder("com")));
     Decl.MethodBuilder foo = new Decl.MethodBuilder("testParamType");
     foo.setParent(parent);
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
