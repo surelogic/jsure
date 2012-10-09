@@ -408,8 +408,42 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent());
 
     try {
+      p = new Decl.PackageBuilder("apache").setParent(new Decl.PackageBuilder("org")).build();
+      fail("package was allowed to have a non-null parent");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+    try {
       p = new Decl.PackageBuilder("333").build();
       fail("333 was a legal package");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try {
+      p = new Decl.PackageBuilder("foo.333.bar").build();
+      fail("foo.333.bar was a legal package");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try {
+      p = new Decl.PackageBuilder("foo..bar").build();
+      fail("foo..bar was a legal package");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try {
+      p = new Decl.PackageBuilder(".bar").build();
+      fail(".bar was a legal package");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try {
+      p = new Decl.PackageBuilder("foo.").build();
+      fail("foo. was a legal package");
     } catch (IllegalArgumentException expected) {
       // good
     }
