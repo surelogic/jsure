@@ -25,6 +25,7 @@ import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -208,7 +209,10 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         binder.getBinding(ParameterizedType.getBase(pType));
     final AnnotationBoundsPromiseDrop boundsDrop = 
         LockRules.getAnnotationBounds(baseTypeDecl);
-    if (boundsDrop != null) {
+    final ContainablePromiseDrop containableDrop =
+        LockRules.getContainableImplementation(baseTypeDecl);
+    
+    if (boundsDrop != null || containableDrop != null) {
       /* Get the IJavaType and see if we already have a result for this
        * parameterization.  Should always get an IJavaDeclaredType.
        */
@@ -217,15 +221,22 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       ResultFolderDrop folder = folders.get(jTypeOfParameterizedType);
       if (folder == null) {
         final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-            getBounds(baseTypeDecl, boundsDrop);
+            getBounds(baseTypeDecl, boundsDrop, containableDrop);
         if (bounds != null) {
           folder = checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
-          folder.addChecked(boundsDrop);
+          /* Don't add the folder to the top-level if the only bounds come
+           * implicitly from @Containable
+           */
+          if (boundsDrop != null) folder.addChecked(boundsDrop);
+          
           folders.put(jTypeOfParameterizedType, folder);
         }
       }
       // be safe
-      if (folder != null) {
+      if (folder != null && boundsDrop != null) {
+        /* Don't add the "USE" link if the bounds are only implicit bounds
+         * from @Containable. 
+         */
         folder.addInformationHintWithCategory(pType, USE_CATEGORY, USE);
       }
     }
@@ -235,19 +246,22 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
   
   private List<Pair<IRNode, Set<AnnotationBounds>>> getBounds(
-      final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop) {
+      final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop,
+      final ContainablePromiseDrop containableDrop) {
     final Operator op = JJNode.tree.getOperator(baseTypeDecl);
     if (ClassDeclaration.prototype.includes(op)) {
       final List<Pair<IRNode, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
       if (bounds == null) {
-        return computeBounds(baseTypeDecl, boundsDrop, ClassDeclaration.getTypes(baseTypeDecl));
+        return computeBounds(baseTypeDecl, boundsDrop, containableDrop,
+            ClassDeclaration.getTypes(baseTypeDecl));
       } else {
         return bounds;
       }
     } else if (InterfaceDeclaration.prototype.includes(op)) {
       final List<Pair<IRNode, Set<AnnotationBounds>>> bounds = cachedBounds.get(baseTypeDecl);
       if (bounds == null) {
-        return computeBounds(baseTypeDecl, boundsDrop, InterfaceDeclaration.getTypes(baseTypeDecl));
+        return computeBounds(baseTypeDecl, boundsDrop, containableDrop, 
+            InterfaceDeclaration.getTypes(baseTypeDecl));
       } else {
         return bounds;
       }
@@ -258,6 +272,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
   private List<Pair<IRNode, Set<AnnotationBounds>>> computeBounds(
         final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop,
+        final ContainablePromiseDrop containableDrop,
         final IRNode typeFormalsNode) {
     // Shouldn't happen, but be safe
     if (typeFormalsNode == null || !JJNode.tree.hasChildren(typeFormalsNode)) {
@@ -281,10 +296,19 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       formalIDs[i] = TypeFormal.getId(formalDecls.get(i));
     }
     
-    final AnnotationBoundsNode ast = boundsDrop.getAAST();
     boolean added = false;
-    for (final AnnotationBounds e : AnnotationBounds.values()) {
-      added |= addToBounds(bounds, formalIDs, e.getNamedTypes(ast), e);
+    if (boundsDrop != null) {
+      final AnnotationBoundsNode ast = boundsDrop.getAAST();
+      for (final AnnotationBounds e : AnnotationBounds.values()) {
+        added |= addToBounds(bounds, formalIDs, e.getNamedTypes(ast), e);
+      }
+    }
+    if (containableDrop != null) {
+      // Add @ThreadSafe to all the formal parameters
+      for (final Pair<IRNode, Set<AnnotationBounds>> pair : bounds) {
+        pair.second().add(AnnotationBounds.THREADSAFE);
+      }
+      added = true;
     }
       
     if (added) {

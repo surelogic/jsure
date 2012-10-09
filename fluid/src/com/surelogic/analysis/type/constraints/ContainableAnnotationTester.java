@@ -45,11 +45,7 @@ public final class ContainableAnnotationTester extends TypeDeclAnnotationTester 
   protected boolean testArrayType(final IJavaArrayType type) {
     if (type.getDimensions() == 1) {
       final IJavaType baseType = type.getBaseType();
-      if (baseType instanceof IJavaPrimitiveType) {
-        return true;
-      } else {
-        return testType(baseType);
-      }
+      return baseType instanceof IJavaPrimitiveType;
     } else {
       return false;
     }
