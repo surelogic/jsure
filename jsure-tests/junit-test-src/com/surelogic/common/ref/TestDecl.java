@@ -372,6 +372,9 @@ public class TestDecl extends TestCase {
     IDecl p = new Decl.PackageBuilder().build();
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getName());
+    assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, DeclUtil.getPackageName(p));
+    assertNull(DeclUtil.getPackageNameOrNull(p));
+    assertEquals("", DeclUtil.getPackageNameSlash(p));
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder(null).build();
@@ -387,20 +390,15 @@ public class TestDecl extends TestCase {
     p = new Decl.PackageBuilder("solo").build();
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("solo", p.getName());
+    assertEquals("solo", DeclUtil.getPackageName(p));
+    assertEquals("solo", DeclUtil.getPackageNameOrNull(p));
+    assertEquals("solo", DeclUtil.getPackageNameSlash(p));
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder("surelogic").setParent(new Decl.PackageBuilder("com")).build();
-    assertSame(IDecl.Kind.PACKAGE, p.getKind());
-    assertEquals("surelogic", p.getName());
-    p = p.getParent();
-    assertSame(IDecl.Kind.PACKAGE, p.getKind());
-    assertEquals("com", p.getName());
-    assertNull(p.getParent());
-
-    Decl.PackageBuilder surelogic = new Decl.PackageBuilder("surelogic");
-    Decl.PackageBuilder com = new Decl.PackageBuilder("com");
-    surelogic.setParent(com);
-    p = surelogic.build();
+    assertEquals("com.surelogic", DeclUtil.getPackageName(p));
+    assertEquals("com.surelogic", DeclUtil.getPackageNameOrNull(p));
+    assertEquals("com/surelogic", DeclUtil.getPackageNameSlash(p));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("surelogic", p.getName());
     p = p.getParent();
