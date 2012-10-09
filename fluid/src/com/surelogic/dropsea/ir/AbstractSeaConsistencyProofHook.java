@@ -7,12 +7,10 @@ package com.surelogic.dropsea.ir;
  */
 public abstract class AbstractSeaConsistencyProofHook implements SeaConsistencyProofHook {
 
-//  @Override
   public void preConsistencyProof(Sea sea) {
     // by default do nothing
   }
 
-//  @Override
   public void postConsistencyProof(Sea sea) {
     // by default do nothing
   }
