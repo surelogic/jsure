@@ -67,7 +67,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.CUDropClearOutAfterAnalysisProofHook;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
-import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticConsistencyProofHook;
+import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
@@ -461,7 +461,7 @@ public class Util {
     final long sea = System.currentTimeMillis();
     System.out.println("Updating consistency proof");
     final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
-    final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticConsistencyProofHook();
+    final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
     final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
     Sea.getDefault().addConsistencyProofHook(vouchHook);
     Sea.getDefault().addConsistencyProofHook(staticHook);
