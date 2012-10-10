@@ -72,6 +72,14 @@ public final class ColumnLabelProviderUtility {
             }
           }
         }
+        if (element instanceof ElementProposedPromiseDrop) {
+          final String prefixEnd = "promise)";
+          int index = label.indexOf(prefixEnd);
+          if (index != -1) {
+            StyleRange[] ranges = { new StyleRange(0, index + prefixEnd.length(), getSpecialColor(), null) };
+            cell.setStyleRanges(ranges);
+          }
+        }
       } else
         super.update(cell);
     }
