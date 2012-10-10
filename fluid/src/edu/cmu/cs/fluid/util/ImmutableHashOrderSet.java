@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 /** An implementation of sets with some provision for infinite sets
@@ -691,7 +692,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
  */
 @SuppressWarnings("all")
 class SortedArray {
-  static final Object[] empty = ArrayUtil.empty;
+  static final Object[] empty = SLUtility.EMPTY_OBJECT_ARRAY;
 
   static <V> V[] empty() {
     return (V[]) empty;

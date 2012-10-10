@@ -3,10 +3,9 @@ package com.surelogic.jsure.views.debug.testResults.model;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.cmu.cs.fluid.util.ArrayUtil;
+import com.surelogic.common.SLUtility;
 
 public final class TestResultsTreeContentProvider implements ITreeContentProvider {
-  private static final Object[] EMPTY_ARRAY = ArrayUtil.empty;
   private Root root = null;
   
   
@@ -19,7 +18,7 @@ public final class TestResultsTreeContentProvider implements ITreeContentProvide
   
   public Object[] getChildren(final Object parentElement) {
     if (parentElement instanceof AbstractTestResult) {
-      return EMPTY_ARRAY;
+      return SLUtility.EMPTY_OBJECT_ARRAY;
     } else { // Heading
       return root.getChildren((Heading) parentElement);
     }

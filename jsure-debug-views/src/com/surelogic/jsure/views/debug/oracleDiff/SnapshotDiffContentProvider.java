@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.IViewable;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.ui.SLImages;
@@ -23,10 +24,8 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.util.ArrayUtil;
-
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
-	private static final Object[] noElements = ArrayUtil.empty;
+	private static final Object[] noElements = SLUtility.EMPTY_OBJECT_ARRAY;
 	private static final Object[] nothingToDiff = new Object[1];
 	private static final Object[] nothingToShow = new Object[1];
 	static {
