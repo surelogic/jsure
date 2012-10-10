@@ -2,6 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.IViewable;
+import com.surelogic.dropsea.IDrop;
 
 public interface IDiffNode extends IViewable {
 	public enum Status { 
@@ -10,4 +11,6 @@ public interface IDiffNode extends IViewable {
 	
 	@NonNull
 	Status getDiffStatus();
+	
+	IDrop getDrop();
 }

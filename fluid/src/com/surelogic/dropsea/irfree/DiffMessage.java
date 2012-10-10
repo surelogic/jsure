@@ -1,6 +1,8 @@
 package com.surelogic.dropsea.irfree;
 
-public final class DiffMessage extends AbstractDiffNode {
+import com.surelogic.dropsea.IDrop;
+
+public class DiffMessage extends AbstractDiffNode {
 	private final String text;
 	
 	public DiffMessage(String msg) {
@@ -10,6 +12,10 @@ public final class DiffMessage extends AbstractDiffNode {
 	DiffMessage(String msg, Status s) {
 		text = msg;
 		status = s;
+	}
+	
+	public IDrop getDrop() {
+		return null;
 	}
 	
 	@Override

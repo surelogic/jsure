@@ -102,10 +102,15 @@ public class DropDiff extends DiffNode implements IViewable {
 		return new DiffMessage[] { s };
 	}
 	
-	private static DiffMessage makeProvedConsistentMsg(PrintStream out, IDrop n, IDrop o) {
+	private static DiffMessage makeProvedConsistentMsg(PrintStream out, final IDrop n, IDrop o) {
 		String msg = "provedConsistent: "+provedConsistent(o)+" => "+provedConsistent(n);
 		out.println("\t\tChanged: "+msg);
-		return new DiffMessage(msg, Status.CHANGED);
+		return new DiffMessage(msg, Status.CHANGED) {
+			@Override
+			public IDrop getDrop() {
+				return n;
+			}
+		};
 	}
 	
 	private static boolean provedConsistent(IDrop d) {
