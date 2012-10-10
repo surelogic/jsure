@@ -6,10 +6,13 @@ public class DiffMessage extends AbstractDiffNode {
 	private final String text;
 	
 	public DiffMessage(String msg) {
-		this(msg, null);
+		this(msg, Status.N_A);
 	}
 	
 	DiffMessage(String msg, Status s) {
+		if (s == null) {
+			throw new IllegalArgumentException();
+		}
 		text = msg;
 		status = s;
 	}
