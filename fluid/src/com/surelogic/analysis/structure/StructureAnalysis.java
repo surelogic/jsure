@@ -11,7 +11,6 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.Unused;
-import com.surelogic.analysis.layers.Messages;
 import com.surelogic.annotation.rules.StructureRules;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -64,6 +63,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 			final IRNode method = d.getPromisedFor();
 			final IRNode params = MethodDeclaration.getParams(method);
 			preFilter.put(JJNode.getInfoOrNull(method), numChildren(params));
+			unchecked.put(method, d);
 		}
 	}
 	
@@ -107,7 +107,6 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 							rd.setMessage("Not invoked in "+JavaNames.genRelativeFunctionName(n));
 							rd.setInconsistent();
 						}
-						rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
 						rd.addChecked(StructureRules.getMustInvokeDrop(parent.getNode()));	
 					}
 				}
@@ -127,7 +126,6 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		for(MustInvokeOnOverridePromiseDrop d : unchecked.values()) {
 			ResultDrop rd = new ResultDrop(d.getPromisedFor());
 			rd.setMessage("Trivially satisfied because there are no known overrides");
-			rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
 			rd.addChecked(d);
 			rd.setConsistent();
 		}
