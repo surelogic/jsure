@@ -19,6 +19,8 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.*;
+import com.surelogic.javac.persistence.JSureDataDir;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -32,8 +34,13 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 		nothingToDiff[0] = new DiffMessage("Nothing to diff");
 		nothingToShow[0] = new DiffMessage("No differences");
 	}
+	private boolean useOracle = true;
 	private ISeaDiff diff;
 
+	void toggleReference() {
+		useOracle = !useOracle;
+	}
+	
 	@Override
 	public String build() {
 		final JSureScanInfo scan = JSureDataDirHub.getInstance()
@@ -45,22 +52,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 		final Collection<IDrop> info = scan.getDropInfo();
 		if (!info.isEmpty()) {
 			try {
-				File file = null;
-				for (String name : scan.findProjectsLabel().split(", ")) {
-					final IProject p = EclipseUtility.getProject(name);
-					if (p == null || !p.exists()) {
-						continue;
-					}
-					final File pFile = p.getLocation().toFile();
-					file = RegressionUtility.findOracle(pFile.getAbsolutePath());					
-					if (file != null && file.exists()) {
-						break;
-					}					
-				}
-				if (file != null && !file.exists()) {
-					// Try the directory above the projects
-					file = RegressionUtility.findOracle(file.getParentFile().getParent());		
-				}
+				File file = findBaseline(scan);
 				if (file != null) {
 					diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
 							file, info);
@@ -83,6 +75,34 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 		return null;
 	}
 
+	private File findBaseline(JSureScanInfo scan) {
+		File file = null;
+		if (useOracle) {
+			for (String name : scan.findProjectsLabel().split(", ")) {
+				final IProject p = EclipseUtility.getProject(name);
+				if (p == null || !p.exists()) {
+					continue;
+				}
+				final File pFile = p.getLocation().toFile();
+				file = RegressionUtility.findOracle(pFile.getAbsolutePath());					
+				if (file != null && file.exists()) {
+					break;
+				}					
+			}
+			if (file != null && !file.exists()) {
+				// Try the directory above the projects
+				file = RegressionUtility.findOracle(file.getParentFile().getParent());		
+			}
+		} else {
+			JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
+			JSureScan last = data.findLastMatchingScan(scan.getJSureRun());
+			if (last != null) {
+				return last.getResultsFile();
+			}
+		}
+		return file;
+	}
+	
 	public Object[] getElements(Object input) {
 		if (diff != null) {
 			Object[] rv = diff.getCategories();
@@ -103,7 +123,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	}
 
 	public Object getParent(Object element) {
-		throw new UnsupportedOperationException();
+		return null;// throw new UnsupportedOperationException();
 	}
 
 	public boolean hasChildren(Object element) {
