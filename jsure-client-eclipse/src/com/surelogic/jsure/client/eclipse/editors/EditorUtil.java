@@ -40,6 +40,9 @@ public class EditorUtil {
    *          a location in Java code.
    */
   public static void highlightLineInJavaEditor(final IJavaRef javaRef) {
+	if (javaRef == null) {
+		return;
+	}
     JDTUIUtility.tryToOpenInEditor(javaRef);
     HistoricalSourceView.tryToOpenInEditor(javaRef.getPackageName(),
         DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), javaRef.getLineNumber());
