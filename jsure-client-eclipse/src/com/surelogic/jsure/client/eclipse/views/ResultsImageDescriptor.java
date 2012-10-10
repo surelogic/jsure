@@ -31,12 +31,6 @@ import org.eclipse.swt.graphics.Point;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IPromiseDrop;
-import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.IResultFolderDrop;
 
 /**
  * A AssuranceImageDescriptor consists of a base image and several adornments.
@@ -52,50 +46,6 @@ import com.surelogic.dropsea.IResultFolderDrop;
  * @see org.eclipse.jdt.ui.JavaElementImageDescriptor
  */
 public class ResultsImageDescriptor extends CompositeImageDescriptor {
-
-  public static int getFlagsFor(IDrop drop) {
-    int flags = 0;
-    if (drop instanceof IProofDrop) {
-      final IProofDrop proofDrop = (IProofDrop) drop;
-      flags |= proofDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT;
-      if (proofDrop.proofUsesRedDot())
-        flags |= CoE_Constants.REDDOT;
-    }
-    if (drop instanceof IPromiseDrop) {
-      final IPromiseDrop promiseDrop = (IPromiseDrop) drop;
-      if (promiseDrop.isVirtual())
-        flags |= CoE_Constants.VIRTUAL;
-      if (promiseDrop.isAssumed())
-        flags |= CoE_Constants.ASSUME;
-      if (!promiseDrop.isCheckedByAnalysis())
-        flags |= CoE_Constants.TRUSTED;
-    }
-    return flags;
-  }
-
-  public static String getImageNameFor(IDrop drop) {
-    if (drop instanceof IPromiseDrop)
-      return CommonImages.IMG_ANNOTATION;
-    if (drop instanceof IResultFolderDrop) {
-      if (((IResultFolderDrop) drop).getLogicOperator() == IResultFolderDrop.LogicOperator.AND)
-        return CommonImages.IMG_FOLDER;
-      else
-        return CommonImages.IMG_FOLDER_OR;
-    }
-    if (drop instanceof IResultDrop) {
-      if (((IResultDrop) drop).isConsistent())
-        return CommonImages.IMG_PLUS;
-      else
-        return CommonImages.IMG_RED_X;
-    }
-    if (drop instanceof IHintDrop) {
-      if (((IHintDrop) drop).getHintType() == IHintDrop.HintType.INFORMATION)
-        return CommonImages.IMG_INFO;
-      else
-        return CommonImages.IMG_WARNING;
-    }
-    return CommonImages.IMG_UNKNOWN;
-  }
 
   public static final ImageDescriptor DESC_ASSUME_DECR = SLImages.getImageDescriptor(CommonImages.IMG_ASSUME_DECR);
 
@@ -115,11 +65,9 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 
   private final ImageDescriptor fBaseImage;
 
-  private boolean fDrawBaseAtZero;
+  private final int fFlags;
 
-  private int fFlags;
-
-  private Point fSize;
+  private final Point fSize;
 
   /**
    * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
@@ -144,7 +92,6 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    */
   public ResultsImageDescriptor(ImageDescriptor baseImage, int flags, Point size) {
     fBaseImage = baseImage;
-    fDrawBaseAtZero = false;
     assert fBaseImage != null;
     fFlags = flags;
     assert fFlags >= 0;
@@ -170,16 +117,11 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    */
   public ResultsImageDescriptor(String imageName, int flags, Point size) {
     fBaseImage = SLImages.getImageDescriptor(imageName);
-    fDrawBaseAtZero = false;
     assert fBaseImage != null;
     fFlags = flags;
     assert fFlags >= 0;
     fSize = size;
     assert fSize != null;
-  }
-
-  public void drawBaseAtZero() {
-    fDrawBaseAtZero = true;
   }
 
   /**
@@ -190,7 +132,7 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    */
   public Image getCachedImage() {
     Image result;
-    String flagsKey = (new Integer(fFlags)).toString();
+    String flagsKey = Integer.toHexString(fFlags);
     if (imageCache.containsKey(fBaseImage)) {
       Map<String, Image> flagMap = imageCache.get(fBaseImage);
       if (flagMap.containsKey(flagsKey)) {
@@ -211,41 +153,12 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
   }
 
   /**
-   * Sets the descriptors adornments. Valid values are:
-   * {@link CoE_Constants#CONSISTENT}, {@link CoE_Constants#INCONSISTENT},
-   * {@link CoE_Constants#REDDOT}, {@link CoE_Constants#ASSUME},
-   * {@link CoE_Constants#TRUSTED}, {@link CoE_Constants#VIRTUAL} or any
-   * combination of those.
-   * 
-   * @param adornments
-   *          the image descriptors adornments
-   */
-  public void setAdornments(int adornments) {
-    assert adornments >= 0;
-    fFlags = adornments;
-  }
-
-  /**
    * Returns the current adornments.
    * 
    * @return the current adornments
    */
   public int getAdronments() {
     return fFlags;
-  }
-
-  /**
-   * Sets the size of the image created by calling <code>createImage()</code>.
-   * 
-   * @param size
-   *          the size of the image returned from calling
-   *          <code>createImage()</code>
-   * @see ImageDescriptor#createImage()
-   */
-  public void setImageSize(Point size) {
-    assert size != null;
-    assert size.x >= 0 && size.y >= 0;
-    fSize = size;
   }
 
   /**
@@ -294,7 +207,7 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
   protected void drawCompositeImage(int width, int height) {
     ImageData bg = getImageData(fBaseImage);
 
-    drawImage(bg, (fDrawBaseAtZero ? 0 : 3), 0);
+    drawImage(bg, 3, 0);
 
     drawTopRight();
     drawTopLeft();

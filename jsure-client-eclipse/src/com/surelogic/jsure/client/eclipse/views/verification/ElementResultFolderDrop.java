@@ -58,9 +58,6 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
 
   @Override
   String getImageName() {
-    if (getDrop().getLogicOperator() == IResultFolderDrop.LogicOperator.AND)
-      return CommonImages.IMG_FOLDER;
-    else
-      return CommonImages.IMG_FOLDER_OR;
+    return CommonImages.IMG_FOLDER;
   }
 }

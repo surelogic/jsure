@@ -31,7 +31,7 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   @Override
   @Nullable
   String getImageName() {
-    return CommonImages.IMG_ANNOTATION_ABDUCTIVE;
+    return CommonImages.IMG_ANNOTATION_PROPOSED;
   }
 
   @Override

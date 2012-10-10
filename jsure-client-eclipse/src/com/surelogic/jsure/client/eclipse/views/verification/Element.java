@@ -251,6 +251,7 @@ abstract class Element {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
     }
+    if (this instanceof ElementProposedPromiseDrop) System.out.println("ElementProposedPromiseDrop: image="+name+" flags=" + flags);
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
 
