@@ -29,18 +29,8 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] nothingToDiff = new Object[1];
 	private static final Object[] nothingToShow = new Object[1];
 	static {
-		nothingToDiff[0] = new AbstractDiffNode() {
-			@Override
-			public String getText() {
-				return "Nothing to diff";
-			}
-		};
-		nothingToShow[0] = new AbstractDiffNode() {
-			@Override
-			public String getText() {
-				return "No differences";
-			}
-		};
+		nothingToDiff[0] = new DiffMessage("Nothing to diff");
+		nothingToShow[0] = new DiffMessage("No differences");
 	}
 	private ISeaDiff diff;
 
@@ -145,13 +135,16 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	public Image getImage(Object element) {
 		if (element instanceof IDiffNode) {
 			IDiffNode e = (IDiffNode) element;
-			if (e.isNewer()) {
+			switch (e.getDiffStatus()) {
+			case NEW:
 				return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
-			} else if (e.isOld()) {
+			case CHANGED:
+				return SLImages.getImage(CommonImages.IMG_EDIT_ADD); 
+			case OLD:
 				return SLImages.getImage(CommonImages.IMG_EDIT_DELETE); 
-			}
+			}			
 		}
-		if (element instanceof Entity) {
+		else if (element instanceof Entity) {
 			Entity e = (Entity) element;
 			if (e.isNewer()) {
 				return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
