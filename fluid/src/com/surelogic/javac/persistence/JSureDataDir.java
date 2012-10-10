@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
 
 /**
  * Contains information about what scans exist in a JSure data directory.
@@ -81,5 +84,37 @@ public class JSureDataDir {
 			}
 		}
 		return scans;
+	}
+
+	/**
+	 * Find the latest scan that scans the same projects as the one specified
+	 */
+	public synchronized JSureScan findLastMatchingScan(JSureScan scan) {
+		if (scan == null) {
+			return null;
+		}
+		try {
+			scan.getProjects();
+		} catch(Exception e) {
+			SLLogger.getLogger().log(Level.WARNING, "Unable to determine projects for "+scan.getDirName(), e);
+			return null;
+		}
+		JSureScan match = null;
+		for(JSureScan s : f_scans) {
+			if (s == scan || scan.getDir().equals(s.getDir())) {
+				continue;
+			}
+			try {
+				if (scan.getProjects().matchProjects(s.getProjects())) {
+					if (match == null || s.getTimeOfScan().before(match.getTimeOfScan())) {
+						match = s;
+					}
+				}
+			} catch (Exception e) {
+				SLLogger.getLogger().log(Level.WARNING, "Unable to determine projects for "+scan.getDirName(), e);
+				continue;
+			}
+		}
+		return match;
 	}
 }
