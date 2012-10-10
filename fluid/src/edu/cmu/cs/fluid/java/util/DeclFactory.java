@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java.util;
 
 import com.surelogic.common.ref.*;
+import com.surelogic.common.ref.Decl.DeclBuilder;
 import com.surelogic.common.ref.TypeRef;
 import com.surelogic.common.ref.Decl.*;
 
@@ -21,7 +22,7 @@ import edu.cmu.cs.fluid.util.Pair;
 public class DeclFactory {
 	private final IBinder binder;
 	
-	DeclFactory(IBinder b) {
+	public DeclFactory(IBinder b) {
 		binder = b;
 	}
 	
@@ -38,7 +39,14 @@ public class DeclFactory {
 		if (here == null || here.identity() == IRNode.destroyedNode) {
 			return null;
 		}
-		final IDecl decl = buildDecl(here).build();	
+		DeclBuilder b = buildDecl(here);
+		if (b == null) {
+			if (Declaration.prototype.includes(here) || AnonClassExpression.prototype.includes(here)) {
+				buildDecl(here);
+			}
+			return null;
+		}
+		final IDecl decl = b.build();	
 		if (decl == null) {
 			return null;
 		}
@@ -53,22 +61,55 @@ public class DeclFactory {
 		if (here == null) {
 			return null;
 		}		
-		final DeclBuilder parent = buildDecl(JJNode.tree.getParentOrNull(here));
+		final IRNode parent = JJNode.tree.getParentOrNull(here);
+		DeclBuilder parentB = buildDecl(parent);
 		final Operator op = JJNode.tree.getOperator(here);
 		final DeclBuilder b;
 		if (op instanceof TypeDeclInterface) {
-			b = buildTypeDecl(here, (TypeDeclInterface) op);
+			b = buildTypeDecl(here, (TypeDeclInterface) op, parentB);
+			
+			if (parentB == null) {
+				IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
+				IRNode pd = CompilationUnit.getPkg(cu);						
+				parentB = buildNonTypeDecl(here, (Declaration) JJNode.tree.getOperator(pd), null);
+			}
 		}
 		else if (Declaration.prototype.includes(op)) { 	
-			b = buildNonTypeDecl(here, (Declaration) op);
+			Declaration d = (Declaration) op;
+			if (ignoreNode(d, parent)) {
+				// Ignore this parameter
+				return parentB;
+			}
+			b = buildNonTypeDecl(here, d, parentB);
 		}
 		else {
-			return parent;
+			return parentB;
 		}
-		b.setParent(parent);
+		b.setParent(parentB);
 		return b;
 	}
 	
+	/**
+	 * Filter out cases that show up because node types are reused
+	 */
+	private boolean ignoreNode(Declaration d, IRNode parent) {
+		final Operator pop;
+		switch (d.getKind()) {
+		case PARAMETER:
+			pop = JJNode.tree.getOperator(parent);
+			return ForEachStatement.prototype.includes(pop) || CatchClause.prototype.includes(pop);
+		case FIELD:
+			pop = JJNode.tree.getOperator(parent);
+			if (VariableResource.prototype.includes(pop)) {
+				return true;
+			}
+			IRNode gparent = JJNode.tree.getParentOrNull(parent);			
+			return FieldDeclaration.prototype.includes(gparent);			
+		default:
+			return false;
+		}
+	}
+
 	private IDecl.Visibility getVisibility(IRNode decl) {
 		final int mods = JavaNode.getModifiers(decl);
 		return getVisibility(mods);
@@ -87,7 +128,7 @@ public class DeclFactory {
 		return IDecl.Visibility.DEFAULT;
 	}
 	
-	private DeclBuilder buildTypeDecl(IRNode decl, TypeDeclInterface t) {
+	private DeclBuilder buildTypeDecl(IRNode decl, TypeDeclInterface t, DeclBuilder parent) {
 		final String name = JJNode.getInfoOrNull(decl);
 		switch (t.getKind()) {
 		case CLASS:
@@ -128,7 +169,8 @@ public class DeclFactory {
 			return ib;
 		case TYPE_PARAMETER:
 			final int num = computePosition(decl);
-			return buildTypeParameter(num, decl);
+			//return buildTypeParameter(num, decl);			
+			return parent.getTypeParameterBuilderAt(num);
 		}		
 		return null;
 	}
@@ -143,7 +185,7 @@ public class DeclFactory {
 		return b;
 	}
 
-	private DeclBuilder buildNonTypeDecl(IRNode decl, Declaration d) {
+	private DeclBuilder buildNonTypeDecl(IRNode decl, Declaration d, DeclBuilder parent) {
 		final String name = JJNode.getInfoOrNull(decl);
 		IRNode params, types, type;
 		int i = 0;
@@ -220,21 +262,25 @@ public class DeclFactory {
 			return m;
 		case PACKAGE:
 			return new PackageBuilder(name);			
-		case PARAMETER:
+		case PARAMETER:						
 			final int num = computePosition(decl);
-			ParameterBuilder param = new ParameterBuilder(num, name);
-			param.setIsFinal(JavaNode.getModifier(decl, JavaNode.FINAL));	
-			
-			type = ParameterDeclaration.getType(decl);
-			param.setTypeOf(computeTypeRef(type));
-					
-			return param;
+			//return buildParameter(decl, num, name);
+			return parent.getParameterBuilderAt(num);
 		}
 		return null;
 	}
 
+	private ParameterBuilder buildParameter(IRNode decl, int num, String name) {
+		ParameterBuilder param = new ParameterBuilder(num, name);
+		param.setIsFinal(JavaNode.getModifier(decl, JavaNode.FINAL));	
+		
+		IRNode type = ParameterDeclaration.getType(decl);
+		param.setTypeOf(computeTypeRef(type));
+		return param;
+	}
+
 	private ParameterBuilder buildParameter(IRNode param, int i) {
-		return new ParameterBuilder(i, null);
+		return buildParameter(param, i, JJNode.getInfoOrNull(param));
 	}
 	
 	private int computePosition(IRNode child) {
@@ -243,7 +289,7 @@ public class DeclFactory {
 		if (!child.equals(JJNode.tree.getChild(parent, loc))) {
 			throw new IllegalStateException();
 		}
-		return loc.getID();
+		return JJNode.tree.childLocationIndex(parent, loc);
 	}
 	
 	private TypeRef computeTypeRef(IRNode ref) {
