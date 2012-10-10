@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -149,7 +150,7 @@ public final class ColumnLabelProviderUtility {
           if (ref == null)
             cell.setImage(f_classRid.getCachedImage());
           else {
-            switch (ref.getTypeType()) {
+            switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
             case ENUM:
               cell.setImage(f_enumRid.getCachedImage());
               break;

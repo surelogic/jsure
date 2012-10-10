@@ -181,8 +181,11 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
         final MultiMap<String, IDrop> cuToDrop = new MultiHashMap<String, IDrop>();
         for (IDrop d : e.getValue()) {
           final IJavaRef ref = d.getJavaRef();
-          if (ref != null)
-            cuToDrop.put(ref.getTypeName(), d);
+          if (ref != null) {
+            String typeName = ref.getTypeNameOrNull();
+            if (typeName != null)
+              cuToDrop.put(typeName, d);
+          }
         }
         roots[i] = new Package(e.getKey(), cuToDrop);
         i++;
