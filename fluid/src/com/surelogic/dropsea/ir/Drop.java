@@ -155,7 +155,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(247, number));
+      LOG.warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -267,7 +267,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setCategorizingMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(251, number));
+      LOG.warning(I18N.err(261, number));
       return;
     }
     synchronized (f_seaLock) {

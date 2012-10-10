@@ -3,12 +3,12 @@ package edu.cmu.cs.fluid.java;
 import com.surelogic.Immutable;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.javac.FileResource;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRObjectType;
-import edu.cmu.cs.fluid.ir.SlotInfo;
 
 /**
  * Provides an implementation for code references within the JSure analysis and
@@ -72,13 +72,31 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
       f_workspaceRelativePath = copy.getWorkspaceRelativePathOrNull();
     }
 
-    public Builder(@NonNull String typeNameFullyQualifiedSureLogic) {
-      super(typeNameFullyQualifiedSureLogic);
+    public Builder(@NonNull IDecl declaration) {
+      super(declaration);
     }
 
     @Override
     public Builder setWithin(Within value) {
       super.setWithin(value);
+      return this;
+    }
+
+    @Override
+    public Builder setCUName(String value) {
+      super.setCUName(value);
+      return this;
+    }
+
+    @Override
+    public Builder setDeclaration(IDecl value) {
+      super.setDeclaration(value);
+      return this;
+    }
+
+    @Override
+    public Builder setIsOnDeclaration(boolean value) {
+      super.setIsOnDeclaration(value);
       return this;
     }
 
@@ -91,12 +109,6 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     @Override
     public Builder setPackageName(String value) {
       super.setPackageName(value);
-      return this;
-    }
-
-    @Override
-    public Builder setTypeType(TypeType value) {
-      super.setTypeType(value);
       return this;
     }
 
@@ -143,8 +155,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
     @Override
     public IFluidJavaRef build() {
-      return new FluidJavaRef(f_within, getEncodedNames(), f_typeType, f_lineNumber, f_offset, f_length, f_javaId,
-          f_enclosingJavaId, f_workspaceRelativePath);
+      return new FluidJavaRef(f_within, f_declaration, f_isOnDeclaration, f_eclipseProjectName, f_lineNumber, f_offset, f_length,
+          f_javaId, f_enclosingJavaId, f_workspaceRelativePath);
     }
 
     @Override
@@ -159,10 +171,12 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
   }
 
-  protected FluidJavaRef(final @NonNull Within within, final @NonNull String encodedNames, final @NonNull TypeType typeType,
-      final int lineNumber, final int offset, final int length, final @Nullable String javaIdOrNull,
-      final @Nullable String enclosingJavaIdOrNull, final @Nullable String workspaceRelativePathOrNull) {
-    super(within, encodedNames, typeType, lineNumber, offset, length, javaIdOrNull, enclosingJavaIdOrNull);
+  protected FluidJavaRef(final @NonNull Within within, final @NonNull IDecl declaration, boolean isOnDeclaration,
+      final @NonNull String eclipseProjectNameOrNull, final int lineNumber, final int offset, final int length,
+      final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
+      final @Nullable String workspaceRelativePathOrNull) {
+    super(within, declaration, isOnDeclaration, eclipseProjectNameOrNull, lineNumber, offset, length, javaIdOrNull,
+        enclosingJavaIdOrNull);
     f_workspaceRelativePath = workspaceRelativePathOrNull;
   }
 

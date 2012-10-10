@@ -69,7 +69,7 @@ abstract class ElementDrop extends Element {
   String getSimpleTypeNameOrNull() {
     final IJavaRef jr = getDrop().getJavaRef();
     if (jr != null)
-      return jr.getTypeName();
+      return jr.getTypeNameOrNull();
     else
       return null;
   }

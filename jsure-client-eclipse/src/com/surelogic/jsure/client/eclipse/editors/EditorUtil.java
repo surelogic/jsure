@@ -21,6 +21,7 @@ import org.eclipse.ui.ide.IDE;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
@@ -40,7 +41,8 @@ public class EditorUtil {
    */
   public static void highlightLineInJavaEditor(final IJavaRef javaRef) {
     JDTUIUtility.tryToOpenInEditor(javaRef);
-    HistoricalSourceView.tryToOpenInEditor(javaRef.getPackageName(), javaRef.getTypeNameDollarSign(), javaRef.getLineNumber());
+    HistoricalSourceView.tryToOpenInEditor(javaRef.getPackageName(),
+        DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), javaRef.getLineNumber());
   }
 
   /**

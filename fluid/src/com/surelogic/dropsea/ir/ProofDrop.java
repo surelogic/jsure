@@ -164,7 +164,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   public final void setMessageWhenProvedConsistent(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(247, number));
+      LOG.warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -182,7 +182,7 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
 
   public final void setMessageWhenNotProvedConsistent(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(247, number));
+      LOG.warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {

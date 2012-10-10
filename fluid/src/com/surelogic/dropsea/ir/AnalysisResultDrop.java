@@ -156,6 +156,37 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  /**
+   * Gets if this result, directly or indirectly, checks a promise.
+   * 
+   * @return {@code true} if this result checks a promise, {@code false}
+   *         otherwise.
+   */
+  public boolean checksAPromise() {
+    return checksAPromiseHelper(this);
+  }
+
+  /**
+   * Recursive helper call to determine if the passed result, directly or
+   * indirectly, checks a promise.
+   * 
+   * @param result
+   *          a result.
+   * @return {@code true} if the passed result checks a promise, {@code false}
+   *         otherwise.
+   */
+  private boolean checksAPromiseHelper(final AnalysisResultDrop result) {
+    // directly checks a promise
+    if (result.hasChecked())
+      return true;
+    // indirectly checks a promise
+    for (final AnalysisResultDrop trustedByResult : result.getTrustedBy())
+      if (checksAPromiseHelper(trustedByResult))
+        return true;
+    // doesn't check a promise
+    return false;
+  }
+
   /*
    * Consistency proof methods
    */

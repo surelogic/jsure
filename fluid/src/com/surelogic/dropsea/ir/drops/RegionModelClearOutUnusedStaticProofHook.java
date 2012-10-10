@@ -4,7 +4,7 @@ import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.Sea;
 
-public class RegionModelClearOutUnusedStaticConsistencyProofHook extends AbstractSeaConsistencyProofHook {
+public class RegionModelClearOutUnusedStaticProofHook extends AbstractSeaConsistencyProofHook {
 
   @Override
   public void preConsistencyProof(Sea sea) {

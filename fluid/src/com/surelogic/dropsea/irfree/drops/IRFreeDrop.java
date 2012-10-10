@@ -23,6 +23,8 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.Decl;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.Entity;
@@ -99,7 +101,7 @@ public class IRFreeDrop implements IDrop {
       try {
         treeHash = Long.parseLong(hash);
       } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(249, hash, HASH_ATTR), nfe);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, hash, HASH_ATTR), nfe);
       }
     }
     f_treeHash = treeHash != null ? treeHash : Long.valueOf(0);
@@ -110,7 +112,7 @@ public class IRFreeDrop implements IDrop {
       try {
         contextHash = Long.parseLong(chash);
       } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(249, chash, CONTEXT_ATTR), nfe);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, chash, CONTEXT_ATTR), nfe);
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
@@ -203,7 +205,8 @@ public class IRFreeDrop implements IDrop {
       classNm = classNm.replaceAll("\\$", ".");
       // Note that the default package is "" in the SourceRef instances
       final String jarStyleName = pkg + "/" + classNm;
-      final JavaRef.Builder builder = new JavaRef.Builder(jarStyleName);
+      final IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic(jarStyleName);
+      final JavaRef.Builder builder = new JavaRef.Builder(decl);
       builder.setEclipseProjectName(project);
       if (classExt)
         builder.setWithin(IJavaRef.Within.JAR_FILE);
