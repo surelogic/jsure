@@ -179,10 +179,6 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       IJavaRef ref = d.getJavaRef();
       if (ref == null) {
         if (!d.getMessage().contains("java.lang.Object")) {
-          /*
-           * if (d.getMessage().startsWith("ThreadRole")) {
-           * System.out.println("Found ThreadRole"); }
-           */
           System.out.println("No src ref for " + d.getMessage());
         } else {
           // System.currentTimeMillis();
@@ -212,7 +208,6 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     rv.setFilter(new IDropFilter() {
 //      @Override
       public boolean keep(IDrop d) {
-        // TODO Auto-generated method stub
         return select(d) && f.keep(d);
       }
     });
