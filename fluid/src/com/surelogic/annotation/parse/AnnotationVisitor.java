@@ -28,7 +28,6 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -152,18 +151,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     return false;
   }
-
-  private static int getOffset(IRNode n) {
-	  ISrcRef src = JavaNode.getSrcRef(n);
-	  return src == null ? -1 : src.getOffset();
-  }
   
   public class ContextBuilder {
 	  final IRNode anno;
 	  final String promise;
 	  final String contents;
+	  /**
+	   * Usually pointing to the contents IRNode
+	   */
+	  final IRNode context;
 	  AnnotationSource source;
-	  int offset = -1;
+	  
 	  int modifiers = JavaNode.ALL_FALSE;
 	  Map<String, String> properties = Collections.emptyMap();	   
       
@@ -171,16 +169,19 @@ public class AnnotationVisitor extends Visitor<Integer> {
     	  anno = n;
     	  this.promise = promise;
     	  this.contents = contents;
+    	  context = n;
       }
       
-	  public ContextBuilder(String promise, IRNode contents) {
-		  anno = contents;
+	  public ContextBuilder(IRNode n, String promise, IRNode contents) {
+		  anno = n;
 		  this.promise = promise;
     	  this.contents = extractString(contents);    	  
-    	  offset = getOffset(contents);
+    	  context = contents;
+    	  /*
     	  if (SourceAdapter.includeQuotesInStringLiteral) {
     		  offset++;
     	  }
+    	  */
 	  }
 	  
       /**
@@ -193,19 +194,16 @@ public class AnnotationVisitor extends Visitor<Integer> {
     		  } else {
     			  source = AnnotationSource.JAVA_5;
     		  }
-    	  }
-    	  if (offset == -1) {
-    		  offset = getOffset(anno);
-    	  }    	  
+    	  } 	  
     	  
     	  /* Bad things happen if contents is null */
     	  String c = (contents == null) ? "" : contents;
 
     	  IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance().getParseDropRule(promise);
     	  if (r == null && source != AnnotationSource.JAVA_5) {
-    	      SimpleAnnotationParsingContext.reportError(anno, offset, "Javadoc @annotate '" + promise + "' is unknown -- is it misspelled?");    	      
+    	      SimpleAnnotationParsingContext.reportError(anno, "Javadoc @annotate '" + promise + "' is unknown -- is it misspelled?");    	      
     	  }
-    	  return new Context(source, anno, r, c, offset, modifiers, properties);
+    	  return new Context(source, anno, r, c, context, modifiers, properties);
       }
 
 	public ContextBuilder setSrc(AnnotationSource src) {
@@ -221,20 +219,15 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		properties = props;
 		return this;
 	}
-
-	public ContextBuilder setOffset(int offset) {
-		this.offset = offset;
-		return this;
-	}
   }
   
   class Context extends SimpleAnnotationParsingContext {
     final int mods;
     final Map<String, String> properties;
 
-    Context(AnnotationSource src, IRNode n, IAnnotationParseRule<?, ?> r, String text, int offset, int modifiers,
+    Context(AnnotationSource src, IRNode n, IAnnotationParseRule<?, ?> r, String text, IRNode ref, int modifiers,
         Map<String, String> props) {
-      super(src, n, r, text, offset);
+      super(src, n, r, text, ref);
       mods = modifiers;
       properties = new HashMap<String, String>(props);
     }
@@ -317,7 +310,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   @Override
-  public Integer visitSingleElementAnnotation(IRNode node) {
+  public Integer visitSingleElementAnnotation(final IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise == null) {
       // FIX ignoring other annos
@@ -335,14 +328,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
         if (it.hasNext()) {
           for (IRNode v : it) {
         	// Treat each as if it's for a separate annotation?
-            num += translate(handleJava5Promise(promise, v));
+            num += translate(handleJava5Promise(node, promise, v));
           }
         } else {
           // Treat as marker annotation
           num += translate(handleJava5Promise(value, promise));
         }
       } else if (StringLiteral.prototype.includes(op)) {
-        num += translate(handleJava5Promise(promise, value));
+        num += translate(handleJava5Promise(node, promise, value));
       } else
         throw new IllegalArgumentException("Unexpected value: " + op.name());
     } else {
@@ -370,13 +363,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
         boolean verify = true;
         boolean allowReturn = false;
         boolean allowRead = false;
-        String contents = "";
+        IRNode contents = null;
         Map<String, String> props = new HashMap<String, String>();
         for (IRNode valuePair : pairs) {
           final String id = ElementValuePair.getId(valuePair);
           if (VALUE_ATTR.equals(id)) {
-        	node = ElementValuePair.getValue(valuePair);       
-            contents = extractString(node);
+        	contents = ElementValuePair.getValue(valuePair);       
           } else if (ALLOW_READ.equals(id)) {
             allowRead = extractBoolean(valuePair, allowRead);
           } else if (ALLOW_RETURN.equals(id)) {
@@ -395,10 +387,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
           }
         }
         ContextBuilder builder; 
-        if (contents.length() > 0) {
-        	builder = new ContextBuilder(promise, node);
-        } else {
+        if (contents != null) {
         	builder = new ContextBuilder(node, promise, contents);
+        } else {
+        	builder = new ContextBuilder(node, promise, "");
         }
         builder.setProps(convertToModifiers(implOnly, verify, allowReturn, allowRead), props);
         return translate(handleJava5Promise(builder));                   
@@ -515,8 +507,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
   /**
    * Uses the contents as the context node
    */
-  private boolean handleJava5Promise(String promise, IRNode contents) {
-	  return handleJava5Promise(new ContextBuilder(promise, contents));
+  private boolean handleJava5Promise(IRNode anno, String promise, IRNode contents) {
+	  return handleJava5Promise(new ContextBuilder(anno, promise, contents));
   }
   
   private boolean handleJava5Promise(ContextBuilder builder) {
@@ -540,24 +532,23 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {
-    final int offset = javadocAnnotation.getOffset();
     if (!javadocAnnotation.isValid()) {
-      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate matches no known JSure promise: "
+      SimpleAnnotationParsingContext.reportError(decl, "Javadoc @annotate matches no known JSure promise: "
           + javadocAnnotation.getRawCommentText());
       return false;
     }
     final String annotation = javadocAnnotation.getAnnotation();
     if (!javadocAnnotation.hasArgument()) {
-      return handleSimpleJavadocPromise(decl, annotation, offset);
+      return handleSimpleJavadocPromise(decl, annotation);
     }
     final String argument = javadocAnnotation.getArgument().trim();
     if (!(argument.startsWith("\"") && argument.endsWith("\""))) {
-      SimpleAnnotationParsingContext.reportError(decl, offset, "Javadoc @annotate " + annotation + "(" + argument
+      SimpleAnnotationParsingContext.reportError(decl, "Javadoc @annotate " + annotation + "(" + argument
           + ") : JSure only handles a single string as an argument to any Javadoc promise");
       return false;
     }
     return createPromise(new ContextBuilder(decl, annotation, argument.substring(1, argument.length() - 1))
-    		.setSrc(AnnotationSource.JAVADOC).setOffset(offset));
+    		.setSrc(AnnotationSource.JAVADOC));
   }
 
   /**
@@ -565,7 +556,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
    * 
    * TODO this code doesn't match the Javadoc
    */
-  private boolean handleSimpleJavadocPromise(IRNode decl, String text, int offset) {
+  private boolean handleSimpleJavadocPromise(IRNode decl, String text) {
     String tag = text.trim();
     if (tag.startsWith("@")) {
       tag = tag.substring(1).trim();
@@ -587,10 +578,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
           }
           msg = "Not a legal annotation name: " + text;
         }
-        SimpleAnnotationParsingContext.reportError(decl, offset, msg);
+        SimpleAnnotationParsingContext.reportError(decl, msg);
         return false;
       }
     }
-    return createPromise(new ContextBuilder(decl, tag, "").setSrc(AnnotationSource.JAVADOC).setOffset(offset));
+    return createPromise(new ContextBuilder(decl, tag, "").setSrc(AnnotationSource.JAVADOC));
   }
 }

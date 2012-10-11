@@ -224,7 +224,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		final IAnnotationParsingContext context = new AbstractAnnotationParsingContext(
 				AnnotationSource.XML) {
 			@Override
-			protected IRNode getNode() {
+			protected IRNode getAnnoNode() {
 				return null; // None to return
 			}
 

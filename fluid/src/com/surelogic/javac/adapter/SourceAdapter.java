@@ -287,7 +287,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     String comment = javadoc == null ? null : javadoc.get(t);
     if (comment != null && AnnotationVisitor.allowJavadoc(jp.getTypeEnv())) {
       JavaNode.setComment(result, comment);
-      List<JavadocAnnotation> elmt = getJavadocAnnotations(comment, (int) start);
+      List<JavadocAnnotation> elmt = getJavadocAnnotations(comment);
       if (elmt != null)
         JavaNode.setJavadocAnnotations(result, elmt);
     }
@@ -300,7 +300,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     JavaNode.setFluidJavaRefIrBuilder(result, builder);
   }
 
-  private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment, final int declarationCommentOffset) {
+  private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment) {
     if (declarationComment == null)
       return null;
 
@@ -313,7 +313,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String line = st.nextToken().trim();
       if (line.startsWith("@")) {
         if (tag != null) {
-          javadocAnnotations.add(new JavadocAnnotation(sb.toString(), declarationCommentOffset));
+          javadocAnnotations.add(new JavadocAnnotation(sb.toString()));
           sb.setLength(0);
         }
         int spaceIndex = line.indexOf(' ');
@@ -342,7 +342,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
     // at end -- process last tag, if any
     if (tag != null) {
-      javadocAnnotations.add(new JavadocAnnotation(sb.toString(), declarationCommentOffset));
+      javadocAnnotations.add(new JavadocAnnotation(sb.toString()));
       sb.setLength(0);
     }
     System.out.println(javadocAnnotations);

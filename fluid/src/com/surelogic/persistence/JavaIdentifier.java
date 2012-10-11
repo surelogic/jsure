@@ -477,7 +477,8 @@ public final class JavaIdentifier {
 			//node.useText(c);
 			
 			final PromiseTargetNode target = (PromiseTargetNode) node.finalizeAST(c);
-			return target.matches(c.getNode());
+			//return target.matches(c.getNode());
+			throw new UnsupportedOperationException();
 		} catch (Exception e) {
 			e.printStackTrace();
 			//throw new IllegalStateException("While parsing: "+unparsedTarget, e);
@@ -530,7 +531,7 @@ public final class JavaIdentifier {
 		}
 		
 		@Override
-		protected IRNode getNode() {
+		protected IRNode getAnnoNode() {
 			return decl;
 		}
 		public Operator getOp() {

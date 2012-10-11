@@ -2458,7 +2458,7 @@ public class SLParseTest extends TestCase {
 		}
 
 		@Override
-		protected IRNode getNode() {
+		protected IRNode getAnnoNode() {
 			return null;
 		}
 

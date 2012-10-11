@@ -15,7 +15,9 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -24,37 +26,54 @@ import edu.cmu.cs.fluid.tree.Operator;
 public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationParsingContext {
   static final Logger LOG = SLLogger.getLogger("sl.annotation");
   
-  final IRNode node;
+  /**
+   * The annotation being parsed
+   */
+  final IRNode annoNode;
   final IAnnotationParseRule<?,?> rule;
   final String contents;
-  final int offset;
+  final IRNode contextRef;
   
   /**
    * @param offset The offset in the source text to the location of the IRNode
    */
   protected SimpleAnnotationParsingContext(AnnotationSource src, IRNode n, 
-                                           IAnnotationParseRule<?,?> r, String text, int offset) {    
+                                           IAnnotationParseRule<?,?> r, String text, IRNode ref) {    
     super(src);
-    node = n;
+    annoNode = n;
     rule = r;
     contents = text;  
-    this.offset = offset;
+    contextRef = ref;
   }
   @Override
-  protected final IRNode getNode() {
-    return node;
+  protected final IRNode getAnnoNode() {
+    return annoNode;
   }
   
   public IAnnotationParseRule<?,?> getRule() {
 	  return rule;
   }
   
-  @Override
-  public int mapToSource(int offset) {
-	if (getSourceType() == AnnotationSource.JAVA_5 && offset >= 0 && this.offset >= 0) {		
-		return this.offset + offset;
+  private ISrcRef getSrcRef() {
+	ISrcRef ref = JavaNode.getSrcRef(contextRef);
+	if (ref == null) {
+		ref = JavaNode.getSrcRef(annoNode);
 	}
-    return this.offset;
+	return ref;
+  }
+  
+  private int getOffset() {
+	ISrcRef ref = getSrcRef();
+	return ref == null ? -1 : ref.getOffset();
+  }
+  
+  @Override
+  public int mapToSource(int relativeOffset) {
+	final int offset = getOffset();
+	if (getSourceType() == AnnotationSource.JAVA_5 && offset >= 0 && relativeOffset >= 0) {		
+		return offset + relativeOffset;
+	}
+    return offset;
   }
   
   @Override
@@ -88,7 +107,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     		reportError(offset, "Cannot find type referenced in qualified receiver: "+context);
     		return;
     	}
-    	IRNode closestType = VisitUtil.getClosestType(node);
+    	IRNode closestType = VisitUtil.getClosestType(annoNode);
     	if (referencedType != closestType && TypeUtil.isStatic(closestType)) {
     		reportError(offset, 
     				"Cannot refer to qualified receiver from static inner type "+
@@ -107,7 +126,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     // what this node should be
     TestResult result = getTestResult();     
     boolean first = true;
-    for(IRNode declNode : computeDeclNode(node, loc, o)) {
+    for(IRNode declNode : computeDeclNode(annoNode, loc, o)) {
       AASTRootNode root;
       TestResult tr;
       
@@ -123,7 +142,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
       // CHANGED from pointing at the promise node
       // FIX drop.setNodeAndCompilationUnitDependency(declNode); 
       if (declNode == null) {
-    	final IRNode decl = VisitUtil.getEnclosingDecl(node);
+    	final IRNode decl = VisitUtil.getEnclosingDecl(annoNode);
     	final Operator op = JJNode.tree.getOperator(decl);
     	final boolean isFunction = SomeFunctionDeclaration.prototype.includes(op);
     	final String msg;
@@ -170,7 +189,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   
   private IRNode findEnclosingType(String pattern) {
 	final boolean isQualified = pattern.indexOf('.') >= 0;
-	IRNode here = node;
+	IRNode here = annoNode;
 	IRNode type;
 	String typeName;
 	do {
@@ -203,6 +222,10 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  return "declaration";
   }
   
+  public static void reportError(IRNode node, String txt) {	  
+	  reportError(node, UNKNOWN, txt);
+  }
+  
   public static void reportError(IRNode node, int offset, String txt) {	    
 	  ModelingProblemDrop d = new ModelingProblemDrop(node, offset);
 	  d.setMessage(txt);
@@ -212,7 +235,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
     
 	final int position = mapToSource(offset);
-    reportError(node, position, msg);
+    reportError(contextRef, position, msg);
     hadProblem = true;
   }
 
@@ -229,14 +252,14 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 		LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
 		txt = "Unexpected problem while parsing promise: "+e.getMessage();
 	}
-	reportError(node, position, txt);
+	reportError(contextRef, position, txt);
 
 
     hadProblem = true;
   }
 
   public Operator getOp() {
-    IRNode decl = computeDeclNode(node);
+    IRNode decl = computeDeclNode(annoNode);
     return JJNode.tree.getOperator(decl);
   }  
   
