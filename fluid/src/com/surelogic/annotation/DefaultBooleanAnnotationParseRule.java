@@ -70,7 +70,7 @@ extends AbstractAnnotationParseRule<A,P> {
    */
   private void reportAAST(IAnnotationParsingContext context, Tree tn) {
     AnnotationLocation loc = translateTokenType(tn.getType(), context.getOp());
-    final int offset       = context.mapToSource(tn.getTokenStartIndex());        
+    final int offset       = /*context.mapToSource(*/tn.getTokenStartIndex(); //);        
     try {
       AASTAdaptor.Node node = (AASTAdaptor.Node) tn;
       int mods;
