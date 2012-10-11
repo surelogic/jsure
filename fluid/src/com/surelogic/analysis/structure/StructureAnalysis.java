@@ -100,11 +100,11 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 						final ResultDrop rd;
 						if (call != null) {
 							rd = new ResultDrop(call);
-							rd.setMessage("Invoked in "+JavaNames.genRelativeFunctionName(n));
+							rd.setMessage(801, JavaNames.genRelativeFunctionName(n));
 							rd.setConsistent();
 						} else {
 							rd = new ResultDrop(n);
-							rd.setMessage("Not invoked in "+JavaNames.genRelativeFunctionName(n));
+							rd.setMessage(802, JavaNames.genRelativeFunctionName(n));
 							rd.setInconsistent();
 						}
 						rd.addChecked(StructureRules.getMustInvokeDrop(parent.getNode()));	
@@ -125,7 +125,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 	public void finish(IIRAnalysisEnvironment env) {
 		for(MustInvokeOnOverridePromiseDrop d : unchecked.values()) {
 			ResultDrop rd = new ResultDrop(d.getPromisedFor());
-			rd.setMessage("Trivially satisfied because there are no known overrides");
+			rd.setMessage(800);
 			rd.addChecked(d);
 			rd.setConsistent();
 		}
