@@ -57,7 +57,6 @@ public final class JavadocAnnotation {
   private final String f_argument;
   @NonNull
   private final String f_raw;
-  private final int f_offset;
   private final boolean f_isValid;
 
   /**
@@ -70,11 +69,10 @@ public final class JavadocAnnotation {
    * @param offset
    *          of the tag in characters from the beginning of the file.
    */
-  public JavadocAnnotation(String annotationPlusExtra, int offset) {
+  public JavadocAnnotation(String annotationPlusExtra) {
     if (annotationPlusExtra == null)
       throw new IllegalArgumentException(I18N.err(44, "annotationPlusExtra"));
 
-    f_offset = offset;
     f_raw = annotationPlusExtra.trim();
 
     String annotation = null;
@@ -137,8 +135,7 @@ public final class JavadocAnnotation {
   }
 
   public static void main(String[] args) {
-    JavadocAnnotation j = new JavadocAnnotation(".RegionEffects(\"none\")sdfsd fdsfsd", 5);
-    System.out.println(j.getOffset());
+    JavadocAnnotation j = new JavadocAnnotation(".RegionEffects(\"none\")sdfsd fdsfsd");
     System.out.println(j.isValid());
     System.out.println(j.getRawCommentText());
     System.out.println(j.getAnnotation());
@@ -223,15 +220,6 @@ public final class JavadocAnnotation {
    */
   public boolean hasArgument() {
     return f_argument != null;
-  }
-
-  /**
-   * Gets the offset of the tag in characters from the beginning of the file.
-   * 
-   * @return the offset of the tag in characters from the beginning of the file.
-   */
-  public int getOffset() {
-    return f_offset;
   }
 
   @Override
