@@ -311,7 +311,8 @@ public final class JSureDataDirHub {
   }
 
   /**
-   * Internal helper method to set the current scan value.
+   * Internal helper method to set the current scan value. It sets the current
+   * scan and generates info for it.
    * 
    * @param value
    *          the scan to set or {@code null} to clear the current scan value.
@@ -344,7 +345,7 @@ public final class JSureDataDirHub {
         final File scanDir = new File(value);
         currentScan = f_dataDir.findScan(scanDir);
       }
-      f_currentScan = currentScan;
+      setCurrentScanHelper(currentScan);
     }
   }
 
