@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.Decl;
@@ -204,7 +205,12 @@ public class IRFreeDrop implements IDrop {
       String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
       classNm = classNm.replaceAll("\\$", ".");
       // Note that the default package is "" in the SourceRef instances
-      final String jarStyleName = pkg + "/" + classNm;
+      // Note that "package-info" needs to be delt with
+      final String jarStyleName;
+      if (SLUtility.PACKAGE_INFO.equals(classNm))
+        jarStyleName = pkg + "/";
+      else
+        jarStyleName = pkg + "/" + classNm;
       final IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic(jarStyleName);
       final JavaRef.Builder builder = new JavaRef.Builder(decl);
       builder.setEclipseProjectName(project);
