@@ -49,9 +49,9 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 			diff = null;
 			return null;
 		}
-		final Collection<IDrop> info = scan.getDropInfo();
-		if (!info.isEmpty()) {
-			try {
+		try {
+			final Collection<IDrop> info = scan.getDropInfo();
+			if (!info.isEmpty()) {
 				File file = findBaseline(scan);
 				if (file != null) {
 					diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
@@ -63,13 +63,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 				} else {
 					diff = null;
 				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		
+			} else {
+				System.out.println("No snapshot to diff against");
+				diff = null;
 			}
-
-		} else {
-			System.out.println("No snapshot to diff against");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 			diff = null;
 		}
 		return null;
