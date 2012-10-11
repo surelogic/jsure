@@ -179,10 +179,6 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       IJavaRef ref = d.getJavaRef();
       if (ref == null) {
         if (!d.getMessage().contains("java.lang.Object")) {
-          /*
-           * if (d.getMessage().startsWith("ThreadRole")) {
-           * System.out.println("Found ThreadRole"); }
-           */
           System.out.println("No src ref for " + d.getMessage());
         } else {
           // System.currentTimeMillis();
@@ -212,7 +208,6 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     rv.setFilter(new IDropFilter() {
 //      @Override
       public boolean keep(IDrop d) {
-        // TODO Auto-generated method stub
         return select(d) && f.keep(d);
       }
     });
@@ -240,27 +235,33 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     rv.setMatcher(new DropMatcher("Exact  ", "Core   ", "Hashed ", "Hashed2", "Results") {
       @Override
       protected boolean warnIfMatched(int pass) {
-        return pass >= 4;
+        return pass >= 5;
       }
 
       @Override
       protected boolean match(int pass, IDrop n, IDrop o) {
         switch (pass) {
         case 0:
-          return matchExact(n, o);
+          return matchId(n, o);
         case 1:
-          return matchCore(n, o);
+          return matchExact(n, o);
         case 2:
-          return matchHashedAndHints(n, o);
+          return matchCore(n, o);
         case 3:
-          return matchHashed(n, o);
+          return matchHashedAndHints(n, o);
         case 4:
+          return matchHashed(n, o);
+        case 5:
           return matchResults(n, o);
         default:
           return false;
         }
       }
 
+      private boolean matchId(IDrop n, IDrop o) {
+    	return matchBasics(n, o) && matchStrings(getJavaId(n), getJavaId(o), false) == Boolean.TRUE;
+      }
+      
       private boolean matchExact(IDrop n, IDrop o) {
         return matchCore(n, o) && matchSupportingInfo(n, o);
       }

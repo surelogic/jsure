@@ -7,13 +7,14 @@ import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
+
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public abstract class AstGen extends JavaParser {
   private AstGen() {
@@ -208,7 +209,7 @@ public abstract class AstGen extends JavaParser {
   private static final Object[][] nameMapping =
     { { VoidType.prototype, "ResultType" }, };
 
-  private static final Object[] mArgs = ArrayUtil.empty;
+  private static final Object[] mArgs = SLUtility.EMPTY_OBJECT_ARRAY;
 
   private static JavaOperator generalizeOperator(Operator op) {
     for (int i = 0; i < opMapping.length; i++) {

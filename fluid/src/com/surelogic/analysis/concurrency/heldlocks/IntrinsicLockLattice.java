@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
+import com.surelogic.common.SLUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
-import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.FlatLattice;
 
@@ -82,7 +82,7 @@ final class IntrinsicLockLattice extends
    */
   private IntrinsicLockLattice(
       final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
-    super(FlatLattice.prototype, ArrayUtil.empty, sb);
+    super(FlatLattice.prototype, SLUtility.EMPTY_OBJECT_ARRAY, sb);
     locks = l;
     assumedLocks = assumed;
   }

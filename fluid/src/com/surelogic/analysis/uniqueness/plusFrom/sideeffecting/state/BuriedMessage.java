@@ -1,6 +1,7 @@
 package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state;
 
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.Messages;
+import com.surelogic.common.SLUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -9,14 +10,14 @@ public enum BuriedMessage {
   VAR(Messages.READ_OF_BURIED) {
     @Override
     public Object[] getVarArgs(final Object v) {
-      return new Object[0];
+      return SLUtility.EMPTY_OBJECT_ARRAY;
     }    
   },
   
   RETURN(Messages.RETURN_OF_BURIED) {
     @Override
     public Object[] getVarArgs(final Object v) {
-      return new Object[0];
+      return SLUtility.EMPTY_OBJECT_ARRAY;
     }    
   },
   

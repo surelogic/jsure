@@ -356,7 +356,7 @@ public final class ScanManagerMediator implements ILifecycle {
 				final JSureDataDir dataDir = (JSureDataDir) inputElement;
 				return dataDir.getScansAsArray();
 			} else
-				return new Object[0];
+				return SLUtility.EMPTY_OBJECT_ARRAY;
 		}
 
 		@Override

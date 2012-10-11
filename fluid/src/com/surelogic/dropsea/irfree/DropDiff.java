@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import com.surelogic.common.IViewable;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProofDrop;
 
 public class DropDiff extends DiffNode implements IViewable {
 	static boolean allowMissingSupportingInfos = false;
@@ -46,11 +47,7 @@ public class DropDiff extends DiffNode implements IViewable {
 	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
 		if (o.drop.getHints().isEmpty()) {
 			if (n.drop.getHints().isEmpty()) {
-				return null;
-			}
-			if (allowMissingSupportingInfos) {
-				// System.out.println("Temporarily ignoring missing details in old oracles");
-				return null;
+				return diffProperties(out, n, o);
 			}
 		}
 		final Map<String, DiffNode> oldDetails = extractDetails(o.drop);
@@ -68,7 +65,7 @@ public class DropDiff extends DiffNode implements IViewable {
 		}
 
 		if (oldDetails.isEmpty() && newDetails.isEmpty()) {
-			return null;
+			return diffProperties(out, n, o);
 		}
 		out.println("\tDiffs in details for " + n.drop.getMessage());
 		for (String old : sort(oldDetails.keySet(), temp)) {
@@ -81,11 +78,51 @@ public class DropDiff extends DiffNode implements IViewable {
 			DiffNode e = newDetails.get(newMsg);
 			e.setAsNewer();
 		}
-		List<DiffNode> remaining = new ArrayList<DiffNode>(oldDetails.size() + newDetails.size());
+		List<AbstractDiffNode> remaining = new ArrayList<AbstractDiffNode>(1 + oldDetails.size() + newDetails.size());
+		if (!matchProvedConsistent(n.drop, o.drop)) {
+			DiffMessage m = makeProvedConsistentMsg(out, n.drop, o.drop);	
+			remaining.add(m);
+		}
 		remaining.addAll(oldDetails.values());
 		remaining.addAll(newDetails.values());
 		Collections.sort(remaining);
 		return new DropDiff(n.drop, o.drop, remaining.toArray());
+	}
+
+	private static DropDiff diffProperties(PrintStream out, DiffNode n, DiffNode o) {
+		if (matchProvedConsistent(n.drop, o.drop)) {
+			return null;
+		}
+		out.println("\tDiffs in details for " + n.drop.getMessage());
+		DiffMessage m = makeProvedConsistentMsg(out, n.drop, o.drop);		
+		return new DropDiff(n.drop, o.drop, wrap(m));
+	}
+	
+	private static DiffMessage[] wrap(DiffMessage s) {
+		return new DiffMessage[] { s };
+	}
+	
+	private static DiffMessage makeProvedConsistentMsg(PrintStream out, final IDrop n, IDrop o) {
+		String msg = "provedConsistent: "+provedConsistent(o)+" => "+provedConsistent(n);
+		out.println("\t\tChanged: "+msg);
+		return new DiffMessage(msg, Status.CHANGED) {
+			@Override
+			public IDrop getDrop() {
+				return n;
+			}
+		};
+	}
+	
+	private static boolean provedConsistent(IDrop d) {
+		if (d instanceof IProofDrop) {
+			IProofDrop pd = (IProofDrop) d;
+			return pd.provedConsistent();
+		}
+		return false;
+	}
+	
+	protected static boolean matchProvedConsistent(IDrop n, IDrop o) {
+		return provedConsistent(n) == provedConsistent(o);
 	}
 	
 	// Assume that we only have supporting info
@@ -114,15 +151,20 @@ public class DropDiff extends DiffNode implements IViewable {
 
 	public void write(PrintWriter w) {
 		w.println("\tDiffs in details for " + drop.getMessage());
-		final Map<String, DiffNode> oldDetails = extractDetails(old);
-		final Map<String, DiffNode> newDetails = extractDetails(drop);
-		final List<String> temp = new ArrayList<String>();
-		for (String old : sort(oldDetails.keySet(), temp)) {
-			w.println("\t\tOld    : " + old);
-		}
-		for (String newMsg : sort(newDetails.keySet(), temp)) {
-			w.println("\t\tNewer  : " + newMsg);
-		}		
+		for(Object o : getChildren()) {
+			AbstractDiffNode n = (AbstractDiffNode) o;
+			switch (n.getDiffStatus()) {
+			case CHANGED:
+				w.println("\t\tChanged: " + n.getText());
+				break;
+			case NEW:
+				w.println("\t\tNewer  : " + n.getText());
+				break;
+			case OLD:
+				w.println("\t\tOld    : " + n.getText());
+				break;
+			}
+		}	
 	}
 
 	public static boolean isSame(IDrop n, IDrop o) {

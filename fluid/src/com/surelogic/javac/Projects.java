@@ -533,4 +533,11 @@ public class Projects extends JavaProjects implements IIRProjects,
 		}
 		return b.toString();
 	}
+
+	/**
+	 * @return true if they have the same projects
+	 */
+	public boolean matchProjects(Projects other) {
+		return projects.keySet().equals(other.projects.keySet());
+	}
 }

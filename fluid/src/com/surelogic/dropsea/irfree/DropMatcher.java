@@ -3,7 +3,6 @@ package com.surelogic.dropsea.irfree;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IProofDrop;
 
 public abstract class DropMatcher {
 	private final String[] labels;
@@ -39,8 +38,7 @@ public abstract class DropMatcher {
 	protected abstract boolean match(int pass, IDrop n, IDrop o);
 
 	protected static boolean matchBasics(IDrop n, IDrop o) {
-		return /*matchCategory(n, o) && */matchMessage(n, o) && matchProvedConsistent(n, o);
-		//&& matchSupportingInfo(n, o);
+		return matchMessage(n, o);
 	}
 	
 	protected static boolean matchCategory(IDrop n, IDrop o) {
@@ -51,18 +49,6 @@ public abstract class DropMatcher {
 		}
 		// If either null, don't compare
 		return true;
-	}
-	
-	private static boolean provedConsistent(IDrop d) {
-		if (d instanceof IProofDrop) {
-			IProofDrop pd = (IProofDrop) d;
-			return pd.provedConsistent();
-		}
-		return false;
-	}
-	
-	protected static boolean matchProvedConsistent(IDrop n, IDrop o) {
-		return provedConsistent(n) == provedConsistent(o);
 	}
 	
 	private static String preprocess(String value) {
@@ -77,17 +63,6 @@ public abstract class DropMatcher {
 		String oMsg = preprocess(o);
 		if (nMsg != null && oMsg != null) {
 			boolean result = nMsg.equals(oMsg);
-			/*
-			if (!result && startsWith) { 
-				// TODO hack for now
-				if (nMsg.startsWith(oMsg)) {
-					return true;
-				}
-				if (nMsg.replace("(\"", " ").replace("\")", "").equals(oMsg)) {
-					return true;
-				}
-			}
-			*/
 			return result;
 		}
 		return null;
@@ -145,6 +120,14 @@ public abstract class DropMatcher {
 		IJavaRef ref = d.getJavaRef();
 		if (ref != null) {
 			return (long) ref.getOffset();
+		}
+		return null;
+	}
+	
+	protected static String getJavaId(IDrop d) {
+		IJavaRef ref = d.getJavaRef();
+		if (ref != null) {
+			return ref.getJavaId();
 		}
 		return null;
 	}

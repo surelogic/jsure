@@ -325,7 +325,7 @@ public final class JSureDataDirHub {
 	 * @param value
 	 */
 	@RequiresLock("StateLock")
-	public void setCurrentScanHelper(final JSureScan value) {
+	private void setCurrentScanHelper(final JSureScan value) {
 		if (value != null) {
 			if (!f_dataDir.contains(value))
 				throw new IllegalArgumentException(I18N.err(232, value,

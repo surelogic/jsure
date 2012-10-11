@@ -3,7 +3,7 @@ package com.surelogic.dropsea.irfree;
 import com.surelogic.common.SLUtility;
 
 public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNode> {
-	Status status = null;
+	Status status = Status.N_A;
 	
 	void setAsOld() {
 		status = Status.OLD;
@@ -17,19 +17,11 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 		return status;
 	}
 	
-	public boolean isOld() {
-		return status == Status.OLD;
-	}
-	
-	public boolean isNewer() {
-		return status == Status.NEW;
-	}
-	
 //	@Override
 	public int compareTo(IDiffNode o) {
-	      int rv = getText().compareTo(o.getText());
+	      int rv = getDiffStatus().compareTo(o.getDiffStatus());
 	      if (rv == 0) {
-	        return getDiffStatus().compareTo(o.getDiffStatus());
+	        return getText().compareTo(o.getText());
 	      }
 	      return rv;
 	}

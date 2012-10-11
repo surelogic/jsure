@@ -24,7 +24,7 @@
         class="com.surelogic.jsure.views.debug.resultsView.actions.ExportToSnapshot">
       </action>
     </viewContribution>      
-    <viewContribution id="com.surelogic.jsure.views.debug.viewContributions.ResultsView"
+    <viewContribution id="com.surelogic.jsure.views.debug.viewContributions.ResultsView2"
       targetID="com.surelogic.jsure.views.debug.oracleDiff.SnapshotDiffView">      
       <action id="com.surelogic.jsure.views.debug.resultsView.exportToSnapshot"
         label="Export Oracle File"
@@ -32,6 +32,12 @@
         menubarPath="additions"
         class="com.surelogic.jsure.views.debug.resultsView.actions.ExportToSnapshot">
       </action>
+      <action id="com.surelogic.jsure.views.debug.resultsView.toggleReference"
+        label="Toggle Baseline"
+        tooltip="Change whether the view uses an oracle or the last scan as a baseline"
+        menubarPath="additions"
+        class="com.surelogic.jsure.views.debug.oracleDiff.ToggleBaseline">
+      </action>
     </viewContribution>
-  </extension>  
+  </extension>   
 </plugin>

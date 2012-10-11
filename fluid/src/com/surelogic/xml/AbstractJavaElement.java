@@ -2,13 +2,14 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
+
 import difflib.DeleteDelta;
 import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.InsertDelta;
 import difflib.Patch;
 import difflib.PatchFailedException;
-import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
@@ -310,7 +311,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 			collectOtherChildren(children);
 			return children.toArray();
 		}
-		return ArrayUtil.empty;
+		return SLUtility.EMPTY_OBJECT_ARRAY;
 	}
 
 	protected void collectOtherChildren(List<Object> children) {
