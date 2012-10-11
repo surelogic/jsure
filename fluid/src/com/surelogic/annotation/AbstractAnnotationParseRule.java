@@ -41,11 +41,11 @@ implements ISingleAnnotationParseRule<A,P> {
   
   /**
    * Uses reflection to create an AAST root node of the appropriate type;
- * @param context 
+   * @param offset unmapped
    */
   protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {    
     Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
-    return c.newInstance(offset, modifiers);
+    return c.newInstance(context.mapToSource(offset), modifiers);
   }
   /*
   protected void reportAAST(IAnnotationParsingContext context, int offset, AnnotationLocation loc) {
