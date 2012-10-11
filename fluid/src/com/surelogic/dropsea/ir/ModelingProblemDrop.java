@@ -52,6 +52,10 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
         public int getOffset() {
           return f_offset;
         }
+        @Override
+        public int getLength() {
+        	return 0;
+        }
       };
     } else {
       /*
@@ -77,7 +81,7 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
        * Change the code reference so that it returns the more precise offset
        * that this drop knows about (from the parser).
        */
-      return new FluidJavaRef.Builder(javaRef).setOffset(f_offset).build();
+      return new FluidJavaRef.Builder(javaRef).setOffset(f_offset).setLength(0).build();
     } else {
       /*
        * The offset we have is nonsense, return the existing source reference.
