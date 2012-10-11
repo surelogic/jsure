@@ -20,6 +20,9 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
 
   private final int f_offset;
 
+  /**
+   * @param off The absolute offset into the program
+   */
   public ModelingProblemDrop(IRNode node, int off) {
     super(node);
     f_offset = off;
