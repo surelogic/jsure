@@ -591,8 +591,8 @@ public class ScopedPromiseRules extends AnnotationRules {
     private final ScopedPromiseCallback callback;
 
     public ScopedAnnotationParsingContext(ScopedPromiseCallback callback, AnnotationSource src, IRNode n,
-        IAnnotationParseRule<?, ?> r, String text, int offset) {
-      super(src, n, r, text, offset);
+        IAnnotationParseRule<?, ?> r, String text) {
+      super(src, n, r, text, n);
       this.callback = callback;
     }
 
@@ -709,7 +709,7 @@ public class ScopedPromiseRules extends AnnotationRules {
           offset = ref.getOffset();
         }
         final AbstractAnnotationParsingContext context = new ScopedAnnotationParsingContext(this, scopedPromiseDrop.getAAST()
-            .getSrcType(), decl, parseRule, content, offset);
+            .getSrcType(), decl, parseRule, content);
         ParseResult result = parseRule.parse(context, content);
         if (result == ParseResult.IGNORE) {
           return Result.NOT_APPLICABLE;
