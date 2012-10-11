@@ -123,26 +123,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     return null;
   }
-
-  private Context makeContext(IRNode node, String promise, String c, AnnotationSource src, int offset) {
-    return makeContext(node, promise, c, src, offset, JavaNode.ALL_FALSE, Collections.<String, String> emptyMap());
-  }
-
-  private Context makeContext(IRNode node, String promise, String c, AnnotationSource src, int offset, int modifiers,
-      Map<String, String> props) {
-    /* Bad things happen if contents is null */
-    String contents = (c == null) ? "" : c;
-
-    IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance().getParseDropRule(promise);
-    Context context = new Context(src, node, r, contents, offset, modifiers, props);
-    if (r == null && context.getSourceType() != AnnotationSource.JAVA_5) {
-      SimpleAnnotationParsingContext.reportError(node, offset, "Javadoc @annotate '" + promise + "' is unknown -- is it misspelled?");
-    }
-  	return context;
-  }
-
+  
   // FIX needs more info about where the contents are coming from
-  private boolean createPromise(Context context) {
+  private boolean createPromise(ContextBuilder builder) {
+	Context context = builder.build();
     try {
       if (context.getRule() != null) {
         // System.out.println("Got "+promise+" : "+contents);
@@ -168,6 +152,68 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return false;
   }
 
+
+  public class ContextBuilder {
+	  final IRNode anno;
+	  final String promise;
+	  final String contents;
+	  AnnotationSource source;
+	  int offset = -1;
+	  int modifiers = JavaNode.ALL_FALSE;
+	  Map<String, String> properties = Collections.emptyMap();	   
+      
+	  public ContextBuilder(IRNode n, String promise, String contents) {
+    	  anno = n;
+    	  this.promise = promise;
+    	  this.contents = contents;
+      }
+      
+      /**
+       * Defaults to most of the things needed for Java5 annotations
+       */
+      Context build() {
+    	  if (source == null) {
+    		  if (TypeUtil.isBinary(anno)) {
+    			  source = AnnotationSource.XML;
+    		  } else {
+    			  source = AnnotationSource.JAVA_5;
+    		  }
+    	  }
+    	  if (offset == -1) {
+    		  ISrcRef src = JavaNode.getSrcRef(anno);
+    		  offset = src == null ? 0 : src.getOffset();
+    	  }    	  
+    	  
+    	  /* Bad things happen if contents is null */
+    	  String c = (contents == null) ? "" : contents;
+
+    	  IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance().getParseDropRule(promise);
+    	  if (r == null && source != AnnotationSource.JAVA_5) {
+    	      SimpleAnnotationParsingContext.reportError(anno, offset, "Javadoc @annotate '" + promise + "' is unknown -- is it misspelled?");    	      
+    	  }
+    	  return new Context(source, anno, r, c, offset, modifiers, properties);
+      }
+
+	public ContextBuilder setSrc(AnnotationSource src) {
+		source = src;
+		return this;
+	}
+
+	public ContextBuilder setProps(int mods, Map<String, String> props) {
+		modifiers = mods;
+		if (props == null) {
+			throw new IllegalArgumentException("null props");
+		}
+		properties = props;
+		return this;
+	}
+
+	public ContextBuilder setOffset(int offset) {
+		this.offset = offset;
+		return this;
+	}
+  }
+  
   class Context extends SimpleAnnotationParsingContext {
     final int mods;
     final Map<String, String> properties;
@@ -243,7 +289,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
       // minimum
       // trim off the ending */
       result = result.substring(0, result.length() - 2);
-      createPromise(makeContext(node, TestRules.TEST_RESULT, result, AnnotationSource.JAVA_5, -1));
+      createPromise(new ContextBuilder(node, TestRules.TEST_RESULT, result).setSrc(AnnotationSource.JAVA_5));
     }
   }
 
@@ -251,7 +297,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public Integer visitMarkerAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
-      return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE, Collections.<String, String> emptyMap()));
+      return translate(handleJava5Promise(node, promise, ""));
     }
     return 0;
   }
@@ -261,7 +307,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     String promise = mapToPromiseName(node);
     if (promise == null) {
       // FIX ignoring other annos
-      return 0;
+      return sum(doAcceptForChildrenWithResults(node));
     }
     boolean plural = promise.endsWith("s");
     IRNode value = SingleElementAnnotation.getElt(node);
@@ -269,23 +315,20 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
     int num = 0;
     if (Initializer.prototype.includes(op)) {
-      /*
-       * Not true for @starts if (plural) { throw new
-       * Error(promise+" doesn't contains Annotations: "
-       * +DebugUnparser.toString(value)); }
-       */
-      // Should be a String?
       if (ArrayInitializer.prototype.includes(op)) {
+    	// FIX this shouldn't ever happen for our current annotations
         Iteratable<IRNode> it = ArrayInitializer.getInitIterator(value);
         if (it.hasNext()) {
           for (IRNode v : it) {
-            num += translate(handleJava5Promise(node, v, promise, removeQuotes(StringLiteral.getToken(v))));
+        	// Treat each as if it's for a separate annotation?
+            num += translate(handleJava5Promise(v, promise, removeQuotes(StringLiteral.getToken(v))));
           }
         } else {
-          num += translate(handleJava5Promise(node, value, promise, ""));
+          // Treat as marker annotation
+          num += translate(handleJava5Promise(value, promise, ""));
         }
       } else if (StringLiteral.prototype.includes(op)) {
-        num += translate(handleJava5Promise(node, value, promise, removeQuotes(StringLiteral.getToken(value))));
+        num += translate(handleJava5Promise(value, promise, removeQuotes(StringLiteral.getToken(value))));
       } else
         throw new IllegalArgumentException("Unexpected value: " + op.name());
     } else {
@@ -306,10 +349,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public Integer visitNormalAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
-      // We should never have any of these
-      // but we might want to convert other ppl's into ours
-
-      // Assume that we only car
       IRNode pairsNode = NormalAnnotation.getPairs(node);
       Iteratable<IRNode> pairs = ElementValuePairs.getPairIterator(pairsNode);
       if (pairs.hasNext()) {
@@ -340,14 +379,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
             }
           }
         }
-        return translate(handleJava5Promise(node, node, promise, contents,
-            convertToModifiers(implOnly, verify, allowReturn, allowRead), props));
+        return translate(handleJava5Promise(new ContextBuilder(node, promise, contents).setProps(
+            convertToModifiers(implOnly, verify, allowReturn, allowRead), props)));
       } else {
-        return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE, Collections.<String, String> emptyMap()));
+    	// Basically the same as a marker annotation
+        return translate(handleJava5Promise(node, promise, ""));
       }
-      // throw new Error("A NormalAnnotation in a SL package?!?");
     }
-    return 0;
+    return sum(doAcceptForChildrenWithResults(node));
   }
 
   private static String removeQuotes(String c) {
@@ -381,7 +420,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return "";
   }
 
-  public static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead) {
+  private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead) {
     int modifiers = JavaNode.ALL_FALSE;
     if (implOnly) {
       modifiers |= JavaNode.IMPLEMENTATION_ONLY;
@@ -448,38 +487,28 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return tag;
   }
 
-  public boolean handleJava5Promise(IRNode node, String promise, int modifiers, Map<String, String> props) {
-    return handleJava5Promise(node, node, promise, "", modifiers, props);
+  private boolean handleJava5Promise(IRNode n, String promise, String contents) {
+	  return handleJava5Promise(new ContextBuilder(n, promise, contents));
+  }
+  
+  private boolean handleJava5Promise(ContextBuilder builder) {
+    checkForTestResult(builder.anno);
+    return createPromise(builder);
   }
 
-  public boolean handleJava5Promise(IRNode anno, IRNode here, String promise, String c) {
-    return handleJava5Promise(anno, here, promise, c, JavaNode.ALL_FALSE, Collections.<String, String> emptyMap());
-  }
-
-  public boolean handleJava5Promise(IRNode anno, IRNode here, String promise, String c, int modifiers, Map<String, String> props) {
-    checkForTestResult(anno);
-
-    ISrcRef src = JavaNode.getSrcRef(here);
-    int offset = src == null ? 0 : src.getOffset();
-    /*
-     * if (src != null) {
-     * System.out.println("Handling promise: "+promise+' '+c); }
-     */
-    AnnotationSource from;
-    if (TypeUtil.isBinary(here)) {
-      from = AnnotationSource.XML;
-    } else {
-      from = AnnotationSource.JAVA_5;
-    }
-    return createPromise(makeContext(here, promise, c, from, offset, modifiers, props));
-  }
-
-  public boolean handleXMLPromise(IRNode node, String promise, String c, int modifiers, Map<String, String> props) {
+  public boolean handleXMLPromise(IRNode node, String promise, String c, Map<String, String> props) {
     /*
      * if (c.contains("CopyOn")) {
      * System.out.println("Visiting @"+promise+" "+c); }
      */
-    return createPromise(makeContext(node, capitalize(promise), c, AnnotationSource.XML, Integer.MAX_VALUE, modifiers, props));
+	final boolean implOnly    = "true".equals(props.get(AnnotationVisitor.IMPLEMENTATION_ONLY));
+	final String rawVerify    = props.get(AnnotationVisitor.VERIFY);
+	final boolean verify      = rawVerify == null || "true".equals(rawVerify);
+	final boolean allowReturn = "true".equals(props.get(AnnotationVisitor.ALLOW_RETURN));
+	final boolean allowRead   = "true".equals(props.get(AnnotationVisitor.ALLOW_READ));	
+	final int mods            = convertToModifiers(implOnly, verify, allowReturn, allowRead);
+    return createPromise(new ContextBuilder(node, capitalize(promise), c)
+                              .setSrc(AnnotationSource.XML).setProps(mods, props));
   }
 
   private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {
@@ -499,12 +528,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
           + ") : JSure only handles a single string as an argument to any Javadoc promise");
       return false;
     }
-    return createPromise(makeContext(decl, annotation, argument.substring(1, argument.length() - 1), AnnotationSource.JAVADOC,
-        offset));
+    return createPromise(new ContextBuilder(decl, annotation, argument.substring(1, argument.length() - 1))
+    		.setSrc(AnnotationSource.JAVADOC).setOffset(offset));
   }
 
   /**
    * Assumes that text looks like Foo (e.g. no parameters)
+   * 
+   * TODO this code doesn't match the Javadoc
    */
   private boolean handleSimpleJavadocPromise(IRNode decl, String text, int offset) {
     String tag = text.trim();
@@ -532,6 +563,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
         return false;
       }
     }
-    return createPromise(makeContext(decl, tag, "", AnnotationSource.JAVADOC, offset));
+    return createPromise(new ContextBuilder(decl, tag, "").setSrc(AnnotationSource.JAVADOC).setOffset(offset));
   }
 }

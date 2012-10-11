@@ -464,18 +464,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (isBad || isToBeDeleted()) {
 			return 0;
 		}
-		final boolean implOnly = "true".equals(attributes
-				.get(AnnotationVisitor.IMPLEMENTATION_ONLY));
-		final String rawVerify = attributes.get(AnnotationVisitor.VERIFY);
-		final boolean verify = rawVerify == null || "true".equals(rawVerify);
-		final boolean allowReturn = "true".equals(attributes
-				.get(AnnotationVisitor.ALLOW_RETURN));
-		final boolean allowRead = "true".equals(attributes
-				.get(AnnotationVisitor.ALLOW_READ));
-
-		boolean added = v.handleXMLPromise(annotatedNode, promise, contents,
-				AnnotationVisitor.convertToModifiers(implOnly, verify,
-						allowReturn, allowRead), attributes);
+		boolean added = v.handleXMLPromise(annotatedNode, promise, contents, attributes);
 		return added ? 1 : 0;
 	}
 

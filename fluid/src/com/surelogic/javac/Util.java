@@ -1144,10 +1144,9 @@ public class Util {
             continue;
           }
           if ("java.lang.Object".equals(name)) {
-            v.handleXMLPromise(type, RegionRules.REGION, "public static All", JavaNode.ALL_FALSE,
-                Collections.<String, String> emptyMap());
+            v.handleXMLPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
-          v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", JavaNode.ALL_FALSE,
+          v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", 
               Collections.<String, String> emptyMap());
         }
 
