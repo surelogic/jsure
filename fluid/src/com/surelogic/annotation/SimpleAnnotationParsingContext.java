@@ -15,7 +15,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
@@ -30,6 +29,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   final String contents;
   final int offset;
   
+  /**
+   * @param offset The offset in the source text to the location of the IRNode
+   */
   protected SimpleAnnotationParsingContext(AnnotationSource src, IRNode n, 
                                            IAnnotationParseRule<?,?> r, String text, int offset) {    
     super(src);
