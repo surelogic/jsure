@@ -46,7 +46,7 @@ public interface IAnnotationParsingContext {
   /**
    * Report that an AAST was created from parsing the text
    * 
-   * @param offset The offset into the text being parsed
+   * @param offset The offset into the text being parsed (unmapped)
    */
   <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast);
   
@@ -57,13 +57,14 @@ public interface IAnnotationParsingContext {
   /**
    * Report an error in the text
    * 
-   * @param offset The offset into the text being parsed   
+   * @param offset The offset into the text being parsed (unmapped)
    */
   void reportError(int offset, String msg);
 
   /**
    * Report an exception thrown while parsing the text
-   * @param e
+   * 
+   * @param offset The offset into the text being parsed (unmapped)
    */
   void reportException(int offset, Exception e);
   
