@@ -47,7 +47,10 @@ ITestAnnotationParsingContext {
     return hadProblem;
   }
   
-  protected abstract IRNode getNode();
+  /**
+   * e.g. the annotation being checked for test results
+   */
+  protected abstract IRNode getAnnoNode();
   
   public TestResult getTestResult() {
     throw new UnsupportedOperationException();
@@ -62,11 +65,11 @@ ITestAnnotationParsingContext {
   }
   
   public void setTestResultForUpcomingPromise(TestResultType r, String explan) {
-    setTestResultForUpcomingPromise(TestResult.newResult(getNode(), r, explan));    
+    setTestResultForUpcomingPromise(TestResult.newResult(getAnnoNode(), r, explan));    
   } 
   
   public void setTestResultForUpcomingPromise(TestResultType r, String context, String explan) {
-    setTestResultForUpcomingPromise(TestResult.newResult(getNode(), r, context, explan));    
+    setTestResultForUpcomingPromise(TestResult.newResult(getAnnoNode(), r, context, explan));    
   }
   
   /**

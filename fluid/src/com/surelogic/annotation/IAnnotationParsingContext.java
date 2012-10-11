@@ -83,7 +83,7 @@ public interface IAnnotationParsingContext {
       return null;
     }
     @Override
-    protected IRNode getNode() {
+    protected IRNode getAnnoNode() {
       return null;
     }
 	@Override

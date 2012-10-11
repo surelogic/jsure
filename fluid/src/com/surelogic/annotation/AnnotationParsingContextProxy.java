@@ -25,8 +25,8 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
   }
   
   @Override
-  protected IRNode getNode() {
-    return context.getNode();
+  protected IRNode getAnnoNode() {
+    return context.getAnnoNode();
   }
 
   public Operator getOp() {
