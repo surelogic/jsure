@@ -51,7 +51,10 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   
   @Override
   public int mapToSource(int offset) {
-    return this.offset;// + offset;
+	if (getSourceType() == AnnotationSource.JAVA_5 && offset >= 0 && this.offset >= 0) {		
+		return this.offset + offset;
+	}
+    return this.offset;
   }
   
   @Override
@@ -209,8 +212,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
     
 	final int position = mapToSource(offset);
-    String txt = getName()+":"+offset+" -- "+msg;
-    reportError(node, position, txt);
+    reportError(node, position, msg);
     hadProblem = true;
   }
 
