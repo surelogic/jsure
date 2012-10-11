@@ -22,6 +22,7 @@ import com.surelogic.annotation.rules.StandardRules;
 import com.surelogic.annotation.rules.TestRules;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.adapter.SourceAdapter;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -152,7 +153,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return false;
   }
 
-
+  private static int getOffset(IRNode n) {
+	  ISrcRef src = JavaNode.getSrcRef(n);
+	  return src == null ? -1 : src.getOffset();
+  }
+  
   public class ContextBuilder {
 	  final IRNode anno;
 	  final String promise;
@@ -168,6 +173,16 @@ public class AnnotationVisitor extends Visitor<Integer> {
     	  this.contents = contents;
       }
       
+	  public ContextBuilder(String promise, IRNode contents) {
+		  anno = contents;
+		  this.promise = promise;
+    	  this.contents = extractString(contents);    	  
+    	  offset = getOffset(contents);
+    	  if (SourceAdapter.includeQuotesInStringLiteral) {
+    		  offset++;
+    	  }
+	  }
+	  
       /**
        * Defaults to most of the things needed for Java5 annotations
        */
@@ -180,8 +195,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     		  }
     	  }
     	  if (offset == -1) {
-    		  ISrcRef src = JavaNode.getSrcRef(anno);
-    		  offset = src == null ? 0 : src.getOffset();
+    		  offset = getOffset(anno);
     	  }    	  
     	  
     	  /* Bad things happen if contents is null */
@@ -297,7 +311,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public Integer visitMarkerAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
-      return translate(handleJava5Promise(node, promise, ""));
+      return translate(handleJava5Promise(node, promise));
     }
     return 0;
   }
@@ -321,14 +335,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
         if (it.hasNext()) {
           for (IRNode v : it) {
         	// Treat each as if it's for a separate annotation?
-            num += translate(handleJava5Promise(v, promise, removeQuotes(StringLiteral.getToken(v))));
+            num += translate(handleJava5Promise(promise, v));
           }
         } else {
           // Treat as marker annotation
-          num += translate(handleJava5Promise(value, promise, ""));
+          num += translate(handleJava5Promise(value, promise));
         }
       } else if (StringLiteral.prototype.includes(op)) {
-        num += translate(handleJava5Promise(value, promise, removeQuotes(StringLiteral.getToken(value))));
+        num += translate(handleJava5Promise(promise, value));
       } else
         throw new IllegalArgumentException("Unexpected value: " + op.name());
     } else {
@@ -361,7 +375,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
         for (IRNode valuePair : pairs) {
           final String id = ElementValuePair.getId(valuePair);
           if (VALUE_ATTR.equals(id)) {
-            contents = extractStringFromPair(valuePair);
+        	node = ElementValuePair.getValue(valuePair);       
+            contents = extractString(node);
           } else if (ALLOW_READ.equals(id)) {
             allowRead = extractBoolean(valuePair, allowRead);
           } else if (ALLOW_RETURN.equals(id)) {
@@ -379,21 +394,20 @@ public class AnnotationVisitor extends Visitor<Integer> {
             }
           }
         }
-        return translate(handleJava5Promise(new ContextBuilder(node, promise, contents).setProps(
-            convertToModifiers(implOnly, verify, allowReturn, allowRead), props)));
+        ContextBuilder builder; 
+        if (contents.length() > 0) {
+        	builder = new ContextBuilder(promise, node);
+        } else {
+        	builder = new ContextBuilder(node, promise, contents);
+        }
+        builder.setProps(convertToModifiers(implOnly, verify, allowReturn, allowRead), props);
+        return translate(handleJava5Promise(builder));                   
       } else {
     	// Basically the same as a marker annotation
-        return translate(handleJava5Promise(node, promise, ""));
+        return translate(handleJava5Promise(node, promise));
       }
     }
     return sum(doAcceptForChildrenWithResults(node));
-  }
-
-  private static String removeQuotes(String c) {
-    if (c.startsWith("\"") && c.endsWith("\"")) {
-      c = c.substring(1, c.length() - 1);
-    }
-    return c;
   }
 
   private static String reformatStringArray(IRNode strings) {
@@ -407,15 +421,22 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return b.toString();
   }
 
-  private static String extractStringFromPair(IRNode valuePair) {
-    IRNode value = ElementValuePair.getValue(valuePair);
-    return extractString(value);
-  }
-
-  private static String extractString(IRNode value) {
+  static String extractString(IRNode value) {
     if (StringLiteral.prototype.includes(value)) {
       String c = StringLiteral.getToken(value);
-      return removeQuotes(c);
+      if (SourceAdapter.includeQuotesInStringLiteral) {
+    	  final boolean quoteStart = c.startsWith("\"");    	  
+    	  if (quoteStart && c.endsWith("\"")) {
+    		  c = c.substring(1, c.length() - 1);
+    		  
+    	  }
+    	  /*
+    	  else if (!quoteStart) {
+    		  System.out.println("String literal without quotes");          
+    	  }
+          */
+      }
+      return c;
     }
     return "";
   }
@@ -487,8 +508,15 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return tag;
   }
 
-  private boolean handleJava5Promise(IRNode n, String promise, String contents) {
-	  return handleJava5Promise(new ContextBuilder(n, promise, contents));
+  private boolean handleJava5Promise(IRNode n, String promise) {
+	  return handleJava5Promise(new ContextBuilder(n, promise, ""));
+  }
+  
+  /**
+   * Uses the contents as the context node
+   */
+  private boolean handleJava5Promise(String promise, IRNode contents) {
+	  return handleJava5Promise(new ContextBuilder(promise, contents));
   }
   
   private boolean handleJava5Promise(ContextBuilder builder) {
