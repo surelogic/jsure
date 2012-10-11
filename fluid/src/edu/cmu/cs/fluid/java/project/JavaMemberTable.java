@@ -718,6 +718,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   private class SuperScope implements IJavaScope {
     final boolean isTypeFormal;
     final AbstractJavaBinder binder;
+    final List<IJavaType> superTypes = new ArrayList<IJavaType>();
+    
     public SuperScope(AbstractJavaBinder b) {
       binder       = b;
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
@@ -727,7 +729,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 		return false;
 	}    
     
-    private Iteratable<IJavaType> getSuperTypes() {
+    private Iteratable<IJavaType> getSuperTypes_internal() {
       IJavaType thisType;
       if (isTypeFormal) {
         thisType = JavaTypeFactory.getTypeFormal(typeDeclaration);
@@ -741,6 +743,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return thisType.getSupertypes(binder.getTypeEnvironment());
     }
 
+    /**
+     * Added caching
+     */
+    private synchronized Iteratable<IJavaType> getSuperTypes() {
+    	if (superTypes.isEmpty()) {
+    		for(IJavaType st : getSuperTypes_internal()) {
+    			superTypes.add(st);
+    		}
+    	}
+    	return new SimpleIteratable<IJavaType>(superTypes.iterator());
+    }
+    
     /**
      * Checks if the lookup makes no sense because:
      * 1. it's trying to use the supertype to lookup itself
