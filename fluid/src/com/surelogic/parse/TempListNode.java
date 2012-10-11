@@ -40,7 +40,7 @@ public class TempListNode extends AASTNode {
   
   @Override
   public int getOffset() {
-    return 0;
+    return -1;
   }
   
   @SuppressWarnings("unchecked")

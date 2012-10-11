@@ -38,7 +38,7 @@ public class ClassRef extends AbstractRef {
   }
 
   public int getOffset() {
-    return 0;
+    return -1;
   }
 
   public String getProject() {

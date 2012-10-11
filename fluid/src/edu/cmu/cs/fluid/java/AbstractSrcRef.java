@@ -25,7 +25,7 @@ public abstract class AbstractSrcRef implements ISrcRef {
   }
 
   public int getOffset() {
-    return 0;
+    return -1;
   }
 
   public ISrcRef createSrcRef(int offset) {
