@@ -344,7 +344,7 @@ public abstract class AnnotationRules {
 			final ISrcRef ref = JavaNode.getSrcRef(n);
 			final int offset;
 			if (ref == null) {
-				offset = 0;
+				offset = -1;
 			} else {
 				offset = ref.getOffset();
 			}
