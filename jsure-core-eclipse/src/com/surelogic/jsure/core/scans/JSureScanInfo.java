@@ -4,18 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.tool.ToolProperties;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -25,8 +22,6 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * Manages the project information, the loading of drop information and other
