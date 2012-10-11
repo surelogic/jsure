@@ -104,6 +104,8 @@ import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
+  public static final boolean includeQuotesInStringLiteral = true;
+	
   enum TypeKind {
     IFACE, ENUM, OTHER
   }
@@ -1136,10 +1138,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return CharLiteral.createNode("'\\u" + Integer.toHexString(c.charValue()) + "'");
     case STRING_LITERAL:
       String s = (String) o;
-      if (s.length() == 0) {
-        s = "\"\"";
-      } else {
-        s = '\"' + s + '\"';
+      if (includeQuotesInStringLiteral) {
+    	  if (s.length() == 0) {
+    		  s = "\"\"";
+    	  } else {
+    		  s = '\"' + s + '\"';
+    	  }
       }
       return StringLiteral.createNode(s); // FIX
     case NULL_LITERAL:
