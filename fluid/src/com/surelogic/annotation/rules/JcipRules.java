@@ -122,42 +122,25 @@ public class JcipRules extends AnnotationRules {
     final String id = MessageFormat.format("Guard$_{0}", fieldId);
     final RegionNameNode region = new RegionNameNode(a.getOffset(), fieldId);
 
-    // TODO: Clean this up
+    final ExpressionNode field;
     if (lock instanceof ThisExpressionNode) {
-      final ThisExpressionNode field = (ThisExpressionNode) lock.cloneTree();
-      
-      final LockDeclarationNode regionLockDecl =
-        new LockDeclarationNode(a.getOffset(), id, field, region);
-      regionLockDecl.setPromisedFor(classDecl);
-      regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, d);
+      field = (ThisExpressionNode) lock.cloneTree();
     } else if (lock instanceof FieldRefNode) {
-      final FieldRefNode field = (FieldRefNode) lock.cloneTree();
-      
-      final LockDeclarationNode regionLockDecl =
-        new LockDeclarationNode(a.getOffset(), id, field, region);
-      regionLockDecl.setPromisedFor(classDecl);
-      regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, d);
+      field = (FieldRefNode) lock.cloneTree();
     } else if (lock instanceof ClassExpressionNode) {
-      final QualifiedClassLockExpressionNode field = 
+      field = 
         new QualifiedClassLockExpressionNode(lock.getOffset(),
             (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
-            
-      final LockDeclarationNode regionLockDecl =
-        new LockDeclarationNode(a.getOffset(), id, field, region);
-      regionLockDecl.setPromisedFor(classDecl);
-      regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, d);
     } else if (lock instanceof QualifiedThisExpressionNode) {
-      final QualifiedThisExpressionNode field = (QualifiedThisExpressionNode) lock.cloneTree();
-      
-      final LockDeclarationNode regionLockDecl =
-        new LockDeclarationNode(a.getOffset(), id, field, region);
-      regionLockDecl.setPromisedFor(classDecl);
-      regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, d);
+      field = (QualifiedThisExpressionNode) lock.cloneTree();
+    } else {
+    	throw new IllegalStateException("Unexpected lock field: "+lock);
     }
+    final LockDeclarationNode regionLockDecl =
+    	new LockDeclarationNode(a.getOffset(), id, field, region);
+    regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
+    regionLockDecl.setSrcType(a.getSrcType());
+    AASTStore.addDerived(regionLockDecl, d);
     return d;
   }
 }
