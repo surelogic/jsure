@@ -4,13 +4,13 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 
 public class SingletonNode extends AbstractBooleanNode {
-	public SingletonNode(int offset) {
-		super(offset);
+	public SingletonNode() {
+		super();
 	}
 	
 	@Override
 	public IAASTNode cloneTree() {
-		return new SingletonNode(offset);
+		return new SingletonNode();
 	}
 
 	@Override

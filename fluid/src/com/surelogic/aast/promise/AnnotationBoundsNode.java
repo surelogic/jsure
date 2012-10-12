@@ -15,10 +15,10 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   private final NamedTypeNode[] value;
 	  
   // Constructors
-  public AnnotationBoundsNode(int offset, NamedTypeNode[] containable, 
+  public AnnotationBoundsNode(NamedTypeNode[] containable, 
 		  NamedTypeNode[] immutable, NamedTypeNode[] reference,
 		  NamedTypeNode[] threadSafe, NamedTypeNode value[]) {
-    super(offset, JavaNode.ALL_FALSE);
+    super(JavaNode.ALL_FALSE);
     this.containable = containable;
     this.immutable = immutable;
     this.reference = reference;
@@ -109,7 +109,7 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   
   @Override
   public IAASTNode cloneTree(){
-  	return new AnnotationBoundsNode(offset, containable, immutable, reference, threadSafe, value);
+  	return new AnnotationBoundsNode(containable, immutable, reference, threadSafe, value);
   }
   
   @Override

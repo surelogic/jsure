@@ -6,8 +6,8 @@ import com.surelogic.annotation.rules.*;
 public class ValueObjectNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public ValueObjectNode(int offset, int unusedMods) {
-    super(offset);
+  public ValueObjectNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class ValueObjectNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ValueObjectNode(offset, 0);
+  	return new ValueObjectNode();
   }
 }
 

@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public class NotThreadSafeNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public NotThreadSafeNode(int offset) {
-    super(offset);
+  public NotThreadSafeNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class NotThreadSafeNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new NotThreadSafeNode(offset);
+  	return new NotThreadSafeNode();
   }
 }
 

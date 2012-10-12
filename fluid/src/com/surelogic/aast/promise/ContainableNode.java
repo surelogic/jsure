@@ -5,8 +5,8 @@ import com.surelogic.aast.*;
 public final class ContainableNode extends AbstractModifiedBooleanNode 
 { 	
   // Constructors
-  public ContainableNode(int offset, int mods) {
-    super(offset, mods);
+  public ContainableNode(int mods) {
+    super(mods);
   }
 
   @Override
@@ -21,7 +21,7 @@ public final class ContainableNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ContainableNode(offset, mods);
+  	return new ContainableNode(mods);
   }
 }
 

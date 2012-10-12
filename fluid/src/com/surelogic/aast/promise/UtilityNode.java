@@ -4,13 +4,13 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 
 public class UtilityNode extends AbstractBooleanNode {
-	public UtilityNode(int offset) {
-		super(offset);
+	public UtilityNode() {
+		super();
 	}
 	
 	@Override
 	public IAASTNode cloneTree() {
-		return new UtilityNode(offset);
+		return new UtilityNode();
 	}
 
 	@Override

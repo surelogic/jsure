@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public class MutableNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public MutableNode(int offset) {
-    super(offset);
+  public MutableNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class MutableNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new MutableNode(offset);
+  	return new MutableNode();
   }
 }
 

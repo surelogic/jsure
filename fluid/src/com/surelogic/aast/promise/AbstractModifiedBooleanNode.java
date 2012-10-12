@@ -7,8 +7,8 @@ import edu.cmu.cs.fluid.java.JavaNode;
 public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	protected final int mods;
 	
-	protected AbstractModifiedBooleanNode(int offset, int modifiers) {
-		super(offset);
+	protected AbstractModifiedBooleanNode(int modifiers) {
+		super();
 		mods = modifiers;
 	}
 

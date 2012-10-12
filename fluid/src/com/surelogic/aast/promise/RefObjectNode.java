@@ -6,8 +6,8 @@ import com.surelogic.annotation.rules.*;
 public class RefObjectNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public RefObjectNode(int offset, int unusedMods) {
-    super(offset);
+  public RefObjectNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class RefObjectNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new RefObjectNode(offset, 0);
+  	return new RefObjectNode();
   }
 }
 

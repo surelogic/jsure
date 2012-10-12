@@ -6,8 +6,8 @@ import com.surelogic.annotation.rules.*;
 public class MustInvokeOnOverrideNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public MustInvokeOnOverrideNode(int offset, int unusedMods) {
-    super(offset);
+  public MustInvokeOnOverrideNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class MustInvokeOnOverrideNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new MustInvokeOnOverrideNode(offset, 0);
+  	return new MustInvokeOnOverrideNode();
   }
 }
 

@@ -57,7 +57,7 @@ public class UtilityRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				SLAnnotationsParser parser) throws RecognitionException {
-			return new UtilityNode(context.mapToSource(0));
+			return new UtilityNode();
 		}
 
 		@Override
@@ -96,7 +96,7 @@ public class UtilityRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				SLAnnotationsParser parser) throws RecognitionException {
-			return new SingletonNode(context.mapToSource(0));
+			return new SingletonNode();
 		}
 
 		@Override

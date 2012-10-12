@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public class NotContainableNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public NotContainableNode(int offset) {
-    super(offset);
+  public NotContainableNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class NotContainableNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new NotContainableNode(offset);
+  	return new NotContainableNode();
   }
 }
 

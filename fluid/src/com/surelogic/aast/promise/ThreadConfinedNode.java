@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public class ThreadConfinedNode extends AbstractBooleanNode 
 { 
   // Constructors
-  public ThreadConfinedNode(int offset) {
-    super(offset);
+  public ThreadConfinedNode() {
+    super();
   }
 
   @Override
@@ -22,7 +22,7 @@ public class ThreadConfinedNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ThreadConfinedNode(offset);
+  	return new ThreadConfinedNode();
   }
 }
 

@@ -167,7 +167,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) throws Exception {
-			return new ThreadRoleTransparentNode(offset);
+			return new ThreadRoleTransparentNode();
 		}
 
 		@Override

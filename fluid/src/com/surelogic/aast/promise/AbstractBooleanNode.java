@@ -5,10 +5,20 @@ import com.surelogic.aast.*;
 public abstract class AbstractBooleanNode extends AASTRootNode 
 { 
   // Constructors
+  /**
+   * To be used if there's some content parse (e.g. @Borrowed(this)
+   */
   protected AbstractBooleanNode(int offset) {
     super(offset);
   }
 
+  /**
+   * Use the node
+   */
+  protected AbstractBooleanNode() {
+	  super(-1);
+  }
+  
   public String unparseForPromise() {
 	  return unparse(false);
   }

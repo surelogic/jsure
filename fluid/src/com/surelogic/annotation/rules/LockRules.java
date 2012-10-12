@@ -2014,7 +2014,7 @@ public class LockRules extends AnnotationRules {
 		
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new AnnotationBoundsNode(offset, 
+			return new AnnotationBoundsNode(
 					createNamedType(offset, context.getProperty(CONTAINABLE_PROP)),
 					createNamedType(offset, context.getProperty(IMMUTABLE_PROP)),
 					createNamedType(offset, context.getProperty(REFERENCE_PROP)),
@@ -2109,7 +2109,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {      
-      return new ContainableNode(offset, mods);
+      return new ContainableNode(mods);
     }
     @Override
     protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
@@ -2136,7 +2136,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ContainableNode makeDerivedAnnotation(
             final int offset, final int mods, ContainableNode orig) {
-          return new ContainableNode(offset, mods);
+          return new ContainableNode(mods);
         }
 
         @Override
@@ -2166,7 +2166,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ThreadSafeNode(offset, mods);
+      return new ThreadSafeNode(mods);
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2213,7 +2213,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
             final int offset, final int mods, ThreadSafeNode orig) {
-          return new ThreadSafeNode(offset, mods);
+          return new ThreadSafeNode(mods);
         }
 
         @Override
@@ -2257,7 +2257,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new NotThreadSafeNode(offset);
+      return new NotThreadSafeNode();
     }
     @Override
     protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
@@ -2276,7 +2276,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new NotContainableNode(offset);
+      return new NotContainableNode();
     }
     @Override
     protected IPromiseDropStorage<NotContainablePromiseDrop> makeStorage() {
@@ -2295,7 +2295,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new MutableNode(offset);
+      return new MutableNode();
     }
     @Override
     protected IPromiseDropStorage<MutablePromiseDrop> makeStorage() {
@@ -2340,7 +2340,7 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-    	  return new ImmutableNode(offset, mods);
+    	  return new ImmutableNode(mods);
       }
       return new ImmutableRefNode(offset);
     }
@@ -2369,7 +2369,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutableNode makeDerivedAnnotation(
             final int offset, final int mods, ImmutableNode orig) {
-          return new ImmutableNode(offset, mods);
+          return new ImmutableNode(mods);
         }
 
         @Override
@@ -2665,7 +2665,7 @@ public class LockRules extends AnnotationRules {
 		}
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new NotThreadSafeNode(offset);
+			return new NotThreadSafeNode();
 		}
 		@Override
 		protected IPromiseDropStorage<ThreadConfinedPromiseDrop> makeStorage() {

@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public final class ThreadSafeNode extends AbstractModifiedBooleanNode 
 {   
   // Constructors
-  public ThreadSafeNode(int offset, int mods) {
-    super(offset, mods);
+  public ThreadSafeNode(int mods) {
+    super(mods);
   }
 
   @Override
@@ -22,7 +22,7 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ThreadSafeNode(offset, mods);
+  	return new ThreadSafeNode(mods);
   }
 }
 

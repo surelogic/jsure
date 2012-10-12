@@ -11,7 +11,7 @@ public class ThreadRoleTransparentNode extends AbstractBooleanNode {
 	  @Override
 	  public AASTNode create(String _token, int _start, int _stop,
 			  int _mods, String _id, int _dims, List<AASTNode> _kids) {
-		  return new ThreadRoleTransparentNode(_start);
+		  return new ThreadRoleTransparentNode();
     }
   };
 
@@ -21,8 +21,8 @@ public class ThreadRoleTransparentNode extends AbstractBooleanNode {
    * 
    * @unique
    */
-  public ThreadRoleTransparentNode(int offset) {
-    super(offset);
+  public ThreadRoleTransparentNode() {
+    super();
   }
 
   @Override
@@ -38,6 +38,6 @@ public class ThreadRoleTransparentNode extends AbstractBooleanNode {
 
   @Override
   public IAASTNode cloneTree() {
-    return new ThreadRoleTransparentNode(getOffset());
+    return new ThreadRoleTransparentNode();
   }
 }
