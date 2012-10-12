@@ -42,7 +42,7 @@ public class ClassRef extends AbstractRef {
   }
 
   public String getProject() {
-    return clazz.getProject();
+    return clazz.getProjectName();
   }
 
   public String getPackage() {

@@ -1,8 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/AbstractAnnotationParseRule.java,v 1.15 2007/09/27 15:07:34 chance Exp $*/
 package com.surelogic.annotation;
 
-import java.lang.reflect.Constructor;
-
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -22,8 +20,6 @@ public abstract class AbstractAnnotationParseRule
 <A extends IAASTRootNode, P extends PromiseDrop<? super A>> 
 extends AbstractNamedPromiseRule 
 implements ISingleAnnotationParseRule<A,P> {
-  @SuppressWarnings("unchecked")
-  private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
   private final Class<A> aastType;
   private final IPromiseDropStorage<P> storage;
   private final IAnnotationScrubber scrubber;
@@ -39,14 +35,6 @@ implements ISingleAnnotationParseRule<A,P> {
     return aastType;
   }
   
-  /**
-   * Uses reflection to create an AAST root node of the appropriate type;
-   * @param offset unmapped
-   */
-  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {    
-    Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
-    return c.newInstance(context.mapToSource(offset), modifiers);
-  }
   /*
   protected void reportAAST(IAnnotationParsingContext context, int offset, AnnotationLocation loc) {
     try {

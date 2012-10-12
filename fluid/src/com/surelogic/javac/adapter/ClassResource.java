@@ -2,17 +2,19 @@ package com.surelogic.javac.adapter;
 
 import java.io.File;
 
+import com.surelogic.javac.JavacProject;
+
 public class ClassResource {
 	final String pkg;
 	final String cuName;
-	final String project;
+	final JavacProject project;
 	/**
 	 * jar or .class
 	 */
 	final File fileOrigin;
 	final String jarPath;
-	
-	ClassResource(String proj, String qname, File f, String jarPath) {
+
+	ClassResource(JavacProject proj, String qname, File f, String jarPath) {
 		project = proj;
 		int lastDot = qname.lastIndexOf('.');
 		if (lastDot >= 0) {
@@ -42,7 +44,11 @@ public class ClassResource {
 		return getRelativePath().hashCode();
 	}
 
-	public String getProject() {
+	public JavacProject getProject() {
 		return project;
+	}
+	
+	public String getProjectName() {
+		return project.getName();
 	}
 }

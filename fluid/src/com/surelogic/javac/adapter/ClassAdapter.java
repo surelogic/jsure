@@ -12,6 +12,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.*;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -39,7 +40,7 @@ public class ClassAdapter extends AbstractAdapter {
 	final List<IRNode> annos = new ArrayList<IRNode>();
 	final List<IRNode> members = new ArrayList<IRNode>();
 	
-	public ClassAdapter(String project, ZipFile j, String qname, boolean inner, int mods) {
+	public ClassAdapter(JavacProject project, ZipFile j, String qname, boolean inner, int mods) {
 		super(SLLogger.getLogger());
 		jar = j;
 		className = qname.replace('.', '/')+".class";
@@ -51,7 +52,7 @@ public class ClassAdapter extends AbstractAdapter {
 		resource = new ClassResource(project, qname, new File(j.getName()), className);
 	}
 
-	public ClassAdapter(String project, File f, String qname, boolean inner, int mods) {
+	public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods) {
 		super(SLLogger.getLogger());
 		jar = null;
 		className = null;
@@ -114,7 +115,7 @@ public class ClassAdapter extends AbstractAdapter {
 				IRNode imps  = ImportDeclarations.createNode(noNodes);
 				IRNode decls = TypeDeclarations.createNode(new IRNode[] { root });
 				IRNode cu    = CompilationUnit.createNode(pkg, imps, decls);
-				createLastMinuteNodes(cu, true, resource.getProject());
+				createLastMinuteNodes(cu, true, resource.getProjectName());
 				JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
                 /*
 				if ("java/lang/Object".equals(name)) {				

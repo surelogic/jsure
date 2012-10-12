@@ -513,7 +513,7 @@ public class JavacClassParser {
 						System.out.println("Got Enum from "+project+": "+jar.getName());
 					}
 					*/
-					ClassAdapter p = new ClassAdapter(project, jar, ref, false, 0);
+					ClassAdapter p = new ClassAdapter(srcProject, jar, ref, false, 0);
 					ICodeFile file = new JarResource(jar.getName(), ref, project);
 					info = adaptClass(srcProject, p, file, ref, cus);
 				} else {
@@ -547,7 +547,7 @@ public class JavacClassParser {
 			final JavacProject srcProject = projects.get(project);
 			CodeInfo info  = findClass(srcProject, ref, classFile);
 			if (info == null) {
-				ClassAdapter p = new ClassAdapter(project, classFile, ref, false, 0);
+				ClassAdapter p = new ClassAdapter(srcProject, classFile, ref, false, 0);
 				ICodeFile file = new FileResource(projects, classFile, ref, project);
 				info = adaptClass(srcProject, p, file, ref, cus);
 			}			
