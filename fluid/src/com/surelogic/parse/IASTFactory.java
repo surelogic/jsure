@@ -6,6 +6,10 @@ import java.util.List;
 public interface IASTFactory<T> {
   String NIL = "null";
   
+  /**
+   * @param start The absolute offset into the text
+   * @param stop
+   */
   T create(String token, int start, int stop, 
                   int mods, String id, int dims, List<T> kids);
   
