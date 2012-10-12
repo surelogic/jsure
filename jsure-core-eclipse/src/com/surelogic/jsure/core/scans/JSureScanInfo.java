@@ -72,7 +72,7 @@ public class JSureScanInfo {
         throw new Exception("Skipping loading");
       }
       f_dropInfo = SeaSnapshot.loadSnapshot(new File(f_run.getDir(), RemoteJSureRun.RESULTS_XML));
-    //  filterResults();
+      // filterResults();
       final long end = System.currentTimeMillis();
       System.out.println("Finished loading info = " + (end - start) + " ms");
     } catch (Exception e) {
@@ -83,44 +83,46 @@ public class JSureScanInfo {
     return f_dropInfo;
   }
 
-//  private void filterResults() {
-//    final List<String> folders = getProjects().getExcludedSourceFolders();
-//    final List<String> packages = getProjects().getExcludedSourcePackageSpec();
-//    if (folders.isEmpty() && packages.isEmpty()) {
-//      // Nothing to do
-//      return;
-//    }
-//    // Make the folders match the format for the relative paths
-//    for (int i = 0; i < folders.size(); i++) {
-//      String f = folders.get(i);
-//      if (f.startsWith("/")) {
-//        folders.set(i, f.substring(1));
-//      }
-//    }
-//    final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(packages.toArray(new String[packages.size()]));
-//    final Iterator<IDrop> it = f_dropInfo.iterator();
-//    outer: while (it.hasNext()) {
-//      final IDrop d = it.next();
-//      final ISrcRef sr = d.getSrcRef();
-//      if (sr == null) {
-//        continue outer;
-//      }
-//      for (String f : folders) {
-//        String path = sr.getRelativePath();
-//
-//        if (path.startsWith(f)) {
-//          it.remove();
-//          continue outer;
-//        }
-//      }
-//      for (Pattern p : excludePatterns) {
-//        if (p.matcher(sr.getPackage()).matches()) {
-//          it.remove();
-//          continue outer;
-//        }
-//      }
-//    }
-//  }
+  // private void filterResults() {
+  // final List<String> folders = getProjects().getExcludedSourceFolders();
+  // final List<String> packages = getProjects().getExcludedSourcePackageSpec();
+  // if (folders.isEmpty() && packages.isEmpty()) {
+  // // Nothing to do
+  // return;
+  // }
+  // // Make the folders match the format for the relative paths
+  // for (int i = 0; i < folders.size(); i++) {
+  // String f = folders.get(i);
+  // if (f.startsWith("/")) {
+  // folders.set(i, f.substring(1));
+  // }
+  // }
+  // final Pattern[] excludePatterns =
+  // ToolProperties.makePackageMatchers(packages.toArray(new
+  // String[packages.size()]));
+  // final Iterator<IDrop> it = f_dropInfo.iterator();
+  // outer: while (it.hasNext()) {
+  // final IDrop d = it.next();
+  // final ISrcRef sr = d.getSrcRef();
+  // if (sr == null) {
+  // continue outer;
+  // }
+  // for (String f : folders) {
+  // String path = sr.getRelativePath();
+  //
+  // if (path.startsWith(f)) {
+  // it.remove();
+  // continue outer;
+  // }
+  // }
+  // for (Pattern p : excludePatterns) {
+  // if (p.matcher(sr.getPackage()).matches()) {
+  // it.remove();
+  // continue outer;
+  // }
+  // }
+  // }
+  // }
 
   public synchronized File getDir() {
     return f_run.getDir();
@@ -138,6 +140,7 @@ public class JSureScanInfo {
     return loadOrGetDropInfo();
   }
 
+  @NonNull
   public <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
     List<IDrop> info = loadOrGetDropInfo();
     if (!info.isEmpty()) {
@@ -154,6 +157,7 @@ public class JSureScanInfo {
     return Collections.emptySet();
   }
 
+  @NonNull
   public ArrayList<IProofDrop> getProofDrops() {
     final ArrayList<IProofDrop> result = new ArrayList<IProofDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
@@ -165,6 +169,7 @@ public class JSureScanInfo {
     return result;
   }
 
+  @NonNull
   public ArrayList<IPromiseDrop> getPromiseDrops() {
     final ArrayList<IPromiseDrop> result = new ArrayList<IPromiseDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
@@ -176,6 +181,7 @@ public class JSureScanInfo {
     return result;
   }
 
+  @NonNull
   public ArrayList<IProposedPromiseDrop> getProposedPromiseDrops() {
     final ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
@@ -187,6 +193,7 @@ public class JSureScanInfo {
     return result;
   }
 
+  @NonNull
   public ArrayList<IResultDrop> getResultDrops() {
     final ArrayList<IResultDrop> result = new ArrayList<IResultDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
@@ -198,6 +205,7 @@ public class JSureScanInfo {
     return result;
   }
 
+  @NonNull
   public ArrayList<IHintDrop> getAnalysisHintDrops() {
     final ArrayList<IHintDrop> result = new ArrayList<IHintDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
@@ -209,6 +217,7 @@ public class JSureScanInfo {
     return result;
   }
 
+  @NonNull
   public ArrayList<IModelingProblemDrop> getModelingProblemDrops() {
     final ArrayList<IModelingProblemDrop> result = new ArrayList<IModelingProblemDrop>();
     for (IDrop i : loadOrGetDropInfo()) {

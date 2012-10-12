@@ -28,6 +28,7 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -167,9 +168,6 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
       }
       final MultiMap<String, IDrop> pkgToDrop = new MultiHashMap<String, IDrop>();
       for (IPromiseDrop d : info.getPromiseDrops()) {
-        if (d == null) {
-          continue;
-        }
         final IJavaRef ref = d.getJavaRef();
         if (ref != null)
           pkgToDrop.put(ref.getPackageName(), d);
@@ -337,7 +335,11 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
           String id = ref.getJavaId();
           if (id == null)
             continue;
+          // TODO USE IDECL
+//          final String declLabel = ref.getDeclaration().toString();
           String label = JavaIdentifier.extractDecl(name, id);
+//          if (!label.equals(declLabel))
+//            System.out.println(label + " <- old | new -> " + declLabel);
           idToDrop.put(label, d);
         }
         getChildren()[i] = new Type(this, name, idToDrop);
