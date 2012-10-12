@@ -29,6 +29,9 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 				if (JavaNode.isSet(mods, JavaNode.NO_VERIFY)) {
 					sb.append(" verify=false");
 				}
+				if (JavaNode.isSet(mods, JavaNode.ALLOW_REF_OBJECT)) {
+					sb.append(" allowReferenceObject=true");
+				}
 			}
 			unparseExtra(debug, indent, sb);
 			sb.append('\n');
@@ -46,6 +49,12 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 					sb.append(", ");
 				}
 				sb.append("verify=false");
+			}
+			if (JavaNode.isSet(mods, JavaNode.ALLOW_REF_OBJECT)) {
+				if (!first) {
+					sb.append(", ");
+				}
+				sb.append("allowReferenceObject=true");
 			}
 			if (hasChildren()) {
 				if (!first) {
@@ -99,5 +108,9 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	
 	public final boolean verify() {
 		return !getModifier(JavaNode.NO_VERIFY);
+	}
+	
+	public final boolean allowReferenceObject() {
+		return getModifier(JavaNode.ALLOW_REF_OBJECT);
 	}
 }

@@ -201,10 +201,12 @@ public class JavaNode extends JJNode {
   public static final int ALLOW_RETURN = (1 << 21);
 
   public static final int ALLOW_READ = (1 << 22);
+  
+  public static final int ALLOW_REF_OBJECT = (1 << 23);
 
   public static final int[] MODIFIERS = { ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, TRANSIENT,
       VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE, AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY,
-      ALLOW_RETURN, ALLOW_READ };
+      ALLOW_RETURN, ALLOW_READ, ALLOW_REF_OBJECT };
 
   public static final String MODIFIERS_ID = "Java.modifiers";
 

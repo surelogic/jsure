@@ -61,6 +61,9 @@ public class AASTAdaptor extends AbstractNodeAdaptor {
         case SLAnnotationsParser.IMPLEMENTATION_ONLY:
           mods = JavaNode.setModifier(mods, JavaNode.IMPLEMENTATION_ONLY, true);
           return true;
+        case SLAnnotationsParser.ALLOW_REF_OBJECT:
+            mods = JavaNode.setModifier(mods, JavaNode.ALLOW_REF_OBJECT, true);
+            return true;          
       } 
       return false;
     }

@@ -728,9 +728,11 @@ identifier
       : IDENTIFIER | 'is' | 'protects' | 
         'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
         'into' | 'nothing' | 'itself' |
-        'implementationOnly' | 'verify' | 'allowReturn' | 'allowRead'
+        'implementationOnly' | 'verify' | 'allowReturn' | 'allowRead' |
+        'allowReferenceObject'
       ;
 
+ALLOW_REF_OBJECT : 'allowReferenceObject';
 IMPLEMENTATION_ONLY : 'implementationOnly';
 VERIFY : 'verify';
 

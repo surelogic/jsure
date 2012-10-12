@@ -54,6 +54,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public static final String IMPLEMENTATION_ONLY = "implementationOnly";
   public static final String VERIFY = "verify";
   public static final String ALLOW_RETURN = "allowReturn";
+  public static final String ALLOW_REF_OBJECT = "allowReferenceObject";
   public static final String ALLOW_READ = "allowRead";
   public static final String UPTO = "upTo";
 
@@ -363,6 +364,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
         boolean verify = true;
         boolean allowReturn = false;
         boolean allowRead = false;
+        boolean allowReferenceObject = false;
         IRNode contents = null;
         Map<String, String> props = new HashMap<String, String>();
         for (IRNode valuePair : pairs) {
@@ -373,6 +375,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
             allowRead = extractBoolean(valuePair, allowRead);
           } else if (ALLOW_RETURN.equals(id)) {
             allowReturn = extractBoolean(valuePair, allowReturn);
+          } else if (ALLOW_REF_OBJECT.equals(id)) {
+        	allowReferenceObject = extractBoolean(valuePair, allowReferenceObject);
           } else if (IMPLEMENTATION_ONLY.equals(id)) {
             implOnly = extractBoolean(valuePair, implOnly);
           } else if (VERIFY.equals(id)) {
@@ -392,7 +396,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
         } else {
         	builder = new ContextBuilder(node, promise, "");
         }
-        builder.setProps(convertToModifiers(implOnly, verify, allowReturn, allowRead), props);
+        builder.setProps(convertToModifiers(implOnly, verify, allowReturn, allowRead, 
+        		allowReferenceObject), props);
         return translate(handleJava5Promise(builder));                   
       } else {
     	// Basically the same as a marker annotation
@@ -433,7 +438,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return "";
   }
 
-  private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead) {
+  private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead, 
+		  boolean allowReferenceObject) {
     int modifiers = JavaNode.ALL_FALSE;
     if (implOnly) {
       modifiers |= JavaNode.IMPLEMENTATION_ONLY;
@@ -446,6 +452,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     if (allowRead) {
       modifiers |= JavaNode.ALLOW_READ;
+    }
+    if (allowReferenceObject) {
+      modifiers |= JavaNode.ALLOW_REF_OBJECT;
     }
     return modifiers;
   }
@@ -526,8 +535,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	final boolean verify      = rawVerify == null || "true".equals(rawVerify);
 	final boolean allowReturn = "true".equals(props.get(AnnotationVisitor.ALLOW_RETURN));
 	final boolean allowRead   = "true".equals(props.get(AnnotationVisitor.ALLOW_READ));	
-	final int mods            = convertToModifiers(implOnly, verify, allowReturn, allowRead);
-    return createPromise(new ContextBuilder(node, capitalize(promise), c)
+	final boolean allowReferenceObject   = "true".equals(props.get(AnnotationVisitor.ALLOW_REF_OBJECT));		
+	final int mods            = convertToModifiers(implOnly, verify, allowReturn, allowRead, allowReferenceObject);
+    return createPromise(new ContextBuilder(node, capitalize(promise), c) 
                               .setSrc(AnnotationSource.XML).setProps(mods, props));
   }
 
