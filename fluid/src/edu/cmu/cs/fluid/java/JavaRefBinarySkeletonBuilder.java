@@ -6,7 +6,6 @@ import java.util.Map;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef.Within;
-import com.surelogic.javac.*;
 import com.surelogic.javac.adapter.ClassResource;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -16,18 +15,18 @@ public final class JavaRefBinarySkeletonBuilder {
 
   static final Map<IRNode, JavaRefBinarySkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefBinarySkeletonBuilder>();
 
-  public static void register(DeclFactory factory, IRNode node, 
-		  ClassResource resource, int lineNumber) {
+  public static void register(DeclFactory factory, IRNode node, ClassResource resource, int lineNumber) {
     final JavaRefBinarySkeletonBuilder b = new JavaRefBinarySkeletonBuilder(factory, resource, lineNumber);
     nodeToSkeleton.put(node, b);
   }
+
   private final DeclFactory f_factory;
   private final int f_lineNumber;
   private final ClassResource f_resource;
 
   private JavaRefBinarySkeletonBuilder(DeclFactory f, ClassResource resource, int lineNumber) {
-	f_factory = f;
-	f_resource = resource;
+    f_factory = f;
+    f_resource = resource;
     f_lineNumber = lineNumber;
   }
 
