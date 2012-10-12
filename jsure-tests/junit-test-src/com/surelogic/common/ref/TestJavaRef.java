@@ -12,6 +12,7 @@ public final class TestJavaRef extends TestCase {
   public void testBuilder() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals("java.lang", r.getPackageName());
     assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
     assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
@@ -35,6 +36,7 @@ public final class TestJavaRef extends TestCase {
 
     // check copy
     r = new JavaRef.Builder(r).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals("java.lang", r.getPackageName());
     assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
     assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
@@ -60,6 +62,7 @@ public final class TestJavaRef extends TestCase {
   public void testFluidBuilder() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
     IFluidJavaRef r = new FluidJavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals("java.lang", r.getPackageName());
     assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
     assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
@@ -84,6 +87,7 @@ public final class TestJavaRef extends TestCase {
 
     // check copy
     r = new FluidJavaRef.Builder(r).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals("java.lang", r.getPackageName());
     assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
     assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
@@ -110,6 +114,7 @@ public final class TestJavaRef extends TestCase {
   public void testDefaultPackage() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("/Object.A");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, r.getPackageName());
     assertEquals("", DeclUtil.getPackageNameSlash(r.getDeclaration()));
     assertNull(DeclUtil.getPackageNameOrNull(r.getDeclaration()));
@@ -119,6 +124,7 @@ public final class TestJavaRef extends TestCase {
   public void testWithin() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
 
     r = new JavaRef.Builder(decl).setWithin(IJavaRef.Within.JAR_FILE).build();
@@ -128,12 +134,14 @@ public final class TestJavaRef extends TestCase {
   public void testTypeKind() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
   }
 
   public void testLineNumber() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
@@ -147,11 +155,13 @@ public final class TestJavaRef extends TestCase {
   public void testOffset() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
 
     r = new JavaRef.Builder(decl).setOffset(500).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(-1, r.getLineNumber());
     assertEquals(500, r.getOffset());
     assertEquals(-1, r.getLength());
@@ -160,11 +170,13 @@ public final class TestJavaRef extends TestCase {
   public void testLength() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
 
     r = new JavaRef.Builder(decl).setLength(500).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(500, r.getLength());
@@ -173,6 +185,7 @@ public final class TestJavaRef extends TestCase {
   public void testWorkspaceRelativePath() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
     IFluidJavaRef r = new FluidJavaRef.Builder(decl).build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertNull(r.getWorkspaceRelativePathOrNull());
 
     r = new FluidJavaRef.Builder(decl).setWorkspaceRelativePath("prj/src/java/lang/Object.java").build();
@@ -182,10 +195,12 @@ public final class TestJavaRef extends TestCase {
   public void testJavaIds() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
     IJavaRef r = new JavaRef.Builder(decl).setJavaId("javaId").build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertEquals("javaId", r.getJavaId());
     assertNull(r.getEnclosingJavaId());
 
     r = new JavaRef.Builder(decl).setEnclosingJavaId("javaId").build();
+    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertNull(r.getJavaId());
     assertEquals("javaId", r.getEnclosingJavaId());
   }
