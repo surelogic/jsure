@@ -49,6 +49,7 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -84,7 +85,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 
 
 /**

@@ -7,9 +7,9 @@ import java.net.URISyntaxException;
 import javax.tools.JavaFileObject;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.java.ICodeFile;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class FileResource implements ICodeFile {
 	final String pkgName;

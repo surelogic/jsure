@@ -16,6 +16,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -33,7 +34,6 @@ import edu.cmu.cs.fluid.tree.Tree;
 import edu.cmu.cs.fluid.util.Base64InputStream;
 import edu.cmu.cs.fluid.util.Base64OutputStream;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.UniqueID;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.OverlappingEraException;

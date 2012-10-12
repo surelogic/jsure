@@ -14,6 +14,7 @@ import java.util.Map;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
@@ -27,7 +28,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class Projects extends JavaProjects implements IIRProjects,
 		Iterable<JavacProject> {

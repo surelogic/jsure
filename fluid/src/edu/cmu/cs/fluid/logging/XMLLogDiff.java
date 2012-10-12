@@ -9,6 +9,7 @@ import java.util.*;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.xml.XMLLayout;
 
+import com.surelogic.common.Pair;
 import com.surelogic.test.ITest;
 import com.surelogic.test.ITestOutput;
 

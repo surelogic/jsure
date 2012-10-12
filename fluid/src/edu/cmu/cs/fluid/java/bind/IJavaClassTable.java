@@ -3,8 +3,9 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.Set;
 
+import com.surelogic.common.Pair;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * A representation of a class table / CLASSPATH.

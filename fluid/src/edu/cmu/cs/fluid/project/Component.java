@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -19,7 +20,6 @@ import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRPersistentKind;
 import edu.cmu.cs.fluid.ir.IRState;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.UniqueID;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.SharedVersionedRegion;

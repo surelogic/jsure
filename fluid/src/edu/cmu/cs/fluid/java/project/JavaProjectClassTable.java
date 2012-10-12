@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.ExplicitSlotFactory;
@@ -25,7 +26,6 @@ import edu.cmu.cs.fluid.java.bind.AbstractJavaClassTable;
 import edu.cmu.cs.fluid.project.Component;
 import edu.cmu.cs.fluid.project.Project;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedDerivedInformation;
 import edu.cmu.cs.fluid.version.VersionedDerivedSlot;

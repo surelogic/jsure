@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.util;
 
+import com.surelogic.common.Pair;
+
 /**
  * Comparable Pair
  */

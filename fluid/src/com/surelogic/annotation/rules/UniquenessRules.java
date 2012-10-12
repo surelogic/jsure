@@ -22,6 +22,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
@@ -56,7 +57,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";

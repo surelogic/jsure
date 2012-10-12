@@ -69,6 +69,7 @@ import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.Pair;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -105,7 +106,6 @@ import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLEditor extends MultiPageEditorPart implements
 		PromisesXMLReader.Listener {

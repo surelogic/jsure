@@ -3,10 +3,10 @@ package edu.cmu.cs.fluid.java.analysis;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class AssuranceLogger {
   protected final String analysisName;

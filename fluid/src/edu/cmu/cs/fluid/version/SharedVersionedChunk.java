@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Pair;
 
 
 /**

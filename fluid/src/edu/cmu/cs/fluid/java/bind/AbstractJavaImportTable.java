@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.*;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.debug.DebugUtil;

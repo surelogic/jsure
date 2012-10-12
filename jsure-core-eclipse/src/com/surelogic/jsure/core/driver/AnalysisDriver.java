@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.Unused;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.PromiseMatcher;

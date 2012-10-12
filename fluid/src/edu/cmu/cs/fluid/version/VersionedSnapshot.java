@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.Bundle;
@@ -17,7 +18,6 @@ import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRPersistentKind;
 import edu.cmu.cs.fluid.ir.IRRegion;
-import edu.cmu.cs.fluid.util.Pair;
 
 /** A snapshot in "time" of the values a chunk */
 class VersionedSnapshot extends IRChunk {

@@ -21,6 +21,7 @@ import com.surelogic.analysis.type.constraints.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeDeclAnnotationTester;
 import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -38,7 +39,6 @@ import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 
 final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implements IBinderClient {
   private static final int USE_CATEGORY = 495;

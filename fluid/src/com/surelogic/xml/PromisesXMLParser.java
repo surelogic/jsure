@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URL;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 
@@ -12,7 +13,6 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * Does the same thing as TestXMLParser, but uses the Java XML model to apply

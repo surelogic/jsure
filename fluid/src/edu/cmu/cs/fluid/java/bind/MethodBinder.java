@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 import java.util.logging.*;
 
+import com.surelogic.common.Pair;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -10,7 +12,6 @@ import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 
 class MethodBinder {
 	private static final Logger LOG = AbstractJavaBinder.LOG;

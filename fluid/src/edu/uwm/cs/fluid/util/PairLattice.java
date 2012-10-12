@@ -1,7 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/util/PairLattice.java,v 1.4 2007/08/22 20:59:03 boyland Exp $*/
 package edu.uwm.cs.fluid.util;
 
-import edu.cmu.cs.fluid.util.Pair;
+import com.surelogic.common.Pair;
 
 /**
  * A lattice built up as the cartesian product of two lattices.

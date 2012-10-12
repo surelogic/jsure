@@ -23,6 +23,7 @@ import com.sun.source.util.*;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.analysis.*;
+import com.surelogic.common.Pair;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;

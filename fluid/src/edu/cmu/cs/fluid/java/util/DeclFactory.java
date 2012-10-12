@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.java.util;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.ref.*;
 import com.surelogic.common.ref.Decl.DeclBuilder;
 import com.surelogic.common.ref.TypeRef;
@@ -12,7 +13,6 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * Builds an {@link IDecl} from an IRNode location

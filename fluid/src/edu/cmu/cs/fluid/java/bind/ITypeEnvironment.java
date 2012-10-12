@@ -1,12 +1,12 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
 import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.Pair;
 
 public interface ITypeEnvironment {
 	/** The Tree used to build all the ASTs used here */

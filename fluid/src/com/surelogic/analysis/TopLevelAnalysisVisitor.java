@@ -1,5 +1,7 @@
 package com.surelogic.analysis;
 
+import com.surelogic.common.Pair;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -8,7 +10,6 @@ import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.util.Pair;
 
 public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   // ======================================================================

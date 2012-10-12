@@ -4,13 +4,15 @@
 package edu.cmu.cs.fluid.java.project;
 
 import java.util.*;
+
+import com.surelogic.common.Pair;
+
 import edu.cmu.cs.fluid.derived.IDerivedInformation;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.version.*;
 
 

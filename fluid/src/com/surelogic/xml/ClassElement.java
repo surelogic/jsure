@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;

@@ -10,12 +10,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.*;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.util.Pair;
 
 public class JavacBuild {
 	private static List<Pair<IResource, Integer>> pairUpResources(

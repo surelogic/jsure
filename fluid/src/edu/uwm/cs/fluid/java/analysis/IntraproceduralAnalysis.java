@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.RequiresLock;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.Thunk;
@@ -42,7 +43,6 @@ import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.version.Version;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;

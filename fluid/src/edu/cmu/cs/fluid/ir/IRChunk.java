@@ -7,8 +7,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 
+import com.surelogic.common.Pair;
+
 import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.Pair;
 
 /** 
  * This class represents a <em>chunk</em> of IR that can be written out

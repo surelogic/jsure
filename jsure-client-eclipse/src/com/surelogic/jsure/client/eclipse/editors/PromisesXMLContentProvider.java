@@ -31,6 +31,7 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -54,7 +55,6 @@ import com.surelogic.xml.PromisesXMLReader;
 import com.surelogic.xml.PromisesXMLWriter;
 import com.surelogic.xml.TestXMLParserConstants;
 
-import edu.cmu.cs.fluid.util.Pair;
 
 public class PromisesXMLContentProvider extends AbstractContentProvider
 		implements ITreeContentProvider, ITableLabelProvider {

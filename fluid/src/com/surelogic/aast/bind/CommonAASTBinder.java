@@ -43,6 +43,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.FindLockModelStrategy;
 import com.surelogic.annotation.bind.FindRegionModelStrategy;
 import com.surelogic.annotation.rules.LayerRules;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.TypeSetPromiseDrop;
@@ -72,7 +73,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class CommonAASTBinder extends AASTBinder {

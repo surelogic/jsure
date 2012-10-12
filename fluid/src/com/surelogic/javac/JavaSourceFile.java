@@ -4,10 +4,10 @@ import java.io.File;
 import java.net.URI;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
-import edu.cmu.cs.fluid.util.Pair;
 
 public class JavaSourceFile {
 	public final String qname;

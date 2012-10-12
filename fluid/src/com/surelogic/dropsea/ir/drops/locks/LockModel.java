@@ -6,13 +6,13 @@ import java.util.Map;
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * Promise drop for "lock" models.

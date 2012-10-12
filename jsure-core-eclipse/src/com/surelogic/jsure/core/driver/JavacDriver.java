@@ -19,6 +19,7 @@ import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
+import com.surelogic.common.Pair;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
@@ -69,7 +70,6 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.util.Pair;
 
 public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
 	private static final String SCRIPT_TEMP = "scriptTemp";

@@ -13,6 +13,7 @@ import com.surelogic.ast.IType;
 import com.surelogic.ast.java.operator.IDeclarationNode;
 import com.surelogic.ast.java.operator.ITypeDeclarationNode;
 import com.surelogic.ast.java.operator.ITypeFormalNode;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -23,7 +24,6 @@ import edu.cmu.cs.fluid.util.CustomizableHashCodeMap;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.SingletonMap;
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.*;
