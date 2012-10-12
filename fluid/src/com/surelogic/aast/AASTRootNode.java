@@ -5,14 +5,25 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 
 public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   private static final Logger LOG = SLLogger.getLogger("aast");
   
+  /**
+   * The declaration this is on
+   */
   private IRNode promisedFor;
+  
+  /**
+   * Derived from the actual annotation
+   */
+  //private IJavaRef contextRef;
+  
   private AASTStatus status = AASTStatus.UNPROCESSED;
   private AnnotationSource srcType;
   
@@ -25,10 +36,18 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
       throw new IllegalArgumentException();
     }
   }
-   
-  public final void setPromisedFor(IRNode n) {
+  
+  public final void setPromisedFor(IRNode n/*, IRNode context*/) {
     checkArgument(promisedFor, n);
+    //checkArgument(contextRef, context);
     promisedFor = n;
+    /*
+    ISrcRef sr = JavaNode.getSrcRef(context);
+    if (sr == null) {
+    	sr = JavaNode.getSrcRef(n);
+    }
+    contextRef = ;
+    */
   }
   
   public final void clearPromisedFor() {
