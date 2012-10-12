@@ -24,8 +24,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
     assertTrue(r.isFromSource());
     assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", r.getSimpleFileName());
-    assertEquals("java/lang/Object.java", r.getClasspathRelativePathname());
+    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
     assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
     assertNull(r.getEclipseProjectNameOrNull());
     assertEquals(-1, r.getLineNumber());
@@ -48,8 +47,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
     assertTrue(r.isFromSource());
     assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", r.getSimpleFileName());
-    assertEquals("java/lang/Object.java", r.getClasspathRelativePathname());
+    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
     assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
     assertNull(r.getEclipseProjectNameOrNull());
     assertEquals(-1, r.getLineNumber());
@@ -74,8 +72,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
     assertTrue(r.isFromSource());
     assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", r.getSimpleFileName());
-    assertEquals("java/lang/Object.java", r.getClasspathRelativePathname());
+    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
     assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
     assertNull(r.getEclipseProjectNameOrNull());
     assertEquals(-1, r.getLineNumber());
@@ -99,8 +96,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
     assertTrue(r.isFromSource());
     assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", r.getSimpleFileName());
-    assertEquals("java/lang/Object.java", r.getClasspathRelativePathname());
+    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
     assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
     assertNull(r.getEclipseProjectNameOrNull());
     assertEquals(-1, r.getLineNumber());

@@ -452,10 +452,12 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
       }
       final Type t = (Type) e;
       final IJavaRef r = drop.getJavaRef();
-      if (r != null && t != null)
-        return new JavaRef.Builder(r).setTypeName(t.getLabel()).build();
-      else
-        return null;
+      return r;
+      // TODO WHAT IS THIS DOING?
+//      if (r != null && t != null)
+//        return new JavaRef.Builder(r).setTypeName(t.getLabel()).build();
+//      else
+//        return null;
     }
   }
 

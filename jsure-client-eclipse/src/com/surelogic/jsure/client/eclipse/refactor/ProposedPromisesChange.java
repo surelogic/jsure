@@ -20,6 +20,7 @@ import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.TextEdit;
 
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
@@ -176,9 +177,11 @@ public class ProposedPromisesChange {
     final String annotation = drop.getAnnotation();
     final String contents = drop.getContents();
     IJavaRef srcRef = drop.getJavaRef();
-    final CU cu = new CU(drop.getTargetProjectName(), srcRef.getPackageName(), srcRef.getSimpleFileName());
+    String fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
+    final CU cu = new CU(drop.getTargetProjectName(), srcRef.getPackageName(), fileName);
     srcRef = drop.getAssumptionRef();
-    final CU assumptionCU = new CU(drop.getFromProjectName(), srcRef.getPackageName(), srcRef.getSimpleFileName());
+    fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
+    final CU assumptionCU = new CU(drop.getFromProjectName(), srcRef.getPackageName(), fileName);
     return new AnnotationDescription(annotation, contents, drop.getReplacedContents(), target, assumptionTarget, cu, assumptionCU);
   }
 

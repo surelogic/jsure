@@ -20,10 +20,22 @@ public interface IFluidJavaRef extends IJavaRef {
 
   /**
    * Gets the workspace relative path, or {@code null} if none is available.
+   * <p>
+   * The table below shows an example
+   * 
+   * for a Jar it is the path to the jar file.
    * 
    * @return a path relative to the workspace, or {@code null} if none is
    *         available.
    */
   @Nullable
   String getWorkspaceRelativePathOrNull();
+
+  /**
+   * Path into the jar (only non-null) if in a jar.
+   * 
+   * @return
+   */
+  @Nullable
+  String getJarRelativePathOrNull();
 }

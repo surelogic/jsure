@@ -43,10 +43,12 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
   public static final class Builder extends JavaRef.Builder {
 
     private String f_workspaceRelativePath = null;
+    private String f_jarRelativePath = null;
 
     public Builder(IFluidJavaRef copy) {
       super(copy);
       f_workspaceRelativePath = copy.getWorkspaceRelativePathOrNull();
+      f_jarRelativePath = copy.getJarRelativePathOrNull();
     }
 
     public Builder(@NonNull IDecl declaration) {
@@ -60,12 +62,6 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     }
 
     @Override
-    public Builder setCUName(String value) {
-      super.setCUName(value);
-      return this;
-    }
-
-    @Override
     public Builder setDeclaration(IDecl value) {
       super.setDeclaration(value);
       return this;
@@ -74,18 +70,6 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     @Override
     public Builder setIsOnDeclaration(boolean value) {
       super.setIsOnDeclaration(value);
-      return this;
-    }
-
-    @Override
-    public Builder setTypeName(String value) {
-      super.setTypeName(value);
-      return this;
-    }
-
-    @Override
-    public Builder setPackageName(String value) {
-      super.setPackageName(value);
       return this;
     }
 
@@ -130,10 +114,15 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
       return this;
     }
 
+    public Builder setJarRelativePath(String value) {
+      f_jarRelativePath = value;
+      return this;
+    }
+
     @Override
     public IFluidJavaRef build() {
       return new FluidJavaRef(f_within, f_declaration, f_isOnDeclaration, f_eclipseProjectName, f_lineNumber, f_offset, f_length,
-          f_javaId, f_enclosingJavaId, f_workspaceRelativePath);
+          f_javaId, f_enclosingJavaId, f_workspaceRelativePath, f_jarRelativePath);
     }
 
     @Override
@@ -151,16 +140,23 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
   protected FluidJavaRef(final @NonNull Within within, final @NonNull IDecl declaration, boolean isOnDeclaration,
       final @NonNull String eclipseProjectNameOrNull, final int lineNumber, final int offset, final int length,
       final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
-      final @Nullable String workspaceRelativePathOrNull) {
+      final @Nullable String workspaceRelativePathOrNull, final @Nullable String jarRelativePathOrNull) {
     super(within, declaration, isOnDeclaration, eclipseProjectNameOrNull, lineNumber, offset, length, javaIdOrNull,
         enclosingJavaIdOrNull);
     f_workspaceRelativePath = workspaceRelativePathOrNull;
+    f_jarRelativePath = jarRelativePathOrNull;
   }
 
   private final String f_workspaceRelativePath;
+  private final String f_jarRelativePath;
 
   @Nullable
   public String getWorkspaceRelativePathOrNull() {
     return f_workspaceRelativePath;
+  }
+
+  @Nullable
+  public String getJarRelativePathOrNull() {
+    return f_jarRelativePath;
   }
 }
