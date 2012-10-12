@@ -4,6 +4,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ID_ATTR;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
@@ -34,7 +36,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 
-public class SeaSnapshot extends AbstractSeaXmlCreator {	
+public class SeaSnapshot extends AbstractSeaXmlCreator {
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
 
   public SeaSnapshot(File location) throws IOException {
@@ -92,6 +94,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     db.addAttribute(TYPE_ATTR, c.getSimpleName());
     db.addAttribute(FULL_TYPE_ATTR, c.getName());
     db.addAttribute(ID_ATTR, id);
+    final IJavaRef javaRef = d.getJavaRef();
+    if (javaRef != null) {
+      final String encodedJavaRef = javaRef.encodeForPersistence();
+      db.addAttribute(JAVA_REF, encodedJavaRef);
+    }
     if (d instanceof IRReferenceDrop) {
       db.addAttribute(HASH_ATTR, d.getTreeHash());
       db.addAttribute(CONTEXT_ATTR, d.getContextHash());
@@ -151,36 +158,36 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     new SeaSnapshotXMLReader(l).read(location);
     return l.getDrops();
   }
-  
+
   public static long computeHash(IRNode node) {
-	  return computeHash(node, false);
+    return computeHash(node, false);
   }
 
   public static long computeHash(IRNode node, boolean debug) {
-	  if (node instanceof MarkedIRNode) {
-		  return 0; // Not an AST node
-	  }
-	  final String unparse = DebugUnparser.unparseCode(node);
-	  if (debug) {
-		  System.out.println("Unparse: " + unparse);
-	  }
-	  return unparse.hashCode();
+    if (node instanceof MarkedIRNode) {
+      return 0; // Not an AST node
+    }
+    final String unparse = DebugUnparser.unparseCode(node);
+    if (debug) {
+      System.out.println("Unparse: " + unparse);
+    }
+    return unparse.hashCode();
   }
 
   public static long computeContext(IRNode node, boolean debug) {
-	  if (node instanceof MarkedIRNode) {
-		  return 0; // Not an AST node
-	  }
-	  final String context = JavaNames.computeContextId(node);
-	  if (context != null) {
-		  if (debug) {
-			  System.out.println("Context: " + context);
-		  }
-		  /*
-		   * if (unparse.contains("@") { System.out.println("Found promise"); }
-		   */
-		  return context.hashCode();
-	  }
-	  return 0;
+    if (node instanceof MarkedIRNode) {
+      return 0; // Not an AST node
+    }
+    final String context = JavaNames.computeContextId(node);
+    if (context != null) {
+      if (debug) {
+        System.out.println("Context: " + context);
+      }
+      /*
+       * if (unparse.contains("@") { System.out.println("Found promise"); }
+       */
+      return context.hashCode();
+    }
+    return 0;
   }
 }

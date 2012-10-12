@@ -32,8 +32,8 @@ import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -189,9 +189,11 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
        */
       IRFreeDrop drop = ((SeaEntity) e).getDrop();
       if (drop != null) {
-        final SourceRef sr = e.getSource();
-        if (sr != null) {
-          drop.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
+        if (!drop.hasJavaRef()) {
+          final SourceRef sr = e.getSource();
+          if (sr != null) {
+            drop.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
+          }
         }
 
         for (MoreInfo i : e.getInfos()) {

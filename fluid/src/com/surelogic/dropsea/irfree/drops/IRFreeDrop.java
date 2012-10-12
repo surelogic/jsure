@@ -5,6 +5,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
@@ -68,6 +69,10 @@ public class IRFreeDrop implements IDrop {
     f_proposedPromises.add(info);
   }
 
+  boolean hasJavaRef() {
+    return f_javaRef != null;
+  }
+
   void setJavaRef(IJavaRef value) {
     f_javaRef = value;
   }
@@ -117,6 +122,16 @@ public class IRFreeDrop implements IDrop {
       }
     }
     f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
+
+    final String encodedJavaRef = e.getAttribute(JAVA_REF);
+    if (encodedJavaRef != null) {
+      try {
+        final IJavaRef ref = JavaRef.parseEncodedForPersistence(encodedJavaRef);
+        f_javaRef = ref;
+      } catch (Exception parseFailure) {
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
+      }
+    }
   }
 
   @Nullable
