@@ -8,6 +8,7 @@ import com.surelogic.common.ref.Decl.*;
 
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -74,7 +75,7 @@ public class DeclFactory {
 				parentB = buildNonTypeDecl(here, (Declaration) JJNode.tree.getOperator(pd), null);
 			}
 		}
-		else if (Declaration.prototype.includes(op)) { 	
+		else if (op instanceof Declaration) {
 			Declaration d = (Declaration) op;
 			if (ignoreNode(d, parent)) {
 				// Ignore this parameter
@@ -104,7 +105,7 @@ public class DeclFactory {
 				return true;
 			}
 			IRNode gparent = JJNode.tree.getParentOrNull(parent);			
-			return FieldDeclaration.prototype.includes(gparent);			
+			return !FieldDeclaration.prototype.includes(gparent);			
 		default:
 			return false;
 		}
@@ -171,6 +172,8 @@ public class DeclFactory {
 			final int num = computePosition(decl);
 			//return buildTypeParameter(num, decl);			
 			return parent.getTypeParameterBuilderAt(num);
+		case FIELD: // EnumConstantClassDecl
+			return buildNonTypeDecl(decl, (Declaration) t, parent);
 		}		
 		return null;
 	}
@@ -294,6 +297,10 @@ public class DeclFactory {
 	
 	private TypeRef computeTypeRef(IRNode ref) {
 		IJavaType t = binder.getJavaType(ref);
+		if (t == null) {
+			String unparse = DebugUnparser.toString(ref);
+			return new TypeRef(unparse, unparse);
+		}
 		TypeRef r = new TypeRef(t.toFullyQualifiedText(), t.toSourceText());		
 		return r;
 	}
