@@ -9,13 +9,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 
 public class ReadOnlyNode extends AbstractBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("ReadOnly") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new ReadOnlyNode (_start);
-    }
-  };
-
   // Constructors
   public ReadOnlyNode(int offset) {
     super(offset);

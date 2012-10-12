@@ -1,16 +1,17 @@
 package com.surelogic.aast.promise;
 
+import java.util.List;
+
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ThreadRoleTransparentNode extends AbstractBooleanNode {
   // Fields
 
-  public static final AbstractAASTNodeFactory factory = new Factory(
-      "ThreadRoleTransparent") {
-    @Override
-    protected AASTNode create(int offset) {
-      return new ThreadRoleTransparentNode(offset);
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory("ThreadRoleTransparent") {
+	  @Override
+	  public AASTNode create(String _token, int _start, int _stop,
+			  int _mods, String _id, int _dims, List<AASTNode> _kids) {
+		  return new ThreadRoleTransparentNode(_start);
     }
   };
 

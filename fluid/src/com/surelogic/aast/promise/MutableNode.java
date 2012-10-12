@@ -2,17 +2,9 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class MutableNode extends AbstractBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("Mutable") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new MutableNode (_start);
-    }
-  };
-
   // Constructors
   public MutableNode(int offset) {
     super(offset);

@@ -11,13 +11,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 
 public class UniqueNode extends AbstractBooleanNode 
 { 
-  /*public static final AbstractAASTNodeFactory factory = new Factory("Unique") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new UniqueNode (_start);
-    }
-  };*/
-
 	private final boolean allowRead;
 	
   // Constructors

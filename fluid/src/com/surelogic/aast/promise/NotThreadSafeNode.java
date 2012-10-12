@@ -2,17 +2,9 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class NotThreadSafeNode extends AbstractBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("NotThreadSafe") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new NotThreadSafeNode (_start);
-    }
-  };
-
   // Constructors
   public NotThreadSafeNode(int offset) {
     super(offset);

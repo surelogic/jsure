@@ -1,24 +1,9 @@
-
 package com.surelogic.aast.promise;
-
-import java.util.*;
 
 import com.surelogic.aast.*;
 
 public abstract class AbstractBooleanNode extends AASTRootNode 
 { 
-  protected static abstract class Factory extends AbstractAASTNodeFactory {
-    public Factory(String t) {
-      super(t);
-    }
-    @Override
-    public AASTNode create(String _token, int _start, int _stop,
-        int _mods, String _id, int _dims, List<AASTNode> _kids) {
-      return create(_start);
-    }
-    protected abstract AASTNode create(int offset);
-  }
-
   // Constructors
   protected AbstractBooleanNode(int offset) {
     super(offset);
