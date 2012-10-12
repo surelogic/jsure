@@ -48,6 +48,7 @@ import com.surelogic.aast.promise.RegionNameNode;
 import com.surelogic.aast.promise.RequiresLockNode;
 import com.surelogic.aast.promise.ReturnsLockNode;
 import com.surelogic.aast.promise.SimpleLockNameNode;
+import com.surelogic.aast.promise.ThreadConfinedNode;
 import com.surelogic.aast.promise.ThreadSafeNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.aast.promise.WriteLockNode;
@@ -82,6 +83,7 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.ProhibitsLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.ThreadConfinedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
@@ -151,6 +153,7 @@ public class LockRules extends AnnotationRules {
   private static final String REGION_INITIALIZER = "Region Initializer";
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   public static final String ANNO_BOUNDS = "AnnotationBounds";
+  public static final String THREAD_CONFINED = "ThreadConfined";
   
   public static final String IMMUTABLE_PROP = "immutable";
   public static final String CONTAINABLE_PROP = "containable";
@@ -177,6 +180,7 @@ public class LockRules extends AnnotationRules {
   private static final Mutable_ParseRule mutableRule = new Mutable_ParseRule();
   private static final NotContainable_ParseRule notContainableRule = new NotContainable_ParseRule();
   private static final VouchFieldIs_ParseRule vouchFieldIsRule = new VouchFieldIs_ParseRule();
+  private static final ThreadConfined_ParseRule threadConfinedRule = new ThreadConfined_ParseRule();
   
   private interface IProtectedRegions {
 	  void clear();
@@ -419,7 +423,9 @@ public class LockRules extends AnnotationRules {
     return getDrop(vouchFieldIsRule.getStorage(), fieldDecl);
   }
   
-  
+  public static ThreadConfinedPromiseDrop getThreadConfinedDrop(final IRNode fieldDecl) {
+	    return getDrop(threadConfinedRule.getStorage(), fieldDecl);
+  }
   
   @Override
   public void register(PromiseFramework fw) {
@@ -438,6 +444,7 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, mutableRule);
     registerParseRuleStorage(fw, notContainableRule);
     registerParseRuleStorage(fw, vouchFieldIsRule);
+    registerParseRuleStorage(fw, threadConfinedRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
@@ -2649,5 +2656,24 @@ public class LockRules extends AnnotationRules {
 				}
 			};
 		}
+	}
+
+	public static class ThreadConfined_ParseRule 
+	extends MarkerAnnotationParseRule<ThreadConfinedNode,ThreadConfinedPromiseDrop> {
+		public ThreadConfined_ParseRule() {
+			super(THREAD_CONFINED, fieldDeclOp, ThreadConfinedNode.class);
+		}
+		@Override
+		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+			return new NotThreadSafeNode(offset);
+		}
+		@Override
+		protected IPromiseDropStorage<ThreadConfinedPromiseDrop> makeStorage() {
+			return BooleanPromiseDropStorage.create(name(), ThreadConfinedPromiseDrop.class);
+		}
+		@Override
+		protected ThreadConfinedPromiseDrop createDrop(ThreadConfinedNode a) {
+			return new ThreadConfinedPromiseDrop(a);
+		}    
 	}
 }

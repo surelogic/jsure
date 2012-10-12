@@ -801,4 +801,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(MustInvokeOnOverrideNode n) {
 	  return defaultValue;
   }
+
+  public T visit(ThreadConfinedNode n) {
+	  return defaultValue;
+  }
 }
