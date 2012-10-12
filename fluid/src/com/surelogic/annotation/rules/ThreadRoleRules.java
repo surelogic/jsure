@@ -165,10 +165,12 @@ public class ThreadRoleRules extends AnnotationRules {
 			super(TRANSPARENT, functionDeclOps, ThreadRoleTransparentNode.class);
 		}
 
+		/*
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) throws Exception {
 			return new ThreadRoleTransparentNode();
 		}
+		*/
 
 		@Override
 		protected Object parseTRoleAnno(IAnnotationParsingContext context,

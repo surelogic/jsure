@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/DefaultBooleanAnnotationParseRule.java,v 1.13 2008/11/17 18:22:17 chance Exp $*/
 package com.surelogic.annotation;
 
+import java.lang.reflect.Constructor;
+
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 
@@ -21,9 +23,25 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public abstract class DefaultBooleanAnnotationParseRule
 <A extends IAASTRootNode, P extends PromiseDrop<A>>  
-extends AbstractAnnotationParseRule<A,P> {
+extends AbstractAnnotationParseRule<A,P> {	
+	//private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
+	
+	@SuppressWarnings("unchecked")
+	private static final Class[] noParamTypes = new Class[0];
+	
   protected DefaultBooleanAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops, dt);
+  }
+  
+  /**
+   * Uses reflection to create an AAST root node of the appropriate type;
+   * @param offset unmapped
+   */
+  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {
+	//Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
+	//return c.newInstance(context.mapToSource(offset), modifiers);
+	Constructor<A> c = getAASTType().getConstructor(noParamTypes);
+    return c.newInstance();
   }
   
   /**
