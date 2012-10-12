@@ -24,6 +24,8 @@ extends AbstractNamedPromiseRule
 implements ISingleAnnotationParseRule<A,P> {
   @SuppressWarnings("unchecked")
   private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
+  @SuppressWarnings("unchecked")
+  private static final Class[] noParamTypes = new Class[0];
   private final Class<A> aastType;
   private final IPromiseDropStorage<P> storage;
   private final IAnnotationScrubber scrubber;
@@ -43,9 +45,11 @@ implements ISingleAnnotationParseRule<A,P> {
    * Uses reflection to create an AAST root node of the appropriate type;
    * @param offset unmapped
    */
-  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {    
-    Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
-    return c.newInstance(context.mapToSource(offset), modifiers);
+  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {
+	//Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
+	//return c.newInstance(context.mapToSource(offset), modifiers);
+	Constructor<A> c = getAASTType().getConstructor(noParamTypes);
+    return c.newInstance();
   }
   /*
   protected void reportAAST(IAnnotationParsingContext context, int offset, AnnotationLocation loc) {
