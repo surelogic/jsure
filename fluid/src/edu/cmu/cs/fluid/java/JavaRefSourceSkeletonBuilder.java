@@ -15,17 +15,19 @@ public final class JavaRefSourceSkeletonBuilder {
 
   static final Map<IRNode, JavaRefSourceSkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefSourceSkeletonBuilder>();
 
-  public static void register(IRNode node, FileResource fileResource, int lineNumber, int offset, int length) {
-    final JavaRefSourceSkeletonBuilder b = new JavaRefSourceSkeletonBuilder(fileResource, lineNumber, offset, length);
+  public static void register(DeclFactory factory, IRNode node, 
+		  FileResource fileResource, int lineNumber, int offset, int length) {
+    final JavaRefSourceSkeletonBuilder b = new JavaRefSourceSkeletonBuilder(factory, fileResource, lineNumber, offset, length);
     nodeToSkeleton.put(node, b);
   }
-
+  private final DeclFactory f_factory;
   private final int f_lineNumber;
   private final int f_offset;
   private final int f_length;
   private final FileResource f_fileResource;
 
-  private JavaRefSourceSkeletonBuilder(FileResource fileResource, int lineNumber, int offset, int length) {
+  private JavaRefSourceSkeletonBuilder(DeclFactory f, FileResource fileResource, int lineNumber, int offset, int length) {
+	f_factory = f;
     f_fileResource = fileResource;
     f_lineNumber = lineNumber;
     f_offset = offset;
@@ -33,11 +35,10 @@ public final class JavaRefSourceSkeletonBuilder {
   }
 
   public static IFluidJavaRef buildOrNullOnFailure(IRNode node) {
-    final DeclFactory factory = new DeclFactory(null); // TODO BINDER?
     final JavaRefSourceSkeletonBuilder sb = nodeToSkeleton.get(node);
     if (sb == null)
       return null;
-    final Pair<IDecl, IDecl.Position> pair = factory.getDeclAndPosition(node);
+    final Pair<IDecl, IDecl.Position> pair = sb.f_factory.getDeclAndPosition(node);
     if (pair == null)
       return null;
     final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());

@@ -90,7 +90,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.FluidJavaRef;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -100,6 +99,7 @@ import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -120,11 +120,13 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   private boolean asBinary;
   final Projects projects;
   final JavacProject jp;
-
+  final DeclFactory declFactory;
+  
   public SourceAdapter(Projects p, JavacProject jp) {
     super(SLLogger.getLogger());
     projects = p;
     this.jp = jp;
+    declFactory = new DeclFactory(jp.getTypeEnv().getBinder());
   }
 
   public CodeInfo adapt(Trees t, JCCompilationUnit cut, JavaSourceFile srcFile, boolean asBinary) {
@@ -297,7 +299,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     /*
      * save skeletion JavaRef
      */
-    JavaRefSourceSkeletonBuilder.register(result, cuRef, (int) line, (int) start, (int) (end - start));
+    JavaRefSourceSkeletonBuilder.register(declFactory, result, cuRef, (int) line, (int) start, (int) (end - start));
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment) {
