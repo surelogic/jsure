@@ -24,6 +24,9 @@ public class TestDecl extends TestCase {
     assertNull(p.getTypeOf());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
     assertNull(p.getParent().getParent());
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
 
     Decl.ClassBuilder inner = new Decl.ClassBuilder("Inner");
     Decl.ClassBuilder outer = new Decl.ClassBuilder("Outer");
@@ -34,6 +37,9 @@ public class TestDecl extends TestCase {
     inner.setIsStatic(true);
     outer.setIsFinal(true);
     p = inner.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("Inner", p.getName());
     assertEquals("Outer.Inner", DeclUtil.getTypeNameOrNull(p));
@@ -43,6 +49,9 @@ public class TestDecl extends TestCase {
     assertTrue(p.isStatic());
     assertFalse(p.isFinal());
     p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CLASS, p.getKind());
     assertEquals("Outer", p.getName());
     assertEquals("Outer", DeclUtil.getTypeNameOrNull(p));
@@ -52,6 +61,9 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertTrue(p.isFinal());
     p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("org.apache", p.getName());
     assertNull(DeclUtil.getTypeNameOrNull(p));
@@ -63,6 +75,10 @@ public class TestDecl extends TestCase {
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
     foo.addTypeParameter(tpb);
     IDecl fooDecl = foo.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
+    assertSame(fooDecl.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(fooDecl), Decl.encodeForPersistence(pEncode));
+
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
 
@@ -99,7 +115,9 @@ public class TestDecl extends TestCase {
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
     b.setParent(parent);
     IDecl p = b.build();
-
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CONSTRUCTOR, p.getKind());
     assertEquals("MyType", p.getName());
     assertSame(Visibility.PUBLIC, p.getVisibility());
@@ -125,6 +143,9 @@ public class TestDecl extends TestCase {
     Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
     assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
+    assertSame(fooDecl.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(fooDecl), Decl.encodeForPersistence(pEncode));
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
 
@@ -151,6 +172,9 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent().getParent());
 
     p = new Decl.EnumBuilder("Foo").setParent(new Decl.PackageBuilder()).setVisibility(Visibility.DEFAULT).build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.ENUM, p.getKind());
     assertEquals("Foo", p.getName());
     assertSame(Visibility.DEFAULT, p.getVisibility());
@@ -182,7 +206,9 @@ public class TestDecl extends TestCase {
     b.setParent(parent);
     b.setVisibility(Visibility.PRIVATE);
     IDecl p = b.build();
-
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.FIELD, p.getKind());
     assertEquals("f_field", p.getName());
     assertSame(Visibility.PRIVATE, p.getVisibility());
@@ -226,6 +252,9 @@ public class TestDecl extends TestCase {
     Decl.InitializerBuilder b = new Decl.InitializerBuilder();
     b.setParent(parent);
     IDecl p = b.build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INITIALIZER, p.getKind());
     assertEquals("", p.getName());
     assertSame(Visibility.NA, p.getVisibility());
@@ -240,6 +269,9 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent().getParent().getParent());
 
     p = new Decl.InitializerBuilder().setParent(parent).setIsStatic(true).build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertTrue(p.isStatic());
 
     try {
@@ -252,6 +284,9 @@ public class TestDecl extends TestCase {
 
   public void testInterfaceBuilder() {
     IDecl p = new Decl.InterfaceBuilder("Foo").setParent(new Decl.PackageBuilder()).build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
     assertEquals("Foo", p.getName());
     assertSame(Visibility.PUBLIC, p.getVisibility());
@@ -271,6 +306,9 @@ public class TestDecl extends TestCase {
     inner.setParent(outer);
     inner.setVisibility(Visibility.PRIVATE);
     p = inner.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
     assertEquals("Inner", p.getName());
     assertSame(Visibility.PRIVATE, p.getVisibility());
@@ -278,6 +316,9 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
     assertEquals("Outer", p.getName());
     assertSame(Visibility.PUBLIC, p.getVisibility());
@@ -285,6 +326,9 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("org.apache", p.getName());
     assertNull(p.getParent());
@@ -296,6 +340,9 @@ public class TestDecl extends TestCase {
     Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
     assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
+    assertSame(fooDecl.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(fooDecl), Decl.encodeForPersistence(pEncode));
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
 
@@ -327,7 +374,9 @@ public class TestDecl extends TestCase {
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
     b.setParent(parent);
     IDecl p = b.build();
-
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.METHOD, p.getKind());
     assertEquals("processSomething", p.getName());
     assertSame(Visibility.PUBLIC, p.getVisibility());
@@ -353,6 +402,9 @@ public class TestDecl extends TestCase {
     Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
     assertSame(tpb, tpb0);
     IDecl fooDecl = foo.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
+    assertSame(fooDecl.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(fooDecl), Decl.encodeForPersistence(pEncode));
     assertEquals(1, fooDecl.getTypeParameters().size());
     assertEquals("E", fooDecl.getTypeParameters().get(0).getName());
 
@@ -380,6 +432,9 @@ public class TestDecl extends TestCase {
 
   public void testPackageBuilder() {
     IDecl p = new Decl.PackageBuilder().build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getName());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, DeclUtil.getPackageName(p));
@@ -388,16 +443,25 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder(null).build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getName());
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder("").build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getName());
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder("solo").build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
     assertEquals("solo", p.getName());
     assertEquals("solo", DeclUtil.getPackageName(p));
@@ -406,6 +470,9 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent());
 
     p = new Decl.PackageBuilder("com.surelogic").build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertEquals("com.surelogic", DeclUtil.getPackageName(p));
     assertEquals("com.surelogic", DeclUtil.getPackageNameOrNull(p));
     assertEquals("com/surelogic", DeclUtil.getPackageNameSlash(p));
@@ -490,6 +557,9 @@ public class TestDecl extends TestCase {
     assertSame(p2, b.getParameterBuilderAt(2));
     assertSame(p3, b.getParameterBuilderAt(3));
     IDecl p = p3.build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PARAMETER, p.getKind());
     assertEquals("foo", p.getName());
     assertSame(Visibility.NA, p.getVisibility());
@@ -505,6 +575,9 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent().getParent().getParent().getParent());
 
     p = new Decl.ParameterBuilder(4).setParent(b).setTypeOf(jlo).setIsFinal(true).build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertTrue(p.isFinal());
 
     try {
@@ -584,6 +657,9 @@ public class TestDecl extends TestCase {
     parent.addTypeParameter(new Decl.TypeParameterBuilder(1, "T").addBounds(jlo).addBounds(string));
 
     IDecl p = parent.build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertEquals(2, p.getTypeParameters().size());
     IDecl tp1 = p.getTypeParameters().get(0);
     assertEquals("E", tp1.getName());
