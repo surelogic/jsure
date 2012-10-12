@@ -1,26 +1,21 @@
-
 package com.surelogic.aast.promise;
-
-
-import java.util.List;
 
 import com.surelogic.aast.*;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
-public class UniqueInRegionNode extends AASTRootNode 
+public class UniqueInRegionNode extends AbstractSingleRegionNode<RegionSpecificationNode> 
 { 
   // Fields
-  private final RegionSpecificationNode spec;
   private final boolean allowRead;
   
-  public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("UniqueInRegion") {
-      @Override
-      public AASTNode create(String _token, int _start, int _stop,
-                                      int _mods, String _id, int _dims, List<AASTNode> _kids) {
-        RegionSpecificationNode spec =  (RegionSpecificationNode) _kids.get(0);
-        return new UniqueInRegionNode (_start, spec, JavaNode.getModifier(_mods, JavaNode.ALLOW_READ));
+  public static final Factory<RegionSpecificationNode> factory =
+    new Factory<RegionSpecificationNode>("UniqueInRegion") {
+	  @Override
+	  protected AASTRootNode create(int offset, 
+			  RegionSpecificationNode spec, int mods) {
+        return new UniqueInRegionNode(offset, spec, 
+        		JavaNode.getModifier(mods, JavaNode.ALLOW_READ));
       }
     };
 
@@ -28,12 +23,9 @@ public class UniqueInRegionNode extends AASTRootNode
   /**
    * Lists passed in as arguments must be @unique
    */
-  public UniqueInRegionNode(int offset,
+  public UniqueInRegionNode(int offset, 
                      RegionSpecificationNode spec, boolean allow) {
-    super(offset);
-    if (spec == null) { throw new IllegalArgumentException("spec is null"); }
-    ((AASTNode) spec).setParent(this);
-    this.spec = spec;
+    super(offset, spec);
     this.allowRead = allow;
   }
 
@@ -59,17 +51,6 @@ public class UniqueInRegionNode extends AASTRootNode
     }
     return sb.toString();
   }
-
-  public String unparseForPromise() {
-	  return unparse(false);
-  }
-  
-  /**
-   * @return A non-null node
-   */
-  public RegionSpecificationNode getSpec() {
-    return spec;
-  }
   
   public boolean allowRead() {
 	  return allowRead;
@@ -82,8 +63,7 @@ public class UniqueInRegionNode extends AASTRootNode
   
   @Override
   public IAASTRootNode cloneTree() {
-    RegionSpecificationNode s = (RegionSpecificationNode)spec.cloneTree();
-    return new UniqueInRegionNode(offset, s, allowRead);
+	return cloneTree(factory, allowRead ? JavaNode.ALLOW_READ : JavaNode.ALL_FALSE);    
   }
 }
 

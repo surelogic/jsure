@@ -43,7 +43,7 @@ public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueM
 
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
-    for (final RegionMappingNode mapping : this.getAAST().getMapping().getMappingList()) {
+    for (final RegionMappingNode mapping : this.getAAST().getSpec().getMappingList()) {
       aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), mapping.getTo().resolveBinding().getRegion());
     }
     return Collections.unmodifiableMap(aggregationMap);

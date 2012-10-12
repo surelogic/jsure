@@ -1,26 +1,21 @@
-
 package com.surelogic.aast.promise;
-
-
-import java.util.List;
 
 import com.surelogic.aast.*;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
-public class UniqueMappingNode extends AASTRootNode 
+public class UniqueMappingNode extends AbstractSingleRegionNode<MappedRegionSpecificationNode> 
 { 
   // Fields
-  private final MappedRegionSpecificationNode spec;
   private final boolean allowRead;
   
-  public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("UniqueMapping") {
-      @Override
-      public AASTNode create(String _token, int _start, int _stop,
-                                      int _mods, String _id, int _dims, List<AASTNode> _kids) {
-        MappedRegionSpecificationNode spec =  (MappedRegionSpecificationNode) _kids.get(0);
-        return new UniqueMappingNode (_start, spec, JavaNode.getModifier(_mods, JavaNode.ALLOW_READ));
+  public static final Factory<MappedRegionSpecificationNode> factory =
+    new Factory<MappedRegionSpecificationNode>("UniqueMapping") {
+	  @Override
+	  protected AASTRootNode create(int offset, 
+			  MappedRegionSpecificationNode spec, int mods) {
+        return new UniqueMappingNode (offset, spec, 
+        		JavaNode.getModifier(mods, JavaNode.ALLOW_READ));       
       }
     };
 
@@ -28,12 +23,9 @@ public class UniqueMappingNode extends AASTRootNode
   /**
    * Lists passed in as arguments must be @unique
    */
-  public UniqueMappingNode(int offset,
+  public UniqueMappingNode(int offset, 
                      MappedRegionSpecificationNode spec, boolean allow) {
-    super(offset);
-    if (spec == null) { throw new IllegalArgumentException("spec is null"); }
-    ((AASTNode) spec).setParent(this);
-    this.spec = spec;
+    super(offset, spec);
     allowRead = allow;
   }
 
@@ -44,31 +36,20 @@ public class UniqueMappingNode extends AASTRootNode
     	indent(sb, indent); 
     	sb.append("UniqueMappingNode\n");
     	indent(sb, indent+2);
-    	sb.append(spec.unparse(debug, indent+2));
+    	sb.append(getSpec().unparse(debug, indent+2));
     	if (allowRead) {
     		indent(sb, indent+2);
     		sb.append("allowRead=true");
     	}
     } else {
     	sb.append("UniqueInRegion(\"");
-    	sb.append(spec.unparse(debug, indent+2)).append('"');
+    	sb.append(getSpec().unparse(debug, indent+2)).append('"');
     	if (allowRead) {
     		sb.append(", allowRead=true");
     	}
     	sb.append(')');
     }
     return sb.toString();
-  }
-
-  public String unparseForPromise() {
-	  return unparse(false);
-  }
-  
-  /**
-   * @return A non-null node
-   */
-  public MappedRegionSpecificationNode getMapping() {
-    return spec;
   }
   
   public boolean allowRead() {
@@ -82,7 +63,7 @@ public class UniqueMappingNode extends AASTRootNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new UniqueMappingNode(offset, (MappedRegionSpecificationNode)spec.cloneTree(), allowRead);
+	return cloneTree(factory, allowRead ? JavaNode.ALLOW_READ : JavaNode.ALL_FALSE);    
   }
 }
 

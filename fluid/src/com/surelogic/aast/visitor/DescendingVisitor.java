@@ -535,7 +535,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   
   public T visit(UniqueMappingNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getMapping()));
+    rv = combineResults(rv, doAccept(n.getSpec()));
     return rv;
   }
 
@@ -775,7 +775,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
 
   public T visit(ExplicitBorrowedInRegionNode n) {
-	  return doAccept(n.getMapping());
+	  return doAccept(n.getSpec());
   }
 
   public T visit(NonNullNode n) {

@@ -1,23 +1,18 @@
-
 package com.surelogic.aast.promise;
-
-
-import java.util.List;
 
 import com.surelogic.aast.*;
 
-public class SimpleBorrowedInRegionNode extends AASTRootNode 
+import edu.cmu.cs.fluid.java.JavaNode;
+
+public class SimpleBorrowedInRegionNode extends AbstractSingleRegionNode<RegionSpecificationNode> 
 { 
-  // Fields
-  private final RegionSpecificationNode spec;
-  
-  public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("SimpleBorrowedInRegion") {
-      @Override
-      public AASTNode create(String _token, int _start, int _stop,
-                                      int _mods, String _id, int _dims, List<AASTNode> _kids) {
-        RegionSpecificationNode spec =  (RegionSpecificationNode) _kids.get(0);
-        return new SimpleBorrowedInRegionNode (_start, spec);
+  // Fields  
+  public static final Factory<RegionSpecificationNode> factory =
+    new Factory<RegionSpecificationNode>("SimpleBorrowedInRegion") {
+	  @Override
+	  protected AASTRootNode create(int offset, 
+			  RegionSpecificationNode spec, int mods) {
+        return new SimpleBorrowedInRegionNode (offset, spec);
       }
     };
 
@@ -25,39 +20,14 @@ public class SimpleBorrowedInRegionNode extends AASTRootNode
   /**
    * Lists passed in as arguments must be @unique
    */
-  public SimpleBorrowedInRegionNode(int offset,
+  public SimpleBorrowedInRegionNode(int offset, 
                      RegionSpecificationNode spec) {
-    super(offset);
-    if (spec == null) { throw new IllegalArgumentException("spec is null"); }
-    ((AASTNode) spec).setParent(this);
-    this.spec = spec;
+    super(offset, spec);
   }
 
   @Override
   public String unparse(boolean debug, int indent) {
-    StringBuilder sb = new StringBuilder();
-    if (debug) { 
-    	indent(sb, indent); 
-    	sb.append("BorrowedInRegionNode\n");
-    	indent(sb, indent+2);
-    	sb.append(getSpec().unparse(debug, indent+2));
-    } else {
-    	sb.append("BorrowedInRegion(\"");
-    	sb.append(getSpec());
-    	sb.append("\")");
-    }
-    return sb.toString();
-  }
-
-  public String unparseForPromise() {
-	  return unparse(false);
-  }
-  
-  /**
-   * @return A non-null node
-   */
-  public RegionSpecificationNode getSpec() {
-    return spec;
+	return unparse(debug, indent, "BorrowedInRegion");
   }
   
   @Override
@@ -67,8 +37,7 @@ public class SimpleBorrowedInRegionNode extends AASTRootNode
   
   @Override
   public IAASTRootNode cloneTree() {
-    RegionSpecificationNode s = (RegionSpecificationNode)spec.cloneTree();
-    return new SimpleBorrowedInRegionNode(offset, s);
+	  return cloneTree(factory, JavaNode.ALL_FALSE);
   }
 }
 

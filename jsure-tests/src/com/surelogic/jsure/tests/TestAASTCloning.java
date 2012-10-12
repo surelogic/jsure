@@ -80,8 +80,8 @@ public class TestAASTCloning extends TestCase {
 
 			UniqueMappingNode aClone = (UniqueMappingNode) anode.cloneTree();
 			assertFalse(anode == aClone);
-			MappedRegionSpecificationNode anodeMRS = anode.getMapping();
-			MappedRegionSpecificationNode aCloneMRS = aClone.getMapping();
+			MappedRegionSpecificationNode anodeMRS = anode.getSpec();
+			MappedRegionSpecificationNode aCloneMRS = aClone.getSpec();
 
 			assertFalse(anodeMRS == aCloneMRS);
 			List<RegionMappingNode> aNodeML = anodeMRS.getMappingList();

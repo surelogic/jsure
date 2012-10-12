@@ -820,7 +820,7 @@ public class RegionRules extends AnnotationRules {
     final Set<RegionModel> srcRegions = new HashSet<RegionModel>();
     final Map<IRegion, IRegion> regionMap = new HashMap<IRegion, IRegion>();
     final boolean promisedForIsStatic = TypeUtil.isStatic(promisedFor);
-    for(final RegionMappingNode mapping : a.getMapping().getMappingList()) {
+    for(final RegionMappingNode mapping : a.getSpec().getMappingList()) {
       final RegionNameNode fromNode = mapping.getFrom();
       final IRegionBinding fromDecl = fromNode.resolveBinding();
       final String fromId           = fromNode.getId();
@@ -981,7 +981,7 @@ public class RegionRules extends AnnotationRules {
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
     final Set<RegionModel> srcRegions = new HashSet<RegionModel>();
     final Map<IRegion, IRegion> regionMap = new HashMap<IRegion, IRegion>();
-    for(final RegionMappingNode mapping : a.getMapping().getMappingList()) {
+    for(final RegionMappingNode mapping : a.getSpec().getMappingList()) {
       final RegionNameNode fromNode = mapping.getFrom();
       final IRegionBinding fromDecl = fromNode.resolveBinding();
       final String fromId           = fromNode.getId();
