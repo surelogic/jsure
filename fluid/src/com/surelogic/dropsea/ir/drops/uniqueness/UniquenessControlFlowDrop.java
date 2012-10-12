@@ -25,7 +25,7 @@ public final class UniquenessControlFlowDrop extends PromiseDrop<UniqueNode> imp
   public static UniquenessControlFlowDrop create(final IRNode mdecl) {
 	  // Created just for the mdecl
 	  UniqueNode dummy = new UniqueNode(-1, false);
-	  dummy.setPromisedFor(mdecl);
+	  dummy.setPromisedFor(mdecl, null);
 	  
 	  UniquenessControlFlowDrop result = new UniquenessControlFlowDrop(dummy);
 	  result.setCategorizingMessage(JavaGlobals.UNIQUENESS_CAT);

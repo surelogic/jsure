@@ -172,7 +172,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     	reportError(offset, msg);
         root.markAsUnbound();      
       } else {        
-        root.setPromisedFor(declNode);
+        root.setPromisedFor(declNode, contextRef == null ? annoNode : contextRef);
         
         //final PromiseFramework pw = PromiseFramework.getInstance();
         //pw.addSlotValue(rule, declNode, drop);

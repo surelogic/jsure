@@ -192,7 +192,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
         NewRegionDeclarationNode region = 
             new NewRegionDeclarationNode(-1, JavaNode.PUBLIC, name, 
                                          new RegionNameNode(-1, PromiseConstants.REGION_INSTANCE_NAME));
-        region.setPromisedFor(type);
+        region.setPromisedFor(type, null);
 
         RegionModel model = RegionModel.create(region, name); 
         PromiseFramework.getInstance().findSeqStorage("Region").add(type, model);        

@@ -5,10 +5,8 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 
 public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
@@ -20,9 +18,9 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   private IRNode promisedFor;
   
   /**
-   * Derived from the actual annotation
+   * The actual annotation or contents
    */
-  //private IJavaRef contextRef;
+  private IRNode annoContext;
   
   private AASTStatus status = AASTStatus.UNPROCESSED;
   private AnnotationSource srcType;
@@ -37,21 +35,15 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
     }
   }
   
-  public final void setPromisedFor(IRNode n/*, IRNode context*/) {
+  public final void setPromisedFor(IRNode n, IRNode context) {
     checkArgument(promisedFor, n);
-    //checkArgument(contextRef, context);
-    promisedFor = n;
-    /*
-    ISrcRef sr = JavaNode.getSrcRef(context);
-    if (sr == null) {
-    	sr = JavaNode.getSrcRef(n);
-    }
-    contextRef = ;
-    */
+    promisedFor = n;    
+    annoContext = context == null ? n : context;
   }
   
   public final void clearPromisedFor() {
 	  promisedFor = null;
+	  annoContext = null;
   }
   
   public final AnnotationSource getSrcType() {
@@ -70,6 +62,13 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
     }
     return promisedFor;
   } 
+  
+  public final IRNode getAnnoContext() {
+    if (annoContext == null && parent != null) {
+    	annoContext = parent.getPromisedFor();
+    }
+    return annoContext;
+  }
   
   public final AASTStatus getStatus() {
     return status;

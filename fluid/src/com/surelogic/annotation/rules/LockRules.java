@@ -1740,7 +1740,7 @@ public class LockRules extends AnnotationRules {
               final boolean verify = a.verify();
               final int offset = JavaNode.getSrcRef(sub).getOffset();
               final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY, a);
-              derived.setPromisedFor(sub);
+              derived.setPromisedFor(sub, a.getAnnoContext());
               derived.setSrcType(a.getSrcType());
               cb.addDerived(derived, originalPromiseDrop);
             }
