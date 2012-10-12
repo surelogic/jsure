@@ -49,7 +49,7 @@ public class ClassAdapter extends AbstractAdapter {
 		debug     = Util.debug;
 		//debug     = "java/lang/Enum.class".equals(cls); 
 		this.mods = mods;
-		resource = new ClassResource(project, qname, new File(j.getName()), className);
+		resource = new ClassResource(project, qname, j.getName(), className);
 	}
 
 	public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods) {
@@ -60,7 +60,7 @@ public class ClassAdapter extends AbstractAdapter {
 		isInner   = inner;
 		debug     = Util.debug;
 		this.mods = mods;
-		resource = new ClassResource(project, qname, f, null);
+		resource = new ClassResource(project, qname, f);
 	}
 	
 	public File getSource() {

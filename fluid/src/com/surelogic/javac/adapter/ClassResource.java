@@ -8,13 +8,14 @@ public class ClassResource {
 	final String pkg;
 	final String cuName;
 	final JavacProject project;
-	/**
-	 * jar or .class
-	 */
-	final File fileOrigin;
+	final String pathToJarOrClass;
 	final String jarPath;
 
-	ClassResource(JavacProject proj, String qname, File f, String jarPath) {
+	ClassResource(JavacProject proj, String qname, File f) {
+		this(proj, qname, f.getAbsolutePath(), null);
+	}
+	
+	ClassResource(JavacProject proj, String qname, String relPath, String jarPath) {
 		project = proj;
 		int lastDot = qname.lastIndexOf('.');
 		if (lastDot >= 0) {
@@ -24,7 +25,7 @@ public class ClassResource {
 			pkg = "";
 			cuName = qname+".class";
 		}
-		fileOrigin = f;
+		pathToJarOrClass = relPath;
 		this.jarPath = jarPath;
 	}
 	
@@ -50,5 +51,13 @@ public class ClassResource {
 	
 	public String getProjectName() {
 		return project.getName();
+	}
+	
+	public String getWorkspaceRelativePath() {
+		return pathToJarOrClass;
+	}
+	
+	public String getJarRelativePath() {
+		return jarPath;
 	}
 }
