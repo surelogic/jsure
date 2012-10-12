@@ -6,8 +6,13 @@ public class ClassResource {
 	final String pkg;
 	final String cuName;
 	final String project;
+	/**
+	 * jar or .class
+	 */
+	final File fileOrigin;
+	final String jarPath;
 	
-	ClassResource(String proj, String qname) {
+	ClassResource(String proj, String qname, File f, String jarPath) {
 		project = proj;
 		int lastDot = qname.lastIndexOf('.');
 		if (lastDot >= 0) {
@@ -17,10 +22,8 @@ public class ClassResource {
 			pkg = "";
 			cuName = qname+".class";
 		}
-	}
-	
-	ClassResource(String proj, String qname, File f) {
-		this(proj, qname);
+		fileOrigin = f;
+		this.jarPath = jarPath;
 	}
 	
 	public String getPackage() {
