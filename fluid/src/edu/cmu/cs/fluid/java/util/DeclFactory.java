@@ -75,7 +75,7 @@ public class DeclFactory {
 			if (parentB == null) {
 				IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
 				IRNode pd = CompilationUnit.getPkg(cu);						
-				parentB = buildNonTypeDecl(here, (Declaration) JJNode.tree.getOperator(pd), null);
+				parentB = buildNonTypeDecl(pd, (Declaration) JJNode.tree.getOperator(pd), null);
 			}
 		}
 		else if (op instanceof Declaration) {
