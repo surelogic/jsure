@@ -51,10 +51,13 @@ import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.VouchProcessorConsistencyProofHook;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.Decl;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
@@ -110,6 +113,7 @@ import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
 import edu.cmu.cs.fluid.java.operator.Statement;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
+import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -1117,7 +1121,9 @@ public class Util {
             return;
           }
           name = info.getFile().getPackage();
-        }
+        }        
+        //testIDecls(info);
+        
         // Add the Static region before anything else (even All?)
         final AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
         for (IRNode type : VisitUtil.getAllTypeDecls(cu)) {
@@ -1215,6 +1221,22 @@ public class Util {
     endSubTask(monitor);
   }
 
+  private static void testIDecls(CodeInfo info) {
+	  final DeclFactory factory = new DeclFactory(info.getTypeEnv().getBinder());
+	  for(IRNode n : JJNode.tree.topDown(info.getNode())) { // what about receivers/return values?
+		  Pair<IDecl, IDecl.Position> p = factory.getDeclAndPosition(n);
+		  if (p == null) {
+			  continue;
+		  }
+		  String encode = Decl.encodeForPersistence(p.first());
+		  IDecl decode = Decl.parseEncodedForPersistence(encode);
+		  if (!decode.getKind().equals(p.first().getKind()) || 
+			  !decode.getName().equals(p.first().getName())) {
+			  throw new IllegalStateException();
+		  }
+	  }
+  }
+  
   /**
    * @return true if the type is declared somewhere inside of a method
    */
