@@ -28,4 +28,9 @@ public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
    * including the annotation and quotes
    */
   String unparseForPromise();
+  
+  /**
+   * Get the original context that this annotation is created from
+   */
+  IRNode getAnnoContext();
 }
