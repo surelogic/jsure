@@ -132,9 +132,10 @@ public class JcipRules extends AnnotationRules {
         new QualifiedClassLockExpressionNode(lock.getOffset(),
             (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
     } else if (lock instanceof QualifiedThisExpressionNode) {
-      field = (QualifiedThisExpressionNode) lock.cloneTree();
+      field = (QualifiedThisExpressionNode) lock.cloneTree();   
     } else {
-    	throw new IllegalStateException("Unexpected lock field: "+lock);
+    	context.reportWarning(a, "Unconverted @GuardedBy: "+lock);
+    	return d;
     }
     final LockDeclarationNode regionLockDecl =
     	new LockDeclarationNode(a.getOffset(), id, field, region);
