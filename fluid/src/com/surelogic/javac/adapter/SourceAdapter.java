@@ -95,6 +95,7 @@ import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.JavaRefSourceSkeletonBuilder;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -105,7 +106,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
   public static final boolean includeQuotesInStringLiteral = true;
-	
+
   enum TypeKind {
     IFACE, ENUM, OTHER
   }
@@ -294,10 +295,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     ref = new SourceRef(cuRef, start, end, line);
     JavaNode.setSrcRef(result, ref);
     /*
-     * Add Fluid JavaRef to the IRNode
+     * save skeletion JavaRef
      */
-    final FluidJavaRef.IRBuilder builder = new FluidJavaRef.IRBuilder(cuRef, (int) line, (int) start, (int) (end - start));
-    JavaNode.setFluidJavaRefIrBuilder(result, builder);
+    JavaRefSourceSkeletonBuilder.register(result, cuRef, (int) line, (int) start, (int) (end - start));
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment) {
@@ -1139,11 +1139,11 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     case STRING_LITERAL:
       String s = (String) o;
       if (includeQuotesInStringLiteral) {
-    	  if (s.length() == 0) {
-    		  s = "\"\"";
-    	  } else {
-    		  s = '\"' + s + '\"';
-    	  }
+        if (s.length() == 0) {
+          s = "\"\"";
+        } else {
+          s = '\"' + s + '\"';
+        }
       }
       return StringLiteral.createNode(s); // FIX
     case NULL_LITERAL:

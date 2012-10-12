@@ -14,6 +14,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.tree.SyntaxTreeNode;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -405,14 +406,8 @@ public class JavaNode extends JJNode {
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
-  private static final SlotInfo<FluidJavaRef.IRBuilder> f_fluidJavaRefIrBuilderSlotInfo = getVersionedSlotInfo(
-      FluidJavaRef.FLUID_JAVA_REF_IRBUILDER_SLOT_NAME, FluidJavaRef.FLUID_JAVA_REF_IRBUILDER_SLOT_TYPE);
   private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FluidJavaRef.FLUID_JAVA_REF_SLOT_NAME,
       FluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
-
-  public static void setFluidJavaRefIrBuilder(IRNode node, FluidJavaRef.IRBuilder builder) {
-    node.setSlotValue(f_fluidJavaRefIrBuilderSlotInfo, builder);
-  }
 
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java code
@@ -434,13 +429,10 @@ public class JavaNode extends JJNode {
     if (node.valueExists(f_fluidJavaRefSlotInfo))
       return node.getSlotValue(f_fluidJavaRefSlotInfo);
     else {
-      if (node.valueExists(f_fluidJavaRefIrBuilderSlotInfo)) {
-        final FluidJavaRef.IRBuilder builder = node.getSlotValue(f_fluidJavaRefIrBuilderSlotInfo);
-        if (builder != null) {
-          final IFluidJavaRef javaRef = builder.buildOrNullOnFailure(node);
-          node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
-          return javaRef;
-        }
+      final IFluidJavaRef javaRef = JavaRefSourceSkeletonBuilder.buildOrNullOnFailure(node);
+      if (javaRef != null) {
+        node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
+        return javaRef;
       }
     }
     return null;
