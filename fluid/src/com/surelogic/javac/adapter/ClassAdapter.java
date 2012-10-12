@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 public class ClassAdapter extends AbstractAdapter {	
 	final boolean debug;
@@ -27,6 +28,7 @@ public class ClassAdapter extends AbstractAdapter {
 	final String className;
 	final File classFile;
 	final ClassResource resource;
+	final DeclFactory declFactory;
 	
 	final boolean isInner;
 	final int mods; // Only applicable if nested
@@ -50,6 +52,7 @@ public class ClassAdapter extends AbstractAdapter {
 		//debug     = "java/lang/Enum.class".equals(cls); 
 		this.mods = mods;
 		resource = new ClassResource(project, qname, j.getName(), className);
+		declFactory = new DeclFactory(project.getTypeEnv().getBinder());
 	}
 
 	public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods) {
@@ -61,6 +64,7 @@ public class ClassAdapter extends AbstractAdapter {
 		debug     = Util.debug;
 		this.mods = mods;
 		resource = new ClassResource(project, qname, f);
+		declFactory = new DeclFactory(project.getTypeEnv().getBinder());
 	}
 	
 	public File getSource() {
@@ -90,8 +94,7 @@ public class ClassAdapter extends AbstractAdapter {
 			cr = new ClassReader(jar.getInputStream(e));
 			cr.accept(new AnalyzeSignaturesVisitor(), 0);
 			*/
-			final ISrcRef ref = new ClassRef(resource, 0);
-			JavaNode.setSrcRef(root, ref);
+			JavaRefBinarySkeletonBuilder.register(declFactory, root, resource, 0);
 			
 			if (!isInner) {
 				// Need to create comp unit
@@ -572,10 +575,9 @@ public class ClassAdapter extends AbstractAdapter {
 			if (line == Integer.MAX_VALUE) {
 				line = 0;
 			}
-			final ISrcRef ref = new ClassRef(resource, line);
-			JavaNode.setSrcRef(result, ref);				
+			JavaRefBinarySkeletonBuilder.register(declFactory, result, resource, line);
 			for(IRNode p : Parameters.getFormalIterator(parameters)) {
-				JavaNode.setSrcRef(p, ref);
+			  JavaRefBinarySkeletonBuilder.register(declFactory, p, resource, line);
 			}
 		}
 	}

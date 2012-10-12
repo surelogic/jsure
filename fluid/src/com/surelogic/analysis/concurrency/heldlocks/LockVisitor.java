@@ -62,6 +62,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -2338,12 +2339,15 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 						} else {
 							for (final IRNode n : unlocks) {
+							  int lineNumber = -1;
+							  final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(n);
+						    if (javaRef != null)
+						      lineNumber = javaRef.getLineNumber();
 								final HintDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS,
 										expr,
 										Messages.LockAnalysis_ds_MatchingUnlock,
-										lockMethod.name, JavaNode.getSrcRef(n)
-												.getLineNumber());
+										lockMethod.name, lineNumber);
 								for (final HeldLock lock : lockSet) {
 									lock.getLockPromise().addDependent(match);
 								}
@@ -2376,11 +2380,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 						} else {
 							for (final IRNode n : locks) {
+							  int lineNumber = -1;
+                final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(n);
+                if (javaRef != null)
+                  lineNumber = javaRef.getLineNumber();
 								final HintDrop match = makeInfoDrop(
 										Messages.DSC_MATCHING_CALLS, expr,
 										Messages.LockAnalysis_ds_MatchingLock,
-										MethodCall.getMethod(n), JavaNode
-												.getSrcRef(n).getLineNumber());
+										MethodCall.getMethod(n), lineNumber);
 								for (final HeldLock lock : lockSet) {
 									lock.getLockPromise().addDependent(match);
 								}

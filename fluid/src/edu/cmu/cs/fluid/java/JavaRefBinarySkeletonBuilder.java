@@ -13,11 +13,35 @@ import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 public final class JavaRefBinarySkeletonBuilder {
 
-  static final Map<IRNode, JavaRefBinarySkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefBinarySkeletonBuilder>();
+  private static final Map<IRNode, JavaRefBinarySkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefBinarySkeletonBuilder>();
 
   public static void register(DeclFactory factory, IRNode node, ClassResource resource, int lineNumber) {
     final JavaRefBinarySkeletonBuilder b = new JavaRefBinarySkeletonBuilder(factory, resource, lineNumber);
     nodeToSkeleton.put(node, b);
+  }
+
+  /**
+   * 
+   * @param node
+   * @return {@code true} if registered, {@code false} otherwise.
+   */
+  public static boolean hasRegistered(IRNode node) {
+    return nodeToSkeleton.containsKey(node);
+  }
+
+  /**
+   * 
+   * @param from
+   * @param to
+   * @return {@code true} if the copy succeeded.
+   */
+  public static boolean copyRegistrationIfPossible(IRNode from, IRNode to) {
+    final JavaRefBinarySkeletonBuilder b = nodeToSkeleton.get(from);
+    if (b != null) {
+      nodeToSkeleton.put(to, b);
+      return true;
+    }
+    return false;
   }
 
   private final DeclFactory f_factory;

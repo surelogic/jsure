@@ -4,15 +4,15 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
-import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -91,8 +91,8 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
       for (final IRNode call : calls) {      
         final HintDrop drop = HintDrop.newInformation(decl);
         drop.setCategorizingMessage(Messages.DSC_COLLECT_METHOD_CALLS);
-        final ISrcRef srcRef = JavaNode.getSrcRef(call);
-        final int srcLine = srcRef == null ? -1 : srcRef.getLineNumber();
+        final IJavaRef javaRef = JavaNode.getFluidJavaRef(call);
+        final int srcLine = javaRef == null ? -1 : javaRef.getLineNumber();
         drop.setMessage(Messages.CALLS, DebugUnparser.toString(call), srcLine);
       }
     }

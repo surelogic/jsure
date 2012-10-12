@@ -5,11 +5,11 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.Unused;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
@@ -60,11 +60,11 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
     }
 
     private void showType(final IRNode e) {
-      final ISrcRef srcRef = JavaNode.getSrcRef(e);
+      final IJavaRef javaRef = JavaNode.getFluidJavaRef(e);
       final IJavaType type = binder.getJavaType(e);
       System.out.printf("Expression '%s' at line %5d has type '%s', a %s%n",
           DebugUnparser.toString(e),
-          (srcRef == null) ? 0 : srcRef.getLineNumber(),
+          (javaRef == null) ? 0 : javaRef.getLineNumber(),
           type.toString(), getClassName(type));
       showType("  ", type);
       System.out.println("--------------------------------------------------");

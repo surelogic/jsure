@@ -70,8 +70,9 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -1738,7 +1739,8 @@ public class LockRules extends AnnotationRules {
                 EnumConstantClassDeclaration.prototype.includes(subOp)) { // Bug 1705: Not being returned at the moment
               // Add derived annotation
               final boolean verify = a.verify();
-              final int offset = JavaNode.getSrcRef(sub).getOffset();
+              IJavaRef ref = JavaNode.getFluidJavaRef(sub);
+              final int offset = ref == null ? -1 : ref.getOffset();
               final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY, a);
               derived.setPromisedFor(sub, a.getAnnoContext());
               derived.setSrcType(a.getSrcType());

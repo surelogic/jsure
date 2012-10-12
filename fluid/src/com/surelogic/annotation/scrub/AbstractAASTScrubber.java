@@ -14,6 +14,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -485,17 +486,17 @@ extends AbstractHierarchyScrubber<A> {
 		
 	final Comparator<Map.Entry<IRNode,Collection<A>>> entryComparator = new Comparator<Map.Entry<IRNode,Collection<A>>>() {
 		public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {
-			ISrcRef r1 = getSrcRef(o1.getKey());
-			ISrcRef r2 = getSrcRef(o2.getKey());
+		  IJavaRef r1 = getJavaRef(o1.getKey());
+		  IJavaRef r2 = getJavaRef(o2.getKey());
 			if (r1 == null || r2 == null) {
 				//throw new IllegalStateException(DebugUnparser.toString(o1));
 				return min(o1.getValue()) - min(o2.getValue());
 			}
 			return r1.getOffset() - r2.getOffset();
 		}
-		private ISrcRef getSrcRef(IRNode n) {
+		private IJavaRef getJavaRef(IRNode n) {
 			while (n != null) {
-				ISrcRef ref = JavaNode.getSrcRef(n);
+			  IJavaRef ref = JavaNode.getFluidJavaRef(n);
 				if (ref != null) {
 					return ref;
 				}

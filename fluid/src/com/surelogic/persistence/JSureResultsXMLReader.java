@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -17,7 +18,6 @@ import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -93,7 +93,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
       return null; // Unknown CU
     }
     for (IRNode n : JJNode.tree.topDown(d.getCompilationUnitIRNode())) {
-      ISrcRef ref = JavaNode.getSrcRef(n);
+      IJavaRef ref = JavaNode.getFluidJavaRef(n);
       if (ref != null && ref.getOffset() == offset) {
         final long nHash = SeaSnapshot.computeHash(n);
         if (hash == nHash) {

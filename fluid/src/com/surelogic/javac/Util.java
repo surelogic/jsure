@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -92,8 +90,6 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
@@ -589,19 +585,20 @@ public class Util {
     // TODO note this is a memory leak if run as embedded
     IRNode n = new MarkedIRNode("For src ref");
     final String path = '/' + project + '/' + ToolProperties.PROPS_FILE;
-    JavaNode.setSrcRef(n, new NamedSrcRef(project, path, null, path) {
-      public URI getEnclosingURI() {
-        try {
-          return new URI(path);
-        } catch (URISyntaxException e) {
-          return null;
-        }
-      }
-
-      public int getLineNumber() {
-        return -1;
-      }
-    });
+    // TODO THIS NEEDS TO BE A JAVAREF -- but it really isnt' it is into a file -- work this
+//    JavaNode.setSrcRef(n, new NamedSrcRef(project, path, null, path) {
+//      public URI getEnclosingURI() {
+//        try {
+//          return new URI(path);
+//        } catch (URISyntaxException e) {
+//          return null;
+//        }
+//      }
+//
+//      public int getLineNumber() {
+//        return -1;
+//      }
+//    });
     ModelingProblemDrop d = new ModelingProblemDrop(n);
     d.setMessage(num, args);
     // LOG.warning(d.getMessage());

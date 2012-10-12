@@ -162,7 +162,7 @@ public final class PackageDrop extends CUDrop {
       } else {
         n = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), name);
       }
-      JavaNode.setSrcRef(n, makeSrcRef(proj, name));
+     // JavaNode.setSrcRef(n, makeSrcRef(proj, name));
       LOG.fine("Creating IR for package " + name);
 
       // Just to make it into a complete CU

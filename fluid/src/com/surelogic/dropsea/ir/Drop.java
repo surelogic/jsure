@@ -35,7 +35,6 @@ import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.java.IFluidJavaRef;
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * The abstract base class for all drops within the sea, intended to be
@@ -780,11 +779,6 @@ public abstract class Drop implements IDrop {
       return (T) this;
     } else
       throw new UnsupportedOperationException();
-  }
-
-  @Nullable
-  public ISrcRef getSrcRef() {
-    return null;
   }
 
   @Nullable

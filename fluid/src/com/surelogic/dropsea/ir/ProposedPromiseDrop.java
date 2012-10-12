@@ -5,7 +5,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_DROP;
@@ -37,7 +36,6 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -309,16 +307,6 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     return ref;
   }
 
-  @Deprecated
-  public ISrcRef getAssumptionRefOLD() {
-    final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
-    if (ref == null) {
-      final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
-      return JavaNode.getSrcRef(parent);
-    }
-    return ref;
-  }
-
   /**
    * The contents of the Java annotation being proposed. For
    * <code>@Starts("nothing")</code> the value of this string would be
@@ -427,7 +415,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     if (f_contents != null) {
       hash += f_contents.hashCode();
     }
-    final ISrcRef ref = getSrcRef();
+    final IJavaRef ref = getJavaRef();
     if (ref != null) {
       hash += ref.getHash(); // Instead of hashCode()?
     }
@@ -499,7 +487,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    s.addSrcRef(db, getAssumptionNode(), getAssumptionRefOLD(), FROM_REF);
+    // s.addSrcRef(db, getAssumptionNode(), getAssumptionRefOLD(), FROM_REF);
     s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
     s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
     s.addProperties(db, ANNO_ATTRS, f_attrs);

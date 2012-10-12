@@ -34,10 +34,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.FluidJavaRef;
 import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.WrappedSrcRef;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 /**
@@ -70,47 +68,41 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
     f_aast = a;
 
-    /* It doesn't add any new info to the wrapped ref
+    /*
+     * It doesn't add any new info to the wrapped ref
      * 
-    final ISrcRef orig = super.getSrcRef();
-    if (orig != null) {
-      ISrcRef ref = orig.createSrcRef(f_aast.getOffset());
-      if (ref == null) {
-        ref = orig;
-      }
-      f_lineNumber = ref.getLineNumber();
-      f_hash = ref.getHash();
-    } else {
-      f_lineNumber = -1;
-      f_hash = -1L;
-    }
-    */
+     * final ISrcRef orig = super.getSrcRef(); if (orig != null) { ISrcRef ref =
+     * orig.createSrcRef(f_aast.getOffset()); if (ref == null) { ref = orig; }
+     * f_lineNumber = ref.getLineNumber(); f_hash = ref.getHash(); } else {
+     * f_lineNumber = -1; f_hash = -1L; }
+     */
     if (this instanceof ICustomizedPromiseDrop) {
-    	return;
+      return;
     }
     final IRNode decl = getPromisedFor();
     final IRNode altDecl = useAlternateDeclForUnparse();
     if (altDecl != null) {
-    	if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
-    		setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl),
-    				JavaNames.genRelativeFunctionName(altDecl));
-    	} else {
-    		setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
-    	}
+      if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
+        setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl), JavaNames.genRelativeFunctionName(altDecl));
+      } else {
+        setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
+      }
     } else {
-    	setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(decl));
+      setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(decl));
     }
   }
 
   /**
-   * Typically returns null, or the the enclosing body decl of the promised-for node
+   * Typically returns null, or the the enclosing body decl of the promised-for
+   * node
    * 
-   * @return non-null if the unparse should use an alternative IRNode as the location of the promise
+   * @return non-null if the unparse should use an alternative IRNode as the
+   *         location of the promise
    */
   protected IRNode useAlternateDeclForUnparse() {
-	return null;
+    return null;
   }
-  
+
   public final IRNode getPromisedFor() {
     return getNode();
   }
@@ -420,36 +412,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   }
 
   @Override
-  public final ISrcRef getSrcRef() {
-	final ISrcRef contextRef = JavaNode.getSrcRef(f_aast.getAnnoContext());	
-    final ISrcRef ref = contextRef != null ? contextRef : super.getSrcRef();
-    if (ref != null) {
-      return new WrappedSrcRef(ref) {
-        public String getJavaId() {
-          final IRNode decl = getNode();
-          return decl == null ? null : JavaIdentifier.encodeDecl(decl);
-        }
-
-        public int getOffset() {
-          // Use the best info we have
-          return f_aast.getOffset() >= 0 ? f_aast.getOffset() : ref.getOffset();
-        }
-        
-        public int getLength() {
-          if (ref.getOffset() == f_aast.getOffset()) {
-        	  return ref.getLength();
-          }
-          return 0;
-        }
-      };
-    } else
-      return null;
-  }
-
-  @Override
   @Nullable
   public IFluidJavaRef getJavaRef() {
-	final IFluidJavaRef contextRef = JavaNode.getFluidJavaRef(f_aast.getAnnoContext());	
+    final IFluidJavaRef contextRef = JavaNode.getFluidJavaRef(f_aast.getAnnoContext());
     final IFluidJavaRef javaRef = contextRef != null ? contextRef : super.getJavaRef();
     if (javaRef == null)
       return null;
@@ -459,11 +424,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     // Use the best info we have
     int offset, length;
     if (f_aast.getOffset() >= 0) {
-    	offset = f_aast.getOffset();
-    	length = 0;
+      offset = f_aast.getOffset();
+      length = 0;
     } else {
-    	offset = javaRef.getOffset();
-    	length = javaRef.getLength();
+      offset = javaRef.getOffset();
+      length = javaRef.getLength();
     }
     return new FluidJavaRef.Builder(javaRef).setLength(length).setOffset(offset).setJavaId(javaId).build();
 
@@ -530,10 +495,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   @NonNull
   private final A f_aast;
   /*
-  private final Long f_hash;
-  private final int f_lineNumber;
-  */
-  
+   * private final Long f_hash; private final int f_lineNumber;
+   */
+
   @InRegion("DropState")
   private PromiseDrop<? extends IAASTRootNode> f_source;
 

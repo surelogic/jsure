@@ -15,6 +15,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -54,17 +55,17 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  return rule;
   }
   
-  private ISrcRef getSrcRef() {
-	ISrcRef ref = JavaNode.getSrcRef(contextRef);
-	if (ref == null) {
-		ref = JavaNode.getSrcRef(annoNode);
-	}
-	return ref;
+  private IFluidJavaRef getJavaRef() {
+    IFluidJavaRef ref = JavaNode.getFluidJavaRef(contextRef);
+    if (ref == null) {
+      ref = JavaNode.getFluidJavaRef(annoNode);
+    }
+    return ref;
   }
   
   private int getOffset() {
-	ISrcRef ref = getSrcRef();
-	return ref == null ? -1 : ref.getOffset();
+    IFluidJavaRef ref = getJavaRef();
+    return ref == null ? -1 : ref.getOffset();
   }
   
   @Override

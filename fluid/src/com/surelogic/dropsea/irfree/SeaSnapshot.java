@@ -33,7 +33,6 @@ import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
@@ -119,14 +118,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       ref.addAttribute(attr, value);
     }
     ref.end();
-  }
-
-  public void addSrcRef(Builder outer, IRNode context, ISrcRef srcRef) {
-    addSrcRef(outer, context, srcRef, 2, null);
-  }
-
-  public void addSrcRef(Builder outer, IRNode context, ISrcRef s, String flavor) {
-    addSrcRef(outer, context, s, 2, flavor);
   }
 
   public void addJavaDeclInfo(Builder b, final String flavor, final JavaDeclInfo info) {

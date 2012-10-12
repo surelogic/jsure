@@ -16,7 +16,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.SOURCE_REF;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,7 +69,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) f_drop;
         // System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
         final String name = e.getName();
-        if (SOURCE_REF.equals(name)) {
+        if ("source-ref".equals(name)) {
           SourceRef sr = new SourceRef(e);
           if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
             ppd.setAssumptionRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));

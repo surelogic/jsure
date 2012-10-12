@@ -192,14 +192,14 @@ public class AbstractAdapter {
 				PromiseUtil.addReceiverDeclsToMethod(init);
 
 				//System.out.println("Adding last-minute nodes to "+JavaNames.getFullTypeName(n));
-				if (makeSrcRefs) {
-					ISrcRef ref = JavaNode.getSrcRef(n);
-					if (ref == null) {
-						String name = JavaNames.getFullTypeName(n);
-						ref = new NamedSrcRef(project, name, pkg, cu);
-						JavaNode.setSrcRef(n, ref);
-					}
-				}
+//				if (makeSrcRefs) {
+//					ISrcRef ref = JavaNode.getSrcRef(n);
+//					if (ref == null) {
+//						String name = JavaNames.getFullTypeName(n);
+//						ref = new NamedSrcRef(project, name, pkg, cu);
+//						JavaNode.setSrcRef(n, ref);
+//					}
+//				}
 			} else if (edu.cmu.cs.fluid.java.operator.AnnotationElement.prototype.includes(op)) {
 				ReturnValueDeclaration.getReturnNode(n);
 				PromiseUtil.addReceiverDeclsToMethod(n);

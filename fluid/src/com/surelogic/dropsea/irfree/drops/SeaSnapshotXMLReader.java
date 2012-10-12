@@ -13,7 +13,6 @@ public class SeaSnapshotXMLReader extends AbstractXMLReader {
 
   public static final String ROOT = "sea-snapshot";
 
-  public static final String SOURCE_REF = "source-ref";
   public static final String SUPPORTING_INFO = "supporting-info";
   public static final String JAVA_DECL_INFO = "java-decl-info";
   public static final String PROPERTIES = "properties";
@@ -43,7 +42,7 @@ public class SeaSnapshotXMLReader extends AbstractXMLReader {
 
   @Override
   protected void handleNestedEntity(Entity next, Entity last, String lastName) {
-    if (SOURCE_REF.equals(lastName)) {
+    if ("source-ref".equals(lastName)) {
       String flavor = last.getAttribute(FLAVOR_ATTR);
       if (flavor != null) {
         // throw new UnsupportedOperationException();

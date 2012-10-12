@@ -45,6 +45,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
@@ -57,7 +58,6 @@ import com.surelogic.promise.PromiseDropSeqStorage;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -703,7 +703,7 @@ public class ScopedPromiseRules extends AnnotationRules {
        * scopedPromiseDrop.getMessage()+" to "+name); }
        */
       if (target.matches(decl)) {
-        final ISrcRef ref = JavaNode.getSrcRef(decl);
+        final IJavaRef ref = JavaNode.getFluidJavaRef(decl);
         int offset = -1;
         if (ref != null) {
           offset = ref.getOffset();

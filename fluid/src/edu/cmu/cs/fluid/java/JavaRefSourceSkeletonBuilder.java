@@ -13,13 +13,37 @@ import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 public final class JavaRefSourceSkeletonBuilder {
 
-  static final Map<IRNode, JavaRefSourceSkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefSourceSkeletonBuilder>();
+  private static final Map<IRNode, JavaRefSourceSkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefSourceSkeletonBuilder>();
 
-  public static void register(DeclFactory factory, IRNode node, 
-		  FileResource fileResource, int lineNumber, int offset, int length) {
+  public static void register(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber, int offset, int length) {
     final JavaRefSourceSkeletonBuilder b = new JavaRefSourceSkeletonBuilder(factory, fileResource, lineNumber, offset, length);
     nodeToSkeleton.put(node, b);
   }
+
+  /**
+   * 
+   * @param node
+   * @return {@code true} if registered, {@code false} otherwise.
+   */
+  public static boolean hasRegistered(IRNode node) {
+    return nodeToSkeleton.containsKey(node);
+  }
+
+  /**
+   * 
+   * @param from
+   * @param to
+   * @return {@code true} if the copy succeeded.
+   */
+  public static boolean copyRegistrationIfPossible(IRNode from, IRNode to) {
+    final JavaRefSourceSkeletonBuilder b = nodeToSkeleton.get(from);
+    if (b != null) {
+      nodeToSkeleton.put(to, b);
+      return true;
+    }
+    return false;
+  }
+
   private final DeclFactory f_factory;
   private final int f_lineNumber;
   private final int f_offset;
@@ -27,7 +51,7 @@ public final class JavaRefSourceSkeletonBuilder {
   private final FileResource f_fileResource;
 
   private JavaRefSourceSkeletonBuilder(DeclFactory f, FileResource fileResource, int lineNumber, int offset, int length) {
-	f_factory = f;
+    f_factory = f;
     f_fileResource = fileResource;
     f_lineNumber = lineNumber;
     f_offset = offset;

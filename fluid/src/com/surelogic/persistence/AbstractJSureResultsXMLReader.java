@@ -9,7 +9,6 @@ import java.util.zip.ZipFile;
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.IIRProjects;
-import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.common.xml.NestedXMLReader;
@@ -56,7 +55,7 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader i
       if (ABOUT_REF.equals(nested.getName())) {
         PromiseDrop<?> pd = handlePromiseRef(nested);
         handleAboutRef(result, nested, pd);
-      } else if (SeaSnapshotXMLReader.SOURCE_REF.equals(nested.getName())) {
+      } else if ("source-ref".equals(nested.getName())) {
         handleSourceRef(result, nested);
       } else if (AND_REF.equals(nested.getName())) {
         PromiseDrop<?> pd = handlePromiseRef(nested);

@@ -23,722 +23,685 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * @author Edwin Chan
  * 
- * This contains code intended to make sure that all Java ASTs match the
- * structure expected by analysis and binding -- e.g., explicit constructors
+ *         This contains code intended to make sure that all Java ASTs match the
+ *         structure expected by analysis and binding -- e.g., explicit
+ *         constructors
  */
 @SuppressWarnings("deprecation")
 public class JavaRewrite implements JavaGlobals {
-	private static final String VALUES = "values";
+  private static final String VALUES = "values";
 
-	/**
-	 * Logger for this class
-	 */
-	static final Logger LOG = SLLogger.getLogger("FLUID.bind");
+  /**
+   * Logger for this class
+   */
+  static final Logger LOG = SLLogger.getLogger("FLUID.bind");
 
-	private final Collection<IRNode> added = new ArrayList<IRNode>();
-	
-	private void markAsAdded(IRNode parent, IRNode n) {
-		added.add(n);
-		JavaNode.setImplicit(n);
-		IRNode decl = VisitUtil.getClosestDecl(parent);
-		ISrcRef ref = JavaNode.getSrcRef(decl);
-		if (ref != null) {
-			//System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
-			JavaNode.setSrcRef(n, ref);
-		}
-		/*
-		boolean found = false;
-		for(IRNode c : JJNode.tree.children(parent)) {
-			if (c == n) {
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			LOG.warning("Unable to find node "+DebugUnparser.toString(n)+
-		                " in parent: "+DebugUnparser.toString(parent));
-		}
-		*/
-	}
+  private final Collection<IRNode> added = new ArrayList<IRNode>();
 
-	// / insertDefaultCall
-	protected void insertDefaultCall(IRNode mbody, IRNode call) {
-		IRNode block = MethodBody.getBlock(mbody);
-		JJNode.tree.insertSubtree(block, call); // add to front
-		markAsAdded(block, call);
-	}
+  private void markAsAdded(IRNode parent, IRNode n) {
+    added.add(n);
+    JavaNode.setImplicit(n);
+    IRNode decl = VisitUtil.getClosestDecl(parent);
+    // ISrcRef ref = JavaNode.getSrcRef(decl);
+    // if (ref != null) {
+    // //System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
+    // JavaNode.setSrcRef(n, ref);
+    // }
+    /*
+     * boolean found = false; for(IRNode c : JJNode.tree.children(parent)) { if
+     * (c == n) { found = true; break; } } if (!found) {
+     * LOG.warning("Unable to find node "+DebugUnparser.toString(n)+
+     * " in parent: "+DebugUnparser.toString(parent)); }
+     */
+  }
 
-	protected void insertDefaultConstructor(IRNode cbody, IRNode constructor) {
-		// JavaNode.getModifier(node, JavaNode.IMPLICIT);
+  // / insertDefaultCall
+  protected void insertDefaultCall(IRNode mbody, IRNode call) {
+    IRNode block = MethodBody.getBlock(mbody);
+    JJNode.tree.insertSubtree(block, call); // add to front
+    markAsAdded(block, call);
+  }
 
-		JJNode.tree.insertSubtree(cbody, constructor); // add to front
-		markAsAdded(cbody, constructor);
-		
-		ReturnValueDeclaration.getReturnNode(constructor);
-		PromiseUtil.addReceiverDeclsToConstructor(constructor);
-		
-		//IRNode type = VisitUtil.getEnclosingType(cbody);
-		//System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));
-	}
+  protected void insertDefaultConstructor(IRNode cbody, IRNode constructor) {
+    // JavaNode.getModifier(node, JavaNode.IMPLICIT);
 
-	protected boolean ensureSuperConstructorCall(IRNode constructor) {
-		IRNode body = ConstructorDeclaration.getBody(constructor);
-		if (!(JJNode.tree.getOperator(body) instanceof MethodBody)) {
-			return false; // nothing to do
-		}
+    JJNode.tree.insertSubtree(cbody, constructor); // add to front
+    markAsAdded(cbody, constructor);
 
-		IRNode block = MethodBody.getBlock(body);
+    ReturnValueDeclaration.getReturnNode(constructor);
+    PromiseUtil.addReceiverDeclsToConstructor(constructor);
 
-		/*
-		 * IRNode first = BlockStatement.getStmt(block, 0); if
-		 * (JJNode.tree.getOperator(first) instanceof ConstructorCall) { return; }
-		 */
+    // IRNode type = VisitUtil.getEnclosingType(cbody);
+    // System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));
+  }
 
-		// HACK only needed due to old promise parsing
-		Iterator<IRNode> stmts = BlockStatement.getStmtIterator(block);
-		while (stmts.hasNext()) {
-			IRNode stmt = stmts.next();
+  protected boolean ensureSuperConstructorCall(IRNode constructor) {
+    IRNode body = ConstructorDeclaration.getBody(constructor);
+    if (!(JJNode.tree.getOperator(body) instanceof MethodBody)) {
+      return false; // nothing to do
+    }
 
-			if (LOG.isLoggable(Level.FINER)) {
-				LOG.finer("Looking at init: " + DebugUnparser.toString(stmt));
-			}
-			Operator op = JJNode.tree.getOperator(stmt);
-			if (ExprStatement.prototype.includes(op)) {
-				IRNode e = ExprStatement.getExpr(stmt);
-				Operator eop = JJNode.tree.getOperator(e);
-				if (eop instanceof ConstructorCall) {
-					return false; // 
-				} else if (eop instanceof OuterObjectSpecifier
-						&& ConstructorCall.prototype
-								.includes(OuterObjectSpecifier.getCall(e))) {
-					return false;
-				}
-			}
-		}
-		IRNode type = VisitUtil.getEnclosingType(constructor);
-		IRNode call;
-		if (EnumDeclaration.prototype.includes(type)) {
-			call = makeEnumSuperConstructorCall();
-		} else {			
-			String name = JavaNames.getQualifiedTypeName(type);
-			if ("java.lang.Object".equals(name)) {
-				return false;
-			}		
-			call = CogenUtil.makeDefaultSuperCall();
-			//System.out.println("Creating super(): "+call);
-		}
-		insertDefaultCall(body, call);
-		return true;
-	}
+    IRNode block = MethodBody.getBlock(body);
 
-	private static IRNode makeEnumSuperConstructorCall() {
-		// Need a call to Enum(String, int)
-		IRNode[] args = new IRNode[2];
-		args[0] = StringLiteral.createNode("");
-		args[1] = IntLiteral.createNode("0");
-		IRNode call = NonPolymorphicConstructorCall.createNode(
-				SuperExpression.prototype.jjtCreate(), Arguments
-						.createNode(args));
-		call = ExprStatement.createNode(call);
-		return call;
-	}
-	
-	protected final ITypeEnvironment te;
+    /*
+     * IRNode first = BlockStatement.getStmt(block, 0); if
+     * (JJNode.tree.getOperator(first) instanceof ConstructorCall) { return; }
+     */
 
-	public JavaRewrite(ITypeEnvironment te) {
-		this.te = te;
-	}
+    // HACK only needed due to old promise parsing
+    Iterator<IRNode> stmts = BlockStatement.getStmtIterator(block);
+    while (stmts.hasNext()) {
+      IRNode stmt = stmts.next();
 
-	/**
-	 * Applies defaults to each type declared in the compilation unit
-	 * 
-	 * @param cu
-	 * @return true if changed
-	 */
-	public boolean ensureDefaultsExist(IRNode cu) {
-		final boolean debug = LOG.isLoggable(Level.FINER);
-		boolean changed = false;
-		
-		IRNode decls = CompilationUnit.getDecls(cu);
-		Iterator<IRNode> enm = JJNode.tree.children(decls);
+      if (LOG.isLoggable(Level.FINER)) {
+        LOG.finer("Looking at init: " + DebugUnparser.toString(stmt));
+      }
+      Operator op = JJNode.tree.getOperator(stmt);
+      if (ExprStatement.prototype.includes(op)) {
+        IRNode e = ExprStatement.getExpr(stmt);
+        Operator eop = JJNode.tree.getOperator(e);
+        if (eop instanceof ConstructorCall) {
+          return false; //
+        } else if (eop instanceof OuterObjectSpecifier && ConstructorCall.prototype.includes(OuterObjectSpecifier.getCall(e))) {
+          return false;
+        }
+      }
+    }
+    IRNode type = VisitUtil.getEnclosingType(constructor);
+    IRNode call;
+    if (EnumDeclaration.prototype.includes(type)) {
+      call = makeEnumSuperConstructorCall();
+    } else {
+      String name = JavaNames.getQualifiedTypeName(type);
+      if ("java.lang.Object".equals(name)) {
+        return false;
+      }
+      call = CogenUtil.makeDefaultSuperCall();
+      // System.out.println("Creating super(): "+call);
+    }
+    insertDefaultCall(body, call);
+    return true;
+  }
 
-		while (enm.hasNext()) {
-			IRNode x = enm.next();
-			Operator op = JJNode.tree.getOperator(x);
+  private static IRNode makeEnumSuperConstructorCall() {
+    // Need a call to Enum(String, int)
+    IRNode[] args = new IRNode[2];
+    args[0] = StringLiteral.createNode("");
+    args[1] = IntLiteral.createNode("0");
+    IRNode call = NonPolymorphicConstructorCall.createNode(SuperExpression.prototype.jjtCreate(), Arguments.createNode(args));
+    call = ExprStatement.createNode(call);
+    return call;
+  }
 
-			if (ClassDeclaration.prototype.includes(op)
-					|| EnumDeclaration.prototype.includes(op)) {
-				String qname = JavaNames.getFullTypeName(x);
+  protected final ITypeEnvironment te;
 
-				// not for interfaces
-				if (debug) {
-					LOG.finer("Ensuring constructor for " + qname);
-				}
-				if (qname.equals("java.lang.Object")) {			
-					changed |= ensureConstructorStuffForObject(x);					
-				} else {
-					changed |= ensureConstructorStuff(x);
-					if (EnumDeclaration.prototype.includes(op)) {
-						if (!JavaNode.getModifier(x, JavaNode.AS_BINARY) || missingValuesMethod(x)) {					
-							//System.err.println("Adding implicit methods for "+qname+" = "+x);
-							addImplicitEnumMethods(x);
-							changed = true;						
-						} else {
-							//System.err.println("Not adding implicit methods to "+qname);
-						}
-					}
-				}
-				//System.out.println("Ensuring defaults for "+qname);
-				changed |= ensureDefaultsExistForType(x);
-			} else if (InterfaceDeclaration.prototype.includes(op)) {
-				changed |= ensureDefaultsExistForType(x);
-			} else if (AnnotationDeclaration.prototype.includes(op)) {
-				//System.err.println("Ignoring AnnotationDecl: " + JJNode.getInfo(x));
-				changed |= ensureDefaultsExistForType(x);
-			} else {
-				LOG.severe("Ignoring " + op.name() + ": " + JJNode.getInfo(x));
-			}
-		}
-		
-		changed |= addSrcRefs();
-		return changed;
-	}
+  public JavaRewrite(ITypeEnvironment te) {
+    this.te = te;
+  }
 
-	private boolean addSrcRefs() {
-		final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
+  /**
+   * Applies defaults to each type declared in the compilation unit
+   * 
+   * @param cu
+   * @return true if changed
+   */
+  public boolean ensureDefaultsExist(IRNode cu) {
+    final boolean debug = LOG.isLoggable(Level.FINER);
+    boolean changed = false;
 
-		// Post-process nodes to generate a SrcRef?
-		for (IRNode n : added) {
-			Operator op = jtree.getOperator(n);
+    IRNode decls = CompilationUnit.getDecls(cu);
+    Iterator<IRNode> enm = JJNode.tree.children(decls);
 
-			// Assuming inserted at the front of any siblings
-			if (op instanceof ConstructorDeclaration
-					|| op instanceof ExprStatement)// ConstructorCall)
-			{
-				// System.out.println("Looking at "+DebugUnparser.toString(n));
-				IRNode p = jtree.getParentOrNull(n);
-				final int ni;
-				try {
-					ni = jtree.childLocationIndex(p, jtree.getLocation(n));
-				} catch(IndexOutOfBoundsException e) {
-					LOG.log(Level.WARNING, "Unable to find node "+DebugUnparser.toString(n)+
-							               " in parent: "+DebugUnparser.toString(p));
-					continue;
-				}
-				assert (ni == 0);
+    while (enm.hasNext()) {
+      IRNode x = enm.next();
+      Operator op = JJNode.tree.getOperator(x);
 
-				ISrcRef pRef = null;
-				if (pRef == null) {
-					// try next sibling
-					int sib = ni + 1;
-					if (sib < jtree.numChildren(p)) {
-						pRef = JavaNode.getSrcRef(jtree.getChild(p, sib));
-						if (LOG.isLoggable(Level.FINE))
-							LOG
-									.fine("Created src ref from next sibling: "
-											+ op);
-					}
-				}
-				if (pRef == null) {
-					// try the parent
-					pRef = JavaNode.getSrcRef(p);
-				}
-				for (int i = 2; pRef == null; i++) {
-					// try ancestors
-					p = jtree.getParentOrNull(p);
-					if (p != null) {
-						pRef = JavaNode.getSrcRef(p);
-						if (pRef != null) {
-							if (LOG.isLoggable(Level.FINE))
-								LOG.fine("Created src ref from ancestors " + i
-										+ " gens up: " + op);
-						}
-					} else {
-						break; // no more ancestors to look at
-					}
-				}
+      if (ClassDeclaration.prototype.includes(op) || EnumDeclaration.prototype.includes(op)) {
+        String qname = JavaNames.getFullTypeName(x);
 
-				if (pRef == null) {
-					// Couldn't find an ancestor
-					IRNode context = null;
-					if (op instanceof ExprStatement) {// ConstructorCall) {
-						context = VisitUtil.getEnclosingClassBodyDecl(n);
-					} else {
-						// usually because the new constructor decl is from a
-						// type binding
-						context = VisitUtil.getEnclosingType(n);
-					}
-					if (fineIsLoggable) {
-						LOG
-								.fine("Could not find a src ref to make the dummy for "
-										+ op
-										+ " out of: "
-										+ DebugUnparser.toString(context));
-					}
-					continue; // skip
-				}
-				
-				ISrcRef ref = makeDummyRef(pRef, true);
-				markSubtree(n, ref);
-			} else if (op instanceof MethodDeclaration) {
-				IRNode p = jtree.getParentOrNull(n);
-				ISrcRef pRef = JavaNode.getSrcRef(p);
-				JavaNode.setSrcRef(n, pRef);
-			} else {
-				LOG.severe("Unexpected AST nodes: " + op);
-			}
-		}
-		final boolean changed = !added.isEmpty();
-		added.clear();
-		return changed;
-	}
+        // not for interfaces
+        if (debug) {
+          LOG.finer("Ensuring constructor for " + qname);
+        }
+        if (qname.equals("java.lang.Object")) {
+          changed |= ensureConstructorStuffForObject(x);
+        } else {
+          changed |= ensureConstructorStuff(x);
+          if (EnumDeclaration.prototype.includes(op)) {
+            if (!JavaNode.getModifier(x, JavaNode.AS_BINARY) || missingValuesMethod(x)) {
+              // System.err.println("Adding implicit methods for "+qname+" = "+x);
+              addImplicitEnumMethods(x);
+              changed = true;
+            } else {
+              // System.err.println("Not adding implicit methods to "+qname);
+            }
+          }
+        }
+        // System.out.println("Ensuring defaults for "+qname);
+        changed |= ensureDefaultsExistForType(x);
+      } else if (InterfaceDeclaration.prototype.includes(op)) {
+        changed |= ensureDefaultsExistForType(x);
+      } else if (AnnotationDeclaration.prototype.includes(op)) {
+        // System.err.println("Ignoring AnnotationDecl: " + JJNode.getInfo(x));
+        changed |= ensureDefaultsExistForType(x);
+      } else {
+        LOG.severe("Ignoring " + op.name() + ": " + JJNode.getInfo(x));
+      }
+    }
 
-	/**
-	 * Generates a 0-length source ref for the start or end of an existing one
-	 */
-	private ISrcRef makeDummyRef(ISrcRef ref, boolean useStart) {
-		int offset = ref.getOffset();
-		if (!useStart && ref.getLength() > 0) {
-			offset += (ref.getLength() - 1);
-		}
-		ISrcRef result = ref.createSrcRef(offset);
-		return result;
-	}
-	
-	private void markSubtree(final IRNode n, final ISrcRef ref) {
-		Iterator<IRNode> enm = jtree.topDown(n);
-		while (enm.hasNext()) {
-			IRNode node = enm.next();
-			JavaNode.setSrcRef(node, ref);
-		}
-	}
-	
-	/**
-	 * Iterates over the AST to apply defaults to all type declarations
-	 */
-	private boolean ensureDefaultsExistForType(IRNode type) {
-		final boolean debug = LOG.isLoggable(Level.FINER);
-		boolean changed = false;
-		
-		Iterator<IRNode> enm = VisitUtil.getAllTypeDecls(type);
-		while (enm.hasNext()) {
-			IRNode y = enm.next();
-			if (y == type) {
-				continue;
-			}
-			Operator op = JJNode.tree.getOperator(y);
-			if (ClassDeclaration.prototype.includes(op)) {
-				// not for interfaces
-				String qname = JavaNames.getFullTypeName(y);
-				
-				if (debug) {
-					LOG.finer("Ensuring constructor for " + qname);
-				}
-				changed |= ensureConstructorStuff(y);
-			} else if (InterfaceDeclaration.prototype.includes(op)) {
-				// nothing to do
-			} else if (AnonClassExpression.prototype.includes(op)) {
-				//LOG.warning("No constructor created for anon class");
-				/*
-				 * JJNode.tree.insertSubtree(AnonClassExpression.getBody(y),
-				 * makeAnonConstructor(y));
-				 */
-				// markAsAdded(?)
-			} else if (EnumDeclaration.prototype.includes(op)) {
-				ensureConstructorStuff(y);
-				if (debug)
-					LOG.finer("Adding implicit methods for "
-							+ JavaNames.getTypeName(type) + "."
-							+ JavaNames.getTypeName(y));
-				//System.out.println("Adding implicit enum methods for "+JavaNames.getFullTypeName(y));
-				addImplicitEnumMethods(y);
-				changed = true;
-			} else if (TypeFormal.prototype.includes(op)) {
-				// nothing to do
-			} else if (EnumConstantClassDeclaration.prototype.includes(op)) {
-				// nothing to do?
-			} else if (NestedAnnotationDeclaration.prototype.includes(op)) {
-				// nothing to do?
-			} else {
-				LOG.severe("Ignoring nested " + op.name() + ": "
-						+ JJNode.getInfo(y));
-			}
-		}
-		return changed;
-	}
+  //  changed |= addSrcRefs();
+    return changed;
+  }
 
-	private boolean missingValuesMethod(IRNode t) {
-		for(IRNode m : VisitUtil.getClassMethods(t)) {
-			if (!MethodDeclaration.prototype.includes(m)) {
-				continue;
-			}
-			if (VALUES.equals(JJNode.getInfoOrNull(m))) {			
-				final IRNode params = MethodDeclaration.getParams(m);				
-				if (JJNode.tree.numChildren(params) == 0) {
-					return false;
-				}
- 			}
-		}
-		return true;
-	}
-	
-	/**
-	 * Add static E[] values() and static E valueOf(String n)
-	 * 
-	 * @param ed
-	 *            The enum declaration
-	 */
-	private void addImplicitEnumMethods(IRNode ed) {
-		final IRNode values = makeValuesMethod(ed);
-		final IRNode valueOf = makeValueOfMethod(ed);
-		/*
-		 * final IRNode name = makeNameMethod(ed);
-		 */
-		final IRNode body = EnumDeclaration.getBody(ed);
-		JJNode.tree.appendSubtree(body, values);
-		JJNode.tree.appendSubtree(body, valueOf);
-				
-		
-		markAsAdded(body, values);
-		markAsAdded(body, valueOf);
-		/*
-		 * JJNode.tree.appendSubtree(body, name);
-		 */
-	}
+//  private boolean addSrcRefs() {
+//    final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
+//
+//    // Post-process nodes to generate a SrcRef?
+//    for (IRNode n : added) {
+//      Operator op = jtree.getOperator(n);
+//
+//      // Assuming inserted at the front of any siblings
+//      if (op instanceof ConstructorDeclaration || op instanceof ExprStatement)// ConstructorCall)
+//      {
+//        // System.out.println("Looking at "+DebugUnparser.toString(n));
+//        IRNode p = jtree.getParentOrNull(n);
+//        final int ni;
+//        try {
+//          ni = jtree.childLocationIndex(p, jtree.getLocation(n));
+//        } catch (IndexOutOfBoundsException e) {
+//          LOG.log(Level.WARNING, "Unable to find node " + DebugUnparser.toString(n) + " in parent: " + DebugUnparser.toString(p));
+//          continue;
+//        }
+//        assert (ni == 0);
+//
+//        ISrcRef pRef = null;
+//        if (pRef == null) {
+//          // try next sibling
+//          int sib = ni + 1;
+//          if (sib < jtree.numChildren(p)) {
+//            pRef = JavaNode.getSrcRef(jtree.getChild(p, sib));
+//            if (LOG.isLoggable(Level.FINE))
+//              LOG.fine("Created src ref from next sibling: " + op);
+//          }
+//        }
+//        if (pRef == null) {
+//          // try the parent
+//          pRef = JavaNode.getSrcRef(p);
+//        }
+//        for (int i = 2; pRef == null; i++) {
+//          // try ancestors
+//          p = jtree.getParentOrNull(p);
+//          if (p != null) {
+//            pRef = JavaNode.getSrcRef(p);
+//            if (pRef != null) {
+//              if (LOG.isLoggable(Level.FINE))
+//                LOG.fine("Created src ref from ancestors " + i + " gens up: " + op);
+//            }
+//          } else {
+//            break; // no more ancestors to look at
+//          }
+//        }
+//
+//        if (pRef == null) {
+//          // Couldn't find an ancestor
+//          IRNode context = null;
+//          if (op instanceof ExprStatement) {// ConstructorCall) {
+//            context = VisitUtil.getEnclosingClassBodyDecl(n);
+//          } else {
+//            // usually because the new constructor decl is from a
+//            // type binding
+//            context = VisitUtil.getEnclosingType(n);
+//          }
+//          if (fineIsLoggable) {
+//            LOG.fine("Could not find a src ref to make the dummy for " + op + " out of: " + DebugUnparser.toString(context));
+//          }
+//          continue; // skip
+//        }
+//
+//        ISrcRef ref = makeDummyRef(pRef, true);
+//        markSubtree(n, ref);
+//      } else if (op instanceof MethodDeclaration) {
+//        IRNode p = jtree.getParentOrNull(n);
+//        ISrcRef pRef = JavaNode.getSrcRef(p);
+//        JavaNode.setSrcRef(n, pRef);
+//      } else {
+//        LOG.severe("Unexpected AST nodes: " + op);
+//      }
+//    }
+//    final boolean changed = !added.isEmpty();
+//    added.clear();
+//    return changed;
+//  }
 
-	private IRNode makeTypeName(final IRNode decl) {
-		IRNode enclosingT = VisitUtil.getEnclosingType(decl);
-		if (enclosingT == null) { // outermost type
-			String name = JavaNames.getFullTypeName(decl);
-			return NamedType.createNode(name);
-		}
-		// An inner class
-		IRNode base = makeTypeName(enclosingT);
-		return TypeRef.createNode(base, JJNode.getInfo(decl));
-	}
+  /**
+   * Generates a 0-length source ref for the start or end of an existing one
+   */
+  private ISrcRef makeDummyRef(ISrcRef ref, boolean useStart) {
+    int offset = ref.getOffset();
+    if (!useStart && ref.getLength() > 0) {
+      offset += (ref.getLength() - 1);
+    }
+    ISrcRef result = ref.createSrcRef(offset);
+    return result;
+  }
 
-	private IRNode makeValuesMethod(final IRNode ed) {
-		int mods = JavaNode.PUBLIC | JavaNode.STATIC;
-		IRNode type = ArrayType.createNode(makeTypeName(ed), 1);
-		IRNode body = OmittedMethodBody.prototype.jjtCreate();
-		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
-				VALUES, noNodes, noNodes, body);
-		ReturnValueDeclaration.makeReturnNode(rv);
-		return rv;
-	}
+  private void markSubtree(final IRNode n, final ISrcRef ref) {
+    Iterator<IRNode> enm = jtree.topDown(n);
+    while (enm.hasNext()) {
+      IRNode node = enm.next();
+      //JavaNode.setSrcRef(node, ref);
+    }
+  }
 
-	private IRNode makeValueOfMethod(final IRNode ed) {
-		int mods = JavaNode.PUBLIC | JavaNode.STATIC;
-		IRNode type = makeTypeName(ed);
-		IRNode[] params = new IRNode[] { CogenUtil.makeParamDecl("name",
-				NamedType.createNode("java.lang.String")) };
-		IRNode body = OmittedMethodBody.prototype.jjtCreate();
-		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
-				"valueOf", params, noNodes, body);
-		ReturnValueDeclaration.makeReturnNode(rv);
-		return rv;
-	}
+  /**
+   * Iterates over the AST to apply defaults to all type declarations
+   */
+  private boolean ensureDefaultsExistForType(IRNode type) {
+    final boolean debug = LOG.isLoggable(Level.FINER);
+    boolean changed = false;
 
-	/*
-	private IRNode makeNameMethod(final IRNode ed) {
-		int mods = JavaNode.PUBLIC;
-		IRNode type = NamedType.createNode("java.lang.String");
-		IRNode body = OmittedMethodBody.prototype.jjtCreate();
-		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
-				"name", noNodes, noNodes, body);
-		markAsAdded(rv);
-		return rv;
-	}
-	*/
+    Iterator<IRNode> enm = VisitUtil.getAllTypeDecls(type);
+    while (enm.hasNext()) {
+      IRNode y = enm.next();
+      if (y == type) {
+        continue;
+      }
+      Operator op = JJNode.tree.getOperator(y);
+      if (ClassDeclaration.prototype.includes(op)) {
+        // not for interfaces
+        String qname = JavaNames.getFullTypeName(y);
 
-	// protected IRNode makeAnonConstructor(IRNode anonE, IRNode stype) {
-	// int mods = JavaNode.PUBLIC;
-	// String cName = "<anon>";
-	// // TODO: Should copy the arguments in the called signature
-	// // ... rather than try to create a lot of new stuff here
-	// IJavaType[] params =
-	// te.getBinder().copyCallSig(AnonClassExpression.getArgs(anonE));
-	// IRNode sConstructor = findConstructor(stype, params);
-	//
-	// // copy parent's throws clause
-	// IRNode[] throwsC = copyConstructorThrows(sConstructor);
-	//
-	// // create a param decl for each type created by copyCallSig
-	// for (int i = 0; i < params.length; i++) {
-	// params[i] =
-	// ParameterDeclaration.createNode(
-	// JavaNode.ALL_FALSE,
-	// null, // No type? That seems wrong, see above (TODO)
-	// "param" + i);
-	// }
-	// IRNode body = NoMethodBody.prototype.jjtCreate();
-	// return CogenUtil.makeConstructorDecl(mods, cName, params, throwsC, body);
-	// }
+        if (debug) {
+          LOG.finer("Ensuring constructor for " + qname);
+        }
+        changed |= ensureConstructorStuff(y);
+      } else if (InterfaceDeclaration.prototype.includes(op)) {
+        // nothing to do
+      } else if (AnonClassExpression.prototype.includes(op)) {
+        // LOG.warning("No constructor created for anon class");
+        /*
+         * JJNode.tree.insertSubtree(AnonClassExpression.getBody(y),
+         * makeAnonConstructor(y));
+         */
+        // markAsAdded(?)
+      } else if (EnumDeclaration.prototype.includes(op)) {
+        ensureConstructorStuff(y);
+        if (debug)
+          LOG.finer("Adding implicit methods for " + JavaNames.getTypeName(type) + "." + JavaNames.getTypeName(y));
+        // System.out.println("Adding implicit enum methods for "+JavaNames.getFullTypeName(y));
+        addImplicitEnumMethods(y);
+        changed = true;
+      } else if (TypeFormal.prototype.includes(op)) {
+        // nothing to do
+      } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+        // nothing to do?
+      } else if (NestedAnnotationDeclaration.prototype.includes(op)) {
+        // nothing to do?
+      } else {
+        LOG.severe("Ignoring nested " + op.name() + ": " + JJNode.getInfo(y));
+      }
+    }
+    return changed;
+  }
 
-	/**
-	 * @param stype
-	 * @param params
-	 * @return
-	 * 
-	 * private IRNode findConstructor(IRNode stype, IRNode[] params) { // TODO
-	 * Auto-generated method stub return null; }
-	 */
+  private boolean missingValuesMethod(IRNode t) {
+    for (IRNode m : VisitUtil.getClassMethods(t)) {
+      if (!MethodDeclaration.prototype.includes(m)) {
+        continue;
+      }
+      if (VALUES.equals(JJNode.getInfoOrNull(m))) {
+        final IRNode params = MethodDeclaration.getParams(m);
+        if (JJNode.tree.numChildren(params) == 0) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
-	private boolean ensureConstructorStuffForObject(IRNode type) {
-		IRNode cbody = VisitUtil.getClassBody(type);
+  /**
+   * Add static E[] values() and static E valueOf(String n)
+   * 
+   * @param ed
+   *          The enum declaration
+   */
+  private void addImplicitEnumMethods(IRNode ed) {
+    final IRNode values = makeValuesMethod(ed);
+    final IRNode valueOf = makeValueOfMethod(ed);
+    /*
+     * final IRNode name = makeNameMethod(ed);
+     */
+    final IRNode body = EnumDeclaration.getBody(ed);
+    JJNode.tree.appendSubtree(body, values);
+    JJNode.tree.appendSubtree(body, valueOf);
 
-		// Find out if there's a constructor
-		Iterator<IRNode> enm = JJNode.tree.children(cbody);
-		while (enm.hasNext()) {
-			IRNode n = enm.next();
-			Operator op = JJNode.tree.getOperator(n);
+    markAsAdded(body, values);
+    markAsAdded(body, valueOf);
+    /*
+     * JJNode.tree.appendSubtree(body, name);
+     */
+  }
 
-			if (op == ConstructorDeclaration.prototype) {
-				return false; // Already a constructor
-			}
-		}
-		// Add a default constructor since there isn't one
-		IRNode dc = makeEmptyConstructor();
-		insertDefaultConstructor(cbody, dc);
-		
-		if (LOG.isLoggable(Level.FINER)) {
-			LOG.finer("Adding default constructor to " + JJNode.getInfo(type));
-		}
-		return true;
-	}
+  private IRNode makeTypeName(final IRNode decl) {
+    IRNode enclosingT = VisitUtil.getEnclosingType(decl);
+    if (enclosingT == null) { // outermost type
+      String name = JavaNames.getFullTypeName(decl);
+      return NamedType.createNode(name);
+    }
+    // An inner class
+    IRNode base = makeTypeName(enclosingT);
+    return TypeRef.createNode(base, JJNode.getInfo(decl));
+  }
 
-	// / ensureConstructorStuff
-	/**
-	 * Create previously-implicit calls to superclass constructors, as well as
-	 * default constructors
-	 * @return true if changed
-	 */
-	public boolean ensureConstructorStuff(IRNode type) {
-		//System.out.println("Looking for constructor in "+JavaNames.getFullTypeName(type));
-		IRNode cbody    = VisitUtil.getClassBody(type);
-		boolean changed = false;
+  private IRNode makeValuesMethod(final IRNode ed) {
+    int mods = JavaNode.PUBLIC | JavaNode.STATIC;
+    IRNode type = ArrayType.createNode(makeTypeName(ed), 1);
+    IRNode body = OmittedMethodBody.prototype.jjtCreate();
+    IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type, VALUES, noNodes, noNodes, body);
+    ReturnValueDeclaration.makeReturnNode(rv);
+    return rv;
+  }
 
-		// Add a default super() if constructor don't have it
-		// based on findDefaultConstructor
-		boolean someCon = false;
-		Iterator<IRNode> enm = JJNode.tree.children(cbody);
-		while (enm.hasNext()) {
-			IRNode n = enm.next();
-			Operator op = JJNode.tree.getOperator(n);
+  private IRNode makeValueOfMethod(final IRNode ed) {
+    int mods = JavaNode.PUBLIC | JavaNode.STATIC;
+    IRNode type = makeTypeName(ed);
+    IRNode[] params = new IRNode[] { CogenUtil.makeParamDecl("name", NamedType.createNode("java.lang.String")) };
+    IRNode body = OmittedMethodBody.prototype.jjtCreate();
+    IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type, "valueOf", params, noNodes, body);
+    ReturnValueDeclaration.makeReturnNode(rv);
+    return rv;
+  }
 
-			if (op == ConstructorDeclaration.prototype) {
-				someCon = true;
-				changed |= ensureSuperConstructorCall(n); // add super() if needed
-			}
-		}
+  /*
+   * private IRNode makeNameMethod(final IRNode ed) { int mods =
+   * JavaNode.PUBLIC; IRNode type = NamedType.createNode("java.lang.String");
+   * IRNode body = OmittedMethodBody.prototype.jjtCreate(); IRNode rv =
+   * CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type, "name", noNodes,
+   * noNodes, body); markAsAdded(rv); return rv; }
+   */
 
-		// Add a default constructor if there aren't any
-		if (!someCon) {
-			final IRNode dc;
-			if (EnumDeclaration.prototype.includes(type)) {
-				dc = makeDefaultEnumConstructor(type);
-			} else {
-				dc = makeDefaultConstructor(type);
-			}
-			insertDefaultConstructor(cbody, dc);
-			
-			if (LOG.isLoggable(Level.FINER)) {
-			    String qname = JavaNames.getFullTypeName(type);			    
-				LOG.finer("Adding default constructor to "+qname);
-			    /*
-				if (qname.endsWith("TestMultipleTextOutputFormat") ||
-					qname.endsWith("TestMultiFileInputFormat")) {
-					System.out.println(DebugUnparser.childrenToString(VisitUtil.getClassBody(type)));
-				}
-			    */
-			}
-			changed = true;
-		}
-		return changed;
-	}
+  // protected IRNode makeAnonConstructor(IRNode anonE, IRNode stype) {
+  // int mods = JavaNode.PUBLIC;
+  // String cName = "<anon>";
+  // // TODO: Should copy the arguments in the called signature
+  // // ... rather than try to create a lot of new stuff here
+  // IJavaType[] params =
+  // te.getBinder().copyCallSig(AnonClassExpression.getArgs(anonE));
+  // IRNode sConstructor = findConstructor(stype, params);
+  //
+  // // copy parent's throws clause
+  // IRNode[] throwsC = copyConstructorThrows(sConstructor);
+  //
+  // // create a param decl for each type created by copyCallSig
+  // for (int i = 0; i < params.length; i++) {
+  // params[i] =
+  // ParameterDeclaration.createNode(
+  // JavaNode.ALL_FALSE,
+  // null, // No type? That seems wrong, see above (TODO)
+  // "param" + i);
+  // }
+  // IRNode body = NoMethodBody.prototype.jjtCreate();
+  // return CogenUtil.makeConstructorDecl(mods, cName, params, throwsC, body);
+  // }
 
-	// / findDefaultConstructor -- based on BSI's findConstructor
-	public static IRNode findDefaultConstructor(IRNode cbody) {
-		Iterator<IRNode> enm = JJNode.tree.children(cbody);
-		while (enm.hasNext()) {
-			IRNode n = enm.next();
-			Operator op = JJNode.tree.getOperator(n);
+  /**
+   * @param stype
+   * @param params
+   * @return
+   * 
+   *         private IRNode findConstructor(IRNode stype, IRNode[] params) { //
+   *         TODO Auto-generated method stub return null; }
+   */
 
-			// LOG.info("Looking at "+DebugUnparser.toString(n));
-			if (op == ConstructorDeclaration.prototype) {
-				IRNode params = ConstructorDeclaration.getParams(n);
-				if (JJNode.tree.numChildren(params) == 0) {
-					return n;
-				}
-			}
-		}
-		return null;
-	}
+  private boolean ensureConstructorStuffForObject(IRNode type) {
+    IRNode cbody = VisitUtil.getClassBody(type);
 
-	protected boolean isSuper_JavaLangObject(IRNode decl, IJavaDeclaredType type) {
-		Operator op = JJNode.tree.getOperator(decl);
-		/*
-		 * return (op instanceof TypeDeclInterface) &&
-		 * (te.getBinder().getSuperclass(type) == null);
-		 */
-		if (op instanceof TypeDeclInterface) {
-			IRNode nt;
-			if (ClassDeclaration.prototype.includes(op)) {
-				nt = ClassDeclaration.getExtension(decl);
-				Operator eop = JJNode.tree.getOperator(nt);
+    // Find out if there's a constructor
+    Iterator<IRNode> enm = JJNode.tree.children(cbody);
+    while (enm.hasNext()) {
+      IRNode n = enm.next();
+      Operator op = JJNode.tree.getOperator(n);
 
-				if (ParameterizedType.prototype.includes(eop)) {
-					return false;
-				}
-				if (TypeRef.prototype.includes(eop)) {
-					return false;
-				}
-				String name;
-				if (NameType.prototype.includes(eop)) {
-					name = DebugUnparser.toString(nt);
-				} else {
-					name = NamedType.getType(nt);
-				}
-				if ("java.lang.Object".equals(name)) {
-					return true;
-				}
-				if (!name.endsWith("Object")) {
-					return false;
-				}
-			} else if (InterfaceDeclaration.prototype.includes(op)) {
-				return true;
-			}
-			return te.getBinder().getSuperclass(type) == null;
-		}
-		return false;
-	}
+      if (op == ConstructorDeclaration.prototype) {
+        return false; // Already a constructor
+      }
+    }
+    // Add a default constructor since there isn't one
+    IRNode dc = makeEmptyConstructor();
+    insertDefaultConstructor(cbody, dc);
 
-	/**
-	 * For java.lang.Object
-	 */
-	private IRNode makeEmptyConstructor() {
-		int mods = JavaNode.PUBLIC;
-		String cName = "Object";
-		IRNode[] params = noNodes;
-		IRNode[] stmt = noNodes;
-		IRNode[] throwsC = noNodes;
+    if (LOG.isLoggable(Level.FINER)) {
+      LOG.finer("Adding default constructor to " + JJNode.getInfo(type));
+    }
+    return true;
+  }
 
-		IRNode block = BlockStatement.createNode(stmt);
-		IRNode body = MethodBody.createNode(block);
-		return CogenUtil.makeConstructorDecl(noNodes, mods, noNodes, cName,
-				params, throwsC, body);
-	}
+  // / ensureConstructorStuff
+  /**
+   * Create previously-implicit calls to superclass constructors, as well as
+   * default constructors
+   * 
+   * @return true if changed
+   */
+  public boolean ensureConstructorStuff(IRNode type) {
+    // System.out.println("Looking for constructor in "+JavaNames.getFullTypeName(type));
+    IRNode cbody = VisitUtil.getClassBody(type);
+    boolean changed = false;
 
-	// / makeDefaultConstructor
-	IRNode makeDefaultConstructor(IRNode decl) {
-		int mods = JavaNode.PUBLIC | JavaNode.IMPLICIT;
-		String cName = JJNode.getInfo(decl);
-		IRNode[] params = noNodes;
+    // Add a default super() if constructor don't have it
+    // based on findDefaultConstructor
+    boolean someCon = false;
+    Iterator<IRNode> enm = JJNode.tree.children(cbody);
+    while (enm.hasNext()) {
+      IRNode n = enm.next();
+      Operator op = JJNode.tree.getOperator(n);
 
-		// copy parent's throws clause
-		IRNode[] throwsC;
-		IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory
-				.convertIRTypeDeclToIJavaType(decl);
-		if (!isSuper_JavaLangObject(decl, type)) {
-			throwsC = makeDefaultThrows(type);
-		} else {
-			throwsC = JavaGlobals.noNodes;
-		}
-		final boolean isJavaLangObject;
-		if ("Object".equals(cName)) {
-			final String qname = JavaNames.getQualifiedTypeName(decl);
-			isJavaLangObject = "java.lang.Object".equals(qname);
-		} else {
-			isJavaLangObject = false;
-		}
-		IRNode[] stmt = isJavaLangObject ? noNodes : 
-				new IRNode[] { CogenUtil.makeDefaultSuperCall() };
-		//System.out.println("Creating constructor with super(): "+stmt[0]);
-		IRNode block = BlockStatement.createNode(stmt);
-		IRNode body = MethodBody.createNode(block);
-		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,
-				noNodes, cName, params, throwsC, body);
-		ReceiverDeclaration.makeReceiverNode(constructor);
-		return constructor;
-	}
+      if (op == ConstructorDeclaration.prototype) {
+        someCon = true;
+        changed |= ensureSuperConstructorCall(n); // add super() if needed
+      }
+    }
 
-	IRNode makeDefaultEnumConstructor(IRNode decl) {
-		int mods           = JavaNode.PRIVATE;
-		String cName       = JJNode.getInfo(decl);
-		IRNode[] stmt      = new IRNode[] { makeEnumSuperConstructorCall() };
-		IRNode block       = BlockStatement.createNode(stmt);
-		IRNode body        = MethodBody.createNode(block);
-		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,
-				noNodes, cName, noNodes, noNodes, body);
-		ReceiverDeclaration.makeReceiverNode(constructor);
-		return constructor;
-	}
-	
-	IRNode[] makeDefaultThrows(IJavaDeclaredType type) {
-		// assuming n is the enclosing type, find super's default constructor
-		IJavaDeclaredType stype = te.getBinder().getSuperclass(type);
-		if (stype != null) {
-			// type != java.lang.Object
-			IRNode sdecl = stype.getDeclaration();
-			IRNode body = VisitUtil.getClassBody(sdecl);
-			IRNode dc = findDefaultConstructor(body);
-			if (dc == null) {
-				if (LOG.isLoggable(Level.FINER))
-					LOG.finer("Couldn't find a default constructor in " + stype
-							+ " - making one");
+    // Add a default constructor if there aren't any
+    if (!someCon) {
+      final IRNode dc;
+      if (EnumDeclaration.prototype.includes(type)) {
+        dc = makeDefaultEnumConstructor(type);
+      } else {
+        dc = makeDefaultConstructor(type);
+      }
+      insertDefaultConstructor(cbody, dc);
 
-				dc = makeDefaultConstructor(sdecl);
-				insertDefaultConstructor(body, dc);
-				
-				IDE.getInstance().notifyASTChanged(
-						VisitUtil.getEnclosingCompilationUnit(sdecl));
-			}
-			return copyConstructorThrows(dc);
-		}
-		return JavaGlobals.noNodes;
-	}
+      if (LOG.isLoggable(Level.FINER)) {
+        String qname = JavaNames.getFullTypeName(type);
+        LOG.finer("Adding default constructor to " + qname);
+        /*
+         * if (qname.endsWith("TestMultipleTextOutputFormat") ||
+         * qname.endsWith("TestMultiFileInputFormat")) {
+         * System.out.println(DebugUnparser
+         * .childrenToString(VisitUtil.getClassBody(type))); }
+         */
+      }
+      changed = true;
+    }
+    return changed;
+  }
 
-	IRNode[] copyConstructorThrows(IRNode constructor) {
-		// copy its throws clause, resolving its type names(?)
-		IRNode throws0 = ConstructorDeclaration.getExceptions(constructor);
-		Iterator<IRNode> enm = JJNode.tree.children(throws0);
-		if (!enm.hasNext()) {
-			return JavaGlobals.noNodes;
-		}
-		Vector<IRNode> throws1 = new Vector<IRNode>();
+  // / findDefaultConstructor -- based on BSI's findConstructor
+  public static IRNode findDefaultConstructor(IRNode cbody) {
+    Iterator<IRNode> enm = JJNode.tree.children(cbody);
+    while (enm.hasNext()) {
+      IRNode n = enm.next();
+      Operator op = JJNode.tree.getOperator(n);
 
-		do {
-			IRNode n = enm.next();
-			throws1.addElement(copyTypeNodes(n));
-		} while (enm.hasNext());
+      // LOG.info("Looking at "+DebugUnparser.toString(n));
+      if (op == ConstructorDeclaration.prototype) {
+        IRNode params = ConstructorDeclaration.getParams(n);
+        if (JJNode.tree.numChildren(params) == 0) {
+          return n;
+        }
+      }
+    }
+    return null;
+  }
 
-		return CogenUtil.makeNodeArray(throws1);
-	}
+  protected boolean isSuper_JavaLangObject(IRNode decl, IJavaDeclaredType type) {
+    Operator op = JJNode.tree.getOperator(decl);
+    /*
+     * return (op instanceof TypeDeclInterface) &&
+     * (te.getBinder().getSuperclass(type) == null);
+     */
+    if (op instanceof TypeDeclInterface) {
+      IRNode nt;
+      if (ClassDeclaration.prototype.includes(op)) {
+        nt = ClassDeclaration.getExtension(decl);
+        Operator eop = JJNode.tree.getOperator(nt);
 
-	// / copyTypeNodes (using its binding)
-	IRNode copyTypeNodes(IRNode x) {
-		JavaOperator op = (JavaOperator) JJNode.tree.getOperator(x);
-		if (op instanceof NamedType || op instanceof NameType) {
-			// Need to bind first, because this will be in a different CU
-			IRNode type = te.getBinder().getBinding(x);
-			return buildNamedType(type);
-		} else if (op instanceof ArrayType) {
-			IRNode base = ArrayType.getBase(x);
-			int dims = ArrayType.getDims(x);
-			return ArrayType.createNode(copyTypeNodes(base), dims);
-		} else if (op instanceof PrimitiveType) {
-			return op.jjtCreate();			
-		} else
-			throw new FluidError("Got unknown type node : " + op);
-	}
-	
-	IRNode buildNamedType(IRNode tdecl) { 
-		IRNode enclosingT = VisitUtil.getEnclosingType(tdecl);
-		if (enclosingT == null) {	
-			String name = JavaNames.getFullTypeName(tdecl);
-			return NamedType.createNode(name);
-		}
-		IRNode base = buildNamedType(enclosingT);
-		return TypeRef.createNode(base, JavaNames.getTypeName(tdecl));
-	}
+        if (ParameterizedType.prototype.includes(eop)) {
+          return false;
+        }
+        if (TypeRef.prototype.includes(eop)) {
+          return false;
+        }
+        String name;
+        if (NameType.prototype.includes(eop)) {
+          name = DebugUnparser.toString(nt);
+        } else {
+          name = NamedType.getType(nt);
+        }
+        if ("java.lang.Object".equals(name)) {
+          return true;
+        }
+        if (!name.endsWith("Object")) {
+          return false;
+        }
+      } else if (InterfaceDeclaration.prototype.includes(op)) {
+        return true;
+      }
+      return te.getBinder().getSuperclass(type) == null;
+    }
+    return false;
+  }
+
+  /**
+   * For java.lang.Object
+   */
+  private IRNode makeEmptyConstructor() {
+    int mods = JavaNode.PUBLIC;
+    String cName = "Object";
+    IRNode[] params = noNodes;
+    IRNode[] stmt = noNodes;
+    IRNode[] throwsC = noNodes;
+
+    IRNode block = BlockStatement.createNode(stmt);
+    IRNode body = MethodBody.createNode(block);
+    return CogenUtil.makeConstructorDecl(noNodes, mods, noNodes, cName, params, throwsC, body);
+  }
+
+  // / makeDefaultConstructor
+  IRNode makeDefaultConstructor(IRNode decl) {
+    int mods = JavaNode.PUBLIC | JavaNode.IMPLICIT;
+    String cName = JJNode.getInfo(decl);
+    IRNode[] params = noNodes;
+
+    // copy parent's throws clause
+    IRNode[] throwsC;
+    IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.convertIRTypeDeclToIJavaType(decl);
+    if (!isSuper_JavaLangObject(decl, type)) {
+      throwsC = makeDefaultThrows(type);
+    } else {
+      throwsC = JavaGlobals.noNodes;
+    }
+    final boolean isJavaLangObject;
+    if ("Object".equals(cName)) {
+      final String qname = JavaNames.getQualifiedTypeName(decl);
+      isJavaLangObject = "java.lang.Object".equals(qname);
+    } else {
+      isJavaLangObject = false;
+    }
+    IRNode[] stmt = isJavaLangObject ? noNodes : new IRNode[] { CogenUtil.makeDefaultSuperCall() };
+    // System.out.println("Creating constructor with super(): "+stmt[0]);
+    IRNode block = BlockStatement.createNode(stmt);
+    IRNode body = MethodBody.createNode(block);
+    IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods, noNodes, cName, params, throwsC, body);
+    ReceiverDeclaration.makeReceiverNode(constructor);
+    return constructor;
+  }
+
+  IRNode makeDefaultEnumConstructor(IRNode decl) {
+    int mods = JavaNode.PRIVATE;
+    String cName = JJNode.getInfo(decl);
+    IRNode[] stmt = new IRNode[] { makeEnumSuperConstructorCall() };
+    IRNode block = BlockStatement.createNode(stmt);
+    IRNode body = MethodBody.createNode(block);
+    IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods, noNodes, cName, noNodes, noNodes, body);
+    ReceiverDeclaration.makeReceiverNode(constructor);
+    return constructor;
+  }
+
+  IRNode[] makeDefaultThrows(IJavaDeclaredType type) {
+    // assuming n is the enclosing type, find super's default constructor
+    IJavaDeclaredType stype = te.getBinder().getSuperclass(type);
+    if (stype != null) {
+      // type != java.lang.Object
+      IRNode sdecl = stype.getDeclaration();
+      IRNode body = VisitUtil.getClassBody(sdecl);
+      IRNode dc = findDefaultConstructor(body);
+      if (dc == null) {
+        if (LOG.isLoggable(Level.FINER))
+          LOG.finer("Couldn't find a default constructor in " + stype + " - making one");
+
+        dc = makeDefaultConstructor(sdecl);
+        insertDefaultConstructor(body, dc);
+
+        IDE.getInstance().notifyASTChanged(VisitUtil.getEnclosingCompilationUnit(sdecl));
+      }
+      return copyConstructorThrows(dc);
+    }
+    return JavaGlobals.noNodes;
+  }
+
+  IRNode[] copyConstructorThrows(IRNode constructor) {
+    // copy its throws clause, resolving its type names(?)
+    IRNode throws0 = ConstructorDeclaration.getExceptions(constructor);
+    Iterator<IRNode> enm = JJNode.tree.children(throws0);
+    if (!enm.hasNext()) {
+      return JavaGlobals.noNodes;
+    }
+    Vector<IRNode> throws1 = new Vector<IRNode>();
+
+    do {
+      IRNode n = enm.next();
+      throws1.addElement(copyTypeNodes(n));
+    } while (enm.hasNext());
+
+    return CogenUtil.makeNodeArray(throws1);
+  }
+
+  // / copyTypeNodes (using its binding)
+  IRNode copyTypeNodes(IRNode x) {
+    JavaOperator op = (JavaOperator) JJNode.tree.getOperator(x);
+    if (op instanceof NamedType || op instanceof NameType) {
+      // Need to bind first, because this will be in a different CU
+      IRNode type = te.getBinder().getBinding(x);
+      return buildNamedType(type);
+    } else if (op instanceof ArrayType) {
+      IRNode base = ArrayType.getBase(x);
+      int dims = ArrayType.getDims(x);
+      return ArrayType.createNode(copyTypeNodes(base), dims);
+    } else if (op instanceof PrimitiveType) {
+      return op.jjtCreate();
+    } else
+      throw new FluidError("Got unknown type node : " + op);
+  }
+
+  IRNode buildNamedType(IRNode tdecl) {
+    IRNode enclosingT = VisitUtil.getEnclosingType(tdecl);
+    if (enclosingT == null) {
+      String name = JavaNames.getFullTypeName(tdecl);
+      return NamedType.createNode(name);
+    }
+    IRNode base = buildNamedType(enclosingT);
+    return TypeRef.createNode(base, JavaNames.getTypeName(tdecl));
+  }
 }

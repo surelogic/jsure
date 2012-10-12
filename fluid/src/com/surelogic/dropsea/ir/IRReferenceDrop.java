@@ -5,7 +5,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
@@ -14,16 +13,13 @@ import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.IFluidJavaRef;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 
@@ -53,25 +49,6 @@ public abstract class IRReferenceDrop extends Drop {
    */
   @NonNull
   private final IRNode f_node;
-
-  /**
-   * Gets the source reference of this drop.
-   * 
-   * @return the source reference of the fAST node this information references,
-   *         can be <code>null</code>
-   */
-  @Override
-  public ISrcRef getSrcRef() {
-    if (f_node != null) {
-      ISrcRef ref = JavaNode.getSrcRef(f_node);
-      if (ref == null) {
-        final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
-        return JavaNode.getSrcRef(parent);
-      }
-      return ref;
-    }
-    return null;
-  }
 
   @Override
   @Nullable
@@ -228,12 +205,6 @@ public abstract class IRReferenceDrop extends Drop {
   @MustInvokeOnOverride
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    try {
-      s.addSrcRef(db, getNode(), getSrcRef());
-    } catch (SlotUndefinedException e) {
-      SLLogger.getLogger().log(Level.WARNING, "Undefined info for " + getMessage() + " on " + getNode(), e);
-      throw e;
-    }
     for (ProposedPromiseDrop pd : getProposals()) {
       s.refDrop(db, PROPOSED_PROMISE, pd);
     }

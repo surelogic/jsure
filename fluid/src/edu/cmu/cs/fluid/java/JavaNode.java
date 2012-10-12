@@ -14,7 +14,6 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.tree.SyntaxTreeNode;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -201,7 +200,7 @@ public class JavaNode extends JJNode {
   public static final int ALLOW_RETURN = (1 << 21);
 
   public static final int ALLOW_READ = (1 << 22);
-  
+
   public static final int ALLOW_REF_OBJECT = (1 << 23);
 
   public static final int[] MODIFIERS = { ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, TRANSIENT,
@@ -438,59 +437,6 @@ public class JavaNode extends JJNode {
       }
     }
     return null;
-  }
-
-  /**
-   * Fluid IR slot to hold Fluid Java source code reference information
-   * 
-   * @see fluid.ir.SlotInfo
-   */
-  private static final SlotInfo<ISrcRef> f_srcRefSlotInfo = getVersionedSlotInfo(ISrcRef.SRC_REF_SLOT_NAME,
-      ISrcRef.SRC_REF_SLOT_TYPE);
-
-  /**
-   * Returns the SlotInfo to access the source code reference information within
-   * Java IR nodes.
-   */
-  private static SlotInfo<ISrcRef> getSrcRefSlotInfo() {
-    return f_srcRefSlotInfo;
-  }
-
-  public static void setSrcRef(IRNode node, ISrcRef ref) {
-    if (ref == null) {
-      return;
-    }
-    node.setSlotValue(getSrcRefSlotInfo(), ref);
-  }
-
-  /**
-   * Given an IRNode from a Java AST, this method returns the node's Java source
-   * code reference information, or null if no source code reference information
-   * exists.
-   * 
-   * @param node
-   *          The IRNode which should have binding information.
-   * @return The source code reference interface object or null if none.
-   * @see fluid.eclipse.ISrcRef
-   */
-  public static ISrcRef getSrcRef(IRNode node) {
-    if (node == null) {
-      return null;
-    }
-    /*
-     * LOG.debug( "getSrcRef() IR version before binding = " +
-     * fluid.version.Version.getVersion());
-     */
-    final SlotInfo<ISrcRef> srcSlotInfo = getSrcRefSlotInfo();
-    if (!node.valueExists(srcSlotInfo)) {
-      return null;
-    }
-    // if (result == null) {
-    // LOG.log(Level.SEVERE,
-    // "getSrcRef() No source reference on JavaNode "
-    // + JJNode.tree.getOperator(node));
-    // }
-    return node.getSlotValue(srcSlotInfo);
   }
 
   /**

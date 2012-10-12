@@ -91,7 +91,6 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.JavaRefSourceSkeletonBuilder;
@@ -121,7 +120,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   final Projects projects;
   final JavacProject jp;
   final DeclFactory declFactory;
-  
+
   public SourceAdapter(Projects p, JavacProject jp) {
     super(SLLogger.getLogger());
     projects = p;
@@ -277,10 +276,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   private void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
-    ISrcRef ref = JavaNode.getSrcRef(result);
-    if (ref != null) {
+    if (JavaRefSourceSkeletonBuilder.hasRegistered(result))
       return;
-    }
+
     long start = source.getStartPosition(root, t);
     long end = source.getEndPosition(root, t);
     if (start < 0) {
@@ -294,8 +292,6 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       if (elmt != null)
         JavaNode.setJavadocAnnotations(result, elmt);
     }
-    ref = new SourceRef(cuRef, start, end, line);
-    JavaNode.setSrcRef(result, ref);
     /*
      * save skeletion JavaRef
      */

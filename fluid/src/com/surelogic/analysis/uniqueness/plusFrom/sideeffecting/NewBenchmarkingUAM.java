@@ -3,6 +3,7 @@ package com.surelogic.analysis.uniqueness.plusFrom.sideeffecting;
 import java.util.Collections;
 
 import com.surelogic.analysis.*;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -55,8 +56,8 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 				methodName = methodName.replace(',', '_');
 
 				JavaComponentFactory.clearCache();
-				final ISrcRef srcRef = JavaNode.getSrcRef(node);
-				final int length = srcRef == null ? -1 : srcRef.getLength();
+				final IJavaRef javaRef = JavaNode.getFluidJavaRef(node);
+				final int length = javaRef == null ? -1 : javaRef.getLength();
 				final long start = System.currentTimeMillis();
 				String msg;
 				try {

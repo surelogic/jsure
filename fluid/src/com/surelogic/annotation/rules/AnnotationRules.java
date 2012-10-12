@@ -35,8 +35,9 @@ import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.promise.IBooleanPromiseDropStorage;
@@ -54,12 +55,9 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IDropFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -341,7 +339,7 @@ public abstract class AnnotationRules {
 
 		private ModelingProblemDrop reportError_private(IRNode n,
 				String msgTemplate, Object... args) {
-			final ISrcRef ref = JavaNode.getSrcRef(n);
+			final IJavaRef ref = JavaNode.getFluidJavaRef(n);
 			final int offset;
 			if (ref == null) {
 				offset = -1;
