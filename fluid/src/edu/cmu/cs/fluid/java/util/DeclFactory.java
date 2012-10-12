@@ -24,6 +24,9 @@ public class DeclFactory {
 	private final IBinder binder;
 	
 	public DeclFactory(IBinder b) {
+		if (b == null) {
+			throw new IllegalArgumentException("null binder");
+		}
 		binder = b;
 	}
 	
