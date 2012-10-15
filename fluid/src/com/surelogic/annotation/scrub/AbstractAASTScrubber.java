@@ -496,7 +496,7 @@ extends AbstractHierarchyScrubber<A> {
 		}
 		private IJavaRef getJavaRef(IRNode n) {
 			while (n != null) {
-			  IJavaRef ref = JavaNode.getFluidJavaRef(n);
+			  IJavaRef ref = JavaNode.getJavaRef(n);
 				if (ref != null) {
 					return ref;
 				}

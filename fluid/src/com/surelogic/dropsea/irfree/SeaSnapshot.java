@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
@@ -32,7 +33,6 @@ import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
@@ -93,11 +93,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     db.addAttribute(TYPE_ATTR, c.getSimpleName());
     db.addAttribute(FULL_TYPE_ATTR, c.getName());
     db.addAttribute(ID_ATTR, id);
-    final IFluidJavaRef javaRef = d.getJavaRef();
+    final IJavaRef javaRef = d.getJavaRef();
     if (javaRef != null) {
-      System.out.println(javaRef);
-      System.out.println("         path=" + javaRef.getAbsolutePathOrNull());
-      System.out.println(" jar-rel-path=" + javaRef.getJarRelativePathOrNull());
       final String encodedJavaRef = javaRef.encodeForPersistence();
       db.addAttribute(JAVA_REF, encodedJavaRef);
     }

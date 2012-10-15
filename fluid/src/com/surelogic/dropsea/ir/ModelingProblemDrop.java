@@ -3,11 +3,11 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MODELING_PROBLEM_DROP;
 
 import com.surelogic.Nullable;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.FluidJavaRef;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 
 /**
  * Drop to represent modeling problems reported by the promise scrubber in the
@@ -33,8 +33,8 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
 
   @Override
   @Nullable
-  public IFluidJavaRef getJavaRef() {
-    final IFluidJavaRef javaRef = super.getJavaRef();
+  public IJavaRef getJavaRef() {
+    final IJavaRef javaRef = super.getJavaRef();
 
     /*
      * If the overall code reference is null we can't wrap it.
@@ -47,7 +47,7 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
        * Change the code reference so that it returns the more precise offset
        * that this drop knows about (from the parser).
        */
-      return new FluidJavaRef.Builder(javaRef).setOffset(f_offset).setLength(0).build();
+      return new JavaRef.Builder(javaRef).setOffset(f_offset).setLength(0).build();
     } else {
       /*
        * The offset we have is nonsense, return the existing source reference.

@@ -12,11 +12,11 @@ import java.util.concurrent.locks.Lock;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
+import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -389,7 +389,7 @@ abstract class AbstractLockStackLattice extends
                   sb.append("sync");
                 }
                 sb.append('@');
-                final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(call);
+                final IJavaRef javaRef = JavaNode.getJavaRef(call);
                 if (javaRef == null || javaRef.getLineNumber() == -1)
                   sb.append("unknown");
                 else {

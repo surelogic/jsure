@@ -93,7 +93,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
       return null; // Unknown CU
     }
     for (IRNode n : JJNode.tree.topDown(d.getCompilationUnitIRNode())) {
-      IJavaRef ref = JavaNode.getFluidJavaRef(n);
+      IJavaRef ref = JavaNode.getJavaRef(n);
       if (ref != null && ref.getOffset() == offset) {
         final long nHash = SeaSnapshot.computeHash(n);
         if (hash == nHash) {

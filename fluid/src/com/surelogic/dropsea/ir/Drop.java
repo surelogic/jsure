@@ -25,6 +25,7 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -33,8 +34,6 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 
 /**
  * The abstract base class for all drops within the sea, intended to be
@@ -782,7 +781,7 @@ public abstract class Drop implements IDrop {
   }
 
   @Nullable
-  public IFluidJavaRef getJavaRef() {
+  public IJavaRef getJavaRef() {
     return null;
   }
 

@@ -7,20 +7,26 @@ import java.util.logging.Logger;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.RewriteCardinalityException;
 
-import com.surelogic.aast.*;
+import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -55,16 +61,16 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  return rule;
   }
   
-  private IFluidJavaRef getJavaRef() {
-    IFluidJavaRef ref = JavaNode.getFluidJavaRef(contextRef);
+  private IJavaRef getJavaRef() {
+    IJavaRef ref = JavaNode.getJavaRef(contextRef);
     if (ref == null) {
-      ref = JavaNode.getFluidJavaRef(annoNode);
+      ref = JavaNode.getJavaRef(annoNode);
     }
     return ref;
   }
   
   private int getOffset() {
-    IFluidJavaRef ref = getJavaRef();
+    IJavaRef ref = getJavaRef();
     return ref == null ? -1 : ref.getOffset();
   }
   

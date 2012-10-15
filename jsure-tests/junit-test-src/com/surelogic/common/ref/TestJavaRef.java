@@ -4,9 +4,6 @@ import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
 
-import edu.cmu.cs.fluid.java.FluidJavaRef;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
-
 public final class TestJavaRef extends TestCase {
 
   public void testBuilder() {
@@ -51,52 +48,6 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-  }
-
-  public void testFluidBuilder() {
-    IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
-    IFluidJavaRef r = new FluidJavaRef.Builder(decl).build();
-    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
-    assertEquals("java.lang", r.getPackageName());
-    assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
-    assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
-    assertEquals("java.lang", DeclUtil.getPackageNameOrEmpty(r.getDeclaration()));
-    assertEquals("Object.A", r.getTypeNameOrNull());
-    assertEquals("Object$A", DeclUtil.getTypeNameDollarSignOrNull(r.getDeclaration()));
-    assertEquals("java.lang.Object.A", r.getTypeNameFullyQualified());
-    assertEquals("java.lang/Object.A", DeclUtil.getTypeNameFullyQualifiedSureLogic(r.getDeclaration()));
-    assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
-    assertTrue(r.isFromSource());
-    assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
-    assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
-    assertNull(r.getEclipseProjectNameOrNull());
-    assertEquals(-1, r.getLineNumber());
-    assertEquals(-1, r.getOffset());
-    assertEquals(-1, r.getLength());
-    assertNull(r.getAbsolutePathOrNull());
-
-    // check copy
-    r = new FluidJavaRef.Builder(r).build();
-    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
-    assertEquals("java.lang", r.getPackageName());
-    assertEquals("java/lang", DeclUtil.getPackageNameSlash(r.getDeclaration()));
-    assertEquals("java.lang", DeclUtil.getPackageNameOrNull(r.getDeclaration()));
-    assertEquals("java.lang", DeclUtil.getPackageNameOrEmpty(r.getDeclaration()));
-    assertEquals("Object.A", r.getTypeNameOrNull());
-    assertEquals("Object$A", DeclUtil.getTypeNameDollarSignOrNull(r.getDeclaration()));
-    assertEquals("java.lang.Object.A", r.getTypeNameFullyQualified());
-    assertEquals("java.lang/Object.A", DeclUtil.getTypeNameFullyQualifiedSureLogic(r.getDeclaration()));
-    assertEquals(IJavaRef.Within.JAVA_FILE, r.getWithin());
-    assertTrue(r.isFromSource());
-    assertEquals(IDecl.Kind.CLASS, DeclUtil.getTypeKind(r.getDeclaration()));
-    assertEquals("Object.java", DeclUtil.guessSimpleFileName(r.getDeclaration(), r.getWithin()));
-    assertEquals(SLUtility.UNKNOWN_PROJECT, r.getEclipseProjectName());
-    assertNull(r.getEclipseProjectNameOrNull());
-    assertEquals(-1, r.getLineNumber());
-    assertEquals(-1, r.getOffset());
-    assertEquals(-1, r.getLength());
-    assertNull(r.getAbsolutePathOrNull());
   }
 
   public void testDefaultPackage() {
@@ -172,11 +123,11 @@ public final class TestJavaRef extends TestCase {
 
   public void testWorkspaceRelativePath() {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
-    IFluidJavaRef r = new FluidJavaRef.Builder(decl).build();
+    IJavaRef r = new JavaRef.Builder(decl).build();
     assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
     assertNull(r.getAbsolutePathOrNull());
 
-    r = new FluidJavaRef.Builder(decl).setAbsolutePath("prj/src/java/lang/Object.java").build();
+    r = new JavaRef.Builder(decl).setAbsolutePath("prj/src/java/lang/Object.java").build();
     assertEquals("prj/src/java/lang/Object.java", r.getAbsolutePathOrNull());
   }
 }
