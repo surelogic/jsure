@@ -1,14 +1,17 @@
 package com.surelogic.analysis.type.constraints;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
+import com.surelogic.aast.promise.ContainableNode;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
@@ -30,10 +33,8 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
       
       @Override
-      public boolean testBounds(
-          final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstNamedTypes(
-            formalName, abNode.getContainable());
+      public boolean testContainable(final ContainablePromiseDrop cDrop) {
+        return false;
       }
     },
     
@@ -44,10 +45,8 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
       
       @Override
-      public boolean testBounds(
-          final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstNamedTypes(
-            formalName, abNode.getImmutable());
+      public boolean testContainable(final ContainablePromiseDrop cDrop) {
+        return false;
       }
     },
     
@@ -58,10 +57,8 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
       
       @Override
-      public boolean testBounds(
-          final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstNamedTypes(
-            formalName, abNode.getReference());
+      public boolean testContainable(final ContainablePromiseDrop cDrop) {
+        return false;
       }
     },
     
@@ -72,13 +69,8 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
       
       @Override
-      public boolean testBounds(
-          final AnnotationBoundsNode abNode, final String formalName) {
-        return
-            testFormalAgainstNamedTypes(
-                formalName, abNode.getImmutable()) ||
-            testFormalAgainstNamedTypes(
-                formalName, abNode.getThreadSafe());
+      public boolean testContainable(final ContainablePromiseDrop cDrop) {
+        return cDrop != null;
       }
     },
       
@@ -89,16 +81,14 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       }
       
       @Override
-      public boolean testBounds(
-          final AnnotationBoundsNode abNode, final String formalName) {
-        return testFormalAgainstNamedTypes(
-            formalName, abNode.getValue());
+      public boolean testContainable(final ContainablePromiseDrop cDrop) {
+        return false;
       }
     };
     
     public abstract NamedTypeNode[] getNamedTypes(AnnotationBoundsNode abNode);
     
-    public abstract boolean testBounds(AnnotationBoundsNode abNode, String formalName);
+    public abstract boolean testContainable(ContainablePromiseDrop cDrop);
   }
 
   
@@ -153,43 +143,86 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     return oneOfFlag && !noneOfFlag;
   }
 
-  private PromiseDrop<? extends IAASTRootNode> isX(
+  private static boolean testFormalAgainstContainable(
+      final ContainablePromiseDrop cDrop, 
+      final Set<Bounds> oneOf, final Set<Bounds> noneOf) {
+    boolean oneOfFlag = oneOf.isEmpty();  // trivially satisfied if there are no positive requirements
+    boolean noneOfFlag = false;
+    for (final Bounds b : Bounds.values()) {
+      if (oneOf.contains(b)) {
+        oneOfFlag |= b.testContainable(cDrop);
+      }
+      if (noneOf.contains(b)) {
+        noneOfFlag |= b.testContainable(cDrop);
+      }
+    }
+    return oneOfFlag && !noneOfFlag;
+  }
+
+  /*
+   * Here we get a bit ugly.  We have three possible cases:
+   * (1) The formal matches because of an @AnnotationBounds promise.
+   * (2) The formal matches because of an implied annotation bound from a 
+   *     @Containable promise
+   * (3) The formal doesn't match.
+   * 
+   * The problem is, that in the case of (2) we don't want to return the
+   * Containable promise drop because it makes the chain of evidence strange,
+   * particularly in cases where the Containable promise isn't satisfied.  But
+   * in the case of (1) we do want to return the AnnotationBounds promise.
+   * 
+   * So we use three return values:
+   * (1) A singleton set of the AnnotationBounds promise.
+   * (2) An empty set
+   * (3) null
+   */
+
+  private Set<PromiseDrop<? extends IAASTRootNode>> isX(
       final IJavaTypeFormal formal, final boolean exclusive, Set<Bounds> oneOf, Set<Bounds> noneOf) {
     final IRNode decl = formal.getDeclaration();
     final String name = TypeFormal.getId(decl);
     final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
+    
+    /* Favor explicit annotation bounds over those implied by 
+     * @Containable
+     */
+    Set<PromiseDrop<? extends IAASTRootNode>> result = null;
     final AnnotationBoundsPromiseDrop abDrop = LockRules.getAnnotationBounds(typeDecl);
-    if (abDrop == null) {
-      return null;
-    } else {
-      return testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? abDrop : null;
+    if (abDrop != null) {
+      result = testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>singleton(abDrop) : null;
     }
+    
+    if (result == null) {
+      final ContainablePromiseDrop cDrop = LockRules.getContainableImplementation(typeDecl);
+      if (cDrop != null) {
+        result = testFormalAgainstContainable(cDrop, oneOf, noneOf) ? Collections.<PromiseDrop<? extends IAASTRootNode>>emptySet() : null;
+      }
+    }
+    
+    return result;
   }
-
   
-  
-  
-  public PromiseDrop<? extends IAASTRootNode> isContainable(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isContainable(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, containableSet, notContainableSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isImmutable(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isImmutable(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, immutableSet, notImmutableSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isReferenceObject(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isReferenceObject(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, referenceSet, notReferenceSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isThreadSafe(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isThreadSafe(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, threadSafeSet, notThreadSafeSet);
   }
 
-  public PromiseDrop<? extends IAASTRootNode> isValueObject(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isValueObject(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, valueSet, notValueSet);
   }

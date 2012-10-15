@@ -21,7 +21,7 @@ public class DiffMessage extends AbstractDiffNode {
 		return null;
 	}
 	
-	@Override
+//	@Override
 	public String getText() {
 		return text;
 	}

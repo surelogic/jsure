@@ -1,6 +1,7 @@
 package com.surelogic.analysis.type.constraints;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.rules.EqualityRules;
@@ -27,7 +28,7 @@ public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTes
   }           
   
   @Override
-  protected PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
+  protected Set<PromiseDrop<? extends IAASTRootNode>> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
     return formalEnv.isReferenceObject(formal, exclusive);
   }
