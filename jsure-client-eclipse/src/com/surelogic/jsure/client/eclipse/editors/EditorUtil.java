@@ -17,7 +17,7 @@ public class EditorUtil {
     if (javaRef == null) 
       return;
     
-    JDTUIUtility.tryToOpenInEditor(javaRef);
+    boolean worked = JDTUIUtility.tryToOpenInEditor(javaRef);
     HistoricalSourceView.tryToOpenInEditor(javaRef);
   }
 
