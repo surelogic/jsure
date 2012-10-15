@@ -42,12 +42,12 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
    */
   public static final class Builder extends JavaRef.Builder {
 
-    private String f_workspaceRelativePath = null;
+    private String f_absolutePath = null;
     private String f_jarRelativePath = null;
 
     public Builder(IFluidJavaRef copy) {
       super(copy);
-      f_workspaceRelativePath = copy.getWorkspaceRelativePathOrNull();
+      f_absolutePath = copy.getAbsolutePathOrNull();
       f_jarRelativePath = copy.getJarRelativePathOrNull();
     }
 
@@ -109,8 +109,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
       return this;
     }
 
-    public Builder setWorkspaceRelativePath(String value) {
-      f_workspaceRelativePath = value;
+    public Builder setAbsolutePath(String value) {
+      f_absolutePath = value;
       return this;
     }
 
@@ -122,7 +122,7 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     @Override
     public IFluidJavaRef build() {
       return new FluidJavaRef(f_within, f_declaration, f_positionRelativeToDeclaration, f_eclipseProjectName, f_lineNumber,
-          f_offset, f_length, f_javaId, f_enclosingJavaId, f_workspaceRelativePath, f_jarRelativePath);
+          f_offset, f_length, f_javaId, f_enclosingJavaId, f_absolutePath, f_jarRelativePath);
     }
 
     @Override
@@ -134,25 +134,24 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
       }
       return null;
     }
-
   }
 
   protected FluidJavaRef(final @NonNull Within within, final @NonNull IDecl declaration,
       @NonNull Position positionRelativeToDeclaration, final @NonNull String eclipseProjectNameOrNull, final int lineNumber,
       final int offset, final int length, final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
-      final @Nullable String workspaceRelativePathOrNull, final @Nullable String jarRelativePathOrNull) {
+      final @Nullable String absolutePathOrNull, final @Nullable String jarRelativePathOrNull) {
     super(within, declaration, positionRelativeToDeclaration, eclipseProjectNameOrNull, lineNumber, offset, length, javaIdOrNull,
         enclosingJavaIdOrNull);
-    f_workspaceRelativePath = workspaceRelativePathOrNull;
+    f_absolutePath = absolutePathOrNull;
     f_jarRelativePath = jarRelativePathOrNull;
   }
 
-  private final String f_workspaceRelativePath;
+  private final String f_absolutePath;
   private final String f_jarRelativePath;
 
   @Nullable
-  public String getWorkspaceRelativePathOrNull() {
-    return f_workspaceRelativePath;
+  public String getAbsolutePathOrNull() {
+    return f_absolutePath;
   }
 
   @Nullable

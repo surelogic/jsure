@@ -121,7 +121,7 @@ public final class SkeletonJavaRefUtility {
       b.setEclipseProjectName(f_resource.getProjectName());
       final String jarRelativePath = f_resource.getJarRelativePath();
       b.setWithin(jarRelativePath == null ? Within.CLASS_FILE : Within.JAR_FILE);
-      b.setWorkspaceRelativePath(f_resource.getWorkspaceRelativePath());
+      b.setAbsolutePath(f_resource.getAbsolutePath());
       b.setJarRelativePath(jarRelativePath);
       return b.buildOrNullOnFailure();
     }
@@ -156,7 +156,7 @@ public final class SkeletonJavaRefUtility {
       b.setLength(f_length);
       b.setEclipseProjectName(f_fileResource.getProjectName());
       b.setWithin(Within.JAVA_FILE);
-      b.setWorkspaceRelativePath(f_fileResource.getRelativePath());
+      b.setAbsolutePath(f_fileResource.getAbsolutePath());
       return b.buildOrNullOnFailure();
     }
   }

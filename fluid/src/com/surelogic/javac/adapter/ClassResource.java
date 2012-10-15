@@ -53,7 +53,7 @@ public class ClassResource {
 		return project.getName();
 	}
 	
-	public String getWorkspaceRelativePath() {
+	public String getAbsolutePath() {
 		return pathToJarOrClass;
 	}
 	

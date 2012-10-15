@@ -19,22 +19,26 @@ import com.surelogic.common.ref.JavaRef.Builder;
 public interface IFluidJavaRef extends IJavaRef {
 
   /**
-   * Gets the workspace relative path, or {@code null} if none is available.
+   * Gets the absolute path that this reference is within, or {@code null} if
+   * none is available.
    * <p>
-   * The table below shows an example
+   * This resource may not exist on the filesystem anymore.
    * 
-   * for a Jar it is the path to the jar file.
-   * 
-   * @return a path relative to the workspace, or {@code null} if none is
-   *         available.
+   * @return an absolute path that this reference is within, or {@code null} if
+   *         none is available.
    */
   @Nullable
-  String getWorkspaceRelativePathOrNull();
+  String getAbsolutePathOrNull();
 
   /**
-   * Path into the jar (only non-null) if in a jar.
+   * Gets the path within the <tt>.jar</tt> file returned by
+   * {@link #getAbsolutePathOrNull()} that this reference is within. This method
+   * returns {@code null} if this reference is not within a
+   * {@link Within#JAR_FILE}.
    * 
-   * @return
+   * @return the path that this reference is within inside the the <tt>.jar</tt>
+   *         file returned by {@link #getAbsolutePathOrNull()}, or {@code null}
+   *         if not within a <tt>.jar</tt> file.
    */
   @Nullable
   String getJarRelativePathOrNull();

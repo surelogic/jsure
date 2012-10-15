@@ -323,7 +323,7 @@ public final class Eclipse extends IDE {
     } else if (!n2.equals(n)) {
       IFluidJavaRef ref = JavaNode.getFluidJavaRef(n2);
       LOG.warning("Resource name " + name + " was mapped to a different file " + ref.getEclipseProjectName() + " "
-          + ref.getWorkspaceRelativePathOrNull());
+          + ref.getAbsolutePathOrNull());
       nodeMap.put(name, n);
     }
     return n;

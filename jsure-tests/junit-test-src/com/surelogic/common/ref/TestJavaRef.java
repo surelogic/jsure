@@ -74,7 +74,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getWorkspaceRelativePathOrNull());
+    assertNull(r.getAbsolutePathOrNull());
 
     // check copy
     r = new FluidJavaRef.Builder(r).build();
@@ -96,7 +96,7 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getWorkspaceRelativePathOrNull());
+    assertNull(r.getAbsolutePathOrNull());
   }
 
   public void testDefaultPackage() {
@@ -174,9 +174,9 @@ public final class TestJavaRef extends TestCase {
     IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
     IFluidJavaRef r = new FluidJavaRef.Builder(decl).build();
     assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
-    assertNull(r.getWorkspaceRelativePathOrNull());
+    assertNull(r.getAbsolutePathOrNull());
 
-    r = new FluidJavaRef.Builder(decl).setWorkspaceRelativePath("prj/src/java/lang/Object.java").build();
-    assertEquals("prj/src/java/lang/Object.java", r.getWorkspaceRelativePathOrNull());
+    r = new FluidJavaRef.Builder(decl).setAbsolutePath("prj/src/java/lang/Object.java").build();
+    assertEquals("prj/src/java/lang/Object.java", r.getAbsolutePathOrNull());
   }
 }
