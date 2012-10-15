@@ -119,7 +119,7 @@ public final class SkeletonJavaRefUtility {
       final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
       b.setLineNumber(f_lineNumber);
-      b.setEclipseProjectName(f_resource.getProjectName());
+      b.setEclipseProjectName(f_resource.getJavaRefProjectName());
       final String jarRelativePath = f_resource.getJarRelativePath();
       b.setWithin(jarRelativePath == null ? Within.CLASS_FILE : Within.JAR_FILE);
       b.setAbsolutePath(f_resource.getAbsolutePath());
