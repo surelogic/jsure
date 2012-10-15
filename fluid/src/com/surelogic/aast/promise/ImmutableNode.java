@@ -6,8 +6,8 @@ import com.surelogic.aast.*;
 public final class ImmutableNode extends AbstractModifiedBooleanNode 
 { 	
   // Constructors
-  public ImmutableNode(int mods) {
-    super(mods);
+  public ImmutableNode(int mods, State state) {
+    super(mods, state);
   }
 
   @Override
@@ -22,7 +22,7 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ImmutableNode(mods);
+  	return new ImmutableNode(mods, staticPart);
   }
 }
 

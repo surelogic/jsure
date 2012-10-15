@@ -4,12 +4,19 @@ import com.surelogic.aast.java.NamedTypeNode;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
-public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
-	protected final int mods;
+public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {	
+	public static final String STATIC_PART = "staticPart";	
+	public static enum State {
+		Immutable, ThreadSafe, NotThreadSafe
+	}
 	
-	protected AbstractModifiedBooleanNode(int modifiers) {
+	protected final int mods;
+	protected final State staticPart;
+	
+	protected AbstractModifiedBooleanNode(int modifiers, State state) {
 		super();
 		mods = modifiers;
+		staticPart = state;
 	}
 
 	public final boolean getModifier(int modifier) {
@@ -70,7 +77,12 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	}	
 	
 	protected void unparseExtra(boolean debug, int indent, StringBuilder sb) {
-		// Nothing to do yet
+		if (staticPart != null) {
+			if (debug) {
+				sb.append(' ');
+			} 
+			sb.append(STATIC_PART).append('=').append(staticPart);			
+		}
 	}
 
 	/**
@@ -112,5 +124,9 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	
 	public final boolean allowReferenceObject() {
 		return getModifier(JavaNode.ALLOW_REF_OBJECT);
+	}
+	
+	public final State getStaticPart() {
+		return staticPart;
 	}
 }

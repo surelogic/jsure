@@ -18,7 +18,7 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   public AnnotationBoundsNode(NamedTypeNode[] containable, 
 		  NamedTypeNode[] immutable, NamedTypeNode[] reference,
 		  NamedTypeNode[] threadSafe, NamedTypeNode value[]) {
-    super(JavaNode.ALL_FALSE);
+    super(JavaNode.ALL_FALSE, null);
     this.containable = containable;
     this.immutable = immutable;
     this.reference = reference;

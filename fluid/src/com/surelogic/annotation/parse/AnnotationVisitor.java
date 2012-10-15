@@ -56,8 +56,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public static final String ALLOW_RETURN = "allowReturn";
   public static final String ALLOW_REF_OBJECT = "allowReferenceObject";
   public static final String ALLOW_READ = "allowRead";
+  
+  /** Properties */
   public static final String UPTO = "upTo";
-
+  
   static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 
   final boolean inEclipse = !IDE.getInstance().getClass().getSimpleName().startsWith("Javac");
