@@ -2,9 +2,9 @@ package com.surelogic.jsure.core.scripting;
 
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
+
 public class Util {
-  private static final String[] noTokens = new String[0];
-	
   /**
    * Splits the line into tokens based on delim
    * 
@@ -17,7 +17,7 @@ public class Util {
       l.add(st.nextToken());
     }
     if (l.isEmpty()) {
-      return noTokens;
+      return SLUtility.EMPTY_STRING_ARRAY;
     }
     return l.toArray(new String[l.size()]);
   }

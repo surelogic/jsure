@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.SLUtility;
+
 /**
  * The type of enumerations&mdash;
  * an enumeration type contains the representations of up to N
@@ -146,7 +148,7 @@ public class IREnumeratedType extends CachedType<IREnumeratedType.Element> imple
 
   private IREnumeratedType() {
     name = "special null enumeration";
-    names = new String[0];
+    names = SLUtility.EMPTY_STRING_ARRAY;
     reps = new Element[0];
   }
 

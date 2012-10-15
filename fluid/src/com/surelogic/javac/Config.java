@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.common.xml.XMLCreator;
@@ -93,7 +94,7 @@ public class Config extends AbstractClassPathEntry {
 	public String[] getListOption(String key) {
 		String l = (String) options.get(key);
 		if (l == null) {
-			return ToolProperties.noStrings;
+			return SLUtility.EMPTY_STRING_ARRAY;
 		}
 		return l.split("[ ,]+");
 	}

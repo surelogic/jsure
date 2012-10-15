@@ -23,6 +23,7 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -100,7 +101,7 @@ public class JcipRules extends AnnotationRules {
 			// Run this before Lock to create virtual declarations
 			// TODO group similar decls within a type?
 			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
-					new String[] { LockRules.LOCK }, noStrings) {
+					new String[] { LockRules.LOCK }, SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
 //					GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
