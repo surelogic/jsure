@@ -56,6 +56,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.Decl;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
@@ -1221,7 +1222,7 @@ public class Util {
   private static void testIDecls(CodeInfo info) {
 	  final DeclFactory factory = new DeclFactory(info.getTypeEnv().getBinder());
 	  for(IRNode n : JJNode.tree.topDown(info.getNode())) { // what about receivers/return values?
-		  Pair<IDecl, IDecl.Position> p = factory.getDeclAndPosition(n);
+		  Pair<IDecl, IJavaRef.Position> p = factory.getDeclAndPosition(n);
 		  if (p == null) {
 			  continue;
 		  }

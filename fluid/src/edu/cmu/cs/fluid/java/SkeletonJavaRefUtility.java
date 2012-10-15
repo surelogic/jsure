@@ -9,6 +9,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Within;
 import com.surelogic.javac.FileResource;
 import com.surelogic.javac.adapter.ClassResource;
@@ -21,8 +22,8 @@ public final class SkeletonJavaRefUtility {
 
   private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefSkeletonBuilder>();
 
-  public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber, int offset,
-      int length) {
+  public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber,
+      int offset, int length) {
     final JavaRefSourceBuilder b = new JavaRefSourceBuilder(factory, fileResource, lineNumber, offset, length);
     nodeToSkeleton.put(node, b);
   }
@@ -109,13 +110,13 @@ public final class SkeletonJavaRefUtility {
     }
 
     public IFluidJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
-      final Pair<IDecl, IDecl.Position> pair = f_factory.getDeclAndPosition(node);
+      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
       if (pair == null) {
         SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
         return null;
       }
       final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
-      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON);
+      b.setIsOnDeclaration(pair.second() == IJavaRef.Position.ON);
       b.setLineNumber(f_lineNumber);
       b.setEclipseProjectName(f_resource.getProjectName());
       final String jarRelativePath = f_resource.getJarRelativePath();
@@ -143,13 +144,13 @@ public final class SkeletonJavaRefUtility {
     }
 
     public IFluidJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
-      final Pair<IDecl, IDecl.Position> pair = f_factory.getDeclAndPosition(node);
+      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
       if (pair == null) {
         SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
         return null;
       }
       final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
-      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON);
+      b.setIsOnDeclaration(pair.second() == IJavaRef.Position.ON);
       b.setLineNumber(f_lineNumber);
       b.setOffset(f_offset);
       b.setLength(f_length);
