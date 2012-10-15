@@ -133,8 +133,8 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   private SlotInfo<IJavaRef> makeSrcRefSI(String name, IJavaRef defaultVal,
 		                                 StoredSlotInfo<IJavaRef,IJavaRef> backupSI) 
       throws SlotAlreadyRegisteredException {
-    return new NodeStoredSlotInfo<IJavaRef>(JavaNode.FLUID_JAVA_REF_SLOT_NAME, name, 
-    		JavaNode.FLUID_JAVA_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
+    return new NodeStoredSlotInfo<IJavaRef>(JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME, name, 
+    		JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
       @Override
       protected IJavaRef getSlot(SyntaxTreeNode n) {
         return n.srcRef;
@@ -232,7 +232,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         */
       }
     }
-    else if (type == JavaNode.FLUID_JAVA_REF_SLOT_TYPE && JavaNode.FLUID_JAVA_REF_SLOT_NAME.equals(name)) {
+    else if (type == JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE && JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME.equals(name)) {
     	IJavaRef def = undefined ? Constants.undefinedSrcRef : (IJavaRef) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<IJavaRef, IJavaRef>) backupSI);

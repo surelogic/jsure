@@ -410,14 +410,17 @@ public class JavaNode extends JJNode {
     return null;
   }
 
-  public static final IRObjectType<IJavaRef> FLUID_JAVA_REF_SLOT_TYPE = new IRObjectType<IJavaRef>();
-  public static final String FLUID_JAVA_REF_SLOT_NAME = "JavaNode.IJavaRef";
-
+  public interface Consts {
+	  public static final IRObjectType<IJavaRef> FLUID_JAVA_REF_SLOT_TYPE = new IRObjectType<IJavaRef>();
+	  public static final String FLUID_JAVA_REF_SLOT_NAME = "JavaNode.IJavaRef";
+  }
+  
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
-  private static final SlotInfo<IJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FLUID_JAVA_REF_SLOT_NAME,
-      FLUID_JAVA_REF_SLOT_TYPE);
+  private static final SlotInfo<IJavaRef> f_fluidJavaRefSlotInfo = 
+	  getVersionedSlotInfo(Consts.FLUID_JAVA_REF_SLOT_NAME,
+			  Consts.FLUID_JAVA_REF_SLOT_TYPE);
 
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java code
