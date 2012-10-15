@@ -465,7 +465,10 @@ public class JavaNode extends JJNode {
    * @return the code reference if the copy is successful, or {@code null} if
    *         the copy is unsuccessful.
    */
-  public static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
+  static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
+	if (src == null) {
+		throw new IllegalArgumentException();
+	}
     IFluidJavaRef ref = JavaNode.getFluidJavaRef(src);
     if (ref != null) {
       target.setSlotValue(f_fluidJavaRefSlotInfo, ref);

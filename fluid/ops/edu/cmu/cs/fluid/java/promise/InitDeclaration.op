@@ -16,7 +16,7 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     }	
     node = JavaPromise.makeJavaPromise(prototype);
     JavaPromise.setInitMethod(classNode,node);
-    JavaNode.copyFluidJavaRef(classNode, node);
+    SkeletonJavaRefUtility.copyIfPossible(classNode, node);
     return node;    
   }
   public Source getSource(IRNode node) {
