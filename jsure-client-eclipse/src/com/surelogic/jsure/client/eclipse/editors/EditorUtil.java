@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.editors;
 
-import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
@@ -15,12 +14,11 @@ public class EditorUtil {
    *          a location in Java code.
    */
   public static void highlightLineInJavaEditor(final IJavaRef javaRef) {
-	if (javaRef == null) {
-		return;
-	}
+    if (javaRef == null) 
+      return;
+    
     JDTUIUtility.tryToOpenInEditor(javaRef);
-    HistoricalSourceView.tryToOpenInEditor(javaRef.getPackageName(),
-        DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), javaRef.getLineNumber());
+    HistoricalSourceView.tryToOpenInEditor(javaRef);
   }
 
   /**

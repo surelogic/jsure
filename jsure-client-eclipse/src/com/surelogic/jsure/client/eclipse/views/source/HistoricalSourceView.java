@@ -13,6 +13,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.ISourceZipFileHandles;
+import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.Config;
@@ -81,6 +83,12 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 			};
 		}
 		return zips;
+	}
+	
+	public static void tryToOpenInEditor(final IJavaRef javaRef) {
+	  if (javaRef == null) return;
+	  tryToOpenInEditor(javaRef.getPackageName(),
+        DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), javaRef.getLineNumber());
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
