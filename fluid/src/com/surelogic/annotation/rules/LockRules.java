@@ -2161,6 +2161,7 @@ public class LockRules extends AnnotationRules {
       };
     }    
   }  
+  
   public static class ThreadSafe_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ThreadSafeNode,ThreadSafePromiseDrop> {
     public ThreadSafe_ParseRule() {
@@ -2168,7 +2169,17 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ThreadSafeNode(mods);
+      final String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
+  	  if (raw == null) {
+  		  context.reportError(offset, "No staticPart specified");
+		  return null;
+	  }
+  	  try {
+  		  return new ThreadSafeNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
+  	  } catch(IllegalArgumentException e) {
+  		  context.reportError(offset, "Unknown staticPart specified: "+raw);
+  		  return null;
+  	  }
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2215,7 +2226,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
             final int offset, final int mods, ThreadSafeNode orig) {
-          return new ThreadSafeNode(mods);
+          return new ThreadSafeNode(mods, orig.getStaticPart());
         }
 
         @Override
@@ -2342,7 +2353,17 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-    	  return new ImmutableNode(mods);
+          final String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
+      	  if (raw == null) {
+      		  context.reportError(offset, "No staticPart specified");
+    		  return null;
+    	  }
+      	  try {
+      		  return new ImmutableNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
+      	  } catch(IllegalArgumentException e) {
+      		  context.reportError(offset, "Unknown staticPart specified: "+raw);
+      		  return null;
+      	  }
       }
       return new ImmutableRefNode(offset);
     }
@@ -2371,7 +2392,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutableNode makeDerivedAnnotation(
             final int offset, final int mods, ImmutableNode orig) {
-          return new ImmutableNode(mods);
+          return new ImmutableNode(mods, orig.getStaticPart());
         }
 
         @Override

@@ -6,7 +6,7 @@ public final class ContainableNode extends AbstractModifiedBooleanNode
 { 	
   // Constructors
   public ContainableNode(int mods) {
-    super(mods);
+    super(mods, null);
   }
 
   @Override
