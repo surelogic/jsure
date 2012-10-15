@@ -439,6 +439,14 @@ public class JavaNode extends JJNode {
     return null;
   }
 
+  public static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
+	  IFluidJavaRef ref = JavaNode.getFluidJavaRef(src);
+	  if (ref != null) {
+		  target.setSlotValue(f_fluidJavaRefSlotInfo, ref);
+	  }
+	  return ref;
+  }
+  
   /**
    * Fluid IR slot to hold Javadoc annotations, via the
    * <code>&#064;annotate</code> tag.
