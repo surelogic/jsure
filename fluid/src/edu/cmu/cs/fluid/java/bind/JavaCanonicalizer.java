@@ -4,7 +4,12 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
+import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,24 +18,95 @@ import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.ir.IRLocation;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRRegion;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.JavaRefBinarySkeletonBuilder;
-import edu.cmu.cs.fluid.java.JavaRefSourceSkeletonBuilder;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.*;
-import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
+import edu.cmu.cs.fluid.java.operator.AddExpression;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
+import edu.cmu.cs.fluid.java.operator.Annotations;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayInitializer;
+import edu.cmu.cs.fluid.java.operator.ArrayLength;
+import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
+import edu.cmu.cs.fluid.java.operator.BlockStatement;
+import edu.cmu.cs.fluid.java.operator.BoxExpression;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.ExprStatement;
+import edu.cmu.cs.fluid.java.operator.Expression;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.ForEachStatement;
+import edu.cmu.cs.fluid.java.operator.ForStatement;
+import edu.cmu.cs.fluid.java.operator.IllegalCode;
+import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.IntType;
+import edu.cmu.cs.fluid.java.operator.LessThanExpression;
+import edu.cmu.cs.fluid.java.operator.MethodBody;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NameExpression;
+import edu.cmu.cs.fluid.java.operator.NameType;
+import edu.cmu.cs.fluid.java.operator.NamedType;
+import edu.cmu.cs.fluid.java.operator.NestedAnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
+import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedTypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.NonPolymorphicMethodCall;
+import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
+import edu.cmu.cs.fluid.java.operator.QualifiedName;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.SimpleName;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
+import edu.cmu.cs.fluid.java.operator.StringLiteral;
+import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.TypeActuals;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeExpression;
+import edu.cmu.cs.fluid.java.operator.TypeRef;
+import edu.cmu.cs.fluid.java.operator.UnboxExpression;
+import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
+import edu.cmu.cs.fluid.java.operator.VarArgsType;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.java.operator.Visitor;
+import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
+import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
+import edu.cmu.cs.fluid.java.operator.WildcardType;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.java.util.CogenUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTree;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedRegionDelta;
-import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
 /**
  * Convert a FAST that was parsed in from external sources into the canonical
@@ -173,13 +249,7 @@ public class JavaCanonicalizer {
 
   protected void replaceSubtree(IRNode orig, IRNode sub) {
     tree.replaceSubtree(orig, sub);
-    copySrcRef(orig, sub);
-  }
-
-  protected void copySrcRef(IRNode orig, IRNode sub) {
-    boolean success = JavaRefSourceSkeletonBuilder.copyRegistrationIfPossible(orig, sub);
-    if (!success)
-      JavaRefBinarySkeletonBuilder.copyRegistrationIfPossible(orig, sub);
+    SkeletonJavaRefUtility.copyIfPossible(orig, sub);
   }
 
   // To avoid binding problems, we can do analysis pre-order (before changes)
@@ -469,7 +539,9 @@ public class JavaCanonicalizer {
       } else {
         JavaNode.setImplicit(thisExpr);
       }
-      copySrcRef(from, thisExpr);
+      SkeletonJavaRefUtility.copyIfPossible(from, thisExpr);
+      SkeletonJavaRefUtility.copyIfPossible(from, thisExpr);
+
       return thisExpr;
     }
 
@@ -512,7 +584,7 @@ public class JavaCanonicalizer {
         }
       } finally {
         if (rv != null) {
-          copySrcRef(name, rv);
+          SkeletonJavaRefUtility.copyIfPossible(name, rv);
         }
       }
     }
@@ -531,7 +603,7 @@ public class JavaCanonicalizer {
         return createNamedType(DebugUnparser.toString(nameNode));
       }
       IRNode namedType = createNamedType(nameNode, b);
-      copySrcRef(namedType, nameNode);
+      SkeletonJavaRefUtility.copyIfPossible(namedType, nameNode);
       return namedType;
     }
 
@@ -983,13 +1055,13 @@ public class JavaCanonicalizer {
     private IRNode makeEquivWhileLoop(IRNode stmt, IRNode cond, IRNode paramInit) {
       // Combine parameter and original body into the new body of the while loop
       IRNode paramDecl = adaptParamDeclToDeclStatement(ForEachStatement.getVar(stmt), paramInit);
-      copySrcRef(stmt, paramDecl);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, paramDecl);
 
       IRNode origBody = ForEachStatement.getLoop(stmt);
       tree.removeSubtree(origBody);
       IRNode body = BlockStatement.createNode(new IRNode[] { paramDecl, origBody });
       IRNode whileLoop = edu.cmu.cs.fluid.java.operator.WhileStatement.createNode(cond, body);
-      copySrcRef(stmt, whileLoop);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, whileLoop);
       return whileLoop;
     }
 
@@ -1131,18 +1203,18 @@ public class JavaCanonicalizer {
 
       IRNode itCall = makeSimpleCall(collection, "iterator");// makeSimpleCall(iterable,
                                                              // "iterator");
-      copySrcRef(stmt, itCall);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, itCall);
 
       IRNode itDecl = makeDecl(JavaNode.FINAL, it, itCall, itType);
-      copySrcRef(stmt, itDecl);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, itDecl);
 
       // Create condition for while loop
       IRNode cond = makeSimpleCall(it, "hasNext");
-      copySrcRef(stmt, cond);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, cond);
 
       // Create initializer for parameter
       IRNode paramInit = makeSimpleCall(it, "next");
-      copySrcRef(stmt, paramInit);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, paramInit);
 
       /*
        * TODO is this necessary? // Introduce cast to the real type IRNode

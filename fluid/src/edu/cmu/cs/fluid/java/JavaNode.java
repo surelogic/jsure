@@ -430,7 +430,7 @@ public class JavaNode extends JJNode {
     if (node.valueExists(f_fluidJavaRefSlotInfo))
       return node.getSlotValue(f_fluidJavaRefSlotInfo);
     else {
-      final IFluidJavaRef javaRef = JavaRefSourceSkeletonBuilder.buildOrNullOnFailure(node);
+      final IFluidJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
       if (javaRef != null) {
         node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
         return javaRef;
@@ -439,14 +439,40 @@ public class JavaNode extends JJNode {
     return null;
   }
 
-  public static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
-	  IFluidJavaRef ref = JavaNode.getFluidJavaRef(src);
-	  if (ref != null) {
-		  target.setSlotValue(f_fluidJavaRefSlotInfo, ref);
-	  }
-	  return ref;
+  /**
+   * Gets if the passed node has a Java code reference information.
+   * 
+   * @param node
+   *          an IRNode which should have binding information.
+   * @return {@code true} if the passed node has a Java code reference
+   *         information, {@code false} otherwise.
+   */
+  public static boolean hasFluidJavaRef(IRNode node) {
+    if (node == null)
+      return false;
+    return node.valueExists(f_fluidJavaRefSlotInfo);
   }
-  
+
+  /**
+   * Attempts to copy the Java code reference from one node to another. It
+   * returns the code reference if the copy is successful, or {@code null} if
+   * the copy is unsuccessful.
+   * 
+   * @param src
+   *          the node to copy from.
+   * @param target
+   *          the node to copy to.
+   * @return the code reference if the copy is successful, or {@code null} if
+   *         the copy is unsuccessful.
+   */
+  public static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
+    IFluidJavaRef ref = JavaNode.getFluidJavaRef(src);
+    if (ref != null) {
+      target.setSlotValue(f_fluidJavaRefSlotInfo, ref);
+    }
+    return ref;
+  }
+
   /**
    * Fluid IR slot to hold Javadoc annotations, via the
    * <code>&#064;annotate</code> tag.

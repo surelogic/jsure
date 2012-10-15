@@ -93,7 +93,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
-import edu.cmu.cs.fluid.java.JavaRefSourceSkeletonBuilder;
+import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -276,7 +276,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   private void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
-    if (JavaRefSourceSkeletonBuilder.hasRegistered(result))
+    if (SkeletonJavaRefUtility.hasRegistered(result))
       return;
 
     long start = source.getStartPosition(root, t);
@@ -295,7 +295,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     /*
      * save skeletion JavaRef
      */
-    JavaRefSourceSkeletonBuilder.register(declFactory, result, cuRef, (int) line, (int) start, (int) (end - start));
+    SkeletonJavaRefUtility.registerSourceLocation(declFactory, result, cuRef, (int) line, (int) start, (int) (end - start));
   }
 
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment) {
