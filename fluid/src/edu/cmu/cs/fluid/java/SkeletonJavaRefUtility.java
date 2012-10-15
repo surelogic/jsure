@@ -115,7 +115,7 @@ public final class SkeletonJavaRefUtility {
         return null;
       }
       final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
-      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON_DECL);
+      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON);
       b.setLineNumber(f_lineNumber);
       b.setEclipseProjectName(f_resource.getProjectName());
       final String jarRelativePath = f_resource.getJarRelativePath();
@@ -149,7 +149,7 @@ public final class SkeletonJavaRefUtility {
         return null;
       }
       final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
-      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON_DECL);
+      b.setIsOnDeclaration(pair.second() == IDecl.Position.ON);
       b.setLineNumber(f_lineNumber);
       b.setOffset(f_offset);
       b.setLength(f_length);
