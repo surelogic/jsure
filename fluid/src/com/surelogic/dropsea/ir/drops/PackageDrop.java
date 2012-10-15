@@ -162,14 +162,14 @@ public final class PackageDrop extends CUDrop {
       } else {
         n = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), name);
       }
-     // JavaNode.setSrcRef(n, makeSrcRef(proj, name));
-      LOG.fine("Creating IR for package " + name);
-
       // Just to make it into a complete CU
       IRNode imports = ImportDeclarations.createNode(noNodes);
       IRNode types = TypeDeclarations.createNode(noNodes);
       root = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
       JavaProjects.setProject(root, proj);
+            
+      JavaNode.makeFluidJavaRefForPackage(proj, n);
+      LOG.fine("Creating IR for package " + name);
     } else {
       n = CompilationUnit.getPkg(root);
       if (NamedPackageDeclaration.prototype.includes(n)) {
@@ -200,10 +200,6 @@ public final class PackageDrop extends CUDrop {
       NAME_TO_INSTANCE.put(id, pkg);
     }
     return pkg;
-  }
-
-  private static ISrcRef makeSrcRef(IIRProject proj, String name) {
-    return new NamedSrcRef(proj.getName(), name, name, name);
   }
 
   public static PackageDrop findPackage(String name) {

@@ -12,8 +12,10 @@ import java.util.logging.Logger;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.tree.SyntaxTreeNode;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -30,6 +32,7 @@ import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
+import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IROperatorType;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -453,6 +456,13 @@ public class JavaNode extends JJNode {
     return node.valueExists(f_fluidJavaRefSlotInfo);
   }
 
+  public static void makeFluidJavaRefForPackage(IIRProject proj, IRNode pkg) {
+	  DeclFactory f = new DeclFactory(proj.getTypeEnv().getBinder());
+	  IDecl decl = f.getDeclAndPosition(pkg).first();
+	  pkg.setSlotValue(f_fluidJavaRefSlotInfo, 
+			  new FluidJavaRef.Builder(decl).setEclipseProjectName(proj.getName()).build());
+  }
+  
   /**
    * Attempts to copy the Java code reference from one node to another. It
    * returns the code reference if the copy is successful, or {@code null} if

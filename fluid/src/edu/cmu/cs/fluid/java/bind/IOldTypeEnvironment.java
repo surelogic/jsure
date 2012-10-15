@@ -160,12 +160,14 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       // Make sure length is final
       JavaNode.setModifier(privateLengthField, JavaNode.FINAL, true);      
       
-//      final ISrcRef ref = 
-//    	  new NamedSrcRef(project, PromiseConstants.ARRAY_CLASS_QNAME, "java.lang", 
-//    			          PromiseConstants.ARRAY_CLASS_NAME);
-//      JavaNode.setSrcRef(privateCloneMethod, ref);
-//      JavaNode.setSrcRef(privateLengthField, ref);
-//      JavaNode.setSrcRef(privateArrayType, ref);
+      /* Not needed since this doesn't officially exist
+      final ISrcRef ref = 
+    	  new NamedSrcRef(project, PromiseConstants.ARRAY_CLASS_QNAME, "java.lang", 
+    			          PromiseConstants.ARRAY_CLASS_NAME);
+      JavaNode.setSrcRef(privateCloneMethod, ref);
+      JavaNode.setSrcRef(privateLengthField, ref);
+      JavaNode.setSrcRef(privateArrayType, ref);
+      */
       
       //privateArrayType.setSlotValue(qnameSI, "<array superclass>");  
       //System.out.println("arrayType = "+arrayType);

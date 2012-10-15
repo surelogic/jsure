@@ -5,6 +5,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_DROP;
@@ -28,6 +29,7 @@ import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -482,12 +484,22 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     s.addAttribute(ORIGIN, getOrigin().toString());
     s.addAttribute(TARGET_PROJECT, getTargetProjectName());
     s.addAttribute(FROM_PROJECT, getFromProjectName());
+    
+    final IJavaRef declRef = JavaNode.getFluidJavaRef(getAssumptionNode());
+    final IJavaRef assumeRef = getAssumptionRef();    
+    final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null ?
+    		// TODO to change enum?
+    		new JavaRef.Builder(assumeRef).setDeclaration(declRef.getDeclaration()).build() : 
+    		assumeRef;
+    if (javaRef != null) {
+    	final String encodedJavaRef = javaRef.encodeForPersistence();
+    	s.addAttribute(FROM_REF, encodedJavaRef);
+    }
   }
 
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    // s.addSrcRef(db, getAssumptionNode(), getAssumptionRefOLD(), FROM_REF);
     s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
     s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
     s.addProperties(db, ANNO_ATTRS, f_attrs);

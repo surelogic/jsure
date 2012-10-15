@@ -9,7 +9,6 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -42,11 +41,7 @@ public class JavaRewrite implements JavaGlobals {
     added.add(n);
     JavaNode.setImplicit(n);
     IRNode decl = VisitUtil.getClosestDecl(parent);
-    // ISrcRef ref = JavaNode.getSrcRef(decl);
-    // if (ref != null) {
-    // //System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
-    // JavaNode.setSrcRef(n, ref);
-    // }
+    SkeletonJavaRefUtility.copyIfPossible(decl, n);
     /*
      * boolean found = false; for(IRNode c : JJNode.tree.children(parent)) { if
      * (c == n) { found = true; break; } } if (!found) {
@@ -189,107 +184,92 @@ public class JavaRewrite implements JavaGlobals {
       }
     }
 
-  //  changed |= addSrcRefs();
+    changed |= addSrcRefs();
     return changed;
   }
 
-//  private boolean addSrcRefs() {
-//    final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
-//
-//    // Post-process nodes to generate a SrcRef?
-//    for (IRNode n : added) {
-//      Operator op = jtree.getOperator(n);
-//
-//      // Assuming inserted at the front of any siblings
-//      if (op instanceof ConstructorDeclaration || op instanceof ExprStatement)// ConstructorCall)
-//      {
-//        // System.out.println("Looking at "+DebugUnparser.toString(n));
-//        IRNode p = jtree.getParentOrNull(n);
-//        final int ni;
-//        try {
-//          ni = jtree.childLocationIndex(p, jtree.getLocation(n));
-//        } catch (IndexOutOfBoundsException e) {
-//          LOG.log(Level.WARNING, "Unable to find node " + DebugUnparser.toString(n) + " in parent: " + DebugUnparser.toString(p));
-//          continue;
-//        }
-//        assert (ni == 0);
-//
-//        ISrcRef pRef = null;
-//        if (pRef == null) {
-//          // try next sibling
-//          int sib = ni + 1;
-//          if (sib < jtree.numChildren(p)) {
-//            pRef = JavaNode.getSrcRef(jtree.getChild(p, sib));
-//            if (LOG.isLoggable(Level.FINE))
-//              LOG.fine("Created src ref from next sibling: " + op);
-//          }
-//        }
-//        if (pRef == null) {
-//          // try the parent
-//          pRef = JavaNode.getSrcRef(p);
-//        }
-//        for (int i = 2; pRef == null; i++) {
-//          // try ancestors
-//          p = jtree.getParentOrNull(p);
-//          if (p != null) {
-//            pRef = JavaNode.getSrcRef(p);
-//            if (pRef != null) {
-//              if (LOG.isLoggable(Level.FINE))
-//                LOG.fine("Created src ref from ancestors " + i + " gens up: " + op);
-//            }
-//          } else {
-//            break; // no more ancestors to look at
-//          }
-//        }
-//
-//        if (pRef == null) {
-//          // Couldn't find an ancestor
-//          IRNode context = null;
-//          if (op instanceof ExprStatement) {// ConstructorCall) {
-//            context = VisitUtil.getEnclosingClassBodyDecl(n);
-//          } else {
-//            // usually because the new constructor decl is from a
-//            // type binding
-//            context = VisitUtil.getEnclosingType(n);
-//          }
-//          if (fineIsLoggable) {
-//            LOG.fine("Could not find a src ref to make the dummy for " + op + " out of: " + DebugUnparser.toString(context));
-//          }
-//          continue; // skip
-//        }
-//
-//        ISrcRef ref = makeDummyRef(pRef, true);
-//        markSubtree(n, ref);
-//      } else if (op instanceof MethodDeclaration) {
-//        IRNode p = jtree.getParentOrNull(n);
-//        ISrcRef pRef = JavaNode.getSrcRef(p);
-//        JavaNode.setSrcRef(n, pRef);
-//      } else {
-//        LOG.severe("Unexpected AST nodes: " + op);
-//      }
-//    }
-//    final boolean changed = !added.isEmpty();
-//    added.clear();
-//    return changed;
-//  }
+  private boolean addSrcRefs() {
+    final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
 
-  /**
-   * Generates a 0-length source ref for the start or end of an existing one
-   */
-  private ISrcRef makeDummyRef(ISrcRef ref, boolean useStart) {
-    int offset = ref.getOffset();
-    if (!useStart && ref.getLength() > 0) {
-      offset += (ref.getLength() - 1);
+    // Post-process nodes to generate a SrcRef?
+    for (IRNode n : added) {
+      Operator op = jtree.getOperator(n);
+
+      // Assuming inserted at the front of any siblings
+      if (op instanceof ConstructorDeclaration || op instanceof ExprStatement)// ConstructorCall)
+      {
+        // System.out.println("Looking at "+DebugUnparser.toString(n));
+        final IRNode p = jtree.getParentOrNull(n);
+        final int ni;
+        try {
+          ni = jtree.childLocationIndex(p, jtree.getLocation(n));
+        } catch (IndexOutOfBoundsException e) {
+          LOG.log(Level.WARNING, "Unable to find node " + DebugUnparser.toString(n) + " in parent: " + DebugUnparser.toString(p));
+          continue;
+        }
+        assert (ni == 0);
+
+        IRNode contextRef = null;
+        if (contextRef == null) {
+          // try next sibling
+          int sib = ni + 1;
+          if (sib < jtree.numChildren(p)) {
+        	  final IRNode sibling = jtree.getChild(p, sib);
+        	  if (SkeletonJavaRefUtility.hasRegistered(sibling)) {
+        		  contextRef = sibling;
+        	  }
+        	  if (LOG.isLoggable(Level.FINE))
+        		  LOG.fine("Created src ref from next sibling: " + op);
+          }
+        }
+        IRNode ancestor = p;
+        for (int i = 1; ancestor != null; i++) {
+        	// try ancestors
+        	if (SkeletonJavaRefUtility.hasRegistered(ancestor)) {
+        		contextRef = ancestor;
+        		break;
+        	}
+        	ancestor = jtree.getParentOrNull(ancestor);
+
+        	if (contextRef != null) {
+        		if (LOG.isLoggable(Level.FINE))
+        			LOG.fine("Created src ref from ancestors " + i + " gens up: " + op);
+        	}
+        }
+
+        if (contextRef == null) {
+          // Couldn't find an ancestor
+          IRNode context = null;
+          if (op instanceof ExprStatement) {// ConstructorCall) {
+            context = VisitUtil.getEnclosingClassBodyDecl(n);
+          } else {
+            // usually because the new constructor decl is from a
+            // type binding
+            context = VisitUtil.getEnclosingType(n);
+          }
+          if (fineIsLoggable) {
+            LOG.fine("Could not find a src ref to make the dummy for " + op + " out of: " + DebugUnparser.toString(context));
+          }
+          continue; // skip
+        }
+        copyRefToSubtree(contextRef, n);
+      } else if (op instanceof MethodDeclaration) {
+        IRNode p = jtree.getParentOrNull(n);
+        SkeletonJavaRefUtility.copyIfPossible(p, n);
+      } else {
+        LOG.severe("Unexpected AST nodes: " + op);
+      }
     }
-    ISrcRef result = ref.createSrcRef(offset);
-    return result;
+    final boolean changed = !added.isEmpty();
+    added.clear();
+    return changed;
   }
 
-  private void markSubtree(final IRNode n, final ISrcRef ref) {
-    Iterator<IRNode> enm = jtree.topDown(n);
+  private void copyRefToSubtree(final IRNode src, final IRNode targetRoot) {
+    Iterator<IRNode> enm = jtree.topDown(targetRoot);
     while (enm.hasNext()) {
       IRNode node = enm.next();
-      //JavaNode.setSrcRef(node, ref);
+      SkeletonJavaRefUtility.copyIfPossible(src, node);
     }
   }
 
