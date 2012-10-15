@@ -68,8 +68,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
     }
 
     @Override
-    public Builder setIsOnDeclaration(boolean value) {
-      super.setIsOnDeclaration(value);
+    public Builder setPositionRelativeToDeclaration(Position value) {
+      super.setPositionRelativeToDeclaration(value);
       return this;
     }
 
@@ -121,8 +121,8 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
     @Override
     public IFluidJavaRef build() {
-      return new FluidJavaRef(f_within, f_declaration, f_isOnDeclaration, f_eclipseProjectName, f_lineNumber, f_offset, f_length,
-          f_javaId, f_enclosingJavaId, f_workspaceRelativePath, f_jarRelativePath);
+      return new FluidJavaRef(f_within, f_declaration, f_positionRelativeToDeclaration, f_eclipseProjectName, f_lineNumber,
+          f_offset, f_length, f_javaId, f_enclosingJavaId, f_workspaceRelativePath, f_jarRelativePath);
     }
 
     @Override
@@ -137,11 +137,11 @@ public final class FluidJavaRef extends JavaRef implements IFluidJavaRef {
 
   }
 
-  protected FluidJavaRef(final @NonNull Within within, final @NonNull IDecl declaration, boolean isOnDeclaration,
-      final @NonNull String eclipseProjectNameOrNull, final int lineNumber, final int offset, final int length,
-      final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
+  protected FluidJavaRef(final @NonNull Within within, final @NonNull IDecl declaration,
+      @NonNull Position positionRelativeToDeclaration, final @NonNull String eclipseProjectNameOrNull, final int lineNumber,
+      final int offset, final int length, final @Nullable String javaIdOrNull, final @Nullable String enclosingJavaIdOrNull,
       final @Nullable String workspaceRelativePathOrNull, final @Nullable String jarRelativePathOrNull) {
-    super(within, declaration, isOnDeclaration, eclipseProjectNameOrNull, lineNumber, offset, length, javaIdOrNull,
+    super(within, declaration, positionRelativeToDeclaration, eclipseProjectNameOrNull, lineNumber, offset, length, javaIdOrNull,
         enclosingJavaIdOrNull);
     f_workspaceRelativePath = workspaceRelativePathOrNull;
     f_jarRelativePath = jarRelativePathOrNull;
