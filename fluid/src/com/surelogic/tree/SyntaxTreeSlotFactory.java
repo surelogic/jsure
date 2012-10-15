@@ -1,6 +1,8 @@
 /*$Header$*/
 package com.surelogic.tree;
 
+import com.surelogic.common.ref.IJavaRef;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.tree.*;
@@ -31,8 +33,8 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   private final Storage<IRSequence<IRNode>> seqStorage = 
     new Storage<IRSequence<IRNode>>(this, Constants.undefinedSequence);
   
-  private final Storage<ISrcRef> srcRefStorage = 
-    new Storage<ISrcRef>(this, Constants.undefinedSrcRef);
+  private final Storage<IJavaRef> srcRefStorage = 
+    new Storage<IJavaRef>(this, Constants.undefinedSrcRef);
 
   private final Storage<IRNode> nodeStorage = 
 	    new Storage<IRNode>(this, Constants.undefinedNode);
@@ -128,17 +130,18 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     };
   }
   
-  private SlotInfo<ISrcRef> makeSrcRefSI(String name, ISrcRef defaultVal,
-		                                 StoredSlotInfo<ISrcRef,ISrcRef> backupSI) 
+  private SlotInfo<IJavaRef> makeSrcRefSI(String name, IJavaRef defaultVal,
+		                                 StoredSlotInfo<IJavaRef,IJavaRef> backupSI) 
       throws SlotAlreadyRegisteredException {
-    return new NodeStoredSlotInfo<ISrcRef>(ISrcRef.SRC_REF_SLOT_NAME, name, ISrcRef.SRC_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
+    return new NodeStoredSlotInfo<IJavaRef>(JavaNode.FLUID_JAVA_REF_SLOT_NAME, name, 
+    		JavaNode.FLUID_JAVA_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
       @Override
-      protected ISrcRef getSlot(SyntaxTreeNode n) {
+      protected IJavaRef getSlot(SyntaxTreeNode n) {
         return n.srcRef;
       }
 
       @Override
-      protected void setSlot(SyntaxTreeNode n, ISrcRef slotState) {
+      protected void setSlot(SyntaxTreeNode n, IJavaRef slotState) {
         n.srcRef = slotState;
       }
     };
@@ -229,10 +232,10 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         */
       }
     }
-    else if (type == ISrcRef.SRC_REF_SLOT_TYPE && ISrcRef.SRC_REF_SLOT_NAME.equals(name)) {
-    	ISrcRef def = undefined ? Constants.undefinedSrcRef : (ISrcRef) defaultValue;
+    else if (type == JavaNode.FLUID_JAVA_REF_SLOT_TYPE && JavaNode.FLUID_JAVA_REF_SLOT_NAME.equals(name)) {
+    	IJavaRef def = undefined ? Constants.undefinedSrcRef : (IJavaRef) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
-    	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<ISrcRef, ISrcRef>) backupSI);
+    	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<IJavaRef, IJavaRef>) backupSI);
     }
     else if (type instanceof IRStringType && infoName.equals(name)) {
     	String def = undefined ? Constants.undefinedString : (String) defaultValue;

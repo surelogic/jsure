@@ -8,9 +8,6 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractSLView;
-import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
-
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * Various code that's proven handy in JSure views
@@ -18,18 +15,6 @@ import edu.cmu.cs.fluid.java.ISrcRef;
  * @author Edwin
  */
 public abstract class AbstractJSureView extends AbstractSLView {
-
-	/**
-	 * Open and highlight a line within the Java editor, if possible. Otherwise,
-	 * try to open as a text file
-	 * 
-	 * @param srcRef
-	 *            the source reference to highlight
-	 */
-	protected final void highlightLineInJavaEditor(ISrcRef srcRef) {
-		EditorUtil.highlightLineInJavaEditor(srcRef);
-	}
-
 	/**
 	 * Gets a cached image with an optional conflict (warning) decorator.
 	 * 

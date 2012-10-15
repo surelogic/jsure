@@ -1,24 +1,15 @@
 package com.surelogic.dropsea.irfree;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.LINE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PATH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.URI_ATTR;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
  * Really a JSure-specific XML creator
@@ -94,25 +85,25 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 //    }
 //  }
 
-  protected void addLocation(Builder b, ISrcRef ref) {
-    if (ref.getOffset() > 0) {
-      b.addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-    }
-    if (ref.getLength() > 0) {
-      b.addAttribute(LENGTH_ATTR, (long) ref.getLength());
-    }
-    b.addAttribute(LINE_ATTR, (long) ref.getLineNumber());
-    String path = ref.getRelativePath();
-    if (path != null) {
-      b.addAttribute(PATH_ATTR, path);
-    }
-    URI loc = ref.getEnclosingURI();
-    if (loc != null) {
-      b.addAttribute(URI_ATTR, loc.toString());
-    }
-    Object o = ref.getEnclosingFile();
-    if (o != null) {
-      b.addAttribute(FILE_ATTR, o.toString());
-    }
-  }
+//  protected void addLocation(Builder b, ISrcRef ref) {
+//    if (ref.getOffset() > 0) {
+//      b.addAttribute(OFFSET_ATTR, (long) ref.getOffset());
+//    }
+//    if (ref.getLength() > 0) {
+//      b.addAttribute(LENGTH_ATTR, (long) ref.getLength());
+//    }
+//    b.addAttribute(LINE_ATTR, (long) ref.getLineNumber());
+//    String path = ref.getRelativePath();
+//    if (path != null) {
+//      b.addAttribute(PATH_ATTR, path);
+//    }
+//    URI loc = ref.getEnclosingURI();
+//    if (loc != null) {
+//      b.addAttribute(URI_ATTR, loc.toString());
+//    }
+//    Object o = ref.getEnclosingFile();
+//    if (o != null) {
+//      b.addAttribute(FILE_ATTR, o.toString());
+//    }
+//  }
 }

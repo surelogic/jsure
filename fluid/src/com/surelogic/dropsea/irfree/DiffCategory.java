@@ -17,8 +17,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
 	final K key;
 	final Set<DiffNode> old = new HashSet<DiffNode>();
@@ -183,14 +181,14 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 	      });
 	      return l;
 	}
-	
+	/*
 	static int getOffset(ISrcRef ref) {
 		if (ref == null) {
 			return -1;
 		}
 		return ref.getOffset();
 	}
-	
+	*/
 	private static String toString(DiffNode n) {
 		IDrop d = n.drop;
 		IJavaRef ref = d.getJavaRef();

@@ -14,8 +14,6 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 final class ProblemsViewContentProvider extends AbstractResultsTableContentProvider<IModelingProblemDrop> {
 
   ProblemsViewContentProvider() {

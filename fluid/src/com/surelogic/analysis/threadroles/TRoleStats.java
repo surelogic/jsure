@@ -22,8 +22,6 @@ import com.surelogic.dropsea.ir.drops.threadroles.TRoleReqSummaryDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoleRequireDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoleRevokeDrop;
 
-import edu.cmu.cs.fluid.java.ISrcRef;
-
 /**
  * @author dfsuther
  * 

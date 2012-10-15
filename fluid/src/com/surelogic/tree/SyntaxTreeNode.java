@@ -3,11 +3,15 @@ package com.surelogic.tree;
 
 import java.util.*;
 
+import com.surelogic.common.ref.IJavaRef;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.tree.*;
 
 public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
+  private static final long serialVersionUID = 1L;
+
   /**
    * These will either be initialized by JavaNode, or null
    */
@@ -15,7 +19,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   IRNode parent; 
   IRLocation loc; 
   Operator op;
-  ISrcRef srcRef; // Added for free on x86, due to rounding for cache line alignment
+  IJavaRef srcRef; // Added for free on x86, due to rounding for cache line alignment
   String info;
   Integer modifiers;  // Added on x64, more to avoid lock contention
   

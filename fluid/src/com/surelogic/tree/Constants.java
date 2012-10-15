@@ -1,6 +1,8 @@
 /*$Header$*/
 package com.surelogic.tree;
 
+import com.surelogic.common.ref.IJavaRef;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
@@ -28,7 +30,7 @@ class Constants {
       throw new NotImplemented();
     }
   };
-  static final ISrcRef undefinedSrcRef = DummySrcRef.undefined;
+  static final IJavaRef undefinedSrcRef = null;
   static final String undefinedString = new String();
   static final Integer undefinedInteger = new Integer(JavaNode.ILLEGAL_MOD);
 }
