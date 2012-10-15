@@ -607,7 +607,7 @@ public class ScanSummaryView extends AbstractSLView implements
 		}
 		final IAxisSet axisSet = summaryChart.getAxisSet();
 		final IAxis xAxis = axisSet.getXAxis(0);
-		xAxis.setCategorySeries(xLabels.toArray(new String[0]));
+		xAxis.setCategorySeries(xLabels.toArray(new String[xLabels.size()]));
 		xAxis.enableCategory(true);
 		xAxis.getTitle().setVisible(false);
 

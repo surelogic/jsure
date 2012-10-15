@@ -3,6 +3,7 @@ package com.surelogic.refactor;
 
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.refactor.*;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -83,13 +84,11 @@ public class IRNodeUtil {
 			return new TypeContext((TypeContext) parent, JJNode
 					.getInfoOrNull(decl));
 		} else if (InitDeclaration.prototype.includes(op)) {
-			return new Method((TypeContext) parent, "<init>", noStrings, true);
+			return new Method((TypeContext) parent, "<init>", SLUtility.EMPTY_STRING_ARRAY, true);
 		}
 		return parent;
 	}
 
-	private static final String[] noStrings = new String[0];
-	
 	private static String[] getParamTypes(final IBinder binder,
 			final IRNode params) {
 		final List<String> names = new ArrayList<String>();

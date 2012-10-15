@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -578,10 +579,8 @@ public class Project {
           isInASavedEra((Version)key) == false)
         result.add(version2nameTable.get(key));
     }
-    return result.toArray(noStrings);
+    return result.toArray(SLUtility.EMPTY_STRING_ARRAY);
   }
-  
-  private static final String[] noStrings = new String[0];
   
   /** Associate this version with the given name.
    *  Breaks any other previous association for this name.

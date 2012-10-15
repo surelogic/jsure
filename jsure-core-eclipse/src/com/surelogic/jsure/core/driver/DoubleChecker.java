@@ -13,6 +13,7 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
@@ -312,7 +313,7 @@ public class DoubleChecker implements IAnalysisContainer {
 			}			
 			@Override
 			public String[] getPrerequisiteIds() {
-				return new String[0];
+				return SLUtility.EMPTY_STRING_ARRAY;
 			}			
 			@Override
 			public String getLabel() {

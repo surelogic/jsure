@@ -45,6 +45,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
@@ -207,7 +208,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE, noStrings,
+      return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE, SLUtility.EMPTY_STRING_ARRAY,
           ScrubberOrder.FIRST) {
         final PromiseFramework frame = PromiseFramework.getInstance();
         Set<IRNode> bindings = null;
@@ -281,7 +282,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED, noStrings,
+      return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED, SLUtility.EMPTY_STRING_ARRAY,
           ScrubberOrder.FIRST) {
         @Override
         protected boolean customScrub(ScopedPromiseNode a) {
