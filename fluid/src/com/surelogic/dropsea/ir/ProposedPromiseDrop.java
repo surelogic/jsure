@@ -301,10 +301,10 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   }
 
   public IJavaRef getAssumptionRef() {
-    final IJavaRef ref = JavaNode.getFluidJavaRef(f_requestedFrom);
+    final IJavaRef ref = JavaNode.getJavaRef(f_requestedFrom);
     if (ref == null) {
       final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
-      return JavaNode.getFluidJavaRef(parent);
+      return JavaNode.getJavaRef(parent);
     }
     return ref;
   }
@@ -485,7 +485,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     s.addAttribute(TARGET_PROJECT, getTargetProjectName());
     s.addAttribute(FROM_PROJECT, getFromProjectName());
     
-    final IJavaRef declRef = JavaNode.getFluidJavaRef(getAssumptionNode());
+    final IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
     final IJavaRef assumeRef = getAssumptionRef();    
     final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null ?
     		// TODO to change enum?

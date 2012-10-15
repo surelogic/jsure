@@ -11,6 +11,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Within;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.javac.FileResource;
 import com.surelogic.javac.adapter.ClassResource;
 
@@ -45,7 +46,7 @@ public final class SkeletonJavaRefUtility {
    * @return a valid Java code reference, or {@code null} if one could not be
    *         constructed.
    */
-  static IFluidJavaRef buildOrNullOnFailure(IRNode node) {
+  static IJavaRef buildOrNullOnFailure(IRNode node) {
     final JavaRefSkeletonBuilder sb = nodeToSkeleton.get(node);
     if (sb != null) {
       nodeToSkeleton.remove(node);
@@ -91,11 +92,11 @@ public final class SkeletonJavaRefUtility {
    *         {@code false} otherwise.
    */
   public static boolean hasRegistered(IRNode node) {
-    return nodeToSkeleton.containsKey(node) || JavaNode.hasFluidJavaRef(node);
+    return nodeToSkeleton.containsKey(node) || JavaNode.hasJavaRef(node);
   }
 
   interface JavaRefSkeletonBuilder {
-    IFluidJavaRef buildOrNullOnFailure(@NonNull IRNode node);
+    IJavaRef buildOrNullOnFailure(@NonNull IRNode node);
   }
 
   static final class JavaRefBinaryBuilder implements JavaRefSkeletonBuilder {
@@ -109,13 +110,13 @@ public final class SkeletonJavaRefUtility {
       f_lineNumber = lineNumber;
     }
 
-    public IFluidJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+    public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
       final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
       if (pair == null) {
         SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
         return null;
       }
-      final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
+      final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
       b.setLineNumber(f_lineNumber);
       b.setEclipseProjectName(f_resource.getProjectName());
@@ -143,13 +144,13 @@ public final class SkeletonJavaRefUtility {
       f_length = length;
     }
 
-    public IFluidJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+    public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
       final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
       if (pair == null) {
         SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
         return null;
       }
-      final FluidJavaRef.Builder b = new FluidJavaRef.Builder(pair.first());
+      final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
       b.setLineNumber(f_lineNumber);
       b.setOffset(f_offset);

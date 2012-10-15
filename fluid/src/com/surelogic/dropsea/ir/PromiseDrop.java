@@ -23,6 +23,8 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
@@ -31,8 +33,6 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.FluidJavaRef;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -413,9 +413,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @Nullable
-  public IFluidJavaRef getJavaRef() {
-    final IFluidJavaRef contextRef = JavaNode.getFluidJavaRef(f_aast.getAnnoContext());
-    final IFluidJavaRef javaRef = contextRef != null ? contextRef : super.getJavaRef();
+  public IJavaRef getJavaRef() {
+    final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
+    final IJavaRef javaRef = contextRef != null ? contextRef : super.getJavaRef();
     if (javaRef == null)
       return null;
 
@@ -430,7 +430,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       offset = javaRef.getOffset();
       length = javaRef.getLength();
     }
-    return new FluidJavaRef.Builder(javaRef).setLength(length).setOffset(offset).setJavaId(javaId).build();
+    return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).setJavaId(javaId).build();
 
   }
 

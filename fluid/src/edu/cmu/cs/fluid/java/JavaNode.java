@@ -16,6 +16,8 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.tree.SyntaxTreeNode;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -24,6 +26,7 @@ import edu.cmu.cs.fluid.ir.ConstantSlotFactory;
 import edu.cmu.cs.fluid.ir.IRIntegerType;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeType;
+import edu.cmu.cs.fluid.ir.IRObjectType;
 import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRStringType;
 import edu.cmu.cs.fluid.ir.IRType;
@@ -407,11 +410,14 @@ public class JavaNode extends JJNode {
     return null;
   }
 
+  static final IRObjectType<IJavaRef> FLUID_JAVA_REF_SLOT_TYPE = new IRObjectType<IJavaRef>();
+  static final String FLUID_JAVA_REF_SLOT_NAME = "JavaNode.IJavaRef";
+
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
-  private static final SlotInfo<IFluidJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FluidJavaRef.FLUID_JAVA_REF_SLOT_NAME,
-      FluidJavaRef.FLUID_JAVA_REF_SLOT_TYPE);
+  private static final SlotInfo<IJavaRef> f_fluidJavaRefSlotInfo = getVersionedSlotInfo(FLUID_JAVA_REF_SLOT_NAME,
+      FLUID_JAVA_REF_SLOT_TYPE);
 
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java code
@@ -426,14 +432,14 @@ public class JavaNode extends JJNode {
    * @return a Java code reference, or {@code null} if none exists.
    */
   @Nullable
-  public static IFluidJavaRef getFluidJavaRef(IRNode node) {
+  public static IJavaRef getJavaRef(IRNode node) {
     if (node == null) {
       return null;
     }
     if (node.valueExists(f_fluidJavaRefSlotInfo))
       return node.getSlotValue(f_fluidJavaRefSlotInfo);
     else {
-      final IFluidJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
+      final IJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
       if (javaRef != null) {
         node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
         return javaRef;
@@ -450,19 +456,18 @@ public class JavaNode extends JJNode {
    * @return {@code true} if the passed node has a Java code reference
    *         information, {@code false} otherwise.
    */
-  public static boolean hasFluidJavaRef(IRNode node) {
+  public static boolean hasJavaRef(IRNode node) {
     if (node == null)
       return false;
     return node.valueExists(f_fluidJavaRefSlotInfo);
   }
 
   public static void makeFluidJavaRefForPackage(IIRProject proj, IRNode pkg) {
-	  DeclFactory f = new DeclFactory(proj.getTypeEnv().getBinder());
-	  IDecl decl = f.getDeclAndPosition(pkg).first();
-	  pkg.setSlotValue(f_fluidJavaRefSlotInfo, 
-			  new FluidJavaRef.Builder(decl).setEclipseProjectName(proj.getName()).build());
+    DeclFactory f = new DeclFactory(proj.getTypeEnv().getBinder());
+    IDecl decl = f.getDeclAndPosition(pkg).first();
+    pkg.setSlotValue(f_fluidJavaRefSlotInfo, new JavaRef.Builder(decl).setEclipseProjectName(proj.getName()).build());
   }
-  
+
   /**
    * Attempts to copy the Java code reference from one node to another. It
    * returns the code reference if the copy is successful, or {@code null} if
@@ -475,11 +480,11 @@ public class JavaNode extends JJNode {
    * @return the code reference if the copy is successful, or {@code null} if
    *         the copy is unsuccessful.
    */
-  static IFluidJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
-	if (src == null) {
-		throw new IllegalArgumentException();
-	}
-    IFluidJavaRef ref = JavaNode.getFluidJavaRef(src);
+  static IJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
+    if (src == null) {
+      throw new IllegalArgumentException();
+    }
+    final IJavaRef ref = JavaNode.getJavaRef(src);
     if (ref != null) {
       target.setSlotValue(f_fluidJavaRefSlotInfo, ref);
     }

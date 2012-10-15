@@ -46,13 +46,14 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
@@ -62,7 +63,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -2340,7 +2340,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						} else {
 							for (final IRNode n : unlocks) {
 							  int lineNumber = -1;
-							  final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(n);
+							  final IJavaRef javaRef = JavaNode.getJavaRef(n);
 						    if (javaRef != null)
 						      lineNumber = javaRef.getLineNumber();
 								final HintDrop match = makeInfoDrop(
@@ -2381,7 +2381,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						} else {
 							for (final IRNode n : locks) {
 							  int lineNumber = -1;
-                final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(n);
+                final IJavaRef javaRef = JavaNode.getJavaRef(n);
                 if (javaRef != null)
                   lineNumber = javaRef.getLineNumber();
 								final HintDrop match = makeInfoDrop(

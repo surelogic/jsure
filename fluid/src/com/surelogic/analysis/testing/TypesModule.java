@@ -60,7 +60,7 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
     }
 
     private void showType(final IRNode e) {
-      final IJavaRef javaRef = JavaNode.getFluidJavaRef(e);
+      final IJavaRef javaRef = JavaNode.getJavaRef(e);
       final IJavaType type = binder.getJavaType(e);
       System.out.printf("Expression '%s' at line %5d has type '%s', a %s%n",
           DebugUnparser.toString(e),

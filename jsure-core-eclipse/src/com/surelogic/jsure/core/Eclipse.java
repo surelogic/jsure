@@ -24,13 +24,13 @@ import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -321,7 +321,7 @@ public final class Eclipse extends IDE {
     if (n2 == null) {
       nodeMap.put(name, n);
     } else if (!n2.equals(n)) {
-      IFluidJavaRef ref = JavaNode.getFluidJavaRef(n2);
+      IJavaRef ref = JavaNode.getJavaRef(n2);
       LOG.warning("Resource name " + name + " was mapped to a different file " + ref.getEclipseProjectName() + " "
           + ref.getAbsolutePathOrNull());
       nodeMap.put(name, n);

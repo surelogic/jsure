@@ -1739,7 +1739,7 @@ public class LockRules extends AnnotationRules {
                 EnumConstantClassDeclaration.prototype.includes(subOp)) { // Bug 1705: Not being returned at the moment
               // Add derived annotation
               final boolean verify = a.verify();
-              IJavaRef ref = JavaNode.getFluidJavaRef(sub);
+              IJavaRef ref = JavaNode.getJavaRef(sub);
               final int offset = ref == null ? -1 : ref.getOffset();
               final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY, a);
               derived.setPromisedFor(sub, a.getAnnoContext());

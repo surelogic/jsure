@@ -703,7 +703,7 @@ public class ScopedPromiseRules extends AnnotationRules {
        * scopedPromiseDrop.getMessage()+" to "+name); }
        */
       if (target.matches(decl)) {
-        final IJavaRef ref = JavaNode.getFluidJavaRef(decl);
+        final IJavaRef ref = JavaNode.getJavaRef(decl);
         int offset = -1;
         if (ref != null) {
           offset = ref.getOffset();

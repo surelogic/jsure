@@ -339,7 +339,7 @@ public abstract class AnnotationRules {
 
 		private ModelingProblemDrop reportError_private(IRNode n,
 				String msgTemplate, Object... args) {
-			final IJavaRef ref = JavaNode.getFluidJavaRef(n);
+			final IJavaRef ref = JavaNode.getJavaRef(n);
 			final int offset;
 			if (ref == null) {
 				offset = -1;

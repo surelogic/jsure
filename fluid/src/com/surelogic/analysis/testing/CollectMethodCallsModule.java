@@ -91,7 +91,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
       for (final IRNode call : calls) {      
         final HintDrop drop = HintDrop.newInformation(decl);
         drop.setCategorizingMessage(Messages.DSC_COLLECT_METHOD_CALLS);
-        final IJavaRef javaRef = JavaNode.getFluidJavaRef(call);
+        final IJavaRef javaRef = JavaNode.getJavaRef(call);
         final int srcLine = javaRef == null ? -1 : javaRef.getLineNumber();
         drop.setMessage(Messages.CALLS, DebugUnparser.toString(call), srcLine);
       }

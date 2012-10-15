@@ -7,10 +7,10 @@ import java.util.Set;
 
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.IFluidJavaRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
@@ -192,7 +192,7 @@ final class IntrinsicLockLattice extends
     sb.append("synchronized(");
     sb.append(DebugUnparser.toString(SynchronizedStatement.getLock(syncBlock)));
     sb.append(")@");
-    final IFluidJavaRef javaRef = JavaNode.getFluidJavaRef(syncBlock);
+    final IJavaRef javaRef = JavaNode.getJavaRef(syncBlock);
     if (javaRef == null || javaRef.getLineNumber() == -1)
       sb.append("unknown");
     else {
