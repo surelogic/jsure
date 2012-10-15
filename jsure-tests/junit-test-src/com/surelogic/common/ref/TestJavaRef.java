@@ -30,8 +30,6 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getJavaId());
-    assertNull(r.getEnclosingJavaId());
 
     // check copy
     r = new JavaRef.Builder(r).build();
@@ -53,8 +51,6 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getJavaId());
-    assertNull(r.getEnclosingJavaId());
   }
 
   public void testFluidBuilder() {
@@ -78,8 +74,6 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getJavaId());
-    assertNull(r.getEnclosingJavaId());
     assertNull(r.getWorkspaceRelativePathOrNull());
 
     // check copy
@@ -102,8 +96,6 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
-    assertNull(r.getJavaId());
-    assertNull(r.getEnclosingJavaId());
     assertNull(r.getWorkspaceRelativePathOrNull());
   }
 
@@ -186,18 +178,5 @@ public final class TestJavaRef extends TestCase {
 
     r = new FluidJavaRef.Builder(decl).setWorkspaceRelativePath("prj/src/java/lang/Object.java").build();
     assertEquals("prj/src/java/lang/Object.java", r.getWorkspaceRelativePathOrNull());
-  }
-
-  public void testJavaIds() {
-    IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Foo");
-    IJavaRef r = new JavaRef.Builder(decl).setJavaId("javaId").build();
-    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
-    assertEquals("javaId", r.getJavaId());
-    assertNull(r.getEnclosingJavaId());
-
-    r = new JavaRef.Builder(decl).setEnclosingJavaId("javaId").build();
-    assertEquals(r.encodeForPersistence(), JavaRef.parseEncodedForPersistence(r.encodeForPersistence()).encodeForPersistence());
-    assertNull(r.getJavaId());
-    assertEquals("javaId", r.getEnclosingJavaId());
   }
 }
