@@ -1,8 +1,0 @@
-# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/RegionMapping.op,v 1.2 2002/09/05 22:17:25 chance Exp $
-
-/** A map from one region to another.   Used in unshared field region
- * specifications and in class declarations.
- */
-public operator RegionMapping extends RegionDeclaration {
-  syntax { from:RegionSpecification "into" to:RegionSpecification }
-}

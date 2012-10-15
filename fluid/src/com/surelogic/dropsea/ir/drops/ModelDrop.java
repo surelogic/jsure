@@ -22,10 +22,6 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
     super(d);
   }
 
-  protected boolean okAsNode(IRNode n) {
-    return true; // TODO PromiseDeclaration.prototype.includes(n);
-  }
-
   @Override
   protected void deponentInvalidAction(Drop invalidDeponent) {
     // invalidate();

@@ -1,6 +1,0 @@
-# $Header$
-public operator TypeListPattern extends TypeList  {
-  properties {
-    logicallyInvisible=true 
-  }
-}

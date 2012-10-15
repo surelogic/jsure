@@ -1,9 +1,0 @@
-# $Header: $
-
-// $modifiers:Modifiers
-public operator ColorSpec implements ColorSpecInterface {
-  public boolean includes(Operator other) {
-     return other instanceof ColorSpecInterface;
-  }
-}
-

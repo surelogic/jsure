@@ -16,7 +16,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.IFromInitializer;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
-import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -147,20 +146,6 @@ public abstract class AbstractBinder implements IBinder {
       LOG.severe("Don't know what sort of declared type this is: " + type);
       return null;
     }
-  }
-
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.java.bind.IBinder#findRegionInType(edu.cmu.cs.fluid.ir.IRNode, java.lang.String)
-   */
-  public IRNode findRegionInType(IRNode type, String region) {
-    return BindUtil.findRegionInType(type, region);
-  }
-
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.java.bind.IBinder#getRegionParent(edu.cmu.cs.fluid.ir.IRNode)
-   */
-  public IRNode getRegionParent(IRNode n) {
-    return BindUtil.getRegionParent(getTypeEnvironment(), n);
   }
 
   /* (non-Javadoc)

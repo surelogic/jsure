@@ -1,9 +1,0 @@
-# $Header$ 
-/**
- * Parent of all declarations of promised entities (locks, regions, etc.)
- */
-public operator PromiseDeclaration extends Declaration implements JavaPromiseOpInterface {
-  syntax {     
-    $@id:Info
-  }
-}

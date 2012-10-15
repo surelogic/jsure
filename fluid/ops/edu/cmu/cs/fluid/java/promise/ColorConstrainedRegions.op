@@ -1,7 +1,0 @@
-# $Header:$
-
-/** 
- */
-public operator ColorConstrainedRegions extends DataColoringAnnotation {
-  syntax { "colorConstrainedRegions" cSpec:ColorSpec "for" cRegions:RegionSpecifications }
-}

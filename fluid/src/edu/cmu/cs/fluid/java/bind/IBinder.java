@@ -65,9 +65,6 @@ public interface IBinder {
   @Deprecated
   IJavaDeclaredType getSuperclass(IJavaDeclaredType type);
 
-  /** */
-  IRNode getRegionParent(IRNode n);
-
   /************************************************************************
    * Methods that search up the class hierarchy
    ************************************************************************/
@@ -80,9 +77,6 @@ public interface IBinder {
    * @deprecated should be internal to Binder
    */
   //IRNode findMethod(IRNode type, String method, IRNode[] sig);
-  /** 
-   */
-  IRNode findRegionInType(IRNode type, String region);
 
   // TODO what about other kinds of names that need binding?
 

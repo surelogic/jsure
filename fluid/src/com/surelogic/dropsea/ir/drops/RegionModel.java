@@ -31,12 +31,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Actual drop for "region" models.
@@ -185,12 +183,6 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
       REGIONNAME_PROJECT_TO_DROP.put(getPair(name, decl.getPromisedFor()), result);
     }
     return result;
-  }
-
-  @Override
-  protected boolean okAsNode(IRNode n) {
-    Operator op = JJNode.tree.getOperator(n);
-    return VariableDeclarator.prototype.includes(op) || NewRegionDeclaration.prototype.includes(n);
   }
 
   /**

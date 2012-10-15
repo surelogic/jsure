@@ -15,7 +15,6 @@ import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.util.QuickProperties;
 
 /**
@@ -509,7 +508,7 @@ public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
    * @return <code>true</code> if and only if the setting of APIness is successful.
    */
   public boolean recordAPI(IRNode javaThing, IRNode forModuleDecl) {
-    ModuleModel mod = query(API.getId(forModuleDecl));
+    ModuleModel mod = null;//query(API.getId(forModuleDecl));
     if (mod == null) return false;
     return setAPI(javaThing, mod);
   }

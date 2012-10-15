@@ -27,7 +27,6 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
-import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.version.VersionedSlotFactory;
@@ -181,8 +180,8 @@ public class TypeUtil implements JavaGlobals {
         return JavaNode.getModifier(node, JavaNode.STATIC);
       }
     } else if (MethodDeclaration.prototype.includes(op)
-        || ClassInitializer.prototype.includes(op) // The AST representation of an instance or static initializer block
-        || NewRegionDeclaration.prototype.includes(op)) {
+        || ClassInitializer.prototype.includes(op)){ 
+    	// The AST representation of an instance or static initializer block        
         return JavaNode.getModifier(node, JavaNode.STATIC);
     } else if (ClassDeclaration.prototype.includes(op)) {
       return false;

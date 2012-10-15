@@ -1,7 +1,0 @@
-# $Header: $
-
-public operator ColorOrElem implements ColorOrElemInterface {
-  public boolean includes(Operator op) {
-    return op instanceof ColorOrElemInterface;
-  }
-}

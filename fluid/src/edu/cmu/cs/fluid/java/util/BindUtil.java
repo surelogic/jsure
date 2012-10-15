@@ -13,10 +13,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
 // This is for code that is used to lookup and bind names to declarations
@@ -256,124 +254,6 @@ public class BindUtil implements JavaGlobals {
     }
     return null;
   }
-
-  /// findRegionInType
-  @Deprecated
-  public static IRNode findRegionInType(IRNode typeDecl, String name) {
-    if (jtree.getOperator(typeDecl) instanceof ArrayDeclaration) {
-      return null;
-    }
-    
-    final String qname = JavaNames.getFullTypeName(typeDecl);
-    final boolean fine = LOG.isLoggable(Level.FINE);
-    if (fine) {
-      LOG.fine("Searching for " + name + " in " + qname);
-    }
-    Iterator<IRNode> regions = EmptyIterator.prototype();//RegionAnnotation.classRegions(typeDecl);
-    while (regions.hasNext()) {
-      IRNode region = regions.next();
-
-      if (jtree.getOperator(region) instanceof NewRegionDeclaration) {
-        final String rname = NewRegionDeclaration.getId(region);
-        
-        if (fine) {
-          LOG.fine("Looking at " + qname + " . " + rname);
-        }
-        if (rname.equals(name)) {
-          return region;
-        }
-      } else if (fine) {
-        LOG.fine("Skipping " + jtree.getOperator(region));
-      }
-    }
-    if (fine) {
-      LOG.fine("Looking for " + name + " as field");
-    }
-    IRNode body = VisitUtil.getClassBody(typeDecl);
-    // return null;
-    return findFieldInBody(body, name);
-  }
-
-  /// getRegionParent
-  @Deprecated
-  public static IRNode getRegionParent(ITypeEnvironment tEnv, IRNode region) {
-    final boolean debug = LOG.isLoggable(Level.FINE);
-    IBinder binder = tEnv.getBinder();
-
-    // Is it a field (terminal region)?
-    Operator op = JJNode.tree.getOperator(region);
-    if (VariableDeclarator.prototype.includes(op)) {
-      if (debug) {
-        LOG.fine(
-          "Getting parent of region/field " + VariableDeclarator.getId(region));
-      }
-      // fields are inside of a region...      
-      IRNode fieldRegion = null;//RegionAnnotation.getFieldRegionOrNull(region);
-      if (fieldRegion != null) {      
-        return binder.getBinding(fieldRegion);
-      }
-      // get default parent
-      IRNode decl = JJNode.tree.getParent(JJNode.tree.getParent(region));
-      return getDefaultRegionParent(tEnv, decl);
-
-      // No region found, something went wrong earlier
-      // throw new FluidError( "Field "+VariableDeclarator.getId(region)+" was
-      // never placed in a region! Something went wrong during loading?" );
-    }
-    else if (EnumConstantDeclaration.prototype.includes(op)) {
-      return getDefaultStaticRegionParent(tEnv);
-    }
-    if (debug) {
-      LOG.fine("Getting parent of region " + NewRegionDeclaration.getId(region));
-    }
-    IRNode parent = NewRegionDeclaration.getParent(region);
-    if (parent != null) {
-      if (debug) {
-        LOG.fine("Got parent = " + JJNode.getInfo(parent));
-      }
-      return binder.getBinding(parent);
-    }
-    if (!region.equals(allRegion)) {
-      if (debug) {
-        LOG.fine("Getting default parent for region " + NewRegionDeclaration.getId(region));
-      }
-      return getDefaultRegionParent(tEnv, region);
-    }
-    return null;
-  }
-  
-  private static IRNode getDefaultStaticRegionParent(final ITypeEnvironment tEnv) {
-      maintainTypeEnv(tEnv);
-      return allRegion;
-    }
-
-  private static IRNode getDefaultRegionParent(
-    final ITypeEnvironment tEnv,
-    final IRNode region) {
-    maintainTypeEnv(tEnv);
-
-    if (JavaNode.getModifier(region, JavaNode.STATIC)) {
-      return allRegion;
-    }
-    return instanceRegion;
-  }
-
-  private static void maintainTypeEnv(final ITypeEnvironment tEnv) {
-    if (te == tEnv) {
-      return;
-    }
-    te = tEnv;
-
-    IRNode object = tEnv.findNamedType("java.lang.Object");
-    allRegion =
-      tEnv.getBinder().findRegionInType(
-        object,
-        PromiseConstants.REGION_ALL_NAME);
-    instanceRegion =
-      tEnv.getBinder().findRegionInType(
-        object,
-        PromiseConstants.REGION_INSTANCE_NAME);    
-  }
   
 //  /**
 //   * Get the visibility of a NewRegionDeclaration, FieldDeclaration,
@@ -590,58 +470,7 @@ public class BindUtil implements JavaGlobals {
     return false;
   }
   
-  static ITypeEnvironment te;
-  static IRNode allRegion;
-  static IRNode instanceRegion;
-  /// other stuff
-  
-  public static IRNode findConstructor(IBinder binder, IRNode type, IJavaType[] paramTypes, IRNode[] actuals ) {
-    return findConstructor(binder, type, paramTypes, actuals, true);
-  } 
-  
-  /**
-   * @param paramTypes The types of the actuals
-   */
-  public static IRNode findConstructor(IBinder binder, IRNode type, IJavaType[] paramTypes, IRNode[] actuals, boolean strict) {
-    maintainTypeEnv(binder.getTypeEnvironment());
-    
-    Iterator<IRNode> constructors = VisitUtil.getClassConstructors(type);
-
-  loop : 
-	  while (constructors.hasNext()) {
-		  IRNode constructor = constructors.next();
-      // System.out.println("Trying to match against "+DebugUnparser.toString(constructor));
-			final IRNode params = ConstructorDeclaration.getParams(constructor);
-			final Iterator<IRNode> p = Parameters.getFormalIterator(params);
-
-			for (int j = 0; j < paramTypes.length; j++) {
-				if (!p.hasNext()) {
-					continue loop; // no match
-				}
-				final IRNode pd = p.next();
-				final IJavaType pt = binder.getJavaType(ParameterDeclaration.getType(pd));
-
-        // TODO is this the right check?
-				if (!te.isCallCompatible(pt, paramTypes[j])) {
-				  if (!strict && te.isCallCompatible(te.computeErasure(pt), 
-				                                     te.computeErasure(paramTypes[j]))) {
-				    continue;
-				  }
-	        if (!strict && pt instanceof IJavaTypeFormal && paramTypes[j] instanceof IJavaReferenceType) {       
-	          continue; // Treat as if it matched
-	        }
-					continue loop; 
-				}
-
-			}
-			if (!p.hasNext()) {
-				// no extra formal parameters -- found!
-				return constructor;
-			} 
-	  }
-  	return null;
-  }
-  
+  /// other stuff 
   public static final int NORMAL_METHOD = 0;
   public static final int COMPILED_METHOD = 1;
   public static final int OMITTED_METHOD = 2;

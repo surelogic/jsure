@@ -41,10 +41,6 @@ public abstract class BinderWrapper implements IBinder {
 		return binder.findOverridingMethodsFromType(callee, receiverType);
 	}
 
-	public IRNode findRegionInType(IRNode type, String region) {
-		return binder.findRegionInType(type, region);
-	}
-
 	public IRNode getBinding(IRNode name) {
 		return binder.getBinding(name);
 	}
@@ -59,10 +55,6 @@ public abstract class BinderWrapper implements IBinder {
 	
 	public IJavaType getJavaType(IRNode n) {
 		return binder.getJavaType(n);
-	}
-
-	public IRNode getRegionParent(IRNode n) {
-		return binder.getRegionParent(n);
 	}
 
 	@SuppressWarnings("deprecation")

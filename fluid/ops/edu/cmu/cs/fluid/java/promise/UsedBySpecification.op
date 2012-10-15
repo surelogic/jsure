@@ -1,9 +1,0 @@
-# $Header$
-
-/** A usedBy declaration
- */
-public operator UsedBySpecification {
-  syntax { 
-    types:NamedType */ ","  
-  }
-}

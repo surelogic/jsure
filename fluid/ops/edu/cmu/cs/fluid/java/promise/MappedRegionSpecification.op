@@ -1,5 +1,0 @@
-# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/MappedRegionSpecification.op,v 1.1 1998/03/10 21:29:15 boyland Exp $
-
-public operator MappedRegionSpecification extends FieldRegionSpecification {
-  syntax { mapping:RegionMapping */ "," }
-}

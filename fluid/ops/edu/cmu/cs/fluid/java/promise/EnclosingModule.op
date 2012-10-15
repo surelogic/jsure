@@ -1,7 +1,0 @@
-# $Header$
-
-public operator EnclosingModule extends Module {
-  syntax {     
-    "module" $id:Info "encloses" modules:Modules
-  }
-}

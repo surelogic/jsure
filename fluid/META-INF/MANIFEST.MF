@@ -89,7 +89,6 @@ Export-Package:
  edu.cmu.cs.fluid.java.parse,
  edu.cmu.cs.fluid.java.project,
  edu.cmu.cs.fluid.java.promise,
- edu.cmu.cs.fluid.java.target,
  edu.cmu.cs.fluid.java.template,
  edu.cmu.cs.fluid.java.unparse,
  edu.cmu.cs.fluid.java.util,

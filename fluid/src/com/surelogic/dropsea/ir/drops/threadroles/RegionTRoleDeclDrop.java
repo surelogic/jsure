@@ -55,7 +55,7 @@ public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, 
   RegionTRoleModel tRTRDDrop = null; // (RegionTRoleModel) res.masterRegion.getColorInfo();
   if (tRTRDDrop == null) {
     
-    final IRNode vdecl = BindUtil.findRegionInType(where, regionName);
+    final IRNode vdecl = null;//BindUtil.findRegionInType(where, regionName);
     
     tRTRDDrop = RegionTRoleModel.getRegionTRoleModel(res.masterRegion, vdecl);
     //res.masterRegion.setColorInfo(tRTRDDrop);

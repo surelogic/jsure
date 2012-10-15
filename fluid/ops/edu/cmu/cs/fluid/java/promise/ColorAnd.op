@@ -1,5 +1,0 @@
-# $Header: $
-
-public operator ColorAnd implements ColorExprInterface, ColorSpecInterface {
-  syntax { andElems:ColorAndElem +/ "&" }
-}

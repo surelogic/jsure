@@ -233,19 +233,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
 
     @Override
-    public IRNode getRegionParent(IRNode region) {
-      return binder.getRegionParent(region);
-    }
-
-    @Override
     public ITypeEnvironment getTypeEnvironment() {
       return binder.getTypeEnvironment();
-    }
-
-    @Override
-    public IRNode findRegionInType(IRNode type, String region) {
-      // JTB: NB to self: don't edit FixBinder for Fluid-only operations.
-      return binder.findRegionInType(type, region);
     }
 
     @Override
