@@ -1,5 +1,7 @@
 package com.surelogic.analysis.type.constraints;
 
+import java.util.Set;
+
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -19,7 +21,7 @@ public interface ITypeFormalEnv {
    *         this type formal is containable or <code>null</code> if the type
    *         formal is not containable.
    */
-  public PromiseDrop<? extends IAASTRootNode> isContainable(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isContainable(
       IJavaTypeFormal formal, boolean exclusive);
 
   /**
@@ -35,7 +37,7 @@ public interface ITypeFormalEnv {
    *         this type formal is immutable or <code>null</code> if the type
    *         formal is not immutable.
    */
-  public PromiseDrop<? extends IAASTRootNode> isImmutable(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isImmutable(
       IJavaTypeFormal formal, boolean exclusive);
 
   /**
@@ -51,7 +53,7 @@ public interface ITypeFormalEnv {
    *         this type formal is reference object or <code>null</code> if the type
    *         formal is not reference object.
    */
-  public PromiseDrop<? extends IAASTRootNode> isReferenceObject(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isReferenceObject(
       IJavaTypeFormal formal, boolean exclusive);
 
   /**
@@ -69,7 +71,7 @@ public interface ITypeFormalEnv {
    *         this type formal is thread safe or <code>null</code> if the type
    *         formal is not thread safe.
    */
-  public PromiseDrop<? extends IAASTRootNode> isThreadSafe(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isThreadSafe(
       IJavaTypeFormal formal, boolean exclusive);
 
   /**
@@ -85,6 +87,6 @@ public interface ITypeFormalEnv {
    *         this type formal is value object or <code>null</code> if the type
    *         formal is not value object.
    */
-  public PromiseDrop<? extends IAASTRootNode> isValueObject(
+  public Set<PromiseDrop<? extends IAASTRootNode>> isValueObject(
       IJavaTypeFormal formal, boolean exclusive);
 }

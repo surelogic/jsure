@@ -1,6 +1,7 @@
 package com.surelogic.analysis.type.constraints;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
@@ -37,7 +38,7 @@ public final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester {
   }
   
   @Override
-  protected PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
+  protected Set<PromiseDrop<? extends IAASTRootNode>> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
     return formalEnv.isThreadSafe(formal, exclusive);
   }

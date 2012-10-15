@@ -96,10 +96,10 @@ public abstract class TypeDeclAnnotationTester {
       return first || second;
     } else if (type instanceof IJavaTypeFormal) {
       // First check the formal against annotation bounds
-      final PromiseDrop<? extends IAASTRootNode> bound =
+      final Set<PromiseDrop<? extends IAASTRootNode>> bound =
           testFormalAgainstAnnotationBounds((IJavaTypeFormal) type);
       if (bound != null) {
-        trusts.add(bound);
+        trusts.addAll(bound);
         return true;
       } else {
         // Test the upperbound
@@ -144,6 +144,6 @@ public abstract class TypeDeclAnnotationTester {
   protected abstract PromiseDrop<? extends IAASTRootNode> testTypeDeclaration(
       IRNode type);
   
-  protected abstract PromiseDrop<? extends IAASTRootNode> testFormalAgainstAnnotationBounds(
+  protected abstract Set<PromiseDrop<? extends IAASTRootNode>> testFormalAgainstAnnotationBounds(
       IJavaTypeFormal formal);
 }
