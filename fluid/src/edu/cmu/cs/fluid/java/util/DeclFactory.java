@@ -42,6 +42,8 @@ import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableResource;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -87,6 +89,12 @@ public class DeclFactory {
     final Operator op = JJNode.tree.getOperator(here);
     if (Declaration.prototype.includes(op) || op instanceof TypeDeclInterface) {
       return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON);
+    }
+    else if (ReceiverDeclaration.prototype.includes(op)) {
+        return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON_RECEIVER);
+    }
+    else if (ReturnValueDeclaration.prototype.includes(op)) {
+        return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON_RETURN_VALUE);
     }
     return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.WITHIN);
   }
