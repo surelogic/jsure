@@ -1739,9 +1739,7 @@ public class LockRules extends AnnotationRules {
                 EnumConstantClassDeclaration.prototype.includes(subOp)) { // Bug 1705: Not being returned at the moment
               // Add derived annotation
               final boolean verify = a.verify();
-              IJavaRef ref = JavaNode.getJavaRef(sub);
-              final int offset = ref == null ? -1 : ref.getOffset();
-              final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY, a);
+              final A derived = makeDerivedAnnotation(verify ? 0 : JavaNode.NO_VERIFY, a);
               derived.setPromisedFor(sub, a.getAnnoContext());
               derived.setSrcType(a.getSrcType());
               cb.addDerived(derived, originalPromiseDrop);
@@ -2005,7 +2003,7 @@ public class LockRules extends AnnotationRules {
 
 	  protected abstract P createDrop(A node);
 	  
-	  protected abstract A makeDerivedAnnotation(int offset, int mods, A orig);
+	  protected abstract A makeDerivedAnnotation(int mods, A orig);
 	}
   
 	public static class AnnotationBounds_ParseRule
@@ -2137,7 +2135,7 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ContainableNode makeDerivedAnnotation(
-            final int offset, final int mods, ContainableNode orig) {
+            final int mods, ContainableNode orig) {
           return new ContainableNode(mods);
         }
 
@@ -2224,7 +2222,7 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
-            final int offset, final int mods, ThreadSafeNode orig) {
+            final int mods, ThreadSafeNode orig) {
           return new ThreadSafeNode(mods, orig.getStaticPart());
         }
 
@@ -2389,7 +2387,7 @@ public class LockRules extends AnnotationRules {
         
         @Override
         protected ImmutableNode makeDerivedAnnotation(
-            final int offset, final int mods, ImmutableNode orig) {
+            final int mods, ImmutableNode orig) {
           return new ImmutableNode(mods, orig.getStaticPart());
         }
 

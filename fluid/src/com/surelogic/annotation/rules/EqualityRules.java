@@ -9,8 +9,10 @@ import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.RefObjectPromiseDrop;
@@ -21,18 +23,21 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.AbstractSuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class EqualityRules extends AnnotationRules {
 	public static final String VALUE_OBJECT = "ValueObject";
@@ -76,8 +81,32 @@ public class EqualityRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<ValueObjectNode, ValueObjectPromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, REF_OBJECT) {
+        @Override
+        protected final ValueObjectPromiseDrop makePromiseDrop(
+            IAnnotationTraversalCallback<ValueObjectNode> cb,
+            ValueObjectNode a, boolean isAssumption) {
+          final ValueObjectPromiseDrop originalPromiseDrop = 
+              makePromiseDrop(a, isAssumption);
+          if (originalPromiseDrop != null) {
+            final IRNode promisedFor = a.getPromisedFor();
+            /* Add derived annotations to any AnonClassExpression that extends
+             * from this class.
+             */
+            for (final IRNode sub : getContext().getBinder(promisedFor).getTypeEnvironment().getRawSubclasses(promisedFor)) {
+              final Operator subOp = JJNode.tree.getOperator(sub);
+              if (AnonClassExpression.prototype.includes(subOp)) {
+                final ValueObjectNode derived = new ValueObjectNode();
+                derived.setPromisedFor(sub, a.getAnnoContext());
+                derived.setSrcType(a.getSrcType());
+                cb.addDerived(derived, originalPromiseDrop);
+              }
+            }
+          }
+          return originalPromiseDrop;
+        }
+
 				@Override
-				protected PromiseDrop<ValueObjectNode> makePromiseDrop(ValueObjectNode a) {
+				protected ValueObjectPromiseDrop makePromiseDrop(ValueObjectNode a, boolean isAssumption) {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
 					if (getRefObjectDrop(tdecl) != null) {
@@ -140,8 +169,32 @@ public class EqualityRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<RefObjectNode, RefObjectPromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
+			  @Override
+			  protected final RefObjectPromiseDrop makePromiseDrop(
+			      IAnnotationTraversalCallback<RefObjectNode> cb,
+			      RefObjectNode a, boolean isAssumption) {
+			    final RefObjectPromiseDrop originalPromiseDrop = 
+			        makePromiseDrop(a, isAssumption);
+			    if (originalPromiseDrop != null) {
+		        final IRNode promisedFor = a.getPromisedFor();
+			      /* Add derived annotations to any AnonClassExpression that extends
+			       * from this class.
+			       */
+			      for (final IRNode sub : getContext().getBinder(promisedFor).getTypeEnvironment().getRawSubclasses(promisedFor)) {
+	            final Operator subOp = JJNode.tree.getOperator(sub);
+	            if (AnonClassExpression.prototype.includes(subOp)) {
+	              final RefObjectNode derived = new RefObjectNode();
+	              derived.setPromisedFor(sub, a.getAnnoContext());
+	              derived.setSrcType(a.getSrcType());
+	              cb.addDerived(derived, originalPromiseDrop);
+	            }
+			      }
+			    }
+			    return originalPromiseDrop;
+			  }
+
 				@Override
-				protected PromiseDrop<RefObjectNode> makePromiseDrop(RefObjectNode a) {
+				protected RefObjectPromiseDrop makePromiseDrop(RefObjectNode a, boolean isAssumption) {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
 					final boolean isInterface = TypeUtil.isInterface(tdecl);
