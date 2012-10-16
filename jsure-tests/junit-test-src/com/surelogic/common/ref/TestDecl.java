@@ -19,6 +19,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -48,6 +49,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertTrue(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
@@ -60,6 +62,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertTrue(p.isFinal());
+    assertFalse(p.isImplicit());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
@@ -124,6 +127,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
     List<IDecl> parameters = p.getParameters();
     assertEquals(3, parameters.size());
@@ -134,6 +138,15 @@ public class TestDecl extends TestCase {
     assertEquals("MyType", p.getParent().getName());
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
+
+    parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
+    b = new Decl.ConstructorBuilder();
+    b.setParent(parent);
+    b.setIsImplicit(true);
+    p = b.build();
+    assertTrue(p.isImplicit());
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(pEncode.isImplicit());
 
     parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic"));
     Decl.ConstructorBuilder foo = new Decl.ConstructorBuilder();
@@ -165,6 +178,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -215,6 +229,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(jlo, p.getTypeOf());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
@@ -261,6 +276,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertNull(p.getTypeOf());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
@@ -293,6 +309,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -315,6 +332,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
@@ -325,6 +343,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
@@ -383,6 +402,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
     List<IDecl> parameters = p.getParameters();
     assertEquals(3, parameters.size());
@@ -566,6 +586,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isAbstract());
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertEquals(jlo, p.getTypeOf());
