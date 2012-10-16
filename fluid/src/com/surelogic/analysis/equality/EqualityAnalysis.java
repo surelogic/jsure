@@ -1,5 +1,6 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.equality;
+
+import java.util.List;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
@@ -8,22 +9,41 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
+import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.NoEvidence;
+import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.layers.Messages;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
+import com.surelogic.annotation.rules.EqualityRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.type.constraints.RefObjectPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.BinopExpression;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {
+  private static final int BAD_COMPARISON = 758;
+  private static final int TO_STRING_GOOD = 759;
+  private static final int TO_STRING_BAD = 760;
+  private static final int WRITE_EFFECT_INFO = 761;
+  private static final int READ_EFFECT_WARN = 762;
+  
+  
+  
 	public EqualityAnalysis() {
 		super("Equality");
 	}
@@ -46,7 +66,9 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		//System.out.println("Analyzing equality for: "+cud.javaOSFileName);
-		getAnalysis().doAccept(cu);
+	  final PerThreadInfo analysis = getAnalysis();
+	  analysis.initForCU(cu);
+		analysis.doAccept(cu);
 		return true;
 	}
 	
@@ -63,8 +85,12 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		return rd;
 	}
 	
-	class PerThreadInfo extends VoidTreeWalkVisitor implements IBinderClient {
+	final class PerThreadInfo extends VoidTreeWalkVisitor implements IBinderClient {
 		final IBinder b;
+		private Effect readsAnything;
+		private RegionModel instanceRegion;
+		
+		
 		
 		PerThreadInfo(IBinder binder) {
 			b = binder;
@@ -78,6 +104,68 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 //		@Override
 		public void clearCaches() {
 			// Nothing to do yet
+		}
+		
+		
+		private void initForCU(final IRNode cu) {
+      final Target anything = DefaultTargetFactory.PROTOTYPE.createClassTarget(
+          RegionModel.getAllRegion(cu), NoEvidence.INSTANCE);
+      readsAnything = Effect.newRead(cu, anything);      
+      instanceRegion = RegionModel.getInstanceRegion(cu);
+		}
+		
+		
+		@Override
+		public Void visitMethodDeclaration(final IRNode mdecl) {
+		  /* We do not have to worry about the case where the class inherits the
+		   * implementation of toString().  If the class inherits the
+		   * implementation from java.lang.Object, it is safe.  Otherwise,
+		   * the class must extend from a @ReferenceObject class, and the superclass's
+		   * implementation is checked.
+		   */
+		  
+		  // See of we are "void toString()" in a @ReferenceObject class
+		  final IRNode cdecl = JJNode.tree.getParent(JJNode.tree.getParent(mdecl));
+		  final RefObjectPromiseDrop refObj = EqualityRules.getRefObjectDrop(cdecl);
+		  if (refObj != null && 
+		      MethodDeclaration.getId(mdecl).equals("toString") &&
+		      JJNode.tree.numChildren(MethodDeclaration.getParams(mdecl)) == 0) {
+		    // Get the declared effects of the method
+		    final List<Effect> declared =
+		        Effects.getDeclaredMethodEffects(mdecl, null);
+
+        final ResultDrop result = new ResultDrop(mdecl);
+        result.setMessagesByJudgement(TO_STRING_GOOD, TO_STRING_BAD);
+        result.addChecked(refObj);
+        
+		    boolean good = true;
+		    if (declared == null) {
+		      good = false;
+		    } else {
+		      for (final Effect de : declared) {
+		        if (!de.isCheckedBy(getBinder(), readsAnything)) {
+		          good = false;
+		          result.addInformationHint(mdecl, WRITE_EFFECT_INFO, de.toString());
+		        }
+		      }
+
+	        if (good) {
+	          // Check for too may read effects
+	          final Effect readsThisInstance = 
+	              Effect.newRead(null,
+	                  DefaultTargetFactory.PROTOTYPE.createInstanceTarget(
+	                      JavaPromise.getReceiverNode(mdecl),
+	                      instanceRegion, NoEvidence.INSTANCE));
+	          for (final Effect de : declared) {
+	            if (!de.isCheckedBy(getBinder(), readsThisInstance)) {
+	              result.addWarningHint(mdecl, READ_EFFECT_WARN, de.toString());
+	            }
+	          }
+	        }
+		    }
+        result.setConsistent(good);
+		  }
+		  return null;
 		}
 		
 		@Override
@@ -104,7 +192,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 				    d.addChecked((PromiseDrop<? extends IAASTRootNode>) p);
 				  }
 				}
-				d.setMessage(758, DebugUnparser.toString(e));
+				d.setMessage(BAD_COMPARISON, DebugUnparser.toString(e));
 			}
 		}
 	}
