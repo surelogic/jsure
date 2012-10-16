@@ -2169,10 +2169,9 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      final String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
+      String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
   	  if (raw == null) {
-  		  context.reportError(offset, "No staticPart specified");
-		  return null;
+  		  raw = THREAD_SAFE;
 	  }
   	  try {
   		  return new ThreadSafeNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
@@ -2353,10 +2352,9 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-          final String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
+          String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
       	  if (raw == null) {
-      		  context.reportError(offset, "No staticPart specified");
-    		  return null;
+      		  raw = IMMUTABLE;
     	  }
       	  try {
       		  return new ImmutableNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
