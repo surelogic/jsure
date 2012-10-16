@@ -1,5 +1,8 @@
 package com.surelogic.jsure.tests;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.TestCase;
 
 import org.antlr.runtime.RecognitionException;
@@ -1920,6 +1923,7 @@ public class SLParseTest extends TestCase {
 		 * ****************** Test @ThreadSafe
 		 * *******************************
 		 */
+		context.setProperty(AbstractModifiedBooleanNode.STATIC_PART, LockRules.THREAD_SAFE);
 		context.setOp(ClassDeclaration.prototype);
 		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() == null);
@@ -2377,7 +2381,8 @@ public class SLParseTest extends TestCase {
 		String errorMsg = null;
 		int errorOffset = 0;
 		Exception exception = null;
-
+		Map<String,String> props = new HashMap<String, String>();
+		
 		/**
 		 * @param src
 		 */
@@ -2386,6 +2391,15 @@ public class SLParseTest extends TestCase {
 			this.op = op;
 		}
 
+		void setProperty(String key, String value) {
+			props.put(key, value);
+		}
+
+		@Override
+		public String getProperty(String key) {
+			return props.get(key);
+		}
+		
 		/*
 		 * (non-Javadoc)
 		 * 
