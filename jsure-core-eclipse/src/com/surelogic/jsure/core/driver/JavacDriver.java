@@ -915,7 +915,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
          */
 
         final IFile propsFile = jp.getProject().getFile(ToolProperties.PROPS_FILE);
-        final ToolProperties props = ToolProperties.readFileOrNull(propsFile.getLocation().toFile());
+        final Properties props = ToolProperties.readFileOrNull(propsFile.getLocation().toFile());
         if (props != null) {
           for (Map.Entry<Object, Object> p : props.entrySet()) {
             // System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
@@ -1552,8 +1552,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private CompUnitFilter getFilter(Config config) {
     final IProject p = EclipseUtility.getProject(config.getProject());
-    String[] paths = config.getListOption(ToolProperties.EXCLUDE_PATH);
-    String[] pkgs = config.getListOption(ToolProperties.EXCLUDED_PKGS);
+    String[] paths = config.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_FOLDER);
+    String[] pkgs = config.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_PACKAGE);
     return JDTUtility.getFilter(p, paths, pkgs);
   }
 

@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
@@ -58,10 +57,8 @@ import com.surelogic.common.ref.Decl;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.common.tool.ToolProperties;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
@@ -85,7 +82,6 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -422,7 +418,6 @@ public class Util {
     }
     final long drops = System.currentTimeMillis();
     final Dependencies deps = checkDependencies(cus);
-    checkProjects(projects);
 
     // cus now include reprocessed dependencies
     createCUDrops(cus, projects.getMonitor());
@@ -534,75 +529,6 @@ public class Util {
         seen.put(cu.getNode(), cu);
       }
     }
-  }
-
-  private static void checkProjects(Projects projects) {
-    for (final Config c : projects.getConfigs()) {
-      // LOG.warning("Sanity checking: "+c.getProject());
-
-      // Check to see if the paths exists
-      final Set<String> checked = new HashSet<String>();
-      path: for (final String path : c.getListOption(ToolProperties.EXCLUDE_PATH)) {
-        if (checked.contains(path)) {
-          continue;
-        }
-        checked.add(path);
-
-        // LOG.warning("\tChecking exclude folder: "+path);
-        StringBuilder paths = new StringBuilder();
-        for (IClassPathEntry e : c.getClassPath()) {
-          if (e instanceof SrcEntry) {
-            SrcEntry s = (SrcEntry) e;
-            if (path.equals(s.getProjectRelativePath())) {
-              continue path; // Matched something
-            }
-            if (paths.length() > 0) {
-              paths.append(", ");
-            }
-            paths.append(s.getProjectRelativePath());
-          }
-        }
-        makePromiseWarningDrop(c.getProject(), 700, path, c.getProject(), paths);
-      }
-      final String[] pkgs = c.getListOption(ToolProperties.EXCLUDED_PKGS);
-      final Pattern[] excludePatterns = ToolProperties.makePackageMatchers(pkgs);
-      int i = 0;
-      pattern: for (Pattern pattern : excludePatterns) {
-        // LOG.warning("\tChecking exclude package: "+pkgs[i]);
-        for (String pkg : c.getPackages()) {
-          if (pattern.matcher(pkg).matches()) {
-            i++;
-            continue pattern; // Matched something
-          }
-        }
-        makePromiseWarningDrop(c.getProject(), 701, pkgs[i], c.getProject());
-        i++;
-      }
-    }
-  }
-
-  private static void makePromiseWarningDrop(String project, int num, Object... args) {
-
-    // TODO note this is a memory leak if run as embedded
-    IRNode n = new MarkedIRNode("For src ref");
-    final String path = '/' + project + '/' + ToolProperties.PROPS_FILE;
-    // TODO THIS NEEDS TO BE A JAVAREF -- but it really isnt' it is into a file -- work this
-//    JavaNode.setSrcRef(n, new NamedSrcRef(project, path, null, path) {
-//      public URI getEnclosingURI() {
-//        try {
-//          return new URI(path);
-//        } catch (URISyntaxException e) {
-//          return null;
-//        }
-//      }
-//
-//      public int getLineNumber() {
-//        return -1;
-//      }
-//    });
-    ModelingProblemDrop d = new ModelingProblemDrop(n);
-    d.setMessage(num, args);
-    // LOG.warning(d.getMessage());
   }
 
   private static void computeSubtypeInfo(Projects projects) throws IOException {
@@ -1119,9 +1045,9 @@ public class Util {
             return;
           }
           name = info.getFile().getPackage();
-        }        
-        //testIDecls(info);
-        
+        }
+        // testIDecls(info);
+
         // Add the Static region before anything else (even All?)
         final AnnotationVisitor v = new AnnotationVisitor(info.getTypeEnv(), name);
         for (IRNode type : VisitUtil.getAllTypeDecls(cu)) {
@@ -1150,8 +1076,7 @@ public class Util {
           if ("java.lang.Object".equals(name)) {
             v.handleXMLPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
-          v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", 
-              Collections.<String, String> emptyMap());
+          v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
         }
 
         // Process any pre-existing package-level scoped promises?
@@ -1220,21 +1145,22 @@ public class Util {
   }
 
   private static void testIDecls(CodeInfo info) {
-	  final DeclFactory factory = new DeclFactory(info.getTypeEnv().getBinder());
-	  for(IRNode n : JJNode.tree.topDown(info.getNode())) { // what about receivers/return values?
-		  Pair<IDecl, IJavaRef.Position> p = factory.getDeclAndPosition(n);
-		  if (p == null) {
-			  continue;
-		  }
-		  String encode = Decl.encodeForPersistence(p.first());
-		  IDecl decode = Decl.parseEncodedForPersistence(encode);
-		  if (!decode.getKind().equals(p.first().getKind()) || 
-			  !decode.getName().equals(p.first().getName())) {
-			  throw new IllegalStateException();
-		  }
-	  }
+    final DeclFactory factory = new DeclFactory(info.getTypeEnv().getBinder());
+    for (IRNode n : JJNode.tree.topDown(info.getNode())) { // what about
+                                                           // receivers/return
+                                                           // values?
+      Pair<IDecl, IJavaRef.Position> p = factory.getDeclAndPosition(n);
+      if (p == null) {
+        continue;
+      }
+      String encode = Decl.encodeForPersistence(p.first());
+      IDecl decode = Decl.parseEncodedForPersistence(encode);
+      if (!decode.getKind().equals(p.first().getKind()) || !decode.getName().equals(p.first().getName())) {
+        throw new IllegalStateException();
+      }
+    }
   }
-  
+
   /**
    * @return true if the type is declared somewhere inside of a method
    */
