@@ -21,6 +21,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
@@ -116,6 +117,16 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       }
     }
     f_origin = result;
+    
+    final String encodedJavaRef = e.getAttribute(FROM_REF);
+    if (encodedJavaRef != null) {
+      try {
+        final IJavaRef ref = JavaRef.parseEncodedForPersistence(encodedJavaRef);
+        f_assumptionRef = ref;
+      } catch (Exception parseFailure) {
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
+      }
+    }
   }
 
   public Map<String, String> getAnnoAttributes() {
@@ -219,5 +230,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public int compareTo(IRFreeProposedPromiseDrop o) {
     return getMessage().compareTo(o.getMessage());
+  }
+
+  boolean hasAssumptionRef() {
+	return f_assumptionRef != null;
   }
 }
