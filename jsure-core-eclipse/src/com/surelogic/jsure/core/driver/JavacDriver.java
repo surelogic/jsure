@@ -82,7 +82,7 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
-import com.surelogic.common.tool.ToolProperties;
+import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
@@ -914,8 +914,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
          * ModuleRules.clearAsNeededPatterns();
          */
 
-        final IFile propsFile = jp.getProject().getFile(ToolProperties.PROPS_FILE);
-        final Properties props = ToolProperties.readFileOrNull(propsFile.getLocation().toFile());
+        final IFile propsFile = jp.getProject().getFile(SureLogicToolsPropertiesUtility.PROPS_FILE);
+        final Properties props = SureLogicToolsPropertiesUtility.readFileOrNull(propsFile.getLocation().toFile());
         if (props != null) {
           for (Map.Entry<Object, Object> p : props.entrySet()) {
             // System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
@@ -1552,8 +1552,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private CompUnitFilter getFilter(Config config) {
     final IProject p = EclipseUtility.getProject(config.getProject());
-    String[] paths = config.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_FOLDER);
-    String[] pkgs = config.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_PACKAGE);
+    String[] paths = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
+    String[] pkgs = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
     return JDTUtility.getFilter(p, paths, pkgs);
   }
 

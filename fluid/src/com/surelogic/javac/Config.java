@@ -13,7 +13,7 @@ import java.util.Set;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.tool.ToolProperties;
+import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 

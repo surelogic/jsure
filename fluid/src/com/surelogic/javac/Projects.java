@@ -19,7 +19,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.SLProgressMonitor;
-import com.surelogic.common.tool.ToolProperties;
+import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -454,7 +454,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   public List<String> getExcludedSourceFolders() {
     List<String> folders = new ArrayList<String>();
     for (Config c : getConfigs()) {
-      String[] here = c.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_FOLDER);
+      String[] here = c.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
       for (String p : here) {
         folders.add('/' + c.getProject() + '/' + p);
       }
@@ -474,7 +474,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   public List<String> getExcludedSourcePackageSpec() {
     List<String> pkgs = new ArrayList<String>();
     for (Config c : getConfigs()) {
-      String[] here = c.getListOption(ToolProperties.SCAN_EXCLUDE_SOURCE_PACKAGE);
+      String[] here = c.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
       for (String p : here) {
         pkgs.add(p);
       }
