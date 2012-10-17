@@ -30,7 +30,6 @@ import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.persistence.JavaIdentifier;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
@@ -419,8 +418,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (javaRef == null)
       return null;
 
-    final IRNode decl = getNode();
-    String javaId = decl == null ? null : JavaIdentifier.encodeDecl(decl);
+    //final IRNode decl = getNode();
+    //String javaId = decl == null ? null : JavaIdentifier.encodeDecl(decl);
+    
     // Use the best info we have
     int offset, length;
     if (f_aast.getOffset() >= 0) {
@@ -430,7 +430,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       offset = javaRef.getOffset();
       length = javaRef.getLength();
     }
-    return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).setJavaId(javaId).build();
+    return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).build();
 
   }
 
