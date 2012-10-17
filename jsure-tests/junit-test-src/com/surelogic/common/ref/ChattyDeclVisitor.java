@@ -27,14 +27,14 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public void visitPackage(IDecl node) {
+  public void visitPackage(IDeclPackage node) {
     b.append("visitPackage(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public boolean visitTypes(List<IDecl> types) {
+  public boolean visitTypes(List<IDeclType> types) {
     b.append("visitTypes(");
     b.append(types.size()).append(" type(s)");
     b.append(")\n");
@@ -42,7 +42,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitClass(IDecl node) {
+  public boolean visitClass(IDeclType node) {
     b.append("visitClass(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
@@ -50,7 +50,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitInterface(IDecl node) {
+  public boolean visitInterface(IDeclType node) {
     b.append("visitInterface(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
@@ -58,14 +58,14 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public void visitEnum(IDecl node) {
+  public void visitEnum(IDeclType node) {
     b.append("visitEnum(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public void visitField(IDecl node) {
+  public void visitField(IDeclField node) {
     b.append("visitField(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(" : ").append(node.getTypeOf().getFullyQualified());
@@ -80,7 +80,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitMethod(IDecl node) {
+  public boolean visitMethod(IDeclFunction node) {
     b.append("visitMethod(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
@@ -88,7 +88,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitConstructor(IDecl node) {
+  public boolean visitConstructor(IDeclFunction node) {
     b.append("visitConstructor(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
@@ -96,7 +96,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitParameters(List<IDecl> parameters) {
+  public boolean visitParameters(List<IDeclParameter> parameters) {
     b.append("visitParameters(");
     b.append(parameters.size()).append(" parameter(s)");
     b.append(")\n");
@@ -104,7 +104,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public void visitParameter(IDecl node, boolean partOfDecl) {
+  public void visitParameter(IDeclParameter node, boolean partOfDecl) {
     b.append("visitParameter(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(" : ").append(node.getTypeOf().getFullyQualified());
@@ -113,7 +113,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public boolean visitTypeParameters(List<IDecl> typeParameters) {
+  public boolean visitTypeParameters(List<IDeclTypeParameter> typeParameters) {
     b.append("visitTypeParameters(");
     b.append(typeParameters.size()).append(" type parameter(s)");
     b.append(")\n");
@@ -121,7 +121,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public void visitTypeParameter(IDecl node, boolean partOfDecl) {
+  public void visitTypeParameter(IDeclTypeParameter node, boolean partOfDecl) {
     b.append("visitTypeParameter(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(", partOfDecl=").append(partOfDecl);
@@ -129,49 +129,49 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
-  public void endVisitTypes(List<IDecl> types) {
+  public void endVisitTypes(List<IDeclType> types) {
     b.append("endVisitTypes(");
     b.append(types.size()).append(" type(s)");
     b.append(")\n");
   }
 
   @Override
-  public void endVisitClass(IDecl node) {
+  public void endVisitClass(IDeclType node) {
     b.append("endVisitClass(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public void endVisitInterface(IDecl node) {
+  public void endVisitInterface(IDeclType node) {
     b.append("endVisitInterface(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public void endVisitMethod(IDecl node) {
+  public void endVisitMethod(IDeclFunction node) {
     b.append("endVisitMethod(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public void endVisitConstructor(IDecl node) {
+  public void endVisitConstructor(IDeclFunction node) {
     b.append("endVisitConstructor(").append(node.getKind());
     b.append(" : ").append(node.getName());
     b.append(")\n");
   }
 
   @Override
-  public void endVisitParameters(List<IDecl> parameters) {
+  public void endVisitParameters(List<IDeclParameter> parameters) {
     b.append("endVisitParameters(");
     b.append(parameters.size()).append(" parameter(s)");
     b.append(")\n");
   }
 
   @Override
-  public void endVisitTypeParameters(List<IDecl> typeParameters) {
+  public void endVisitTypeParameters(List<IDeclTypeParameter> typeParameters) {
     b.append("endVisitTypeParameters(");
     b.append(typeParameters.size()).append(" type parameter(s)");
     b.append(")\n");
