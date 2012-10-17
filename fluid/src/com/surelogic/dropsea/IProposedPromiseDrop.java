@@ -3,7 +3,6 @@ package com.surelogic.dropsea;
 import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
 
 /**
@@ -38,10 +37,6 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
   String getTargetProjectName();
 
   String getFromProjectName();
-
-  IJavaDeclaration getTargetInfo();
-
-  IJavaDeclaration getFromInfo();
 
   IJavaRef getAssumptionRef();
 

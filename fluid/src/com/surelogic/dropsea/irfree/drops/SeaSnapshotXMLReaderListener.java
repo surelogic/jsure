@@ -7,12 +7,10 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISE
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
@@ -26,7 +24,6 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
@@ -89,23 +86,6 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
     }
   }
 
-  void handleJavaDecl(Entity e, JavaDeclInfo info) {
-    if (e instanceof SeaEntity) {
-      final IRFreeDrop drop = ((SeaEntity) e).getDrop();
-      if (drop instanceof IRFreeProposedPromiseDrop) {
-        final IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) drop;
-        String flavor = info.getAttribute(FLAVOR_ATTR);
-        if (FROM_INFO.equals(flavor)) {
-          ppd.setFromInfo(info.makeDecl());
-        } else if (TARGET_INFO.equals(flavor)) {
-          ppd.setTargetInfo(info.makeDecl());
-        } else {
-          throw new IllegalStateException(I18N.err(260, flavor, ppd));
-        }
-      }
-    }
-  }
-
   /**
    * The index in the list matches the entity's id.
    */
@@ -140,7 +120,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
 
   public Entity makeEntity(String name, Attributes a) {
     if (JAVA_DECL_INFO.equals(name))
-      return new JavaDeclInfo(name, a);
+      return new SeaEntity(name, a);
 
     final SeaEntity entity = new SeaEntity(name, a);
     final String type = Entity.getValue(a, FULL_TYPE_ATTR);

@@ -19,11 +19,7 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.refactor.Field;
-import com.surelogic.common.refactor.IJavaDeclaration;
-import com.surelogic.common.refactor.Method;
-import com.surelogic.common.refactor.MethodParameter;
-import com.surelogic.common.refactor.TypeContext;
+import com.surelogic.common.ref.*;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -319,32 +315,25 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
   /**
    * @return the Decl that the proposal should be added to
    */
-  static Decl findDecl(Decl here, IJavaDeclaration decl) {
-    if (decl instanceof TypeContext) {
-      TypeContext t = decl.getTypeContext();
-      TypeContext p = t.getParent();
-      Method m = t.getMethod();
-      if (p != null) {
-        Decl parent = findDecl(here, p);
-        return parent.getDecl(parent.types, t.getName());
-      } else if (m != null) {
-        Decl method = findDecl(here, m);
-        return method.getDecl(method.types, t.getName());
-      } else { // Top-level
-        return here.getDecl(here.types, t.getName());
-      }
-    } else if (decl instanceof Method) {
-      Method m = (Method) decl;
-      Decl type = findDecl(here, m.getTypeContext());
-      return type.getDecl(type.methods, m.getSignature());
-    } else if (decl instanceof Field) {
-      Field m = (Field) decl;
-      Decl type = findDecl(here, m.getTypeContext());
-      return type.getDecl(type.fields, m.getField());
-    } else if (decl instanceof MethodParameter) {
-      MethodParameter p = (MethodParameter) decl;
-      Decl m = findDecl(here, p.getMethod());
-      return m.getParam(p.getParam());
+  static Decl findDecl(Decl here, IDecl decl) {	  
+	if (decl instanceof IDeclPackage) {
+		return here;
+	}
+	else if (decl instanceof IDeclType) {
+	  Decl parent = findDecl(here, decl.getParent());
+      return parent.getDecl(parent.types, decl.getName());      
+    } else if (decl instanceof IDeclFunction) {
+      IDeclFunction m = (IDeclFunction) decl;
+      Decl type = findDecl(here, m.getParent());
+      return type.getDecl(type.methods, DeclUtil.getSignature(m));
+    } else if (decl instanceof IDeclField) {
+      IDeclField m = (IDeclField) decl;
+      Decl type = findDecl(here, m.getParent());
+      return type.getDecl(type.fields, m.getName());
+    } else if (decl instanceof IDeclParameter) {
+      IDeclParameter p = (IDeclParameter) decl;
+      Decl m = findDecl(here, p.getParent());
+      return m.getParam(p.getPosition());
     } else {
       throw new IllegalStateException("Unexpected " + decl);
     }
@@ -353,7 +342,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
   static Decl organize(Collection<IProposedPromiseDrop> drops) {
     Decl root = new Decl("/root");
     for (IProposedPromiseDrop p : drops) {
-      Decl d = findDecl(root, p.getTargetInfo());
+      Decl d = findDecl(root, p.getJavaRef().getDeclaration());
       d.proposals.add(p);
     }
     return root;
