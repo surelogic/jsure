@@ -538,7 +538,7 @@ public class Util {
           if (ref != null) {
             if (p.getName().equals(ref.getEclipseProjectNameOrNull())) {
               if (filter.matches(ref.getAbsolutePathOrNull(), ref.getPackageName())) {
-                System.out.println("surelogic-tools.properties file for " + p.getName() + " filtered out drop in "
+                System.out.println("surelogic-tools.properties in project " + p.getName() + " filtered out drop about "
                     + ref.getTypeNameFullyQualified());
                 d.invalidate();
               }
