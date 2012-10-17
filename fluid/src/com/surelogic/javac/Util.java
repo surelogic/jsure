@@ -57,6 +57,8 @@ import com.surelogic.common.ref.Decl;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.tool.SureLogicToolsFilter;
+import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
@@ -471,6 +473,8 @@ public class Util {
     Sea.getDefault().removeConsistencyProofHook(staticHook);
     Sea.getDefault().removeConsistencyProofHook(vouchHook);
 
+    filterResultsBySureLogicToolsPropertiesFile(projects);
+
     final long export = System.currentTimeMillis();
 
     // This would clear things before I persist the info
@@ -517,6 +521,32 @@ public class Util {
     UnversionedJavaBinder.printStats();
     AbstractTypeEnvironment.printStats();
     return true;
+  }
+
+  private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {
+    /*
+     * Do this per-project and only clear out excluded drops if they are in the
+     * project's exclusions.
+     */
+    for (JavacProject p : projects) {
+      String[] es = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
+      String[] ep = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
+      if (es.length > 0 || ep.length > 0) {
+        final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility.getFilterFor(es, ep);
+        for (final Drop d : Sea.getDefault().getDrops()) {
+          final IJavaRef ref = d.getJavaRef();
+          if (ref != null) {
+            if (p.getName().equals(ref.getEclipseProjectNameOrNull())) {
+              if (filter.matches(ref.getAbsolutePathOrNull(), ref.getPackageName())) {
+                System.out.println("surelogic-tools.properties file for " + p.getName() + " filtered out drop in "
+                    + ref.getTypeNameFullyQualified());
+                d.invalidate();
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   private static void checkForDups(List<CodeInfo> cus) {
