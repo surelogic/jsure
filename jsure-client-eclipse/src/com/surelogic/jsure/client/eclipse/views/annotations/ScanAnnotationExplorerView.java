@@ -28,9 +28,10 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDeclFunction;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
@@ -43,7 +44,6 @@ import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
-import com.surelogic.persistence.JavaIdentifier;
 
 public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> implements
     EclipseUIUtility.IContextMenuFiller {
@@ -319,6 +319,26 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
     }
   }
 
+  static String computeLabel(IDecl d) {
+	  switch (d.getKind()) {
+	  case CLASS:
+	  case ENUM:
+	  case INTERFACE:
+		  return DeclUtil.getTypeNameOrEmpty(d);
+	  case CONSTRUCTOR:
+	  case METHOD:
+		  return DeclUtil.getSignature((IDeclFunction) d);
+	  case FIELD:
+	  case PACKAGE:
+		  return d.getName();
+	  case PARAMETER:
+		  return "arg "+d.getPosition()+" of "+computeLabel(d.getParent());
+	  case TYPE_PARAMETER:	
+	  default:
+		  throw new UnsupportedOperationException(d.toString());
+	  }
+  }
+  
   static class Package extends AbstractElement {
     Package(String qname, MultiMap<String, IDrop> cuToDrop) {
       super(null, qname, cuToDrop.size());
@@ -332,15 +352,10 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
           final IJavaRef ref = d.getJavaRef();
           if (ref == null)
             continue;
-          String id = ref.getJavaId();
+          IDecl id = ref.getDeclaration();
           if (id == null)
             continue;
-          // TODO USE IDECL
-//          final String declLabel = ref.getDeclaration().toString();
-          String label = JavaIdentifier.extractDecl(name, id);
-//          if (!label.equals(declLabel))
-//            System.out.println(label + " <- old | new -> " + declLabel);
-          idToDrop.put(label, d);
+          idToDrop.put(computeLabel(id), d);
         }
         getChildren()[i] = new Type(this, name, idToDrop);
         i++;
