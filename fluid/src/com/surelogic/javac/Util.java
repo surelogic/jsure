@@ -526,13 +526,15 @@ public class Util {
   private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {
     /*
      * Do this per-project and only clear out excluded drops if they are in the
-     * project's exclusions.
+     * project's exclusions -- otherwise we could match things, and exclude
+     * them, when we should not.
      */
     for (JavacProject p : projects) {
-      String[] es = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
-      String[] ep = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
-      if (es.length > 0 || ep.length > 0) {
-        final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility.getFilterFor(es, ep);
+      String[] excludedSourceFolders = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
+      String[] excludedPackagePatterns = p.getConfig().getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
+      if (excludedSourceFolders.length > 0 || excludedPackagePatterns.length > 0) {
+        final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility.getFilterFor(excludedSourceFolders,
+            excludedPackagePatterns);
         for (final Drop d : Sea.getDefault().getDrops()) {
           final IJavaRef ref = d.getJavaRef();
           if (ref != null) {

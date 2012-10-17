@@ -69,7 +69,6 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.JDTUtility.CompUnitFilter;
 import com.surelogic.common.core.SourceZip;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
@@ -82,6 +81,7 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
+import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaStats;
@@ -1528,13 +1528,20 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
   private Collection<JavaSourceFile> convertCompUnits(Config config, final Iterable<ICompilationUnit> cus)
       throws JavaModelException {
     final List<JavaSourceFile> files = new ArrayList<JavaSourceFile>();
-    final CompUnitFilter filter = getFilter(config);
+    // setup filter
+    final IProject p = EclipseUtility.getProject(config.getProject());
+    final String[] excludedSourceFolders = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
+    final String[] excludedPackagePatterns = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
+    final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility
+        .getFilterFor(excludedSourceFolders, excludedPackagePatterns);
     for (ICompilationUnit icu : cus) {
       final IPath path = icu.getResource().getFullPath();
       final IPath loc = icu.getResource().getLocation();
       final File f = loc.toFile();
       final String qname;
+      String packageName = "";
       for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
+        packageName = pd.getElementName();
         config.addPackage(pd.getElementName());
       }
       if (f.exists()) {
@@ -1542,19 +1549,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       } else { // Removed
         qname = f.getName();
       }
-      files.add(new JavaSourceFile(qname, f, path.toPortableString(), filter.matches(icu)));
+      boolean excludeFilterMatchesTreatAsBinary = filter.matches(path.toFile().getAbsolutePath(), packageName);
+      files.add(new JavaSourceFile(qname, f, path.toPortableString(), excludeFilterMatchesTreatAsBinary));
     }
     return files;
-  }
-
-  /**
-   * Setup exclude filter
-   */
-  private CompUnitFilter getFilter(Config config) {
-    final IProject p = EclipseUtility.getProject(config.getProject());
-    String[] paths = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
-    String[] pkgs = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
-    return JDTUtility.getFilter(p, paths, pkgs);
   }
 
   String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
