@@ -90,7 +90,9 @@ public class EqualityRules extends AnnotationRules {
           if (originalPromiseDrop != null) {
             final IRNode promisedFor = a.getPromisedFor();
             /* Add derived annotations to any AnonClassExpression that extends
-             * from this class.
+             * from this class.  Do not add to EnumConstantClassDeclaration
+             * nodes because enums are already assumed to be to reference object
+             * and thus cannot also be value object.
              */
             for (final IRNode sub : getContext().getBinder(promisedFor).getTypeEnvironment().getRawSubclasses(promisedFor)) {
               final Operator subOp = JJNode.tree.getOperator(sub);
@@ -178,7 +180,9 @@ public class EqualityRules extends AnnotationRules {
 			    if (originalPromiseDrop != null) {
 		        final IRNode promisedFor = a.getPromisedFor();
 			      /* Add derived annotations to any AnonClassExpression that extends
-			       * from this class.
+			       * from this class.  Do not add to EnumConstantClassDeclaration
+			       * nodes because enums are handled specially and already 
+			       * assumed to be reference only.
 			       */
 			      for (final IRNode sub : getContext().getBinder(promisedFor).getTypeEnvironment().getRawSubclasses(promisedFor)) {
 	            final Operator subOp = JJNode.tree.getOperator(sub);
