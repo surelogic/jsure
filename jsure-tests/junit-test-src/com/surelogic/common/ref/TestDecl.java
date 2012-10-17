@@ -904,6 +904,35 @@ public class TestDecl extends TestCase {
     // sloppy checks pass
     assertTrue(s1.equals(s2));
     assertEquals(s1.hashCode(), s2.hashCode());
+  }
+
+  public void testVisitor() {
+    ChattyDeclVisitor v;
+
+    TypeRef jlo = new TypeRef("java.lang.Object", "Object");
+    TypeRef string = new TypeRef("java.lang.String", "String");
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("Inner").setParent(new Decl.ClassBuilder("MyType")
+        .setParent(new Decl.PackageBuilder("com.surelogic.t")));
+
+    Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    b.setVisibility(Visibility.DEFAULT);
+    b.setIsStatic(true);
+    b.setParent(parent);
+    IDecl p1 = b.build();
+    v = new ChattyDeclVisitor();
+    v.visitClassReturn = false;
+    p1.acceptRootToThis(v);
+    System.out.println(v.b.toString());
+
+    v = new ChattyDeclVisitor();
+    v.visitClassReturn = false;
+    p1.acceptThisToRoot(v);
+    System.out.println(v.b.toString());
 
   }
 }
