@@ -123,7 +123,7 @@ public abstract class TypeDeclAnnotationTester {
   protected final boolean testDeclaredType(final IJavaDeclaredType type) {
     final IRNode typeDecl = type.getDeclaration();
     tested.add(typeDecl);
-    final PromiseDrop<? extends IAASTRootNode> drop = testTypeDeclaration(typeDecl);
+    final ProofDrop drop = testTypeDeclaration(typeDecl);
     if (drop != null) {
       trusts.add(drop);
       final ResultFolderDrop annoBounds = annoBoundsFolders.get(type);
@@ -141,7 +141,7 @@ public abstract class TypeDeclAnnotationTester {
  
   protected abstract boolean testArrayType(IJavaArrayType type);
   
-  protected abstract PromiseDrop<? extends IAASTRootNode> testTypeDeclaration(
+  protected abstract ProofDrop testTypeDeclaration(
       IRNode type);
   
   protected abstract Set<PromiseDrop<? extends IAASTRootNode>> testFormalAgainstAnnotationBounds(
