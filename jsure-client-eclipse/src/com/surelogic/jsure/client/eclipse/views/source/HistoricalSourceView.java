@@ -93,7 +93,8 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			int lineNumber) {
-		tryToOpenInEditor(HistoricalSourceView.class, null, pkg, type,
+		tryToOpenInEditor(HistoricalSourceView.class, null, pkg, 
+				type == null ? "package-info" : type,
 				lineNumber);
 	}
 
