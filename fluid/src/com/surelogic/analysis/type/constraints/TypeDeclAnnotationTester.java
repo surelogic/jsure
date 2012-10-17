@@ -76,8 +76,8 @@ public abstract class TypeDeclAnnotationTester {
     } else if (type instanceof IJavaArrayType) {
       return testArrayType((IJavaArrayType) type);
     } else if (type instanceof IJavaCaptureType) {
-      final IJavaType upper = ((IJavaCaptureType) type).getUpperBound();
-      testType((upper == null) ? javaLangObject : upper);
+      final IJavaType lower = ((IJavaCaptureType) type).getLowerBound();
+      testType((lower == null) ? javaLangObject : lower);
     } else if (type instanceof IJavaIntersectionType) {
       final IJavaIntersectionType intType = (IJavaIntersectionType) type;
       final boolean first = testType(intType.getPrimarySupertype());
@@ -111,8 +111,8 @@ public abstract class TypeDeclAnnotationTester {
       return testType(javaLangObject);
     } else if (type instanceof IJavaWildcardType) {
       // dead case?  Turned into Capture types, I think
-      final IJavaType upper = ((IJavaWildcardType) type).getUpperBound();
-      testType((upper == null) ? javaLangObject : upper);
+      final IJavaType lower = ((IJavaWildcardType) type).getLowerBound();
+      return testType((lower == null) ? javaLangObject : lower);
     } 
     // shouldn't get here?
     return false;

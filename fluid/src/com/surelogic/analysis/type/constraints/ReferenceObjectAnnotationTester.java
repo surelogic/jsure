@@ -21,6 +21,10 @@ import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTester {
   private static final int ENUM_IMPLICITLY_REF_OBJECT = 764;
   
+  private static final String JAVA_LANG_ENUM = "java.lang.Enum";
+  
+  
+  
   public ReferenceObjectAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
@@ -29,7 +33,7 @@ public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTes
   
   @Override
   protected ProofDrop testTypeDeclaration(final IRNode type) {
-    if (EnumDeclaration.prototype.includes(type)) {
+    if (EnumDeclaration.prototype.includes(type) || JavaNames.getFullTypeName(type).equals(JAVA_LANG_ENUM)) {
       final ResultDrop result = new ResultDrop(type);
       result.setConsistent();
       result.setMessage(ENUM_IMPLICITLY_REF_OBJECT, JavaNames.getRelativeTypeNameDotSep(type));
