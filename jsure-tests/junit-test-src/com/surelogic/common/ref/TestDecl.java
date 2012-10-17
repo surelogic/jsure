@@ -914,25 +914,74 @@ public class TestDecl extends TestCase {
 
     Decl.ClassBuilder parent = new Decl.ClassBuilder("Inner").setParent(new Decl.ClassBuilder("MyType")
         .setParent(new Decl.PackageBuilder("com.surelogic.t")));
+    Decl.TypeParameterBuilder tparam = new Decl.TypeParameterBuilder(0, "E").setParent(parent);
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
     // parameters: (Object, Object, String)
     b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
-    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
-    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    Decl.ParameterBuilder arg1 = new Decl.ParameterBuilder(1).setTypeOf(string);
+    b.addParameter(arg1);
     b.setVisibility(Visibility.DEFAULT);
     b.setIsStatic(true);
     b.setParent(parent);
     IDecl p1 = b.build();
     v = new ChattyDeclVisitor();
-    v.visitClassReturn = false;
     p1.acceptRootToThis(v);
-    System.out.println(v.b.toString());
+    String oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitMethod(processSomething) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> visitParameters(count=2) -> visitParameter(arg0:Object,partOfDecl=false) -> visitParameter(arg1:String,partOfDecl=false) -> endVisitParameters(count=2) -> endVisitMethod(processSomething) -> END";
+    assertEquals(oracle, v.getResult());
+
+    v = new ChattyDeclVisitor();
+    p1.acceptThisToRoot(v);
+    oracle = "START visitMethod(processSomething) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> visitParameters(count=2) -> visitParameter(arg0:Object,partOfDecl=false) -> visitParameter(arg1:String,partOfDecl=false) -> endVisitParameters(count=2) -> endVisitMethod(processSomething) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
+    assertEquals(oracle, v.getResult());
 
     v = new ChattyDeclVisitor();
     v.visitClassReturn = false;
-    p1.acceptThisToRoot(v);
-    System.out.println(v.b.toString());
+    v.visitMethodReturn = false;
+    p1.acceptRootToThis(v);
+    oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> endVisitClass(MyType) -> visitClass(Inner) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitMethod(processSomething) -> endVisitMethod(processSomething) -> END";
+    assertEquals(oracle, v.getResult());
 
+    v = new ChattyDeclVisitor();
+    v.visitParametersReturn = false;
+    v.visitTypeParametersReturn = false;
+    p1.acceptThisToRoot(v);
+    oracle = "START visitMethod(processSomething) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> visitParameters(count=2) -> endVisitParameters(count=2) -> endVisitMethod(processSomething) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
+    assertEquals(oracle, v.getResult());
+
+    v = new ChattyDeclVisitor();
+    v.visitTypesReturn = false;
+    v.visitMethodReturn = false;
+    p1.acceptRootToThis(v);
+    oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> endVisitTypes(count=2) -> visitMethod(processSomething) -> endVisitMethod(processSomething) -> END";
+    assertEquals(oracle, v.getResult());
+
+    IDecl tp = tparam.build();
+
+    v = new ChattyDeclVisitor();
+    tp.acceptRootToThis(v);
+    oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitTypeParameter(E, partOfDecl=true) -> END";
+    assertEquals(oracle, v.getResult());
+
+    v = new ChattyDeclVisitor();
+    v.visitTypeParametersReturn = false;
+    v.visitParametersReturn = false;
+    tp.acceptThisToRoot(v);
+    oracle = "START visitTypeParameter(E, partOfDecl=true) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
+    assertEquals(oracle, v.getResult());
+
+    IDecl arg1decl = arg1.build();
+
+    v = new ChattyDeclVisitor();
+    tp.acceptRootToThis(v);
+    oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitTypeParameter(E, partOfDecl=true) -> END";
+    assertEquals(oracle, v.getResult());
+
+    v = new ChattyDeclVisitor();
+    v.visitTypeParametersReturn = false;
+    v.visitParametersReturn = false;
+    arg1decl.acceptThisToRoot(v);
+    oracle = "START visitParameter(arg1:String,partOfDecl=true) -> visitMethod(processSomething) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> visitParameters(count=2) -> endVisitParameters(count=2) -> endVisitMethod(processSomething) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
+    assertEquals(oracle, v.getResult());
   }
 }
