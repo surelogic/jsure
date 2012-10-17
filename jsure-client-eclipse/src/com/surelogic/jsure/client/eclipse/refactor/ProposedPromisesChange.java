@@ -21,11 +21,11 @@ import org.eclipse.text.edits.TextEdit;
 
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDecl.Kind;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
-import com.surelogic.common.refactor.Field;
-import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.JavacTypeEnvironment;
@@ -160,20 +160,15 @@ public class ProposedPromisesChange {
    * @return
    */
   static AnnotationDescription desc(final IProposedPromiseDrop drop) {
-    // final IBinder b = proj.getTypeEnv().getBinder();
-    final IJavaDeclaration target = drop.getTargetInfo();// IRNodeUtil.convert(b,
-    // drop.getNode());
+    final IDecl target = drop.getJavaRef().getDeclaration();
 
     // @Assume cannot be on a field, so we just stick it on the parent type
     // in that case
-    IJavaDeclaration from = drop.getFromInfo();// = IRNodeUtil.convert(b,
-    // drop.getRequestedFrom());
-    // System.out.println("Target = "+target);
-    // System.out.println("From   = "+from);
-    if (from instanceof Field) {
-      from = ((Field) from).getTypeContext();
+    IDecl from = drop.getAssumptionRef().getDeclaration();
+    if (from.getKind() == Kind.FIELD) {
+      from = from.getParent();
     }
-    final IJavaDeclaration assumptionTarget = from;
+    final IDecl assumptionTarget = from;
     final String annotation = drop.getAnnotation();
     final String contents = drop.getContents();
     IJavaRef srcRef = drop.getJavaRef();

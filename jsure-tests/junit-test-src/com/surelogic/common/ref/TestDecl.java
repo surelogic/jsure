@@ -40,6 +40,12 @@ public class TestDecl extends TestCase {
     p = inner.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CLASS, p.getKind());
@@ -54,6 +60,12 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CLASS, p.getKind());
@@ -68,6 +80,12 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -123,6 +141,12 @@ public class TestDecl extends TestCase {
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.CONSTRUCTOR, p.getKind());
@@ -133,7 +157,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> parameters = p.getParameters();
+    List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
     assertEquals(jlo, parameters.get(0).getTypeOf());
     assertEquals(jlo, parameters.get(1).getTypeOf());
@@ -192,6 +216,12 @@ public class TestDecl extends TestCase {
     p = new Decl.EnumBuilder("Foo").setParent(new Decl.PackageBuilder()).setVisibility(Visibility.DEFAULT).build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.ENUM, p.getKind());
@@ -227,6 +257,12 @@ public class TestDecl extends TestCase {
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.FIELD, p.getKind());
@@ -275,6 +311,12 @@ public class TestDecl extends TestCase {
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INITIALIZER, p.getKind());
@@ -309,6 +351,12 @@ public class TestDecl extends TestCase {
     IDecl p = new Decl.InterfaceBuilder("Foo").setParent(new Decl.PackageBuilder()).build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
@@ -333,6 +381,12 @@ public class TestDecl extends TestCase {
     p = inner.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
@@ -345,6 +399,12 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.INTERFACE, p.getKind());
@@ -357,6 +417,12 @@ public class TestDecl extends TestCase {
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -406,6 +472,12 @@ public class TestDecl extends TestCase {
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.METHOD, p.getKind());
@@ -416,7 +488,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> parameters = p.getParameters();
+    List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
     assertEquals(jlo, parameters.get(0).getTypeOf());
     assertEquals(jlo, parameters.get(1).getTypeOf());
@@ -436,6 +508,12 @@ public class TestDecl extends TestCase {
     IDecl fooDecl = foo.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
     assertTrue(fooDecl.hasSameAttributesAs(pEncode));
+    assertTrue(fooDecl.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(fooDecl.isSameDeclarationAs(pEncode));
+    assertTrue(fooDecl.equals(pEncode));
+    assertEquals(fooDecl.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(fooDecl).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(fooDecl).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(fooDecl.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(fooDecl), Decl.encodeForPersistence(pEncode));
     assertEquals(1, fooDecl.getTypeParameters().size());
@@ -467,6 +545,12 @@ public class TestDecl extends TestCase {
     IDecl p = new Decl.PackageBuilder().build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -479,6 +563,12 @@ public class TestDecl extends TestCase {
     p = new Decl.PackageBuilder(null).build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -488,6 +578,12 @@ public class TestDecl extends TestCase {
     p = new Decl.PackageBuilder("").build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -497,6 +593,12 @@ public class TestDecl extends TestCase {
     p = new Decl.PackageBuilder("solo").build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PACKAGE, p.getKind());
@@ -509,6 +611,12 @@ public class TestDecl extends TestCase {
     p = new Decl.PackageBuilder("com.surelogic").build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertEquals("com.surelogic", DeclUtil.getPackageName(p));
@@ -597,6 +705,12 @@ public class TestDecl extends TestCase {
     IDecl p = p3.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.PARAMETER, p.getKind());
@@ -699,6 +813,10 @@ public class TestDecl extends TestCase {
     IDecl p = parent.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertEquals(2, p.getTypeParameters().size());
@@ -748,5 +866,73 @@ public class TestDecl extends TestCase {
     } catch (IllegalArgumentException expected) {
       // good
     }
+  }
+
+  public void testSloppyMatch() {
+    TypeRef jlo = new TypeRef("java.lang.Object", "Object");
+    TypeRef string = new TypeRef("java.lang.String", "String");
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+
+    Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    b.setVisibility(Visibility.DEFAULT);
+    b.setIsStatic(true);
+    b.setParent(parent);
+    IDecl p1 = b.build();
+    SloppyWrapper<IDecl> s1 = SloppyWrapper.getInstance(p1);
+
+    parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+    b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    b.setVisibility(Visibility.PUBLIC);
+    b.setIsFinal(true);
+    b.setParent(parent);
+    IDecl p2 = b.build();
+    SloppyWrapper<IDecl> s2 = SloppyWrapper.getInstance(p2);
+
+    // strict checks fail
+    assertFalse(p1.equals(p2));
+    assertTrue(p1.hashCode() != p2.hashCode());
+
+    // sloppy checks pass
+    assertTrue(s1.equals(s2));
+    assertEquals(s1.hashCode(), s2.hashCode());
+  }
+
+  public void testVisitor() {
+    ChattyDeclVisitor v;
+
+    TypeRef jlo = new TypeRef("java.lang.Object", "Object");
+    TypeRef string = new TypeRef("java.lang.String", "String");
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("Inner").setParent(new Decl.ClassBuilder("MyType")
+        .setParent(new Decl.PackageBuilder("com.surelogic.t")));
+
+    Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(jlo));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    b.setVisibility(Visibility.DEFAULT);
+    b.setIsStatic(true);
+    b.setParent(parent);
+    IDecl p1 = b.build();
+    v = new ChattyDeclVisitor();
+    v.visitClassReturn = false;
+    p1.acceptRootToThis(v);
+    System.out.println(v.b.toString());
+
+    v = new ChattyDeclVisitor();
+    v.visitClassReturn = false;
+    p1.acceptThisToRoot(v);
+    System.out.println(v.b.toString());
+
   }
 }
