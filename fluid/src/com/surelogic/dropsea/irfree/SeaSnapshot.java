@@ -8,7 +8,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ID_ATTR;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ROOT;
 import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.UID_ATTR;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
@@ -118,20 +116,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       ref.addAttribute(attr, value);
     }
     ref.end();
-  }
-
-  public void addJavaDeclInfo(Builder b, final String flavor, final JavaDeclInfo info) {
-    Builder db = b.nest(JAVA_DECL_INFO);
-    db.addAttribute(FLAVOR_ATTR, flavor);
-    db.addAttribute(JavaDeclInfo.INFO_KIND, info.getKind().toString());
-
-    for (Map.Entry<String, String> e : info.getAttributes().entrySet()) {
-      db.addAttribute(e.getKey(), e.getValue());
-    }
-    if (info.getParent() != null) {
-      addJavaDeclInfo(db, JavaDeclInfo.PARENT, info.getParent());
-    }
-    db.end();
   }
 
   public void addProperties(Builder db, String flavor, Map<String, String> map) {

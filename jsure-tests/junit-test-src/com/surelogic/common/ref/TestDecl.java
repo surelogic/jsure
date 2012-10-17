@@ -52,6 +52,7 @@ public class TestDecl extends TestCase {
     assertEquals("Inner", p.getName());
     assertEquals("Outer.Inner", DeclUtil.getTypeNameOrNull(p));
     assertEquals("Outer$Inner", DeclUtil.getTypeNameDollarSignOrNull(p));
+    assertEquals("org.apache.Outer", DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(p));
     assertSame(Visibility.PRIVATE, p.getVisibility());
     assertFalse(p.isAbstract());
     assertTrue(p.isStatic());
