@@ -157,7 +157,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> parameters = p.getParameters();
+    List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
     assertEquals(jlo, parameters.get(0).getTypeOf());
     assertEquals(jlo, parameters.get(1).getTypeOf());
@@ -488,7 +488,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
     assertEquals(0, p.getTypeParameters().size());
-    List<IDecl> parameters = p.getParameters();
+    List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
     assertEquals(jlo, parameters.get(0).getTypeOf());
     assertEquals(jlo, parameters.get(1).getTypeOf());
