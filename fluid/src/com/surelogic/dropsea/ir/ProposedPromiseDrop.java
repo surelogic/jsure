@@ -3,7 +3,6 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
@@ -12,7 +11,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
 import java.util.ArrayList;
@@ -24,23 +22,19 @@ import java.util.Map;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
-import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
@@ -500,8 +494,6 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
   @Override
   public void snapshotRefs(SeaSnapshot s, Builder db) {
     super.snapshotRefs(s, db);
-    s.addJavaDeclInfo(db, FROM_INFO, getFromInfo().snapshot());
-    s.addJavaDeclInfo(db, TARGET_INFO, getTargetInfo().snapshot());
     s.addProperties(db, ANNO_ATTRS, f_attrs);
     s.addProperties(db, REPLACED_ATTRS, f_replacedAttrs);
   }
@@ -510,21 +502,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     return JavaProjects.getEnclosingProject(getNode()).getName();
   }
 
-  public IJavaDeclaration getTargetInfo() {
-    return makeJavaDecl(getNode());
-  }
-
   public String getFromProjectName() {
     return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
-  }
-
-  public IJavaDeclaration getFromInfo() {
-    return makeJavaDecl(f_requestedFrom);
-  }
-
-  private static IJavaDeclaration makeJavaDecl(IRNode node) {
-    final IIRProject proj = JavaProjects.getEnclosingProject(node);
-    final IBinder b = proj.getTypeEnv().getBinder();
-    return IRNodeUtil.convert(b, node);
   }
 }

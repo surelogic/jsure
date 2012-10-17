@@ -3,8 +3,6 @@ package com.surelogic.dropsea.irfree.drops;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.refactor.IJavaDeclInfoClient;
-import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
 import com.surelogic.common.xml.SourceRef;
@@ -53,20 +51,21 @@ public class SeaSnapshotXMLReader extends AbstractXMLReader {
     } else if (SUPPORTING_INFO.equals(lastName)) {
       next.addInfo(new MoreInfo(last));
     } else if (JAVA_DECL_INFO.equals(lastName)) {
-      JavaDeclInfo info = (JavaDeclInfo) last;
-      if (next instanceof IJavaDeclInfoClient) {
-        /*
-         * Adds parents
-         */
-        ((IJavaDeclInfoClient) next).addInfo(info);
-      } else {
-        /*
-         * We need to inform the associated drop (not the entity) so we ask the
-         * listener for it. Likely this is a proposed promise we are trying to
-         * stash java declaration information for refactoring onto.
-         */
-        f_seaSnapListener.handleJavaDecl(next, info);
-      }
+    	// IGNORE these since they're no longer used
+//      JavaDeclInfo info = (JavaDeclInfo) last;
+//      if (next instanceof IJavaDeclInfoClient) {
+//        /*
+//         * Adds parents
+//         */
+//        ((IJavaDeclInfoClient) next).addInfo(info);
+//      } else {
+//        /*
+//         * We need to inform the associated drop (not the entity) so we ask the
+//         * listener for it. Likely this is a proposed promise we are trying to
+//         * stash java declaration information for refactoring onto.
+//         */
+//        f_seaSnapListener.handleJavaDecl(next, info);
+//      }
     } else {
       // System.out.println("Finished '"+name+"' inside of "+next);
       next.addRef(last);

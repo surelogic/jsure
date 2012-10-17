@@ -22,7 +22,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -48,10 +47,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   }
 
   @Nullable
-  private IJavaDeclaration f_fromInfo = null;
-  @Nullable
-  private IJavaDeclaration f_targetInfo = null;
-  @Nullable
   private IJavaRef f_assumptionRef = null;
   @NonNull
   private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
@@ -66,14 +61,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   private final String f_fromProjectName;
   @NonNull
   private final Origin f_origin;
-
-  void setFromInfo(IJavaDeclaration value) {
-    f_fromInfo = value;
-  }
-
-  void setTargetInfo(IJavaDeclaration value) {
-    f_targetInfo = value;
-  }
 
   void setAssumptionRef(IJavaRef value) {
     f_assumptionRef = value;
@@ -176,14 +163,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   public IJavaRef getAssumptionRef() {
     return f_assumptionRef;
-  }
-
-  public IJavaDeclaration getFromInfo() {
-    return f_fromInfo;
-  }
-
-  public IJavaDeclaration getTargetInfo() {
-    return f_targetInfo;
   }
 
   public boolean isSameProposalAs(IProposedPromiseDrop other) {
