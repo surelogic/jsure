@@ -117,8 +117,6 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
 	  return (threadSafe.length + immutable.length + containable.length + reference.length + value.length) > 0;
   }
   
-  
-  
   public NamedTypeNode[] getContainable() {
     return containable;
   }  
