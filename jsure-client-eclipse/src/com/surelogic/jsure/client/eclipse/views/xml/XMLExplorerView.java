@@ -389,8 +389,7 @@ public class XMLExplorerView extends AbstractSLView implements
 	}
 
 	private String getPackagePath(String qname) {
-		return qname.replace('.', '/') + "/package-info"
-				+ TestXMLParserConstants.SUFFIX;
+		return qname.replace('.', '/') + '/' + TestXMLParserConstants.PACKAGE_PROMISES;
 	}
 
 	private static final Package[] noPackages = new Package[0];
