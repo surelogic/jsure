@@ -118,7 +118,7 @@ public class ClassAdapter extends AbstractAdapter {
   public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods) {
     super(SLLogger.getLogger());
     jar = null;
-    className = null;
+    className = qname.replace('.', '/') + ".class";
     classFile = f;
     isInner = inner;
     debug = Util.debug;
