@@ -49,6 +49,7 @@ import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.VouchProcessorConsistencyProofHook;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -125,7 +126,7 @@ public class Util {
   private static final boolean loadPartial = false;
   public static final boolean useResultsXML = false;
 
-  public static final String PACKAGE_INFO_JAVA = "package-info.java";
+  public static final String PACKAGE_INFO_JAVA = SLUtility.PACKAGE_INFO+".java";
   public static final boolean debug = false;
   private static final String HOME = System.getProperty("user.home");
 

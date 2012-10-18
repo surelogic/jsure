@@ -172,11 +172,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 	        }
 
 	        private int offset(DiffNode d) {
-	          Long l = DropMatcher.getOffset(d.drop);
-	          if (l == null) {
-	        	  return -1;
-	          }
-	          return l.intValue();
+	          return DropMatcher.getOffset(d.drop);
 	        }
 	      });
 	      return l;

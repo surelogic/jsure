@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.ISourceZipFileHandles;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -94,7 +95,7 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 	public static void tryToOpenInEditor(final String pkg, final String type,
 			int lineNumber) {
 		tryToOpenInEditor(HistoricalSourceView.class, null, pkg, 
-				type == null ? "package-info" : type,
+				type == null ? SLUtility.PACKAGE_INFO : type,
 				lineNumber);
 	}
 

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 public interface TestXMLParserConstants {
@@ -32,7 +33,7 @@ public interface TestXMLParserConstants {
 	public static final String CONTENTS = "contents";
 
 	public static final String SUFFIX = ".promises.xml";
-	public static final String PACKAGE_PROMISES = "package-info.promises.xml";
+	public static final String PACKAGE_PROMISES = SLUtility.PACKAGE_INFO+SUFFIX;
 	public static final String DTD_NAME = "promises.dtd";
 
 	public static final String UID_ATTRB = "uid";

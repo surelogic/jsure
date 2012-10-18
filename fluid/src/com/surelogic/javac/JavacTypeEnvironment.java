@@ -9,6 +9,7 @@ import org.apache.commons.collections15.MultiMap;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
@@ -400,7 +401,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				final IRNode root = info.getFileName().endsWith(Util.PACKAGE_INFO_JAVA) ? info.getNode() : null;
 				changed = classes.addPackage(project, pkg, root, !addAlways);
 				if (root != null) {
-					infos.put(pkg+".package-info", info);
+					infos.put(pkg+'.'+SLUtility.PACKAGE_INFO, info);
 				}
 			}
 		}
