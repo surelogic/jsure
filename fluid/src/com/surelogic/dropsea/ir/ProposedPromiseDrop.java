@@ -13,14 +13,8 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
@@ -363,83 +357,6 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @Override
   public String toString() {
     return getJavaAnnotation();
-  }
-
-  public boolean isSameProposalAs(IProposedPromiseDrop other) {
-    if (this == other)
-      return true;
-    if (other == null)
-      return false;
-
-    return isSame(f_annotation, other.getAnnotation()) && isSame(f_contents, other.getContents())
-        && isSame(f_replacedContents, other.getReplacedContents()) && isSame(getJavaRef(), other.getJavaRef());
-  }
-
-  private static <T> boolean isSame(T o1, T o2) {
-    if (o1 == null) {
-      if (o2 != null) {
-        return false;
-      }
-    } else if (!o1.equals(o2)) {
-      return false;
-    }
-    return true;
-  }
-
-  public long computeHash() {
-    long hash = 0;
-    if (f_annotation != null) {
-      hash += f_annotation.hashCode();
-    }
-    if (f_contents != null) {
-      hash += f_contents.hashCode();
-    }
-    final IJavaRef ref = getJavaRef();
-    if (ref != null) {
-      hash += ref.getHash(); // Instead of hashCode()?
-    }
-    return hash;
-  }
-
-  /**
-   * Filters out duplicate proposals so that they are not listed.
-   * <p>
-   * This doesn't handle proposed promises in binary files too well.
-   * 
-   * @param proposals
-   *          the list of proposed promises.
-   * @return the filtered list of proposals.
-   */
-  public static List<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
-    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
-    // Hash results
-    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
-    for (IProposedPromiseDrop info : proposals) {
-      long hash = info.computeHash();
-      hashed.put(hash, info);
-    }
-    // Filter each list the old way
-    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
-      result.addAll(filterOutDuplicates_slow(e.getValue()));
-    }
-    return result;
-  }
-
-  // n^2 comparisons
-  private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
-    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
-    for (IProposedPromiseDrop h : proposals) {
-      boolean addToResult = true;
-      for (IProposedPromiseDrop i : result) {
-        if (h.isSameProposalAs(i)) {
-          addToResult = false;
-          break;
-        }
-      }
-      if (addToResult)
-        result.add(h);
-    }
-    return result;
   }
 
   /*

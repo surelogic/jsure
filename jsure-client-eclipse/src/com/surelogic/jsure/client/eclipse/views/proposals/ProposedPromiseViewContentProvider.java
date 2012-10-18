@@ -16,13 +16,21 @@ import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.ref.*;
+import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDeclField;
+import com.surelogic.common.ref.IDeclFunction;
+import com.surelogic.common.ref.IDeclPackage;
+import com.surelogic.common.ref.IDeclParameter;
+import com.surelogic.common.ref.IDeclType;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.irfree.drops.IRFreeProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
@@ -58,7 +66,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
       packages = noPackages;
       return null;
     }
-    List<IProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop.filterOutDuplicates(info.getProposedPromiseDrops());
+    List<IProposedPromiseDrop> proposedPromiseDrops = filterOutDuplicates(info.getProposedPromiseDrops());
     final boolean showAbductiveOnly = EclipseUtility
         .getBooleanPreference(JSurePreferencesUtility.PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY);
 
@@ -90,6 +98,68 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     }
     Collections.sort(mutableContents, sortByProposal);
     return info.getLabel();
+  }
+
+  /**
+   * Filters out duplicate proposals so that they are not listed.
+   * <p>
+   * This doesn't handle proposed promises in binary files too well.
+   * 
+   * @param proposals
+   *          the list of proposed promises.
+   * @return the filtered list of proposals.
+   */
+  private static List<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    // Hash results
+    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
+    for (IProposedPromiseDrop info : proposals) {
+      long hash = computeHashFor(info);
+      hashed.put(hash, info);
+    }
+    // Filter each list the old way
+    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
+      result.addAll(filterOutDuplicates_slow(e.getValue()));
+    }
+    return result;
+  }
+
+  private static long computeHashFor(@NonNull IProposedPromiseDrop ppd) {
+    long hash = 0;
+    final String anno = ppd.getAnnotation();
+    if (anno != null) {
+      hash += anno.hashCode();
+    }
+    final String contents = ppd.getContents();
+    if (contents != null) {
+      hash += contents.hashCode();
+    }
+    final String replaced = ppd.getReplacedContents();
+    if (replaced != null) {
+      hash += replaced.hashCode();
+    }
+    final IJavaRef ref = ppd.getJavaRef();
+    if (ref != null) {
+      hash += ref.hashCode();
+    }
+    return hash;
+  }
+
+  // n^2 comparisons
+  private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    for (IProposedPromiseDrop h : proposals) {
+      boolean addToResult = true;
+      for (IProposedPromiseDrop i : result) {
+        if (IRFreeProposedPromiseDrop.isSameProposalAs(h, i)) {
+          addToResult = false;
+          break;
+        }
+      }
+      if (addToResult)
+        result.add(h);
+    }
+    return result;
   }
 
   private static final Comparator<IProposedPromiseDrop> sortByProposal = new Comparator<IProposedPromiseDrop>() {
@@ -315,13 +385,12 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
   /**
    * @return the Decl that the proposal should be added to
    */
-  static Decl findDecl(Decl here, IDecl decl) {	  
-	if (decl instanceof IDeclPackage) {
-		return here;
-	}
-	else if (decl instanceof IDeclType) {
-	  Decl parent = findDecl(here, decl.getParent());
-      return parent.getDecl(parent.types, decl.getName());      
+  static Decl findDecl(Decl here, IDecl decl) {
+    if (decl instanceof IDeclPackage) {
+      return here;
+    } else if (decl instanceof IDeclType) {
+      Decl parent = findDecl(here, decl.getParent());
+      return parent.getDecl(parent.types, decl.getName());
     } else if (decl instanceof IDeclFunction) {
       IDeclFunction m = (IDeclFunction) decl;
       Decl type = findDecl(here, m.getParent());

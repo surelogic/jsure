@@ -26,8 +26,7 @@ import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
-public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop,
-    Comparable<IRFreeProposedPromiseDrop> {
+public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop {
 
   static {
     Entity.internString(FROM_INFO);
@@ -103,7 +102,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       }
     }
     f_origin = result;
-    
+
     final String encodedJavaRef = e.getAttribute(FROM_REF);
     if (encodedJavaRef != null) {
       try {
@@ -164,14 +163,20 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     return f_assumptionRef;
   }
 
-  public boolean isSameProposalAs(IProposedPromiseDrop other) {
-    if (this == other)
+  boolean hasAssumptionRef() {
+    return f_assumptionRef != null;
+  }
+
+  public static boolean isSameProposalAs(IProposedPromiseDrop o1, IProposedPromiseDrop o2) {
+    if (o1 == null && o2 == null)
       return true;
-    if (other == null)
+    if (o1 == null && o2 != null)
+      return false;
+    if (o1 != null && o2 == null)
       return false;
 
-    return isSame(getAnnotation(), other.getAnnotation()) && isSame(getContents(), other.getContents())
-        && isSame(getReplacedContents(), other.getReplacedContents()) && isSame(getJavaRef(), other.getJavaRef());
+    return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getContents(), o2.getContents())
+        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef());
   }
 
   private static <T> boolean isSame(T o1, T o2) {
@@ -183,34 +188,5 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       return false;
     }
     return true;
-  }
-
-  public long computeHash() {
-    long hash = 0;
-    final String anno = getAnnotation();
-    if (anno != null) {
-      hash += anno.hashCode();
-    }
-    final String contents = getContents();
-    if (contents != null) {
-      hash += contents.hashCode();
-    }
-    final String replaced = getReplacedContents();
-    if (replaced != null) {
-      hash += replaced.hashCode();
-    }
-    final IJavaRef ref = getJavaRef();
-    if (ref != null) {
-      hash += ref.getHash(); // Instead of hashCode()?
-    }
-    return hash;
-  }
-
-  public int compareTo(IRFreeProposedPromiseDrop o) {
-    return getMessage().compareTo(o.getMessage());
-  }
-
-  boolean hasAssumptionRef() {
-	return f_assumptionRef != null;
   }
 }

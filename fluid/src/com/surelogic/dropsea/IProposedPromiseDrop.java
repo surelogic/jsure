@@ -55,8 +55,4 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
   String getFromProjectName();
 
   IJavaRef getAssumptionRef();
-
-  long computeHash();
-
-  boolean isSameProposalAs(IProposedPromiseDrop i);
 }

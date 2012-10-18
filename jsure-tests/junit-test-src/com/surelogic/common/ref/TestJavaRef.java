@@ -3,6 +3,7 @@ package com.surelogic.common.ref;
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.IJavaRef.Within;
 
 public final class TestJavaRef extends TestCase {
@@ -49,6 +50,29 @@ public final class TestJavaRef extends TestCase {
     assertEquals(-1, r.getLineNumber());
     assertEquals(-1, r.getOffset());
     assertEquals(-1, r.getLength());
+  }
+
+  public void testValueObject() {
+    IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A");
+    JavaRef.Builder builder = new JavaRef.Builder(decl).setEclipseProjectName("MyProject").setLength(5).setLineNumber(500)
+        .setOffset(4546);
+
+    IJavaRef o1 = builder.build();
+    IJavaRef o2 = builder.build();
+
+    builder.setPositionRelativeToDeclaration(Position.ON); // different
+
+    IJavaRef d1 = builder.build();
+    IJavaRef d2 = builder.build();
+
+    assertEquals(o1, o2);
+    assertNotSame(o1, o2);
+
+    assertEquals(d1, d2);
+    assertNotSame(d1, d2);
+
+    assertFalse(o1.equals(d1));
+    assertFalse(d1.equals(o1));
   }
 
   public void testDefaultPackage() {
