@@ -21,6 +21,7 @@ import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -164,7 +165,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   public final void setMessageWhenProvedConsistent(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(257, number));
+      SLLogger.getLogger().warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -182,7 +183,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   public final void setMessageWhenNotProvedConsistent(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(257, number));
+      SLLogger.getLogger().warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {

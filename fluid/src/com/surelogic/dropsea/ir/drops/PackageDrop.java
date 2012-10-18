@@ -76,8 +76,8 @@ public final class PackageDrop extends CUDrop {
     } catch (Exception e) {
       if (!(e instanceof FileNotFoundException)) {
         SLLogger.getLogger().log(Level.SEVERE, "Problem parsing " + xmlName, e);
-      } else if (LOG.isLoggable(Level.FINER)) {
-        LOG.finer("Couldn't find " + xmlName);
+      } else if (SLLogger.getLogger().isLoggable(Level.FINER)) {
+        SLLogger.getLogger().finer("Couldn't find " + xmlName);
       }
     }
     JavaProjects.setProject(root, tEnv.getProject());
@@ -167,7 +167,7 @@ public final class PackageDrop extends CUDrop {
       JavaProjects.setProject(root, proj);
             
       JavaNode.makeFluidJavaRefForPackage(proj, n);
-      LOG.fine("Creating IR for package " + name);
+      SLLogger.getLogger().fine("Creating IR for package " + name);
     } else {
       n = CompilationUnit.getPkg(root);
       if (NamedPackageDeclaration.prototype.includes(n)) {

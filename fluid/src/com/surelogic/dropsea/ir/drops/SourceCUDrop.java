@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -56,7 +57,7 @@ public final class SourceCUDrop extends CUDrop {
         SourceCUDrop d = FILE_TO_INSTANCE.put(javaFile, drop);
         if (d != null) {
           // duplicate drop?
-          LOG.severe("Got 2+ drops with same javaFile: " + javaFile);
+          SLLogger.getLogger().severe("Got 2+ drops with same javaFile: " + javaFile);
         }
       }
     }

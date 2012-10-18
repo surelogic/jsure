@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
@@ -49,6 +48,8 @@ import edu.cmu.cs.fluid.java.JavaPromise;
  * <p>
  * Dependent drops are specified by clients though the public interface and
  * deponent drops are automatically tracked.
+ * <p>
+ * This implementation always tracks a reference to an {@link IRNode}.
  * 
  * @see Sea
  */
@@ -62,11 +63,6 @@ public abstract class Drop implements IDrop {
    * drops is output.
    */
   public static final String debug = "";// "Lock field \"this.f_lock\" is less";
-
-  /**
-   * Logger for this class
-   */
-  protected static final Logger LOG = SLLogger.getLogger("Drop");
 
   /**
    * Constructs a drop referencing the passed node. The {@link IRNode} passed
@@ -167,7 +163,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(257, number));
+      SLLogger.getLogger().warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -279,7 +275,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setCategorizingMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(261, number));
+      SLLogger.getLogger().warning(I18N.err(261, number));
       return;
     }
     synchronized (f_seaLock) {

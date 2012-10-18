@@ -7,6 +7,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -40,8 +41,8 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
        * for(Drop d : getDeponents()) {
        * System.out.println(d.getClass().getSimpleName()+": "+d.getMessage()); }
        */
-      if (LOG.isLoggable(Level.FINE)) {
-        LOG.fine("Unexpected invalidate on " + getMessage() + " from " + invalidDeponent.getMessage());
+      if (SLLogger.getLogger().isLoggable(Level.FINE)) {
+        SLLogger.getLogger().fine("Unexpected invalidate on " + getMessage() + " from " + invalidDeponent.getMessage());
       }
     }
   }
