@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java.util;
 
 import com.surelogic.common.Pair;
+import com.surelogic.common.ref.Decl.AnnotationBuilder;
 import com.surelogic.common.ref.Decl.ClassBuilder;
 import com.surelogic.common.ref.Decl.ConstructorBuilder;
 import com.surelogic.common.ref.Decl.DeclBuilder;
@@ -194,16 +195,18 @@ public class DeclFactory {
       EnumBuilder e = new EnumBuilder(name);
       e.setVisibility(getVisibility(decl));
       return e;
+    case ANNOTATION:
+      AnnotationBuilder ab = new AnnotationBuilder(name);
+      ab.setVisibility(getVisibility(decl));
+      return ab;
     case INTERFACE:
       InterfaceBuilder ib = new InterfaceBuilder(name);
-      if (t instanceof InterfaceDeclaration) {
-        IRNode types = InterfaceDeclaration.getTypes(decl);
-        int i = 0;
-        for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
-          TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
-          ib.addTypeParameter(tpb);
-          i++;
-        }
+      IRNode types = InterfaceDeclaration.getTypes(decl);
+      int i = 0;
+      for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
+    	  TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
+    	  ib.addTypeParameter(tpb);
+    	  i++;
       }
       ib.setVisibility(getVisibility(decl));
       return ib;

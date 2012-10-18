@@ -11,6 +11,6 @@ public operator AnnotationDeclaration extends TypeDeclaration /* implements Flow
   
   @Override
   public com.surelogic.common.ref.IDecl.Kind getKind() {
-    return com.surelogic.common.ref.IDecl.Kind.INTERFACE;
+    return com.surelogic.common.ref.IDecl.Kind.ANNOTATION;
   }  
 }
