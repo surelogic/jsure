@@ -107,7 +107,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   public static final boolean includeQuotesInStringLiteral = true;
 
   enum TypeKind {
-    IFACE, ENUM, OTHER
+    IFACE, ENUM, ANNO, OTHER
   }
 
   private SourcePositions source;
@@ -765,11 +765,17 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     final boolean isAnno = mod.contains("interface @");
     final boolean isInterface = !isAnno && mod.contains("interface ");
     final boolean isEnum = !isClass && !isInterface && enm >= 0 && enm < idLoc;
-    final TypeKind kind = isInterface ? TypeKind.IFACE : isEnum ? TypeKind.ENUM : TypeKind.OTHER;
+    final TypeKind kind;
     if (isAnno) {
+      kind = TypeKind.ANNO;
       context = CodeContext.makeFromAnnotation(context, true);
     } else if (isInterface) {
+      kind = TypeKind.IFACE;
       context = CodeContext.makeFromInterface(context, true);
+    } else if (isEnum) {
+      kind = TypeKind.ENUM;
+    } else {
+      kind = TypeKind.OTHER;
     }
     int mods = adaptModifiers(node.getModifiers());
     IRNode annos = adaptAnnotations(node.getModifiers(), context);
@@ -1216,7 +1222,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
 
     int mods = adaptModifiers(node.getModifiers());
-    if (kind == TypeKind.IFACE) {
+    if (kind == TypeKind.IFACE || kind == TypeKind.ANNO) {
       mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true);
       mods = JavaNode.setModifier(mods, JavaNode.ABSTRACT, true);
     }
@@ -1517,7 +1523,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
   public IRNode adaptField(VariableTree node, String className, TypeKind kind, CodeContext context) {
     int mods = adaptModifiers(node.getModifiers());
-    if (kind == TypeKind.IFACE) {
+    if (kind == TypeKind.IFACE || kind == TypeKind.ANNO) {
       mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true);
       mods = JavaNode.setModifier(mods, JavaNode.STATIC, true);
       mods = JavaNode.setModifier(mods, JavaNode.FINAL, true);
