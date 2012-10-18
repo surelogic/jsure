@@ -47,23 +47,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop implements IProposedPromiseDrop {
 
-  public enum Origin {
-    /**
-     * This proposal was inferred from code with no model/annotation basis for
-     * it whatsoever.
-     */
-    CODE,
-    /**
-     * This proposal was inferred from code and a model. It could be extending
-     * or augmenting an existing model based upon the program's implementation.
-     */
-    MODEL,
-    /**
-     * This proposed promise was created to help fix a modeling problem.
-     */
-    PROBLEM
-  }
-
   /**
    * Constructs a new proposed promise. Intended to be called from analysis
    * code.
@@ -478,16 +461,16 @@ public final class ProposedPromiseDrop extends IRReferenceDrop implements IPropo
     s.addAttribute(ORIGIN, getOrigin().toString());
     s.addAttribute(TARGET_PROJECT, getTargetProjectName());
     s.addAttribute(FROM_PROJECT, getFromProjectName());
-    
+
     final IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
-    final IJavaRef assumeRef = getAssumptionRef();    
+    final IJavaRef assumeRef = getAssumptionRef();
     final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null ?
-    		// TODO to change enum?
-    		new JavaRef.Builder(assumeRef).setDeclaration(declRef.getDeclaration()).build() : 
-    		assumeRef;
+    // TODO to change enum?
+    new JavaRef.Builder(assumeRef).setDeclaration(declRef.getDeclaration()).build()
+        : assumeRef;
     if (javaRef != null) {
-    	final String encodedJavaRef = javaRef.encodeForPersistence();
-    	s.addAttribute(FROM_REF, encodedJavaRef);
+      final String encodedJavaRef = javaRef.encodeForPersistence();
+      s.addAttribute(FROM_REF, encodedJavaRef);
     }
   }
 

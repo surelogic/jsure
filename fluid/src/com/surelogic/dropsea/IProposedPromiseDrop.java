@@ -3,7 +3,7 @@ package com.surelogic.dropsea;
 import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop.Origin;
+import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
 
 /**
  * The interface for all proposed promise drops within the sea, intended to

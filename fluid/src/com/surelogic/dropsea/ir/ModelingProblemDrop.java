@@ -19,12 +19,12 @@ public final class ModelingProblemDrop extends IRReferenceDrop implements IModel
   private final int f_offset;
 
   /**
-   * @param off
-   *          The absolute offset into the program
+   * @param offset
+   *          The offset in characters into the compilation unit file.
    */
-  public ModelingProblemDrop(IRNode node, int off) {
+  public ModelingProblemDrop(IRNode node, int offset) {
     super(node);
-    f_offset = off;
+    f_offset = offset;
   }
 
   public ModelingProblemDrop(IRNode node) {

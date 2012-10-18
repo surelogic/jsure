@@ -6,7 +6,7 @@ import java.util.Set;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * Drop representing a compilation unit, suitable for promise and result drops
  * to depend upon. Created and invalidated by the eAST to fAST converter.
  */
-public abstract class CUDrop extends Drop {
+public abstract class CUDrop extends IRReferenceDrop {
 
   private static final SlotInfo<CUDrop> SI_CUDROP = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
 
@@ -38,8 +38,6 @@ public abstract class CUDrop extends Drop {
     return f_javaOSFileName;
   }
 
-  private final IRNode f_cu; // CompilationUnit node
-
   /**
    * Gets the {@link IRNode} with operator {@link CompilationUnit} for the
    * compilation unit represented by this drop.
@@ -48,7 +46,7 @@ public abstract class CUDrop extends Drop {
    *         for this drop.
    */
   public final IRNode getCompilationUnitIRNode() {
-    return f_cu;
+    return getNode();
   }
 
   private final Object f_hostEnvResource;
@@ -81,11 +79,11 @@ public abstract class CUDrop extends Drop {
   }
 
   protected CUDrop(CodeInfo info, boolean isAsSource) {
+    super(info.getNode());
     // System.out.println("Creating CU for "+info.getFileName());
 
     // TODO will this suck up space for the source?
     this.f_codeInfo = info;
-    f_cu = info.getNode();
     f_javaOSFileName = info.getFileName();
 
     f_hostEnvResource = info.getHostEnvResource();
@@ -101,7 +99,7 @@ public abstract class CUDrop extends Drop {
       f_elidedFields = ef;
     }
     f_isAsSource = isAsSource;
-    final String pkgName = VisitUtil.getPackageName(f_cu);
+    final String pkgName = VisitUtil.getPackageName(getNode());
     final PackageDrop pd = PackageDrop.createPackage(null, pkgName, null, null);
     pd.addDependent(this);
     finishInit();
@@ -111,8 +109,8 @@ public abstract class CUDrop extends Drop {
    * Only to be called by {@link PackageDrop}.
    */
   CUDrop(String pkgName, IRNode root, boolean isAsSource) {
+    super(root);
     f_codeInfo = null;
-    f_cu = root;
     f_linesOfCode = 1;
     f_javaOSFileName = pkgName;
     f_hostEnvResource = null;
@@ -127,7 +125,7 @@ public abstract class CUDrop extends Drop {
       if (this instanceof PackageDrop) {
         return null;
       }
-      throw new UnsupportedOperationException("No CodeInfo for " + DebugUnparser.toString(f_cu));
+      throw new UnsupportedOperationException("No CodeInfo for " + DebugUnparser.toString(getNode()));
     }
     f_codeInfo.clearProperty(CodeInfo.DONE);
     return f_codeInfo;
@@ -138,11 +136,7 @@ public abstract class CUDrop extends Drop {
   }
 
   private void finishInit() {
-    if (f_cu != null) {
-      f_cu.setSlotValue(SI_CUDROP, this);
-    } else {
-      LOG.severe("No node while building CUDrop for " + f_javaOSFileName);
-    }
+    getNode().setSlotValue(SI_CUDROP, this);
     setMessage(11, getClass().getSimpleName(), f_javaOSFileName);
   }
 

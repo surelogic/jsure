@@ -31,6 +31,23 @@ import edu.cmu.cs.fluid.java.JavaPromise;
  */
 public abstract class IRReferenceDrop extends Drop {
 
+  public enum Origin {
+    /**
+     * This proposal was inferred from code with no model/annotation basis for
+     * it whatsoever.
+     */
+    CODE,
+    /**
+     * This proposal was inferred from code and a model. It could be extending
+     * or augmenting an existing model based upon the program's implementation.
+     */
+    MODEL,
+    /**
+     * This proposed promise was created to help fix a modeling problem.
+     */
+    PROBLEM
+  }
+
   /**
    * Constructs a drop referencing the passed node. The {@link IRNode} passed
    * must be non-null.
@@ -45,14 +62,42 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   /**
-   * The non-null fAST node that this PromiseDrop is associated with.
+   * The non-null fAST node that this drop is associated with.
    */
   @NonNull
   private final IRNode f_node;
 
+  /**
+   * Notes if the Java code reference for this drop should be ignored. In some
+   * cases the analysis doesn't want to "link" to a particular code location
+   * despite the given value of {@link #f_node}.
+   */
+  @InRegion("DropState")
+  private boolean f_ignoreJavaRef = false;
+
+  /**
+   * Sets if this drop ignores any Java code reference contained on its fAST
+   * node.
+   * 
+   * @param value
+   *          {@code true} to ignore the Java code reference, {@code false} to
+   *          use the Java code reference.
+   */
+  public void setIgnoreJavaRef(boolean value) {
+    synchronized (f_seaLock) {
+      f_ignoreJavaRef = value;
+    }
+  }
+
   @Override
   @Nullable
+  @MustInvokeOnOverride
   public IJavaRef getJavaRef() {
+    synchronized (f_seaLock) {
+      if (f_ignoreJavaRef)
+        return null;
+    }
+
     final IJavaRef javaRef = JavaNode.getJavaRef(f_node);
     if (javaRef != null)
       return javaRef;

@@ -412,26 +412,21 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @Nullable
-  public IJavaRef getJavaRef() {
+  public final IJavaRef getJavaRef() {
     final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
     final IJavaRef javaRef = contextRef != null ? contextRef : super.getJavaRef();
     if (javaRef == null)
       return null;
 
-    //final IRNode decl = getNode();
-    //String javaId = decl == null ? null : JavaIdentifier.encodeDecl(decl);
-    
     // Use the best info we have
     int offset, length;
     if (f_aast.getOffset() >= 0) {
       offset = f_aast.getOffset();
       length = 0;
+      return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).build();
     } else {
-      offset = javaRef.getOffset();
-      length = javaRef.getLength();
+      return javaRef;
     }
-    return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).build();
-
   }
 
   /**
