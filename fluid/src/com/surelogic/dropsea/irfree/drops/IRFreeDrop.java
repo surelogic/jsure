@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -201,7 +202,31 @@ public class IRFreeDrop implements IDrop {
     }
   }
 
+  // TODO REMOVE WHEN NO LONGER NEEDED -- THIS IS FOR REGRESSION TESTS
+  public String javaId;
+
+  static void makeJavaRefFromSrcRefAndAddTo(IRFreeDrop drop, SourceRef ref) {
+    if (ref == null || drop == null)
+      return;
+    if (drop.hasJavaRef())
+      return;
+
+    Pair<IJavaRef, String> pair = makeJavaRefAndJavaIdFromSrcRef(ref);
+    if (pair != null) {
+      drop.setJavaRef(pair.first());
+      drop.javaId = pair.second();
+    }
+  }
+
   static IJavaRef makeJavaRefFromSrcRef(SourceRef ref) {
+    Pair<IJavaRef, String> pair = makeJavaRefAndJavaIdFromSrcRef(ref);
+    if (pair != null)
+      return pair.first();
+    else
+      return null;
+  }
+
+  static Pair<IJavaRef, String> makeJavaRefAndJavaIdFromSrcRef(SourceRef ref) {
     if (ref == null) {
       return null;
     }
@@ -240,8 +265,7 @@ public class IRFreeDrop implements IDrop {
         builder.setOffset(offset);
       if (length < Integer.MAX_VALUE)
         builder.setLength(length);
-      builder.setJavaId(javaId);
-      return builder.build();
+      return new Pair<IJavaRef, String>(builder.build(), javaId);
     }
   }
 }

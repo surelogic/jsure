@@ -171,7 +171,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         if (!drop.hasJavaRef()) {
           final SourceRef sr = e.getSource();
           if (sr != null) {
-            drop.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
+            IRFreeDrop.makeJavaRefFromSrcRefAndAddTo(drop, sr);
           }
         }
 
@@ -186,7 +186,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
           IRFreeHintDrop hint = new IRFreeHintDrop(hintE, HintDrop.class);
           if (i.source != null) {
-            hint.setJavaRef(IRFreeDrop.makeJavaRefFromSrcRef(i.source));
+            IRFreeDrop.makeJavaRefFromSrcRefAndAddTo(hint, i.source);
           }
           pd.addHint(hint);
         }
