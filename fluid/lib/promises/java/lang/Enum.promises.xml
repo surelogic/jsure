@@ -10,5 +10,9 @@
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
+        
+        <method name="toString">
+          <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
     </class>
 </package>

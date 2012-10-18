@@ -111,20 +111,13 @@ public abstract class DropMatcher {
 		return rv;
 	}
 	
-	protected static boolean matchLong(Long n, Long o) {
-		if (n != null && o != null) {
-			return n.equals(o);
-		}
-		return false;
-	}
-	
-	protected static Long getOffset(IDrop d) {
-		IJavaRef ref = d.getJavaRef();
-		if (ref != null) {
-			return (long) ref.getOffset();
-		}
-		return null;
-	}
+  protected static int getOffset(IDrop d) {
+    IJavaRef ref = d.getJavaRef();
+    if (ref != null) {
+      return ref.getOffset();
+    }
+    return -1; // for unknown
+  }
 	
 	// Need until we update all the oracles that use JavaIds
 	protected static String getJavaId(IDrop d) {

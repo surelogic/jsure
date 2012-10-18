@@ -12,7 +12,6 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.RefObjectPromiseDrop;
@@ -23,7 +22,6 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.AbstractSuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -31,6 +29,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -40,14 +39,30 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EqualityRules extends AnnotationRules {
+  private static final int OVERRIDES = 750;
+  private static final int INHERITS = 751;
+  private static final int CONFLICTS_WITH = 752;
+  private static final int SHOULD_BE_ABSTRACT = 753;
+  private static final int TRIVIALLY_VALUE_INTERFACE = 754;
+  private static final int TRIVIALLY_REF = 755;
+  private static final int DOES_NOT_MATCH_SUPERTYPE = 756;
+  private static final int TRIVIALLY_VALUE_ABSTRACT = 757;
+  private static final int BAD_ENUM = 763;
+  private static final int MAY_NOT_IMPLEMENT_VAL_OBJECT = 765;
+  
 	public static final String VALUE_OBJECT = "ValueObject";
 	public static final String REF_OBJECT = "ReferenceObject";
-
+	 
+  private static final String HASHCODE = "hashCode";
+  private static final String EQUALS = "equals";
+  
 	private static final ValueObject_ParseRule valueObjectRule = new ValueObject_ParseRule();
 	private static final RefObject_ParseRule refObjectRule = new RefObject_ParseRule();
 	
 	private static final EqualityRules instance = new EqualityRules();
 
+	
+	
 	public static EqualityRules getInstance() {
 		return instance;
 	}
@@ -68,7 +83,8 @@ public class EqualityRules extends AnnotationRules {
 	
 	static class ValueObject_ParseRule extends 
 	SimpleBooleanAnnotationParseRule<ValueObjectNode,ValueObjectPromiseDrop> {
-		protected ValueObject_ParseRule() {
+
+    protected ValueObject_ParseRule() {
 			super(VALUE_OBJECT, typeDeclOps, ValueObjectNode.class);
 		}	
 		
@@ -111,9 +127,16 @@ public class EqualityRules extends AnnotationRules {
 				protected ValueObjectPromiseDrop makePromiseDrop(ValueObjectNode a, boolean isAssumption) {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
+					
+					// Check if the class is java.lang.Enum
+					if (EnumDeclaration.prototype.includes(tdecl)) {
+            getContext().reportError(a, I18N.res(BAD_ENUM, VALUE_OBJECT));
+            return null;
+					}
+					
 					if (getRefObjectDrop(tdecl) != null) {
 						// Conflict w/ RefObject
-						getContext().reportError(a, I18N.res(752, REF_OBJECT));
+						getContext().reportError(a, I18N.res(CONFLICTS_WITH, REF_OBJECT));
 						return null;
 					}
 					// Check if abstract or has no subclasses
@@ -123,16 +146,16 @@ public class EqualityRules extends AnnotationRules {
 						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
 						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
 						if (it.hasNext()) {
-							getContext().reportError(a, I18N.res(753, JavaNames.getFullTypeName(it.next())));
+							getContext().reportError(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getFullTypeName(it.next())));
 							return null;
 						}
 					}
 					
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
 					if (isInterface) {
-						makeResultDrop(tdecl, d, true, 754, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_INTERFACE, JavaNames.getTypeName(tdecl));
 					} else if (isAbstract) {
-						makeResultDrop(tdecl, d, true, 757, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_ABSTRACT, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, true);
 					}
@@ -146,7 +169,13 @@ public class EqualityRules extends AnnotationRules {
 					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
 						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
 						if (getValueObjectDrop(sdt.getDeclaration()) != null) {
-							getContext().reportError(dt.getDeclaration(), I18N.res(756, VALUE_OBJECT));
+						  final String msg;
+						  if (EnumDeclaration.prototype.includes(dt.getDeclaration())) {
+						    msg = I18N.res(MAY_NOT_IMPLEMENT_VAL_OBJECT);
+						  } else {
+						    msg = I18N.res(DOES_NOT_MATCH_SUPERTYPE, VALUE_OBJECT);
+						  }
+							getContext().reportError(dt.getDeclaration(), msg);
 							return false;
 						}
 					}
@@ -202,10 +231,16 @@ public class EqualityRules extends AnnotationRules {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
 					final boolean isInterface = TypeUtil.isInterface(tdecl);
+          
+          // Check if the class is java.lang.Enum
+          if (EnumDeclaration.prototype.includes(tdecl)) {
+            getContext().reportError(a, I18N.res(BAD_ENUM, REF_OBJECT));
+            return null;
+          }
 					
 					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);			
 					if (isInterface) {
-						makeResultDrop(tdecl, d, true, 755, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, TRIVIALLY_REF, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, false);
 					}
@@ -214,15 +249,19 @@ public class EqualityRules extends AnnotationRules {
 				
 				@Override 
 			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
-					// Check if superclass has this annotation
-					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
-					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
-						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
-						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
-							getContext().reportError(dt.getDeclaration(), I18N.res(756, REF_OBJECT));
-							return false;
-						}
-					}
+					/* Check if superclass has this annotation.  Only check if the 
+					 * class is not an enumeration: enums are implicitly @ReferenceObject.
+					 */
+				  if (!EnumDeclaration.prototype.includes(dt.getDeclaration())) {
+  					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+  					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
+  						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+  						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
+  							getContext().reportError(dt.getDeclaration(), I18N.res(DOES_NOT_MATCH_SUPERTYPE, REF_OBJECT));
+  							return false;
+  						}
+  					}
+				  }
 					return true;
 				}
 			};
@@ -254,12 +293,7 @@ public class EqualityRules extends AnnotationRules {
       makeResultDrop(tdecl, d, !ifOverrides, INHERITS, EQUALS, "Object");
     }
   }
-	
-	static final String HASHCODE = "hashCode";
-	static final String EQUALS = "equals";
-	static final int OVERRIDES = 750;
-	static final int INHERITS = 751;
-	
+
 	/**
 	 * Look for a no-arg method with the given name in this class or its superclasses
 	 * (not counting java.lang.Object)

@@ -9,8 +9,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.*;
 
-import com.surelogic.common.ref.DeclUtil;
-import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -274,7 +272,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       }
 
       private boolean matchCore(IDrop n, IDrop o) {
-        return matchBasics(n, o) && matchLong(getOffset(n), getOffset(o));
+        return matchBasics(n, o) && getOffset(n) == getOffset(o);
       }
 
       private boolean matchHashedAndHints(IDrop n, IDrop o) {
@@ -282,16 +280,11 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       }
 
       private boolean matchHashed(IDrop n, IDrop o) {
-        return matchBasics(n, o) && matchLong(n.getTreeHash(), o.getTreeHash())
-            && matchLong(n.getContextHash(), o.getContextHash());
+        return matchBasics(n, o) && n.getTreeHash() == o.getTreeHash() && n.getContextHash() == o.getContextHash();
       }
 
-      /*
-       * private boolean matchHashed2(IDrop n, IDrop o) { return matchBasics(n,
-       * o) && matchLong(n.getTreeHash(), o.getTreeHash()); }
-       */
       private boolean matchResults(IDrop n, IDrop o) {
-        return (n instanceof IResultDrop) && matchLong(n.getTreeHash(), o.getTreeHash());
+        return (n instanceof IResultDrop) && n.getTreeHash() == o.getTreeHash();
       }
     });
     rv.build(old, newer);

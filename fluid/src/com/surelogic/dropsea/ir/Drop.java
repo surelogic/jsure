@@ -790,11 +790,11 @@ public abstract class Drop implements IDrop {
     return Collections.emptyList();
   }
 
-  public Long getTreeHash() {
-    throw new UnsupportedOperationException();
+  public long getTreeHash() {
+    return 0;
   }
 
-  public Long getContextHash() {
-    throw new UnsupportedOperationException();
+  public long getContextHash() {
+    return 0;
   }
 }

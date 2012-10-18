@@ -125,7 +125,7 @@ public interface IDrop {
    * 
    * @return a hash.
    */
-  Long getTreeHash();
+  long getTreeHash();
 
   /**
    * Computes a hash of the location in the fAST node that this drop is related
@@ -133,5 +133,5 @@ public interface IDrop {
    * 
    * @return a hash.
    */
-  Long getContextHash();
+  long getContextHash();
 }
