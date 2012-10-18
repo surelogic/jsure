@@ -180,12 +180,12 @@ public abstract class IRReferenceDrop extends Drop {
   }
 
   @Override
-  public final Long getTreeHash() {
+  public final long getTreeHash() {
     return SeaSnapshot.computeHash(getNode(), false);
   }
 
   @Override
-  public final Long getContextHash() {
+  public final long getContextHash() {
     return SeaSnapshot.computeContext(getNode(), false);
   }
 

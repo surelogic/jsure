@@ -1,9 +1,9 @@
 package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTEXT_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_CONTEXT_HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_TREE_HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
@@ -51,9 +51,9 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private final String f_messageCanonical;
   @NonNull
-  private final Long f_treeHash;
+  private final long f_treeHash;
   @NonNull
-  private final Long f_contextHash;
+  private final long f_contextHash;
   /**
    * This collection is {@code null} until some exist&mdash;most drops have no
    * hints.
@@ -100,27 +100,31 @@ public class IRFreeDrop implements IDrop {
 
     f_messageCanonical = e.getAttribute(MESSAGE_ID);
 
-    final String hash = e.getAttribute(HASH_ATTR);
-    Long treeHash = null;
-    if (hash != null) {
+    String treeHashString = e.getAttribute(FAST_TREE_HASH_ATTR);
+    if (treeHashString == null)
+      treeHashString = e.getAttribute("hash"); // old name
+    long treeHashValue = 0;
+    if (treeHashString != null) {
       try {
-        treeHash = Long.parseLong(hash);
+        treeHashValue = Long.parseLong(treeHashString);
       } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, hash, HASH_ATTR), nfe);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, treeHashString, FAST_TREE_HASH_ATTR), nfe);
       }
     }
-    f_treeHash = treeHash != null ? treeHash : Long.valueOf(0);
+    f_treeHash = treeHashValue;
 
-    final String chash = e.getAttribute(CONTEXT_ATTR);
-    Long contextHash = null;
-    if (chash != null) {
+    String contextHashString = e.getAttribute(FAST_CONTEXT_HASH_ATTR);
+    if (contextHashString == null)
+      contextHashString = e.getAttribute("context"); // old name
+    long contextHashValue = 0;
+    if (contextHashString != null) {
       try {
-        contextHash = Long.parseLong(chash);
+        contextHashValue = Long.parseLong(contextHashString);
       } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, chash, CONTEXT_ATTR), nfe);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, contextHashString, FAST_CONTEXT_HASH_ATTR), nfe);
       }
     }
-    f_contextHash = contextHash != null ? contextHash : Long.valueOf(0);
+    f_contextHash = contextHashValue;
 
     final String encodedJavaRef = e.getAttribute(JAVA_REF);
     if (encodedJavaRef != null) {
@@ -181,11 +185,11 @@ public class IRFreeDrop implements IDrop {
       return Collections.emptyList();
   }
 
-  public Long getTreeHash() {
+  public long getTreeHash() {
     return f_treeHash;
   }
 
-  public Long getContextHash() {
+  public long getContextHash() {
     return f_contextHash;
   }
 
@@ -205,7 +209,7 @@ public class IRFreeDrop implements IDrop {
     final String pkg = ref.getAttribute(PKG_ATTR);
     final String cuName = ref.getAttribute(CUNIT_ATTR);
     final String javaId = ref.getAttribute(JAVA_ID_ATTR);
-    //final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
+    // final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
     final String project = ref.getAttribute(PROJECT_ATTR);
 
     final int offset = convert(ref.getAttribute(OFFSET_ATTR));
