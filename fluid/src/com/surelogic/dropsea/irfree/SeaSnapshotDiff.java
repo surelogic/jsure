@@ -222,6 +222,8 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
         }
         IJavaRef ref = d.getJavaRef();
         //String f = ref == null ? "" : ref.getTypeNameFullyQualified();
+        String f = ref == null ? "" : ref.getPackageName()+'/'+ref.getSimpleFileNameWithNoExtension();
+        /*
         String f = "";
         if (ref != null) {
         	IDecl decl = ref.getDeclaration();
@@ -233,6 +235,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
         		f = ref.getTypeNameFullyQualified();
         	}
         }
+        */
         return new CPair<String, String>(f, type.getName());
       }
     });
