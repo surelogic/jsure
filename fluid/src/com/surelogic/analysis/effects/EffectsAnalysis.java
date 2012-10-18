@@ -31,7 +31,7 @@ import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.ir.HintDrop;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;

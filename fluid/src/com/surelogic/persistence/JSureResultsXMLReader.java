@@ -9,7 +9,7 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;

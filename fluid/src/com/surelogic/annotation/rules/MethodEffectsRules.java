@@ -17,7 +17,7 @@ import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;

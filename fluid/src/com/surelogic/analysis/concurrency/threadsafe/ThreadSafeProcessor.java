@@ -17,7 +17,7 @@ import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
 import com.surelogic.analysis.type.constraints.ThreadSafeAnnotationTester;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;

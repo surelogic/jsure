@@ -3,7 +3,6 @@ package com.surelogic.dropsea;
 import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
 
 /**
  * The interface for all proposed promise drops within the sea, intended to
@@ -15,6 +14,23 @@ import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
  * snapshots using the IR-free drop-sea.
  */
 public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop {
+
+  public enum Origin {
+    /**
+     * This proposal was inferred from code with no model/annotation basis for
+     * it whatsoever.
+     */
+    CODE,
+    /**
+     * This proposal was inferred from code and a model. It could be extending
+     * or augmenting an existing model based upon the program's implementation.
+     */
+    MODEL,
+    /**
+     * This proposed promise was created to help fix a modeling problem.
+     */
+    PROBLEM
+  }
 
   String getAnnotation();
 

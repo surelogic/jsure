@@ -23,7 +23,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.Pair;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;

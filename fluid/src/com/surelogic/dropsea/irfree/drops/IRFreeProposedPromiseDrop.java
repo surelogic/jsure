@@ -24,7 +24,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop,

@@ -31,23 +31,6 @@ import edu.cmu.cs.fluid.java.JavaPromise;
  */
 public abstract class IRReferenceDrop extends Drop {
 
-  public enum Origin {
-    /**
-     * This proposal was inferred from code with no model/annotation basis for
-     * it whatsoever.
-     */
-    CODE,
-    /**
-     * This proposal was inferred from code and a model. It could be extending
-     * or augmenting an existing model based upon the program's implementation.
-     */
-    MODEL,
-    /**
-     * This proposed promise was created to help fix a modeling problem.
-     */
-    PROBLEM
-  }
-
   /**
    * Constructs a drop referencing the passed node. The {@link IRNode} passed
    * must be non-null.

@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;

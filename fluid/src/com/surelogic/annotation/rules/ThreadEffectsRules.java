@@ -10,7 +10,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
-import com.surelogic.dropsea.ir.IRReferenceDrop.Origin;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
