@@ -23,7 +23,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
@@ -96,10 +95,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       final String encodedJavaRef = javaRef.encodeForPersistence();
       db.addAttribute(JAVA_REF, encodedJavaRef);
     }
-    if (d instanceof IRReferenceDrop) {
-      db.addAttribute(FAST_TREE_HASH_ATTR, d.getTreeHash());
-      db.addAttribute(FAST_CONTEXT_HASH_ATTR, d.getContextHash());
-    }
+    db.addAttribute(FAST_TREE_HASH_ATTR, d.getTreeHash());
+    db.addAttribute(FAST_CONTEXT_HASH_ATTR, d.getContextHash());
     d.snapshotAttrs(db);
     d.snapshotRefs(this, db);
     db.end();

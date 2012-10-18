@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Drops for the analyses to use to give "hints" (suggestions and warnings) to
  * the user.
  */
-public final class HintDrop extends IRReferenceDrop implements IHintDrop {
+public final class HintDrop extends Drop implements IHintDrop {
 
   /**
    * Constructs a new information drop pointing to the passed node.

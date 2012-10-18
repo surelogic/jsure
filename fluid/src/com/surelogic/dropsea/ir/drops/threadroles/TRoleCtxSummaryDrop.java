@@ -20,7 +20,6 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 
@@ -34,7 +33,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * @author dfsuther
  */
-public class TRoleCtxSummaryDrop extends IRReferenceDrop implements IThreadRoleDrop {
+public class TRoleCtxSummaryDrop extends Drop implements IThreadRoleDrop {
 
   // private static final String kind = "colorContext summary";
 

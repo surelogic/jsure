@@ -50,7 +50,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -860,7 +859,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return result;
 	}
 
-	private void addSupportingInformation(final IRReferenceDrop drop,
+	private void addSupportingInformation(final Drop drop,
 			final IRNode link, final int msgTemplate, final Object... msgArgs) {
 		drop.addInformationHint(link, msgTemplate, msgArgs);
 	}
@@ -910,7 +909,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 	}
 
-	private void addLockAcquisitionInformation(final IRReferenceDrop drop,
+	private void addLockAcquisitionInformation(final Drop drop,
 			final LockStack intrinsicLocks, final Set<HeldLock> jucLocks) {
 		for (final StackLock has : intrinsicLocks) {
 			addSupportingInformation(drop, has.lock.getSource(),

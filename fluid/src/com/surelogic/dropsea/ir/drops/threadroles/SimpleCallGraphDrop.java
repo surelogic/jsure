@@ -12,7 +12,6 @@ import java.util.Iterator;
 import com.surelogic.RequiresLock;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -26,7 +25,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * Holds the caller and callee information for a single method or constructor.  There
  * should be no more than one of these drops for any specific IRNode.
  */
-public class SimpleCallGraphDrop extends IRReferenceDrop implements IThreadRoleDrop {
+public class SimpleCallGraphDrop extends Drop implements IThreadRoleDrop {
   private final int initSetSize = 2;
   private final Collection<IRNode> callers = new HashSet<IRNode>(initSetSize);
   private final Collection<IRNode> callees = new HashSet<IRNode>(initSetSize);

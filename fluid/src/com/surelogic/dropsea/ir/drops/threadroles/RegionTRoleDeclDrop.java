@@ -7,11 +7,10 @@
 package com.surelogic.dropsea.ir.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRExpr;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.util.BindUtil;
 
 /**
  * Phantom drop for "region" promise declarations. The RegionModel is used as
@@ -22,7 +21,7 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.sea.drops.promises.ColorRegionModel
  */
-public class RegionTRoleDeclDrop extends IRReferenceDrop implements IThreadRoleDrop {
+public class RegionTRoleDeclDrop extends Drop implements IThreadRoleDrop {
 
   private final TRExpr userConstraint;
 

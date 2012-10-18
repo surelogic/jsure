@@ -23,13 +23,12 @@ import com.surelogic.analysis.threadroles.TRoleBDDPack;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
-public class TRoleRenamePerCU extends IRReferenceDrop implements IThreadRoleDrop {
+public class TRoleRenamePerCU extends Drop implements IThreadRoleDrop {
 
  public static int lastLoopCheck = 0;
   

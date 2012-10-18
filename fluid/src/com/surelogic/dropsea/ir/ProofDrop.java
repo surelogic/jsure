@@ -34,7 +34,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
  * 
  * @subtypedBy edu.cmu.cs.fluid.sea.PromiseDrop, edu.cmu.cs.fluid.sea.ResultDrop
  */
-public abstract class ProofDrop extends IRReferenceDrop implements IProofDrop {
+public abstract class ProofDrop extends Drop implements IProofDrop {
 
   protected ProofDrop(IRNode node) {
     super(node);

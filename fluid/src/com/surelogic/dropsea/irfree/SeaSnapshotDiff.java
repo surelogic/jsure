@@ -7,11 +7,17 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.*;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultDrop;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -174,28 +180,22 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       IProofDrop pd = (IProofDrop) d;
       return pd.derivedFromSrc();
     }
-    if (d.instanceOfIRDropSea(IRReferenceDrop.class)) {
-      // Need a location to report
-      IJavaRef ref = d.getJavaRef();
-      if (ref == null) {
-        if (!d.getMessage().contains("java.lang.Object")) {
-          System.out.println("No src ref for " + d.getMessage());
-        } else {
-          // System.currentTimeMillis();
-        }
-        return false;
+    // Need a location to report
+    IJavaRef ref = d.getJavaRef();
+    if (ref == null) {
+      if (!d.getMessage().contains("java.lang.Object")) {
+        System.out.println("No src ref for " + d.getMessage());
       }
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
-  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer)
-  throws Exception {
-	  Collection<IDrop> newerResults = SeaSnapshot.loadSnapshot(newer);
-	  return diff(f, old, newerResults);
+  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer) throws Exception {
+    Collection<IDrop> newerResults = SeaSnapshot.loadSnapshot(newer);
+    return diff(f, old, newerResults);
   }
-  
+
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, Collection<? extends IDrop> newer)
       throws Exception {
     Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
@@ -206,7 +206,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       Collection<? extends IDrop> newer) {
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
     rv.setFilter(new IDropFilter() {
-//      @Override
+      // @Override
       public boolean keep(IDrop d) {
         return select(d) && f.keep(d);
       }
@@ -219,21 +219,15 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
           return null;
         }
         IJavaRef ref = d.getJavaRef();
-        //String f = ref == null ? "" : ref.getTypeNameFullyQualified();
-        String f = ref == null ? "" : ref.getPackageName()+'/'+ref.getSimpleFileNameWithNoExtension();
+        // String f = ref == null ? "" : ref.getTypeNameFullyQualified();
+        String f = ref == null ? "" : ref.getPackageName() + '/' + ref.getSimpleFileNameWithNoExtension();
         /*
-        String f = "";
-        if (ref != null) {
-        	IDecl decl = ref.getDeclaration();
-        	if (decl != null) {
-            	// TODO not quite right if there's more than one top-level type in the file
-        		f = DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl);
-        	}
-        	if (f == null) {
-        		f = ref.getTypeNameFullyQualified();
-        	}
-        }
-        */
+         * String f = ""; if (ref != null) { IDecl decl = ref.getDeclaration();
+         * if (decl != null) { // TODO not quite right if there's more than one
+         * top-level type in the file f =
+         * DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl); } if
+         * (f == null) { f = ref.getTypeNameFullyQualified(); } }
+         */
         return new CPair<String, String>(f, type.getName());
       }
     });
@@ -264,9 +258,9 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       }
 
       private boolean matchId(IDrop n, IDrop o) {
-    	return matchBasics(n, o) && matchStrings(getJavaId(n), getJavaId(o), false) == Boolean.TRUE;
+        return matchBasics(n, o) && matchStrings(getJavaId(n), getJavaId(o), false) == Boolean.TRUE;
       }
-      
+
       private boolean matchExact(IDrop n, IDrop o) {
         return matchCore(n, o) && matchSupportingInfo(n, o);
       }

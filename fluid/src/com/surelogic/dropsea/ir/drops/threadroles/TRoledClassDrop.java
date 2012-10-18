@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -24,7 +23,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  *
  */
-public class TRoledClassDrop extends IRReferenceDrop implements IThreadRoleDrop {
+public class TRoledClassDrop extends Drop implements IThreadRoleDrop {
   Object file;
   
   @SuppressWarnings("unused")

@@ -25,7 +25,6 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -488,7 +487,7 @@ public class TRoleSecondPass implements IBinderClient {
     }
   }
 
-  private void setResultDep(final IRReferenceDrop drop, final Drop resultDependUpon) {
+  private void setResultDep(final Drop drop, final Drop resultDependUpon) {
     if (resultDependUpon != null && resultDependUpon.isValid()) {
       resultDependUpon.addDependent(drop);
     } else {
@@ -520,7 +519,7 @@ public class TRoleSecondPass implements IBinderClient {
     return result;
   }
 
-  private void addSupportingInformation(final IRReferenceDrop drop, final IRNode link, final String msgTemplate,
+  private void addSupportingInformation(final Drop drop, final IRNode link, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     drop.addInformationHint(link, msg);

@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * analysis infrastructure. These problems indicated a syntactical or semantic
  * problem with a user-expressed model of design intent.
  */
-public final class ModelingProblemDrop extends IRReferenceDrop implements IModelingProblemDrop {
+public final class ModelingProblemDrop extends Drop implements IModelingProblemDrop {
 
   private final int f_offset;
 

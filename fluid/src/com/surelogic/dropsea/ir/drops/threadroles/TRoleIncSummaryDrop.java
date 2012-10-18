@@ -11,7 +11,7 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.analysis.threadroles.TRoleBDDPack;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
 
 
@@ -19,7 +19,7 @@ import com.surelogic.dropsea.ir.Sea;
  * @author dfsuther
  *
  */
-public class TRoleIncSummaryDrop extends IRReferenceDrop implements IThreadRoleDrop {
+public class TRoleIncSummaryDrop extends Drop implements IThreadRoleDrop {
   private final JBDD conflictExpr;
   private final TRoleNameModel summaryFor;
   

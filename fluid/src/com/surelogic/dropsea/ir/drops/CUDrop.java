@@ -6,7 +6,7 @@ import java.util.Set;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
+import com.surelogic.dropsea.ir.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * Drop representing a compilation unit, suitable for promise and result drops
  * to depend upon. Created and invalidated by the eAST to fAST converter.
  */
-public abstract class CUDrop extends IRReferenceDrop {
+public abstract class CUDrop extends Drop {
 
   private static final SlotInfo<CUDrop> SI_CUDROP = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
 

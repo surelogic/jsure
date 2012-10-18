@@ -4,18 +4,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import junit.framework.TestCase;
+
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 
-import junit.framework.TestCase;
+import edu.cmu.cs.fluid.ir.PlainIRNode;
 
 public class TestSea extends TestCase {
 
   final private Sea sea = Sea.getDefault();
 
   class ADrop extends Drop {
-    // Nothing to add
+    protected ADrop() {
+      super(new PlainIRNode());
+    }
   }
 
   class MyDrop extends ADrop {

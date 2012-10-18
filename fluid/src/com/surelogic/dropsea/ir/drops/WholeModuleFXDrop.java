@@ -24,7 +24,6 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -34,7 +33,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
-public class WholeModuleFXDrop extends IRReferenceDrop {
+public class WholeModuleFXDrop extends Drop {
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.effects");
 

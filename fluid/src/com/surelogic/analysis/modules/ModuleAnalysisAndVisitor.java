@@ -21,7 +21,6 @@ import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -787,7 +786,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   
   
-  private static void setResultDep(final IRReferenceDrop drop, final IRNode node) {
+  private static void setResultDep(final Drop drop, final IRNode node) {
 //    drop.setNode(node);
     //drop.setNodeAndCompilationUnitDependency(node);
     if (resultDependUpon != null && resultDependUpon.isValid()) {
@@ -831,7 +830,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     return result;
   }
   
-  public static void addSupportingInformation(final IRReferenceDrop drop,
+  public static void addSupportingInformation(final Drop drop,
       final IRNode link, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);

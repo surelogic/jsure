@@ -23,7 +23,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicate;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.Sea;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -41,7 +40,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * 
  * @lock ColorNameModelLock is class protects globalNameToDrop
  */
-public class TRoleNameModel extends IRReferenceDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
+public class TRoleNameModel extends Drop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
 
   Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 

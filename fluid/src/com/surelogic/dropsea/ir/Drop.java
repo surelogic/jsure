@@ -5,12 +5,14 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -31,9 +33,13 @@ import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IHintDrop.HintType;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 
 /**
  * The abstract base class for all drops within the sea, intended to be
@@ -63,11 +69,14 @@ public abstract class Drop implements IDrop {
   protected static final Logger LOG = SLLogger.getLogger("Drop");
 
   /**
-   * Constructs a drop within the default sea.
+   * Constructs a drop referencing the passed node. The {@link IRNode} passed
+   * must be non-null.
+   * 
+   * @param node
+   *          a fAST node related to this drop.
    */
-  public Drop() {
-    // use the default sea
-    this(Sea.getDefault());
+  protected Drop(@NonNull final IRNode node) {
+    this(Sea.getDefault(), node);
   }
 
   /**
@@ -75,10 +84,15 @@ public abstract class Drop implements IDrop {
    * 
    * @param sea
    *          the sea to create the drop within.
+   * @param node
+   *          a fAST node related to this drop.
    */
-  private Drop(Sea sea) {
+  protected Drop(@Nullable Sea sea, @NonNull final IRNode node) {
     if (sea == null)
       sea = Sea.getDefault();
+    if (node == null)
+      throw new IllegalArgumentException(I18N.err(44, "node"));
+    f_node = node;
 
     f_mySea = sea;
     f_seaLock = sea.getSeaLock();
@@ -680,6 +694,172 @@ public abstract class Drop implements IDrop {
   }
 
   /**
+   * Sets if this drop ignores any Java code reference contained on its fAST
+   * node.
+   * 
+   * @param value
+   *          {@code true} to ignore the Java code reference, {@code false} to
+   *          use the Java code reference.
+   */
+  public void setIgnoreJavaRef(boolean value) {
+    synchronized (f_seaLock) {
+      f_ignoreJavaRef = value;
+    }
+  }
+
+  @Override
+  @Nullable
+  @MustInvokeOnOverride
+  public IJavaRef getJavaRef() {
+    synchronized (f_seaLock) {
+      if (f_ignoreJavaRef)
+        return null;
+    }
+
+    final IJavaRef javaRef = JavaNode.getJavaRef(f_node);
+    if (javaRef != null)
+      return javaRef;
+    final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
+    return JavaNode.getJavaRef(parent);
+  }
+
+  /**
+   * Gets the fAST node associated with this drop.
+   * 
+   * @return a fAST node
+   */
+  public final IRNode getNode() {
+    return f_node;
+  }
+
+  public final HintDrop addInformationHint(IRNode link, int num, Object... args) {
+    return addHint(HintType.INFORMATION, -1, link, num, args);
+  }
+
+  public final HintDrop addInformationHintWithCategory(IRNode link, int catNum, int num, Object... args) {
+    return addHint(HintType.INFORMATION, catNum, link, num, args);
+  }
+
+  public final HintDrop addInformationHint(IRNode link, String msg) {
+    return addHint(HintType.INFORMATION, -1, link, msg);
+  }
+
+  public final HintDrop addInformationHintWithCategory(IRNode link, int catNum, String msg) {
+    return addHint(HintType.INFORMATION, catNum, link, msg);
+  }
+
+  public final HintDrop addWarningHint(IRNode link, int num, Object... args) {
+    return addHint(HintType.WARNING, -1, link, num, args);
+  }
+
+  public final HintDrop addWarningHintWithCategory(IRNode link, int catNum, int num, Object... args) {
+    return addHint(HintType.WARNING, catNum, link, num, args);
+  }
+
+  public final HintDrop addWarningHint(IRNode link, String msg) {
+    return addHint(HintType.WARNING, -1, link, msg);
+  }
+
+  public final HintDrop addWarningHintWithCategory(IRNode link, int catNum, String msg) {
+    return addHint(HintType.WARNING, catNum, link, msg);
+  }
+
+  private HintDrop addHint(IHintDrop.HintType hintType, int catNum, IRNode link, int num, Object... args) {
+    if (link == null)
+      link = getNode();
+    final HintDrop hint = new HintDrop(link, hintType);
+    if (catNum > 0)
+      hint.setCategorizingMessage(catNum);
+    hint.setMessage(num, args);
+    addDependent(hint);
+    return hint;
+  }
+
+  private HintDrop addHint(IHintDrop.HintType hintType, int catNum, IRNode link, String msg) {
+    if (link == null)
+      link = getNode();
+    final HintDrop hint = new HintDrop(link, hintType);
+    if (catNum > 0)
+      hint.setCategorizingMessage(catNum);
+    hint.setMessage(msg);
+    addDependent(hint);
+    return hint;
+  }
+
+  /**
+   * Asks subtypes if they have any other proposals to add to the set of
+   * promises proposed by this drop.
+   * <p>
+   * It is okay to return a reference to an internal collection because
+   * {@link #getProposals()} will copy the elements out of the returned
+   * collection and not keep an alias.
+   * 
+   * @return a possibly empty list of proposed promises.
+   */
+  @RequiresLock("SeaLock")
+  @NonNull
+  protected List<ProposedPromiseDrop> getConditionalProposals() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * Adds a proposed promise to this drop for the tool user to consider.
+   * 
+   * @param proposal
+   *          the proposed promise.
+   */
+  public final void addProposal(ProposedPromiseDrop proposal) {
+    if (proposal != null) {
+      synchronized (f_seaLock) {
+        if (f_proposals == null) {
+          f_proposals = new ArrayList<ProposedPromiseDrop>(1);
+        }
+        f_proposals.add(proposal);
+      }
+    }
+  }
+
+  @NonNull
+  public final List<ProposedPromiseDrop> getProposals() {
+    synchronized (f_seaLock) {
+      final List<ProposedPromiseDrop> conditionalProposals = getConditionalProposals();
+      if (f_proposals == null && conditionalProposals.isEmpty())
+        return Collections.emptyList();
+      else {
+        final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
+        if (f_proposals != null)
+          result.addAll(f_proposals);
+        result.addAll(conditionalProposals);
+        return result;
+      }
+    }
+  }
+
+  @Override
+  public final long getTreeHash() {
+    return SeaSnapshot.computeHash(getNode(), false);
+  }
+
+  @Override
+  public final long getContextHash() {
+    return SeaSnapshot.computeContext(getNode(), false);
+  }
+
+  /**
+   * The fAST node that this drop is associated with.
+   */
+  @NonNull
+  private final IRNode f_node;
+
+  /**
+   * Notes if the Java code reference for this drop should be ignored. In some
+   * cases the analysis doesn't want to "link" to a particular code location
+   * despite the given value of {@link #f_node}.
+   */
+  @InRegion("DropState")
+  private boolean f_ignoreJavaRef = false;
+
+  /**
    * Notes if the drop has been invalidated by a call to {@link #invalidate()}.
    */
   @InRegion("DropState")
@@ -732,6 +912,13 @@ public abstract class Drop implements IDrop {
   final private Sea f_mySea;
 
   /**
+   * Holds the set of promises proposed by this drop.
+   */
+  @InRegion("DropState")
+  @UniqueInRegion("DropState")
+  private List<ProposedPromiseDrop> f_proposals = null;
+
+  /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.
    */
   @NonNull
@@ -761,6 +948,9 @@ public abstract class Drop implements IDrop {
     for (Drop c : getHints()) {
       s.snapshotDrop(c);
     }
+    for (ProposedPromiseDrop pd : getProposals()) {
+      s.snapshotDrop(pd);
+    }
   }
 
   @MustInvokeOnOverride
@@ -768,9 +958,10 @@ public abstract class Drop implements IDrop {
     for (Drop c : getHints()) {
       s.refDrop(db, HINT_ABOUT, c);
     }
+    for (ProposedPromiseDrop pd : getProposals()) {
+      s.refDrop(db, PROPOSED_PROMISE, pd);
+    }
   }
-
-  /****************************************************************/
 
   @SuppressWarnings("unchecked")
   public <T> T getAdapter(Class<T> type) {
@@ -778,23 +969,5 @@ public abstract class Drop implements IDrop {
       return (T) this;
     } else
       throw new UnsupportedOperationException();
-  }
-
-  @Nullable
-  public IJavaRef getJavaRef() {
-    return null;
-  }
-
-  @NonNull
-  public Collection<? extends IProposedPromiseDrop> getProposals() {
-    return Collections.emptyList();
-  }
-
-  public long getTreeHash() {
-    return 0;
-  }
-
-  public long getContextHash() {
-    return 0;
   }
 }

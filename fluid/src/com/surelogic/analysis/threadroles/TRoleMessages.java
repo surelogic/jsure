@@ -10,7 +10,6 @@ import java.util.Iterator;
 
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.IRReferenceDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.threadroles.TRoledClassDrop;
@@ -126,7 +125,7 @@ public class TRoleMessages {
     }
   }
 
-  public static IRReferenceDrop createOutputDrop(String desiredCategory, String msg, IRNode loc) {
+  public static Drop createOutputDrop(String desiredCategory, String msg, IRNode loc) {
     if (desiredCategory == assuranceCategory) {
       return createResultDrop(msg, "TODO: fill me in", loc);
     } else if (desiredCategory.equals(infoCategory)) {
