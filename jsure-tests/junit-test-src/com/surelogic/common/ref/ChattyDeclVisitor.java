@@ -57,6 +57,12 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
+  public void visitAnnotation(IDeclType node) {
+    b.append("visitAnnotation(").append(node.getName());
+    b.append(") -> ");
+  }
+
+  @Override
   public void visitEnum(IDeclType node) {
     b.append("visitEnum(").append(node.getName());
     b.append(") -> ");
