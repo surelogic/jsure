@@ -48,6 +48,7 @@ public class EqualityRules extends AnnotationRules {
   private static final int DOES_NOT_MATCH_SUPERTYPE = 756;
   private static final int TRIVIALLY_VALUE_ABSTRACT = 757;
   private static final int BAD_ENUM = 763;
+  private static final int MAY_NOT_IMPLEMENT_VAL_OBJECT = 765;
   
 	public static final String VALUE_OBJECT = "ValueObject";
 	public static final String REF_OBJECT = "ReferenceObject";
@@ -129,7 +130,7 @@ public class EqualityRules extends AnnotationRules {
 					
 					// Check if the class is java.lang.Enum
 					if (EnumDeclaration.prototype.includes(tdecl)) {
-            getContext().reportError(a, I18N.res(BAD_ENUM));
+            getContext().reportError(a, I18N.res(BAD_ENUM, VALUE_OBJECT));
             return null;
 					}
 					
@@ -168,7 +169,13 @@ public class EqualityRules extends AnnotationRules {
 					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
 						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
 						if (getValueObjectDrop(sdt.getDeclaration()) != null) {
-							getContext().reportError(dt.getDeclaration(), I18N.res(DOES_NOT_MATCH_SUPERTYPE, VALUE_OBJECT));
+						  final String msg;
+						  if (EnumDeclaration.prototype.includes(dt.getDeclaration())) {
+						    msg = I18N.res(MAY_NOT_IMPLEMENT_VAL_OBJECT);
+						  } else {
+						    msg = I18N.res(DOES_NOT_MATCH_SUPERTYPE, VALUE_OBJECT);
+						  }
+							getContext().reportError(dt.getDeclaration(), msg);
 							return false;
 						}
 					}
@@ -224,6 +231,12 @@ public class EqualityRules extends AnnotationRules {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
 					final boolean isInterface = TypeUtil.isInterface(tdecl);
+          
+          // Check if the class is java.lang.Enum
+          if (EnumDeclaration.prototype.includes(tdecl)) {
+            getContext().reportError(a, I18N.res(BAD_ENUM, REF_OBJECT));
+            return null;
+          }
 					
 					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);			
 					if (isInterface) {
@@ -236,15 +249,19 @@ public class EqualityRules extends AnnotationRules {
 				
 				@Override 
 			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
-					// Check if superclass has this annotation
-					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
-					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
-						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
-						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
-							getContext().reportError(dt.getDeclaration(), I18N.res(756, REF_OBJECT));
-							return false;
-						}
-					}
+					/* Check if superclass has this annotation.  Only check if the 
+					 * class is not an enumeration: enums are implicitly @ReferenceObject.
+					 */
+				  if (!EnumDeclaration.prototype.includes(dt.getDeclaration())) {
+  					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+  					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
+  						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+  						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
+  							getContext().reportError(dt.getDeclaration(), I18N.res(DOES_NOT_MATCH_SUPERTYPE, REF_OBJECT));
+  							return false;
+  						}
+  					}
+				  }
 					return true;
 				}
 			};
