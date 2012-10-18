@@ -24,6 +24,7 @@ import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
@@ -450,8 +451,6 @@ public class JavacClassParser {
 		*/
 		MultiMap<String,JavaSourceFile> asBinary = new MultiHashMap<String,JavaSourceFile>();
 		List<Triple<String,String,File>> classFiles = new ArrayList<Triple<String,String,File>>();
-		// TODO thread safe?
-		final MultiMap<String,CodeInfo> cus   = new MultiHashMap<String, CodeInfo>();
 		ZipFile jar          = null;
 		String lastJar       = null;		
 		for(String ref : refs) {
@@ -493,6 +492,86 @@ public class JavacClassParser {
 			}
 		}		
 		
+		// TODO thread safe?
+		// Project -> binary CUs
+		final MultiMap<String,CodeInfo> cus   = new MultiHashMap<String, CodeInfo>();
+		handleDanglingJarRefs(jp, cus);		
+		handleDanglingClassFileRefs(jp, classFiles, cus);
+		final List<CodeInfo> newCUs = handleDanglingSourceRefs(jp, asBinary);
+
+		// Needed to check for package-info classes
+		// Project -> package names
+		final MultiMap<String,String> maybeNewPkgs = new MultiHashMap<String,String>();
+		for(Map.Entry<String,Collection<CodeInfo>> e : cus.entrySet()) {
+			newCUs.addAll(e.getValue());		
+			/*
+			projects.get(e.getKey()).getTypeEnv().addCompUnits(e.getValue());
+			jp.getTypeEnv().addCompUnits(e.getValue());
+			*/
+			for(CodeInfo cu : e.getValue()) {
+				maybeNewPkgs.put(e.getKey(), cu.getFile().getPackage());
+			}
+		}		
+
+		// Project -> qnames
+		final MultiMap<String,String> moreRefs = new MultiHashMap<String,String>();
+		// Check for package-info classes
+		for(Map.Entry<String,Collection<String>> e : maybeNewPkgs.entrySet()) {
+			for(String pkg : new HashSet<String>(e.getValue())) {
+				final String qname = pkg+'.'+SLUtility.PACKAGE_INFO;
+				if (!refs.contains(qname) && classToFile.containsKey(Pair.getInstance(e.getKey(), qname))) {
+					moreRefs.put(e.getKey(), qname);
+				}
+			}
+		}
+		for(CodeInfo cu : newCUs) {
+			//System.out.println("Scanning: "+info.getFileName());
+        	final boolean debug = false; //cu.getFileName().contains("EJBContext");
+        	final String proj = cu.getFile().getProjectName();
+    		final BatchParser parser = parsers.get(proj);
+    		if (parser == null) {
+    			throw new NullPointerException();
+    		}
+    		final References r = parser.refs;        	
+        	moreRefs.putAll(proj, r.scanForReferencedTypes(cu.getNode(), debug));        	
+		}		
+		// See if there are still the same outstanding refs for this project
+		if (checkForCycle(refs, moreRefs.get(jp.getName()))) {
+			/*
+			//tEnv.addCompUnits(cus);
+			for(String ref : moreRefs) {
+				IRNode type  = tEnv.findNamedType(ref);
+				if (type != null && couldBeUnknownType(ref) != null) {
+					System.out.println("couldBeUnknownType doesn't match tEnv for "+ref);
+				} else {
+					System.out.println("What is there to do with "+ref);
+				}
+			}
+			*/
+			throw new RuntimeException("Detected cycle");
+		} else {
+			refs.clear();
+		}
+		cus.clear();
+		
+		// TODO are these really for the same project as the first set?
+		for(Map.Entry<String,Collection<String>> e : moreRefs.entrySet()) {
+			/*
+			if (e.getValue().size() < 10) {
+				for(String s : e.getValue()) {
+					System.out.println("More ref: "+s);
+				}
+			}
+			*/
+			final Collection<CodeInfo> moreCUs = 
+				handleDanglingRefs(projects.get(e.getKey()), new HashSet<String>(e.getValue()));
+			newCUs.addAll(moreCUs);
+		}
+		return newCUs;
+	}
+
+	private void handleDanglingJarRefs(final JavacProject jp, final MultiMap<String, CodeInfo> cus) {
+		// Handle refs in jars
 		Procedure<Triple<String,String,ZipFile>> proc = new Procedure<Triple<String,String,ZipFile>>() {
 			public void op(Triple<String,String,ZipFile> tri) {
 				String project = tri.first();
@@ -536,7 +615,11 @@ public class JavacClassParser {
 			proc.op(triple);
 		}
 		jarRefs.asList().clear();
-		
+	}
+	
+	private void handleDanglingClassFileRefs(final JavacProject jp,
+			List<Triple<String, String, File>> classFiles,
+			final MultiMap<String, CodeInfo> cus) {
 		// TODO parallelize?
 		for(Triple<String,String,File> tri : classFiles) {	
 			String project = tri.first();
@@ -555,6 +638,10 @@ public class JavacClassParser {
 				jp.getTypeEnv().addCompUnit(info, true);				
 			}				
 		}
+	}
+	
+	private List<CodeInfo> handleDanglingSourceRefs(final JavacProject jp,
+			MultiMap<String, JavaSourceFile> asBinary) throws IOException {
 		// Adapt files from other projects
 		final List<CodeInfo> newCUs = new ArrayList<CodeInfo>();
 		for(JavacProject jcp : projects) {
@@ -584,59 +671,6 @@ public class JavacClassParser {
 		for(CodeInfo info : newCUs) {		
 			System.out.println("Importing "+info.getFileName()+" to "+jp.getName());
 			jp.getTypeEnv().addCompUnit(info, true);
-		}
-		
-		for(Map.Entry<String,Collection<CodeInfo>> e : cus.entrySet()) {
-			newCUs.addAll(e.getValue());		
-			/*
-			projects.get(e.getKey()).getTypeEnv().addCompUnits(e.getValue());
-			jp.getTypeEnv().addCompUnits(e.getValue());
-			*/
-		}		
-				
-		final MultiMap<String,String> moreRefs = new MultiHashMap<String,String>();
-		for(CodeInfo cu : newCUs) {
-			//System.out.println("Scanning: "+info.getFileName());
-        	final boolean debug = false; //cu.getFileName().contains("EJBContext");
-        	final String proj = cu.getFile().getProjectName();
-    		final BatchParser parser = parsers.get(proj);
-    		if (parser == null) {
-    			throw new NullPointerException();
-    		}
-    		final References r = parser.refs;        	
-        	moreRefs.putAll(proj, r.scanForReferencedTypes(cu.getNode(), debug));        	
-		}		
-		// See if there are still the same outstanding refs for this project
-		if (checkForCycle(refs, moreRefs.get(jp.getName()))) {
-			/*
-			//tEnv.addCompUnits(cus);
-			for(String ref : moreRefs) {
-				IRNode type  = tEnv.findNamedType(ref);
-				if (type != null && couldBeUnknownType(ref) != null) {
-					System.out.println("couldBeUnknownType doesn't match tEnv for "+ref);
-				} else {
-					System.out.println("What is there to do with "+ref);
-				}
-			}
-			*/
-			throw new RuntimeException("Detected cycle");
-		} else {
-			refs.clear();
-		}
-		cus.clear();
-		
-		// TODO are these really for the same project as the first set?
-		for(Map.Entry<String,Collection<String>> e : moreRefs.entrySet()) {
-			/*
-			if (e.getValue().size() < 10) {
-				for(String s : e.getValue()) {
-					System.out.println("More ref: "+s);
-				}
-			}
-			*/
-			final Collection<CodeInfo> moreCUs = 
-				handleDanglingRefs(projects.get(e.getKey()), new HashSet<String>(e.getValue()));
-			newCUs.addAll(moreCUs);
 		}
 		return newCUs;
 	}

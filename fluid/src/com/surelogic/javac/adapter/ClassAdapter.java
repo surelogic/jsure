@@ -81,6 +81,8 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 public class ClassAdapter extends AbstractAdapter {
+  private static final String PACKAGE_INFO_CLASS = "package-info.class";
+	
   final boolean debug;
   final ZipFile jar;
   final String className;
@@ -156,7 +158,6 @@ public class ClassAdapter extends AbstractAdapter {
 
       if (!isInner) {
         // Need to create comp unit
-        IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes); // FIX
         int lastSlash = name.lastIndexOf('/');
         String id;
         if (lastSlash < 0) {
@@ -170,10 +171,16 @@ public class ClassAdapter extends AbstractAdapter {
          * }
          */
         id = CommonStrings.intern(id);
-
+        final IRNode annos, decls;
+        if (className.endsWith(PACKAGE_INFO_CLASS)) {
+        	annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(this.annos.toArray(noNodes));
+            decls = TypeDeclarations.createNode(noNodes);
+    	} else {
+    		annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes);
+            decls = TypeDeclarations.createNode(new IRNode[] { root });
+    	}
         IRNode pkg = NamedPackageDeclaration.createNode(annos, id);
         IRNode imps = ImportDeclarations.createNode(noNodes);
-        IRNode decls = TypeDeclarations.createNode(new IRNode[] { root });
         IRNode cu = CompilationUnit.createNode(pkg, imps, decls);
         createLastMinuteNodes(cu, true, resource.getProjectName());
         JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
@@ -626,6 +633,9 @@ public class ClassAdapter extends AbstractAdapter {
   }
 
   public void visitEnd() {
+    if (className.endsWith(PACKAGE_INFO_CLASS)) {
+    	return;
+	}
     String id;
     int separator = name.lastIndexOf('/');
     int dollar = name.lastIndexOf('$');
