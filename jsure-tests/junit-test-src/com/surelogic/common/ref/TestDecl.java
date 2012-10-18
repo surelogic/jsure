@@ -458,6 +458,103 @@ public class TestDecl extends TestCase {
     }
   }
 
+  public void testAnnotationBuilder() {
+    IDecl p = new Decl.AnnotationBuilder("ThreadSafe").setParent(new Decl.PackageBuilder()).build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.ANNOTATION, p.getKind());
+    assertEquals("ThreadSafe", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisibility());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
+    assertTrue(p.getTypeParameters().isEmpty());
+    assertEquals(0, p.getParameters().size());
+    assertNull(p.getTypeOf());
+    assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
+    assertNull(p.getParent().getParent());
+
+    Decl.AnnotationBuilder inner = new Decl.AnnotationBuilder("Inner");
+    Decl.AnnotationBuilder outer = new Decl.AnnotationBuilder("Outer");
+    Decl.PackageBuilder pkg = new Decl.PackageBuilder("org.apache");
+    outer.setParent(pkg);
+    inner.setParent(outer);
+    inner.setVisibility(Visibility.PRIVATE);
+    p = inner.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.ANNOTATION, p.getKind());
+    assertEquals("Inner", p.getName());
+    assertSame(Visibility.PRIVATE, p.getVisibility());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
+    p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.ANNOTATION, p.getKind());
+    assertEquals("Outer", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisibility());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
+    p = p.getParent();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.PACKAGE, p.getKind());
+    assertEquals("org.apache", p.getName());
+    assertNull(p.getParent());
+
+    try {
+      p = new Decl.AnnotationBuilder("Foo").build();
+      fail("Foo allowed to have a null parent");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+
+    try {
+      p = new Decl.AnnotationBuilder("111").build();
+      fail("111 was a legal class name");
+    } catch (IllegalArgumentException expected) {
+      // good
+    }
+  }
+
   public void testMethodBuilder() {
     TypeRef jlo = new TypeRef("java.lang.Object", "Object");
     TypeRef string = new TypeRef("java.lang.String", "String");
@@ -971,18 +1068,25 @@ public class TestDecl extends TestCase {
     oracle = "START visitTypeParameter(E, partOfDecl=true) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
     assertEquals(oracle, v.getResult());
 
-    IDecl arg1decl = arg1.build();
-
     v = new ChattyDeclVisitor();
     tp.acceptRootToThis(v);
     oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitTypeParameter(E, partOfDecl=true) -> END";
     assertEquals(oracle, v.getResult());
+
+    IDecl arg1decl = arg1.build();
 
     v = new ChattyDeclVisitor();
     v.visitTypeParametersReturn = false;
     v.visitParametersReturn = false;
     arg1decl.acceptThisToRoot(v);
     oracle = "START visitParameter(arg1:String,partOfDecl=true) -> visitMethod(processSomething) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> visitParameters(count=2) -> endVisitParameters(count=2) -> endVisitMethod(processSomething) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitPackage(com.surelogic.t) -> END";
+    assertEquals(oracle, v.getResult());
+
+    Decl.AnnotationBuilder anno = new Decl.AnnotationBuilder("ThreadSafe").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+    IDecl annoDecl = anno.build();
+    v = new ChattyDeclVisitor();
+    annoDecl.acceptRootToThis(v);
+    oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=1) -> visitAnnotation(ThreadSafe) -> endVisitTypes(count=1) -> END";
     assertEquals(oracle, v.getResult());
   }
 }
