@@ -3,6 +3,7 @@ package com.surelogic.common.ref;
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ref.IJavaRef.Within;
 
 public final class TestJavaRef extends TestCase {
 
@@ -129,5 +130,44 @@ public final class TestJavaRef extends TestCase {
 
     r = new JavaRef.Builder(decl).setAbsolutePath("prj/src/java/lang/Object.java").build();
     assertEquals("prj/src/java/lang/Object.java", r.getAbsolutePathOrNull());
+  }
+
+  public void testSimpleFileName() {
+    IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A.B");
+    JavaRef.Builder b = new JavaRef.Builder(decl);
+    b.setWithin(Within.JAVA_FILE);
+    b.setAbsolutePath("C:\\Program Files\\src\\java\\lang\\Object.java");
+    IJavaRef ref = b.build();
+    assertEquals("Object.java", ref.getSimpleFileName());
+    assertEquals("Object", ref.getSimpleFileNameWithNoExtension());
+
+    decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A.B");
+    b = new JavaRef.Builder(decl);
+    b.setWithin(Within.JAVA_FILE);
+    b.setAbsolutePath("C:\\Program Files\\src\\java\\lang\\Goo.java");
+    ref = b.build();
+    assertEquals("Goo.java", ref.getSimpleFileName());
+    assertEquals("Goo", ref.getSimpleFileNameWithNoExtension());
+
+    decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A.B");
+    b = new JavaRef.Builder(decl);
+    b.setWithin(Within.JAVA_FILE);
+    ref = b.build();
+    assertEquals("Object.java", ref.getSimpleFileName());
+    assertEquals("Object", ref.getSimpleFileNameWithNoExtension());
+
+    decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A.B");
+    b = new JavaRef.Builder(decl);
+    b.setWithin(Within.CLASS_FILE);
+    ref = b.build();
+    assertEquals("Object$A$B.class", ref.getSimpleFileName());
+    assertEquals("Object$A$B", ref.getSimpleFileNameWithNoExtension());
+
+    decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic("java.lang/Object.A.B");
+    b = new JavaRef.Builder(decl);
+    b.setWithin(Within.JAR_FILE);
+    ref = b.build();
+    assertEquals("Object$A$B.class", ref.getSimpleFileName());
+    assertEquals("Object$A$B", ref.getSimpleFileNameWithNoExtension());
   }
 }
