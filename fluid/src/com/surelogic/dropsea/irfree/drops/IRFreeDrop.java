@@ -11,7 +11,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.WITHIN_DECL_ATTR;
 import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
 
 import java.util.ArrayList;
@@ -206,7 +205,7 @@ public class IRFreeDrop implements IDrop {
     final String pkg = ref.getAttribute(PKG_ATTR);
     final String cuName = ref.getAttribute(CUNIT_ATTR);
     final String javaId = ref.getAttribute(JAVA_ID_ATTR);
-    final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
+    //final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
     final String project = ref.getAttribute(PROJECT_ATTR);
 
     final int offset = convert(ref.getAttribute(OFFSET_ATTR));
@@ -238,7 +237,6 @@ public class IRFreeDrop implements IDrop {
       if (length < Integer.MAX_VALUE)
         builder.setLength(length);
       builder.setJavaId(javaId);
-      builder.setEnclosingJavaId(enclosingId);
       return builder.build();
     }
   }

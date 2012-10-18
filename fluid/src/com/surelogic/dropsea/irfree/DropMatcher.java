@@ -1,8 +1,10 @@
 package com.surelogic.dropsea.irfree;
 
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.persistence.JavaIdentifier;
 
 public abstract class DropMatcher {
 	private final String[] labels;
@@ -124,11 +126,21 @@ public abstract class DropMatcher {
 		return null;
 	}
 	
+	// Need until we update all the oracles that use JavaIds
 	protected static String getJavaId(IDrop d) {
 		IJavaRef ref = d.getJavaRef();
 		if (ref != null) {
-			return ref.getJavaId();
+			String id = ref.getJavaId();
+			if (id != null) {
+				return id;
+			}
+			id = JavaIdentifier.encodeDecl(ref.getEclipseProjectNameOrEmpty(), ref.getDeclaration());
+			return id;
 		}
 		return null;
+	}
+	
+	protected static boolean matchIDecls(IDecl n, IDecl o) {
+		return n.isSameDeclarationAsSloppy(o);
 	}
 }

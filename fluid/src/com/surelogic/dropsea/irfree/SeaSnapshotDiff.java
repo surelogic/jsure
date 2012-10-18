@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.*;
 
+import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.IRReferenceDrop;
@@ -219,16 +221,18 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
           return null;
         }
         IJavaRef ref = d.getJavaRef();
-        String f = ref == null ? "" : ref.getTypeNameFullyQualified();
-//        if (ref != null) {
-//          String path = ref.getRelativePath();
-//          URI uri = ref.getEnclosingURI();
-//          String file = ref.getEnclosingFile();
-//          f = uri == null ? file : path;
-//          if (f != null) {
-//            f = FileUtility.normalizePath(f);
-//          }
-//        }
+        //String f = ref == null ? "" : ref.getTypeNameFullyQualified();
+        String f = "";
+        if (ref != null) {
+        	IDecl decl = ref.getDeclaration();
+        	if (decl != null) {
+            	// TODO not quite right if there's more than one top-level type in the file
+        		f = DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl);
+        	}
+        	if (f == null) {
+        		f = ref.getTypeNameFullyQualified();
+        	}
+        }
         return new CPair<String, String>(f, type.getName());
       }
     });
