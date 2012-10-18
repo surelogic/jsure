@@ -11,6 +11,11 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
   }
 
   @Override
+  protected boolean hasChildren() {
+	  return getStaticPart() != State.ThreadSafe;
+  }
+  
+  @Override
   public String unparse(boolean debug, int indent) {
     return unparse(debug, indent, "ThreadSafe");
   }

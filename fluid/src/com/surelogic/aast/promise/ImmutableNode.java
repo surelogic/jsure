@@ -11,6 +11,11 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
   }
 
   @Override
+  protected boolean hasChildren() {
+	  return getStaticPart() != State.Immutable;
+  }
+  
+  @Override
   public String unparse(boolean debug, int indent) {
     return unparse(debug, indent, "Immutable");
   }
