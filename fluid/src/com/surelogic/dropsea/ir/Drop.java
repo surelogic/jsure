@@ -707,7 +707,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  @Override
+//  @Override
   @Nullable
   @MustInvokeOnOverride
   public IJavaRef getJavaRef() {
@@ -835,12 +835,12 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  @Override
+//  @Override
   public final long getTreeHash() {
     return SeaSnapshot.computeHash(getNode(), false);
   }
 
-  @Override
+//  @Override
   public final long getContextHash() {
     return SeaSnapshot.computeContext(getNode(), false);
   }
