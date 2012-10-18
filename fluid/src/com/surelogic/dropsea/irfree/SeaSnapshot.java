@@ -146,7 +146,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     return unparse.hashCode();
   }
 
-  public static long computeContext(IRNode node, boolean debug) {
+  public static long computeContextHash(IRNode node) {
+    return computeContextHash(node, false);
+  }
+
+  public static long computeContextHash(IRNode node, boolean debug) {
     if (node instanceof MarkedIRNode) {
       return 0; // Not an AST node
     }

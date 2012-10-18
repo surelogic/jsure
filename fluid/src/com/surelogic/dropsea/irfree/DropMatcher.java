@@ -127,7 +127,7 @@ public abstract class DropMatcher {
 			if (id != null) {
 				return id;
 			}
-			id = JavaIdentifier.encodeDecl(ref.getEclipseProjectNameOrEmpty(), ref.getDeclaration());
+			id = JavaIdentifier.encodeDecl(ref.getEclipseProjectNameOrEmpty(), ref);
 			return id;
 		}
 		return null;

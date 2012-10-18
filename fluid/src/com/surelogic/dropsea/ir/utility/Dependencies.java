@@ -89,6 +89,14 @@ public class Dependencies {
   }
 
   /**
+   * Checks if message from drop starts with a string and outputs debug
+   * information on it.
+   * <p>
+   * If this is set to {@code null} debug information on all drops is output.
+   */
+  public static final String DROP_MESSAGE_DEBUG = "";// "Lock field \"this.f_lock\" is less";
+
+  /**
    * Collects the CUDrops corresponding to d's dependent drops, so we can
    * reprocess the promises on those
    */
@@ -101,13 +109,13 @@ public class Dependencies {
     // Find dependent drops
     boolean first = true;
     for (Drop d : getDependents(root)) {
-      if (first && (Drop.debug == null || d.getMessage().startsWith(Drop.debug))) {
+      if (first && (DROP_MESSAGE_DEBUG == null || d.getMessage().startsWith(DROP_MESSAGE_DEBUG))) {
         first = false;
         System.out.println(root.getMessage() + " <- ");
       }
       try {
         final CUDrop cud = findEnclosingCUDrop(d);
-        if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
+        if (DROP_MESSAGE_DEBUG == null || d.getMessage().startsWith(DROP_MESSAGE_DEBUG)) {
           if (cud != null) {
             final IRNode type = VisitUtil.getPrimaryType(cud.getCompilationUnitIRNode());
             System.out.println("\t" + d.getMessage() + "\tfrom " + JavaNames.getTypeName(type));
@@ -152,6 +160,7 @@ public class Dependencies {
     return root.getDependents();
   }
 
+  @SuppressWarnings("serial")
   private static class IgnoredException extends Exception {
     // Nothing to do
   }

@@ -20,6 +20,7 @@ import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IDeclFunction;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 
@@ -551,11 +552,16 @@ public final class JavaIdentifier {
 		}
 	}
 
-	public static String encodeDecl(String project, IDecl decl) {
+	public static String encodeDecl(String project, IJavaRef ref) {
+		IDecl decl = ref.getDeclaration();
 		if (project == null || decl == null) {
 			return null;
 		}
-		final StringBuilder sb = new StringBuilder(project).append(SEPARATOR);
+		final StringBuilder sb = new StringBuilder();
+		if (ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON) {
+			sb.append(ref.getPositionRelativeToDeclaration()).append(SEPARATOR);
+		}
+		sb.append(project).append(SEPARATOR);
 		sb.append(DeclUtil.getPackageNameOrEmpty(decl));
 		String types = DeclUtil.getTypeNameDollarSignOrNull(decl);
 		if (types == null) {

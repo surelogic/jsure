@@ -23,6 +23,7 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XMLCreator;
@@ -446,7 +447,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     synchronized (f_seaLock) {
       if (f_source != null && f_source.isValid()) {
         if (f_source == drop) {
-          LOG.log(Level.WARNING, "Re-setting source drop to its current value: " + drop, new Exception("trace"));
+          SLLogger.getLogger().log(Level.WARNING, "Re-setting source drop to its current value: " + drop, new Exception("trace"));
           return;
         }
         throw new IllegalArgumentException("This PromiseDrop already has a source drop: set-to=" + f_source + " changing-to="

@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
@@ -49,6 +48,8 @@ import edu.cmu.cs.fluid.java.JavaPromise;
  * <p>
  * Dependent drops are specified by clients though the public interface and
  * deponent drops are automatically tracked.
+ * <p>
+ * This implementation always tracks a reference to an {@link IRNode}.
  * 
  * @see Sea
  */
@@ -57,23 +58,13 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 public abstract class Drop implements IDrop {
 
   /**
-   * Checks if message from drop starts with a string and outputs debug
-   * information on it. If this is set to {@code null} debug information on all
-   * drops is output.
-   */
-  public static final String debug = "";// "Lock field \"this.f_lock\" is less";
-
-  /**
-   * Logger for this class
-   */
-  protected static final Logger LOG = SLLogger.getLogger("Drop");
-
-  /**
-   * Constructs a drop referencing the passed node. The {@link IRNode} passed
-   * must be non-null.
+   * Constructs a drop referencing the passed node.
    * 
    * @param node
    *          a fAST node related to this drop.
+   * 
+   * @throws IllegalArgumentException
+   *           if the passed node is {@code null}.
    */
   protected Drop(@NonNull final IRNode node) {
     this(Sea.getDefault(), node);
@@ -81,9 +72,11 @@ public abstract class Drop implements IDrop {
 
   /**
    * Constructs a drop within the specified sea.
+   * <p>
+   * This constructor is rarely used, see {@link #Drop(IRNode)}.
    * 
    * @param sea
-   *          the sea to create the drop within.
+   *          the {@link Sea} instance to create the drop within.
    * @param node
    *          a fAST node related to this drop.
    */
@@ -121,8 +114,9 @@ public abstract class Drop implements IDrop {
   /**
    * Gets the lock for this sea that this drop is part of.
    * 
-   * @return the non-null lock for this sea that this drop is part of.
+   * @return the lock for this sea that this drop is part of.
    */
+  @NonNull
   public final Object getSeaLock() {
     return f_seaLock;
   }
@@ -167,7 +161,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(257, number));
+      SLLogger.getLogger().warning(I18N.err(257, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -279,7 +273,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setCategorizingMessage(int number, Object... args) {
     if (number < 1) {
-      LOG.warning(I18N.err(261, number));
+      SLLogger.getLogger().warning(I18N.err(261, number));
       return;
     }
     synchronized (f_seaLock) {
@@ -682,6 +676,13 @@ public abstract class Drop implements IDrop {
     return result;
   }
 
+  /**
+   * Gets if this drop has any hint drops of {@link IHintDrop.HintType#WARNING
+   * WARNING} type.
+   * 
+   * @return {@code true} if this drop has warning hint drops, {@code false}
+   *         otherwise.
+   */
   public boolean hasWarningHints() {
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
@@ -837,12 +838,12 @@ public abstract class Drop implements IDrop {
 
 //  @Override
   public final long getTreeHash() {
-    return SeaSnapshot.computeHash(getNode(), false);
+    return SeaSnapshot.computeHash(getNode());
   }
 
 //  @Override
   public final long getContextHash() {
-    return SeaSnapshot.computeContext(getNode(), false);
+    return SeaSnapshot.computeContextHash(getNode());
   }
 
   /**
@@ -961,13 +962,5 @@ public abstract class Drop implements IDrop {
     for (ProposedPromiseDrop pd : getProposals()) {
       s.refDrop(db, PROPOSED_PROMISE, pd);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> T getAdapter(Class<T> type) {
-    if (type.isInstance(this)) {
-      return (T) this;
-    } else
-      throw new UnsupportedOperationException();
   }
 }

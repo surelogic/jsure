@@ -126,7 +126,7 @@ public class Util {
   private static final boolean loadPartial = false;
   public static final boolean useResultsXML = false;
 
-  public static final String PACKAGE_INFO_JAVA = SLUtility.PACKAGE_INFO+".java";
+  public static final String PACKAGE_INFO_JAVA = SLUtility.PACKAGE_INFO + ".java";
   public static final boolean debug = false;
   private static final String HOME = System.getProperty("user.home");
 
@@ -691,7 +691,7 @@ public class Util {
     System.out.println("Clearing old results for " + cud);
     for (Drop d : cud.getDependents()) {
       if (d instanceof IAnalysisOutputDrop) {
-        if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
+        if (Dependencies.DROP_MESSAGE_DEBUG == null || d.getMessage().startsWith(Dependencies.DROP_MESSAGE_DEBUG)) {
           System.err.println("\t" + d.getMessage());
         }
         d.invalidate();
