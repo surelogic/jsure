@@ -149,6 +149,9 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 			}
 			sb.append(e.getAttribute(MESSAGE_ATTR));
 			return sb.toString();
+		} else if (element instanceof IDrop) {
+			IDrop d = (IDrop) element;
+			return d.getClass().getSimpleName()+": "+d.getMessage();
 		}
 		return null;
 	}
