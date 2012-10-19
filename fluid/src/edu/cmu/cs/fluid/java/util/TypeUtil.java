@@ -270,7 +270,8 @@ public class TypeUtil implements JavaGlobals {
   public static boolean isInterface(final IRNode node) {
     final Operator op = JJNode.tree.getOperator(node);
     return InterfaceDeclaration.prototype.includes(op)
-        || NestedInterfaceDeclaration.prototype.includes(op);
+        || NestedInterfaceDeclaration.prototype.includes(op) 
+        || AnnotationDeclaration.prototype.includes(op);
   }
   
   /**
