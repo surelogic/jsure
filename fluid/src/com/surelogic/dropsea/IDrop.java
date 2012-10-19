@@ -156,8 +156,8 @@ public interface IDrop {
 
   /**
    * Returns the diff-info value to which the specified key is mapped as a long,
-   * or <tt>valueIfNotFound</tt> if this drop contains no mapping for the key or
-   * the diff-info value cannot be represented as a long.
+   * or <tt>valueIfNotRepresentable</tt> if this drop contains no mapping for
+   * the key or the diff-info value cannot be represented as a long.
    * <p>
    * Diff-info values are used to heuristically match drop instances, with the
    * overall purpose of creating a "diff" between two scans. They are used to
@@ -167,20 +167,21 @@ public interface IDrop {
    * 
    * @param key
    *          a key.
-   * @param valueIfNotFound
+   * @param valueIfNotRepresentable
    *          a value.
    * @return the diff-info value to which the specified key is mapped as a long,
    *         or <tt>valueIfNotFound</tt> if this drop contains no mapping for
    *         the key or the diff-info value cannot be represented as a long.
    */
-  long getDiffInfoAsLong(String key, long valueIfNotFound);
+  long getDiffInfoAsLong(String key, long valueIfNotRepresentable);
 
   /**
    * Returns the diff-info value to which the specified key is mapped as an int,
-   * or <tt>valueIfNotFound</tt> if this drop contains no mapping for the key or
-   * the diff-info value cannot be represented as an int. For example, if the
-   * diff-info value was set as a long then this method will return its value if
-   * it fits into an int, or return <tt>valueIfNotFound</tt> if it doesn't.
+   * or <tt>valueIfNotRepresentable</tt> if this drop contains no mapping for
+   * the key or the diff-info value cannot be represented as an int. For
+   * example, if the diff-info value was set as a long then this method will
+   * return its value if it fits into an int, or return <tt>valueIfNotFound</tt>
+   * if it doesn't.
    * <p>
    * Diff-info values are used to heuristically match drop instances, with the
    * overall purpose of creating a "diff" between two scans. They are used to
@@ -190,13 +191,13 @@ public interface IDrop {
    * 
    * @param key
    *          a key.
-   * @param valueIfNotFound
+   * @param valueIfNotRepresentable
    *          a value.
    * @return the diff-info value to which the specified key is mapped as an int,
    *         or <tt>valueIfNotFound</tt> if this drop contains no mapping for
    *         the key or the diff-info value cannot be represented as an int.
    */
-  int getDiffInfoAsInt(String key, int valueIfNotFound);
+  int getDiffInfoAsInt(String key, int valueIfNotRepresentable);
 
   /**
    * Computes a hash of the subtree from the fAST node that this drop is related

@@ -136,6 +136,8 @@ public class IRFreeDrop implements IDrop {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
       }
     }
+    
+    System.out.println("TIM>"+e.getAttribute("tim") +"<");
   }
 
   @Nullable
@@ -196,12 +198,12 @@ public class IRFreeDrop implements IDrop {
     return null;
   }
 
-  public long getDiffInfoAsLong(String key, long valueIfNotFound) {
+  public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     // TODO Auto-generated method stub
     return 0;
   }
 
-  public int getDiffInfoAsInt(String key, int valueIfNotFound) {
+  public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     // TODO Auto-generated method stub
     return 0;
   }

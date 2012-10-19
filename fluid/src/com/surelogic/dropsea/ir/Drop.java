@@ -27,7 +27,6 @@ import com.surelogic.Vouch;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IDrop;
@@ -846,12 +845,12 @@ public abstract class Drop implements IDrop {
     return null;
   }
 
-  public long getDiffInfoAsLong(String key, long valueIfNotFound) {
+  public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     // TODO Auto-generated method stub
     return 0;
   }
 
-  public int getDiffInfoAsInt(String key, int valueIfNotFound) {
+  public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     // TODO Auto-generated method stub
     return 0;
   }
@@ -954,9 +953,9 @@ public abstract class Drop implements IDrop {
 
   @MustInvokeOnOverride
   public void snapshotAttrs(XMLCreator.Builder s) {
-    s.addAttribute(MESSAGE, Entities.escapeControlChars(getMessage()));
+    s.addAttribute(MESSAGE, getMessage());
     if (getMessageCanonical() != null)
-      s.addAttribute(MESSAGE_ID, Entities.escapeControlChars(getMessageCanonical()));
+      s.addAttribute(MESSAGE_ID, getMessageCanonical());
 
     final String cat = getCategorizingMessage();
     if (cat != null)

@@ -1,0 +1,34 @@
+package com.surelogic.dropsea;
+
+import com.surelogic.Immutable;
+import com.surelogic.NonNull;
+import com.surelogic.ValueObject;
+
+@Immutable
+@ValueObject
+public interface IDiffInfo {
+
+  /*
+   * Key constants for diff-info values used by JSure
+   */
+
+  public static final String FAST_TREE_HASH = "fAST-tree-hash";
+  public static final String FAST_CONTEXT_HASH = "fAST-context-hash";
+
+  /*
+   * Interface to key/value pairs.
+   */
+
+  @NonNull
+  String getKey();
+
+  @NonNull
+  String getValueAsString();
+
+  long getValueAsLong(long valueIfNotRepresentable);
+
+  int getValueAsInt(int valueIfNotRepresentable);
+
+  @NonNull
+  String encodeForPersistence();
+}

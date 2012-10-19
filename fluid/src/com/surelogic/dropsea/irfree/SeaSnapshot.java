@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entities;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
@@ -97,6 +99,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
     db.addAttribute(FAST_TREE_HASH_ATTR, d.getTreeHash());
     db.addAttribute(FAST_CONTEXT_HASH_ATTR, d.getContextHash());
+    db.addAttribute("tim", "my\n\t   \ntim\n1\n 2\n  3\n   4", Entities.Holder.DEFAULT_PLUS_WHITESPACE);
     d.snapshotAttrs(db);
     d.snapshotRefs(this, db);
     db.end();
