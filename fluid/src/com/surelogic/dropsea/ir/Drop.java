@@ -708,7 +708,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
-//  @Override
+  // @Override
   @Nullable
   @MustInvokeOnOverride
   public IJavaRef getJavaRef() {
@@ -836,12 +836,31 @@ public abstract class Drop implements IDrop {
     }
   }
 
-//  @Override
+  public boolean containsDiffInfoKey(String key) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  public String getDiffInfoOrNull(String key) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public long getDiffInfoAsLong(String key, long valueIfNotFound) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  public int getDiffInfoAsInt(String key, int valueIfNotFound) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
   public final long getTreeHash() {
     return SeaSnapshot.computeHash(getNode());
   }
 
-//  @Override
+  // @Override
   public final long getContextHash() {
     return SeaSnapshot.computeContextHash(getNode());
   }
