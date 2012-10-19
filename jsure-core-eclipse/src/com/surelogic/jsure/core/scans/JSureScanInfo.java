@@ -18,10 +18,14 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.irfree.IDropFilter;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
+
+import edu.cmu.cs.fluid.util.CPair;
 
 /**
  * Manages the project information, the loading of drop information and other
@@ -190,5 +194,14 @@ public class JSureScanInfo {
   public synchronized String findProjectsLabel() {
     final Projects p = getProjects();
     return p != null ? getProjects().getLabel() : null;
+  }
+  
+  public SeaSnapshotDiff<CPair<String,String>> diff(JSureScanInfo older, IDropFilter f) {
+	  SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
+	  rv.setFilter(SeaSnapshotDiff.augmentDefaultFilter(f));
+	  rv.setSeparator(SeaSnapshotDiff.defaultSeparator);
+	  // TODO set matcher
+	  rv.build(older.getDropInfo(), getDropInfo());
+	  return rv;
   }
 }

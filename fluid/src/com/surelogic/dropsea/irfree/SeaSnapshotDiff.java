@@ -17,7 +17,6 @@ import java.util.Map;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.IResultDrop;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -30,7 +29,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   private final Map<K, DiffCategory<K>> categories = new HashMap<K, DiffCategory<K>>();
   private IDropFilter filter;
   private IDropSeparator<K> separator;
-  private DropMatcher matcher;
+  private DropMatcher matcher = defaultMatcher;
 
   public void setFilter(IDropFilter f) {
     if (f == null) {
@@ -190,6 +189,15 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     }
     return true;
   }
+  
+  public static IDropFilter augmentDefaultFilter(final IDropFilter f) {
+	  return new IDropFilter() {
+		  // @Override
+		  public boolean keep(IDrop d) {
+			  return select(d) && f.keep(d);
+		  }
+	  };
+  }
 
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer) throws Exception {
     Collection<IDrop> newerResults = SeaSnapshot.loadSnapshot(newer);
@@ -201,87 +209,37 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
     return diff(f, oldResults, newer);
   }
-
+	  
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, Collection<IDrop> old,
       Collection<? extends IDrop> newer) {
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
-    rv.setFilter(new IDropFilter() {
-      // @Override
-      public boolean keep(IDrop d) {
-        return select(d) && f.keep(d);
-      }
-    });
-    rv.setSeparator(new IDropSeparator<CPair<String, String>>() {
-      // @Override
-      public CPair<String, String> makeKey(IDrop d) {
-        final Class<?> type = d.getIRDropSeaClass();
-        if (type == null) {
-          return null;
-        }
-        IJavaRef ref = d.getJavaRef();
-        // String f = ref == null ? "" : ref.getTypeNameFullyQualified();
-        String f = ref == null ? "" : ref.getPackageName() + '/' + ref.getSimpleFileNameWithNoExtension();
-        /*
-         * String f = ""; if (ref != null) { IDecl decl = ref.getDeclaration();
-         * if (decl != null) { // TODO not quite right if there's more than one
-         * top-level type in the file f =
-         * DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl); } if
-         * (f == null) { f = ref.getTypeNameFullyQualified(); } }
-         */
-        return new CPair<String, String>(f, type.getName());
-      }
-    });
-    rv.setMatcher(new DropMatcher("Exact  ", "Core   ", "Hashed ", "Hashed2", "Results") {
-      @Override
-      protected boolean warnIfMatched(int pass) {
-        return pass >= 5;
-      }
-
-      @Override
-      protected boolean match(int pass, IDrop n, IDrop o) {
-        switch (pass) {
-        case 0:
-          return matchId(n, o);
-        case 1:
-          return matchExact(n, o);
-        case 2:
-          return matchCore(n, o);
-        case 3:
-          return matchHashedAndHints(n, o);
-        case 4:
-          return matchHashed(n, o);
-        case 5:
-          return matchResults(n, o);
-        default:
-          return false;
-        }
-      }
-
-      private boolean matchId(IDrop n, IDrop o) {
-        return matchBasics(n, o) && matchStrings(getJavaId(n), getJavaId(o), false) == Boolean.TRUE;
-      }
-
-      private boolean matchExact(IDrop n, IDrop o) {
-        return matchCore(n, o) && matchSupportingInfo(n, o);
-      }
-
-      private boolean matchCore(IDrop n, IDrop o) {
-        return matchBasics(n, o) && getOffset(n) == getOffset(o);
-      }
-
-      private boolean matchHashedAndHints(IDrop n, IDrop o) {
-        return matchHashed(n, o) && matchSupportingInfo(n, o);
-      }
-
-      private boolean matchHashed(IDrop n, IDrop o) {
-        return matchBasics(n, o) && n.getTreeHash() == o.getTreeHash() && n.getContextHash() == o.getContextHash();
-      }
-
-      private boolean matchResults(IDrop n, IDrop o) {
-        return (n instanceof IResultDrop) && n.getTreeHash() == o.getTreeHash();
-      }
-    });
+    rv.setFilter(augmentDefaultFilter(f));
+    rv.setSeparator(defaultSeparator);
     rv.build(old, newer);
     return rv;
   }
+  
+  public static final DropMatcher defaultMatcher = new DefaultDropMatcher();
+  
+  public static final IDropSeparator<CPair<String, String>> defaultSeparator = 
+	  new IDropSeparator<CPair<String, String>>() {
+	  // @Override
+	  public CPair<String, String> makeKey(IDrop d) {
+		  final Class<?> type = d.getIRDropSeaClass();
+		  if (type == null) {
+			  return null;
+		  }
+		  IJavaRef ref = d.getJavaRef();
+		  // String f = ref == null ? "" : ref.getTypeNameFullyQualified();
+		  String f = ref == null ? "" : ref.getPackageName() + '/' + ref.getSimpleFileNameWithNoExtension();
+		  /*
+		   * String f = ""; if (ref != null) { IDecl decl = ref.getDeclaration();
+		   * if (decl != null) { // TODO not quite right if there's more than one
+		   * top-level type in the file f =
+		   * DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl); } if
+		   * (f == null) { f = ref.getTypeNameFullyQualified(); } }
+		   */
+		  return new CPair<String, String>(f, type.getName());
+	  }
+  };  
 }
