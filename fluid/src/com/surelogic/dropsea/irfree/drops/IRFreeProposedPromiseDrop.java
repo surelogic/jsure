@@ -12,8 +12,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
@@ -176,7 +175,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       return false;
 
     return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getContents(), o2.getContents())
-        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef());
+        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef()) 
+        && isAllSame(o1.getAnnoAttributes(), o2.getAnnoAttributes())
+        && isAllSame(o1.getReplacedAttributes(), o2.getReplacedAttributes());
   }
 
   private static <T> boolean isSame(T o1, T o2) {
@@ -188,5 +189,30 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       return false;
     }
     return true;
+  }
+  
+  private static boolean isAllSame(Map<String,String> m1, Map<String,String> m2) {
+	  return isSame(m1, m2);
+	  /*
+	  final Set<String> checked = new HashSet<String>(m1.size());
+	  for(Map.Entry<String,String> e : m1.entrySet()) {
+		  String v2 = m2.get(e.getKey());
+		  if (!isSame(e.getValue(), v2)) {
+			  return false;
+		  } else {
+			  checked.add(e.getKey());
+		  }
+	  }
+	  for(Map.Entry<String,String> e : m2.entrySet()) {
+		  if (checked.contains(e.getKey())) {
+			  continue;
+		  }
+		  String v1 = m1.get(e.getKey());
+		  if (!isSame(e.getValue(), v1)) {
+			  return false;
+		  }
+	  }
+	  return true;
+	  */
   }
 }
