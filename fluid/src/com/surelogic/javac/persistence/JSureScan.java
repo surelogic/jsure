@@ -276,7 +276,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
 			return Collections.emptyMap();
 		}
-		final File srcZip = new File(f_scanDir, "zips/" + proj + ".zip");
+		final File srcZip = new File(f_scanDir, PersistenceConstants.ZIPS_DIR+'/'+proj+".zip");
 		if (!srcZip.exists()) {
 			// throw new IllegalStateException("No sources: "+srcZip);
 			System.err.println("No sources: " + srcZip);
@@ -340,5 +340,9 @@ public class JSureScan implements Comparable<JSureScan> {
 		} else if (!f_scanDir.equals(other.f_scanDir))
 			return false;
 		return true;
+	}
+
+	public Iterable<File> getSourceZips() {
+		return Arrays.asList(new File(f_scanDir, PersistenceConstants.ZIPS_DIR).listFiles());
 	}
 }

@@ -39,7 +39,7 @@ public class PromiseMatcher {
 		final Projects projs = run.getProjects();
 		
 		// Get source info
-		File zips = new File(runDir, "zips");
+		File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
 		Map<String,JavaSourceFile> path2JSF = new HashMap<String, JavaSourceFile>();
 		for(JavacProject p : projs) {		
 			File src = new File(zips, p.getName()+".zip");

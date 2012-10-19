@@ -78,8 +78,7 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 		} else {
 			zips = new ISourceZipFileHandles() {
 				public Iterable<File> getSourceZips() {
-					return Arrays.asList(new File(info.getDir(), "zips")
-							.listFiles());
+					return info.getJSureRun().getSourceZips();
 				}
 			};
 		}
