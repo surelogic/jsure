@@ -112,12 +112,91 @@ public interface IDrop {
   Collection<? extends IProposedPromiseDrop> getProposals();
 
   /**
-   * Returns the set of analysis hints about this proof drop.
+   * Returns the set of analysis hints about this drop.
    * 
-   * @return the set of analysis hints about this proof drop.
+   * @return the set of analysis hints about this drop.
    */
   @NonNull
   Collection<? extends IHintDrop> getHints();
+
+  /**
+   * Checks if this drop has a mapping to a diff-info value for the passed key.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return {@code true} if a value exists for <tt>key</tt>, {@code false}
+   *         otherwise.
+   */
+  boolean containsDiffInfoKey(String key);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped, or
+   * {@code null} if this drop contains no mapping for the key. This method will
+   * return a string version of the diff-info value for any mapping&mdash;even
+   * if the value is an int or a long.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return the diff-info value to which the specified key is mapped, or
+   *         {@code null} if this drop contains no mapping for the key.
+   */
+  String getDiffInfoOrNull(String key);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as a long,
+   * or <tt>valueIfNotFound</tt> if this drop contains no mapping for the key or
+   * the diff-info value cannot be represented as a long.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @param valueIfNotFound
+   *          a value.
+   * @return the diff-info value to which the specified key is mapped as a long,
+   *         or <tt>valueIfNotFound</tt> if this drop contains no mapping for
+   *         the key or the diff-info value cannot be represented as a long.
+   */
+  long getDiffInfoAsLong(String key, long valueIfNotFound);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as an int,
+   * or <tt>valueIfNotFound</tt> if this drop contains no mapping for the key or
+   * the diff-info value cannot be represented as an int. For example, if the
+   * diff-info value was set as a long then this method will return its value if
+   * it fits into an int, or return <tt>valueIfNotFound</tt> if it doesn't.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @param valueIfNotFound
+   *          a value.
+   * @return the diff-info value to which the specified key is mapped as an int,
+   *         or <tt>valueIfNotFound</tt> if this drop contains no mapping for
+   *         the key or the diff-info value cannot be represented as an int.
+   */
+  int getDiffInfoAsInt(String key, int valueIfNotFound);
 
   /**
    * Computes a hash of the subtree from the fAST node that this drop is related
