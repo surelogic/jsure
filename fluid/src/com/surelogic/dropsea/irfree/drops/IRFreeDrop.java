@@ -136,8 +136,6 @@ public class IRFreeDrop implements IDrop {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
       }
     }
-    
-    System.out.println("TIM>"+e.getAttribute("tim") +"<");
   }
 
   @Nullable
