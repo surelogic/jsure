@@ -9,17 +9,56 @@ import com.surelogic.Utility;
 import com.surelogic.ValueObject;
 import com.surelogic.common.i18n.I18N;
 
+/**
+ * A utility to construct, encode, and decode {@link IDiffInfo} instances.
+ */
 @Utility
 public final class DiffInfoUtility {
 
+  /**
+   * Constructs a string-valued {@link IDiffInfo} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          a value.
+   * @return a string-valued {@link IDiffInfo} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
   public static IDiffInfo getStringInstance(String key, String value) {
     return new StringDiffInfo(key, value);
   }
 
+  /**
+   * Constructs a int-valued {@link IDiffInfo} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          a value.
+   * @return a int-valued {@link IDiffInfo} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
   public static IDiffInfo getIntInstance(String key, int value) {
     return new IntDiffInfo(key, value);
   }
 
+  /**
+   * Constructs a long-valued {@link IDiffInfo} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          a value.
+   * @return a long-valued {@link IDiffInfo} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
   public static IDiffInfo getLongInstance(String key, long value) {
     return new LongDiffInfo(key, value);
   }
@@ -39,7 +78,7 @@ public final class DiffInfoUtility {
   static IDiffInfo parseEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
-    String v = value.trim();
+    String v = value;
     boolean isInt = v.startsWith("I");
     boolean isLong = v.startsWith("L");
     v = v.substring(1); // remove type code
@@ -74,11 +113,13 @@ public final class DiffInfoUtility {
       throw new IllegalArgumentException(I18N.err(44, "diffInfos"));
     final StringBuilder b = new StringBuilder();
     if (diffInfos.isEmpty())
-      b.append(";");
+      b.append("n/a");
     else
-      for (IDiffInfo ref : diffInfos) {
-        b.append(ref.encodeForPersistence());
-        b.append(";");
+      for (IDiffInfo di : diffInfos) {
+        String edi = di.encodeForPersistence();
+        b.append(Integer.toString(edi.length()));
+        b.append(':');
+        b.append(edi);
       }
     return b.toString();
   }
@@ -99,16 +140,20 @@ public final class DiffInfoUtility {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     final List<IDiffInfo> result = new ArrayList<IDiffInfo>();
-    final StringBuilder b = new StringBuilder(value.trim());
+    if ("n/a".equals(value))
+      return result;
+    final StringBuilder b = new StringBuilder(value);
     while (true) {
-      final int sepIndex = b.indexOf(";");
-      if (sepIndex == -1)
+      final int lengthSepIndex = b.indexOf(":");
+      if (lengthSepIndex == -1)
         break;
-      final String encoded = b.substring(0, sepIndex).trim();
+      final int itemLength = Integer.parseInt(b.substring(0, lengthSepIndex));
+      b.delete(0, lengthSepIndex + 1);
+      final String encoded = b.substring(0, itemLength);
       if (encoded.length() < 1)
         break;
       result.add(parseEncodedForPersistence(encoded));
-      b.delete(0, sepIndex + 1);
+      b.delete(0, itemLength);
     }
     return result;
   }
@@ -122,12 +167,23 @@ public final class DiffInfoUtility {
     AbstractDiffInfo(String key) {
       if (key == null)
         throw new IllegalArgumentException(I18N.err(44, "key"));
+      if (key.indexOf(',') != -1)
+        throw new IllegalArgumentException("key cannot contain a comma: " + key);
       f_key = key;
     }
 
     @NonNull
     public final String getKey() {
       return f_key;
+    }
+
+    @NonNull
+    public final String encodeForPersistence() {
+      final StringBuilder b = new StringBuilder();
+      // first character of the class name is used as a type indicator
+      b.append(this.getClass().getSimpleName().substring(0, 1));
+      b.append(getKey()).append(',').append(getValueAsString());
+      return b.toString();
     }
 
     @Override
@@ -160,13 +216,6 @@ public final class DiffInfoUtility {
 
     public int getValueAsInt(int valueIfNotRepresentable) {
       return valueIfNotRepresentable;
-    }
-
-    @NonNull
-    public String encodeForPersistence() {
-      final StringBuilder b = new StringBuilder("S");
-      b.append(getKey()).append(',').append(getValueAsString());
-      return b.toString();
     }
 
     @Override
@@ -225,13 +274,6 @@ public final class DiffInfoUtility {
       return f_value;
     }
 
-    @NonNull
-    public String encodeForPersistence() {
-      final StringBuilder b = new StringBuilder("I");
-      b.append(getKey()).append(',').append(getValueAsString());
-      return b.toString();
-    }
-
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -286,13 +328,6 @@ public final class DiffInfoUtility {
         return valueIfNotRepresentable;
       else
         return (int) f_value;
-    }
-
-    @NonNull
-    public String encodeForPersistence() {
-      final StringBuilder b = new StringBuilder("L");
-      b.append(getKey()).append(',').append(getValueAsString());
-      return b.toString();
     }
 
     @Override

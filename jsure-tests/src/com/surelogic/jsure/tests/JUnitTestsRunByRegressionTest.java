@@ -7,6 +7,7 @@ import com.surelogic.common.adhoc.model.TestColumnAnnotationParser;
 import com.surelogic.common.ref.TestDecl;
 import com.surelogic.common.ref.TestJavaRef;
 import com.surelogic.common.xml.TestEntities;
+import com.surelogic.dropsea.TestDiffInfo;
 import com.surelogic.dropsea.TestDrop;
 import com.surelogic.dropsea.TestSea;
 
@@ -33,6 +34,7 @@ public class JUnitTestsRunByRegressionTest extends TestSuite {
     addTest(new TestSuite(TestEntities.class));
 
     // com.surelogic.dropsea
+    addTest(new TestSuite(TestDiffInfo.class));
     addTest(new TestSuite(TestSea.class));
     addTest(new TestSuite(TestDrop.class));
 
