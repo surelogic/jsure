@@ -75,7 +75,7 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  static IDiffInfo parseEncodedForPersistence(final String value) {
+  public static IDiffInfo parseEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     String v = value;
@@ -108,7 +108,7 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  static String encodeListForPersistence(List<IDiffInfo> diffInfos) {
+  public static String encodeListForPersistence(List<IDiffInfo> diffInfos) {
     if (diffInfos == null)
       throw new IllegalArgumentException(I18N.err(44, "diffInfos"));
     final StringBuilder b = new StringBuilder();
@@ -136,7 +136,7 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  static List<IDiffInfo> parseListEncodedForPersistence(final String value) {
+  public static List<IDiffInfo> parseListEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     final List<IDiffInfo> result = new ArrayList<IDiffInfo>();

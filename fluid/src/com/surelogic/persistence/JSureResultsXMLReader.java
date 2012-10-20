@@ -80,7 +80,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
 
   private IRNode findIRNode(Entity sr) {
     final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
-    final long hash = Long.valueOf(sr.getAttribute(AbstractXMLReader.FAST_CONTEXT_HASH_ATTR));
+    final long hash = Long.valueOf(sr.getAttribute("fAST-context-hash"));
     final int offset = Integer.valueOf(sr.getAttribute(AbstractXMLReader.OFFSET_ATTR));
     // final int line =
     // Integer.valueOf(sr.getAttribute(XMLConstants.LINE_ATTR));

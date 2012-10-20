@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DIFF_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.DROP;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
@@ -27,8 +28,11 @@ import com.surelogic.Vouch;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
+import com.surelogic.dropsea.DiffInfoUtility;
+import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
@@ -836,32 +840,70 @@ public abstract class Drop implements IDrop {
   }
 
   public boolean containsDiffInfoKey(String key) {
-    // TODO Auto-generated method stub
+    synchronized (f_seaLock) {
+      for (IDiffInfo di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return true;
+    }
     return false;
   }
 
   public String getDiffInfoOrNull(String key) {
-    // TODO Auto-generated method stub
+    synchronized (f_seaLock) {
+      for (IDiffInfo di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsString();
+    }
     return null;
   }
 
   public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
-    // TODO Auto-generated method stub
-    return 0;
+    synchronized (f_seaLock) {
+      for (IDiffInfo di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsLong(valueIfNotRepresentable);
+    }
+    return valueIfNotRepresentable;
   }
 
   public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
-    // TODO Auto-generated method stub
-    return 0;
+    synchronized (f_seaLock) {
+      for (IDiffInfo di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsInt(valueIfNotRepresentable);
+    }
+    return valueIfNotRepresentable;
   }
 
-  public final long getTreeHash() {
-    return SeaSnapshot.computeHash(getNode());
-  }
-
-  // @Override
-  public final long getContextHash() {
-    return SeaSnapshot.computeContextHash(getNode());
+  /**
+   * Adds a new diff-info value, or replaces an existing one with the same
+   * {@link IDiffInfo#getKey()} value.
+   * <p>
+   * To construct the {@link IDiffInfo} instance to pass to this method, please
+   * use one of:
+   * <ul>
+   * <li>{@link DiffInfoUtility#getStringInstance(String, String)}</li>
+   * <li>{@link DiffInfoUtility#getIntInstance(String, int)}</li>
+   * <li>{@link DiffInfoUtility#getLongInstance(String, long)}</li>
+   * </ul>
+   * 
+   * @param value
+   *          a diff-info value.
+   * 
+   * @throws IllegalArgumentException
+   *           if value is null.
+   */
+  public void addOrReplaceDiffInfo(@NonNull final IDiffInfo value) {
+    if (value == null)
+      throw new IllegalArgumentException(I18N.err(44, "value"));
+    synchronized (f_seaLock) {
+      for (Iterator<IDiffInfo> iterator = f_diffInfos.iterator(); iterator.hasNext();) {
+        final IDiffInfo existing = iterator.next();
+        if (existing.getKey().equals(value.getKey()))
+          iterator.remove();
+      }
+      f_diffInfos.add(value);
+    }
   }
 
   /**
@@ -938,6 +980,12 @@ public abstract class Drop implements IDrop {
   private List<ProposedPromiseDrop> f_proposals = null;
 
   /**
+   * Holds the set of diff-info values for this drop.
+   */
+  @UniqueInRegion("DropState")
+  private final List<IDiffInfo> f_diffInfos = new ArrayList<IDiffInfo>();
+
+  /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.
    */
   @NonNull
@@ -960,6 +1008,20 @@ public abstract class Drop implements IDrop {
     final String cat = getCategorizingMessage();
     if (cat != null)
       s.addAttribute(CATEGORY_ATTR, cat);
+
+    /*
+     * Compute diff information we want to pass along into the results
+     */
+    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
+    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
+    /*
+     * Output diff information
+     * 
+     * We want this to encode whitespace in the strings so we use a special
+     * Entities instance for that purpose. Should be all on one line.
+     */
+    if (!f_diffInfos.isEmpty())
+      s.addAttribute(DIFF_INFO, DiffInfoUtility.encodeListForPersistence(f_diffInfos), Entities.Holder.DEFAULT_PLUS_WHITESPACE);
   }
 
   @MustInvokeOnOverride

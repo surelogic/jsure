@@ -1,7 +1,5 @@
 package com.surelogic.dropsea.irfree;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_CONTEXT_HASH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_TREE_HASH_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
@@ -95,8 +93,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
       final String encodedJavaRef = javaRef.encodeForPersistence();
       db.addAttribute(JAVA_REF, encodedJavaRef);
     }
-    db.addAttribute(FAST_TREE_HASH_ATTR, d.getTreeHash());
-    db.addAttribute(FAST_CONTEXT_HASH_ATTR, d.getContextHash());
     d.snapshotAttrs(db);
     d.snapshotRefs(this, db);
     db.end();

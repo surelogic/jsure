@@ -198,20 +198,4 @@ public interface IDrop {
    *         the key or the diff-info value cannot be represented as an int.
    */
   int getDiffInfoAsInt(String key, int valueIfNotRepresentable);
-
-  /**
-   * Computes a hash of the subtree from the fAST node that this drop is related
-   * to the fAST branches.
-   * 
-   * @return a hash.
-   */
-  long getTreeHash();
-
-  /**
-   * Computes a hash of the location in the fAST node that this drop is related
-   * to.
-   * 
-   * @return a hash.
-   */
-  long getContextHash();
 }

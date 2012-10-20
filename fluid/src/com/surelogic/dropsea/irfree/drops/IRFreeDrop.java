@@ -2,8 +2,7 @@ package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_CONTEXT_HASH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FAST_TREE_HASH_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.DIFF_INFO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
@@ -31,6 +30,8 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
+import com.surelogic.dropsea.DiffInfoUtility;
+import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 
 public class IRFreeDrop implements IDrop {
@@ -51,16 +52,14 @@ public class IRFreeDrop implements IDrop {
   private final String f_message;
   @Nullable
   private final String f_messageCanonical;
-  @NonNull
-  private final long f_treeHash;
-  @NonNull
-  private final long f_contextHash;
   /**
    * This collection is {@code null} until some exist&mdash;most drops have no
    * hints.
    */
   @Nullable
   private List<IRFreeHintDrop> f_analysisHints = null;
+  @NonNull
+  private final List<IDiffInfo> f_diffInfos;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -101,31 +100,38 @@ public class IRFreeDrop implements IDrop {
 
     f_messageCanonical = e.getAttribute(MESSAGE_ID);
 
-    String treeHashString = e.getAttribute(FAST_TREE_HASH_ATTR);
-    if (treeHashString == null)
-      treeHashString = e.getAttribute("hash"); // old name
-    long treeHashValue = 0;
-    if (treeHashString != null) {
-      try {
-        treeHashValue = Long.parseLong(treeHashString);
-      } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, treeHashString, FAST_TREE_HASH_ATTR), nfe);
-      }
-    }
-    f_treeHash = treeHashValue;
+    String diffInfoString = e.getAttribute(DIFF_INFO);
+    if (diffInfoString != null) {
+      f_diffInfos = DiffInfoUtility.parseListEncodedForPersistence(diffInfoString);
+    } else {
+      f_diffInfos = new ArrayList<IDiffInfo>();
 
-    String contextHashString = e.getAttribute(FAST_CONTEXT_HASH_ATTR);
-    if (contextHashString == null)
-      contextHashString = e.getAttribute("context"); // old name
-    long contextHashValue = 0;
-    if (contextHashString != null) {
-      try {
-        contextHashValue = Long.parseLong(contextHashString);
-      } catch (NumberFormatException nfe) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(259, contextHashString, FAST_CONTEXT_HASH_ATTR), nfe);
+      /*
+       * Attempt to read old tree/context hash if they exist in the file
+       */
+      String treeHashString = e.getAttribute("fAST-tree-hash");
+      if (treeHashString == null)
+        treeHashString = e.getAttribute("hash"); // old name
+      if (treeHashString != null) {
+        try {
+          final long treeHashValue = Long.parseLong(treeHashString);
+          f_diffInfos.add(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, treeHashValue));
+        } catch (NumberFormatException nfe) {
+          SLLogger.getLogger().log(Level.WARNING, I18N.err(259, treeHashString, "fAST-tree-hash"), nfe);
+        }
+      }
+      String contextHashString = e.getAttribute("fAST-context-hash");
+      if (contextHashString == null)
+        contextHashString = e.getAttribute("context"); // old name
+      if (contextHashString != null) {
+        try {
+          final long contextHashValue = Long.parseLong(contextHashString);
+          f_diffInfos.add(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, contextHashValue));
+        } catch (NumberFormatException nfe) {
+          SLLogger.getLogger().log(Level.WARNING, I18N.err(259, contextHashString, "fAST-context-hash"), nfe);
+        }
       }
     }
-    f_contextHash = contextHashValue;
 
     final String encodedJavaRef = e.getAttribute(JAVA_REF);
     if (encodedJavaRef != null) {
@@ -187,31 +193,31 @@ public class IRFreeDrop implements IDrop {
   }
 
   public boolean containsDiffInfoKey(String key) {
-    // TODO Auto-generated method stub
+    for (IDiffInfo di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return true;
     return false;
   }
 
   public String getDiffInfoOrNull(String key) {
-    // TODO Auto-generated method stub
+    for (IDiffInfo di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsString();
     return null;
   }
 
   public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
-    // TODO Auto-generated method stub
-    return 0;
+    for (IDiffInfo di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsLong(valueIfNotRepresentable);
+    return valueIfNotRepresentable;
   }
 
   public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  public long getTreeHash() {
-    return f_treeHash;
-  }
-
-  public long getContextHash() {
-    return f_contextHash;
+    for (IDiffInfo di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsInt(valueIfNotRepresentable);
+    return valueIfNotRepresentable;
   }
 
   static int convert(String val) {
