@@ -1,8 +1,7 @@
 package com.surelogic.analysis.concurrency.threadsafe;
 
 import com.surelogic.aast.promise.VouchFieldIsNode;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
@@ -23,6 +22,7 @@ import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -31,33 +31,37 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-public final class ContainableProcessor extends
-		TypeImplementationProcessor<ContainablePromiseDrop> {
-  private static final int CONTAINABLE_SUPERTYPE=450;
-  private static final int CONSTRUCTOR_UNIQUE_RETURN = 451;
-  private static final int CONSTRUCTOR_BORROWED_RECEVIER = 452;
-  private static final int CONSTRUCTOR_BAD = 453;
-  private static final int METHOD_BORROWED_RECEIVER = 454;
-  private static final int METHOD_BAD = 455;
-  private static final int FIELD_CONTAINED_PRIMITIVE = 456;
-  private static final int FIELD_CONTAINED_VOUCHED = 457;
-  private static final int FIELD_CONTAINED_VOUCHED_WITH_REASON = 458;
-  private static final int FIELD_CONTAINED_OBJECT = 459;
-  private static final int FIELD_BAD = 460;
-  private static final int FIELD_IS_UNIQUE = 461;
-  private static final int FIELD_IS_NOT_UNIQUE = 462;
-  private static final int OBJECT_IS_CONTAINABLE = 463;
-  private static final int OBJECT_IS_NOT_CONTAINABLE = 464;
-  private static final int TYPE_IS_CONTAINABLE = 465;
-  private static final int TYPE_IS_NOT_CONTAINABLE = 466;
-  private static final int CONTAINABLE_IMPL = 467;
+public final class ContainableProcessor extends TypeImplementationProcessor {
+  private static final int C_CONTAINABLE_SUPERTYPE=450;
+  private static final int C_CONSTRUCTOR_UNIQUE_RETURN = 451;
+  private static final int C_CONSTRUCTOR_BORROWED_RECEVIER = 452;
+  private static final int C_CONSTRUCTOR_BAD = 453;
+  private static final int C_METHOD_BORROWED_RECEIVER = 454;
+  private static final int C_METHOD_BAD = 455;
+  private static final int C_FIELD_CONTAINED_PRIMITIVE = 456;
+  private static final int C_FIELD_CONTAINED_VOUCHED = 457;
+  private static final int C_FIELD_CONTAINED_VOUCHED_WITH_REASON = 458;
+  private static final int C_FIELD_CONTAINED_OBJECT = 459;
+  private static final int C_FIELD_BAD = 460;
+  private static final int C_FIELD_IS_UNIQUE = 461;
+  private static final int C_FIELD_IS_NOT_UNIQUE = 462;
+  private static final int C_OBJECT_IS_CONTAINABLE = 463;
+  private static final int C_OBJECT_IS_NOT_CONTAINABLE = 464;
+  private static final int C_TYPE_IS_CONTAINABLE = 465;
+  private static final int C_TYPE_IS_NOT_CONTAINABLE = 466;
+  private static final int C_CONTAINABLE_IMPL = 467;
   
   
-  public ContainableProcessor(
-      final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a,
+  
+  private final ResultsBuilder builder;
+  
+  
+  
+  public ContainableProcessor(final IBinder b,
 			final ContainablePromiseDrop cDrop,
 			final IRNode typeDecl, final IRNode typeBody) {
-		super(a, cDrop, typeDecl, typeBody);
+		super(b, typeDecl, typeBody);
+		builder = new ResultsBuilder(cDrop);
 	}
 
 	@Override
@@ -65,8 +69,8 @@ public final class ContainableProcessor extends
 	  final ContainablePromiseDrop pDrop =
 		  LockRules.getContainableImplementation(tdecl);
 	  if (pDrop != null) {
-  		final ResultDrop result = createRootResult(
-  		    true, name, CONTAINABLE_SUPERTYPE,
+  		final ResultDrop result = builder.createRootResult(
+  		    true, name, C_CONTAINABLE_SUPERTYPE,
   		    JavaNames.getQualifiedTypeName(tdecl));
   		result.addTrusted(pDrop);
 	  }
@@ -84,16 +88,16 @@ public final class ContainableProcessor extends
 		// Prefer unique return over borrowed receiver
 		final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
 		if (upd != null) {
-			final ResultDrop result = createRootResult(
-			    true, cdecl, CONSTRUCTOR_UNIQUE_RETURN, id);
+			final ResultDrop result = builder.createRootResult(
+			    true, cdecl, C_CONSTRUCTOR_UNIQUE_RETURN, id);
 			result.addTrusted(upd);
 		} else if (bpd != null) {
-			final ResultDrop result = createRootResult(
-			    true, cdecl, CONSTRUCTOR_BORROWED_RECEVIER, id);
+			final ResultDrop result = builder.createRootResult(
+			    true, cdecl, C_CONSTRUCTOR_BORROWED_RECEVIER, id);
 			result.addTrusted(bpd);
 		} else {
-			final ResultDrop result = createRootResult(
-			    false, cdecl, CONSTRUCTOR_BAD, id);
+			final ResultDrop result = builder.createRootResult(
+			    false, cdecl, C_CONSTRUCTOR_BAD, id);
 			result.addProposal(new ProposedPromiseDrop(
 			    "Unique", "return", cdecl, cdecl, Origin.MODEL));
 		}
@@ -107,13 +111,13 @@ public final class ContainableProcessor extends
 			final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
 			final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
 			if (bpd == null) {
-				final ResultDrop result = createRootResult(
-				    false, mdecl, METHOD_BAD, id);
+				final ResultDrop result = builder.createRootResult(
+				    false, mdecl, C_METHOD_BAD, id);
 				result.addProposal(new ProposedPromiseDrop(
 				    "Borrowed",	"this", mdecl, mdecl, Origin.MODEL));
 			} else {
-				final ResultDrop result = createRootResult(
-				    true, mdecl, METHOD_BORROWED_RECEIVER, id);
+				final ResultDrop result = builder.createRootResult(
+				    true, mdecl, C_METHOD_BORROWED_RECEIVER, id);
 				result.addTrusted(bpd);
 			}
 		}
@@ -122,90 +126,180 @@ public final class ContainableProcessor extends
 	@Override
 	protected void processVariableDeclarator(final IRNode fieldDecl,
 			final IRNode varDecl, final boolean isStatic) {
-		final String id = VariableDeclarator.getId(varDecl);
-		final IJavaType type = binder.getJavaType(varDecl);
-		
-		if (type instanceof IJavaPrimitiveType) {
-		  createRootResult(
-			    true, varDecl, FIELD_CONTAINED_PRIMITIVE, id);
-		} else {
-			final VouchFieldIsPromiseDrop vouchDrop = LockRules
-					.getVouchFieldIs(varDecl);
-			if (vouchDrop != null && vouchDrop.isContainable()) {
-				final String reason = vouchDrop.getReason();
+	  assureFieldIsContainable(builder, binder, fieldDecl, varDecl);
+//		final String id = VariableDeclarator.getId(varDecl);
+//		final IJavaType type = binder.getJavaType(varDecl);
+//		
+//		if (type instanceof IJavaPrimitiveType) {
+//		  builder.createRootResult(
+//			    true, varDecl, FIELD_CONTAINED_PRIMITIVE, id);
+//		} else {
+//			final VouchFieldIsPromiseDrop vouchDrop = LockRules
+//					.getVouchFieldIs(varDecl);
+//			if (vouchDrop != null && vouchDrop.isContainable()) {
+//				final String reason = vouchDrop.getReason();
+//        final ResultDrop result = (reason == VouchFieldIsNode.NO_REASON)
+//            ? builder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED, id)
+//            : builder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
+//				result.addTrusted(vouchDrop);
+//			} else {
+//        /* Use a result folder: We have two things that need to be true:
+//         * (1) The type of the field is @Containable
+//         * (2) The field is @Unique
+//         */       
+//			  final ResultFolderDrop folder = builder.createRootAndFolder(
+//			      varDecl, FIELD_CONTAINED_OBJECT, FIELD_BAD, id);
+//        
+//				final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
+//				final ResultDrop uResult = ResultsBuilder.createResult(
+//				    folder, fieldDecl, uniqueDrop != null,
+//				    FIELD_IS_UNIQUE, FIELD_IS_NOT_UNIQUE);
+//				if (uniqueDrop != null) {
+//				  uResult.addTrusted(uniqueDrop.getDrop());
+//				} else {
+//          uResult.addProposal(new ProposedPromiseDrop(
+//              "Unique", null, varDecl, varDecl, Origin.MODEL));
+//				}
+//
+//	      final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
+//	          folder, varDecl, OBJECT_IS_CONTAINABLE, OBJECT_IS_NOT_CONTAINABLE);
+//
+//				final ContainableAnnotationTester tester =
+//  				  new ContainableAnnotationTester(
+//  				      binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+//  				      ParameterizedTypeAnalysis.getFolders(), true, false);
+//				final boolean isContainable = tester.testType(type);
+//        final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
+//				final ResultDrop cResult = ResultsBuilder.createResult(typeFolder, typeDeclNode,
+//				    isContainable, TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE,
+//				    type.toSourceText());
+//				cResult.addTrusted(tester.getTrusts());
+//				
+//				boolean proposeContainable = !isContainable;
+//				if (TypeUtil.isFinal(varDecl) && !isContainable) {
+//	        /*
+//	         * If the type is not containable, we can check to see
+//	         * if the implementation assigned to the field is containable,
+//	         * but only if the field is final.
+//	         */
+//	        final IRNode init = VariableDeclarator.getInit(varDecl);
+//	        if (Initialization.prototype.includes(init)) {
+//	          final IRNode initExpr = Initialization.getValue(init);
+//	          if (NewExpression.prototype.includes(initExpr)) {
+//	            final ContainableAnnotationTester tester2 =
+//	                new ContainableAnnotationTester(
+//	                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+//	                    ParameterizedTypeAnalysis.getFolders(), true, true); 
+//	            if (tester2.testType(binder.getJavaType(initExpr))) {
+//	              // we have an instance of an immutable implementation
+//	              proposeContainable = false;
+//	              final ResultDrop result = ResultsBuilder.createResult(
+//	                  true, typeFolder, initExpr, CONTAINABLE_IMPL);
+//	              result.addTrusted(tester2.getTrusts());
+//	            }
+//	          }
+//	        }
+//				}
+//				
+//				if (proposeContainable) {
+//          for (final IRNode t : tester.getFailed()) {
+//            cResult.addProposal(new ProposedPromiseDrop(
+//                "Containable", null, t, varDecl, Origin.MODEL));
+//          }
+//				}
+//	    
+//				folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
+//		        "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
+//			}
+//		}
+	}
+
+	private static void assureFieldIsContainable(
+	    final ResultsBuilder builder, final IBinder binder,
+	    final IRNode fieldDecl, final IRNode varDecl) {
+	    final String id = VariableDeclarator.getId(varDecl);
+	    final IJavaType type = binder.getJavaType(varDecl);
+    if (type instanceof IJavaPrimitiveType) {
+      builder.createRootResult(
+          true, varDecl, C_FIELD_CONTAINED_PRIMITIVE, id);
+    } else {
+      final VouchFieldIsPromiseDrop vouchDrop = LockRules
+          .getVouchFieldIs(varDecl);
+      if (vouchDrop != null && vouchDrop.isContainable()) {
+        final String reason = vouchDrop.getReason();
         final ResultDrop result = (reason == VouchFieldIsNode.NO_REASON)
-            ? createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED, id)
-            : createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
-				result.addTrusted(vouchDrop);
-			} else {
+            ? builder.createRootResult(true, varDecl, C_FIELD_CONTAINED_VOUCHED, id)
+            : builder.createRootResult(true, varDecl, C_FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
+        result.addTrusted(vouchDrop);
+      } else {
         /* Use a result folder: We have two things that need to be true:
          * (1) The type of the field is @Containable
          * (2) The field is @Unique
          */       
-			  final ResultFolderDrop folder = createRootAndFolder(
-			      varDecl, FIELD_CONTAINED_OBJECT, FIELD_BAD, id);
+        final ResultFolderDrop folder = builder.createRootAndFolder(
+            varDecl, C_FIELD_CONTAINED_OBJECT, C_FIELD_BAD, id);
         
-				final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
-				final ResultDrop uResult = createResult(
-				    folder, fieldDecl, uniqueDrop != null,
-				    FIELD_IS_UNIQUE, FIELD_IS_NOT_UNIQUE);
-				if (uniqueDrop != null) {
-				  uResult.addTrusted(uniqueDrop.getDrop());
-				} else {
+        final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
+        final ResultDrop uResult = ResultsBuilder.createResult(
+            folder, fieldDecl, uniqueDrop != null,
+            C_FIELD_IS_UNIQUE, C_FIELD_IS_NOT_UNIQUE);
+        if (uniqueDrop != null) {
+          uResult.addTrusted(uniqueDrop.getDrop());
+        } else {
           uResult.addProposal(new ProposedPromiseDrop(
               "Unique", null, varDecl, varDecl, Origin.MODEL));
-				}
+        }
 
-	      final ResultFolderDrop typeFolder = createOrFolder(
-	          folder, varDecl, OBJECT_IS_CONTAINABLE, OBJECT_IS_NOT_CONTAINABLE);
+        final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
+            folder, varDecl, C_OBJECT_IS_CONTAINABLE, C_OBJECT_IS_NOT_CONTAINABLE);
 
-				final ContainableAnnotationTester tester =
-  				  new ContainableAnnotationTester(
-  				      binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-  				      ParameterizedTypeAnalysis.getFolders(), true, false);
-				final boolean isContainable = tester.testType(type);
+        final ContainableAnnotationTester tester =
+            new ContainableAnnotationTester(
+                binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+                ParameterizedTypeAnalysis.getFolders(), true, false);
+        final boolean isContainable = tester.testType(type);
         final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
-				final ResultDrop cResult = createResult(typeFolder, typeDeclNode,
-				    isContainable, TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE,
-				    type.toSourceText());
-				cResult.addTrusted(tester.getTrusts());
-				
-				boolean proposeContainable = !isContainable;
-				if (TypeUtil.isFinal(varDecl) && !isContainable) {
-	        /*
-	         * If the type is not containable, we can check to see
-	         * if the implementation assigned to the field is containable,
-	         * but only if the field is final.
-	         */
-	        final IRNode init = VariableDeclarator.getInit(varDecl);
-	        if (Initialization.prototype.includes(init)) {
-	          final IRNode initExpr = Initialization.getValue(init);
-	          if (NewExpression.prototype.includes(initExpr)) {
-	            final ContainableAnnotationTester tester2 =
-	                new ContainableAnnotationTester(
-	                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-	                    ParameterizedTypeAnalysis.getFolders(), true, true); 
-	            if (tester2.testType(binder.getJavaType(initExpr))) {
-	              // we have an instance of an immutable implementation
-	              proposeContainable = false;
-	              final ResultDrop result = createResult(
-	                  true, typeFolder, initExpr, CONTAINABLE_IMPL);
-	              result.addTrusted(tester2.getTrusts());
-	            }
-	          }
-	        }
-				}
-				
-				if (proposeContainable) {
+        final ResultDrop cResult = ResultsBuilder.createResult(typeFolder, typeDeclNode,
+            isContainable, C_TYPE_IS_CONTAINABLE, C_TYPE_IS_NOT_CONTAINABLE,
+            type.toSourceText());
+        cResult.addTrusted(tester.getTrusts());
+        
+        boolean proposeContainable = !isContainable;
+        if (TypeUtil.isFinal(varDecl) && !isContainable) {
+          /*
+           * If the type is not containable, we can check to see
+           * if the implementation assigned to the field is containable,
+           * but only if the field is final.
+           */
+          final IRNode init = VariableDeclarator.getInit(varDecl);
+          if (Initialization.prototype.includes(init)) {
+            final IRNode initExpr = Initialization.getValue(init);
+            if (NewExpression.prototype.includes(initExpr)) {
+              final ContainableAnnotationTester tester2 =
+                  new ContainableAnnotationTester(
+                      binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
+                      ParameterizedTypeAnalysis.getFolders(), true, true); 
+              if (tester2.testType(binder.getJavaType(initExpr))) {
+                // we have an instance of an immutable implementation
+                proposeContainable = false;
+                final ResultDrop result = ResultsBuilder.createResult(
+                    true, typeFolder, initExpr, C_CONTAINABLE_IMPL);
+                result.addTrusted(tester2.getTrusts());
+              }
+            }
+          }
+        }
+        
+        if (proposeContainable) {
           for (final IRNode t : tester.getFailed()) {
             cResult.addProposal(new ProposedPromiseDrop(
                 "Containable", null, t, varDecl, Origin.MODEL));
           }
-				}
-	    
-				folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
-		        "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
-			}
-		}
-	}
+        }
+      
+        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
+            "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
+      }
+    }
+  }
 }
