@@ -176,7 +176,7 @@ public final class ScanDifferences {
    * @see #getChangedFrom(IDrop)
    * @see #getChangedTo(IDrop)
    */
-  public boolean isSame(IDrop drop) {
+  public boolean isSameInBothScans(IDrop drop) {
     final boolean newDropSame = f_newSameAsOld.containsKey(drop);
     if (newDropSame)
       return true;
