@@ -32,7 +32,7 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -154,7 +154,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
          */
         final IJavaRef ref = info.getJavaRef();
         if (ref != null) {
-          EditorUtil.highlightLineInJavaEditor(ref);
+          Activator.highlightLineInJavaEditor(ref);
         }
       }
     }
