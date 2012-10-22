@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
 
@@ -125,7 +125,7 @@ public abstract class AbstractScanStructuredView<T> extends
 		final Object d = selection.getFirstElement();
 		if (d instanceof IDrop) {
 			IDrop di = (IDrop) d;
-			EditorUtil.highlightLineInJavaEditor(di.getJavaRef());
+      Activator.highlightLineInJavaEditor(di.getJavaRef());
 		} else {
 			if (d != null)
 				handleDoubleClick(d);

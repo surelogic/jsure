@@ -38,6 +38,7 @@ Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: com.surelogic.jsure.client.eclipse.editors,
+Export-Package: com.surelogic.jsure.client.eclipse,
+ com.surelogic.jsure.client.eclipse.editors,
  com.surelogic.jsure.client.eclipse.views,
  com.surelogic.jsure.client.eclipse.views.verification

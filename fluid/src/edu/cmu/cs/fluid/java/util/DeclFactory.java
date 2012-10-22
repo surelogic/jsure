@@ -130,10 +130,34 @@ public class DeclFactory {
     return b;
   }
 
+  public static IRNode findEnclosingDecl(IRNode here) {
+	  if (here == null) {
+		  return null;
+	  }
+	  final IRNode parent = JJNode.tree.getParentOrNull(here);
+	  return findClosestDecl(parent);
+  }
+  
+  public static IRNode findClosestDecl(IRNode here) {
+	  if (here == null) {
+		  return null;
+	  }
+	  final Operator op = JJNode.tree.getOperator(here);
+	  if (op instanceof Declaration) {
+		  final IRNode parent = JJNode.tree.getParentOrNull(here);
+		  if (ignoreNode((Declaration) op, parent)) {
+			  return findClosestDecl(parent);
+		  }
+		  return here;
+	  }
+	  final IRNode parent = JJNode.tree.getParentOrNull(here);
+	  return findClosestDecl(parent);
+  }
+  
   /**
    * Filter out cases that show up because node types are reused
    */
-  private boolean ignoreNode(Declaration d, IRNode parent) {
+  private static boolean ignoreNode(Declaration d, IRNode parent) {
     final Operator pop;
     switch (d.getKind()) {
     case PARAMETER:

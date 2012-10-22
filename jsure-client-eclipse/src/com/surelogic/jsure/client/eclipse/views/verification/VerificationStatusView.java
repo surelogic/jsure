@@ -60,7 +60,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.jsure.client.eclipse.editors.EditorUtil;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -377,14 +377,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
              * Try to open an editor at the point this item references in the
              * code
              */
-            // final ISrcRef srcRef = ((ElementDrop)
-            // first).getDrop().getSrcRef();
-            // if (srcRef != null) {
-            // EditorUtil.highlightLineInJavaEditor(srcRef);
-            // }
             final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
             if (ref != null)
-              EditorUtil.highlightLineInJavaEditor(ref);
+              Activator.highlightLineInJavaEditor(ref);
           }
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(first)) {
