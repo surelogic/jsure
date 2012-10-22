@@ -121,7 +121,7 @@ public class LockAnalysis
 		// no @Immutable annotation --> Default "annotation" of mutable
 		// Also check for verify=false
 		if (immutableDrop != null && immutableDrop.verify()) {
-			new ImmutableProcessor(getBinder(), immutableDrop, typeDecl, typeBody).processType();
+			new ImmutableProcessor(getBinder(), immutableDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
 		}
 	}
 
