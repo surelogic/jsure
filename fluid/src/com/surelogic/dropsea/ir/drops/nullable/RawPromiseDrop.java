@@ -12,6 +12,6 @@ public final class RawPromiseDrop extends BooleanPromiseDrop<RawNode> {
 
   public RawPromiseDrop(RawNode a) {
     super(a);
-    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.NULL_CAT);
   }
 }
