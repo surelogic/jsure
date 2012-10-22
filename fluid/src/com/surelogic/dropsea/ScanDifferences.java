@@ -83,8 +83,8 @@ public final class ScanDifferences {
   }
 
   /**
-   * Checks if the passed drop from the old scan was the same in the new scan
-   * and returns the matching drop from the new scan, if possible.
+   * Checks if the passed drop from the old scan was the same as a drop in the
+   * new scan and returns the matching drop from the new scan, if possible.
    * <p>
    * <i>Implementation Note:</i> This method is less efficient than
    * {@link #getSameInOldScan(IDrop)}&mdash;try to use that method if possible.
@@ -104,8 +104,8 @@ public final class ScanDifferences {
   }
 
   /**
-   * Checks if the passed drop from the new scan was the same in the old scan
-   * and returns the matching drop from the old scan, if possible.
+   * Checks if the passed drop from the new scan was the same as a drop in the
+   * old scan and returns the matching drop from the old scan, if possible.
    * 
    * @param inNewScan
    *          a drop from the new scan.
@@ -130,7 +130,7 @@ public final class ScanDifferences {
    * @see #getChangedFrom(IDrop)
    * @see #getChangedTo(IDrop)
    */
-  public boolean isChanged(IDrop drop) {
+  public boolean isChangedButInBothScans(IDrop drop) {
     final boolean newDropChanged = f_newChangedFromOld.containsKey(drop);
     if (newDropChanged)
       return true;
@@ -151,7 +151,7 @@ public final class ScanDifferences {
    */
   public boolean isNotInNewScan(IDrop inOldScan) {
     return f_inOldOnly.contains(inOldScan);
-  
+
   }
 
   /**
