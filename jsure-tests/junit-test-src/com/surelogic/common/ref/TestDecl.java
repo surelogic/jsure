@@ -95,6 +95,22 @@ public class TestDecl extends TestCase {
     assertNull(DeclUtil.getTypeNameDollarSignOrNull(p));
     assertNull(p.getParent());
 
+    Decl.ClassBuilder anon = new Decl.ClassBuilder("ShouldBeIgnored");
+    anon.setVisibility(Visibility.ANONYMOUS);
+    anon.setParent(new Decl.ClassBuilder("Outer").setParent(new Decl.PackageBuilder()));
+    anon.setAnonymousDeclPosition(2);
+    p = anon.build();
+    assertSame(Visibility.ANONYMOUS, p.getVisibility());
+    assertEquals(2, p.getPosition());
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+
     Decl.ClassBuilder foo = new Decl.ClassBuilder("Foo");
     foo.setParent(new Decl.PackageBuilder());
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
