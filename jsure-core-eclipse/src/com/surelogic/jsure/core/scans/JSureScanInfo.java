@@ -1,6 +1,7 @@
 package com.surelogic.jsure.core.scans;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.SourceZipLookup.Lines;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
@@ -18,6 +20,8 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.irfree.DefaultDropMatcher;
+import com.surelogic.dropsea.irfree.DropMatcher;
 import com.surelogic.dropsea.irfree.IDropFilter;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
@@ -200,8 +204,21 @@ public class JSureScanInfo {
 	  SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
 	  rv.setFilter(SeaSnapshotDiff.augmentDefaultFilter(f));
 	  rv.setSeparator(SeaSnapshotDiff.defaultSeparator);
-	  // TODO set matcher
+	  rv.setMatcher(makeMatcher(older));
 	  rv.build(older.getDropInfo(), getDropInfo());
 	  return rv;
+  }
+
+  private DropMatcher makeMatcher(JSureScanInfo older) {
+	  try {
+		  // collect source info
+		  final Lines newerSrc = new Lines(getJSureRun().getSourceZips());
+		  final Lines olderSrc = new Lines(older.getJSureRun().getSourceZips());
+		  return new DefaultDropMatcher() {
+			  
+		  };
+	  } catch(IOException e) {
+		  return SeaSnapshotDiff.defaultMatcher;
+	  }
   }
 }
