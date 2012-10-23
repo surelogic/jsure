@@ -1,8 +1,6 @@
 package com.surelogic.dropsea;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -17,12 +15,42 @@ import com.surelogic.Nullable;
  * however, that is not mandated by this class.
  */
 public final class ScanDifferences {
-
-  private final HashSet<IDrop> f_inNewOnly = new HashSet<IDrop>();
-  private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<IDrop, IDrop>();
-  private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<IDrop, IDrop>();
-  private final HashSet<IDrop> f_inOldOnly = new HashSet<IDrop>();
-
+  public static class Builder {
+	  private final HashSet<IDrop> f_inNewOnly = new HashSet<IDrop>();
+	  private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<IDrop, IDrop>();
+	  private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<IDrop, IDrop>();
+	  private final HashSet<IDrop> f_inOldOnly = new HashSet<IDrop>();
+	  
+	  public void addAsNew(IDrop d) {
+		  f_inNewOnly.add(d);
+	  }
+	  public void addAsOld(IDrop d) {
+		  f_inOldOnly.add(d);
+	  }
+	  public void addAllNewSameAsOld(Map<IDrop,IDrop> matching) {
+		  f_newSameAsOld.putAll(matching);
+	  }
+	  public void addNewChangedFromOld(IDrop n, IDrop o) {
+		  f_newChangedFromOld.put(n, o);
+	  }
+	  public ScanDifferences build() {
+		  return new ScanDifferences(f_inNewOnly, f_newSameAsOld, f_newChangedFromOld, f_inOldOnly);
+	  }
+  }
+  
+  private final HashSet<IDrop> f_inNewOnly;
+  private final HashMap<IDrop, IDrop> f_newSameAsOld;
+  private final HashMap<IDrop, IDrop> f_newChangedFromOld;
+  private final HashSet<IDrop> f_inOldOnly;
+  
+  private ScanDifferences(Set<IDrop> inNewOnly, Map<IDrop, IDrop> newSameAsOld,
+		                  Map<IDrop, IDrop> newChangedFromOld, Set<IDrop> inOldOnly) {
+	  f_inNewOnly = new HashSet<IDrop>(inNewOnly);
+	  f_newSameAsOld = new HashMap<IDrop, IDrop>(newSameAsOld);
+	  f_newChangedFromOld = new HashMap<IDrop, IDrop>(newChangedFromOld);
+	  f_inOldOnly = new HashSet<IDrop>(inOldOnly);
+  }
+  
   /**
    * Checks if the passed drop from the old scan was matched in the new scan and
    * returns the matching drop from the new scan, if possible.

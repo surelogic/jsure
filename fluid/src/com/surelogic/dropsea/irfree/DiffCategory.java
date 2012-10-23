@@ -2,15 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
@@ -23,6 +15,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
   final Set<DiffNode> old = new HashSet<DiffNode>();
   final Set<DiffNode> newer = new HashSet<DiffNode>();
   final Set<DropDiff> diffs = new HashSet<DropDiff>();
+  final Map<IDrop,IDrop> newMatchingOld = new HashMap<IDrop, IDrop>();
 
   DiffCategory(K key) {
     this.key = key;
@@ -134,6 +127,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
             }
             out.println("\t" + label + ": " + toString(n));
           }
+          newMatchingOld.put(n.drop, o.drop);
           old.remove(o);
           it.remove();
           DropDiff d = DropDiff.compute(out, n, o);
