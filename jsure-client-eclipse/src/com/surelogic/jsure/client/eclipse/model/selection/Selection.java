@@ -40,7 +40,7 @@ public final class Selection implements
 		 */
 		allFilters.add(FilterAnalysisResult.FACTORY);
 		allFilters.add(FilterAnnotation.FACTORY);
-		allFilters.add(FilterJavaClass.FACTORY);
+		allFilters.add(FilterJavaType.FACTORY);
 		allFilters.add(FilterJavaPackage.FACTORY);
 		allFilters.add(FilterProject.FACTORY);
 		allFilters.add(FilterVerificationJudgment.FACTORY);

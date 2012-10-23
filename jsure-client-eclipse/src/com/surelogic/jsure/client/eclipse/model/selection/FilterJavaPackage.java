@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
@@ -45,18 +46,15 @@ public final class FilterJavaPackage extends Filter {
     f_counts.clear();
     int runningTotal = 0;
     for (IProofDrop d : incomingResults) {
-      final IJavaRef jr = d.getJavaRef();
-      if (jr != null) {
-        final String value = jr.getPackageName();
-        if (value != null) {
-          Integer count = f_counts.get(value);
-          if (count == null) {
-            f_counts.put(value, 1);
-          } else {
-            f_counts.put(value, count + 1);
-          }
-          runningTotal++;
+      final String value = getFilterValueFromDropOrNull(d);
+      if (value != null) {
+        Integer count = f_counts.get(value);
+        if (count == null) {
+          f_counts.put(value, 1);
+        } else {
+          f_counts.put(value, count + 1);
         }
+        runningTotal++;
       }
     }
     f_countTotal = runningTotal;
@@ -66,14 +64,22 @@ public final class FilterJavaPackage extends Filter {
   protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
     f_porousDrops.clear();
     for (IProofDrop d : incomingResults) {
-      final IJavaRef jr = d.getJavaRef();
-      if (jr != null) {
-        final String value = jr.getPackageName();
-        if (value != null) {
-          if (f_porousValues.contains(value))
-            f_porousDrops.add(d);
-        }
+      final String value = getFilterValueFromDropOrNull(d);
+      if (value != null) {
+        if (f_porousValues.contains(value))
+          f_porousDrops.add(d);
       }
     }
+  }
+
+  @Override
+  @Nullable
+  public String getFilterValueFromDropOrNull(IProofDrop drop) {
+    final IJavaRef jr = drop.getJavaRef();
+    if (jr != null) {
+      final String value = jr.getPackageName();
+      return value;
+    }
+    return null;
   }
 }
