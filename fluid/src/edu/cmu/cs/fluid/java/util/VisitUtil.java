@@ -620,4 +620,16 @@ public class VisitUtil implements JavaGlobals {
     }
     return rv;
   }
+
+  public static IRNode getClosestAnnotation(IRNode here) {
+	  Operator op = jtree.getOperator(here);
+	  if (OpSearch.annoSearch.found(op)) {
+		  return here;
+	  }
+	  return getEnclosingAnnotation(here);
+  }
+
+  public static IRNode getEnclosingAnnotation(IRNode here) {
+	  return OpSearch.annoSearch.findEnclosing(here);
+  }
 }

@@ -155,4 +155,12 @@ public class OpSearch implements JavaGlobals {
       return op instanceof TypeDeclInterface || Declaration.prototype.includes(op); 
     }
   };
+  
+  public static final OpSearch annoSearch = new OpSearch() {
+	  @Override
+	  protected boolean found( final Operator op )
+	  { 
+		  return op instanceof Annotation; 
+	  }
+  };  
 }
