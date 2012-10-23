@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.java;
 
-import java.util.HashMap;
+import java.util.concurrent.*;
 import java.util.Map;
 
 import com.surelogic.NonNull;
@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.util.DeclFactory;
 @Utility
 public final class SkeletonJavaRefUtility {
 
-  private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new HashMap<IRNode, JavaRefSkeletonBuilder>();
+  private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new ConcurrentHashMap<IRNode, JavaRefSkeletonBuilder>();
 
   public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber,
       int offset, int length) {
@@ -47,9 +47,8 @@ public final class SkeletonJavaRefUtility {
    *         constructed.
    */
   static IJavaRef buildOrNullOnFailure(IRNode node) {
-    final JavaRefSkeletonBuilder sb = nodeToSkeleton.get(node);
+    final JavaRefSkeletonBuilder sb = nodeToSkeleton.remove(node);
     if (sb != null) {
-      nodeToSkeleton.remove(node);
       return sb.buildOrNullOnFailure(node);
     }
     return null;
