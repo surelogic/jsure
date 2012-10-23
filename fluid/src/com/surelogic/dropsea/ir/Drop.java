@@ -715,8 +715,7 @@ public abstract class Drop implements IDrop {
 
   // @Override
   @Nullable
-  @MustInvokeOnOverride
-  public IJavaRef getJavaRef() {
+  public final IJavaRef getJavaRef() {
 	  Pair<IJavaRef,IRNode> p = getJavaRefAndCorrespondingNode();
 	  if (p == null) {
 		  return null;
@@ -724,8 +723,9 @@ public abstract class Drop implements IDrop {
 	  return p.first();
   }
   
-  @NonNull
-  private Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
+  @Nullable
+  @MustInvokeOnOverride
+  protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
     synchronized (f_seaLock) {
       if (f_ignoreJavaRef)
         return null;

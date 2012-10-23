@@ -22,6 +22,7 @@ import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
@@ -410,23 +411,36 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       getAAST().clearPromisedFor();
     }
   }
-
+  
   @Override
   @Nullable
-  public final IJavaRef getJavaRef() {
+  protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
     final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
-    final IJavaRef javaRef = contextRef != null ? contextRef : super.getJavaRef();
-    if (javaRef == null)
-      return null;
+    Pair<IJavaRef,IRNode> info = null;
+    IJavaRef bestRef;
+    final IRNode bestNode;
+    if (contextRef != null) {
+    	bestNode = f_aast.getAnnoContext();
+    	bestRef = contextRef;
+    } else { 
+    	info = super.getJavaRefAndCorrespondingNode();
+    	if (info == null) {
+    		return null;
+    	}
+    	bestNode = info.second();
+    	bestRef = info.first();
+    } 
 
     // Use the best info we have
-    int offset, length;
     if (f_aast.getOffset() >= 0) {
-      offset = f_aast.getOffset();
-      length = 0;
-      return new JavaRef.Builder(javaRef).setLength(length).setOffset(offset).build();
+      int offset = f_aast.getOffset();
+      int length = 1;
+      bestRef = new JavaRef.Builder(bestRef).setLength(length).setOffset(offset).build();
+    }
+    if (info != null) {
+      return info;
     } else {
-      return javaRef;
+      return new Pair<IJavaRef,IRNode>(bestRef, bestNode);
     }
   }
 

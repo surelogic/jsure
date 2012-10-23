@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MODELING_PROBLEM_DROP;
 
 import com.surelogic.Nullable;
+import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IModelingProblemDrop;
@@ -33,13 +34,13 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
 
   @Override
   @Nullable
-  public IJavaRef getJavaRef() {
-    final IJavaRef javaRef = super.getJavaRef();
+  protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
+    final Pair<IJavaRef,IRNode> info = super.getJavaRefAndCorrespondingNode();
 
     /*
      * If the overall code reference is null we can't wrap it.
      */
-    if (javaRef == null)
+    if (info == null)
       return null;
 
     if (f_offset >= 0) {
@@ -47,12 +48,13 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
        * Change the code reference so that it returns the more precise offset
        * that this drop knows about (from the parser).
        */
-      return new JavaRef.Builder(javaRef).setOffset(f_offset).setLength(0).build();
+      IJavaRef newRef = new JavaRef.Builder(info.first()).setOffset(f_offset).setLength(0).build();
+      return new Pair<IJavaRef,IRNode>(newRef, info.second());
     } else {
       /*
        * The offset we have is nonsense, return the existing source reference.
        */
-      return javaRef;
+      return info;
     }
   }
 
