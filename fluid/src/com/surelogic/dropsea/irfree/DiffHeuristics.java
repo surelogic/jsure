@@ -5,7 +5,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -13,7 +12,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -63,7 +61,8 @@ public class DiffHeuristics {
 		if (!loc.first().isFromSource()) {
 			return; // Not enough info to do anything here
 		}
-		final IRNode enclosingDecl;	
+		final IRNode enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());
+		/*
 		if (drop instanceof IPromiseDrop) {
 			PromiseDrop<?> d = (PromiseDrop<?>) drop;
 			if (d.getAAST().getAnnoContext() == d.getPromisedFor()) {
@@ -77,6 +76,7 @@ public class DiffHeuristics {
 		} else {
 			enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());			
 		}
+		*/
 		final IJavaRef enclosingRef = JavaNode.getJavaRef(enclosingDecl);    
 		if (enclosingDecl == null || enclosingRef == null) {
 			SLLogger.getLogger().warning("Diff info not computed due to no enclosing decl: "+drop.getMessage());
@@ -96,9 +96,8 @@ public class DiffHeuristics {
 	private static void computeDeclRelativeOffset(final Computation c, final Pair<IJavaRef,IRNode> loc, 
 			final IRNode enclosingDecl, final IJavaRef enclosingRef) {
 		final IJavaRef here = loc.first();
-		final IRNode start = c.drop instanceof IPromiseDrop || 
-		                     c.drop instanceof IModelingProblemDrop ? 
-							 enclosingDecl : 
+		final boolean inAnno = c.drop instanceof IPromiseDrop || c.drop instanceof IModelingProblemDrop;
+		final IRNode start = inAnno ? enclosingDecl : 
 			                 computeFirstInterestingNodeInDecl(enclosingDecl);
 		final IJavaRef startRef = (start == enclosingDecl) ? enclosingRef : JavaNode.getJavaRef(start);
 		if (c.isNull("start", start, enclosingRef) || 
@@ -108,6 +107,9 @@ public class DiffHeuristics {
 			return;
 		}
 		int offset = here.getOffset() - startRef.getOffset();	
+		if (inAnno) {
+			offset = Math.abs(offset);
+		}
 		if (offset < 0) {
 			// We're actually before the start, which might be ok for certain cases
 			final Operator op =  JJNode.tree.getOperator(loc.second());
