@@ -5,12 +5,15 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -51,7 +54,8 @@ public class DiffHeuristics {
 
 	public static void computeDiffInfo(final Drop drop, final Pair<IJavaRef, IRNode> loc) {
 		if (loc == null || loc.first() == null || loc.second() == null) {
-			if (!(drop instanceof ResultFolderDrop)) {
+			if (!(drop instanceof ResultFolderDrop) &&
+				(loc.second() == null || !JavaNames.getFullName(loc.second()).startsWith("java.lang.[]"))) {
 				SLLogger.getLogger().warning("Diff info not computed due to missing location: "+drop.getMessage());
 			}
 			return;
@@ -61,7 +65,15 @@ public class DiffHeuristics {
 		}
 		final IRNode enclosingDecl;	
 		if (drop instanceof IPromiseDrop) {
-			enclosingDecl = loc.second();
+			PromiseDrop<?> d = (PromiseDrop<?>) drop;
+			if (d.getAAST().getAnnoContext() == d.getPromisedFor()) {
+				// These are created implicitly without an annotation
+				enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());
+			} else {
+				enclosingDecl = VisitUtil.getClosestAnnotation(loc.second());
+			}
+		} else if (drop instanceof IModelingProblemDrop) {
+			enclosingDecl = VisitUtil.getClosestAnnotation(loc.second());
 		} else {
 			enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());			
 		}
@@ -84,7 +96,9 @@ public class DiffHeuristics {
 	private static void computeDeclRelativeOffset(final Computation c, final Pair<IJavaRef,IRNode> loc, 
 			final IRNode enclosingDecl, final IJavaRef enclosingRef) {
 		final IJavaRef here = loc.first();
-		final IRNode start = loc.second() instanceof IPromiseDrop ? enclosingDecl : 
+		final IRNode start = c.drop instanceof IPromiseDrop || 
+		                     c.drop instanceof IModelingProblemDrop ? 
+							 enclosingDecl : 
 			                 computeFirstInterestingNodeInDecl(enclosingDecl);
 		final IJavaRef startRef = (start == enclosingDecl) ? enclosingRef : JavaNode.getJavaRef(start);
 		if (c.isNull("start", start, enclosingRef) || 
@@ -99,6 +113,7 @@ public class DiffHeuristics {
 			final Operator op =  JJNode.tree.getOperator(loc.second());
 			if (Annotation.prototype.includes(op) || 
 				ParameterDeclaration.prototype.includes(op) || 
+				ClassType.prototype.includes(op) ||
 				TypeFormal.prototype.includes(op)) {
 				if (c.isNeg("enclosing offset", enclosingRef.getOffset(), enclosingRef)) {
 					return;
