@@ -254,7 +254,7 @@ public class JavaRewrite implements JavaGlobals {
         }
         copyRefToSubtree(contextRef, n);
       } else if (op instanceof MethodDeclaration) {
-        IRNode p = jtree.getParentOrNull(n);
+        IRNode p = VisitUtil.getEnclosingDecl(n);//jtree.getParentOrNull(n);
         SkeletonJavaRefUtility.copyIfPossible(p, n);
       } else {
         LOG.severe("Unexpected AST nodes: " + op);

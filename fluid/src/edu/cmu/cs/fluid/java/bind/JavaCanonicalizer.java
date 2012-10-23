@@ -603,7 +603,7 @@ public class JavaCanonicalizer {
         return createNamedType(DebugUnparser.toString(nameNode));
       }
       IRNode namedType = createNamedType(nameNode, b);
-      SkeletonJavaRefUtility.copyIfPossible(namedType, nameNode);
+      SkeletonJavaRefUtility.copyIfPossible(nameNode, namedType);
       return namedType;
     }
 

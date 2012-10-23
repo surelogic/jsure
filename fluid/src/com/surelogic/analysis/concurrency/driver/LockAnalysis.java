@@ -105,7 +105,7 @@ public class LockAnalysis
     // If null, assume it's not meant to be thread safe
     // Also check for verify=false
     if (threadSafeDrop != null && threadSafeDrop.verify()) {
-      new ThreadSafeProcessor(this, threadSafeDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
+      new ThreadSafeProcessor(getBinder(), threadSafeDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
     }
     
     final ContainablePromiseDrop containableDrop = 
@@ -113,7 +113,7 @@ public class LockAnalysis
     // no @Containable annotation --> Default "annotation" of not containable
     // Also check for verify=false
     if (containableDrop != null && containableDrop.verify()) {
-      new ContainableProcessor(this, containableDrop, typeDecl, typeBody).processType();
+      new ContainableProcessor(getBinder(), containableDrop, typeDecl, typeBody).processType();
     }
 
 		final ImmutablePromiseDrop immutableDrop = LockRules
@@ -121,7 +121,7 @@ public class LockAnalysis
 		// no @Immutable annotation --> Default "annotation" of mutable
 		// Also check for verify=false
 		if (immutableDrop != null && immutableDrop.verify()) {
-			new ImmutableProcessor(this, immutableDrop, typeDecl, typeBody).processType();
+			new ImmutableProcessor(getBinder(), immutableDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
 		}
 	}
 

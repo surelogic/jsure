@@ -25,6 +25,7 @@ import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.Vouch;
+import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
@@ -37,6 +38,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -715,6 +717,15 @@ public abstract class Drop implements IDrop {
   @Nullable
   @MustInvokeOnOverride
   public IJavaRef getJavaRef() {
+	  Pair<IJavaRef,IRNode> p = getJavaRefAndCorrespondingNode();
+	  if (p == null) {
+		  return null;
+	  }
+	  return p.first();
+  }
+  
+  @NonNull
+  private Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
     synchronized (f_seaLock) {
       if (f_ignoreJavaRef)
         return null;
@@ -722,9 +733,9 @@ public abstract class Drop implements IDrop {
 
     final IJavaRef javaRef = JavaNode.getJavaRef(f_node);
     if (javaRef != null)
-      return javaRef;
+      return new Pair<IJavaRef,IRNode>(javaRef, f_node);
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
-    return JavaNode.getJavaRef(parent);
+    return new Pair<IJavaRef,IRNode>(JavaNode.getJavaRef(parent), parent);
   }
 
   /**
@@ -1012,6 +1023,7 @@ public abstract class Drop implements IDrop {
     /*
      * Compute diff information we want to pass along into the results
      */
+    DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
     addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
     addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
     /*

@@ -1,11 +1,5 @@
 package com.surelogic.analysis;
 
-import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.dropsea.ir.AnalysisResultDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -21,104 +15,21 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extends IAASTRootNode>> {
-  protected final AbstractWholeIRAnalysis<? extends IBinderClient, ?> analysis;
+public abstract class TypeImplementationProcessor {
   protected final IBinder binder;
-  protected final P promiseDrop;
+
   protected final IRNode typeDecl;
   protected final IRNode typeBody;
 
-  protected TypeImplementationProcessor(final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a, final P pd, final IRNode td,
-      final IRNode tb) {
-    analysis = a;
-    binder = a.getBinder();
-    promiseDrop = pd;
+  protected TypeImplementationProcessor(
+      final IBinder b, final IRNode td, final IRNode tb) {
+    binder = b;
     typeDecl = td;
     typeBody = tb;
   }
 
-  protected TypeImplementationProcessor(final AbstractWholeIRAnalysis<? extends IBinderClient, ?> a, final P pd, final IRNode td) {
-    this(a, pd, td, VisitUtil.getClassBody(td));
-  }
-
-  protected final ResultFolderDrop createRootAndFolder(
-      final IRNode node, final int trueMsg, final int falseMsg, 
-      final Object... args) {
-    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
-    folder.addChecked(promiseDrop);
-    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return folder;
-    
-  }
-
-  protected final ResultFolderDrop createRootOrFolder(
-      final IRNode node, final int trueMsg, final int falseMsg, 
-      final Object... args) {
-    final ResultFolderDrop folder = ResultFolderDrop.newOrFolder(node);
-    folder.addChecked(promiseDrop);
-    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return folder;
-    
-  }
-
-  protected final ResultFolderDrop createAndFolder(
-      final AnalysisResultDrop parent, final IRNode node,
-      final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(node);
-    parent.addTrusted(folder);
-    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return folder;
-    
-  }
-
-  protected final ResultFolderDrop createOrFolder(
-      final AnalysisResultDrop parent, final IRNode node,
-      final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultFolderDrop folder = ResultFolderDrop.newOrFolder(node);
-    parent.addTrusted(folder);
-    folder.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return folder;
-    
-  }
-
-  protected final ResultDrop createRootResult(
-      final boolean isConsistent, final IRNode node, 
-      final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    result.addChecked(promiseDrop);
-    result.setConsistent(isConsistent);
-    result.setMessage(msg, args);
-    return result;
-  }
-
-  protected final ResultDrop createRootResult(
-      final IRNode node, final boolean isConsistent,  
-      final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    result.addChecked(promiseDrop);
-    result.setConsistent(isConsistent);
-    result.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return result;
-  }
-
-  protected final ResultDrop createResult(
-      final AnalysisResultDrop parent, final IRNode node, final boolean isConsistent,
-      final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    parent.addTrusted(result);
-    result.setConsistent(isConsistent);
-    result.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return result;
-  }
-
-  protected final ResultDrop createResult(
-      final boolean isConsistent, final AnalysisResultDrop parent,
-      final IRNode node, final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    parent.addTrusted(result);
-    result.setConsistent(isConsistent);
-    result.setMessage(msg, args);
-    return result;
+  protected TypeImplementationProcessor(final IBinder b, final IRNode td) {
+    this(b, td, VisitUtil.getClassBody(td));
   }
 
   
@@ -136,7 +47,7 @@ public abstract class TypeImplementationProcessor<P extends PromiseDrop<? extend
       processSuperType(typeDecl, JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
     } else {
       for (final IRNode name : VisitUtil.getSupertypeNames(typeDecl)) {
-        processSuperType(name, analysis.getBinder().getBinding(name));
+        processSuperType(name, binder.getBinding(name));
       }
     }
 

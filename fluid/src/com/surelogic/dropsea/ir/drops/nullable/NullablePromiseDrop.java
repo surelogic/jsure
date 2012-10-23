@@ -9,6 +9,6 @@ public final class NullablePromiseDrop extends BooleanPromiseDrop<NullableNode> 
 
   public NullablePromiseDrop(NullableNode a) {
     super(a);
-    setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
+    setCategorizingMessage(JavaGlobals.NULL_CAT);
   }
 }

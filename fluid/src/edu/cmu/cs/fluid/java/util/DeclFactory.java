@@ -39,6 +39,7 @@ import edu.cmu.cs.fluid.java.operator.MoreBounds;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -135,7 +136,12 @@ public class DeclFactory {
 		  return null;
 	  }
 	  final IRNode parent = JJNode.tree.getParentOrNull(here);
-	  return findClosestDecl(parent);
+	  IRNode rv = findClosestDecl(parent);
+	  if (rv == null && parent != null && TypeDeclaration.prototype.includes(here)) {
+		  final IRNode gparent = JJNode.tree.getParentOrNull(parent);
+		  return CompilationUnit.getPkg(gparent);
+	  }
+	  return rv;
   }
   
   public static IRNode findClosestDecl(IRNode here) {
@@ -143,6 +149,9 @@ public class DeclFactory {
 		  return null;
 	  }
 	  final Operator op = JJNode.tree.getOperator(here);
+	  if (op instanceof TypeDeclInterface) {
+		  return here;
+	  }
 	  if (op instanceof Declaration) {
 		  final IRNode parent = JJNode.tree.getParentOrNull(here);
 		  if (ignoreNode((Declaration) op, parent)) {

@@ -115,7 +115,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   @Override
   protected void postProcess() {
     if (!hasFields) {
-      createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_THREADSAFE);
+      builder.createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_THREADSAFE);    
     }
   }
 

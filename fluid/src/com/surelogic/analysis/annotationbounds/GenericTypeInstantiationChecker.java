@@ -36,6 +36,7 @@ import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -388,5 +389,18 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       folder.addTrusted(result);
     }
     return folder;
+  }
+  
+  @Override
+  public Void visitClassDeclaration(final IRNode cdecl) {
+    final AnnotationBoundsPromiseDrop boundsDrop = 
+        LockRules.getAnnotationBounds(cdecl);
+    if (boundsDrop != null) {
+      for (final IRNode formal : TypeFormals.getTypeIterator(ClassDeclaration.getTypes(cdecl))) {
+        boundsDrop.addInformationHint(formal, "Type Formal " + TypeFormal.getId(formal));
+      }
+    }
+    
+    return super.visitClassDeclaration(cdecl);
   }
 }

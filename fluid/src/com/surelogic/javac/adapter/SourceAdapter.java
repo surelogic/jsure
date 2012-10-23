@@ -398,7 +398,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       if (TypeRef.prototype.includes(name)) {
         return name;
       }
-      return NameType.createNode(name);
+      IRNode rv = NameType.createNode(name);
+      addJavaRefAndCheckForJavadocAnnotations(t, rv);
+      return rv;
     case EXTENDS_WILDCARD:
     case SUPER_WILDCARD:
     case UNBOUNDED_WILDCARD:
@@ -649,7 +651,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   public IRNode visitArrayType(ArrayTypeTree node, CodeContext context) { // FIX
                                                                           // inefficient
     IRNode base = adaptType(node.getType(), context);
-    return ArrayType.createNode(base, 1);
+    IRNode rv = ArrayType.createNode(base, 1);
+    addJavaRefAndCheckForJavadocAnnotations(node, rv);
+    return rv;
   }
 
   public IRNode visitAssert(AssertTree node, CodeContext context) {
@@ -783,6 +787,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     IRNode ext = adaptType(node.getExtendsClause(), context);
     if (ext == null) {
       ext = NamedType.createNode(CommonStrings.JAVA_LANG_OBJECT);
+      addJavaRefAndCheckForJavadocAnnotations(node, ext);
     }
 
     id = CommonStrings.intern(id);
@@ -796,6 +801,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     IRNode body;
     try {
       body = ClassBody.createNode(mbrs);
+      addJavaRefAndCheckForJavadocAnnotations(node, body);
     } catch (IllegalChildException e) {
       body = null;
       map(new AdaptMembers(id, kind), node.getMembers(), context);
@@ -1276,7 +1282,11 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
   public IRNode visitMethodInvocation(MethodInvocationTree node, CodeContext context) {
     IRNode[] targs = map(adaptTypes, node.getTypeArguments(), context);
-    IRNode[] args = map(adaptExprs, node.getArguments(), context);
+    IRNode[] rawArgs = map(adaptExprs, node.getArguments(), context);
+    IRNode args = Arguments.createNode(rawArgs);
+    // TODO what about first arg?
+    addJavaRefAndCheckForJavadocAnnotations(node, args);
+    
     String method = null;
     IRNode object = null;
     if (node.getMethodSelect() instanceof MemberSelectTree) {
@@ -1290,7 +1300,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         inner = SuperExpression.prototype.jjtCreate();
       }
       if (inner != null) {
-        IRNode call = NonPolymorphicConstructorCall.createNode(inner, Arguments.createNode(args));
+        IRNode call = NonPolymorphicConstructorCall.createNode(inner, args);
         return OuterObjectSpecifier.createNode(object, call);
       }
     } else if (node.getMethodSelect() instanceof IdentifierTree) {
@@ -1298,22 +1308,23 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String id = it.getName().toString();
       if ("this".equals(id)) {
         object = ThisExpression.prototype.jjtCreate();
-        return NonPolymorphicConstructorCall.createNode(object, Arguments.createNode(args));
+        return NonPolymorphicConstructorCall.createNode(object, args);
       } else if ("super".equals(id)) {
         object = SuperExpression.prototype.jjtCreate();
-        return NonPolymorphicConstructorCall.createNode(object, Arguments.createNode(args));
+        return NonPolymorphicConstructorCall.createNode(object, args);
       }
       // object = ThisExpression.prototype.jjtCreate();
-      object = ImplicitReceiver.prototype.jjtCreate();
+      object = ImplicitReceiver.prototype.jjtCreate();      
       method = id;
+      addJavaRefAndCheckForJavadocAnnotations(node, object);
     } else {
       throw new IllegalArgumentException(node.getMethodSelect().getKind().name());
     }
     if (targs.length > 0) {
-      return PolymorphicMethodCall.createNode(object, TypeActuals.createNode(targs), method, Arguments.createNode(args));
+      return PolymorphicMethodCall.createNode(object, TypeActuals.createNode(targs), method, args);
     }
     method = CommonStrings.pool(method);
-    return NonPolymorphicMethodCall.createNode(object, method, Arguments.createNode(args));
+    return NonPolymorphicMethodCall.createNode(object, method, args);
   }
 
   public IRNode visitModifiers(ModifiersTree node, CodeContext context) {
@@ -1379,6 +1390,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   private IRNode makeAnonClassBody(NewClassTree node, CodeContext context) {
     IRNode[] mbrs = map(new AdaptMembers(null, TypeKind.OTHER), node.getClassBody().getMembers(), context);
     IRNode body = ClassBody.createNode(mbrs);
+    addJavaRefAndCheckForJavadocAnnotations(node, body);
     return body;
   }
 
@@ -1389,7 +1401,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   public IRNode visitParameterizedType(ParameterizedTypeTree node, CodeContext context) {
     IRNode base = adaptType(node.getType(), context);
     IRNode[] args = map(adaptTypes, node.getTypeArguments(), context);
-    return ParameterizedType.createNode(base, TypeActuals.createNode(args));
+    IRNode rv = ParameterizedType.createNode(base, TypeActuals.createNode(args));
+    addJavaRefAndCheckForJavadocAnnotations(node, rv);
+    return rv;
   }
 
   public IRNode visitParenthesized(ParenthesizedTree node, CodeContext context) {
@@ -1573,6 +1587,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     final IRNode rv;
     if (cbody != null) {
       IRNode body = makeAnonClassBody(init, context);
+      addJavaRefAndCheckForJavadocAnnotations(cbody, body);
       rv = EnumConstantClassDeclaration.createNode(annos, id, impliedInit, args, body);
     } else if (rawArgs.length == 0) {
       rv = SimpleEnumConstantDeclaration.createNode(annos, id, impliedInit);
@@ -1593,14 +1608,21 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
   public IRNode visitWildcard(WildcardTree node, CodeContext context) {
     IRNode bound = adaptType(node.getBound(), context);
+    IRNode rv;
     if (bound == null) {
-      return WildcardType.prototype.jjtCreate();
+      rv = WildcardType.prototype.jjtCreate();
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
+      return rv;
     }
     switch (node.getKind()) {
     case EXTENDS_WILDCARD:
-      return WildcardExtendsType.createNode(bound);
+      rv = WildcardExtendsType.createNode(bound);
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
+      return rv;
     case SUPER_WILDCARD:
-      return WildcardSuperType.createNode(bound);
+      rv = WildcardSuperType.createNode(bound);
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
+      return rv;
     default:
       throw new UnsupportedOperationException(node.getBound().toString());
     }
@@ -1615,7 +1637,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       alts[i] = adaptType(t, c);
       i++;
     }
-    return UnionType.createNode(alts);
+    IRNode rv = UnionType.createNode(alts);
+    addJavaRefAndCheckForJavadocAnnotations(u, rv);
+    return rv;
   }
 
   // needed for Java 8?

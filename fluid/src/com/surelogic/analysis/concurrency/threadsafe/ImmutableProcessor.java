@@ -85,7 +85,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
     if (!hasFields) {
-      createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_IMMUTABLE);
+      builder.createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_IMMUTABLE);
     }
   }
 
