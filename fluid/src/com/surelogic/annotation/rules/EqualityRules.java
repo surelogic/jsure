@@ -28,8 +28,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -127,9 +129,15 @@ public class EqualityRules extends AnnotationRules {
 				protected ValueObjectPromiseDrop makePromiseDrop(ValueObjectNode a, boolean isAssumption) {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
+					final Operator op = JJNode.tree.getOperator(tdecl);
+					
+					if (AnnotationDeclaration.prototype.includes(op)) {
+					  getContext().reportError(a, "Annotation declarations may not be annotated @ValueObject");
+					  return null;
+					}
 					
 					// Check if the class is java.lang.Enum
-					if (EnumDeclaration.prototype.includes(tdecl)) {
+					if (EnumDeclaration.prototype.includes(op)) {
             getContext().reportError(a, I18N.res(BAD_ENUM, VALUE_OBJECT));
             return null;
 					}
@@ -140,7 +148,7 @@ public class EqualityRules extends AnnotationRules {
 						return null;
 					}
 					// Check if abstract or has no subclasses
-					final boolean isInterface = TypeUtil.isInterface(tdecl);
+					final boolean isInterface = InterfaceDeclaration.prototype.includes(op);
 					final boolean isAbstract = TypeUtil.isAbstract(tdecl);
 					if (!isInterface && !isAbstract) {
 						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
@@ -230,16 +238,21 @@ public class EqualityRules extends AnnotationRules {
 				protected RefObjectPromiseDrop makePromiseDrop(RefObjectNode a, boolean isAssumption) {
 					// Check consistency
 					final IRNode tdecl = a.getPromisedFor();
-					final boolean isInterface = TypeUtil.isInterface(tdecl);
+					final Operator op = JJNode.tree.getOperator(tdecl);
+          
+          if (AnnotationDeclaration.prototype.includes(op)) {
+            getContext().reportError(a, "Annotation declarations may not be annotated @ReferenceObject");
+            return null;
+          }
           
           // Check if the class is java.lang.Enum
-          if (EnumDeclaration.prototype.includes(tdecl)) {
+          if (EnumDeclaration.prototype.includes(op)) {
             getContext().reportError(a, I18N.res(BAD_ENUM, REF_OBJECT));
             return null;
           }
 					
 					final RefObjectPromiseDrop d = new RefObjectPromiseDrop(a);			
-					if (isInterface) {
+					if (InterfaceDeclaration.prototype.includes(op)) {
 						makeResultDrop(tdecl, d, true, TRIVIALLY_REF, JavaNames.getTypeName(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, false);

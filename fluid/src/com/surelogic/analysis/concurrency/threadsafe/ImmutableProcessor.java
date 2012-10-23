@@ -30,7 +30,6 @@ import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor {
   private static final int IMMUTABLE_SUPERTYPE = 480;
@@ -85,7 +84,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
     if (!hasFields) {
-      builder.createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_IMMUTABLE);
+      builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE);
     }
   }
 

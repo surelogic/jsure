@@ -38,7 +38,6 @@ import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int THREAD_SAFE_SUPERTYPE = 400;
@@ -115,7 +114,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   @Override
   protected void postProcess() {
     if (!hasFields) {
-      builder.createRootResult(true, JJNode.tree.getParent(typeBody), TRIVIALLY_THREADSAFE);    
+      builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE);    
     }
   }
 

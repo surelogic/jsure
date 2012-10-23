@@ -110,6 +110,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -1766,7 +1767,10 @@ public class LockRules extends AnnotationRules {
 	    final boolean implementationOnly = node.isImplementationOnly();
 	    boolean bad = false;
 	    
-	    if (TypeUtil.isInterface(promisedFor)) {
+	    if (AnnotationDeclaration.prototype.includes(op)) {
+	      bad = true;
+	      context.reportError(node, "Annotation declarations may not be annotated @{0}", name);
+	    } else if (InterfaceDeclaration.prototype.includes(op)) {
 	      // the verify attribute is non-sense on interfaces
 	      if (!node.verify()) {
 	        bad = true;

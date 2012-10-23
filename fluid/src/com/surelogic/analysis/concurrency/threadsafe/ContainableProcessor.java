@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -50,10 +51,13 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
   private static final int TYPE_IS_CONTAINABLE = 465;
   private static final int TYPE_IS_NOT_CONTAINABLE = 466;
   private static final int CONTAINABLE_IMPL = 467;
+  private static final int TRIVIALLY_CONTAINABLE = 468;
   
   
   
-  private final ResultsBuilder cBuilder;
+  private final boolean isInterface;
+  private final ResultsBuilder builder;
+  private boolean isEmpty = true;
   
   
   
@@ -61,15 +65,26 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 			final ContainablePromiseDrop cDrop,
 			final IRNode typeDecl, final IRNode typeBody) {
 		super(b, typeDecl, typeBody);
-		cBuilder = new ResultsBuilder(cDrop);
+		isInterface = InterfaceDeclaration.prototype.includes(typeDecl);
+		builder = new ResultsBuilder(cDrop);
 	}
+
+
+  
+  @Override
+  protected void postProcess() {
+    // We are only called on classes annotated with @Immutable
+    if (isInterface && isEmpty) {
+      builder.createRootResult(true, typeDecl, TRIVIALLY_CONTAINABLE);
+    }
+  }
 
 	@Override
 	protected void processSuperType(final IRNode name, final IRNode tdecl) {
 	  final ContainablePromiseDrop pDrop =
 		  LockRules.getContainableImplementation(tdecl);
 	  if (pDrop != null) {
-  		final ResultDrop result = cBuilder.createRootResult(
+  		final ResultDrop result = builder.createRootResult(
   		    true, name, CONTAINABLE_SUPERTYPE,
   		    JavaNames.getQualifiedTypeName(tdecl));
   		result.addTrusted(pDrop);
@@ -78,6 +93,8 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 	
 	@Override
 	protected void processConstructorDeclaration(final IRNode cdecl) {
+	  isEmpty = false;
+	  
 		final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
 		final BorrowedPromiseDrop bpd = UniquenessRules
 				.getBorrowed(rcvrDecl);
@@ -88,15 +105,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 		// Prefer unique return over borrowed receiver
 		final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
 		if (upd != null) {
-			final ResultDrop result = cBuilder.createRootResult(
+			final ResultDrop result = builder.createRootResult(
 			    true, cdecl, CONSTRUCTOR_UNIQUE_RETURN, id);
 			result.addTrusted(upd);
 		} else if (bpd != null) {
-			final ResultDrop result = cBuilder.createRootResult(
+			final ResultDrop result = builder.createRootResult(
 			    true, cdecl, CONSTRUCTOR_BORROWED_RECEVIER, id);
 			result.addTrusted(bpd);
 		} else {
-			final ResultDrop result = cBuilder.createRootResult(
+			final ResultDrop result = builder.createRootResult(
 			    false, cdecl, CONSTRUCTOR_BAD, id);
 			result.addProposal(new ProposedPromiseDrop(
 			    "Unique", "return", cdecl, cdecl, Origin.MODEL));
@@ -105,18 +122,20 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 
 	@Override
 	protected void processMethodDeclaration(final IRNode mdecl) {
+	  isEmpty = false;
+	  
 		// Must borrow the receiver if the method is not static
 		if (!TypeUtil.isStatic(mdecl)) {
 			final String id = JavaNames.genSimpleMethodConstructorName(mdecl);
 			final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
 			final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
 			if (bpd == null) {
-				final ResultDrop result = cBuilder.createRootResult(
+				final ResultDrop result = builder.createRootResult(
 				    false, mdecl, METHOD_BAD, id);
 				result.addProposal(new ProposedPromiseDrop(
 				    "Borrowed",	"this", mdecl, mdecl, Origin.MODEL));
 			} else {
-				final ResultDrop result = cBuilder.createRootResult(
+				final ResultDrop result = builder.createRootResult(
 				    true, mdecl, METHOD_BORROWED_RECEIVER, id);
 				result.addTrusted(bpd);
 			}
@@ -126,6 +145,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 	@Override
 	protected void processVariableDeclarator(final IRNode fieldDecl,
 			final IRNode varDecl, final boolean isStatic) {
+	  isEmpty = false;
 	  assureFieldIsContainable(fieldDecl, varDecl);
 	}
 
@@ -134,7 +154,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 	    final String id = VariableDeclarator.getId(varDecl);
 	    final IJavaType type = binder.getJavaType(varDecl);
     if (type instanceof IJavaPrimitiveType) {
-      cBuilder.createRootResult(
+      builder.createRootResult(
           true, varDecl, FIELD_CONTAINED_PRIMITIVE, id);
     } else {
       final VouchFieldIsPromiseDrop vouchDrop = LockRules
@@ -142,15 +162,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
       if (vouchDrop != null && vouchDrop.isContainable()) {
         final String reason = vouchDrop.getReason();
         final ResultDrop result = (reason == VouchFieldIsNode.NO_REASON)
-            ? cBuilder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED, id)
-            : cBuilder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
+            ? builder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED, id)
+            : builder.createRootResult(true, varDecl, FIELD_CONTAINED_VOUCHED_WITH_REASON, id, reason);
         result.addTrusted(vouchDrop);
       } else {
         /* Use a result folder: We have two things that need to be true:
          * (1) The type of the field is @Containable
          * (2) The field is @Unique
          */       
-        final ResultFolderDrop folder = cBuilder.createRootAndFolder(
+        final ResultFolderDrop folder = builder.createRootAndFolder(
             varDecl, FIELD_CONTAINED_OBJECT, FIELD_BAD, id);
         
         final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
