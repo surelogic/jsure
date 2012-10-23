@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-
 
 public final class FilterAnnotation extends Filter {
 
@@ -46,7 +46,7 @@ public final class FilterAnnotation extends Filter {
     f_counts.clear();
     int runningTotal = 0;
     for (IProofDrop d : incomingResults) {
-      final String value = getAnnotationName(d);
+      final String value = getFilterValueFromDropOrNull(d);
       if (value != null) {
         Integer count = f_counts.get(value);
         if (count == null) {
@@ -64,7 +64,7 @@ public final class FilterAnnotation extends Filter {
   protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
     f_porousDrops.clear();
     for (IProofDrop d : incomingResults) {
-      final String value = getAnnotationName(d);
+      final String value = getFilterValueFromDropOrNull(d);
       if (value != null) {
         if (f_porousValues.contains(value))
           f_porousDrops.add(d);
@@ -72,25 +72,15 @@ public final class FilterAnnotation extends Filter {
     }
   }
 
-  /**
-   * Gets the annotation name for the passed promise drop information. Returns
-   * {@code null} if the drop information passed is not about a promise drop or
-   * the annotation name cannot be determined.
-   * <p>
-   * <i>Implementation Note:</i> This uses the type name so that
-   * <tt>StartsPromiseDrop</tt> would return <tt>Starts</tt>.
-   * 
-   * @param promiseDropInfo
-   *          the promise drop information.
-   * @return the annotation name or {@code null}.
-   */
-  private static String getAnnotationName(IProofDrop promiseDropInfo) {
+  @Override
+  @Nullable
+  public String getFilterValueFromDropOrNull(IProofDrop drop) {
     final String suffix = "PromiseDrop";
-    if (!promiseDropInfo.instanceOfIRDropSea(PromiseDrop.class))
+    if (!(drop instanceof IPromiseDrop))
       return null;
-    final String result = promiseDropInfo.getIRDropSeaClass().getSimpleName();
-    if (result == null)
-      return null;
+
+    final String result = drop.getIRDropSeaClass().getSimpleName();
+
     // Special cases
     if ("LockModel".equals(result))
       return "RegionLock";
@@ -101,6 +91,7 @@ public final class FilterAnnotation extends Filter {
     // General case XResultDrop where we return X
     if (!result.endsWith(suffix))
       return null;
+
     return result.substring(0, result.length() - suffix.length());
   }
 }
