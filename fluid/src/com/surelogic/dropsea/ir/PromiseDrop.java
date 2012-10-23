@@ -27,6 +27,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
@@ -432,18 +433,32 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     } 
 
     // Use the best info we have
+    boolean compensated = false;
     if (f_aast.getOffset() >= 0) {
       int offset = f_aast.getOffset();
       int length = 1;
-      bestRef = new JavaRef.Builder(bestRef).setLength(length).setOffset(offset).build();
-    }
+      bestRef = compensateForContext(bestRef).setLength(length).setOffset(offset).build();
+      compensated = true;
+    }     
     if (info != null) {
       return info;
     } else {
+      if (!compensated) {
+    	  bestRef = compensateForContext(bestRef).build();
+      }
       return new Pair<IJavaRef,IRNode>(bestRef, bestNode);
     }
   }
 
+  // Compensate for the location of the context
+  private JavaRef.Builder compensateForContext(IJavaRef orig) {
+	  JavaRef.Builder b = new JavaRef.Builder(orig);
+	  if (orig.getPositionRelativeToDeclaration() == Position.WITHIN) {
+		  b.setPositionRelativeToDeclaration(Position.ON);
+	  }
+	  return b;
+  }
+  
   /**
    * @return the PromiseDrop that this one was created from, or null if this is
    *         the source
