@@ -154,8 +154,9 @@ public class ClassAdapter extends AbstractAdapter {
        * cr = new ClassReader(jar.getInputStream(e)); cr.accept(new
        * AnalyzeSignaturesVisitor(), 0);
        */
-      SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
-
+      if (root != null) {
+    	  SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
+      }
       if (!isInner) {
         // Need to create comp unit
         int lastSlash = name.lastIndexOf('/');
