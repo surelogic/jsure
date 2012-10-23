@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.java.util;
 
+import java.util.*;
+
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.Decl.AnnotationBuilder;
 import com.surelogic.common.ref.Decl.ClassBuilder;
@@ -40,6 +42,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -222,6 +225,7 @@ public class DeclFactory {
         c.setVisibility(getVisibility(mods));
       } else {
         c.setVisibility(IDecl.Visibility.ANONYMOUS);
+        c.setAnonymousDeclPosition(computePositionWithinEnclosingDecl(decl));
       }
       return c;
     case ENUM:
@@ -378,5 +382,48 @@ public class DeclFactory {
     }
     TypeRef r = new TypeRef(t.toFullyQualifiedText(), t.toSourceText());
     return r;
+  }
+  
+  private int computePositionWithinEnclosingDecl(final IRNode decl) {
+	final IRNode enclosing = findEnclosingDecl(decl);
+	final List<IRNode> aces = new ArrayList<IRNode>();
+	for(final IRNode child : JJNode.tree.children(enclosing)) {
+		collectACEs(aces, child);
+	}
+	/* aces should already be in the right order
+	Collections.sort(aces, new Comparator<IRNode>() {
+		@Override
+		public int compare(IRNode o1, IRNode o2) {
+			IJavaRef r1 = JavaNode.getJavaRef(o1);
+			IJavaRef r2 = JavaNode.getJavaRef(o2);
+			if (r1 == null || r2 == null) {
+				System.out.println("Null for "+o1+" or "+o2);
+				throw new IllegalStateException();
+			}
+			if (r1.getOffset() < 0 || r2.getOffset() < 0) {
+				throw new IllegalStateException();
+			}
+			return r1.getOffset() - r2.getOffset();
+		}
+	});
+	*/
+	return aces.indexOf(decl);
+  }
+  
+  // TODO what about enum constant class decls?
+  private void collectACEs(final List<IRNode> aces, final IRNode here) {
+	  final Operator op = JJNode.tree.getOperator(here);
+	  if (AnonClassExpression.prototype.includes(op)) {
+		  aces.add(here);
+		  // TODO can I stop if I find the ACE?
+		  collectACEs(aces, AnonClassExpression.getArgs(here));
+	  }
+	  else if (TypeDeclarationStatement.prototype.includes(op)) {
+		  // Out of scope
+		  return;
+	  }
+	  for(final IRNode child : JJNode.tree.children(here)) {
+		  collectACEs(aces, child);
+	  }
   }
 }
