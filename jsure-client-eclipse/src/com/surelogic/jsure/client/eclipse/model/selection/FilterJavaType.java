@@ -1,11 +1,14 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProofDrop;
@@ -38,12 +41,17 @@ public final class FilterJavaType extends Filter {
 
   @Override
   public Image getImageFor(String value) {
-    return SLImages.getImage(CommonImages.IMG_CLASS);
+    String imageName = f_valueToImageName.get(value);
+    if (imageName == null)
+      imageName = CommonImages.IMG_CLASS;
+
+    return SLImages.getImage(imageName);
   }
 
   @Override
   protected void refreshCounts(List<IProofDrop> incomingResults) {
     f_counts.clear();
+    f_valueToImageName.clear();
     int runningTotal = 0;
     for (IProofDrop d : incomingResults) {
       final String value = getFilterValueFromDropOrNull(d);
@@ -51,6 +59,24 @@ public final class FilterJavaType extends Filter {
         Integer count = f_counts.get(value);
         if (count == null) {
           f_counts.put(value, 1);
+          final IJavaRef jr = d.getJavaRef();
+          if (jr != null) {
+            final String imageName;
+            switch (DeclUtil.getTypeKind(jr.getDeclaration())) {
+            case ENUM:
+              imageName = CommonImages.IMG_ENUM;
+              break;
+            case CLASS:
+              imageName = CommonImages.IMG_CLASS;
+              break;
+            case INTERFACE:
+              imageName = CommonImages.IMG_INTERFACE;
+              break;
+            default:
+              imageName = CommonImages.IMG_CLASS;
+            }
+            f_valueToImageName.put(value, imageName);
+          }
         } else {
           f_counts.put(value, count + 1);
         }
@@ -66,11 +92,14 @@ public final class FilterJavaType extends Filter {
     for (IProofDrop d : incomingResults) {
       final String value = getFilterValueFromDropOrNull(d);
       if (value != null) {
-        if (f_porousValues.contains(value))
+        if (f_porousValues.contains(value)) {
           f_porousDrops.add(d);
+        }
       }
     }
   }
+
+  private final Map<String, String> f_valueToImageName = new HashMap<String, String>();
 
   @Override
   @Nullable
