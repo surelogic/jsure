@@ -35,7 +35,6 @@ import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -56,7 +55,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -311,6 +309,10 @@ public abstract class AnnotationRules {
 	}
 
 	private IAnnotationScrubberContext context = new IAnnotationScrubberContext() {
+		public void reportError(IAASTNode n, int number, Object... args) {			
+			makeProblemDrop(n.getPromisedFor(),	n.getOffset()).setMessage(number, args);
+		}
+		
 		public void reportError(final IAASTNode n, final String msgTemplate,
 				final Object... args) {
 			reportError(MessageFormat.format(msgTemplate, args), n);
@@ -321,14 +323,23 @@ public abstract class AnnotationRules {
 				//IRNode here = n.getPromisedFor();
 				msg = msg + " on " + n;//JavaNames.getFullName(here);
 			}
-			reportError_private(msg, n.getPromisedFor(),
-					n.getOffset());
+			makeProblemDrop(n.getPromisedFor(),	n.getOffset()).setMessage(msg);
 		}
 
 		public void reportError(IRNode n, String msgTemplate, Object... args) {
 			reportError_private(n, msgTemplate, args);
 		}
 
+		public void reportError(IRNode n, int number, Object... args) {
+			makeProblemDrop(n, UNKNOWN).setMessage(number, args);
+		}
+		
+		public void reportErrorAndProposal(ProposedPromiseDrop p, int number, Object... args) {
+			ModelingProblemDrop d = makeProblemDrop(p.getNode(), UNKNOWN);
+			d.setMessage(number, args);
+			d.addProposal(p);
+		}
+		
 		public void reportErrorAndProposal(ProposedPromiseDrop p,
 				String msgTemplate, Object... args) {
 			ModelingProblemDrop d = reportError_private(p.getNode(),
@@ -338,26 +349,21 @@ public abstract class AnnotationRules {
 
 		private ModelingProblemDrop reportError_private(IRNode n,
 				String msgTemplate, Object... args) {
-			final IJavaRef ref = JavaNode.getJavaRef(n);
-			final int offset;
-			if (ref == null) {
-				offset = -1;
-			} else {
-				offset = ref.getOffset();
-			}
 			String txt = MessageFormat.format(msgTemplate, args) + " on "
 					+ DebugUnparser.toString(n);
-			return reportError_private(txt, n, offset);
-		}
-
-		private ModelingProblemDrop reportError_private(String txt, IRNode n,
-				int offset) {
-			// System.out.println("SCRUBBER: "+txt);
-			ModelingProblemDrop d = new ModelingProblemDrop(n, offset);
+			ModelingProblemDrop d = makeProblemDrop(n, UNKNOWN);
 			d.setMessage(txt);
 			return d;
 		}
 
+		private ModelingProblemDrop makeProblemDrop(IRNode node, int offset) {
+			return new ModelingProblemDrop(node, offset);
+		}
+
+		public void reportWarning(IAASTNode n, int number, Object... args) {
+			reportError(n, number, args);
+		}
+		
 		public void reportWarning(IAASTNode n, String msgTemplate,
 				Object... args) {
 			reportWarning(MessageFormat.format(msgTemplate, args), n);

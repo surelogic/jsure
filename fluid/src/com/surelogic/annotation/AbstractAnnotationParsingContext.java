@@ -4,6 +4,7 @@ package com.surelogic.annotation;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.test.*;
+import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -93,6 +94,10 @@ ITestAnnotationParsingContext {
    */
   public final <T extends IAASTRootNode> void reportAAST(int offset, T ast) {
     reportAAST(offset, AnnotationLocation.DECL, null, ast);
+  }
+  
+  public void reportError(int offset, int number, Object... args) {
+	reportError(offset, I18N.res(number, args));
   }
   
   /**

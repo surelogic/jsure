@@ -580,6 +580,14 @@ public class ScopedPromiseRules extends AnnotationRules {
     public void reportError(int offset, String msg) {
     	hadProblem = true;
     }
+    
+    public void reportException(int offset, Exception e) {
+    	hadProblem = true;
+    }
+
+    public void reportError(int offset, int number, Object... args) {
+    	hadProblem = true;
+    }
   }
 
   /**

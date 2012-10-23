@@ -60,6 +60,8 @@ public interface IAnnotationParsingContext {
    * @param offset The offset into the text being parsed (unmapped)
    */
   void reportError(int offset, String msg);
+  
+  void reportError(int offset, int number, Object... args);
 
   /**
    * Report an exception thrown while parsing the text

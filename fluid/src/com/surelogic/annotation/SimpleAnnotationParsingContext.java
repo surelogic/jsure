@@ -234,21 +234,30 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   }
   
   public static void reportError(IRNode node, int offset, String txt) {	    
-	  ModelingProblemDrop d = new ModelingProblemDrop(node, offset);
-	  d.setMessage(txt);
+	  makeProblemDrop(node, offset).setMessage(txt);
+  }
+  
+  public static ModelingProblemDrop makeProblemDrop(IRNode node, int offset) {
+	  return new ModelingProblemDrop(node, offset);
+  }
+  
+  private ModelingProblemDrop reportError(IRNode node, int offset) {
+	   TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
+	   hadProblem = true;
+	   return makeProblemDrop(node, offset);
   }
   
   public void reportError(int offset, String msg) {
-    TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
-    
-	final int position = mapToSource(offset);
-    reportError(contextRef, position, msg);
-    hadProblem = true;
+	  final int position = mapToSource(offset);
+	  reportError(contextRef, position).setMessage(msg);
   }
 
+  public void reportError(int offset, int number, Object... args) {
+	  final int position = mapToSource(offset);
+	  reportError(contextRef, position).setMessage(number, args);
+  }
+  
   public void reportException(int offset, Exception e) {
-    TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
-    
 	final int position = mapToSource(offset);
 	final String txt;
 	if (e instanceof RecognitionException ||
@@ -259,10 +268,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 		LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
 		txt = "Unexpected problem while parsing promise: "+e.getMessage();
 	}
-	reportError(contextRef, position, txt);
-
-
-    hadProblem = true;
+	reportError(contextRef, position).setMessage(txt);
   }
 
   public Operator getOp() {

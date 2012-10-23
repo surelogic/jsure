@@ -46,4 +46,7 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
     context.reportException(offset, e);
   }
 
+  public void reportError(int offset, int number, Object... args) {
+	context.reportError(offset, number, args);
+  }
 }
