@@ -17,6 +17,7 @@ import java.util.Map;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.ScanDifferences;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -241,5 +242,23 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		   */
 		  return new CPair<String, String>(f, type.getName());
 	  }
-  };  
+  };
+
+  @Override
+  public ScanDifferences build() {
+	  ScanDifferences.Builder diffs = new ScanDifferences.Builder();
+	  for(DiffCategory<?> c : categories.values()) {		  
+		  diffs.addAllNewSameAsOld(c.newMatchingOld);
+		  for(DropDiff d : c.diffs) {
+			  diffs.addNewChangedFromOld(d.drop, d.old);
+		  }
+		  for(DiffNode n : c.newer) {
+			  diffs.addAsNew(n.drop);
+		  }
+		  for(DiffNode o : c.old) {
+			  diffs.addAsOld(o.drop);
+		  }
+	  }
+	  return diffs.build();
+  }  
 }
