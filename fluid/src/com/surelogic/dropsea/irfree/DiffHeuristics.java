@@ -107,8 +107,8 @@ public class DiffHeuristics {
 			return;
 		}
 		int offset = here.getOffset() - startRef.getOffset();	
-		if (inAnno) {
-			offset = Math.abs(offset);
+		if (inAnno && offset < 0) {
+			offset = Integer.MAX_VALUE + offset;
 		}
 		if (offset < 0) {
 			// We're actually before the start, which might be ok for certain cases
