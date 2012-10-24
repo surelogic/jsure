@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
@@ -108,7 +109,7 @@ public class DeclFactory {
     if (here == null) {
       return null;
     }
-    final IRNode parent = JJNode.tree.getParentOrNull(here);
+    final IRNode parent = JavaPromise.getParentOrPromisedFor(here);
     DeclBuilder parentB = buildDecl(parent);
     final Operator op = JJNode.tree.getOperator(here);
     final DeclBuilder b;
@@ -138,10 +139,10 @@ public class DeclFactory {
 	  if (here == null) {
 		  return null;
 	  }
-	  final IRNode parent = JJNode.tree.getParentOrNull(here);
+	  final IRNode parent = JavaPromise.getParentOrPromisedFor(here);
 	  IRNode rv = findClosestDecl(parent);
 	  if (rv == null && parent != null && TypeDeclaration.prototype.includes(here)) {
-		  final IRNode gparent = JJNode.tree.getParentOrNull(parent);
+		  final IRNode gparent = JavaPromise.getParentOrPromisedFor(parent);
 		  return CompilationUnit.getPkg(gparent);
 	  }
 	  return rv;
@@ -156,13 +157,13 @@ public class DeclFactory {
 		  return here;
 	  }
 	  if (op instanceof Declaration) {
-		  final IRNode parent = JJNode.tree.getParentOrNull(here);
+		  final IRNode parent = JavaPromise.getParentOrPromisedFor(here);
 		  if (ignoreNode((Declaration) op, parent)) {
 			  return findClosestDecl(parent);
 		  }
 		  return here;
 	  }
-	  final IRNode parent = JJNode.tree.getParentOrNull(here);
+	  final IRNode parent = JavaPromise.getParentOrPromisedFor(here);
 	  return findClosestDecl(parent);
   }
   
@@ -180,7 +181,7 @@ public class DeclFactory {
       if (VariableResource.prototype.includes(pop)) {
         return true;
       }
-      IRNode gparent = JJNode.tree.getParentOrNull(parent);
+      IRNode gparent = JavaPromise.getParentOrPromisedFor(parent);
       return !FieldDeclaration.prototype.includes(gparent);
     default:
       return false;
