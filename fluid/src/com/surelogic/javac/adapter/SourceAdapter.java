@@ -293,7 +293,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         JavaNode.setJavadocAnnotations(result, elmt);
     }
     /*
-     * save skeletion JavaRef
+     * save skeleton JavaRef
      */
     SkeletonJavaRefUtility.registerSourceLocation(declFactory, result, cuRef, (int) line, (int) start, (int) (end - start));
   }
