@@ -411,7 +411,10 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       getAAST().clearPromisedFor();
     }
   }
-  
+
+  /**
+   * Does not use the offset from the AAST
+   */
   @Override
   @Nullable
   protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
@@ -429,16 +432,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     	bestNode = promisedForInfo.second();
     	bestRef = promisedForInfo.first();
     } 
-    // Use the best info we have
     final JavaRef.Builder builder = new JavaRef.Builder(bestRef);
     boolean useBuilder = replaceDeclAndPosition(builder, bestRef, promisedForInfo.first());
-    if (f_aast.getOffset() >= 0) {
-      int offset = f_aast.getOffset();
-      int length = 1;
-     
-      builder.setLength(length).setOffset(offset);
-      useBuilder = true;
-    }
     // Rebuild only if necessary
     if (useBuilder) {
         return new Pair<IJavaRef,IRNode>(builder.build(), bestNode);    
