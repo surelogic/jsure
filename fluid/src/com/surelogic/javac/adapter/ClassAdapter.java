@@ -79,6 +79,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
+import edu.cmu.cs.fluid.util.Triple;
 
 public class ClassAdapter extends AbstractAdapter {
   private static final String PACKAGE_INFO_CLASS = "package-info.class";
@@ -451,7 +452,7 @@ public class ClassAdapter extends AbstractAdapter {
   /**
    * signature includes generics if any desc is the raw thing
    */
-  public MethodVisitor visitMethod(int access, final String name, final String desc, final String signature,
+  public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
       final String[] exceptions) {
     if (debug) {
       System.out.println("Visiting " + name + " " + desc + " " + signature);
@@ -490,147 +491,153 @@ public class ClassAdapter extends AbstractAdapter {
      * if (signature != null && !signature.equals(desc) && skipFirstArg) {
      * System.out.println("signature and desc not the same: "+desc); }
      */
-    if (isAnnotationDecl()) {
-      IRNode params = Parameters.createNode(noNodes);
-      // See below
-      String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
-      IRNode rType = null;
-      if (signature == null) {
-        rType = adaptTypeDescriptor(rName);
-      } else {
-        MethodDeclVisitor mdv = new MethodDeclVisitor(false, 0);
-        new SignatureReader(signature).accept(mdv);
-        rType = mdv.rType;
-      }
-      if (rType == null) {
-        System.out.println("Null type for anno elt");
-      }
-      IRNode exs = Throws.createNode(noNodes);
-      IRNode result = AnnotationElement.createNode(JavaNode.PUBLIC, rType, name, params, exs, NoMethodBody.prototype.jjtCreate(),
-          NoDefaultValue.prototype.jjtCreate());
-      members.add(result);
-      // Used to get the first line number
-      return new MethodBodyVisitor(result, params);
-    }
-    // Otherwise
-    final int mods = adaptModifiers(access);
-    final IRNode body = CompiledMethodBody.createNode("no body");
-    final String className = this.name;
+    // Handles line numbers and annotations
+    return new MethodVisitor(Opcodes.ASM4) {
+    	int line = Integer.MAX_VALUE;
+    	final List<IRNode> annoList = new ArrayList<IRNode>();
+    	final MultiMap<Integer, IRNode> paramAnnos = new MultiHashMap<Integer, IRNode>();
 
-    // Used to get the first line number
-    return new MethodBodyVisitor(null, null) {
-      final List<IRNode> annoList = new ArrayList<IRNode>();
-      final MultiMap<Integer, IRNode> paramAnnos = new MultiHashMap<Integer, IRNode>();
+    	@Override
+    	public void visitLineNumber(int newLine, Label label) {
+    		if (newLine < line) {
+    			line = newLine;
+    		}
+    	}
+    	
+    	@Override
+    	public AnnotationVisitor visitAnnotation(String desc, boolean viz) {
+    		return new AnnoBuilder(desc) {
+    			@Override
+    			public void visitEnd() {
+    				super.visitEnd();
+    				annoList.add(result);
+    			}
+    		};
+    	}
 
-      @Override
-      public AnnotationVisitor visitAnnotation(String desc, boolean viz) {
-        return new AnnoBuilder(desc) {
-          @Override
-          public void visitEnd() {
-            super.visitEnd();
-            annoList.add(result);
-          }
-        };
-      }
+    	@Override
+    	public AnnotationVisitor visitParameterAnnotation(final int i, String desc, boolean viz) {
+    		return new AnnoBuilder(desc) {
+    			@Override
+    			public void visitEnd() {
+    				super.visitEnd();
+    				paramAnnos.put(i, result);
+    			}
+    		};
+    	}
+    	
+    	@Override
+    	public void visitEnd() {
+    		final IRNode annos = Annotations.createNode(annoList.toArray(noNodes));
+    		final IRNode result, parameters;
+    		final boolean isStatic;
+    		if (isAnnotationDecl()) {
+    			result = makeAnnoElement(annos);
+    			parameters = null;
+    			isStatic = false;
+    		} else {
+    			final Triple<IRNode,IRNode,Boolean> info = makeFunction(annos);
+    			result = info.first();
+    			parameters = info.second();
+    			isStatic = info.third();
+    		}
+ 			addRefs(result, parameters);
+    		createRequiredMethodNodes(isStatic, result);
+    		members.add(result);
+    	}
 
-      @Override
-      public AnnotationVisitor visitParameterAnnotation(final int i, String desc, boolean viz) {
-        return new AnnoBuilder(desc) {
-          @Override
-          public void visitEnd() {
-            super.visitEnd();
-            paramAnnos.put(i, result);
-          }
-        };
-      }
+    	private IRNode makeAnnoElement(IRNode annos) {
+    		IRNode params = Parameters.createNode(noNodes);
+    		// See below
+    		String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
+    		IRNode rType = null;
+    		if (signature == null) {
+    			rType = adaptTypeDescriptor(rName);
+    		} else {
+    			MethodDeclVisitor mdv = new MethodDeclVisitor(false, 0);
+    			new SignatureReader(signature).accept(mdv);
+    			rType = mdv.rType;
+    		}
+    		if (rType == null) {
+    			System.out.println("Null type for anno elt");
+    		}
+    		IRNode exs = Throws.createNode(noNodes);
+    		IRNode result = AnnotationElement.createNode(annos, JavaNode.PUBLIC | JavaNode.ABSTRACT, 
+    				rType, name, params, exs, NoMethodBody.prototype.jjtCreate(),
+    				NoDefaultValue.prototype.jjtCreate());
+    		return result;
+    	};
+		
+    	private Triple<IRNode,IRNode,Boolean> makeFunction(IRNode annos) {
+    		final int mods = adaptModifiers(access);
+    		final IRNode body = CompiledMethodBody.createNode("no body");
+    		final String className = ClassAdapter.this.name;
 
-      @Override
-      public void visitEnd() {
-        final IRNode types, exs;
-        final Type[] paramTypes = Type.getArgumentTypes(desc);
-        IRNode rType = null;
-        if (signature == null) {
-          /*
-           * if (skipFirstArg) {
-           * System.out.println("Skipping first arg: "+desc); }
-           */
-          types = TypeFormals.createNode(noNodes);
-          exs = Throws.createNode(map(adaptTypeName, exceptions, null));
-          if (desc != null) {
-            parameters = createParameters(paramAnnos, paramTypes, varargs ? adaptVarargsTypeDescriptor : adaptTypeDescriptor,
-                skipFirstArg);
-          } else {
-            parameters = Parameters.createNode(noNodes);
-          }
-        } else {
-          MethodDeclVisitor mdv = new MethodDeclVisitor(varargs, paramTypes.length);
-          new SignatureReader(signature).accept(mdv);
-          types = TypeFormals.createNode(mdv.types);
-          // signature doesn't contain the extra arg, so no need to skip
-          parameters = createParameters(paramAnnos, mdv.paramTypes.toArray(noNodes), identity, false);
-          rType = mdv.rType;
-          exs = Throws.createNode(mdv.exTypes.toArray(noNodes));
+    		final IRNode types, exs;
+    		final Type[] paramTypes = Type.getArgumentTypes(desc);
+    		IRNode rType = null;
+    		final IRNode parameters;
+    		if (signature == null) {
+    			/*
+    			 * if (skipFirstArg) {
+    			 * System.out.println("Skipping first arg: "+desc); }
+    			 */
+    			types = TypeFormals.createNode(noNodes);
+    			exs = Throws.createNode(map(adaptTypeName, exceptions, null));
+    			if (desc != null) {
+    				parameters = createParameters(paramAnnos, paramTypes, 
+    						varargs ? adaptVarargsTypeDescriptor : adaptTypeDescriptor,
+    						skipFirstArg);
+    			} else {
+    				parameters = Parameters.createNode(noNodes);
+    			}
+    		} else {
+    			MethodDeclVisitor mdv = new MethodDeclVisitor(varargs, paramTypes.length);
+    			new SignatureReader(signature).accept(mdv);
+    			types = TypeFormals.createNode(mdv.types);
+    			// signature doesn't contain the extra arg, so no need to skip
+    			parameters = createParameters(paramAnnos, mdv.paramTypes.toArray(noNodes), identity, false);
+    			rType = mdv.rType;
+    			exs = Throws.createNode(mdv.exTypes.toArray(noNodes));
 
-          if (rType == null) {
-            new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));
-          }
-        }
+    			if (rType == null) {
+    				new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));
+    			}
+    		}
+    		final IRNode result;
+			if (isConstructor) {
+    			int delim = className.lastIndexOf('$');
+    			if (delim < 0) {
+    				delim = className.lastIndexOf('/');
+    			}
+    			String cname = delim < 0 ? className : className.substring(delim + 1);
+    			result = ConstructorDeclaration.createNode(annos, mods, types, cname, parameters, exs, body);
+    		} else {
+    			String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
+    			if (signature == null) {
+    				rType = adaptTypeDescriptor(rName);
+    			}
+    			if (rType == null) {
+    				System.out.println("null rType");
+    			}
+    			result = MethodDeclaration.createNode(annos, mods, types, rType, name, parameters, 0, exs, body);
+    		}
+			return new Triple<IRNode,IRNode,Boolean>(result, parameters, JavaNode.isSet(mods, JavaNode.STATIC));
+		}
 
-        IRNode annos = Annotations.createNode(annoList.toArray(noNodes));
-
-        if (isConstructor) {
-          int delim = className.lastIndexOf('$');
-          if (delim < 0) {
-            delim = className.lastIndexOf('/');
-          }
-          String cname = delim < 0 ? className : className.substring(delim + 1);
-          result = ConstructorDeclaration.createNode(annos, mods, types, cname, parameters, exs, body);
-        } else {
-          String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
-          if (signature == null) {
-            rType = adaptTypeDescriptor(rName);
-          }
-          if (rType == null) {
-            System.out.println("null rType");
-          }
-          result = MethodDeclaration.createNode(annos, mods, types, rType, name, parameters, 0, exs, body);
-        }
-        createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), result);
-
-        members.add(result);
-        super.visitEnd();
-      }
+    	void addRefs(IRNode result, IRNode parameters) {
+    		// System.out.println("Got line#"+line);
+    		if (line == Integer.MAX_VALUE) {
+    			line = 0;
+    		}
+    		SkeletonJavaRefUtility.registerBinaryCode(declFactory, result, resource, line);
+    		if (parameters != null) {
+    			for (IRNode p : Parameters.getFormalIterator(parameters)) {
+    				SkeletonJavaRefUtility.copyIfPossible(result, p);
+    			}
+    		}
+    	}
     };
-  }
-
-  class MethodBodyVisitor extends MethodVisitor {
-    int line = Integer.MAX_VALUE;
-    IRNode result, parameters;
-
-    MethodBodyVisitor(IRNode n, IRNode params) {
-      super(Opcodes.ASM4);
-      result = n;
-      parameters = params;
-    }
-
-    @Override
-    public void visitLineNumber(int newLine, Label label) {
-      if (newLine < line) {
-        line = newLine;
-      }
-    }
-
-    @Override
-    public void visitEnd() {
-      // System.out.println("Got line#"+line);
-      if (line == Integer.MAX_VALUE) {
-        line = 0;
-      }
-      SkeletonJavaRefUtility.registerBinaryCode(declFactory, result, resource, line);
-      for (IRNode p : Parameters.getFormalIterator(parameters)) {
-        SkeletonJavaRefUtility.registerBinaryCode(declFactory, p, resource, line);
-      }
-    }
   }
 
   public void visitEnd() {
