@@ -57,21 +57,13 @@ public final class ResultsBuilder {
   public final ResultDrop createRootResult(
       final boolean isConsistent, final IRNode node, 
       final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    result.addChecked(promiseDrop);
-    result.setConsistent(isConsistent);
-    result.setMessage(msg, args);
-    return result;
+    return createResult(isConsistent, promiseDrop, node, msg, args);
   }
 
   public final ResultDrop createRootResult(
       final IRNode node, final boolean isConsistent,  
       final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
-    result.addChecked(promiseDrop);
-    result.setConsistent(isConsistent);
-    result.setMessagesByJudgement(trueMsg, falseMsg, args);
-    return result;
+    return createResult(node, promiseDrop, isConsistent, trueMsg, falseMsg, args);
   }
 
   public static ResultDrop createResult(
@@ -91,6 +83,26 @@ public final class ResultsBuilder {
     parent.addTrusted(result);
     result.setConsistent(isConsistent);
     result.setMessage(msg, args);
+    return result;
+  }
+
+  public static ResultDrop createResult(
+      final boolean isConsistent, final PromiseDrop<?> checks, final IRNode node, 
+      final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
+    result.addChecked(checks);
+    result.setConsistent(isConsistent);
+    result.setMessage(msg, args);
+    return result;
+  }
+
+  public static ResultDrop createResult(
+      final IRNode node, final PromiseDrop<?> checks, final boolean isConsistent,  
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node);
+    result.addChecked(checks);
+    result.setConsistent(isConsistent);
+    result.setMessagesByJudgement(trueMsg, falseMsg, args);
     return result;
   }
 }

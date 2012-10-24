@@ -7,7 +7,6 @@ import java.util.Set;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
-import com.surelogic.aast.promise.ContainableNode;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
@@ -58,7 +57,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
       
       @Override
       public boolean testContainable(final ContainablePromiseDrop cDrop) {
-        return false;
+        return cDrop != null && cDrop.allowReferenceObject();
       }
     },
     
@@ -195,7 +194,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     if (result == null) {
       final ContainablePromiseDrop cDrop = LockRules.getContainableImplementation(typeDecl);
       if (cDrop != null) {
-        result = testFormalAgainstContainable(cDrop, oneOf, noneOf) ? Collections.<PromiseDrop<? extends IAASTRootNode>>emptySet() : null;
+        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>emptySet() : null;
       }
     }
     

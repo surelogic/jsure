@@ -244,7 +244,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	  }
   };
 
-  @Override
+//  @Override
   public ScanDifferences build() {
 	  ScanDifferences.Builder diffs = new ScanDifferences.Builder();
 	  for(DiffCategory<?> c : categories.values()) {		  

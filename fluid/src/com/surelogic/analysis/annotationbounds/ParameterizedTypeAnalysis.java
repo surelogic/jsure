@@ -5,10 +5,13 @@ import java.util.Map;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -43,13 +46,18 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	
 	@Override
 	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	  for (final IRNode unusedInstantiatedClass : GenericTypeInstantiationChecker.getUnusedBoundClasses()) {
+	    final AnnotationBoundsPromiseDrop drop = LockRules.getAnnotationBounds(unusedInstantiatedClass);
+	    ResultsBuilder.createResult(true, drop, unusedInstantiatedClass, 550);
+	  }
+	  
 		finishBuild();
 		return super.analyzeEnd(env, p);
 	}
 	
 	@Override
   public void finish(final IIRAnalysisEnvironment env) {
-	  GenericTypeInstantiationChecker.clearFolders();
+	  GenericTypeInstantiationChecker.clearStaticState();
 	  super.finish(env);
   }
 	

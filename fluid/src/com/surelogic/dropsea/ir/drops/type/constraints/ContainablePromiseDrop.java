@@ -20,6 +20,10 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
+  public boolean allowReferenceObject() {
+    return getAAST().allowReferenceObject();
+  }
+  
   public void validated(final ContainablePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);
