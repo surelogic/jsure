@@ -30,7 +30,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   private final Map<K, DiffCategory<K>> categories = new HashMap<K, DiffCategory<K>>();
   private IDropFilter filter;
   private IDropSeparator<K> separator;
-  private DropMatcher matcher = defaultMatcher;
+  private CategoryMatcher matcher = defaultMatcher;
 
   public void setFilter(IDropFilter f) {
     if (f == null) {
@@ -52,7 +52,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     separator = s;
   }
 
-  public void setMatcher(DropMatcher c) {
+  public void setMatcher(CategoryMatcher c) {
     if (c == null) {
       throw new IllegalArgumentException();
     }
@@ -220,7 +220,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     return rv;
   }
   
-  public static final DropMatcher defaultMatcher = new DefaultDropMatcher();
+  public static final CategoryMatcher defaultMatcher = new DefaultCategoryMatcher();
   
   public static final IDropSeparator<CPair<String, String>> defaultSeparator = 
 	  new IDropSeparator<CPair<String, String>>() {

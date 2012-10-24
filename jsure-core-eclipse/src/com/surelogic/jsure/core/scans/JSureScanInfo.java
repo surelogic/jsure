@@ -20,8 +20,8 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.irfree.DefaultDropMatcher;
-import com.surelogic.dropsea.irfree.DropMatcher;
+import com.surelogic.dropsea.irfree.DefaultCategoryMatcher;
+import com.surelogic.dropsea.irfree.CategoryMatcher;
 import com.surelogic.dropsea.irfree.IDropFilter;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
@@ -209,12 +209,12 @@ public class JSureScanInfo {
 	  return rv;
   }
 
-  private DropMatcher makeMatcher(JSureScanInfo older) {
+  private CategoryMatcher makeMatcher(JSureScanInfo older) {
 	  try {
 		  // collect source info
 		  final Lines newerSrc = new Lines(getJSureRun().getSourceZips());
 		  final Lines olderSrc = new Lines(older.getJSureRun().getSourceZips());
-		  return new DefaultDropMatcher() {
+		  return new DefaultCategoryMatcher() {
 			  
 		  };
 	  } catch(IOException e) {
