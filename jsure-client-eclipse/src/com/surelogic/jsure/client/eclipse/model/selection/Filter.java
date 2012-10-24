@@ -541,6 +541,7 @@ public abstract class Filter {
       filterAllValues();
       fixupPorousValues();
       refreshPorousDrops(incomingResults);
+      System.out.println(this.getClass().getSimpleName() + " porusDropCt=" + f_porousDrops.size());
     }
     notifyFilterChanged();
   }
