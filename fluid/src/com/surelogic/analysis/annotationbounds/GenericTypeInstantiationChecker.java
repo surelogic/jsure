@@ -35,8 +35,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
@@ -309,12 +315,12 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           folders.put(jTypeOfParameterizedType, folder);
         }
       }
-      // be safe
+      /* Don't add the "USE" link if the bounds are only implicit bounds
+       * from @Containable. 
+       */
       if (folder != null && boundsDrop != null) {
-        /* Don't add the "USE" link if the bounds are only implicit bounds
-         * from @Containable. 
-         */
-        folder.addInformationHintWithCategory(pType, USE_CATEGORY, USE);
+        folder.addInformationHintWithCategory(
+            pType, USE_CATEGORY, USE, getUseContext(pType));
       }
     }
     return null;
@@ -538,5 +544,25 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     
       if (boundsDrop != null) classesWithBounds.add(cdecl);
     }
+  }
+  
+  private static String getUseContext(final IRNode pType) {
+    final Operator op = JJNode.tree.getOperator(JJNode.tree.getParent(pType));
+    if (FieldDeclaration.prototype.includes(op)) {
+      return "field type";
+    } else if (NewExpression.prototype.includes(op)) {
+      return "new expression";
+    } else if (MethodDeclaration.prototype.includes(op)) {
+      return "method return type";
+    } else if (ParameterDeclaration.prototype.includes(op)) {
+      return "parameter type";
+    } else if (DeclStatement.prototype.includes(op)) {
+      return "local variable type";
+    } else if (CastExpression.prototype.includes(op)) {
+      return "type cast";
+    } else if (TypeActuals.prototype.includes(op)) {
+      return "type actual";
+    }
+    return "other";
   }
 }
