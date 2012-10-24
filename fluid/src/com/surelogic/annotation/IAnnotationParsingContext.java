@@ -2,6 +2,7 @@
 package com.surelogic.annotation;
 
 import com.surelogic.aast.*;
+import com.surelogic.dropsea.IDiffInfo;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -16,7 +17,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin.Chan
  */
 public interface IAnnotationParsingContext {
-  static final int UNKNOWN = -1;
+  static final int UNKNOWN = IDiffInfo.UNKNOWN;
 
   /**
    * @param offset The index to be mapped
