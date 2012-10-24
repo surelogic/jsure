@@ -619,6 +619,8 @@ public class TestDecl extends TestCase {
     foo.addTypeParameter(tpb);
     Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
     assertSame(tpb, tpb0);
+    foo.addParameter(new Decl.ParameterBuilder(0).setTypeOf(jlo));
+    foo.addParameter(new Decl.ParameterBuilder(1).setTypeOf(string));
     IDecl fooDecl = foo.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(fooDecl));
     assertTrue(fooDecl.hasSameAttributesAs(pEncode));
