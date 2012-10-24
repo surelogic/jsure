@@ -87,10 +87,11 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     return key.compareTo(other.key);
   }
 
-  public void diff(PrintStream out, DropMatcher m) {
+  public void diff(final PrintStream out, final CategoryMatcher m) {
     String title = "Category: " + getText();
     for (int i = 0; i < m.numPasses(); i++) {
-      title = match(title, out, m, i);
+      final IDropMatcher pass = m.getPass(i);
+      title = match(title, out, pass);
     }
     if (isEmpty()) {
       return;
@@ -113,14 +114,14 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     }
   }
 
-  private String match(String title, PrintStream out, DropMatcher m, final int pass) {
+  private String match(String title, PrintStream out, IDropMatcher m) {
     Iterator<DiffNode> it = newer.iterator();
     while (it.hasNext()) {
       DiffNode n = it.next();
       for (DiffNode o : old) {
-        if (m.match(pass, n.drop, o.drop)) {
-          String label = m.getLabel(pass);
-          if (m.warnIfMatched(pass)) {
+        if (m.match(n.drop, o.drop)) {
+          String label = m.getLabel();
+          if (m.warnIfMatched()) {
             if (title != null) {
               out.println(title);
               title = null;
@@ -167,7 +168,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       }
 
       private int offset(DiffNode d) {
-        return DropMatcher.getOffset(d.drop);
+        return CategoryMatcher.getOffset(d.drop);
       }
     });
     return l;
