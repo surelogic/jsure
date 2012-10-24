@@ -40,6 +40,7 @@ import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -51,6 +52,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   private static final int ANNOTATION_BOUND_SATISFIED = 496;
   private static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
   private static final int USE = 498;
+  private static final int TYPE_FORMAL_INFO = 499;
   private static final int ACTUAL_UNBOUNDED = 551;
   private static final int ACTUAL_ANNOTATED = 552;
   
@@ -353,7 +355,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         final IRNode typeFormalsNode) {
     // Shouldn't happen, but be safe
     if (typeFormalsNode == null || !JJNode.tree.hasChildren(typeFormalsNode)) {
-      cachedBounds.put(baseTypeDecl, null);
       return null;
     }
       
@@ -495,19 +496,47 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   
   @Override
   public Void visitClassDeclaration(final IRNode cdecl) {
-    final AnnotationBoundsPromiseDrop boundsDrop = 
-        LockRules.getAnnotationBounds(cdecl);
-//    final ContainablePromiseDrop cDrop = 
-//        LockRules.getContainableImplementation(cdecl);
-//    if (boundsDrop != null || cDrop != null) {
-//      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-//          getBounds(cdecl, boundsDrop, cDrop);
-//      if (bounds != null) {
-//
-//      }
-//    }
-
-    if (boundsDrop != null) classesWithBounds.add(cdecl);
+    processTypeDeclaration(cdecl, ClassDeclaration.getTypes(cdecl));
     return super.visitClassDeclaration(cdecl);
+  }
+  
+  @Override
+  public Void visitInterfaceDeclaration(final IRNode idecl) {
+    processTypeDeclaration(idecl, InterfaceDeclaration.getTypes(idecl));
+    return super.visitInterfaceDeclaration(idecl);
+  }
+
+  private void processTypeDeclaration(final IRNode cdecl, final IRNode formals) {
+    if (formals != null && JJNode.tree.hasChildren(formals)) {
+      final AnnotationBoundsPromiseDrop boundsDrop = 
+          LockRules.getAnnotationBounds(cdecl);
+      final ContainablePromiseDrop cDrop = 
+          LockRules.getContainableImplementation(cdecl);
+      if (boundsDrop != null || cDrop != null) {
+        final List<Pair<IRNode, Set<AnnotationBounds>>> boundsPairs =
+            getBounds(cdecl, boundsDrop, cDrop);
+        if (boundsPairs != null) {
+          // if we have both drops, put on both (shouldn't happen often)
+          for (final Pair<IRNode, Set<AnnotationBounds>> pair : boundsPairs) {
+            final Set<AnnotationBounds> bounds = pair.second();
+            if (!bounds.isEmpty()) {
+              final String boundsString = boundsSetToString(bounds, " or ");
+              final IRNode typeFormal = pair.first();
+              final String typeFormalName = TypeFormal.getId(typeFormal);
+              if (boundsDrop != null) {
+                boundsDrop.addInformationHint(
+                    typeFormal, TYPE_FORMAL_INFO, typeFormalName, boundsString);
+              }
+              if (cDrop != null) {
+                cDrop.addInformationHint(
+                    typeFormal, TYPE_FORMAL_INFO, typeFormalName, boundsString);
+              }
+            }
+          }
+        }
+      }
+    
+      if (boundsDrop != null) classesWithBounds.add(cdecl);
+    }
   }
 }
