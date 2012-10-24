@@ -17,4 +17,9 @@ public final class NotContainablePromiseDrop extends BooleanPromiseDrop<NotConta
     super(a);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
+
+  @Override
+  public boolean isIntendedToBeCheckedByAnalysis() {
+    return false;
+  }
 }
