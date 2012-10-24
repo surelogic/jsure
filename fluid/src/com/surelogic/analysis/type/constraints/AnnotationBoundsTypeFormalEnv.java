@@ -194,7 +194,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     if (result == null) {
       final ContainablePromiseDrop cDrop = LockRules.getContainableImplementation(typeDecl);
       if (cDrop != null) {
-        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>emptySet() : null;
+        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>singleton(cDrop) : null;
       }
     }
     
