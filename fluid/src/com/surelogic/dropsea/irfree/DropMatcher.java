@@ -2,6 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -139,7 +140,27 @@ public abstract class DropMatcher {
     return null;
   }
 
-  protected static boolean matchIDecls(IDecl n, IDecl o) {
+  protected static boolean matchIDecls(IJavaRef nr, IJavaRef or) {
+	if (nr == null || or == null) {
+		return false;
+	}
+    if (nr.getPositionRelativeToDeclaration() != or.getPositionRelativeToDeclaration()) {
+    	return false;
+    }
+    IDecl n = nr.getDeclaration();
+    IDecl o = or.getDeclaration();
+    if (n == null || o == null) {
+    	return false;
+    }
     return n.isSameDeclarationAsSloppy(o);
+  }
+  
+  protected static boolean matchIntDiffInfo(String key, IDrop n, IDrop o) {
+	  final int nval = n.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
+	  final int oval = o.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
+	  if (nval == IDiffInfo.UNKNOWN || oval == IDiffInfo.UNKNOWN) {
+		  return false;
+	  }
+	  return nval == oval;
   }
 }
