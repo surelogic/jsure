@@ -554,7 +554,7 @@ public final class JavaIdentifier {
 
 	public static String encodeDecl(String project, IJavaRef ref) {
 		IDecl decl = ref.getDeclaration();
-		if (project == null || decl == null) {
+		if (project == null || decl == null || ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON) {
 			return null;
 		}
 		final StringBuilder sb = new StringBuilder();
