@@ -1271,11 +1271,13 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       } else {
         value = NoDefaultValue.prototype.jjtCreate();
       }
-      IRNode rv = AnnotationElement.createNode(mods, rType, id, Parameters.createNode(fmls), Throws.createNode(exs), body, value);
+      IRNode rv = AnnotationElement.createNode(annos, mods, rType, id, Parameters.createNode(fmls), 
+    		                                   Throws.createNode(exs), body, value);
       return rv;
     }
-    IRNode rv = MethodDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), rType, id, Parameters.createNode(fmls), 0,
-        Throws.createNode(exs), body);
+    IRNode rv = MethodDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), rType, id, 
+    		                                 Parameters.createNode(fmls), 0, Throws.createNode(exs), body);
+    addJavaRefAndCheckForJavadocAnnotations(node, rv);
     createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), rv);
     return rv;
   }
