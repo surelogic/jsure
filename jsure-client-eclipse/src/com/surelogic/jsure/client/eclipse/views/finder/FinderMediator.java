@@ -178,9 +178,9 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     disposeWorkingSelection();
     f_workingSelection = newSelection;
     f_workingSelection.initAndSyncToSea();
+    f_workingSelection.refresh();
     f_first = new MRadioMenuColumn(f_finder, f_workingSelection, null);
     f_first.init();
-    f_workingSelection.refresh();
 
     MRadioMenuColumn prevMenu = (MRadioMenuColumn) f_first;
     for (Filter filter : f_workingSelection.getFilters()) {

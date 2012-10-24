@@ -273,21 +273,14 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private void refreshDisplay() {
-    final UIJob job = new SLUIJob() {
-      @Override
-      public IStatus runInUIThread(final IProgressMonitor monitor) {
-        if (f_table == null) {
-          final int addAfterColumn = getPreviousColumn().getColumnIndex();
-          // create the display table
-          getCascadingList().addColumnAfter(f_iColumn, addAfterColumn, false);
-        } else {
-          // update the table's contents
-          updateTableContents();
-        }
-        return Status.OK_STATUS;
-      }
-    };
-    job.schedule();
+    if (f_table == null) {
+      final int addAfterColumn = getPreviousColumn().getColumnIndex();
+      // create the display table
+      getCascadingList().addColumnAfter(f_iColumn, addAfterColumn, false);
+    } else {
+      // update the table's contents
+      updateTableContents();
+    }
   }
 
   private void setTableItemInfo(TableItem item, IProofDrop data) {

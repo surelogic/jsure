@@ -2,6 +2,7 @@
 public operator AnnotationElement extends SomeFunctionDeclaration /* TODO implements FlowUnit */
 {
   syntax {
+    annos:Annotations  
     $modifiers:Modifiers(public,abstract,native,private,protected) type:Type $id:Info 
     // To make it look like other functions
     params:Parameters

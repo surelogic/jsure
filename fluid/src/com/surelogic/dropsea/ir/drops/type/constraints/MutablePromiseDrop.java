@@ -17,4 +17,9 @@ public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
     super(a);
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
+
+  @Override
+  public boolean isIntendedToBeCheckedByAnalysis() {
+    return false;
+  }
 }

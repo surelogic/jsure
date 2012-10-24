@@ -1,44 +1,36 @@
 package com.surelogic.dropsea.irfree;
 
+import java.util.*;
+
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
 import com.surelogic.persistence.JavaIdentifier;
 
-public abstract class DropMatcher {
-  private final String[] labels;
-
-  protected DropMatcher(String... labels) {
-    if (labels == null) {
-      throw new IllegalArgumentException("Null labels");
-    }
-    for (String l : labels) {
-      if (l == null) {
-        throw new IllegalArgumentException("Null label");
-      }
-      if (l.length() != 7) {
-        throw new IllegalArgumentException("Incorrect length: " + l);
-      }
-    }
-    this.labels = labels;
-  }
+public abstract class CategoryMatcher {
+  private final List<IDropMatcher> passes = new ArrayList<IDropMatcher>();
 
   final int numPasses() {
-    return labels.length;
+    return passes.size();
   }
 
-  /**
-   * @return A String of length 7
-   */
-  final String getLabel(int pass) {
-    return labels[pass];
+  final IDropMatcher getPass(int pass) {
+	return passes.get(pass);
   }
-
-  protected abstract boolean warnIfMatched(int pass);
-
-  protected abstract boolean match(int pass, IDrop n, IDrop o);
+  
+  protected final void addPass(IDropMatcher m) {
+	final String l = m.getLabel();
+	if (l == null) {
+		throw new IllegalArgumentException("Null label");
+	}
+	if (l.length() != 7) {
+		throw new IllegalArgumentException("Incorrect length: " + l);
+	}
+	passes.add(m);  
+  }
 
   protected static boolean matchBasics(IDrop n, IDrop o) {
     return matchMessage(n, o);
@@ -139,7 +131,36 @@ public abstract class DropMatcher {
     return null;
   }
 
-  protected static boolean matchIDecls(IDecl n, IDecl o) {
+  protected static boolean matchIDecls(IJavaRef nr, IJavaRef or) {
+	if (nr == null || or == null) {
+		return false;
+	}
+    if (nr.getPositionRelativeToDeclaration() != or.getPositionRelativeToDeclaration()) {
+    	return false;
+    }
+    IDecl n = nr.getDeclaration();
+    IDecl o = or.getDeclaration();
+    if (n == null || o == null) {
+    	return false;
+    }
     return n.isSameDeclarationAsSloppy(o);
+  }
+  
+  protected static boolean matchIntDiffInfo(String key, IDrop n, IDrop o) {
+	  final int nval = n.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
+	  final int oval = o.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
+	  if (nval == IDiffInfo.UNKNOWN || oval == IDiffInfo.UNKNOWN) {
+		  return false;
+	  }
+	  return nval == oval;
+  }
+  
+  protected static boolean matchLongDiffInfo(String key, IDrop n, IDrop o) {
+	  final long nval = n.getDiffInfoAsLong(key, IDiffInfo.UNKNOWN);
+	  final long oval = o.getDiffInfoAsLong(key, IDiffInfo.UNKNOWN);
+	  if (nval == IDiffInfo.UNKNOWN || oval == IDiffInfo.UNKNOWN) {
+		  return false;
+	  }
+	  return nval == oval;
   }
 }

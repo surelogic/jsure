@@ -27,7 +27,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
@@ -412,51 +411,44 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       getAAST().clearPromisedFor();
     }
   }
-  
+
+  /**
+   * Does not use the offset from the AAST
+   */
   @Override
   @Nullable
   protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
+	// Use the decl/position for the promised for node, 
+	// but the rest of the java ref from the context, if available
+	final Pair<IJavaRef,IRNode> promisedForInfo = 
+		super.getJavaRefAndCorrespondingNode();	  
     final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
-    Pair<IJavaRef,IRNode> info = null;
-    IJavaRef bestRef;
+    final IJavaRef bestRef;
     final IRNode bestNode;
     if (contextRef != null) {
     	bestNode = f_aast.getAnnoContext();
     	bestRef = contextRef;
     } else { 
-    	info = super.getJavaRefAndCorrespondingNode();
-    	if (info == null) {
-    		return null;
-    	}
-    	bestNode = info.second();
-    	bestRef = info.first();
+    	bestNode = promisedForInfo.second();
+    	bestRef = promisedForInfo.first();
     } 
-
-    // Use the best info we have
-    boolean compensated = false;
-    if (f_aast.getOffset() >= 0) {
-      int offset = f_aast.getOffset();
-      int length = 1;
-      bestRef = compensateForContext(bestRef).setLength(length).setOffset(offset).build();
-      compensated = true;
-    }     
-    if (info != null) {
-      return info;
-    } else {
-      if (!compensated) {
-    	  bestRef = compensateForContext(bestRef).build();
-      }
-      return new Pair<IJavaRef,IRNode>(bestRef, bestNode);
+    final JavaRef.Builder builder = new JavaRef.Builder(bestRef);
+    boolean useBuilder = replaceDeclAndPosition(builder, bestRef, promisedForInfo.first());
+    // Rebuild only if necessary
+    if (useBuilder) {
+        return new Pair<IJavaRef,IRNode>(builder.build(), bestNode);    
+    }    
+    if (bestRef == promisedForInfo.first()) {
+    	return promisedForInfo;
     }
+    return new Pair<IJavaRef,IRNode>(bestRef, bestNode);    
   }
 
-  // Compensate for the location of the context
-  private JavaRef.Builder compensateForContext(IJavaRef orig) {
-	  JavaRef.Builder b = new JavaRef.Builder(orig);
-	  if (orig.getPositionRelativeToDeclaration() == Position.WITHIN) {
-		  b.setPositionRelativeToDeclaration(Position.ON);
-	  }
-	  return b;
+  private boolean replaceDeclAndPosition(JavaRef.Builder b, IJavaRef src, IJavaRef promisedForRef) {
+	  b.setDeclaration(promisedForRef.getDeclaration());
+	  b.setPositionRelativeToDeclaration(promisedForRef.getPositionRelativeToDeclaration());
+	  return src.getPositionRelativeToDeclaration() != promisedForRef.getPositionRelativeToDeclaration() ||
+	  		 src.getDeclaration().isSameDeclarationAs(promisedForRef.getDeclaration());
   }
   
   /**

@@ -8,6 +8,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   private static final Logger LOG = SLLogger.getLogger("aast");
@@ -38,7 +39,7 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   public final void setPromisedFor(IRNode n, IRNode context) {
     checkArgument(promisedFor, n);
     promisedFor = n;    
-    annoContext = context == null ? n : context;
+    annoContext = context == null ? n : VisitUtil.getClosestAnnotation(context);
   }
   
   public final void clearPromisedFor() {

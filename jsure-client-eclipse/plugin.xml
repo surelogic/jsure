@@ -156,10 +156,6 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
 		</view>
 
-		<!-- view name="Scan Summary" allowMultiple="false" category="com.surelogic.jsure" 
-			class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView" icon="platform:/plugin/com.surelogic.common/lib/images/jsure_graph.gif" 
-			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"> </view -->
-
 		<view name="JSure Historical Source" allowMultiple="false"
 			category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"

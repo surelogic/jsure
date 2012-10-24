@@ -96,7 +96,10 @@ public class DiffHeuristics {
 	private static void computeDeclRelativeOffset(final Computation c, final Pair<IJavaRef,IRNode> loc, 
 			final IRNode enclosingDecl, final IJavaRef enclosingRef) {
 		final IJavaRef here = loc.first();
-		final boolean inAnno = c.drop instanceof IPromiseDrop || c.drop instanceof IModelingProblemDrop;
+		final boolean inAnno = c.drop instanceof IPromiseDrop || 
+		                       c.drop instanceof IModelingProblemDrop || 
+		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER ||
+		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;
 		final IRNode start = inAnno ? enclosingDecl : 
 			                 computeFirstInterestingNodeInDecl(enclosingDecl);
 		final IJavaRef startRef = (start == enclosingDecl) ? enclosingRef : JavaNode.getJavaRef(start);
@@ -107,8 +110,8 @@ public class DiffHeuristics {
 			return;
 		}
 		int offset = here.getOffset() - startRef.getOffset();	
-		if (inAnno) {
-			offset = Math.abs(offset);
+		if (inAnno && offset < 0) {
+			offset = Integer.MAX_VALUE + offset;
 		}
 		if (offset < 0) {
 			// We're actually before the start, which might be ok for certain cases
