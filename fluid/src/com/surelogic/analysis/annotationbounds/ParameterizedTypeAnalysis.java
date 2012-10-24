@@ -18,6 +18,8 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 
 public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<GenericTypeInstantiationChecker, Unused> {
+  private static final int NEVER_USED = 550;
+  
   public ParameterizedTypeAnalysis() {
 		super("Parameterized Type");
 	}
@@ -48,7 +50,7 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 	  for (final IRNode unusedInstantiatedClass : GenericTypeInstantiationChecker.getUnusedBoundClasses()) {
 	    final AnnotationBoundsPromiseDrop drop = LockRules.getAnnotationBounds(unusedInstantiatedClass);
-	    ResultsBuilder.createResult(true, drop, unusedInstantiatedClass, 550);
+	    ResultsBuilder.createResult(true, drop, unusedInstantiatedClass, NEVER_USED);
 	  }
 	  
 		finishBuild();

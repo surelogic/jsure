@@ -3,6 +3,7 @@ package com.surelogic.analysis.annotationbounds;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
 import com.surelogic.analysis.type.constraints.ITypeFormalEnv;
 import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
@@ -31,10 +33,12 @@ import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -47,6 +51,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   private static final int ANNOTATION_BOUND_SATISFIED = 496;
   private static final int ANNOTATION_BOUND_NOT_SATISFIED = 497;
   private static final int USE = 498;
+  private static final int ACTUAL_UNBOUNDED = 551;
+  private static final int ACTUAL_ANNOTATED = 552;
   
   
   
@@ -76,9 +82,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       
       @Override
       public void testType(final IJavaType type,
-          final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        testType(type, annos, trusts, 
+        testType(type, actualAnnos,
             new ContainableAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             CONTAINABLE);
       }
@@ -101,9 +107,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       
       @Override
       public void testType(final IJavaType type,
-          final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        testType(type, annos, trusts, 
+        testType(type, actualAnnos,
             new ImmutableAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             IMMUTABLE);
       }
@@ -126,9 +132,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       
       @Override
       public void testType(final IJavaType type,
-          final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        testType(type, annos, trusts, 
+        testType(type, actualAnnos,
             new ReferenceObjectAnnotationTester(binder, formalEnv, foldersExternal, false),
             REFERENCE);
       }
@@ -151,9 +157,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       
       @Override
       public void testType(final IJavaType type,
-          final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        testType(type, annos, trusts, 
+        testType(type, actualAnnos,
             new ThreadSafeAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             THREADSAFE);
       }
@@ -176,9 +182,9 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
       @Override
       public void testType(final IJavaType type,
-          final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder, final ITypeFormalEnv formalEnv) {
-        testType(type, annos, trusts, 
+        testType(type, actualAnnos,
             new ValueObjectAnnotationTester(binder, formalEnv, foldersExternal, false),
             VALUE);
       }
@@ -200,15 +206,14 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         IBinder binder, ITypeFormalEnv formalEnv);
     
     public abstract void testType(final IJavaType type,
-        final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+        final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
         final IBinder binder, final ITypeFormalEnv formalEnv);
     
     protected static void testType(final IJavaType type,
-        final Set<AnnotationBounds> annos, final Set<ProofDrop> trusts,
+        final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
         final TypeDeclAnnotationTester tester, final AnnotationBounds bound) {
       if (tester.testType(type)) {
-        annos.add(bound);
-        trusts.addAll(tester.getTrusts());
+        actualAnnos.put(bound, tester.getTrusts());
       }
     }
     
@@ -365,7 +370,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       final IRNode formalDecl = formalDecls.get(i);
       bounds.add(new Pair<IRNode, Set<AnnotationBounds>>(
           formalDecl, EnumSet.noneOf(AnnotationBounds.class)));
-      formalIDs[i] = TypeFormal.getId(formalDecls.get(i));
+      formalIDs[i] = TypeFormal.getId(formalDecl);
     }
     
     boolean added = false;
@@ -435,12 +440,14 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       final IJavaDeclaredType jTypeOfParameterizedType,
       final List<Pair<IRNode, Set<AnnotationBounds>>> boundsList) {    
     final List<IJavaType> actualList = jTypeOfParameterizedType.getTypeParameters();
+    final IRNode typeActuals = ParameterizedType.getArgs(parameterizedType);
     
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
     folder.setIgnoreJavaRef(true);
     folder.setMessage(
         ANNOTATION_BOUNDS_FOLDER, jTypeOfParameterizedType.toSourceText());
     for (int i = 0; i < boundsList.size(); i++) {
+      final IRNode typeActual = TypeActuals.getType(typeActuals, i);
       final IRNode formalDecl = boundsList.get(i).first();
       final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
       final Set<AnnotationBounds> bounds = boundsList.get(i).second();
@@ -449,6 +456,11 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         final String boundsString = boundsSetToString(bounds, " || ");
         final IJavaType jTypeOfActual = actualList.get(i);
         
+        final ResultFolderDrop actualFolder = ResultsBuilder.createAndFolder(
+            folder, typeActual,
+            ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
+            jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
+        
         /* The actual must be annotated with at least one of the type 
          * annotations required by the type formal, and cannot be annotated
          * with any type annotation not required by the type formal.  That is,
@@ -456,28 +468,26 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
          * those required by the type formal.  So we actually have to test 
          * the type formal against all possible type annotations.
          */
-        final Set<AnnotationBounds> actualAnnos = EnumSet.noneOf(AnnotationBounds.class);
-        final Set<ProofDrop> trusts = new HashSet<ProofDrop>();
+        final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos =
+            new HashMap<AnnotationBounds, Set<ProofDrop>>();
         for (final AnnotationBounds tb : AnnotationBounds.values()) {
-          tb.testType(jTypeOfActual, actualAnnos, trusts, binder, formalEnv);
+          tb.testType(jTypeOfActual, actualAnnos, binder, formalEnv);
         }
-        final boolean checks =
-            !actualAnnos.isEmpty() && bounds.containsAll(actualAnnos);
         
-//        boolean checks = false;
-//        for (final AnnotationBounds bound : bounds) {
-//          final TypeDeclAnnotationTester tester = bound.getTester(binder, formalEnv);
-//          checks |= tester.testType(jTypeOfActual);
-//          trusts.addAll(tester.getTrusts());
-//        }      
-    
-        final ResultDrop result = new ResultDrop(parameterizedType);
-        result.setMessagesByJudgement(
-            ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
-            jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
-        result.setConsistent(checks);
-        result.addTrusted(trusts);
-        folder.addTrusted(result);
+        final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
+            ((IJavaSourceRefType) jTypeOfActual).getDeclaration() : typeActual;
+        if (actualAnnos.isEmpty()) {
+          ResultsBuilder.createResult(false, actualFolder, link, ACTUAL_UNBOUNDED);
+        } else {
+          for (final Map.Entry<AnnotationBounds, Set<ProofDrop>> aa : actualAnnos.entrySet()) {
+            final AnnotationBounds key = aa.getKey();
+            final boolean isConsistent = bounds.contains(key);
+            final ResultDrop result = ResultsBuilder.createResult(
+                isConsistent, actualFolder, link,
+                ACTUAL_ANNOTATED, key.toString());
+            result.addTrusted(aa.getValue());
+          }
+        }
       }
     }
     return folder;
