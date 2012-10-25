@@ -233,4 +233,24 @@ public final class ColumnLabelProviderUtility {
       }
     }
   };
+
+  static final CellLabelProvider DIFF = new CellLabelProvider() {
+
+    @Override
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final ScanDifferences diff = Element.f_diff;
+        if (diff != null && element instanceof ElementDrop) {
+          final IDrop drop = ((ElementDrop) element).getDrop();
+          if (diff.isNotInOldScan(drop))
+            cell.setText("New");
+          final IDrop oldDrop = diff.getChangedInOldScan(drop);
+          if (oldDrop != null) {
+            cell.setText(oldDrop.getMessage());
+          }
+        }
+      }
+    }
+  };
 }

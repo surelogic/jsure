@@ -97,6 +97,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL3_WIDTH, 100);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL4_WIDTH, 100);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL5_WIDTH, 40);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_COL_DIFF_WIDTH, 200);
 
       /*
        * We'll take the default-default for the other preferences.
@@ -126,11 +127,12 @@ public final class JSurePreferencesUtility {
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";
   public static final String VSTATUS_SHOW_DIFF = PREFIX + "verification.status.show.diff";
-  public static final String VSTATUS_COL1_WIDTH = PREFIX + "verification.status.col1.witdh";
-  public static final String VSTATUS_COL2_WIDTH = PREFIX + "verification.status.col2.witdh";
-  public static final String VSTATUS_COL3_WIDTH = PREFIX + "verification.status.col3.witdh";
-  public static final String VSTATUS_COL4_WIDTH = PREFIX + "verification.status.col4.witdh";
-  public static final String VSTATUS_COL5_WIDTH = PREFIX + "verification.status.col4.witdh";
+  public static final String VSTATUS_COL1_WIDTH = PREFIX + "verification.status.col1.width";
+  public static final String VSTATUS_COL2_WIDTH = PREFIX + "verification.status.col2.width";
+  public static final String VSTATUS_COL3_WIDTH = PREFIX + "verification.status.col3.width";
+  public static final String VSTATUS_COL4_WIDTH = PREFIX + "verification.status.col4.width";
+  public static final String VSTATUS_COL5_WIDTH = PREFIX + "verification.status.col4.width";
+  public static final String VSTATUS_COL_DIFF_WIDTH = PREFIX + "verification.status.col.diff.width";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

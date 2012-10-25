@@ -60,7 +60,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showHints, final ScanDifferences diff) {
     final List<Element> root = new ArrayList<Element>();
     Element.f_showHints = showHints;
-    System.out.println("diff" + diff);
     Element.f_diff = diff;
     final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
     for (IPromiseDrop promise : scan.getPromiseDrops()) {
