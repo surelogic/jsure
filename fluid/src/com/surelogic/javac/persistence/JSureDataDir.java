@@ -105,8 +105,8 @@ public class JSureDataDir {
 				continue;
 			}
 			try {
-				if (scan.getProjects().matchProjects(s.getProjects())) {
-					if (match == null || s.getTimeOfScan().before(match.getTimeOfScan())) {
+				if (scan.getProjects().matchProjects(s.getProjects()) && s.getTimeOfScan().before(scan.getTimeOfScan())) {
+					if (match == null || s.getTimeOfScan().after(match.getTimeOfScan())) {
 						match = s;
 					}
 				}
