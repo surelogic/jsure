@@ -80,14 +80,9 @@ public class DiffHeuristics {
 	private static void computeDeclRelativeOffset(final Computation c, final Pair<IJavaRef,IRNode> loc, 
 			final IRNode closestDecl, final IJavaRef closestRef) {
 		final IJavaRef here = loc.first();
-		final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop;
-		/*
- 		final boolean inAnno = closestDecl == loc.second();
-		                       c.drop instanceof IModelingProblemDrop || 
-		                       c.drop instanceof IProposedPromiseDrop || is this right?
+		final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER ||
-		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;
-		*/
+		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;		
 		final IRNode start = useDecl ? closestDecl : 
 			                 computeFirstInterestingNodeInDecl(closestDecl);
 		final IJavaRef startRef = useDecl ? closestRef : JavaNode.getJavaRef(start);
