@@ -10,12 +10,14 @@ import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureScan;
@@ -285,6 +287,18 @@ public final class JSureDataDirHub {
     synchronized (f_lock) {
       return f_currentScanInfo;
     }
+  }
+
+  /**
+   * Gets a report of the difference between the current scan and the last fully
+   * compatible scan of the same set of projects.
+   * 
+   * @return a pair comprising of the scan differences (first) and the scan info
+   *         for the old scan (second), or {@code null} if no compatible old
+   *         scan could be located.
+   */
+  public Pair<ScanDifferences, JSureScanInfo> getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() {
+    return null;
   }
 
   /**
