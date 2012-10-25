@@ -15,9 +15,9 @@ public interface IDiffInfo {
   public static final String FAST_TREE_HASH = "fAST-tree-hash";
   public static final String FAST_CONTEXT_HASH = "fAST-context-hash";
   /**
-   * Offset from the first statement/expression/decl in the enclosing declaration
-   * (unless it's a parameter, in which case it's from the start of the enclosing
-   * method)
+   * Offset from the first statement/expression/decl in the enclosing
+   * declaration (unless it's a parameter, in which case it's from the start of
+   * the enclosing method)
    */
   public static final String DECL_RELATIVE_OFFSET = "decl-relative-offset";
   /**
@@ -25,8 +25,15 @@ public interface IDiffInfo {
    */
   public static final String DECL_END_RELATIVE_OFFSET = "decl-end-relative-offset";
 
+  /**
+   * Another string sent from the analysis, very rarely, to indicated that even
+   * though everything else matches, the drop might not really be the
+   * same&mdash;this value also needs to be compared.
+   */
+  public static final String ANALYSIS_DIFF_HINT = "analysis-diff-hint";
+
   public static final int UNKNOWN = -1;
-  
+
   /*
    * Interface to key/value pairs.
    */

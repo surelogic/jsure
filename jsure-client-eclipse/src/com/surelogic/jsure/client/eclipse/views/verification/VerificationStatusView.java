@@ -418,8 +418,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionShowHints.setChecked(f_showHints);
 
     f_actionShowDiff.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionShowDiff.setText("Hightlight differences from last scan");
-    f_actionShowDiff.setToolTipText("Highlight differences from the last scan");
+    f_actionShowDiff.setText(SHOW_DIFF_TEXT);
+    f_actionShowDiff.setToolTipText(SHOW_DIFF_TEXT);
     f_showDiff = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_DIFF);
     f_actionShowDiff.setChecked(f_showDiff);
 
@@ -587,6 +587,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       // show the scan results
       final ScanDifferences diff = showDiff ? JSureDataDirHub.getInstance()
           .getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() : null;
+      setDiffButtonTooltipToShowScanWeAreDiffing(showDiff);
       f_contentProvider.changeContentsToCurrentScan(scan, showHints, diff);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
@@ -609,6 +610,19 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         }
       });
     }
+  }
+
+  private static final String SHOW_DIFF_TEXT = "Highlight differences from the last scan";
+
+  private void setDiffButtonTooltipToShowScanWeAreDiffing(boolean showDiff) {
+    String tipText = SHOW_DIFF_TEXT;
+    if (showDiff) {
+      JSureScanInfo si = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
+      if (si != null) {
+        tipText = "Showing differences between: " + si.getLabel();
+      }
+    }
+    f_actionShowDiff.setToolTipText(tipText);
   }
 
   /**
