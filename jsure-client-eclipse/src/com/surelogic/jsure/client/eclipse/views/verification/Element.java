@@ -10,6 +10,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 abstract class Element {
@@ -88,6 +89,16 @@ abstract class Element {
    * elements for a scan.
    */
   static boolean f_showHints;
+
+  /**
+   * Provides scan differences are to be highlighted by all elements,
+   * {@code null} if none.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by
+   * {@link VerificationStatusViewContentProvider} when it constructs a model of
+   * elements for a scan.
+   */
+  static ScanDifferences f_diff;
 
   @Nullable
   private final Element f_parent;
@@ -251,7 +262,8 @@ abstract class Element {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
     }
-    if (this instanceof ElementProposedPromiseDrop) System.out.println("ElementProposedPromiseDrop: image="+name+" flags=" + flags);
+    if (this instanceof ElementProposedPromiseDrop)
+      System.out.println("ElementProposedPromiseDrop: image=" + name + " flags=" + flags);
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
 

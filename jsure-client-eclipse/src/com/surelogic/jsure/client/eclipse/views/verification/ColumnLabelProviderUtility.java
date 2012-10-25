@@ -11,13 +11,43 @@ import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 
 @Utility
 public final class ColumnLabelProviderUtility {
 
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
+
+    private Color f_changedColor;
+
+    private Color getChangedColor() {
+      if (f_changedColor == null) {
+        f_changedColor = new Color(Display.getCurrent(), 181, 213, 255);
+        Display.getCurrent().disposeExec(new Runnable() {
+          public void run() {
+            f_changedColor.dispose();
+          }
+        });
+      }
+      return f_changedColor;
+    }
+
+    private Color f_newColor;
+
+    private Color getNewColor() {
+      if (f_newColor == null) {
+        f_newColor = new Color(Display.getCurrent(), 213, 255, 181);
+        Display.getCurrent().disposeExec(new Runnable() {
+          public void run() {
+            f_newColor.dispose();
+          }
+        });
+      }
+      return f_newColor;
+    }
 
     private Color f_onClauseColor;
 
@@ -79,6 +109,15 @@ public final class ColumnLabelProviderUtility {
             StyleRange[] ranges = { new StyleRange(0, index + prefixEnd.length(), getSpecialColor(), null) };
             cell.setStyleRanges(ranges);
           }
+        }
+
+        final ScanDifferences diff = Element.f_diff;
+        if (diff != null && element instanceof ElementDrop) {
+          final IDrop drop = ((ElementDrop) element).getDrop();
+          if (diff.isNotInOldScan(drop))
+            cell.setBackground(getNewColor());
+          if (diff.isChangedButInBothScans(drop))
+            cell.setBackground(getChangedColor());
         }
       } else
         super.update(cell);
