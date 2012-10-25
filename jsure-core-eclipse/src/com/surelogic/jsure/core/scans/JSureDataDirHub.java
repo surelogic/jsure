@@ -10,16 +10,20 @@ import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.Pair;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 /**
  * Singleton that provides a notification hub about the scans within the JSure
@@ -285,6 +289,28 @@ public final class JSureDataDirHub {
     synchronized (f_lock) {
       return f_currentScanInfo;
     }
+  }
+
+  /**
+   * Gets a report of the difference between the current scan and the last fully
+   * compatible scan of the same set of projects.
+   * 
+   * @return a pair comprising of the scan differences (first) and the scan info
+   *         for the old scan (second), or {@code null} if no compatible old
+   *         scan could be located.
+   */
+  public Pair<ScanDifferences, JSureScanInfo> getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() {
+    final JSureScanInfo currentScanInfo, lastScanInfo;
+	synchronized (f_lock) {
+		currentScanInfo = f_currentScanInfo;
+		JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+		if (last == null) {
+			return null;
+		}
+		lastScanInfo = new JSureScanInfo(last);
+	}
+	ISeaDiff diff = currentScanInfo.diff(lastScanInfo, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
+    return new Pair<ScanDifferences, JSureScanInfo>(diff.build(), lastScanInfo);
   }
 
   /**

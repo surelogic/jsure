@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
@@ -163,12 +164,13 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   private final IColumn f_iColumn = new IColumn() {
     public Composite createContents(final Composite panel) {
       f_table = new Table(panel, SWT.FULL_SELECTION);
+      // add one column so pack works rigth on all operating systems
+      new TableColumn(f_table, SWT.NONE);
       f_table.setLinesVisible(true);
       f_table.addListener(SWT.MouseDoubleClick, f_doubleClick);
       f_table.addListener(SWT.Selection, f_rowSelection);
       f_table.addKeyListener(f_keyListener);
       f_table.setItemCount(0);
-      // TODO createTableColumns();
 
       f_table.addListener(SWT.Traverse, new Listener() {
         public void handleEvent(final Event e) {
@@ -178,10 +180,6 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
             if (getPreviousColumn() instanceof MRadioMenuColumn) {
               final MRadioMenuColumn column = (MRadioMenuColumn) getPreviousColumn();
               column.escape(null);
-              /*
-               * column.clearSelection(); column.emptyAfter(); // e.g. eliminate
-               * myself column.forceFocus();
-               */
             }
             break;
           case SWT.TRAVERSE_TAB_NEXT:
@@ -203,8 +201,6 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
 
       final Menu menu = new Menu(f_table.getShell(), SWT.POP_UP);
       f_table.setMenu(menu);
-
-      // TODO setupMenu(menu);
 
       updateTableContents();
       return f_table;
@@ -234,7 +230,6 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
         lastSelected = data;
       }
     }
-    TableUtility.packColumns(f_table);
     f_table.setRedraw(true);
     /*
      * Fix to bug 1115 (an XP specific problem) where the table was redrawn with
@@ -244,16 +239,23 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     if (SystemUtils.IS_OS_WINDOWS_XP) {
       f_table.setRedraw(true);
     }
-    if (lastSelected != null) {
-      final UIJob job = new SLUIJob() {
-        @Override
-        public IStatus runInUIThread(final IProgressMonitor monitor) {
+    final boolean showSelection = lastSelected != null;
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(final IProgressMonitor monitor) {
+        TableUtility.packColumns(f_table);
+        /*
+         * We need the call below because OS X doesn't send the resize to the
+         * cascading list.
+         */
+        getCascadingList().fixupSize();
+        if (showSelection) {
           f_table.showSelection();
-          return Status.OK_STATUS;
         }
-      };
-      job.schedule();
-    }
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   private void selectItem(int i, IProofDrop data) {
