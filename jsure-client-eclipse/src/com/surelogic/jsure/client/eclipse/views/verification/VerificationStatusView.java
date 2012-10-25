@@ -102,6 +102,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private TreeViewer f_treeViewer;
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
   private boolean f_showHints;
+  private boolean f_showDiff;
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -245,6 +246,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       if (f_showHints != buttonChecked) {
         f_showHints = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS, f_showHints);
+        currentScanChanged(null);
+      }
+    }
+  };
+
+  private final Action f_actionShowDiff = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowDiff.isChecked();
+      if (f_showDiff != buttonChecked) {
+        f_showDiff = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_DIFF, f_showDiff);
         currentScanChanged(null);
       }
     }
@@ -403,6 +416,12 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
 
+    f_actionShowDiff.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
+    f_actionShowDiff.setText("Hightlight differences from last scan");
+    f_actionShowDiff.setToolTipText("Highlight differences from the last scan");
+    f_showDiff = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_DIFF);
+    f_actionShowDiff.setChecked(f_showDiff);
+
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
@@ -481,21 +500,25 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final IMenuManager pulldown = bars.getMenuManager();
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
+    pulldown.add(f_actionShowQuickRef);
+    pulldown.add(new Separator());
     pulldown.add(f_actionJavaSort);
     pulldown.add(f_actionAlphaSort);
     pulldown.add(new Separator());
-    pulldown.add(f_actionShowQuickRef);
+    pulldown.add(f_actionShowDiff);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionShowQuickRef);
     toolbar.add(new Separator());
     toolbar.add(f_actionProblemsIndicator);
     toolbar.add(new Separator());
     toolbar.add(f_actionJavaSort);
     toolbar.add(f_actionAlphaSort);
     toolbar.add(new Separator());
-    toolbar.add(f_actionShowQuickRef);
+    toolbar.add(f_actionShowDiff);
     toolbar.add(f_actionShowHints);
   }
 
