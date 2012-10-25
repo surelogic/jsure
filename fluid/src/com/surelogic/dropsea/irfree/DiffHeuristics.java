@@ -4,8 +4,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
-import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -61,31 +60,16 @@ public class DiffHeuristics {
 		if (!loc.first().isFromSource()) {
 			return; // Not enough info to do anything here
 		}
-		final IRNode enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());
-		/*
-		if (drop instanceof IPromiseDrop) {
-			PromiseDrop<?> d = (PromiseDrop<?>) drop;
-			if (d.getAAST().getAnnoContext() == d.getPromisedFor()) {
-				// These are created implicitly without an annotation
-				enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());
-			} else {
-				enclosingDecl = VisitUtil.getClosestAnnotation(loc.second());
-			}
-		} else if (drop instanceof IModelingProblemDrop) {
-			enclosingDecl = VisitUtil.getClosestAnnotation(loc.second());
-		} else {
-			enclosingDecl = DeclFactory.findEnclosingDecl(loc.second());			
-		}
-		*/
-		final IJavaRef enclosingRef = JavaNode.getJavaRef(enclosingDecl);    
-		if (enclosingDecl == null || enclosingRef == null) {
-			SLLogger.getLogger().warning("Diff info not computed due to no enclosing decl: "+drop.getMessage());
+		final IRNode closestDecl = DeclFactory.findClosestDecl(loc.second());
+		final IJavaRef closestRef = JavaNode.getJavaRef(closestDecl);    
+		if (closestDecl == null || closestRef == null) {
+			SLLogger.getLogger().warning("Diff info not computed due to no closest decl: "+drop.getMessage());
 			return;
 		}
 		computeDeclRelativeOffset(new Computation(IDiffInfo.DECL_RELATIVE_OFFSET, drop), 
-									loc, enclosingDecl, enclosingRef);
+									loc, closestDecl, closestRef);
 		computeDeclEndRelativeOffset(new Computation(IDiffInfo.DECL_END_RELATIVE_OFFSET, drop), 
-				                    loc.first(), enclosingRef);
+				                    loc.first(), closestRef);
 	}
 
 	/**
@@ -94,23 +78,27 @@ public class DiffHeuristics {
 	 * method)
 	 */
 	private static void computeDeclRelativeOffset(final Computation c, final Pair<IJavaRef,IRNode> loc, 
-			final IRNode enclosingDecl, final IJavaRef enclosingRef) {
+			final IRNode closestDecl, final IJavaRef closestRef) {
 		final IJavaRef here = loc.first();
-		final boolean inAnno = c.drop instanceof IPromiseDrop || 
+		final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop;
+		/*
+ 		final boolean inAnno = closestDecl == loc.second();
 		                       c.drop instanceof IModelingProblemDrop || 
+		                       c.drop instanceof IProposedPromiseDrop || is this right?
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;
-		final IRNode start = inAnno ? enclosingDecl : 
-			                 computeFirstInterestingNodeInDecl(enclosingDecl);
-		final IJavaRef startRef = (start == enclosingDecl) ? enclosingRef : JavaNode.getJavaRef(start);
-		if (c.isNull("start", start, enclosingRef) || 
-			c.isNull("start ref", startRef, enclosingRef) ||
+		*/
+		final IRNode start = useDecl ? closestDecl : 
+			                 computeFirstInterestingNodeInDecl(closestDecl);
+		final IJavaRef startRef = useDecl ? closestRef : JavaNode.getJavaRef(start);
+		if (c.isNull("start", start, closestRef) || 
+			c.isNull("start ref", startRef, closestRef) ||
 			c.isNeg("start offset", startRef.getOffset(), startRef) ||
 			c.isNeg("offset", here.getOffset(), here)) {
 			return;
 		}
 		int offset = here.getOffset() - startRef.getOffset();	
-		if (inAnno && offset < 0) {
+		if (useDecl && offset < 0) {
 			offset = Integer.MAX_VALUE + offset;
 		}
 		if (offset < 0) {
@@ -120,10 +108,10 @@ public class DiffHeuristics {
 				ParameterDeclaration.prototype.includes(op) || 
 				ClassType.prototype.includes(op) ||
 				TypeFormal.prototype.includes(op)) {
-				if (c.isNeg("enclosing offset", enclosingRef.getOffset(), enclosingRef)) {
+				if (c.isNeg("enclosing offset", closestRef.getOffset(), closestRef)) {
 					return;
 				}
-				offset = here.getOffset() - enclosingRef.getOffset();
+				offset = here.getOffset() - closestRef.getOffset();
 			}
 		}
 		c.add(offset);
