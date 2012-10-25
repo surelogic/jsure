@@ -10,7 +10,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.Pair;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
@@ -137,6 +136,8 @@ public final class JSureDataDirHub {
   private JSureDataDir f_dataDir;
   private JSureScan f_currentScan = null;
   private JSureScanInfo f_currentScanInfo = null;
+  private JSureScanInfo f_lastMatchingScanInfo = null;
+  private ScanDifferences f_scanDiff = null;
 
   @Unique
   private JSureDataDirHub() {
@@ -292,25 +293,31 @@ public final class JSureDataDirHub {
   }
 
   /**
+   * Gets the information about the last scan that matches the scan of focus.
+   * 
+   * @return the cached loaded information about the last scan that matches the
+   *         current scan of focus, which may be {@code null} to indicate no no
+   *         such scan could be found.
+   */
+  public JSureScanInfo getLastMatchingScanInfo() {
+    synchronized (f_lock) {
+      return f_lastMatchingScanInfo;
+    }
+  }
+
+  /**
    * Gets a report of the difference between the current scan and the last fully
    * compatible scan of the same set of projects.
    * 
-   * @return a pair comprising of the scan differences (first) and the scan info
-   *         for the old scan (second), or {@code null} if no compatible old
-   *         scan could be located.
+   * @return the differences between {@link #getCurrentScan()} and
+   *         {@link #getLastMatchingScanInfo()}, or {@code null} if the report
+   *         could not be computed, probably because no last matching scan
+   *         exists.
    */
-  public Pair<ScanDifferences, JSureScanInfo> getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() {
-    final JSureScanInfo currentScanInfo, lastScanInfo;
-	synchronized (f_lock) {
-		currentScanInfo = f_currentScanInfo;
-		JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
-		if (last == null) {
-			return null;
-		}
-		lastScanInfo = new JSureScanInfo(last);
-	}
-	ISeaDiff diff = currentScanInfo.diff(lastScanInfo, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
-    return new Pair<ScanDifferences, JSureScanInfo>(diff.build(), lastScanInfo);
+  public ScanDifferences getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() {
+    synchronized (f_lock) {
+      return f_scanDiff;
+    }
   }
 
   /**
@@ -350,10 +357,23 @@ public final class JSureDataDirHub {
         throw new IllegalArgumentException(I18N.err(232, value, f_dataDir.getDir().getAbsoluteFile()));
     }
     f_currentScan = value;
-    if (value == null)
+    if (value == null) {
       f_currentScanInfo = null;
-    else
+      f_lastMatchingScanInfo = null;
+      f_scanDiff = null;
+    } else {
       f_currentScanInfo = new JSureScanInfo(value);
+      final JSureScan last = f_dataDir.findLastMatchingScan(f_currentScanInfo.getJSureRun());
+      if (last == null) {
+        f_lastMatchingScanInfo = null;
+        f_scanDiff = null;
+      } else {
+        f_lastMatchingScanInfo = new JSureScanInfo(last);
+        final ISeaDiff diff = f_currentScanInfo.diff(f_lastMatchingScanInfo,
+            UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
+        f_scanDiff = diff.build();
+      }
+    }
     saveCurrentScanPreference();
   }
 
