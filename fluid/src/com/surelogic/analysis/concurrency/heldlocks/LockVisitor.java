@@ -363,17 +363,16 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 */
 	private IRNode ctxtInsideConstructor = null;
 
-	/**
-	 * If {@link #ctxtInsideConstructor} is non-<code>null</code> then this
-	 * refers to a one-element array whose single element is the name of the
-	 * constructor. This is used as a parameter to
-	 * {@link MessageFormat#format(java.lang.String, java.lang.Object[])}. We
-	 * create it once because it is silly to repeatedly recompute it for each
-	 * assurance result.
-	 * 
-	 * @see #ctxtInsideConstructor
-	 */
-	private Object[] ctxtConstructorName = null;
+  /**
+   * If {@link #ctxtInsideConstructor} is non-<code>null</code> then this refers
+   * to the name of the constructor. This is used as a parameter to
+   * {@link MessageFormat#format(java.lang.String, java.lang.Object[])}. We
+   * create it once because it is silly to repeatedly recompute it for each
+   * assurance result.
+   * 
+   * @see #ctxtInsideConstructor
+   */
+  private String ctxtConstructorName = null;
 
 	/**
 	 * When analyzing the body of a constructor (including any initialization
@@ -1706,16 +1705,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 				addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks,
 						heldJUCLocks.heldLocks);
-				if (ctxtOnBehalfOfConstructor) {
-					addSupportingInformation(resultDrop, ctxtInsideConstructor,
-							Messages.LockAnalysis_ds_OnBehalfOfConstructor,
-							ctxtConstructorName);
-          if (ctxtConstructorName.length > 0) {
-            final IDiffInfo diffInfo = DiffInfoUtility.getStringInstance(IDiffInfo.ANALYSIS_DIFF_HINT,
-                ctxtConstructorName[0].toString());
-            resultDrop.addOrReplaceDiffInfo(diffInfo);
-          }
-				}
+        if (ctxtOnBehalfOfConstructor) {
+          addSupportingInformation(resultDrop, ctxtInsideConstructor, Messages.LockAnalysis_ds_OnBehalfOfConstructor,
+              ctxtConstructorName);
+          final IDiffInfo diffInfo = DiffInfoUtility.getStringInstance(IDiffInfo.ANALYSIS_DIFF_HINT, ctxtConstructorName);
+          resultDrop.addOrReplaceDiffInfo(diffInfo);
+        }
 				if (lhr == LockHeldResult.THREAD_CONFINED) {
 					/*
 					 * ctxtSingleThreadedData must be non-null and
@@ -1961,7 +1956,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 */
 		// final LockExpressions.SingleThreadedData oldSingleThreadedData =
 		// ctxtSingleThreadedData;
-		final Object[] oldConstructorName = ctxtConstructorName;
+		final String oldConstructorName = ctxtConstructorName;
 		final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
 		final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
 		final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
@@ -2187,8 +2182,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtBcaQuery = bindingContextAnalysis
 					.getExpressionObjectsQuery(cdecl);
 			ctxtConflicter = new ConflictChecker(binder, mayAlias);
-			ctxtConstructorName = new Object[] { JavaNames
-					.genMethodConstructorName(cdecl) };
+      ctxtConstructorName = JavaNames.genMethodConstructorName(cdecl);
 			ctxtSingleThreadedData = jucLockUsageManager
 					.getSingleThreadedData(cdecl);
 
@@ -3052,7 +3046,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final ConflictChecker oldConflicter = ctxtConflicter;
 			final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
 			final IRNode oldInsideConstructor = ctxtInsideConstructor;
-			final Object[] oldConstructorName = ctxtConstructorName;
+			final String oldConstructorName = ctxtConstructorName;
 			final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
 			final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
 			final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
