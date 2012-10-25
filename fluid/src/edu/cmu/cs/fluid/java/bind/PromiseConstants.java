@@ -58,6 +58,7 @@ public interface PromiseConstants {
     PackageDeclaration.prototype,
 	TypeDeclaration.prototype, 
       MethodDeclaration.prototype,
+      AnnotationElement.prototype,
       FieldDeclaration.prototype,
       };
   
@@ -96,7 +97,7 @@ public interface PromiseConstants {
 		TypeDeclaration.prototype,  };  
   
   public static final Operator[] methodDeclOp =
-    { MethodDeclaration.prototype, };
+    { MethodDeclaration.prototype, AnnotationElement.prototype };
 
   public static final Operator[] constructorOp =
     { ConstructorDeclaration.prototype, };
@@ -105,11 +106,6 @@ public interface PromiseConstants {
     // AnonClassExpression.prototype,
     ClassInitDeclaration.prototype,
     SomeFunctionDeclaration.prototype, };
-
-  public static final Operator[] methodDeclOps = {
-	  // AnonClassExpression.prototype,
-	  ClassInitDeclaration.prototype,
-	  MethodDeclaration.prototype, };
   
   public static final Operator[] methodOrParamDeclOps = {
     // AnonClassExpression.prototype,
@@ -133,7 +129,7 @@ public interface PromiseConstants {
   
   public static final Operator[] fieldMethodParamDeclOps = {
 	    FieldDeclaration.prototype, ParameterDeclaration.prototype,
-	    MethodDeclaration.prototype, };
+	    MethodDeclaration.prototype, AnnotationElement.prototype };
   
   public static final Operator[] fieldFuncParamDeclOps = {
     FieldDeclaration.prototype, ParameterDeclaration.prototype,
@@ -158,15 +154,6 @@ public interface PromiseConstants {
   public static final Operator[] statementOp = { Statement.prototype, };
   
   public static final Operator[] blockOps = { BlockStatement.prototype, };
-  
-  public static final Operator[] declOrStatementOps = {
-		// AnonClassExpression.prototype,
-		PackageDeclaration.prototype,
-		TypeDeclaration.prototype, 
-			MethodDeclaration.prototype,
-			FieldDeclaration.prototype,
-		    Statement.prototype,
-  };
   
   public static final Operator[] methodDeclOrStatementOps = {
 		// AnonClassExpression.prototype,
